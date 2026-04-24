@@ -1,0 +1,74 @@
+'use client';
+
+import { useState, useTransition } from 'react';
+import { useTranslations } from 'next-intl';
+import { useRouter } from '@/i18n/navigation';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { PhoneInput } from '@/components/auth/phone-input';
+import { requestOtpAction } from '@/app/[locale]/(auth)/actions';
+
+function mapError(code: string, t: (k: string) => string): string {
+  switch (code) {
+    case 'INVALID_INPUT':
+      return t('errors.invalidPhone');
+    case 'RATE_LIMITED':
+      return t('errors.rateLimited');
+    default:
+      return t('errors.unknown');
+  }
+}
+
+export function SignInForm() {
+  const t = useTranslations('Auth');
+  const router = useRouter();
+  const [pending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string[] | undefined>>({});
+
+  function handleSubmit(formData: FormData) {
+    setError(null);
+    setFieldErrors({});
+    startTransition(async () => {
+      const result = await requestOtpAction(formData);
+      if (result.ok) {
+        const phone = result.phone ?? '';
+        router.push({
+          pathname: '/verify',
+          query: { phone },
+        });
+        return;
+      }
+      setError(mapError(result.error, t));
+      if (result.fieldErrors) setFieldErrors(result.fieldErrors);
+    });
+  }
+
+  const phoneError = fieldErrors.phone?.[0];
+
+  return (
+    <form action={handleSubmit} className="flex flex-col gap-5" noValidate>
+      <div className="flex flex-col gap-2">
+        <Label htmlFor="phone">{t('phoneLabel')}</Label>
+        <PhoneInput
+          id="phone"
+          name="phone"
+          autoFocus
+          required
+          error={phoneError}
+          aria-describedby={error ? 'auth-error' : undefined}
+        />
+      </div>
+
+      {error ? (
+        <p id="auth-error" role="alert" className="text-sm text-[color:var(--color-destructive)]">
+          {error}
+        </p>
+      ) : null}
+
+      <Button type="submit" size="lg" disabled={pending}>
+        {pending ? t('sending') : t('sendCode')}
+      </Button>
+    </form>
+  );
+}
