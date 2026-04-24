@@ -16,7 +16,8 @@ test.describe('Auth — sign-in page', () => {
     await phone.fill('abc');
     await page.getByRole('button', { name: /envoyer le code/i }).click();
 
-    await expect(page.getByRole('alert')).toBeVisible();
+    await expect(page.locator('#auth-error')).toBeVisible();
+    await expect(page.locator('#auth-error')).toContainText(/invalide/i);
   });
 });
 
