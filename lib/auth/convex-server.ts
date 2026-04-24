@@ -89,6 +89,81 @@ export const convexApi = {
       updatedAt: number;
     }>
   >('events:listByOwner'),
+  getEventById: makeFunctionReference<
+    'query',
+    { eventId: string; requesterId: string },
+    {
+      _id: string;
+      ownerId: string;
+      slug: string;
+      title: string;
+      coupleNames: { partnerA: string; partnerB: string };
+      eventDate: number;
+      timezone: string;
+      venue?: { name: string; address: string; lat?: number; lng?: number };
+      theme?: { primaryColor: string; accentColor: string; fontFamily: string };
+      status: 'draft' | 'active' | 'archived' | 'cancelled';
+      planTier: 'free' | 'essential' | 'premium';
+      maxGuests: number;
+      updatedAt: number;
+    } | null
+  >('events:getById'),
+  addGuest: makeFunctionReference<
+    'mutation',
+    {
+      eventId: string;
+      requesterId: string;
+      fullName: string;
+      phone?: string;
+      email?: string;
+      category?: string;
+      plusOnesAllowed: number;
+      notes?: string;
+    },
+    { id: string; qrCodeToken: string }
+  >('guests:add'),
+  updateGuest: makeFunctionReference<
+    'mutation',
+    {
+      guestId: string;
+      requesterId: string;
+      fullName?: string;
+      phone?: string;
+      email?: string;
+      category?: string;
+      plusOnesAllowed?: number;
+      notes?: string;
+    },
+    { ok: true }
+  >('guests:update'),
+  removeGuest: makeFunctionReference<
+    'mutation',
+    { guestId: string; requesterId: string },
+    { ok: true }
+  >('guests:remove'),
+  listGuestsByEvent: makeFunctionReference<
+    'query',
+    { eventId: string; requesterId: string },
+    Array<{
+      _id: string;
+      fullName: string;
+      phone?: string;
+      email?: string;
+      category?: string;
+      plusOnesAllowed: number;
+      rsvpStatus: 'pending' | 'attending' | 'declined' | 'maybe';
+      invitationSentAt?: number;
+      notes?: string;
+      qrCodeToken: string;
+      createdAt: number;
+      updatedAt: number;
+    }>
+  >('guests:listByEvent'),
+  countGuestsByEvent: makeFunctionReference<
+    'query',
+    { eventId: string; requesterId: string },
+    { total: number; attending: number; declined: number; pending: number; maybe: number }
+  >('guests:countByEvent'),
 } satisfies Record<
   string,
   FunctionReference<'query' | 'mutation' | 'action', 'public', Args, unknown>

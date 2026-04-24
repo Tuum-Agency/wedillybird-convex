@@ -77,27 +77,31 @@ export default async function DashboardPage({ params }: { params: Promise<{ loca
             </div>
             <ul className="grid grid-cols-1 gap-4 md:grid-cols-2">
               {events.map((ev) => (
-                <li
-                  key={ev._id}
-                  className="flex flex-col gap-3 rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-5"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <h3 className="font-display text-lg leading-tight font-semibold">{ev.title}</h3>
-                    <Badge variant={statusVariant(ev.status)}>{t(statusKey(ev.status))}</Badge>
-                  </div>
-                  <p className="text-sm text-[color:var(--color-muted)]">
-                    {ev.coupleNames.partnerA} & {ev.coupleNames.partnerB}
-                  </p>
-                  <p className="text-sm">
-                    {new Intl.DateTimeFormat('fr', {
-                      dateStyle: 'long',
-                      timeStyle: 'short',
-                      timeZone: ev.timezone,
-                    }).format(new Date(ev.eventDate))}
-                  </p>
-                  {ev.venue ? (
-                    <p className="text-xs text-[color:var(--color-muted)]">{ev.venue.name}</p>
-                  ) : null}
+                <li key={ev._id}>
+                  <Link
+                    href={`/events/${ev._id}`}
+                    className="focus-ring flex flex-col gap-3 rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-5 transition-colors hover:bg-[color:var(--color-ivory-100)]"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <h3 className="font-display text-lg leading-tight font-semibold">
+                        {ev.title}
+                      </h3>
+                      <Badge variant={statusVariant(ev.status)}>{t(statusKey(ev.status))}</Badge>
+                    </div>
+                    <p className="text-sm text-[color:var(--color-muted)]">
+                      {ev.coupleNames.partnerA} & {ev.coupleNames.partnerB}
+                    </p>
+                    <p className="text-sm">
+                      {new Intl.DateTimeFormat('fr', {
+                        dateStyle: 'long',
+                        timeStyle: 'short',
+                        timeZone: ev.timezone,
+                      }).format(new Date(ev.eventDate))}
+                    </p>
+                    {ev.venue ? (
+                      <p className="text-xs text-[color:var(--color-muted)]">{ev.venue.name}</p>
+                    ) : null}
+                  </Link>
                 </li>
               ))}
             </ul>

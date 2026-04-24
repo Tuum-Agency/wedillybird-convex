@@ -116,6 +116,41 @@
     "guests": "{count, plural, =0 {aucun invité} =1 {1 invité} other {# invités}}",
     "rsvpAttending": "{count, plural, =0 {personne confirmée} =1 {1 personne confirmée} other {# personnes confirmées}}"
   },
+  "EventDetail": {
+    "backToDashboard": "Retour au tableau de bord",
+    "dateSection": "Date",
+    "venueSection": "Lieu",
+    "noVenue": "Aucun lieu défini pour le moment.",
+    "guestsTitle": "Invités",
+    "guestsSummary": "{total, plural, =0 {Aucun invité ajouté} =1 {1 invité} other {# invités}} · {attending, plural, =0 {aucune confirmation} =1 {1 confirmé} other {# confirmés}} · limite {max}",
+    "manageGuests": "Gérer les invités"
+  },
+  "Guests": {
+    "title": "Liste d'invités",
+    "listTitle": "Tous les invités",
+    "summary": "{total, plural, =0 {Aucun invité} =1 {1 invité} other {# invités}} sur {max} autorisés",
+    "backToEvent": "Retour à l'événement",
+    "empty": "Personne n'a encore été ajouté. Invitez vos proches pour commencer.",
+    "addGuest": "Ajouter un invité",
+    "adding": "Ajout…",
+    "fullNameLabel": "Nom complet",
+    "fullNamePlaceholder": "Aminata Diallo",
+    "phoneLabel": "Téléphone (WhatsApp)",
+    "emailLabel": "Email",
+    "emailPlaceholder": "aminata@exemple.com",
+    "categoryLabel": "Catégorie",
+    "categoryPlaceholder": "Famille, collègues…",
+    "plusOnesLabel": "Accompagnants autorisés",
+    "notesLabel": "Notes",
+    "notesPlaceholder": "Régime alimentaire, siège enfant…",
+    "rsvpPending": "En attente",
+    "rsvpAttending": "Confirmé",
+    "rsvpDeclined": "Décliné",
+    "rsvpMaybe": "Peut-être",
+    "errors": {
+      "submit": "Impossible d'ajouter l'invité. Réessayez."
+    }
+  },
   "EventCreate": {
     "title": "Créer votre mariage",
     "description": "En 4 étapes, configurez l'essentiel. Vous pourrez tout modifier plus tard.",
