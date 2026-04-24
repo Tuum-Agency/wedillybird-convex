@@ -36,6 +36,17 @@ yarn-error.log*
 # vercel
 .vercel
 
+# convex
+.convex
+convex/_generated
+
+# tests
+/coverage
+/test-results
+/playwright-report
+/playwright/.cache
+/blob-report
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
