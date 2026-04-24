@@ -123,7 +123,8 @@
     "noVenue": "Aucun lieu défini pour le moment.",
     "guestsTitle": "Invités",
     "guestsSummary": "{total, plural, =0 {Aucun invité ajouté} =1 {1 invité} other {# invités}} · {attending, plural, =0 {aucune confirmation} =1 {1 confirmé} other {# confirmés}} · limite {max}",
-    "manageGuests": "Gérer les invités"
+    "manageGuests": "Gérer les invités",
+    "openCheckIn": "Check-in"
   },
   "Guests": {
     "title": "Liste d'invités",
@@ -188,6 +189,26 @@
     "declined": "Déclinés",
     "maybe": "Peut-être",
     "export": "Exporter CSV"
+  },
+  "Checkin": {
+    "title": "Check-in des invités",
+    "subtitle": "Scannez les QR codes pour confirmer les arrivées",
+    "backToEvent": "Retour à l'événement",
+    "online": "En ligne",
+    "offline": "Hors ligne",
+    "lastSync": "Sync {time}",
+    "neverSynced": "Jamais synchronisé",
+    "guestsCached": "{count, plural, =0 {aucun invité en cache} =1 {1 invité en cache} other {# invités en cache}}",
+    "manualPlaceholder": "Entrer un code manuellement",
+    "manualSubmit": "Valider",
+    "toastSuccess": "Bienvenue",
+    "toastAlready": "Déjà enregistré",
+    "toastError": "Impossible de valider",
+    "toastOffline": "Enregistré localement (hors ligne)",
+    "unknownGuest": "Code QR inconnu",
+    "unknownGuestOffline": "Code QR hors ligne inconnu",
+    "errorGeneric": "Erreur",
+    "undo": "Annuler"
   },
   "EventCreate": {
     "title": "Créer votre mariage",

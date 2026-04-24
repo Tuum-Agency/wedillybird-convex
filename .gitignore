@@ -50,3 +50,6 @@ convex/_generated
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# claude agent internals
+.claude/

@@ -200,6 +200,40 @@ export const convexApi = {
     },
     { ok: true }
   >('rsvps:submit'),
+  listGuestsForCheckIn: makeFunctionReference<
+    'query',
+    { eventId: string; requesterId: string },
+    Array<{
+      _id: string;
+      fullName: string;
+      category?: string;
+      plusOnesAllowed: number;
+      rsvpStatus: 'pending' | 'attending' | 'declined' | 'maybe';
+      qrCodeToken: string;
+      checkedInAt?: number;
+    }>
+  >('guests:listForCheckIn'),
+  checkInByToken: makeFunctionReference<
+    'mutation',
+    { token: string; eventId: string; requesterId: string },
+    {
+      ok: true;
+      alreadyCheckedIn: boolean;
+      checkedInAt: number;
+      guest: {
+        _id: string;
+        fullName: string;
+        category?: string;
+        plusOnesAllowed: number;
+        rsvpStatus: 'pending' | 'attending' | 'declined' | 'maybe';
+      };
+    }
+  >('guests:checkInByToken'),
+  undoCheckIn: makeFunctionReference<
+    'mutation',
+    { guestId: string; requesterId: string },
+    { ok: true }
+  >('guests:undoCheckIn'),
 } satisfies Record<
   string,
   FunctionReference<'query' | 'mutation' | 'action', 'public', Args, unknown>
