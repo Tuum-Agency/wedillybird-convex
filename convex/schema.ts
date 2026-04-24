@@ -1,0 +1,132 @@
+import { defineSchema, defineTable } from 'convex/server';
+import { v } from 'convex/values';
+
+export default defineSchema({
+  users: defineTable({
+    phone: v.string(),
+    email: v.optional(v.string()),
+    fullName: v.optional(v.string()),
+    avatarUrl: v.optional(v.string()),
+    locale: v.union(v.literal('fr')),
+    role: v.union(v.literal('couple'), v.literal('pro'), v.literal('guest'), v.literal('admin')),
+    planTier: v.optional(
+      v.union(
+        v.literal('free'),
+        v.literal('essential'),
+        v.literal('premium'),
+        v.literal('starter'),
+        v.literal('business'),
+        v.literal('agency'),
+      ),
+    ),
+    stripeCustomerId: v.optional(v.string()),
+    cinetpayCustomerId: v.optional(v.string()),
+    createdAt: v.number(),
+    lastSeenAt: v.optional(v.number()),
+  })
+    .index('by_phone', ['phone'])
+    .index('by_email', ['email']),
+
+  events: defineTable({
+    ownerId: v.id('users'),
+    slug: v.string(),
+    title: v.string(),
+    coupleNames: v.object({
+      partnerA: v.string(),
+      partnerB: v.string(),
+    }),
+    eventDate: v.number(),
+    timezone: v.string(),
+    venue: v.optional(
+      v.object({
+        name: v.string(),
+        address: v.string(),
+        lat: v.optional(v.number()),
+        lng: v.optional(v.number()),
+      }),
+    ),
+    coverImageKey: v.optional(v.string()),
+    theme: v.optional(
+      v.object({
+        primaryColor: v.string(),
+        accentColor: v.string(),
+        fontFamily: v.string(),
+      }),
+    ),
+    status: v.union(
+      v.literal('draft'),
+      v.literal('active'),
+      v.literal('archived'),
+      v.literal('cancelled'),
+    ),
+    planTier: v.union(v.literal('free'), v.literal('essential'), v.literal('premium')),
+    maxGuests: v.number(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index('by_owner', ['ownerId'])
+    .index('by_slug', ['slug'])
+    .index('by_status', ['status']),
+
+  guests: defineTable({
+    eventId: v.id('events'),
+    fullName: v.string(),
+    phone: v.optional(v.string()),
+    email: v.optional(v.string()),
+    category: v.optional(v.string()),
+    plusOnesAllowed: v.number(),
+    plusOnesNames: v.optional(v.array(v.string())),
+    rsvpStatus: v.union(
+      v.literal('pending'),
+      v.literal('attending'),
+      v.literal('declined'),
+      v.literal('maybe'),
+    ),
+    rsvpRespondedAt: v.optional(v.number()),
+    dietaryRestrictions: v.optional(v.string()),
+    notes: v.optional(v.string()),
+    qrCodeToken: v.string(),
+    checkedInAt: v.optional(v.number()),
+    checkedInBy: v.optional(v.id('users')),
+    invitationSentAt: v.optional(v.number()),
+    invitationChannel: v.optional(
+      v.union(v.literal('whatsapp'), v.literal('email'), v.literal('sms')),
+    ),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index('by_event', ['eventId'])
+    .index('by_event_rsvp', ['eventId', 'rsvpStatus'])
+    .index('by_qr_token', ['qrCodeToken'])
+    .index('by_phone', ['phone']),
+
+  eventCollaborators: defineTable({
+    eventId: v.id('events'),
+    userId: v.id('users'),
+    role: v.union(
+      v.literal('co_owner'),
+      v.literal('planner'),
+      v.literal('scanner'),
+      v.literal('viewer'),
+    ),
+    invitedBy: v.id('users'),
+    invitedAt: v.number(),
+    acceptedAt: v.optional(v.number()),
+  })
+    .index('by_event', ['eventId'])
+    .index('by_user', ['userId'])
+    .index('by_event_user', ['eventId', 'userId']),
+
+  otpSessions: defineTable({
+    phone: v.string(),
+    codeHash: v.string(),
+    channel: v.union(v.literal('whatsapp'), v.literal('sms')),
+    attempts: v.number(),
+    expiresAt: v.number(),
+    consumedAt: v.optional(v.number()),
+    createdAt: v.number(),
+    ipAddress: v.optional(v.string()),
+  })
+    .index('by_phone', ['phone'])
+    .index('by_phone_expires', ['phone', 'expiresAt']),
+});

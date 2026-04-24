@@ -1,0 +1,86 @@
+import { describe, expect, it, vi, beforeEach } from 'vitest';
+import { render, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+
+const pushMock = vi.fn();
+const refreshMock = vi.fn();
+const completeOnboardingActionMock = vi.fn();
+
+vi.mock('@/i18n/navigation', () => ({
+  useRouter: () => ({ push: pushMock, refresh: refreshMock }),
+}));
+
+vi.mock('@/app/[locale]/(auth)/actions', () => ({
+  completeOnboardingAction: (formData: FormData) => completeOnboardingActionMock(formData),
+}));
+
+vi.mock('next-intl', () => ({
+  useTranslations: (namespace?: string) => (key: string) => `${namespace ?? 'T'}.${key}`,
+}));
+
+import { OnboardingWizard } from '@/components/onboarding/onboarding-wizard';
+
+beforeEach(() => {
+  pushMock.mockReset();
+  refreshMock.mockReset();
+  completeOnboardingActionMock.mockReset();
+});
+
+describe('OnboardingWizard', () => {
+  it('renders step 1 first (profile)', () => {
+    render(<OnboardingWizard />);
+    expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent('stepProfile');
+    expect(screen.getByLabelText('Onboarding.fullNameLabel')).toBeInTheDocument();
+  });
+
+  it('disables Next until fullName has 2+ chars', async () => {
+    const user = userEvent.setup();
+    render(<OnboardingWizard />);
+    const next = screen.getByRole('button', { name: 'Onboarding.next' });
+    expect(next).toBeDisabled();
+
+    const name = screen.getByLabelText('Onboarding.fullNameLabel');
+    await user.type(name, 'Al');
+    expect(next).toBeEnabled();
+  });
+
+  it('advances to step 2 (role) after clicking Next', async () => {
+    const user = userEvent.setup();
+    render(<OnboardingWizard />);
+    await user.type(screen.getByLabelText('Onboarding.fullNameLabel'), 'Alice Martin');
+    await user.click(screen.getByRole('button', { name: 'Onboarding.next' }));
+
+    expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent('stepRole');
+    const group = screen.getByRole('radiogroup');
+    expect(within(group).getAllByRole('radio')).toHaveLength(2);
+  });
+
+  it('rejects invalid email format at step 1', async () => {
+    const user = userEvent.setup();
+    render(<OnboardingWizard />);
+    await user.type(screen.getByLabelText('Onboarding.fullNameLabel'), 'Alice Martin');
+    await user.type(screen.getByLabelText('Onboarding.emailLabel'), 'not-an-email');
+    await user.click(screen.getByRole('button', { name: 'Onboarding.next' }));
+
+    // Still on step 1
+    expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent('stepProfile');
+  });
+
+  it('submits with fullName and selected role (redirect handled server-side)', async () => {
+    completeOnboardingActionMock.mockResolvedValue({ ok: true });
+    const user = userEvent.setup();
+    render(<OnboardingWizard />);
+
+    await user.type(screen.getByLabelText('Onboarding.fullNameLabel'), 'Alice Martin');
+    await user.click(screen.getByRole('button', { name: 'Onboarding.next' }));
+
+    const group = screen.getByRole('radiogroup');
+    await user.click(within(group).getAllByRole('radio')[0]!);
+    await user.click(screen.getByRole('button', { name: 'Onboarding.finish' }));
+
+    expect(completeOnboardingActionMock).toHaveBeenCalledTimes(1);
+    const formData = completeOnboardingActionMock.mock.calls[0]![0] as FormData;
+    expect(formData.get('fullName')).toBe('Alice Martin');
+    expect(formData.get('role')).toBe('couple');
+  });
+});

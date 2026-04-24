@@ -1,0 +1,2 @@
+echo "[pre-push] typecheck + lint + tests unitaires"
+pnpm typecheck && pnpm lint && pnpm test

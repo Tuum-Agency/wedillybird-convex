@@ -1,0 +1,188 @@
+{
+  "Common": {
+    "appName": "Wedillybird",
+    "tagline": "Votre mariage, organisé sans stress",
+    "signIn": "Se connecter",
+    "signUp": "Créer un compte",
+    "signOut": "Se déconnecter",
+    "continue": "Continuer",
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "back": "Retour",
+    "loading": "Chargement…",
+    "error": "Une erreur est survenue",
+    "retry": "Réessayer"
+  },
+  "Landing": {
+    "hero": {
+      "title": "L'organisation de mariage, simplifiée par WhatsApp",
+      "subtitle": "Invitations, RSVP, check-in, galerie partagée. Tout ce dont vous avez besoin, rien de superflu.",
+      "ctaPrimary": "Commencer gratuitement",
+      "ctaSecondary": "Voir une démo"
+    },
+    "features": {
+      "invites": {
+        "title": "Invitations WhatsApp",
+        "description": "Envoyez des invitations personnalisées avec QR code directement sur WhatsApp."
+      },
+      "rsvp": {
+        "title": "Suivi RSVP en temps réel",
+        "description": "Visualisez les réponses de vos invités au fur et à mesure, sans relance manuelle."
+      },
+      "checkin": {
+        "title": "Check-in le jour J",
+        "description": "Scannez les QR codes à l'entrée, même sans connexion internet."
+      },
+      "gallery": {
+        "title": "Galerie partagée",
+        "description": "Invitez vos proches à partager leurs photos et vidéos dans un espace privé."
+      }
+    },
+    "pricing": {
+      "title": "Un prix juste pour chaque mariage",
+      "free": {
+        "name": "Essentiel",
+        "price": "Gratuit",
+        "description": "Jusqu'à 30 invités"
+      },
+      "essential": {
+        "name": "Sérénité",
+        "price": "49 €",
+        "description": "Jusqu'à 150 invités"
+      },
+      "premium": {
+        "name": "Prestige",
+        "price": "119 €",
+        "description": "Invités illimités + galerie"
+      }
+    }
+  },
+  "Auth": {
+    "signInTitle": "Connexion par WhatsApp",
+    "signInDescription": "Entrez votre numéro WhatsApp, nous vous envoyons un code à 6 chiffres.",
+    "verifyTitle": "Vérifiez votre code",
+    "verifyDescription": "Nous avons envoyé un code à {phone}. Il expire dans 5 minutes.",
+    "changeNumber": "Changer de numéro",
+    "phoneLabel": "Numéro WhatsApp",
+    "phonePlaceholder": "+33 6 12 34 56 78",
+    "codeLabel": "Code reçu par WhatsApp",
+    "codePlaceholder": "6 chiffres",
+    "sendCode": "Envoyer le code",
+    "sending": "Envoi…",
+    "verifyCode": "Vérifier",
+    "verifying": "Vérification…",
+    "resendCode": "Renvoyer le code",
+    "resendIn": "Renvoyer dans {seconds}s",
+    "noPhone": "Aucun numéro n'a été fourni. Recommencez depuis la connexion.",
+    "privacy": "En continuant, vous acceptez notre politique de confidentialité.",
+    "errors": {
+      "invalidPhone": "Numéro de téléphone invalide",
+      "invalidCode": "Code incorrect ou expiré",
+      "tooManyAttempts": "Trop de tentatives, réessayez dans quelques minutes",
+      "rateLimited": "Trop de codes demandés. Patientez quelques minutes.",
+      "expired": "Code expiré, demandez-en un nouveau.",
+      "unknown": "Une erreur est survenue. Réessayez."
+    }
+  },
+  "Onboarding": {
+    "stepProfile": "Votre profil",
+    "stepProfileDescription": "Dites-nous comment vous présenter à vos invités.",
+    "stepRole": "Vous êtes…",
+    "stepRoleDescription": "Choisissez votre rôle pour personnaliser votre expérience.",
+    "fullNameLabel": "Prénom et nom",
+    "fullNamePlaceholder": "Amadou Diallo",
+    "emailLabel": "Email (optionnel)",
+    "emailPlaceholder": "vous@exemple.com",
+    "roleCouple": "Un couple qui se marie",
+    "roleCoupleDescription": "Pour organiser votre propre mariage.",
+    "rolePro": "Un professionnel",
+    "roleProDescription": "Wedding planner, photographe, lieu de réception…",
+    "next": "Suivant",
+    "previous": "Précédent",
+    "finish": "Terminer"
+  },
+  "Dashboard": {
+    "greeting": "Bonjour {name}",
+    "noEvents": "Vous n'avez pas encore de mariage",
+    "createEvent": "Créer un événement",
+    "upcomingEvent": "Prochain événement",
+    "eventsTitle": "Vos mariages",
+    "draftBadge": "Brouillon",
+    "activeBadge": "Publié",
+    "archivedBadge": "Archivé",
+    "cancelledBadge": "Annulé",
+    "guests": "{count, plural, =0 {aucun invité} =1 {1 invité} other {# invités}}",
+    "rsvpAttending": "{count, plural, =0 {personne confirmée} =1 {1 personne confirmée} other {# personnes confirmées}}"
+  },
+  "EventDetail": {
+    "backToDashboard": "Retour au tableau de bord",
+    "dateSection": "Date",
+    "venueSection": "Lieu",
+    "noVenue": "Aucun lieu défini pour le moment.",
+    "guestsTitle": "Invités",
+    "guestsSummary": "{total, plural, =0 {Aucun invité ajouté} =1 {1 invité} other {# invités}} · {attending, plural, =0 {aucune confirmation} =1 {1 confirmé} other {# confirmés}} · limite {max}",
+    "manageGuests": "Gérer les invités"
+  },
+  "Guests": {
+    "title": "Liste d'invités",
+    "listTitle": "Tous les invités",
+    "summary": "{total, plural, =0 {Aucun invité} =1 {1 invité} other {# invités}} sur {max} autorisés",
+    "backToEvent": "Retour à l'événement",
+    "empty": "Personne n'a encore été ajouté. Invitez vos proches pour commencer.",
+    "addGuest": "Ajouter un invité",
+    "adding": "Ajout…",
+    "fullNameLabel": "Nom complet",
+    "fullNamePlaceholder": "Aminata Diallo",
+    "phoneLabel": "Téléphone (WhatsApp)",
+    "emailLabel": "Email",
+    "emailPlaceholder": "aminata@exemple.com",
+    "categoryLabel": "Catégorie",
+    "categoryPlaceholder": "Famille, collègues…",
+    "plusOnesLabel": "Accompagnants autorisés",
+    "notesLabel": "Notes",
+    "notesPlaceholder": "Régime alimentaire, siège enfant…",
+    "rsvpPending": "En attente",
+    "rsvpAttending": "Confirmé",
+    "rsvpDeclined": "Décliné",
+    "rsvpMaybe": "Peut-être",
+    "errors": {
+      "submit": "Impossible d'ajouter l'invité. Réessayez."
+    }
+  },
+  "EventCreate": {
+    "title": "Créer votre mariage",
+    "description": "En 4 étapes, configurez l'essentiel. Vous pourrez tout modifier plus tard.",
+    "stepCouple": "Le couple",
+    "stepCoupleDescription": "Les prénoms qui apparaîtront sur les invitations.",
+    "stepDate": "Date et fuseau",
+    "stepDateDescription": "Quand votre événement a-t-il lieu ?",
+    "stepVenue": "Le lieu (optionnel)",
+    "stepVenueDescription": "Où vos invités vous retrouveront.",
+    "stepTheme": "Thème visuel (optionnel)",
+    "stepThemeDescription": "Personnalisez les couleurs de votre invitation.",
+    "titleLabel": "Titre de l'événement",
+    "titlePlaceholder": "Mariage de Fatou & Amadou",
+    "partnerALabel": "Partenaire 1",
+    "partnerBLabel": "Partenaire 2",
+    "dateLabel": "Date et heure",
+    "timezoneLabel": "Fuseau horaire",
+    "venueNameLabel": "Nom du lieu",
+    "venueNamePlaceholder": "Domaine des Lilas",
+    "venueAddressLabel": "Adresse",
+    "venueAddressPlaceholder": "12 avenue de la République, Dakar",
+    "primaryColorLabel": "Couleur principale",
+    "accentColorLabel": "Couleur d'accent",
+    "fontFamilyLabel": "Police",
+    "skip": "Passer",
+    "next": "Suivant",
+    "previous": "Précédent",
+    "submit": "Créer l'événement",
+    "creating": "Création…",
+    "errors": {
+      "submit": "Impossible de créer l'événement. Réessayez.",
+      "invalidDate": "La date doit être dans le futur."
+    }
+  }
+}

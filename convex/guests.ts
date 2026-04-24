@@ -1,0 +1,192 @@
+import { v } from 'convex/values';
+import { mutation, query, type MutationCtx, type QueryCtx } from './_generated/server';
+import type { Doc, Id } from './_generated/dataModel';
+import { generateQrToken } from './lib/qrToken';
+
+const QR_MAX_ATTEMPTS = 6;
+
+async function assertEventOwnership(
+  ctx: MutationCtx | QueryCtx,
+  eventId: Id<'events'>,
+  userId: Id<'users'>,
+): Promise<Doc<'events'>> {
+  const event = await ctx.db.get(eventId);
+  if (!event) throw new Error('EVENT_NOT_FOUND');
+  if (event.ownerId !== userId) throw new Error('FORBIDDEN');
+  return event;
+}
+
+async function uniqueQrToken(ctx: MutationCtx): Promise<string> {
+  for (let i = 0; i < QR_MAX_ATTEMPTS; i++) {
+    const token = generateQrToken();
+    const existing = await ctx.db
+      .query('guests')
+      .withIndex('by_qr_token', (q) => q.eq('qrCodeToken', token))
+      .first();
+    if (!existing) return token;
+  }
+  throw new Error('QR_TOKEN_GENERATION_FAILED');
+}
+
+export const add = mutation({
+  args: {
+    eventId: v.id('events'),
+    requesterId: v.id('users'),
+    fullName: v.string(),
+    phone: v.optional(v.string()),
+    email: v.optional(v.string()),
+    category: v.optional(v.string()),
+    plusOnesAllowed: v.number(),
+    notes: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    await assertEventOwnership(ctx, args.eventId, args.requesterId);
+
+    const fullName = args.fullName.trim();
+    if (fullName.length < 1 || fullName.length > 120) throw new Error('INVALID_FULL_NAME');
+    if (
+      !Number.isInteger(args.plusOnesAllowed) ||
+      args.plusOnesAllowed < 0 ||
+      args.plusOnesAllowed > 10
+    ) {
+      throw new Error('INVALID_PLUS_ONES');
+    }
+
+    const qrCodeToken = await uniqueQrToken(ctx);
+    const now = Date.now();
+
+    const id = await ctx.db.insert('guests', {
+      eventId: args.eventId,
+      fullName,
+      ...(args.phone ? { phone: args.phone.trim() } : {}),
+      ...(args.email ? { email: args.email.trim().toLowerCase() } : {}),
+      ...(args.category ? { category: args.category.trim() } : {}),
+      plusOnesAllowed: args.plusOnesAllowed,
+      rsvpStatus: 'pending' as const,
+      ...(args.notes ? { notes: args.notes.trim() } : {}),
+      qrCodeToken,
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    return { id, qrCodeToken };
+  },
+});
+
+export const update = mutation({
+  args: {
+    guestId: v.id('guests'),
+    requesterId: v.id('users'),
+    fullName: v.optional(v.string()),
+    phone: v.optional(v.string()),
+    email: v.optional(v.string()),
+    category: v.optional(v.string()),
+    plusOnesAllowed: v.optional(v.number()),
+    notes: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const guest = await ctx.db.get(args.guestId);
+    if (!guest) throw new Error('GUEST_NOT_FOUND');
+    await assertEventOwnership(ctx, guest.eventId, args.requesterId);
+
+    const patch: Partial<Doc<'guests'>> = { updatedAt: Date.now() };
+
+    if (args.fullName !== undefined) {
+      const trimmed = args.fullName.trim();
+      if (trimmed.length < 1 || trimmed.length > 120) throw new Error('INVALID_FULL_NAME');
+      patch.fullName = trimmed;
+    }
+    if (args.phone !== undefined) patch.phone = args.phone.trim() || undefined;
+    if (args.email !== undefined) patch.email = args.email.trim().toLowerCase() || undefined;
+    if (args.category !== undefined) patch.category = args.category.trim() || undefined;
+    if (args.notes !== undefined) patch.notes = args.notes.trim() || undefined;
+    if (args.plusOnesAllowed !== undefined) {
+      if (
+        !Number.isInteger(args.plusOnesAllowed) ||
+        args.plusOnesAllowed < 0 ||
+        args.plusOnesAllowed > 10
+      ) {
+        throw new Error('INVALID_PLUS_ONES');
+      }
+      patch.plusOnesAllowed = args.plusOnesAllowed;
+    }
+
+    await ctx.db.patch(args.guestId, patch);
+    return { ok: true as const };
+  },
+});
+
+export const remove = mutation({
+  args: { guestId: v.id('guests'), requesterId: v.id('users') },
+  handler: async (ctx, { guestId, requesterId }) => {
+    const guest = await ctx.db.get(guestId);
+    if (!guest) throw new Error('GUEST_NOT_FOUND');
+    await assertEventOwnership(ctx, guest.eventId, requesterId);
+    await ctx.db.delete(guestId);
+    return { ok: true as const };
+  },
+});
+
+export const listByEvent = query({
+  args: { eventId: v.id('events'), requesterId: v.id('users') },
+  handler: async (ctx, { eventId, requesterId }) => {
+    await assertEventOwnership(ctx, eventId, requesterId);
+    const rows = await ctx.db
+      .query('guests')
+      .withIndex('by_event', (q) => q.eq('eventId', eventId))
+      .order('desc')
+      .collect();
+    return rows.map((g) => ({
+      _id: g._id,
+      fullName: g.fullName,
+      phone: g.phone,
+      email: g.email,
+      category: g.category,
+      plusOnesAllowed: g.plusOnesAllowed,
+      rsvpStatus: g.rsvpStatus,
+      invitationSentAt: g.invitationSentAt,
+      notes: g.notes,
+      qrCodeToken: g.qrCodeToken,
+      createdAt: g.createdAt,
+      updatedAt: g.updatedAt,
+    }));
+  },
+});
+
+export const countByEvent = query({
+  args: { eventId: v.id('events'), requesterId: v.id('users') },
+  handler: async (ctx, { eventId, requesterId }) => {
+    await assertEventOwnership(ctx, eventId, requesterId);
+    const rows = await ctx.db
+      .query('guests')
+      .withIndex('by_event', (q) => q.eq('eventId', eventId))
+      .collect();
+
+    let attending = 0;
+    let declined = 0;
+    let pending = 0;
+    let maybe = 0;
+    for (const g of rows) {
+      if (g.rsvpStatus === 'attending') attending++;
+      else if (g.rsvpStatus === 'declined') declined++;
+      else if (g.rsvpStatus === 'maybe') maybe++;
+      else pending++;
+    }
+    return { total: rows.length, attending, declined, pending, maybe };
+  },
+});
+
+export type GuestListItem = {
+  _id: Id<'guests'>;
+  fullName: string;
+  phone?: string;
+  email?: string;
+  category?: string;
+  plusOnesAllowed: number;
+  rsvpStatus: 'pending' | 'attending' | 'declined' | 'maybe';
+  invitationSentAt?: number;
+  notes?: string;
+  qrCodeToken: string;
+  createdAt: number;
+  updatedAt: number;
+};
