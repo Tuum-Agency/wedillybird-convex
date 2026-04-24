@@ -153,6 +153,43 @@ export const listByEvent = query({
   },
 });
 
+export const getByToken = query({
+  args: { token: v.string() },
+  handler: async (ctx, { token }) => {
+    const guest = await ctx.db
+      .query('guests')
+      .withIndex('by_qr_token', (q) => q.eq('qrCodeToken', token))
+      .first();
+    if (!guest) return null;
+
+    const event = await ctx.db.get(guest.eventId);
+    if (!event) return null;
+    if (event.status === 'cancelled' || event.status === 'archived') return null;
+
+    return {
+      guest: {
+        _id: guest._id,
+        fullName: guest.fullName,
+        plusOnesAllowed: guest.plusOnesAllowed,
+        rsvpStatus: guest.rsvpStatus,
+        rsvpRespondedAt: guest.rsvpRespondedAt,
+        plusOnesNames: guest.plusOnesNames,
+        dietaryRestrictions: guest.dietaryRestrictions,
+        notes: guest.notes,
+      },
+      event: {
+        _id: event._id,
+        title: event.title,
+        coupleNames: event.coupleNames,
+        eventDate: event.eventDate,
+        timezone: event.timezone,
+        venue: event.venue,
+        theme: event.theme,
+      },
+    };
+  },
+});
+
 export const countByEvent = query({
   args: { eventId: v.id('events'), requesterId: v.id('users') },
   handler: async (ctx, { eventId, requesterId }) => {

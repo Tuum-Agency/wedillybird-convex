@@ -164,6 +164,42 @@ export const convexApi = {
     { eventId: string; requesterId: string },
     { total: number; attending: number; declined: number; pending: number; maybe: number }
   >('guests:countByEvent'),
+  getGuestByToken: makeFunctionReference<
+    'query',
+    { token: string },
+    {
+      guest: {
+        _id: string;
+        fullName: string;
+        plusOnesAllowed: number;
+        rsvpStatus: 'pending' | 'attending' | 'declined' | 'maybe';
+        rsvpRespondedAt?: number;
+        plusOnesNames?: string[];
+        dietaryRestrictions?: string;
+        notes?: string;
+      };
+      event: {
+        _id: string;
+        title: string;
+        coupleNames: { partnerA: string; partnerB: string };
+        eventDate: number;
+        timezone: string;
+        venue?: { name: string; address: string; lat?: number; lng?: number };
+        theme?: { primaryColor: string; accentColor: string; fontFamily: string };
+      };
+    } | null
+  >('guests:getByToken'),
+  submitRsvp: makeFunctionReference<
+    'mutation',
+    {
+      token: string;
+      rsvpStatus: 'attending' | 'declined' | 'maybe';
+      plusOnesNames?: string[];
+      dietaryRestrictions?: string;
+      notes?: string;
+    },
+    { ok: true }
+  >('rsvps:submit'),
 } satisfies Record<
   string,
   FunctionReference<'query' | 'mutation' | 'action', 'public', Args, unknown>

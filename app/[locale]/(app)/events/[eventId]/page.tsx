@@ -5,6 +5,7 @@ import { getSession } from '@/lib/auth/session';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { LiveGuestStats } from '@/components/events/live-guest-stats';
 
 type EventStatus = 'draft' | 'active' | 'archived' | 'cancelled';
 
@@ -94,6 +95,13 @@ export default async function EventDetailPage({
           )}
         </article>
       </section>
+
+      <LiveGuestStats
+        eventId={eventId}
+        requesterId={session!.userId}
+        initialCounts={counts}
+        maxGuests={event.maxGuests}
+      />
 
       <section className="flex flex-col gap-4 rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-5">
         <div className="flex items-center justify-between">
