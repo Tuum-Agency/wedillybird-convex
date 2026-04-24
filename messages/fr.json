@@ -151,6 +151,44 @@
       "submit": "Impossible d'ajouter l'invité. Réessayez."
     }
   },
+  "Invitation": {
+    "youreInvited": "Vous êtes invité·e",
+    "addressing": "Cher·chère {name}, nous serions heureux de votre présence.",
+    "willYouAttend": "Serez-vous des nôtres ?",
+    "status": {
+      "attending": "Je confirme",
+      "declined": "Je ne pourrai pas",
+      "maybe": "Peut-être"
+    },
+    "plusOnesLegend": "Vos accompagnants ({count})",
+    "plusOnePlaceholder": "Accompagnant {index}",
+    "dietaryLabel": "Régime alimentaire (optionnel)",
+    "dietaryPlaceholder": "Végétarien, sans gluten, allergies…",
+    "notesLabel": "Un mot pour les mariés (optionnel)",
+    "notesPlaceholder": "Félicitations, anecdote, question…",
+    "submit": "Envoyer ma réponse",
+    "thanks": "Merci, votre réponse est enregistrée",
+    "thanksAttending": "À très bientôt pour célébrer !",
+    "thanksDeclined": "Nous sommes désolés de ne pas vous avoir avec nous.",
+    "thanksMaybe": "Nous vous recontacterons pour confirmer.",
+    "changeAnswer": "Modifier ma réponse",
+    "poweredBy": "Propulsé par",
+    "errors": {
+      "pickStatus": "Merci de choisir une option",
+      "notFound": "Invitation introuvable ou expirée",
+      "eventClosed": "Cet événement n'accepte plus de réponses",
+      "plusOnesExceeded": "Trop d'accompagnants indiqués",
+      "unknown": "Une erreur est survenue. Réessayez."
+    }
+  },
+  "EventStats": {
+    "liveTitle": "RSVP en temps réel",
+    "pending": "En attente",
+    "attending": "Confirmés",
+    "declined": "Déclinés",
+    "maybe": "Peut-être",
+    "export": "Exporter CSV"
+  },
   "EventCreate": {
     "title": "Créer votre mariage",
     "description": "En 4 étapes, configurez l'essentiel. Vous pourrez tout modifier plus tard.",
