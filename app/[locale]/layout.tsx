@@ -28,6 +28,15 @@ export const metadata: Metadata = {
   description:
     "Invitations WhatsApp, RSVP en temps réel, check-in, galerie partagée. Wedillybird simplifie l'organisation de votre mariage.",
   metadataBase: new URL('https://wedillybird.com'),
+  appleWebApp: {
+    title: 'Wedillybird',
+    capable: true,
+    statusBarStyle: 'default',
+  },
+};
+
+export const viewport = {
+  themeColor: '#2c1a11',
 };
 
 export function generateStaticParams() {

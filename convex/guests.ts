@@ -213,6 +213,85 @@ export const countByEvent = query({
   },
 });
 
+export const listForCheckIn = query({
+  args: { eventId: v.id('events'), requesterId: v.id('users') },
+  handler: async (ctx, { eventId, requesterId }) => {
+    await assertEventOwnership(ctx, eventId, requesterId);
+    const rows = await ctx.db
+      .query('guests')
+      .withIndex('by_event', (q) => q.eq('eventId', eventId))
+      .collect();
+    return rows.map((g) => ({
+      _id: g._id,
+      fullName: g.fullName,
+      category: g.category,
+      plusOnesAllowed: g.plusOnesAllowed,
+      rsvpStatus: g.rsvpStatus,
+      qrCodeToken: g.qrCodeToken,
+      checkedInAt: g.checkedInAt,
+    }));
+  },
+});
+
+export const checkInByToken = mutation({
+  args: {
+    token: v.string(),
+    eventId: v.id('events'),
+    requesterId: v.id('users'),
+  },
+  handler: async (ctx, { token, eventId, requesterId }) => {
+    await assertEventOwnership(ctx, eventId, requesterId);
+
+    const guest = await ctx.db
+      .query('guests')
+      .withIndex('by_qr_token', (q) => q.eq('qrCodeToken', token))
+      .first();
+    if (!guest) throw new Error('GUEST_NOT_FOUND');
+    if (guest.eventId !== eventId) throw new Error('GUEST_WRONG_EVENT');
+
+    const now = Date.now();
+    const alreadyCheckedInAt = guest.checkedInAt;
+
+    if (!alreadyCheckedInAt) {
+      await ctx.db.patch(guest._id, {
+        checkedInAt: now,
+        checkedInBy: requesterId,
+        updatedAt: now,
+      });
+    }
+
+    return {
+      ok: true as const,
+      alreadyCheckedIn: Boolean(alreadyCheckedInAt),
+      checkedInAt: alreadyCheckedInAt ?? now,
+      guest: {
+        _id: guest._id,
+        fullName: guest.fullName,
+        category: guest.category,
+        plusOnesAllowed: guest.plusOnesAllowed,
+        rsvpStatus: guest.rsvpStatus,
+      },
+    };
+  },
+});
+
+export const undoCheckIn = mutation({
+  args: { guestId: v.id('guests'), requesterId: v.id('users') },
+  handler: async (ctx, { guestId, requesterId }) => {
+    const guest = await ctx.db.get(guestId);
+    if (!guest) throw new Error('GUEST_NOT_FOUND');
+    await assertEventOwnership(ctx, guest.eventId, requesterId);
+    if (!guest.checkedInAt) return { ok: true as const };
+
+    await ctx.db.patch(guestId, {
+      checkedInAt: undefined,
+      checkedInBy: undefined,
+      updatedAt: Date.now(),
+    });
+    return { ok: true as const };
+  },
+});
+
 export type GuestListItem = {
   _id: Id<'guests'>;
   fullName: string;
