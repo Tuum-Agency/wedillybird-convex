@@ -8,6 +8,12 @@ import type {
 } from '../provider';
 import type { Currency } from '../plans';
 import { isCurrency } from '../plans';
+import {
+  priceIdForTier,
+  tierForPriceId,
+  type SubscriptionStatus,
+  type SubscriptionTier,
+} from '../subscriptions';
 
 let cached: Stripe | null = null;
 
@@ -143,6 +149,190 @@ function appendSessionIdParam(url: string): string {
   const sep = url.includes('?') ? '&' : '?';
   return `${url}${sep}session_id={CHECKOUT_SESSION_ID}`;
 }
+
+/* -------------------------------------------------------------------------- */
+/*  Subscriptions (Pro plans: Starter / Business / Agency)                    */
+/* -------------------------------------------------------------------------- */
+
+export type SubscriptionCheckoutInput = {
+  organizationId: string;
+  requesterId: string;
+  tier: SubscriptionTier;
+  customerEmail: string;
+  /** Existing Stripe customer to attach the new subscription to (preferred). */
+  stripeCustomerId?: string;
+  successUrl: string;
+  cancelUrl: string;
+};
+
+export async function createSubscriptionCheckout(
+  input: SubscriptionCheckoutInput,
+): Promise<CheckoutSession> {
+  const stripe = getStripe();
+  const session = await stripe.checkout.sessions.create({
+    mode: 'subscription',
+    payment_method_types: ['card'],
+    line_items: [{ quantity: 1, price: priceIdForTier(input.tier) }],
+    success_url: appendSessionIdParam(input.successUrl),
+    cancel_url: input.cancelUrl,
+    customer: input.stripeCustomerId,
+    customer_email: input.stripeCustomerId ? undefined : input.customerEmail,
+    client_reference_id: input.organizationId,
+    metadata: {
+      organizationId: input.organizationId,
+      requesterId: input.requesterId,
+      tier: input.tier,
+    },
+    subscription_data: {
+      metadata: {
+        organizationId: input.organizationId,
+        tier: input.tier,
+      },
+    },
+    locale: 'fr',
+    allow_promotion_codes: true,
+  });
+  if (!session.url) throw new Error('STRIPE_NO_REDIRECT_URL');
+  return { providerSessionId: session.id, redirectUrl: session.url };
+}
+
+export async function openCustomerPortal(
+  customerId: string,
+  returnUrl: string,
+): Promise<{ url: string }> {
+  const stripe = getStripe();
+  const session = await stripe.billingPortal.sessions.create({
+    customer: customerId,
+    return_url: returnUrl,
+    locale: 'fr',
+  });
+  return { url: session.url };
+}
+
+export type SubscriptionWebhookEvent =
+  | {
+      kind: 'subscription.upserted';
+      organizationId: string;
+      stripeCustomerId: string;
+      stripeSubscriptionId: string;
+      tier: SubscriptionTier;
+      status: SubscriptionStatus;
+      currentPeriodEnd: number;
+    }
+  | {
+      kind: 'subscription.deleted';
+      organizationId: string | null;
+      stripeCustomerId: string;
+      stripeSubscriptionId: string;
+    }
+  | {
+      kind: 'invoice.paid';
+      stripeCustomerId: string;
+      stripeSubscriptionId: string;
+      amountMinor: number;
+      currency: Currency;
+    }
+  | {
+      kind: 'invoice.payment_failed';
+      stripeCustomerId: string;
+      stripeSubscriptionId: string;
+    };
+
+/**
+ * Verify a webhook signature and parse it as a subscription-related event.
+ * Returns null when the event is unrelated to subscriptions (caller should
+ * fall back to the one-shot payment driver's `verifyAndParseWebhook`).
+ */
+export async function verifyAndParseSubscriptionWebhook(
+  rawBody: string,
+  signature: string | null,
+): Promise<SubscriptionWebhookEvent | null> {
+  if (!signature) throw new Error('INVALID_SIGNATURE');
+  const secret = process.env.STRIPE_WEBHOOK_SECRET;
+  if (!secret) throw new Error('STRIPE_DRIVER_NOT_CONFIGURED');
+
+  const stripe = getStripe();
+  let event: Stripe.Event;
+  try {
+    event = stripe.webhooks.constructEvent(rawBody, signature, secret);
+  } catch {
+    throw new Error('INVALID_SIGNATURE');
+  }
+
+  if (
+    event.type === 'customer.subscription.created' ||
+    event.type === 'customer.subscription.updated'
+  ) {
+    const sub = event.data.object as Stripe.Subscription;
+    const item = sub.items.data[0];
+    if (!item) return null;
+    const tier = tierForPriceId(item.price.id);
+    if (!tier) return null;
+    const orgId = (sub.metadata?.organizationId as string | undefined) ?? null;
+    if (!orgId) return null;
+    return {
+      kind: 'subscription.upserted',
+      organizationId: orgId,
+      stripeCustomerId: typeof sub.customer === 'string' ? sub.customer : sub.customer.id,
+      stripeSubscriptionId: sub.id,
+      tier,
+      status: sub.status as SubscriptionStatus,
+      currentPeriodEnd: item.current_period_end * 1000,
+    };
+  }
+
+  if (event.type === 'customer.subscription.deleted') {
+    const sub = event.data.object as Stripe.Subscription;
+    return {
+      kind: 'subscription.deleted',
+      organizationId: (sub.metadata?.organizationId as string | undefined) ?? null,
+      stripeCustomerId: typeof sub.customer === 'string' ? sub.customer : sub.customer.id,
+      stripeSubscriptionId: sub.id,
+    };
+  }
+
+  if (event.type === 'invoice.payment_succeeded' || event.type === 'invoice.paid') {
+    const invoice = event.data.object as Stripe.Invoice;
+    const subId =
+      'subscription' in invoice && typeof invoice.subscription === 'string'
+        ? invoice.subscription
+        : null;
+    if (!subId) return null;
+    const currencyRaw = (invoice.currency ?? '').toUpperCase();
+    if (!isCurrency(currencyRaw)) return null;
+    const stripeAmount = invoice.amount_paid ?? 0;
+    const override = STRIPE_CURRENCY_DIVISOR_OVERRIDE[currencyRaw];
+    return {
+      kind: 'invoice.paid',
+      stripeCustomerId:
+        typeof invoice.customer === 'string' ? invoice.customer : (invoice.customer?.id ?? ''),
+      stripeSubscriptionId: subId,
+      amountMinor: override ? stripeAmount * override : stripeAmount,
+      currency: currencyRaw,
+    };
+  }
+
+  if (event.type === 'invoice.payment_failed') {
+    const invoice = event.data.object as Stripe.Invoice;
+    const subId =
+      'subscription' in invoice && typeof invoice.subscription === 'string'
+        ? invoice.subscription
+        : null;
+    if (!subId) return null;
+    return {
+      kind: 'invoice.payment_failed',
+      stripeCustomerId:
+        typeof invoice.customer === 'string' ? invoice.customer : (invoice.customer?.id ?? ''),
+      stripeSubscriptionId: subId,
+    };
+  }
+
+  return null;
+}
+
+/* -------------------------------------------------------------------------- */
+/*  One-shot payment helpers (existing)                                       */
+/* -------------------------------------------------------------------------- */
 
 function parseSession(
   session: Stripe.Checkout.Session,

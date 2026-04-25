@@ -414,8 +414,10 @@ export const convexApi = {
       primaryColor?: string;
       accentColor?: string;
       logoUrl: string | null;
+      stripeCustomerId?: string;
       subscriptionTier?: 'starter' | 'business' | 'agency';
       subscriptionStatus?: 'trialing' | 'active' | 'past_due' | 'canceled' | 'unpaid';
+      subscriptionPeriodEnd?: number;
       myRole: 'owner' | 'admin' | 'planner' | 'viewer';
     } | null
   >('organizations:myOrganization'),
@@ -485,6 +487,41 @@ export const convexApi = {
     { membershipId: string; requesterId: string },
     { ok: true }
   >('organizations:revokeMembership'),
+  updateOrgSubscription: makeFunctionReference<
+    'mutation',
+    {
+      organizationId: string;
+      stripeCustomerId?: string;
+      stripeSubscriptionId?: string;
+      subscriptionTier?: 'starter' | 'business' | 'agency';
+      subscriptionStatus?: 'trialing' | 'active' | 'past_due' | 'canceled' | 'unpaid';
+      subscriptionPeriodEnd?: number;
+    },
+    { ok: true }
+  >('organizations:updateSubscription'),
+  findOrgByStripeSubscription: makeFunctionReference<
+    'query',
+    { stripeSubscriptionId: string },
+    {
+      _id: string;
+      name: string;
+      ownerId: string;
+      stripeCustomerId?: string;
+      subscriptionTier?: 'starter' | 'business' | 'agency';
+      subscriptionStatus?: 'trialing' | 'active' | 'past_due' | 'canceled' | 'unpaid';
+    } | null
+  >('organizations:findByStripeSubscription'),
+  getUserById: makeFunctionReference<
+    'query',
+    { userId: string },
+    {
+      _id: string;
+      phone: string;
+      email?: string;
+      fullName?: string;
+      role: 'couple' | 'pro' | 'guest' | 'admin';
+    } | null
+  >('users:getById'),
 } satisfies Record<
   string,
   FunctionReference<'query' | 'mutation' | 'action', 'public', Args, unknown>

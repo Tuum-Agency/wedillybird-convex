@@ -156,8 +156,10 @@ export const myOrganization = query({
       primaryColor: org.primaryColor,
       accentColor: org.accentColor,
       logoUrl,
+      stripeCustomerId: org.stripeCustomerId,
       subscriptionTier: org.subscriptionTier,
       subscriptionStatus: org.subscriptionStatus,
+      subscriptionPeriodEnd: org.subscriptionPeriodEnd,
       myRole: membership.role,
     };
   },
