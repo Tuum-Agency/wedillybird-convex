@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
+import { Link } from '@/i18n/navigation';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
 import { RsvpForm } from '@/components/invitee/rsvp-form';
 
@@ -76,6 +77,13 @@ export default async function InvitationPage({
             notes: guest.notes,
           }}
         />
+
+        <Link
+          href={`/i/${token}/gallery`}
+          className="focus-ring rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-4 py-3 text-center text-sm font-medium hover:bg-[color:var(--color-ivory-100)]"
+        >
+          {t('openGallery')}
+        </Link>
 
         <footer className="text-center text-xs text-[color:var(--color-muted)]">
           {t('poweredBy')} <span className="font-display font-semibold">Wedillybird</span>
