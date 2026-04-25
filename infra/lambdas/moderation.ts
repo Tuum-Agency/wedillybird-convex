@@ -4,6 +4,7 @@ import {
   DetectModerationLabelsCommand,
   type ModerationLabel,
 } from '@aws-sdk/client-rekognition';
+import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
 import { createHmac } from 'node:crypto';
 
 const REJECT_LABELS = new Set([
@@ -17,7 +18,22 @@ const REJECT_LABELS = new Set([
 ]);
 const REJECT_THRESHOLD = 80;
 
-const rekognition = new RekognitionClient({});
+// Rekognition is not available in eu-west-3 (Paris); use eu-west-1 (Ireland).
+// Bucket lives in eu-west-3, so we GetObject in-region then pass Bytes inline.
+const rekognition = new RekognitionClient({
+  region: process.env.REKOGNITION_REGION ?? 'eu-west-1',
+});
+const s3 = new S3Client({});
+
+async function streamToBuffer(stream: NodeJS.ReadableStream): Promise<Buffer> {
+  const chunks: Buffer[] = [];
+  for await (const chunk of stream) {
+    if (Buffer.isBuffer(chunk)) chunks.push(chunk);
+    else if (typeof chunk === 'string') chunks.push(Buffer.from(chunk));
+    else chunks.push(Buffer.from(chunk as Uint8Array));
+  }
+  return Buffer.concat(chunks);
+}
 
 function requireEnv(name: string): string {
   const value = process.env[name];
@@ -87,9 +103,14 @@ export const handler = async (event: S3Event): Promise<void> => {
     }
 
     console.log(`moderating s3://${bucket}/${s3Key}`);
+    const object = await s3.send(new GetObjectCommand({ Bucket: bucket, Key: s3Key }));
+    if (!object.Body) {
+      throw new Error(`s3 object body missing for ${s3Key}`);
+    }
+    const bytes = await streamToBuffer(object.Body as NodeJS.ReadableStream);
     const detect = await rekognition.send(
       new DetectModerationLabelsCommand({
-        Image: { S3Object: { Bucket: bucket, Name: s3Key } },
+        Image: { Bytes: bytes },
         MinConfidence: 50,
       }),
     );
