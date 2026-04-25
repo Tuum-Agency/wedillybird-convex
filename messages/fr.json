@@ -347,7 +347,8 @@
     "unknownGuest": "Code QR inconnu",
     "unknownGuestOffline": "Code QR hors ligne inconnu",
     "errorGeneric": "Erreur",
-    "undo": "Annuler"
+    "undo": "Annuler",
+    "pendingSync": "{count, plural, =0 {aucun check-in en attente} =1 {1 check-in en attente} other {# check-ins en attente}}"
   },
   "Pro": {
     "onboardingTitle": "Créer votre organisation",

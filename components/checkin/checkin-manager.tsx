@@ -12,9 +12,12 @@ import {
 } from '@/app/[locale]/(app)/events/[eventId]/check-in/actions';
 import {
   cacheGuestsForEvent,
+  countPendingCheckIns,
+  drainPendingCheckIns,
   findGuestByToken,
   getCacheMeta,
   markCachedCheckedIn,
+  queueCheckIn,
 } from '@/lib/offline/guests-db';
 
 const QrScanner = dynamic(() => import('./qr-scanner').then((m) => m.QrScanner), {
@@ -57,6 +60,7 @@ export function CheckInManager({ eventId, initialGuests }: Props) {
   const [isOnline, setIsOnline] = useState(true);
   const [manualInput, setManualInput] = useState('');
   const [lastSyncedAt, setLastSyncedAt] = useState<number | null>(null);
+  const [pendingCount, setPendingCount] = useState(0);
   const [now, setNow] = useState<number>(() => Date.now());
   const [pending, startTransition] = useTransition();
   const lastScannedRef = useRef<{ token: string; at: number } | null>(null);
@@ -71,12 +75,27 @@ export function CheckInManager({ eventId, initialGuests }: Props) {
       await cacheGuestsForEvent(eventId, initialGuests);
       const meta = await getCacheMeta(eventId);
       if (meta) setLastSyncedAt(meta.lastSyncedAt);
+      setPendingCount(await countPendingCheckIns(eventId));
     })();
   }, [eventId, initialGuests]);
 
+  const refreshPendingCount = useCallback(async () => {
+    setPendingCount(await countPendingCheckIns(eventId));
+  }, [eventId]);
+
+  const drain = useCallback(async () => {
+    const result = await drainPendingCheckIns();
+    await refreshPendingCount();
+    return result;
+  }, [refreshPendingCount]);
+
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const update = () => setIsOnline(navigator.onLine);
+    const update = () => {
+      const online = navigator.onLine;
+      setIsOnline(online);
+      if (online) void drain();
+    };
     update();
     window.addEventListener('online', update);
     window.addEventListener('offline', update);
@@ -84,7 +103,7 @@ export function CheckInManager({ eventId, initialGuests }: Props) {
       window.removeEventListener('online', update);
       window.removeEventListener('offline', update);
     };
-  }, []);
+  }, [drain]);
 
   const pushToast = useCallback((toast: Toast) => {
     setToasts((prev) => [toast, ...prev].slice(0, 5));
@@ -129,6 +148,9 @@ export function CheckInManager({ eventId, initialGuests }: Props) {
         });
         return;
       }
+      // Queue for later sync. Idempotent on (eventId, token).
+      await queueCheckIn(eventId, token);
+      await refreshPendingCount();
       pushToast({
         id: `${token}-offline-${Date.now()}`,
         status: 'offline',
@@ -137,7 +159,7 @@ export function CheckInManager({ eventId, initialGuests }: Props) {
         timestamp: Date.now(),
       });
     },
-    [eventId, pushToast, t],
+    [eventId, pushToast, refreshPendingCount, t],
   );
 
   const submit = useCallback(
@@ -193,6 +215,11 @@ export function CheckInManager({ eventId, initialGuests }: Props) {
                 ),
               })
             : t('neverSynced')}
+          {pendingCount > 0 ? (
+            <span data-testid="pending-checkins" className="ml-2 font-medium">
+              · {t('pendingSync', { count: pendingCount })}
+            </span>
+          ) : null}
         </span>
         <span>{t('guestsCached', { count: initialGuests.length })}</span>
       </div>

@@ -1,10 +1,14 @@
 import 'fake-indexeddb/auto';
-import { describe, expect, it, beforeEach } from 'vitest';
+import { describe, expect, it, beforeEach, vi } from 'vitest';
 import {
   cacheGuestsForEvent,
+  countPendingCheckIns,
+  drainPendingCheckIns,
   findGuestByToken,
   getCacheMeta,
+  listPendingCheckIns,
   markCachedCheckedIn,
+  queueCheckIn,
 } from '@/lib/offline/guests-db';
 
 const EVENT_A = 'evt_a';
@@ -104,5 +108,99 @@ describe('offline/guests-db', () => {
     expect(updated?.checkedInAt).toBe(42);
 
     await expect(markCachedCheckedIn(EVENT_A, 'NOPE', 42)).resolves.toBeUndefined();
+  });
+});
+
+describe('offline/pending-checkins', () => {
+  it('queueCheckIn creates a pending row', async () => {
+    await queueCheckIn(EVENT_A, 'TK1', 1000);
+    const pending = await listPendingCheckIns(EVENT_A);
+    expect(pending).toHaveLength(1);
+    expect(pending[0]?.qrCodeToken).toBe('TK1');
+    expect(pending[0]?.scannedAt).toBe(1000);
+    expect(pending[0]?.syncStatus).toBe('pending');
+  });
+
+  it('queueCheckIn is idempotent on (eventId, token)', async () => {
+    await queueCheckIn(EVENT_A, 'TK1', 1000);
+    await queueCheckIn(EVENT_A, 'TK1', 2000);
+    await queueCheckIn(EVENT_A, 'TK1', 3000);
+    const pending = await listPendingCheckIns(EVENT_A);
+    expect(pending).toHaveLength(1);
+    // First-write-wins: scannedAt of the first queued entry is preserved.
+    expect(pending[0]?.scannedAt).toBe(1000);
+  });
+
+  it('queueCheckIn scopes per event', async () => {
+    await queueCheckIn(EVENT_A, 'TK1', 1000);
+    await queueCheckIn(EVENT_B, 'TK1', 2000);
+    expect(await countPendingCheckIns(EVENT_A)).toBe(1);
+    expect(await countPendingCheckIns(EVENT_B)).toBe(1);
+    expect(await countPendingCheckIns()).toBe(2);
+  });
+
+  it('drainPendingCheckIns POSTs to endpoint and marks rows synced', async () => {
+    await queueCheckIn(EVENT_A, 'TK1', 1000);
+    await queueCheckIn(EVENT_A, 'TK2', 1100);
+
+    const fetchMock = vi.fn(async (_url: RequestInfo | URL, init?: RequestInit) => {
+      const body = JSON.parse(init!.body as string) as {
+        eventId: string;
+        checkIns: Array<{ qrCodeToken: string }>;
+      };
+      expect(body.eventId).toBe(EVENT_A);
+      expect(body.checkIns).toHaveLength(2);
+      return new Response(JSON.stringify({ ok: ['TK1', 'TK2'], failed: [] }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }) as unknown as typeof fetch;
+
+    const result = await drainPendingCheckIns('/api/checkin/sync', fetchMock);
+    expect(result.ok).toEqual(['TK1', 'TK2']);
+    expect(result.failed).toEqual([]);
+    expect(await countPendingCheckIns(EVENT_A)).toBe(0);
+  });
+
+  it('drainPendingCheckIns marks failed rows when server reports them', async () => {
+    await queueCheckIn(EVENT_A, 'TK1', 1000);
+    await queueCheckIn(EVENT_A, 'TK2', 1100);
+
+    const fetchMock = vi.fn(
+      async () =>
+        new Response(
+          JSON.stringify({
+            ok: ['TK1'],
+            failed: [{ token: 'TK2', error: 'GUEST_NOT_FOUND' }],
+          }),
+          { status: 200, headers: { 'Content-Type': 'application/json' } },
+        ),
+    ) as unknown as typeof fetch;
+
+    const result = await drainPendingCheckIns('/api/checkin/sync', fetchMock);
+    expect(result.ok).toEqual(['TK1']);
+    expect(result.failed).toEqual([{ token: 'TK2', error: 'GUEST_NOT_FOUND' }]);
+
+    // No more rows are 'pending'; failed row remains stored as 'failed'.
+    expect(await countPendingCheckIns(EVENT_A)).toBe(0);
+  });
+
+  it('drainPendingCheckIns marks failed rows when fetch throws', async () => {
+    await queueCheckIn(EVENT_A, 'TK1', 1000);
+
+    const fetchMock = vi.fn(async () => {
+      throw new Error('NETWORK_DOWN');
+    }) as unknown as typeof fetch;
+
+    const result = await drainPendingCheckIns('/api/checkin/sync', fetchMock);
+    expect(result.failed).toEqual([{ token: 'TK1', error: 'NETWORK_DOWN' }]);
+    expect(await countPendingCheckIns(EVENT_A)).toBe(0);
+  });
+
+  it('drainPendingCheckIns is a no-op when nothing is queued', async () => {
+    const fetchMock = vi.fn() as unknown as typeof fetch;
+    const result = await drainPendingCheckIns('/api/checkin/sync', fetchMock);
+    expect(result).toEqual({ ok: [], failed: [] });
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 });
