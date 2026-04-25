@@ -35,6 +35,13 @@ export default async function DashboardPage({ params }: { params: Promise<{ loca
     redirect({ href: '/onboarding', locale });
   }
 
+  if (user!.role === 'pro' || user!.role === 'admin') {
+    const myOrg = await convex.query(convexApi.myOrganization, { userId: session!.userId });
+    if (myOrg) {
+      redirect({ href: '/pro/dashboard', locale });
+    }
+  }
+
   const events = await convex.query(convexApi.listEventsByOwner, { ownerId: session!.userId });
 
   const t = await getTranslations('Dashboard');

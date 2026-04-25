@@ -382,6 +382,97 @@ export const convexApi = {
       createdAt: number;
     }>
   >('payments:listByEvent'),
+  createOrganization: makeFunctionReference<
+    'mutation',
+    {
+      ownerId: string;
+      name: string;
+      primaryColor?: string;
+      accentColor?: string;
+    },
+    { id: string; slug: string }
+  >('organizations:create'),
+  myOrganization: makeFunctionReference<
+    'query',
+    { userId: string },
+    {
+      _id: string;
+      name: string;
+      slug: string;
+      primaryColor?: string;
+      accentColor?: string;
+      logoUrl: string | null;
+      subscriptionTier?: 'starter' | 'business' | 'agency';
+      subscriptionStatus?: 'trialing' | 'active' | 'past_due' | 'canceled' | 'unpaid';
+      myRole: 'owner' | 'admin' | 'planner' | 'viewer';
+    } | null
+  >('organizations:myOrganization'),
+  getOrganization: makeFunctionReference<
+    'query',
+    { organizationId: string; requesterId: string },
+    {
+      _id: string;
+      name: string;
+      slug: string;
+      primaryColor?: string;
+      accentColor?: string;
+      logoUrl: string | null;
+      subscriptionTier?: 'starter' | 'business' | 'agency';
+      subscriptionStatus?: 'trialing' | 'active' | 'past_due' | 'canceled' | 'unpaid';
+      myRole: 'owner' | 'admin' | 'planner' | 'viewer';
+    }
+  >('organizations:getById'),
+  listOrgEvents: makeFunctionReference<
+    'query',
+    { organizationId: string; requesterId: string },
+    Array<{
+      _id: string;
+      title: string;
+      slug: string;
+      coupleNames: { partnerA: string; partnerB: string };
+      eventDate: number;
+      timezone: string;
+      status: 'draft' | 'active' | 'archived' | 'cancelled';
+      planTier: 'free' | 'essential' | 'premium';
+      maxGuests: number;
+      ownerId: string;
+    }>
+  >('organizations:listEvents'),
+  listOrgMembers: makeFunctionReference<
+    'query',
+    { organizationId: string; requesterId: string },
+    Array<{
+      _id: string;
+      role: 'owner' | 'admin' | 'planner' | 'viewer';
+      status: 'pending' | 'active' | 'revoked';
+      fullName?: string;
+      phone?: string;
+      email?: string;
+      invitedAt: number;
+      acceptedAt?: number;
+    }>
+  >('organizations:listMembers'),
+  inviteOrgMember: makeFunctionReference<
+    'mutation',
+    {
+      organizationId: string;
+      requesterId: string;
+      phone?: string;
+      email?: string;
+      role: 'admin' | 'planner' | 'viewer';
+    },
+    { id: string; inviteToken: string }
+  >('organizations:invite'),
+  acceptOrgInvite: makeFunctionReference<
+    'mutation',
+    { token: string; userId: string },
+    { ok: true; organizationId: string }
+  >('organizations:acceptInvite'),
+  revokeOrgMembership: makeFunctionReference<
+    'mutation',
+    { membershipId: string; requesterId: string },
+    { ok: true }
+  >('organizations:revokeMembership'),
 } satisfies Record<
   string,
   FunctionReference<'query' | 'mutation' | 'action', 'public', Args, unknown>
