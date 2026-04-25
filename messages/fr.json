@@ -116,43 +116,100 @@
   },
   "Landing": {
     "hero": {
-      "title": "L'organisation de mariage, simplifiée par WhatsApp",
-      "subtitle": "Invitations, RSVP, check-in, galerie partagée. Tout ce dont vous avez besoin, rien de superflu.",
-      "ctaPrimary": "Commencer gratuitement",
-      "ctaSecondary": "Voir une démo"
+      "badge": "WhatsApp-first · FR & Afrique de l'Ouest",
+      "title": "Le grand jour mérite mieux qu'un PDF.",
+      "subtitle": "Invitations WhatsApp, RSVP en temps réel, check-in QR offline, galerie partagée modérée. Conçu pour les mariages francophones, des plus intimes aux plus grands.",
+      "ctaPrimary": "Préparer mon mariage",
+      "ctaSecondary": "Voir les tarifs",
+      "trust": {
+        "noCard": "Sans carte bancaire pour explorer",
+        "refund": "Remboursé 100 % sous 7 jours",
+        "frAndAfrica": "Pensé pour la France et l'Afrique de l'Ouest"
+      }
     },
     "features": {
+      "eyebrow": "Tout en un",
+      "title": "Tout ce qu'il faut, rien de plus.",
       "invites": {
         "title": "Invitations WhatsApp",
-        "description": "Envoyez des invitations personnalisées avec QR code directement sur WhatsApp."
+        "description": "Un lien personnalisé par invité, partagé là où il sera vraiment lu : dans WhatsApp."
       },
       "rsvp": {
-        "title": "Suivi RSVP en temps réel",
-        "description": "Visualisez les réponses de vos invités au fur et à mesure, sans relance manuelle."
+        "title": "RSVP temps réel",
+        "description": "Vos invités confirment en 30 secondes. Vous voyez les réponses arriver, sans relance manuelle."
       },
       "checkin": {
-        "title": "Check-in le jour J",
-        "description": "Scannez les QR codes à l'entrée, même sans connexion internet."
+        "title": "Check-in offline",
+        "description": "Scannez les QR codes à l'entrée, même sans réseau. Tout se synchronise au retour de la connexion."
       },
       "gallery": {
         "title": "Galerie partagée",
-        "description": "Invitez vos proches à partager leurs photos et vidéos dans un espace privé."
+        "description": "Invités et témoins déposent leurs photos et vidéos. Modération automatique avant publication."
+      }
+    },
+    "how": {
+      "eyebrow": "Comment ça marche",
+      "title": "Trois étapes, et c'est prêt.",
+      "steps": {
+        "create": {
+          "title": "Créez votre événement",
+          "description": "Date, lieu, identité visuelle, table de marche. En 5 minutes, votre mariage est en ligne."
+        },
+        "invite": {
+          "title": "Invitez sur WhatsApp",
+          "description": "Importez votre liste, générez les liens personnalisés et partagez-les en quelques tapotements."
+        },
+        "celebrate": {
+          "title": "Célébrez sereinement",
+          "description": "Suivez les réponses, scannez les arrivées, retrouvez les photos. Tout reste accessible le jour J et après."
+        }
+      }
+    },
+    "testimonials": {
+      "eyebrow": "Ils ont dit oui",
+      "title": "Des couples et des planners qui ont gagné en sérénité.",
+      "items": {
+        "couple-fr": {
+          "quote": "On a invité 180 personnes en quatre tapotements. Le check-in offline a sauvé l'entrée quand le WiFi du château a lâché.",
+          "name": "Camille & Hugo",
+          "location": "Mariage en Provence, juin",
+          "initials": "CH"
+        },
+        "couple-sn": {
+          "quote": "On était plus de 600 sur trois jours. Wedillybird a tenu là où Excel et les groupes WhatsApp craquaient.",
+          "name": "Awa & Mamadou",
+          "location": "Mariage à Dakar, novembre",
+          "initials": "AM"
+        },
+        "planner-pro": {
+          "quote": "Je gère huit mariages cette saison avec mon branding sur chaque page invitée. Mes couples voient mon agence, pas un outil tiers.",
+          "name": "Studio Lumière",
+          "location": "Wedding planner, Bordeaux",
+          "initials": "SL"
+        }
       }
     },
     "pricing": {
-      "title": "Un prix juste pour chaque mariage",
+      "eyebrow": "Tarifs justes",
+      "title": "Choisissez votre formule, payez une fois.",
+      "subtitle": "Pas d'abonnement, pas de frais cachés. Le prix s'ajuste automatiquement selon votre région.",
+      "perEvent": "/ mariage",
       "recommended": "Recommandé",
       "essential": {
         "name": "Essentiel",
-        "price": "19 €",
-        "description": "Le strict nécessaire pour digitaliser votre mariage"
+        "description": "Le minimum pour digitaliser votre mariage."
       },
       "premium": {
         "name": "Premium",
-        "price": "49 €",
-        "description": "Tout l'Essentiel + galerie partagée 6 mois + album PDF final"
+        "description": "L'Essentiel + galerie 6 mois et album PDF final."
       },
-      "upsellNote": "Après votre mariage, prolongez l'accès à votre galerie pendant 5 ans avec un livre photo HD et l'export en haute définition pour {price}."
+      "upsellTitle": "Et après le mariage ?",
+      "upsellNote": "Pour {price}, on prolonge votre galerie 5 ans, on imprime un livre photo HD et on vous livre un export ZIP en haute définition."
+    },
+    "ctaFinal": {
+      "title": "Et si on commençait votre mariage ?",
+      "subtitle": "Cinq minutes pour créer votre événement, zéro carte bancaire pour explorer.",
+      "cta": "Créer mon mariage"
     }
   },
   "Auth": {

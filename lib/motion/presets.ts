@@ -12,15 +12,23 @@
  * son hook `useReducedMotion()` côté composants client.
  */
 
+import { cubicBezier } from 'motion/react';
 import type { Variants, Transition } from 'motion/react';
 
 /* -------------------------------------------------------------------------- */
 /*  Easings (alignés sur les CSS variables --ease-* de globals.css)            */
 /* -------------------------------------------------------------------------- */
 
-export const EASE_OUT_QUINT = [0.22, 1, 0.36, 1] as const;
-export const EASE_OUT_EXPO = [0.16, 1, 0.3, 1] as const;
-export const EASE_SPRING = [0.34, 1.56, 0.64, 1] as const;
+// Motion v12 attend des Easing (string | function), donc on instancie une
+// cubic-bezier function. Les valeurs miroitent les CSS `--ease-*` de globals.
+export const EASE_OUT_QUINT = cubicBezier(0.22, 1, 0.36, 1);
+export const EASE_OUT_EXPO = cubicBezier(0.16, 1, 0.3, 1);
+export const EASE_SPRING = cubicBezier(0.34, 1.56, 0.64, 1);
+
+// Tuples bruts conservés pour les tests qui assertent les valeurs canoniques.
+export const EASE_OUT_QUINT_VALUES = [0.22, 1, 0.36, 1] as const;
+export const EASE_OUT_EXPO_VALUES = [0.16, 1, 0.3, 1] as const;
+export const EASE_SPRING_VALUES = [0.34, 1.56, 0.64, 1] as const;
 
 /* -------------------------------------------------------------------------- */
 /*  Pattern 1 — Page transitions (250 ms ease-out)                            */
@@ -30,7 +38,7 @@ export const EASE_SPRING = [0.34, 1.56, 0.64, 1] as const;
 
 export const pageTransition: Transition = {
   duration: 0.25,
-  ease: EASE_OUT_QUINT as unknown as Transition['ease'],
+  ease: EASE_OUT_QUINT,
 };
 
 export const pageVariants: Variants = {
@@ -38,7 +46,7 @@ export const pageVariants: Variants = {
   animate: { opacity: 1, transition: pageTransition },
   exit: {
     opacity: 0,
-    transition: { duration: 0.18, ease: EASE_OUT_QUINT as unknown as Transition['ease'] },
+    transition: { duration: 0.18, ease: EASE_OUT_QUINT },
   },
 };
 
@@ -51,7 +59,7 @@ export const pageVariants: Variants = {
 export const hoverLift = {
   whileHover: {
     y: -2,
-    transition: { duration: 0.15, ease: EASE_OUT_QUINT as unknown as Transition['ease'] },
+    transition: { duration: 0.15, ease: EASE_OUT_QUINT },
   },
   whileTap: { y: 0, scale: 0.99 },
 };
@@ -68,7 +76,7 @@ export const scrollReveal: Variants = {
     y: 0,
     transition: {
       duration: 0.55,
-      ease: EASE_OUT_QUINT as unknown as Transition['ease'],
+      ease: EASE_OUT_QUINT,
     },
   },
 };
@@ -122,7 +130,7 @@ export const toastSlideIn: Variants = {
     opacity: 1,
     transition: {
       duration: 0.22,
-      ease: EASE_OUT_QUINT as unknown as Transition['ease'],
+      ease: EASE_OUT_QUINT,
     },
   },
   exit: {
@@ -130,7 +138,7 @@ export const toastSlideIn: Variants = {
     opacity: 0,
     transition: {
       duration: 0.18,
-      ease: EASE_OUT_QUINT as unknown as Transition['ease'],
+      ease: EASE_OUT_QUINT,
     },
   },
 };
@@ -161,7 +169,7 @@ export const cardReveal3D: Variants = {
     opacity: 1,
     transition: {
       duration: 1.4,
-      ease: EASE_OUT_EXPO as unknown as Transition['ease'],
+      ease: EASE_OUT_EXPO,
     },
   },
 };

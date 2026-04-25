@@ -1,15 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import {
-  EASE_OUT_EXPO,
-  EASE_OUT_QUINT,
-  EASE_SPRING,
+  EASE_OUT_EXPO_VALUES,
+  EASE_OUT_QUINT_VALUES,
+  EASE_SPRING_VALUES,
   cardReveal3D,
   hoverLift,
   inViewOnce,
   numberTickerSpring,
   pageTransition,
   pageVariants,
-  scrollReveal,
   scrollRevealParent,
   skeletonShimmer,
   successPop,
@@ -18,9 +17,9 @@ import {
 
 describe('motion presets — easings', () => {
   it('expose 3 easings standardisées (quint, expo, spring)', () => {
-    expect(EASE_OUT_QUINT).toEqual([0.22, 1, 0.36, 1]);
-    expect(EASE_OUT_EXPO).toEqual([0.16, 1, 0.3, 1]);
-    expect(EASE_SPRING).toEqual([0.34, 1.56, 0.64, 1]);
+    expect(EASE_OUT_QUINT_VALUES).toEqual([0.22, 1, 0.36, 1]);
+    expect(EASE_OUT_EXPO_VALUES).toEqual([0.16, 1, 0.3, 1]);
+    expect(EASE_SPRING_VALUES).toEqual([0.34, 1.56, 0.64, 1]);
   });
 });
 

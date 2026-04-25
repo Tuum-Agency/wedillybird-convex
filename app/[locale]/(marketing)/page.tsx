@@ -3,15 +3,17 @@ import { useTranslations } from 'next-intl';
 import { setRequestLocale } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
 import { buttonVariants } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { LegalFooter } from '@/components/layout/legal-footer';
-import { PLANS } from '@/lib/payments/plans';
+import { LandingHero } from '@/components/landing/hero';
+import { LandingFeaturesGrid } from '@/components/landing/features-grid';
+import { LandingHowItWorks } from '@/components/landing/how-it-works';
+import { LandingTestimonials } from '@/components/landing/testimonials';
+import { LandingPricingCards } from '@/components/landing/pricing-cards';
+import { LandingCtaFinal } from '@/components/landing/cta-final';
 import {
   detectPricingRegion,
   formatRegionalPlanPrice,
   formatRegionalUpsellPrice,
-  type PricingRegion,
 } from '@/lib/payments/region';
 import { cn } from '@/lib/cn';
 
@@ -20,167 +22,66 @@ export default async function LandingPage({ params }: { params: Promise<{ locale
   setRequestLocale(locale);
   const region = detectPricingRegion(await headers());
 
-  return <LandingContent region={region} />;
+  // Server-rendered prices (region-aware) injected dans le composant client.
+  const prices = {
+    essential: formatRegionalPlanPrice('essential', region, 'EUR'),
+    premium: formatRegionalPlanPrice('premium', region, 'EUR'),
+  };
+  const upsellPriceLabel = formatRegionalUpsellPrice(region, 'EUR');
+
+  return <LandingShell prices={prices} upsellPriceLabel={upsellPriceLabel} />;
 }
 
-function LandingContent({ region }: { region: PricingRegion }) {
-  const t = useTranslations('Landing');
+function LandingShell({
+  prices,
+  upsellPriceLabel,
+}: {
+  prices: { essential: string; premium: string };
+  upsellPriceLabel: string;
+}) {
   const tCommon = useTranslations('Common');
-  const tPlans = useTranslations('Plans');
-
-  const features = [
-    { key: 'invites', icon: '✉' },
-    { key: 'rsvp', icon: '✓' },
-    { key: 'checkin', icon: '□' },
-    { key: 'gallery', icon: '❀' },
-  ] as const;
-
-  const upsellPriceLabel = formatRegionalUpsellPrice(region, 'EUR');
 
   return (
     <>
-      <header className="container-page flex items-center justify-between py-6">
-        <Link href="/" className="font-display text-xl font-semibold tracking-tight">
-          {tCommon('appName')}
-        </Link>
-        <nav className="flex items-center gap-3">
+      {/* Top nav — sticky avec backdrop blur */}
+      <header className="sticky top-0 z-30 border-b border-[color:var(--color-border)] bg-[color:var(--color-background)]/85 backdrop-blur supports-[backdrop-filter]:bg-[color:var(--color-background)]/65">
+        <div className="container-page flex items-center justify-between py-4">
           <Link
-            href="/sign-in"
-            className="text-sm font-medium text-[color:var(--color-foreground)] hover:text-[color:var(--color-primary)]"
+            href="/"
+            className="font-display text-xl tracking-tight text-[color:var(--color-foreground)] italic"
           >
-            {tCommon('signIn')}
+            {tCommon('appName')}
           </Link>
-          <Link href="/sign-up" className={cn(buttonVariants({ variant: 'primary', size: 'sm' }))}>
-            {tCommon('signUp')}
-          </Link>
-        </nav>
+          <nav className="flex items-center gap-2 sm:gap-3">
+            <Link
+              href="/#pricing"
+              className="hidden text-sm font-medium text-[color:var(--color-muted-foreground)] transition-colors hover:text-[color:var(--color-foreground)] sm:inline-block"
+            >
+              Tarifs
+            </Link>
+            <Link
+              href="/sign-in"
+              className="text-sm font-medium text-[color:var(--color-foreground)] transition-colors hover:text-[color:var(--color-primary)]"
+            >
+              {tCommon('signIn')}
+            </Link>
+            <Link
+              href="/sign-up"
+              className={cn(buttonVariants({ variant: 'primary', size: 'sm' }))}
+            >
+              {tCommon('signUp')}
+            </Link>
+          </nav>
+        </div>
       </header>
 
       <main id="main-content" className="flex-1" tabIndex={-1}>
-        <section className="container-page flex flex-col items-center pt-16 pb-24 text-center sm:pt-24 sm:pb-32">
-          <Badge variant="accent" className="mb-6">
-            WhatsApp-first
-          </Badge>
-          <h1 className="font-display mx-auto max-w-4xl text-5xl leading-[1.05] font-semibold tracking-tight sm:text-6xl md:text-7xl">
-            {t('hero.title')}
-          </h1>
-          <p className="mt-6 max-w-2xl text-lg text-[color:var(--color-muted)]">
-            {t('hero.subtitle')}
-          </p>
-          <div className="mt-10 flex flex-col gap-3 sm:flex-row">
-            <Link
-              href="/sign-up"
-              className={cn(buttonVariants({ variant: 'primary', size: 'lg' }))}
-            >
-              {t('hero.ctaPrimary')}
-            </Link>
-            <Link
-              href="/#features"
-              className={cn(buttonVariants({ variant: 'outline', size: 'lg' }))}
-            >
-              {t('hero.ctaSecondary')}
-            </Link>
-          </div>
-        </section>
-
-        <section
-          id="features"
-          className="border-y border-[color:var(--color-border)] bg-[color:var(--color-surface)] py-20"
-        >
-          <div className="container-page">
-            <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
-              {features.map(({ key, icon }) => (
-                <Card key={key} className="h-full border-0 bg-transparent shadow-none">
-                  <CardContent className="flex flex-col gap-3 p-0">
-                    <span
-                      aria-hidden
-                      className="flex h-10 w-10 items-center justify-center rounded-lg bg-[color:var(--color-terracotta-100)] text-xl text-[color:var(--color-terracotta-700)]"
-                    >
-                      {icon}
-                    </span>
-                    <h3 className="font-display text-xl leading-tight font-semibold">
-                      {t(`features.${key}.title`)}
-                    </h3>
-                    <p className="text-sm leading-relaxed text-[color:var(--color-muted)]">
-                      {t(`features.${key}.description`)}
-                    </p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section id="pricing" className="container-page py-24">
-          <div className="mb-12 text-center">
-            <h2 className="font-display text-4xl leading-tight font-semibold sm:text-5xl">
-              {t('pricing.title')}
-            </h2>
-          </div>
-          <div className="mx-auto grid max-w-4xl gap-6 md:grid-cols-2">
-            {(['essential', 'premium'] as const).map((tier) => {
-              const plan = PLANS[tier];
-              const isPremium = tier === 'premium';
-              const priceLabel = formatRegionalPlanPrice(tier, region, 'EUR');
-              return (
-                <Card
-                  key={tier}
-                  className={
-                    isPremium
-                      ? 'border-[color:var(--color-primary)] ring-1 ring-[color:var(--color-primary)]'
-                      : ''
-                  }
-                >
-                  <CardContent className="flex h-full flex-col gap-4 p-8">
-                    {isPremium && <Badge variant="primary">{t('pricing.recommended')}</Badge>}
-                    <div>
-                      <h3 className="font-display text-2xl font-semibold">
-                        {t(`pricing.${tier}.name`)}
-                      </h3>
-                      <p className="mt-1 text-sm text-[color:var(--color-muted)]">
-                        {t(`pricing.${tier}.description`)}
-                      </p>
-                    </div>
-                    <div
-                      className="text-4xl font-semibold tracking-tight"
-                      data-testid={`price-${tier}`}
-                    >
-                      {priceLabel}
-                    </div>
-                    <ul className="flex flex-col gap-2 text-sm">
-                      {plan.featureKeys.map((key) => (
-                        <li key={key} className="flex items-start gap-2">
-                          <span aria-hidden className="mt-0.5 text-[color:var(--color-accent)]">
-                            ✓
-                          </span>
-                          <span>{tPlans(`features.${key}` as const)}</span>
-                        </li>
-                      ))}
-                    </ul>
-                    <Link
-                      href="/sign-up"
-                      className={cn(
-                        buttonVariants({
-                          variant: isPremium ? 'primary' : 'outline',
-                          size: 'md',
-                        }),
-                        'mt-auto w-full',
-                      )}
-                    >
-                      {tCommon('continue')}
-                    </Link>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-          <p
-            className="mx-auto mt-8 max-w-3xl rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-5 text-center text-sm text-[color:var(--color-muted)]"
-            data-testid="upsell-note"
-          >
-            {t('pricing.upsellNote', { price: upsellPriceLabel })}
-          </p>
-        </section>
+        <LandingHero />
+        <LandingFeaturesGrid />
+        <LandingHowItWorks />
+        <LandingTestimonials />
+        <LandingPricingCards prices={prices} upsellPriceLabel={upsellPriceLabel} />
+        <LandingCtaFinal />
       </main>
 
       <LegalFooter />
