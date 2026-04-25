@@ -4,11 +4,14 @@ Items différés au fil des sprints. Chacun est **drop-in** : la plomberie appli
 
 ## Paiements
 
-### CinetPay driver (post-Sprint 6)
-- **Bloqué par** : creds `CINETPAY_API_KEY` + `CINETPAY_SITE_ID` (à créer sur dashboard CinetPay)
-- **Travail** : remplacer `lib/payments/drivers/cinetpay.ts` (stub `THROW NOT_CONFIGURED`) par une implémentation `fetch` directe contre l'API Pay-In + signature HMAC sur webhook
+### CinetPay driver (Sprint 11 — code livré)
+- **Code** ✅ : `lib/payments/drivers/cinetpay.ts` implémente createCheckout / verifyAndParseWebhook
+  (HMAC SHA256 sur le `x-token`) / retrieveSessionStatus avec gestion du divisor XOF.
+  10 tests unitaires : `tests/unit/lib/payments-cinetpay-driver.test.ts`.
+- **Bloqué par** : creds `CINETPAY_API_KEY` + `CINETPAY_SITE_ID` + `CINETPAY_WEBHOOK_SECRET`
+  (à créer sur le dashboard CinetPay) — sans ces vars le driver throw
+  `CINETPAY_DRIVER_NOT_CONFIGURED` proprement.
 - **Doc** : https://docs.cinetpay.com/api/1.0-en/checkout/initialisation
-- **Webhook header** : `x-token` (déjà géré par la route `/api/webhooks/[provider]`)
 
 ### Stripe Subscriptions pour comptes pro (post-Sprint 7)
 - **Bloqué par** : créer 3 Stripe Prices recurring (Starter 29€/mo, Business 79€/mo, Agency 199€/mo)
@@ -25,17 +28,29 @@ Items différés au fil des sprints. Chacun est **drop-in** : la plomberie appli
 
 ## Multi-utilisateurs (post-Sprint 7)
 
-### Branding upload organisation
-- Logo via Convex storage (déjà en place côté schema `organizations.logoStorageId`)
-- Composant `OrganizationBranding` réutilisant `PhotoUploader` mode 'owner'
-- Mutation `organizations.updateBranding` déjà câblée
+### Branding organisation (Sprint 11 — code livré)
+- **Code** ✅ : page `/pro/branding` avec color pickers + uploader logo S3 (presigned PUT
+  via `convex/brandingActions.ts`). Schema migré : nouveau champ
+  `organizations.logoS3Key` (le legacy `logoStorageId` reste optional pour rétro-compat).
+  Le branding est appliqué automatiquement aux pages publiques d'invitation
+  (`/i/[token]`) lorsqu'un event appartient à une org avec branding défini, et au
+  layout `(public-org)/orgs/[slug]` (cf. wildcard subdomain).
+- **Bloqueur** : aucun.
 
-### Sous-domaine wildcard `<slug>.wedillybird.com`
-- **Bloqué par** : config DNS wildcard `*.wedillybird.com` chez le registrar + Vercel domain wildcard
-- **Travail** :
-  - Middleware `proxy.ts` : détecter sous-domaine, rewrite vers `/orgs/[slug]/...`
-  - Route group `(public-org)` avec layout custom utilisant le branding
-- **Référence** : Vercel multi-tenant docs
+### Sous-domaine wildcard `<slug>.wedillybird.com` (Sprint 11 — code livré, DNS à activer)
+- **Code** ✅ : middleware `proxy.ts` détecte `<slug>.wedillybird.com` et rewrite vers
+  `/orgs/<slug>/...` ; route group `(public-org)/orgs/[slug]/{,events}` avec layout custom
+  appliquant le branding (couleurs CSS + logo). Tests unitaires : voir
+  `tests/unit/lib/middleware-subdomain.test.ts`.
+- **DNS wildcard à activer** (action manuelle) :
+  1. Vercel → Project → Settings → Domains → **Add domain** : `*.wedillybird.com`.
+  2. Ajouter chez le registrar : enregistrement `CNAME *` → `cname.vercel-dns.com.`
+     (ou enregistrement `A *` → `76.76.21.21` si CNAME wildcard non supporté).
+  3. Vercel attribue automatiquement un certificat TLS wildcard via Let's Encrypt
+     (peut prendre quelques minutes).
+  4. Pour tester en local : ajouter `tuum.localhost` à `/etc/hosts` et exporter
+     `ALLOWED_SUBDOMAIN_ROOTS=wedillybird.com,localhost`.
+- **Bloqueurs résiduels** : aucun côté code.
 
 ### Invite par lien WhatsApp auto
 - Service WhatsApp existe déjà (`lib/whatsapp/`)
