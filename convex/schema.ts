@@ -117,6 +117,25 @@ export default defineSchema({
     .index('by_user', ['userId'])
     .index('by_event_user', ['eventId', 'userId']),
 
+  photos: defineTable({
+    eventId: v.id('events'),
+    storageId: v.id('_storage'),
+    uploadedBy: v.optional(v.id('users')),
+    uploadedByGuestToken: v.optional(v.string()),
+    uploaderName: v.optional(v.string()),
+    status: v.union(v.literal('pending'), v.literal('approved'), v.literal('rejected')),
+    width: v.optional(v.number()),
+    height: v.optional(v.number()),
+    sizeBytes: v.number(),
+    contentType: v.string(),
+    moderatedAt: v.optional(v.number()),
+    moderatedBy: v.optional(v.id('users')),
+    createdAt: v.number(),
+  })
+    .index('by_event', ['eventId'])
+    .index('by_event_status', ['eventId', 'status'])
+    .index('by_guest_token', ['uploadedByGuestToken']),
+
   otpSessions: defineTable({
     phone: v.string(),
     codeHash: v.string(),

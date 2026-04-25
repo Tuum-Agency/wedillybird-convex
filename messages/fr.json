@@ -124,7 +124,8 @@
     "guestsTitle": "Invités",
     "guestsSummary": "{total, plural, =0 {Aucun invité ajouté} =1 {1 invité} other {# invités}} · {attending, plural, =0 {aucune confirmation} =1 {1 confirmé} other {# confirmés}} · limite {max}",
     "manageGuests": "Gérer les invités",
-    "openCheckIn": "Check-in"
+    "openCheckIn": "Check-in",
+    "openGallery": "Galerie"
   },
   "Guests": {
     "title": "Liste d'invités",
@@ -173,6 +174,7 @@
     "thanksDeclined": "Nous sommes désolés de ne pas vous avoir avec nous.",
     "thanksMaybe": "Nous vous recontacterons pour confirmer.",
     "changeAnswer": "Modifier ma réponse",
+    "openGallery": "Voir la galerie partagée",
     "poweredBy": "Propulsé par",
     "errors": {
       "pickStatus": "Merci de choisir une option",
@@ -189,6 +191,38 @@
     "declined": "Déclinés",
     "maybe": "Peut-être",
     "export": "Exporter CSV"
+  },
+  "Gallery": {
+    "title": "Galerie partagée",
+    "subtitleOwner": "Téléversez vos photos et modérez celles de vos invités.",
+    "backToEvent": "Retour à l'événement",
+    "backToInvitation": "Retour à l'invitation",
+    "guestHeader": "Photos partagées par les invités",
+    "guestIntro": "Ajoutez vos photos pour qu'elles apparaissent ici après modération.",
+    "upload": "Ajouter des photos",
+    "uploading": "Envoi {current}/{total}…",
+    "empty": "Aucune photo pour le moment.",
+    "emptyGuest": "Aucune photo approuvée pour le moment.",
+    "approve": "Approuver",
+    "reject": "Refuser",
+    "remove": "Supprimer",
+    "filters": {
+      "all": "Toutes",
+      "pending": "En attente",
+      "approved": "Approuvées",
+      "rejected": "Refusées"
+    },
+    "status": {
+      "pending": "En attente",
+      "approved": "Approuvée",
+      "rejected": "Refusée"
+    },
+    "errors": {
+      "size": "Image trop volumineuse",
+      "type": "Format non supporté",
+      "network": "Échec de l'envoi, vérifiez votre connexion",
+      "generic": "Une erreur est survenue"
+    }
   },
   "Checkin": {
     "title": "Check-in des invités",

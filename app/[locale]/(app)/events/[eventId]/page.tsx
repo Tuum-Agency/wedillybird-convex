@@ -116,6 +116,9 @@ export default async function EventDetailPage({
             </p>
           </div>
           <div className="flex gap-2">
+            <Link href={`/events/${eventId}/gallery`}>
+              <Button variant="ghost">{t('openGallery')}</Button>
+            </Link>
             <Link href={`/events/${eventId}/check-in`}>
               <Button variant="ghost">{t('openCheckIn')}</Button>
             </Link>

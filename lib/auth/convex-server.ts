@@ -234,6 +234,82 @@ export const convexApi = {
     { guestId: string; requesterId: string },
     { ok: true }
   >('guests:undoCheckIn'),
+  createOwnerUploadUrl: makeFunctionReference<
+    'mutation',
+    { eventId: string; requesterId: string },
+    { uploadUrl: string }
+  >('photos:createOwnerUploadUrl'),
+  createGuestUploadUrl: makeFunctionReference<'mutation', { token: string }, { uploadUrl: string }>(
+    'photos:createGuestUploadUrl',
+  ),
+  confirmOwnerUpload: makeFunctionReference<
+    'mutation',
+    {
+      eventId: string;
+      requesterId: string;
+      storageId: string;
+      sizeBytes: number;
+      contentType: string;
+      width?: number;
+      height?: number;
+    },
+    { id: string }
+  >('photos:confirmOwnerUpload'),
+  confirmGuestUpload: makeFunctionReference<
+    'mutation',
+    {
+      token: string;
+      storageId: string;
+      sizeBytes: number;
+      contentType: string;
+      width?: number;
+      height?: number;
+      uploaderName?: string;
+    },
+    { id: string }
+  >('photos:confirmGuestUpload'),
+  listPhotosForOwner: makeFunctionReference<
+    'query',
+    {
+      eventId: string;
+      requesterId: string;
+      status?: 'pending' | 'approved' | 'rejected';
+    },
+    Array<{
+      _id: string;
+      url: string | null;
+      status: 'pending' | 'approved' | 'rejected';
+      uploaderName?: string;
+      uploadedByGuestToken?: boolean;
+      width?: number;
+      height?: number;
+      sizeBytes: number;
+      contentType: string;
+      createdAt: number;
+    }>
+  >('photos:listForOwner'),
+  listApprovedPhotosForGuest: makeFunctionReference<
+    'query',
+    { token: string },
+    Array<{
+      _id: string;
+      url: string | null;
+      uploaderName?: string;
+      width?: number;
+      height?: number;
+      createdAt: number;
+    }>
+  >('photos:listApprovedForGuest'),
+  moderatePhoto: makeFunctionReference<
+    'mutation',
+    { photoId: string; requesterId: string; decision: 'approved' | 'rejected' },
+    { ok: true }
+  >('photos:moderate'),
+  removePhoto: makeFunctionReference<
+    'mutation',
+    { photoId: string; requesterId: string },
+    { ok: true }
+  >('photos:remove'),
 } satisfies Record<
   string,
   FunctionReference<'query' | 'mutation' | 'action', 'public', Args, unknown>
