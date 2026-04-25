@@ -23,14 +23,17 @@ test.describe('Landing page', () => {
     await expect(features.getByRole('heading', { name: /galerie partagée/i })).toBeVisible();
   });
 
-  test('la grille de pricing affiche trois plans', async ({ page }) => {
+  test('la grille de pricing affiche les deux plans Essentiel et Premium', async ({ page }) => {
     await page.goto('/');
     const pricing = page.locator('#pricing');
     await expect(pricing).toBeVisible();
 
     await expect(pricing.getByRole('heading', { name: /essentiel/i })).toBeVisible();
-    await expect(pricing.getByRole('heading', { name: /sérénité/i })).toBeVisible();
-    await expect(pricing.getByRole('heading', { name: /prestige/i })).toBeVisible();
+    await expect(pricing.getByRole('heading', { name: /^premium$/i })).toBeVisible();
+    // L'ancien tier 'free' (Gratuit) ne doit plus apparaître.
+    await expect(pricing.getByText(/gratuit/i)).toHaveCount(0);
+    // Le bandeau d'upsell post-mariage doit être affiché.
+    await expect(pricing.getByTestId('upsell-note')).toBeVisible();
   });
 
   test('les liens header vers sign-in et sign-up sont présents', async ({ page }) => {
