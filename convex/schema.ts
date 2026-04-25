@@ -146,6 +146,9 @@ export default defineSchema({
     invitationChannel: v.optional(
       v.union(v.literal('whatsapp'), v.literal('email'), v.literal('sms')),
     ),
+    // Reminders sent (idempotence for the daily cron). Set when SES action succeeds.
+    reminderD7SentAt: v.optional(v.number()),
+    reminderD1SentAt: v.optional(v.number()),
     createdAt: v.number(),
     updatedAt: v.number(),
   })

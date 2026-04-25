@@ -1,5 +1,11 @@
 import { v } from 'convex/values';
-import { mutation, query, type MutationCtx, type QueryCtx } from './_generated/server';
+import {
+  internalMutation,
+  mutation,
+  query,
+  type MutationCtx,
+  type QueryCtx,
+} from './_generated/server';
 import type { Doc, Id } from './_generated/dataModel';
 import { generateQrToken } from './lib/qrToken';
 
@@ -298,6 +304,23 @@ export const undoCheckIn = mutation({
       checkedInBy: undefined,
       updatedAt: Date.now(),
     });
+    return { ok: true as const };
+  },
+});
+
+export const markReminderSent = internalMutation({
+  args: {
+    guestId: v.id('guests'),
+    tier: v.union(v.literal('d7'), v.literal('d1')),
+  },
+  handler: async (ctx, { guestId, tier }) => {
+    const now = Date.now();
+    await ctx.db.patch(
+      guestId,
+      tier === 'd7'
+        ? { reminderD7SentAt: now, updatedAt: now }
+        : { reminderD1SentAt: now, updatedAt: now },
+    );
     return { ok: true as const };
   },
 });
