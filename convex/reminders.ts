@@ -1,30 +1,7 @@
 import { v } from 'convex/values';
 import { internal } from './_generated/api';
 import { internalAction, internalQuery } from './_generated/server';
-
-const MS_PER_DAY = 86_400_000;
-
-/**
- * Returns the [start, end] timestamp window (in ms) for events occurring
- * approximately `daysFromNow` away from `now`, with a ±12h tolerance to
- * tolerate cron drift and tz shifts.
- */
-export function reminderWindow(now: number, daysFromNow: number): { start: number; end: number } {
-  const center = now + daysFromNow * MS_PER_DAY;
-  return { start: center - MS_PER_DAY / 2, end: center + MS_PER_DAY / 2 };
-}
-
-function appOrigin(): string {
-  return process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '') ?? 'https://wedillybird.com';
-}
-
-function formatEventDate(timestamp: number): string {
-  return new Date(timestamp).toLocaleDateString('fr-FR', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  });
-}
+import { appOrigin, formatEventDate, reminderWindow } from '../lib/reminders/window';
 
 /**
  * Daily cron entry-point. Scans events with eventDate within J-7 / J-1 windows

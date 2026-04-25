@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { reminderWindow } from '@/convex/reminders';
+import { reminderWindow } from '@/lib/reminders/window';
 
 const MS_PER_DAY = 86_400_000;
 const MS_PER_HOUR = 3_600_000;
