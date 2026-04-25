@@ -107,20 +107,21 @@ function LandingContent() {
               {t('pricing.title')}
             </h2>
           </div>
-          <div className="grid gap-6 md:grid-cols-3">
-            {(['free', 'essential', 'premium'] as const).map((tier, idx) => {
-              const plan = PLANS[tier as PlanTier];
+          <div className="mx-auto grid max-w-4xl gap-6 md:grid-cols-2">
+            {(['essential', 'premium'] as const).map((tier) => {
+              const plan = PLANS[tier];
+              const isPremium = tier === 'premium';
               return (
                 <Card
                   key={tier}
                   className={
-                    idx === 1
+                    isPremium
                       ? 'border-[color:var(--color-primary)] ring-1 ring-[color:var(--color-primary)]'
                       : ''
                   }
                 >
                   <CardContent className="flex h-full flex-col gap-4 p-8">
-                    {idx === 1 && <Badge variant="primary">Recommandé</Badge>}
+                    {isPremium && <Badge variant="primary">{t('pricing.recommended')}</Badge>}
                     <div>
                       <h3 className="font-display text-2xl font-semibold">
                         {t(`pricing.${tier}.name`)}
@@ -142,14 +143,11 @@ function LandingContent() {
                         </li>
                       ))}
                     </ul>
-                    <p className="mt-2 rounded-lg bg-[color:var(--color-ivory-100)] p-3 text-xs leading-relaxed text-[color:var(--color-muted)]">
-                      {tPlans('quotaNoteShort')}
-                    </p>
                     <Link
                       href="/sign-up"
                       className={cn(
                         buttonVariants({
-                          variant: idx === 1 ? 'primary' : 'outline',
+                          variant: isPremium ? 'primary' : 'outline',
                           size: 'md',
                         }),
                         'mt-auto w-full',
@@ -162,8 +160,8 @@ function LandingContent() {
               );
             })}
           </div>
-          <p className="mx-auto mt-8 max-w-3xl text-center text-sm text-[color:var(--color-muted)]">
-            {tPlans('quotaNoteLong')}
+          <p className="mx-auto mt-8 max-w-3xl rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-5 text-center text-sm text-[color:var(--color-muted)]">
+            {t('pricing.upsellNote')}
           </p>
         </section>
       </main>

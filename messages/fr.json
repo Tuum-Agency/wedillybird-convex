@@ -102,7 +102,7 @@
       },
       "pricing": {
         "q": "Quels sont les tarifs ?",
-        "a": "Formule Essentiel (gratuite, jusqu'à 30 invitations), Sérénité (49 €, jusqu'à 150 invitations), Prestige (119 €, jusqu'à 1000 invitations). Paiement unique par mariage. Une invitation correspond à une fiche/QR code unique envoyé à un invité principal qui peut amener plusieurs accompagnants."
+        "a": "Deux formules en paiement unique par mariage : Essentiel (19 €) pour les invitations WhatsApp, le RSVP, le check-in QR et le tableau de bord ; Premium (49 €) qui ajoute la galerie photo partagée pendant 6 mois et l'album PDF final. Un upsell post-mariage à +29 € permet de garder votre galerie 5 ans avec un livre photo HD et l'export haute définition."
       },
       "support": {
         "q": "Comment contacter le support ?",
@@ -141,21 +141,18 @@
     },
     "pricing": {
       "title": "Un prix juste pour chaque mariage",
-      "free": {
-        "name": "Essentiel",
-        "price": "Gratuit",
-        "description": "Jusqu'à 30 invitations"
-      },
+      "recommended": "Recommandé",
       "essential": {
-        "name": "Sérénité",
-        "price": "49 €",
-        "description": "Jusqu'à 150 invitations"
+        "name": "Essentiel",
+        "price": "19 €",
+        "description": "Le strict nécessaire pour digitaliser votre mariage"
       },
       "premium": {
-        "name": "Prestige",
-        "price": "119 €",
-        "description": "Invitations illimitées + galerie"
-      }
+        "name": "Premium",
+        "price": "49 €",
+        "description": "Tout l'Essentiel + galerie partagée 6 mois + album PDF final"
+      },
+      "upsellNote": "Après votre mariage, prolongez l'accès à votre galerie pendant 5 ans avec un livre photo HD et l'export en haute définition pour +29 €."
     }
   },
   "Auth": {
@@ -403,37 +400,32 @@
     }
   },
   "Plans": {
-    "quotaUnit": "invitations",
-    "quotaNoteShort": "Une invitation = un QR code envoyé à un invité principal qui peut amener des accompagnants.",
-    "quotaNoteLong": "Important : le quota se mesure en invitations envoyées (= fiches/QR codes), pas en personnes physiques. Chaque invitation peut amener plusieurs accompagnants. Une formule à 150 invitations peut donc accueillir 200, 300, 400 personnes le jour J selon les accompagnants.",
     "features": {
       "invitationPage": "Page d'invitation publique personnalisée",
       "qrCodes": "QR code unique pour chaque invité",
       "rsvpRealtime": "Suivi RSVP en temps réel",
       "checkinOffline": "Check-in offline le jour J",
-      "sharedGallery": "Galerie photo partagée (modération)",
-      "customBranding": "Couleurs et police personnalisées de l'invitation",
-      "csvExport": "Export CSV de la liste invités",
-      "prioritySupport": "Support email prioritaire",
-      "unlimitedGallery": "Galerie photo illimitée",
-      "noWatermark": "Sans filigrane Wedillybird",
-      "dedicatedSupport": "Support dédié 7j/7"
+      "basicDashboard": "Tableau de bord couple (suivi des réponses, statistiques)",
+      "gallerySharedExtended": "Galerie partagée (active jusqu'à 6 mois après le mariage)",
+      "pdfAlbumFinal": "Album PDF final imprimable de la galerie",
+      "galleryRetention5y": "Galerie conservée 5 ans après le mariage",
+      "photoBookHd": "Livre photo HD imprimé livré à domicile",
+      "exportHd": "Export ZIP haute définition de toutes les photos"
     }
   },
   "Upgrade": {
-    "title": "Passer à une formule supérieure",
-    "subtitle": "Augmentez votre quota d'invitations et débloquez plus de fonctionnalités. Chaque invitation peut amener plusieurs accompagnants.",
+    "title": "Choisir votre formule",
+    "subtitle": "Sélectionnez l'expérience adaptée à votre mariage. Paiement unique, pas d'abonnement.",
     "selectPlan": "Choisir cette formule",
     "redirecting": "Redirection…",
     "alreadyPremium": "Vous êtes déjà sur la formule la plus complète.",
-    "maxGuests": "Jusqu'à {count} invitations",
+    "galleryRetention": "Galerie active {days, plural, =1 {# jour} other {# jours}} après le mariage",
     "plans": {
-      "free": "Essentiel",
-      "essential": "Sérénité",
-      "premium": "Prestige"
+      "essential": "Essentiel",
+      "premium": "Premium"
     },
     "successTitle": "Paiement confirmé",
-    "successBody": "Votre événement est désormais sur la formule {plan}. Quota d'invitations : {max}.",
+    "successBody": "Votre événement est désormais en formule {plan}. Galerie active jusqu'à J+{days}.",
     "processingTitle": "Paiement en cours de traitement",
     "processingBody": "Nous finalisons votre paiement. Rafraîchissez cette page dans quelques secondes pour voir votre nouvelle formule.",
     "cancelledTitle": "Paiement annulé",

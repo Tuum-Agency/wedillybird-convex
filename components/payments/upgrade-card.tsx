@@ -3,16 +3,17 @@
 import { useState, useTransition } from 'react';
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
-import { PLANS, formatAmount, type Currency, type PaidPlanTier } from '@/lib/payments/plans';
+import { PLANS, formatAmount, type Currency, type PlanTier } from '@/lib/payments/plans';
 
 interface Props {
   eventId: string;
-  currentTier: 'free' | 'essential' | 'premium';
+  /** Current event plan. Undefined = unpaid draft (must purchase before publishing). */
+  currentTier: PlanTier | undefined;
   currency: Currency;
 }
 
-const UPGRADE_TARGETS: Record<'free' | 'essential', PaidPlanTier[]> = {
-  free: ['essential', 'premium'],
+const UPGRADE_TARGETS: Record<'unpaid' | 'essential', PlanTier[]> = {
+  unpaid: ['essential', 'premium'],
   essential: ['premium'],
 };
 
@@ -21,7 +22,7 @@ export function UpgradeCard({ eventId, currentTier, currency }: Props) {
   const tPlans = useTranslations('Plans');
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
-  const [selecting, setSelecting] = useState<PaidPlanTier | null>(null);
+  const [selecting, setSelecting] = useState<PlanTier | null>(null);
 
   if (currentTier === 'premium') {
     return (
@@ -31,9 +32,9 @@ export function UpgradeCard({ eventId, currentTier, currency }: Props) {
     );
   }
 
-  const upgrades = UPGRADE_TARGETS[currentTier];
+  const upgrades = currentTier === 'essential' ? UPGRADE_TARGETS.essential : UPGRADE_TARGETS.unpaid;
 
-  function handleSelect(plan: PaidPlanTier) {
+  function handleSelect(plan: PlanTier) {
     setError(null);
     setSelecting(plan);
     startTransition(async () => {
@@ -81,7 +82,7 @@ export function UpgradeCard({ eventId, currentTier, currency }: Props) {
                 <span className="font-display text-lg">{formatAmount(price, currency)}</span>
               </div>
               <p className="text-sm font-medium">
-                {t('maxGuests', { count: PLANS[plan].maxGuests })}
+                {t('galleryRetention', { days: PLANS[plan].galleryRetentionDays })}
               </p>
               <ul className="flex flex-col gap-1.5 text-xs">
                 {PLANS[plan].featureKeys.map((key) => (
@@ -104,9 +105,6 @@ export function UpgradeCard({ eventId, currentTier, currency }: Props) {
           );
         })}
       </ul>
-      <p className="rounded-lg bg-[color:var(--color-ivory-100)] p-3 text-xs leading-relaxed text-[color:var(--color-muted)]">
-        {tPlans('quotaNoteShort')}
-      </p>
       {error ? (
         <p role="alert" className="text-sm text-[color:var(--color-destructive)]">
           {t(`errors.${error.toLowerCase()}` as const)}

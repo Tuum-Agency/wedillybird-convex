@@ -6,11 +6,14 @@ const PROVIDER = v.union(v.literal('stripe'), v.literal('cinetpay'), v.literal('
 const CURRENCY = v.union(v.literal('EUR'), v.literal('XOF'), v.literal('MAD'), v.literal('TND'));
 const PLAN = v.union(v.literal('essential'), v.literal('premium'));
 
-const PLAN_MAX_GUESTS: Record<'free' | 'essential' | 'premium', number> = {
-  free: 30,
-  essential: 150,
-  premium: 1000,
+// Gallery retention is feature-based now: Essentiel = J+30, Premium = J+180.
+// Post-event upsell pushes this to J+5y (cf. extendRetentionPostEvent below).
+const GALLERY_RETENTION_DAYS: Record<'essential' | 'premium', number> = {
+  essential: 30,
+  premium: 180,
 };
+const POST_EVENT_UPSELL_RETENTION_DAYS = 5 * 365;
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 export const recordIntent = mutation({
   args: {
@@ -85,12 +88,18 @@ export const markSucceeded = mutation({
 
     const event = await ctx.db.get(payment.eventId);
     if (event) {
-      const targetMax = PLAN_MAX_GUESTS[payment.plan];
-      if (event.planTier !== payment.plan || event.maxGuests !== targetMax) {
+      const galleryExpiresAt = event.eventDate + GALLERY_RETENTION_DAYS[payment.plan] * MS_PER_DAY;
+      const now = Date.now();
+      const needsUpdate =
+        event.planTier !== payment.plan ||
+        event.paidAt === undefined ||
+        event.galleryExpiresAt !== galleryExpiresAt;
+      if (needsUpdate) {
         await ctx.db.patch(event._id, {
           planTier: payment.plan,
-          maxGuests: targetMax,
-          updatedAt: Date.now(),
+          paidAt: event.paidAt ?? now,
+          galleryExpiresAt,
+          updatedAt: now,
         });
       }
     }
@@ -166,5 +175,28 @@ export const listByEvent = query({
       .withIndex('by_event', (q) => q.eq('eventId', eventId))
       .order('desc')
       .collect();
+  },
+});
+
+/**
+ * Post-event upsell: pushes gallery retention to J+5y for a one-shot fee.
+ * Called from the upsell checkout success webhook (provider="stripe"|"cinetpay"|"mock"
+ * with a payment row whose plan stays at the original tier — the upsell is
+ * recorded as a separate `payments` row marked with providerSessionId distinct
+ * from the original purchase).
+ */
+export const extendRetentionPostEvent = mutation({
+  args: { eventId: v.id('events'), requesterId: v.id('users') },
+  handler: async (ctx, { eventId, requesterId }) => {
+    const event = await ctx.db.get(eventId);
+    if (!event) throw new Error('EVENT_NOT_FOUND');
+    if (event.ownerId !== requesterId) throw new Error('FORBIDDEN');
+
+    const newExpiresAt = event.eventDate + POST_EVENT_UPSELL_RETENTION_DAYS * MS_PER_DAY;
+    if (event.galleryExpiresAt && event.galleryExpiresAt >= newExpiresAt) {
+      return { ok: true as const, alreadyExtended: true };
+    }
+    await ctx.db.patch(eventId, { galleryExpiresAt: newExpiresAt, updatedAt: Date.now() });
+    return { ok: true as const, alreadyExtended: false };
   },
 });

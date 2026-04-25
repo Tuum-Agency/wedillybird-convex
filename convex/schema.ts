@@ -9,9 +9,11 @@ export default defineSchema({
     avatarUrl: v.optional(v.string()),
     locale: v.union(v.literal('fr')),
     role: v.union(v.literal('couple'), v.literal('pro'), v.literal('guest'), v.literal('admin')),
+    // For couples: 'essential' | 'premium' (per-event, set on payment).
+    // For pros: 'starter' | 'business' | 'agency' (subscription).
+    // Note: 'free' was removed in the pricing alignment v2 (avril 2026).
     planTier: v.optional(
       v.union(
-        v.literal('free'),
         v.literal('essential'),
         v.literal('premium'),
         v.literal('starter'),
@@ -112,8 +114,15 @@ export default defineSchema({
       v.literal('archived'),
       v.literal('cancelled'),
     ),
-    planTier: v.union(v.literal('free'), v.literal('essential'), v.literal('premium')),
+    // Set when the owner pays for one of the two B2C plans. Absent = unpaid draft.
+    planTier: v.optional(v.union(v.literal('essential'), v.literal('premium'))),
+    paidAt: v.optional(v.number()),
+    // Hard cap kept for anti-abuse (uniform across plans). Defaults to 5000 on create.
     maxGuests: v.number(),
+    // Gallery access expires after this timestamp. Computed from planTier
+    // (Essential = J+30, Premium = J+180) on payment success. Post-event upsell
+    // pushes this to J+5y.
+    galleryExpiresAt: v.optional(v.number()),
     createdAt: v.number(),
     updatedAt: v.number(),
   })

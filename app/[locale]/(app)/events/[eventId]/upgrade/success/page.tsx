@@ -50,17 +50,6 @@ export default async function UpgradeSuccessPage({
     }
   }
 
-  // Always reconcile maxGuests against current planTier in case earlier rows
-  // were created with the legacy 50 default before the schema fix.
-  try {
-    await convex.mutation(convexApi.reconcileEventMaxGuests, {
-      eventId,
-      requesterId: session!.userId,
-    });
-  } catch {
-    // best-effort, ignore
-  }
-
   const event = await convex.query(convexApi.getEventById, {
     eventId,
     requesterId: session!.userId,
@@ -68,22 +57,23 @@ export default async function UpgradeSuccessPage({
   if (!event) notFound();
 
   const t = await getTranslations('Upgrade');
-  const isStillFree = event.planTier === 'free';
+  // Webhook hasn't reconciled yet (or payment failed). UI shows a processing state.
+  const isPending = event.planTier === undefined;
 
   return (
     <main className="container-page flex flex-1 flex-col items-center justify-center gap-6 py-16 text-center">
       <h1 className="font-display text-3xl font-semibold tracking-tight">
-        {isStillFree ? t('processingTitle') : t('successTitle')}
+        {isPending ? t('processingTitle') : t('successTitle')}
       </h1>
       <p className="text-base text-[color:var(--color-muted)]">
-        {isStillFree
+        {isPending
           ? t('processingBody')
           : t('successBody', {
-              plan: t(`plans.${event.planTier}` as const),
-              max: event.maxGuests,
+              plan: t(`plans.${event.planTier!}` as const),
+              days: event.planTier === 'premium' ? 180 : 30,
             })}
       </p>
-      {isStillFree && reconciliationFailed ? (
+      {isPending && reconciliationFailed ? (
         <p role="alert" className="text-sm text-[color:var(--color-destructive)]">
           {t('errors.reconciliation')}
         </p>

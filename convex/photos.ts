@@ -62,6 +62,20 @@ function assertUploadShape(sizeBytes: number, contentType: string): void {
   }
 }
 
+/**
+ * Gate uploads when the event's gallery retention window has expired.
+ * `galleryExpiresAt` is set on payment success and pushed by the post-event
+ * upsell. If unset, the event hasn't been paid yet — also blocked.
+ */
+function assertGalleryOpen(event: Doc<'events'>): void {
+  if (event.galleryExpiresAt === undefined) {
+    throw new Error('GALLERY_NOT_PURCHASED');
+  }
+  if (Date.now() > event.galleryExpiresAt) {
+    throw new Error('GALLERY_EXPIRED');
+  }
+}
+
 /* -------------------------------------------------------------------------- */
 /*  Internal helpers used by Node actions (createOwnerS3UploadUrl, etc.)      */
 /* -------------------------------------------------------------------------- */
@@ -97,8 +111,9 @@ export const confirmOwnerUpload = mutation({
     height: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    await assertEventOwnership(ctx, args.eventId, args.requesterId);
+    const event = await assertEventOwnership(ctx, args.eventId, args.requesterId);
     assertUploadShape(args.sizeBytes, args.contentType);
+    assertGalleryOpen(event);
 
     const id = await ctx.db.insert('photos', {
       eventId: args.eventId,
@@ -130,6 +145,7 @@ export const confirmGuestUpload = mutation({
   handler: async (ctx, args) => {
     const event = await resolveEventForToken(ctx, args.token);
     assertUploadShape(args.sizeBytes, args.contentType);
+    assertGalleryOpen(event);
 
     const id = await ctx.db.insert('photos', {
       eventId: event._id,

@@ -1,9 +1,9 @@
-import type { Currency, PaidPlanTier } from './plans';
+import type { Currency, PlanTier } from './plans';
 import type { ProviderName } from './country';
 
 export interface CheckoutInput {
   provider: ProviderName;
-  plan: PaidPlanTier;
+  plan: PlanTier;
   currency: Currency;
   amountMinor: number;
   eventId: string;

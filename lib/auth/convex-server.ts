@@ -93,7 +93,7 @@ export const convexApi = {
       eventDate: number;
       timezone: string;
       status: 'draft' | 'active' | 'archived' | 'cancelled';
-      planTier: 'free' | 'essential' | 'premium';
+      planTier: 'essential' | 'premium' | undefined;
       maxGuests: number;
       venue?: { name: string; address: string; lat?: number; lng?: number };
       updatedAt: number;
@@ -105,7 +105,7 @@ export const convexApi = {
     {
       ok: true;
       changed: boolean;
-      planTier?: 'free' | 'essential' | 'premium';
+      planTier?: 'essential' | 'premium' | undefined;
       maxGuests?: number;
     }
   >('events:reconcileMaxGuests'),
@@ -123,7 +123,7 @@ export const convexApi = {
       venue?: { name: string; address: string; lat?: number; lng?: number };
       theme?: { primaryColor: string; accentColor: string; fontFamily: string };
       status: 'draft' | 'active' | 'archived' | 'cancelled';
-      planTier: 'free' | 'essential' | 'premium';
+      planTier: 'essential' | 'premium' | undefined;
       maxGuests: number;
       updatedAt: number;
     } | null
@@ -447,7 +447,7 @@ export const convexApi = {
       eventDate: number;
       timezone: string;
       status: 'draft' | 'active' | 'archived' | 'cancelled';
-      planTier: 'free' | 'essential' | 'premium';
+      planTier: 'essential' | 'premium' | undefined;
       maxGuests: number;
       ownerId: string;
     }>

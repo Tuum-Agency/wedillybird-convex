@@ -39,9 +39,9 @@ describe('messages FR', () => {
     expect(fr.Landing.features).toHaveProperty('rsvp');
     expect(fr.Landing.features).toHaveProperty('checkin');
     expect(fr.Landing.features).toHaveProperty('gallery');
-    expect(fr.Landing.pricing).toHaveProperty('free');
     expect(fr.Landing.pricing).toHaveProperty('essential');
     expect(fr.Landing.pricing).toHaveProperty('premium');
+    expect(fr.Landing.pricing).toHaveProperty('upsellNote');
   });
 
   it("contient le bloc Auth pour l'OTP WhatsApp", () => {
