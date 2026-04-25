@@ -114,7 +114,8 @@
     "archivedBadge": "Archivé",
     "cancelledBadge": "Annulé",
     "guests": "{count, plural, =0 {aucun invité} =1 {1 invité} other {# invités}}",
-    "rsvpAttending": "{count, plural, =0 {personne confirmée} =1 {1 personne confirmée} other {# personnes confirmées}}"
+    "rsvpAttending": "{count, plural, =0 {personne confirmée} =1 {1 personne confirmée} other {# personnes confirmées}}",
+    "singleEventNotice": "Votre formule inclut un seul mariage."
   },
   "EventDetail": {
     "backToDashboard": "Retour au tableau de bord",
@@ -125,7 +126,10 @@
     "guestsSummary": "{total, plural, =0 {Aucun invité ajouté} =1 {1 invité} other {# invités}} · {attending, plural, =0 {aucune confirmation} =1 {1 confirmé} other {# confirmés}} · limite {max}",
     "manageGuests": "Gérer les invités",
     "openCheckIn": "Check-in",
-    "openGallery": "Galerie"
+    "openGallery": "Galerie",
+    "publish": "Publier",
+    "unpublish": "Repasser en brouillon",
+    "draftHint": "Cet événement est en brouillon. Publiez-le pour activer les invitations et la galerie."
   },
   "Guests": {
     "title": "Liste d'invités",
@@ -243,6 +247,34 @@
     "unknownGuestOffline": "Code QR hors ligne inconnu",
     "errorGeneric": "Erreur",
     "undo": "Annuler"
+  },
+  "Upgrade": {
+    "title": "Passer à une formule supérieure",
+    "subtitle": "Augmentez le nombre d'invités et débloquez plus de fonctionnalités.",
+    "selectPlan": "Choisir cette formule",
+    "redirecting": "Redirection…",
+    "alreadyPremium": "Vous êtes déjà sur la formule la plus complète.",
+    "maxGuests": "Jusqu'à {count} invités",
+    "plans": {
+      "free": "Essentiel",
+      "essential": "Sérénité",
+      "premium": "Prestige"
+    },
+    "successTitle": "Paiement confirmé",
+    "successBody": "Votre événement est désormais sur la formule {plan}. Limite d'invités : {max}.",
+    "cancelledTitle": "Paiement annulé",
+    "cancelledBody": "Aucun montant n'a été prélevé. Vous pouvez réessayer à tout moment.",
+    "backToEvent": "Retour à l'événement",
+    "errors": {
+      "invalid_input": "Données invalides",
+      "invalid_plan_price": "Formule indisponible pour cette devise",
+      "forbidden": "Vous n'avez pas les droits sur cet événement",
+      "payment_record_failed": "Impossible d'enregistrer la transaction",
+      "stripe_driver_not_configured": "Stripe non configuré sur cet environnement",
+      "cinetpay_driver_not_configured": "CinetPay non configuré sur cet environnement",
+      "network": "Erreur réseau, réessayez",
+      "unknown": "Une erreur est survenue. Réessayez."
+    }
   },
   "EventCreate": {
     "title": "Créer votre mariage",

@@ -6,6 +6,8 @@ import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { LiveGuestStats } from '@/components/events/live-guest-stats';
+import { UpgradeCard } from '@/components/payments/upgrade-card';
+import { routePayment } from '@/lib/payments/country';
 
 type EventStatus = 'draft' | 'active' | 'archived' | 'cancelled';
 
@@ -101,6 +103,12 @@ export default async function EventDetailPage({
         requesterId={session!.userId}
         initialCounts={counts}
         maxGuests={event.maxGuests}
+      />
+
+      <UpgradeCard
+        eventId={eventId}
+        currentTier={event.planTier}
+        currency={routePayment(undefined).currency}
       />
 
       <section className="flex flex-col gap-4 rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-5">

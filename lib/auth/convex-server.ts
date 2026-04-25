@@ -72,6 +72,16 @@ export const convexApi = {
     },
     { id: string; slug: string }
   >('events:create'),
+  publishEvent: makeFunctionReference<
+    'mutation',
+    { eventId: string; requesterId: string },
+    { ok: true; status: 'draft' | 'active' | 'archived' | 'cancelled' }
+  >('events:publish'),
+  unpublishEvent: makeFunctionReference<
+    'mutation',
+    { eventId: string; requesterId: string },
+    { ok: true; status: 'draft' | 'active' | 'archived' | 'cancelled' }
+  >('events:unpublish'),
   listEventsByOwner: makeFunctionReference<
     'query',
     { ownerId: string },
@@ -310,6 +320,68 @@ export const convexApi = {
     { photoId: string; requesterId: string },
     { ok: true }
   >('photos:remove'),
+  recordPaymentIntent: makeFunctionReference<
+    'mutation',
+    {
+      userId: string;
+      eventId: string;
+      plan: 'essential' | 'premium';
+      currency: 'EUR' | 'XOF' | 'MAD' | 'TND';
+      amountMinor: number;
+      provider: 'stripe' | 'cinetpay' | 'mock';
+      providerSessionId: string;
+    },
+    { id: string }
+  >('payments:recordIntent'),
+  findPaymentBySession: makeFunctionReference<
+    'query',
+    { provider: 'stripe' | 'cinetpay' | 'mock'; providerSessionId: string },
+    {
+      _id: string;
+      userId: string;
+      eventId: string;
+      plan: 'essential' | 'premium';
+      currency: 'EUR' | 'XOF' | 'MAD' | 'TND';
+      amountMinor: number;
+      provider: 'stripe' | 'cinetpay' | 'mock';
+      providerSessionId: string;
+      providerEventId?: string;
+      status: 'pending' | 'succeeded' | 'failed' | 'cancelled';
+    } | null
+  >('payments:findBySession'),
+  markPaymentSucceeded: makeFunctionReference<
+    'mutation',
+    {
+      provider: 'stripe' | 'cinetpay' | 'mock';
+      providerSessionId: string;
+      providerEventId: string;
+    },
+    { ok: true; alreadyApplied: boolean }
+  >('payments:markSucceeded'),
+  markPaymentFailed: makeFunctionReference<
+    'mutation',
+    {
+      provider: 'stripe' | 'cinetpay' | 'mock';
+      providerSessionId: string;
+      providerEventId: string;
+      status: 'failed' | 'cancelled';
+      failureReason?: string;
+    },
+    { ok: true; alreadyApplied: boolean }
+  >('payments:markFailed'),
+  listPaymentsByEvent: makeFunctionReference<
+    'query',
+    { eventId: string; requesterId: string },
+    Array<{
+      _id: string;
+      plan: 'essential' | 'premium';
+      currency: 'EUR' | 'XOF' | 'MAD' | 'TND';
+      amountMinor: number;
+      provider: 'stripe' | 'cinetpay' | 'mock';
+      status: 'pending' | 'succeeded' | 'failed' | 'cancelled';
+      createdAt: number;
+    }>
+  >('payments:listByEvent'),
 } satisfies Record<
   string,
   FunctionReference<'query' | 'mutation' | 'action', 'public', Args, unknown>
