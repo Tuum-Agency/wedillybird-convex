@@ -27,8 +27,61 @@ export default defineSchema({
     .index('by_phone', ['phone'])
     .index('by_email', ['email']),
 
+  organizations: defineTable({
+    ownerId: v.id('users'),
+    name: v.string(),
+    slug: v.string(),
+    logoStorageId: v.optional(v.id('_storage')),
+    primaryColor: v.optional(v.string()),
+    accentColor: v.optional(v.string()),
+    stripeCustomerId: v.optional(v.string()),
+    stripeSubscriptionId: v.optional(v.string()),
+    subscriptionTier: v.optional(
+      v.union(v.literal('starter'), v.literal('business'), v.literal('agency')),
+    ),
+    subscriptionStatus: v.optional(
+      v.union(
+        v.literal('trialing'),
+        v.literal('active'),
+        v.literal('past_due'),
+        v.literal('canceled'),
+        v.literal('unpaid'),
+      ),
+    ),
+    subscriptionPeriodEnd: v.optional(v.number()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index('by_owner', ['ownerId'])
+    .index('by_slug', ['slug'])
+    .index('by_stripe_customer', ['stripeCustomerId'])
+    .index('by_stripe_subscription', ['stripeSubscriptionId']),
+
+  organizationMemberships: defineTable({
+    organizationId: v.id('organizations'),
+    userId: v.optional(v.id('users')),
+    invitedPhone: v.optional(v.string()),
+    invitedEmail: v.optional(v.string()),
+    role: v.union(
+      v.literal('owner'),
+      v.literal('admin'),
+      v.literal('planner'),
+      v.literal('viewer'),
+    ),
+    status: v.union(v.literal('pending'), v.literal('active'), v.literal('revoked')),
+    inviteToken: v.optional(v.string()),
+    invitedBy: v.id('users'),
+    invitedAt: v.number(),
+    acceptedAt: v.optional(v.number()),
+  })
+    .index('by_organization', ['organizationId'])
+    .index('by_user', ['userId'])
+    .index('by_invite_token', ['inviteToken'])
+    .index('by_org_user', ['organizationId', 'userId']),
+
   events: defineTable({
     ownerId: v.id('users'),
+    organizationId: v.optional(v.id('organizations')),
     slug: v.string(),
     title: v.string(),
     coupleNames: v.object({
@@ -66,7 +119,8 @@ export default defineSchema({
   })
     .index('by_owner', ['ownerId'])
     .index('by_slug', ['slug'])
-    .index('by_status', ['status']),
+    .index('by_status', ['status'])
+    .index('by_organization', ['organizationId']),
 
   guests: defineTable({
     eventId: v.id('events'),
