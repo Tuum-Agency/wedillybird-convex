@@ -7,6 +7,12 @@ function isProviderName(value: string): value is ProviderName {
   return value === 'stripe' || value === 'cinetpay' || value === 'mock';
 }
 
+function readSignatureHeader(headers: Headers, provider: ProviderName): string | null {
+  if (provider === 'stripe') return headers.get('stripe-signature');
+  if (provider === 'cinetpay') return headers.get('x-token') ?? headers.get('x-signature');
+  return headers.get('x-signature');
+}
+
 export async function POST(
   req: Request,
   ctx: { params: Promise<{ provider: string }> },
@@ -17,7 +23,7 @@ export async function POST(
   }
 
   const rawBody = await req.text();
-  const signature = req.headers.get('x-signature');
+  const signature = readSignatureHeader(req.headers, provider);
 
   const driver = getPaymentDriver(provider);
   let event;

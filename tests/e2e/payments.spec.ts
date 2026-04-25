@@ -29,4 +29,14 @@ test.describe('Payments — unauthenticated', () => {
     });
     expect(response.status()).toBe(404);
   });
+
+  test('Stripe webhook rejects request without stripe-signature', async ({ request }) => {
+    const response = await request.post('/api/webhooks/stripe', {
+      data: { id: 'evt_x' },
+      headers: { 'Content-Type': 'application/json' },
+    });
+    expect(response.status()).toBe(400);
+    const body = await response.json();
+    expect(body.error).toBe('INVALID_SIGNATURE');
+  });
 });
