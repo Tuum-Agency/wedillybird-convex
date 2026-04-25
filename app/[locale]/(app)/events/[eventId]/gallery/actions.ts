@@ -5,24 +5,29 @@ import { getSession } from '@/lib/auth/session';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
 
 export type UploadUrlResult =
-  | { ok: true; uploadUrl: string }
-  | { ok: false; error: 'UNAUTHORIZED' | 'FORBIDDEN' | 'NOT_FOUND' | 'UNKNOWN' };
+  | { ok: true; uploadUrl: string; s3Key: string }
+  | { ok: false; error: 'UNAUTHORIZED' | 'FORBIDDEN' | 'NOT_FOUND' | 'INVALID_TYPE' | 'UNKNOWN' };
 
-export async function createOwnerUploadUrlAction(eventId: string): Promise<UploadUrlResult> {
+export async function createOwnerUploadUrlAction(
+  eventId: string,
+  contentType: string,
+): Promise<UploadUrlResult> {
   const session = await getSession();
   if (!session) return { ok: false, error: 'UNAUTHORIZED' };
 
   try {
     const convex = getConvexServerClient();
-    const { uploadUrl } = await convex.mutation(convexApi.createOwnerUploadUrl, {
+    const { uploadUrl, s3Key } = await convex.action(convexApi.createOwnerS3UploadUrl, {
       eventId,
       requesterId: session.userId,
+      contentType,
     });
-    return { ok: true, uploadUrl };
+    return { ok: true, uploadUrl, s3Key };
   } catch (err) {
     const message = err instanceof Error ? err.message : 'UNKNOWN';
-    if (message === 'FORBIDDEN') return { ok: false, error: 'FORBIDDEN' };
-    if (message === 'EVENT_NOT_FOUND') return { ok: false, error: 'NOT_FOUND' };
+    if (message.includes('FORBIDDEN')) return { ok: false, error: 'FORBIDDEN' };
+    if (message.includes('EVENT_NOT_FOUND')) return { ok: false, error: 'NOT_FOUND' };
+    if (message.includes('INVALID_CONTENT_TYPE')) return { ok: false, error: 'INVALID_TYPE' };
     return { ok: false, error: 'UNKNOWN' };
   }
 }
@@ -31,7 +36,7 @@ export type ConfirmUploadResult = { ok: true; id: string } | { ok: false; error:
 
 export async function confirmOwnerUploadAction(input: {
   eventId: string;
-  storageId: string;
+  s3Key: string;
   sizeBytes: number;
   contentType: string;
   width?: number;
@@ -45,7 +50,7 @@ export async function confirmOwnerUploadAction(input: {
     const { id } = await convex.mutation(convexApi.confirmOwnerUpload, {
       eventId: input.eventId,
       requesterId: session.userId,
-      storageId: input.storageId,
+      s3Key: input.s3Key,
       sizeBytes: input.sizeBytes,
       contentType: input.contentType,
       width: input.width,

@@ -33,7 +33,7 @@ function makeFile(): File {
 }
 
 describe('PhotoUploader (owner mode)', () => {
-  it('compresses, uploads, confirms, and calls onUploaded', async () => {
+  it('compresses, PUTs to S3 presigned URL, confirms with s3Key, and calls onUploaded', async () => {
     const compressedBlob = new Blob(['compressed'], { type: 'image/jpeg' });
     Object.defineProperty(compressedBlob, 'size', { value: 1234 });
     compressMock.mockResolvedValue({
@@ -42,12 +42,13 @@ describe('PhotoUploader (owner mode)', () => {
       height: 800,
       contentType: 'image/jpeg',
     });
-    fetchMock.mockResolvedValue({
-      ok: true,
-      json: async () => ({ storageId: 'stg_123' }),
-    });
+    fetchMock.mockResolvedValue({ ok: true });
 
-    const getUploadUrl = vi.fn().mockResolvedValue({ ok: true, uploadUrl: 'https://u/1' });
+    const getUploadUrl = vi.fn().mockResolvedValue({
+      ok: true,
+      uploadUrl: 'https://s3.example/presigned',
+      s3Key: 'incoming/evt_1/abc-123.jpg',
+    });
     const confirm = vi.fn().mockResolvedValue({ ok: true, id: 'photo_1' });
     const onUploaded = vi.fn();
 
@@ -65,15 +66,16 @@ describe('PhotoUploader (owner mode)', () => {
     const input = screen.getByTestId('photo-uploader-input') as HTMLInputElement;
     await user.upload(input, makeFile());
 
-    await waitFor(() => expect(getUploadUrl).toHaveBeenCalledWith('evt_1'));
+    await waitFor(() => expect(getUploadUrl).toHaveBeenCalledWith('evt_1', 'image/jpeg'));
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
-    expect(fetchMock.mock.calls[0]![0]).toBe('https://u/1');
-    expect(fetchMock.mock.calls[0]![1].method).toBe('POST');
+    expect(fetchMock.mock.calls[0]![0]).toBe('https://s3.example/presigned');
+    expect(fetchMock.mock.calls[0]![1].method).toBe('PUT');
+    expect(fetchMock.mock.calls[0]![1].headers['Content-Type']).toBe('image/jpeg');
 
     await waitFor(() =>
       expect(confirm).toHaveBeenCalledWith({
         eventId: 'evt_1',
-        storageId: 'stg_123',
+        s3Key: 'incoming/evt_1/abc-123.jpg',
         sizeBytes: 1234,
         contentType: 'image/jpeg',
         width: 1000,
@@ -87,9 +89,11 @@ describe('PhotoUploader (owner mode)', () => {
     const compressedBlob = new Blob(['x'], { type: 'image/jpeg' });
     Object.defineProperty(compressedBlob, 'size', { value: 1 });
     compressMock.mockResolvedValue({ file: compressedBlob, contentType: 'image/jpeg' });
-    fetchMock.mockResolvedValue({ ok: false, json: async () => ({}) });
+    fetchMock.mockResolvedValue({ ok: false });
 
-    const getUploadUrl = vi.fn().mockResolvedValue({ ok: true, uploadUrl: 'https://u' });
+    const getUploadUrl = vi
+      .fn()
+      .mockResolvedValue({ ok: true, uploadUrl: 'https://u', s3Key: 'incoming/evt_1/x.jpg' });
     const confirm = vi.fn();
 
     const user = userEvent.setup();
@@ -121,13 +125,17 @@ describe('PhotoUploader (owner mode)', () => {
 });
 
 describe('PhotoUploader (guest mode)', () => {
-  it('passes uploaderName to confirm', async () => {
+  it('passes uploaderName and s3Key to confirm', async () => {
     const compressedBlob = new Blob(['z'], { type: 'image/jpeg' });
     Object.defineProperty(compressedBlob, 'size', { value: 42 });
     compressMock.mockResolvedValue({ file: compressedBlob, contentType: 'image/jpeg' });
-    fetchMock.mockResolvedValue({ ok: true, json: async () => ({ storageId: 'stg_99' }) });
+    fetchMock.mockResolvedValue({ ok: true });
 
-    const getUploadUrl = vi.fn().mockResolvedValue({ ok: true, uploadUrl: 'https://u' });
+    const getUploadUrl = vi.fn().mockResolvedValue({
+      ok: true,
+      uploadUrl: 'https://u',
+      s3Key: 'incoming/evt_2/xyz.jpg',
+    });
     const confirm = vi.fn().mockResolvedValue({ ok: true, id: 'p1' });
 
     const user = userEvent.setup();
@@ -143,12 +151,12 @@ describe('PhotoUploader (guest mode)', () => {
 
     await user.upload(screen.getByTestId('photo-uploader-input'), makeFile());
 
-    await waitFor(() => expect(getUploadUrl).toHaveBeenCalledWith('QR123'));
+    await waitFor(() => expect(getUploadUrl).toHaveBeenCalledWith('QR123', 'image/jpeg'));
     await waitFor(() =>
       expect(confirm).toHaveBeenCalledWith(
         expect.objectContaining({
           token: 'QR123',
-          storageId: 'stg_99',
+          s3Key: 'incoming/evt_2/xyz.jpg',
           uploaderName: 'Awa',
         }),
       ),

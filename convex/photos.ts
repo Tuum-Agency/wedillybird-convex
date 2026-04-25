@@ -1,5 +1,13 @@
 import { v } from 'convex/values';
-import { mutation, query, type MutationCtx, type QueryCtx } from './_generated/server';
+import {
+  internalMutation,
+  internalQuery,
+  mutation,
+  query,
+  type MutationCtx,
+  type QueryCtx,
+} from './_generated/server';
+import { internal } from './_generated/api';
 import type { Doc, Id } from './_generated/dataModel';
 
 const MAX_BYTES_PER_UPLOAD = 15 * 1024 * 1024;
@@ -33,29 +41,56 @@ async function resolveEventForToken(
   return event;
 }
 
-export const createOwnerUploadUrl = mutation({
+function cdnDomain(): string {
+  const domain = process.env.CLOUDFRONT_DOMAIN;
+  if (!domain) throw new Error('Missing CLOUDFRONT_DOMAIN env var on Convex deployment');
+  return domain;
+}
+
+async function resolvePhotoUrl(ctx: QueryCtx, photo: Doc<'photos'>): Promise<string | null> {
+  if (photo.s3Key) return `https://${cdnDomain()}/${photo.s3Key}`;
+  if (photo.storageId) return await ctx.storage.getUrl(photo.storageId);
+  return null;
+}
+
+function assertUploadShape(sizeBytes: number, contentType: string): void {
+  if (!Number.isFinite(sizeBytes) || sizeBytes <= 0 || sizeBytes > MAX_BYTES_PER_UPLOAD) {
+    throw new Error('INVALID_SIZE');
+  }
+  if (!ALLOWED_CONTENT_TYPES.includes(contentType)) {
+    throw new Error('INVALID_CONTENT_TYPE');
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Internal helpers used by Node actions (createOwnerS3UploadUrl, etc.)      */
+/* -------------------------------------------------------------------------- */
+
+export const assertOwnerCanUpload = internalQuery({
   args: { eventId: v.id('events'), requesterId: v.id('users') },
   handler: async (ctx, { eventId, requesterId }) => {
     await assertEventOwnership(ctx, eventId, requesterId);
-    const uploadUrl = await ctx.storage.generateUploadUrl();
-    return { uploadUrl };
+    return { ok: true as const };
   },
 });
 
-export const createGuestUploadUrl = mutation({
+export const assertGuestCanUpload = internalQuery({
   args: { token: v.string() },
   handler: async (ctx, { token }) => {
-    await resolveEventForToken(ctx, token);
-    const uploadUrl = await ctx.storage.generateUploadUrl();
-    return { uploadUrl };
+    const event = await resolveEventForToken(ctx, token);
+    return { eventId: event._id };
   },
 });
+
+/* -------------------------------------------------------------------------- */
+/*  Confirm upload (called after PUT to S3 succeeded)                         */
+/* -------------------------------------------------------------------------- */
 
 export const confirmOwnerUpload = mutation({
   args: {
     eventId: v.id('events'),
     requesterId: v.id('users'),
-    storageId: v.id('_storage'),
+    s3Key: v.string(),
     sizeBytes: v.number(),
     contentType: v.string(),
     width: v.optional(v.number()),
@@ -67,7 +102,7 @@ export const confirmOwnerUpload = mutation({
 
     const id = await ctx.db.insert('photos', {
       eventId: args.eventId,
-      storageId: args.storageId,
+      s3Key: args.s3Key,
       uploadedBy: args.requesterId,
       status: 'approved',
       sizeBytes: args.sizeBytes,
@@ -85,7 +120,7 @@ export const confirmOwnerUpload = mutation({
 export const confirmGuestUpload = mutation({
   args: {
     token: v.string(),
-    storageId: v.id('_storage'),
+    s3Key: v.string(),
     sizeBytes: v.number(),
     contentType: v.string(),
     width: v.optional(v.number()),
@@ -98,7 +133,7 @@ export const confirmGuestUpload = mutation({
 
     const id = await ctx.db.insert('photos', {
       eventId: event._id,
-      storageId: args.storageId,
+      s3Key: args.s3Key,
       uploadedByGuestToken: args.token,
       uploaderName: args.uploaderName?.trim().slice(0, 120) || undefined,
       status: 'pending',
@@ -111,6 +146,10 @@ export const confirmGuestUpload = mutation({
     return { id };
   },
 });
+
+/* -------------------------------------------------------------------------- */
+/*  Listing                                                                    */
+/* -------------------------------------------------------------------------- */
 
 export const listForOwner = query({
   args: {
@@ -135,7 +174,7 @@ export const listForOwner = query({
     return Promise.all(
       rows.map(async (p) => ({
         _id: p._id,
-        url: await ctx.storage.getUrl(p.storageId),
+        url: await resolvePhotoUrl(ctx, p),
         status: p.status,
         uploaderName: p.uploaderName,
         uploadedByGuestToken: p.uploadedByGuestToken ? true : undefined,
@@ -162,7 +201,7 @@ export const listApprovedForGuest = query({
     return Promise.all(
       rows.map(async (p) => ({
         _id: p._id,
-        url: await ctx.storage.getUrl(p.storageId),
+        url: await resolvePhotoUrl(ctx, p),
         uploaderName: p.uploaderName,
         width: p.width,
         height: p.height,
@@ -171,6 +210,10 @@ export const listApprovedForGuest = query({
     );
   },
 });
+
+/* -------------------------------------------------------------------------- */
+/*  Moderation + deletion                                                     */
+/* -------------------------------------------------------------------------- */
 
 export const moderate = mutation({
   args: {
@@ -197,17 +240,38 @@ export const remove = mutation({
     const photo = await ctx.db.get(photoId);
     if (!photo) throw new Error('PHOTO_NOT_FOUND');
     await assertEventOwnership(ctx, photo.eventId, requesterId);
-    await ctx.storage.delete(photo.storageId);
+
+    if (photo.s3Key) {
+      await ctx.scheduler.runAfter(0, internal.photosActions.deleteS3Object, {
+        s3Key: photo.s3Key,
+      });
+    } else if (photo.storageId) {
+      await ctx.storage.delete(photo.storageId);
+    }
     await ctx.db.delete(photoId);
     return { ok: true as const };
   },
 });
 
-function assertUploadShape(sizeBytes: number, contentType: string): void {
-  if (!Number.isFinite(sizeBytes) || sizeBytes <= 0 || sizeBytes > MAX_BYTES_PER_UPLOAD) {
-    throw new Error('INVALID_SIZE');
-  }
-  if (!ALLOWED_CONTENT_TYPES.includes(contentType)) {
-    throw new Error('INVALID_CONTENT_TYPE');
-  }
-}
+/* -------------------------------------------------------------------------- */
+/*  Internal mutations for Lambda callbacks (Phase 5: moderation, variants)   */
+/* -------------------------------------------------------------------------- */
+
+export const internalMarkModerated = internalMutation({
+  args: {
+    s3Key: v.string(),
+    decision: v.union(v.literal('approved'), v.literal('rejected')),
+  },
+  handler: async (ctx, { s3Key, decision }) => {
+    const photo = await ctx.db
+      .query('photos')
+      .withIndex('by_s3_key', (q) => q.eq('s3Key', s3Key))
+      .first();
+    if (!photo) return { ok: false as const, error: 'PHOTO_NOT_FOUND' };
+    await ctx.db.patch(photo._id, {
+      status: decision,
+      moderatedAt: Date.now(),
+    });
+    return { ok: true as const };
+  },
+});

@@ -196,7 +196,9 @@ export default defineSchema({
 
   photos: defineTable({
     eventId: v.id('events'),
-    storageId: v.id('_storage'),
+    // Exactly one of storageId (legacy Convex storage) or s3Key (current AWS S3) is set.
+    storageId: v.optional(v.id('_storage')),
+    s3Key: v.optional(v.string()),
     uploadedBy: v.optional(v.id('users')),
     uploadedByGuestToken: v.optional(v.string()),
     uploaderName: v.optional(v.string()),
@@ -211,7 +213,8 @@ export default defineSchema({
   })
     .index('by_event', ['eventId'])
     .index('by_event_status', ['eventId', 'status'])
-    .index('by_guest_token', ['uploadedByGuestToken']),
+    .index('by_guest_token', ['uploadedByGuestToken'])
+    .index('by_s3_key', ['s3Key']),
 
   otpSessions: defineTable({
     phone: v.string(),
