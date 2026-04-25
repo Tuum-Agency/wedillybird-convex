@@ -32,5 +32,7 @@ new WedillybirdMediaStack(app, 'WedillybirdMediaStack', {
     .split(',')
     .map((s) => s.trim())
     .filter(Boolean),
-  description: 'Wedillybird media S3 bucket + CloudFront distribution',
+  convexSiteUrl: process.env.NEXT_PUBLIC_CONVEX_SITE_URL ?? process.env.CONVEX_SITE_URL,
+  lambdaCallbackSecret: process.env.LAMBDA_CALLBACK_SECRET,
+  description: 'Wedillybird media S3 bucket + CloudFront + Rekognition moderation Lambda',
 });

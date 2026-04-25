@@ -261,16 +261,28 @@ export const internalMarkModerated = internalMutation({
   args: {
     s3Key: v.string(),
     decision: v.union(v.literal('approved'), v.literal('rejected')),
+    topLabel: v.optional(v.string()),
+    topConfidence: v.optional(v.number()),
+    labels: v.optional(v.array(v.object({ name: v.string(), confidence: v.number() }))),
   },
-  handler: async (ctx, { s3Key, decision }) => {
+  handler: async (ctx, { s3Key, decision, topLabel, topConfidence, labels }) => {
     const photo = await ctx.db
       .query('photos')
       .withIndex('by_s3_key', (q) => q.eq('s3Key', s3Key))
       .first();
     if (!photo) return { ok: false as const, error: 'PHOTO_NOT_FOUND' };
+    const now = Date.now();
     await ctx.db.patch(photo._id, {
       status: decision,
-      moderatedAt: Date.now(),
+      moderatedAt: now,
+      moderation: {
+        source: 'rekognition' as const,
+        decision,
+        topLabel,
+        topConfidence,
+        labels,
+        decidedAt: now,
+      },
     });
     return { ok: true as const };
   },
