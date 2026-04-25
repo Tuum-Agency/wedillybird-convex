@@ -325,6 +325,8 @@ export const invite = mutation({
       invitedAt: now,
     });
 
+    const inviteUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? 'https://wedillybird.com'}/pro/invite/${token}`;
+
     // Notify any existing org members that someone was invited (best effort).
     if (args.email) {
       const org = await ctx.db.get(args.organizationId);
@@ -339,7 +341,22 @@ export const invite = mutation({
           kind: 'team-member-added' as const,
           detail: `${inviterLabel} vous invite à rejoindre ${org.name} sur Wedillybird.`,
           ctaLabel: 'Accepter l’invitation',
-          ctaUrl: `${process.env.NEXT_PUBLIC_APP_URL ?? 'https://wedillybird.com'}/pro/invite/${token}`,
+          ctaUrl: inviteUrl,
+        });
+      }
+    }
+
+    // WhatsApp invite (best-effort — skipped silently if WHATSAPP_TEAM_TEMPLATE
+    // is not configured on the deployment).
+    if (args.phone) {
+      const org = await ctx.db.get(args.organizationId);
+      const inviter = await ctx.db.get(args.requesterId);
+      if (org && inviter) {
+        await ctx.scheduler.runAfter(0, internal.whatsappActions.sendTeamInvitation, {
+          phone: args.phone,
+          inviterName: inviter.fullName ?? inviter.phone ?? 'un membre',
+          organizationName: org.name,
+          inviteUrl,
         });
       }
     }

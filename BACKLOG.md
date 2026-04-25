@@ -52,10 +52,21 @@ Items différés au fil des sprints. Chacun est **drop-in** : la plomberie appli
      `ALLOWED_SUBDOMAIN_ROOTS=wedillybird.com,localhost`.
 - **Bloqueurs résiduels** : aucun côté code.
 
-### Invite par lien WhatsApp auto
-- Service WhatsApp existe déjà (`lib/whatsapp/`)
-- À faire : après `inviteOrgMember`, envoyer template WhatsApp `team_invitation` avec lien `<host>/pro/invite/[token]`
-- Template à créer dans Meta Business Manager + valider
+### Invite par lien WhatsApp auto (Sprint 11 — code livré)
+- **Code** ✅ : `convex/whatsappActions.ts:sendTeamInvitation` (internalAction Node)
+  scheduled depuis `organizations.invite` lorsqu'un `phone` est fourni. Le helper pur
+  `lib/whatsapp/team-invite.ts` envoie le template via le client meta-cloud avec
+  fallback mock. Si `WHATSAPP_TEAM_TEMPLATE` n'est pas défini sur le déploiement,
+  la fonction log `[whatsapp:no-template]` et exit gracieusement.
+- **Action manuelle requise** : créer le template `team_invitation` dans Meta Business
+  Manager (catégorie *Utility*, langue *fr*) avec **3 variables de body** :
+  - `{{1}}` = inviterName
+  - `{{2}}` = organizationName
+  - `{{3}}` = inviteUrl
+  + un bouton URL dynamique pointant vers `{{1}}` (l'inviteUrl est aussi passé en
+  paramètre du bouton). Une fois validé par Meta, set `WHATSAPP_TEAM_TEMPLATE` sur
+  le déploiement Convex prod (`pnpx convex env set WHATSAPP_TEAM_TEMPLATE team_invitation`).
+- Tests : `tests/unit/lib/whatsapp-team-invite.test.ts` (3 cas) + `whatsapp-template.test.ts`.
 
 ## Check-in offline (post-Sprint 4)
 
