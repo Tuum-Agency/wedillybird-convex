@@ -410,6 +410,8 @@
     },
     "successTitle": "Paiement confirmé",
     "successBody": "Votre événement est désormais sur la formule {plan}. Limite d'invités : {max}.",
+    "processingTitle": "Paiement en cours de traitement",
+    "processingBody": "Nous finalisons votre paiement. Rafraîchissez cette page dans quelques secondes pour voir votre nouvelle formule.",
     "cancelledTitle": "Paiement annulé",
     "cancelledBody": "Aucun montant n'a été prélevé. Vous pouvez réessayer à tout moment.",
     "backToEvent": "Retour à l'événement",
@@ -420,6 +422,7 @@
       "payment_record_failed": "Impossible d'enregistrer la transaction",
       "stripe_driver_not_configured": "Stripe non configuré sur cet environnement",
       "cinetpay_driver_not_configured": "CinetPay non configuré sur cet environnement",
+      "reconciliation": "Le webhook Stripe est en retard. Le paiement a bien été reçu mais l'upgrade va s'appliquer dans quelques instants. Rafraîchissez la page.",
       "network": "Erreur réseau, réessayez",
       "unknown": "Une erreur est survenue. Réessayez."
     }

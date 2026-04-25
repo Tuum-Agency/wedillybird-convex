@@ -43,6 +43,21 @@ async function pickUniqueSlug(
   throw new Error('SLUG_GENERATION_FAILED');
 }
 
+const PLAN_MAX_GUESTS_FALLBACK = { free: 30, essential: 150, premium: 1000 } as const;
+
+export const reconcileMaxGuests = mutation({
+  args: { eventId: v.id('events'), requesterId: v.id('users') },
+  handler: async (ctx, { eventId, requesterId }) => {
+    const ev = await ctx.db.get(eventId);
+    if (!ev) throw new Error('EVENT_NOT_FOUND');
+    if (ev.ownerId !== requesterId) throw new Error('FORBIDDEN');
+    const expected = PLAN_MAX_GUESTS_FALLBACK[ev.planTier];
+    if (ev.maxGuests === expected) return { ok: true as const, changed: false };
+    await ctx.db.patch(eventId, { maxGuests: expected, updatedAt: Date.now() });
+    return { ok: true as const, changed: true, planTier: ev.planTier, maxGuests: expected };
+  },
+});
+
 export const create = mutation({
   args: {
     ownerId: v.id('users'),
@@ -96,7 +111,7 @@ export const create = mutation({
       ...(args.theme ? { theme: args.theme } : {}),
       status: 'draft' as const,
       planTier: 'free' as const,
-      maxGuests: 50,
+      maxGuests: 30,
       createdAt: now,
       updatedAt: now,
     });

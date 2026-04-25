@@ -2,6 +2,7 @@ import type {
   CheckoutInput,
   CheckoutSession,
   PaymentDriver,
+  SessionStatus,
   VerifiedWebhookEvent,
 } from '../provider';
 
@@ -18,6 +19,9 @@ export const cinetpayDriver: PaymentDriver = {
     _rawBody: string,
     _signature: string | null,
   ): Promise<VerifiedWebhookEvent> {
+    throw new Error('CINETPAY_DRIVER_NOT_CONFIGURED');
+  },
+  async retrieveSessionStatus(_providerSessionId: string): Promise<SessionStatus> {
     throw new Error('CINETPAY_DRIVER_NOT_CONFIGURED');
   },
 };
