@@ -152,7 +152,7 @@
         "price": "49 €",
         "description": "Tout l'Essentiel + galerie partagée 6 mois + album PDF final"
       },
-      "upsellNote": "Après votre mariage, prolongez l'accès à votre galerie pendant 5 ans avec un livre photo HD et l'export en haute définition pour +29 €."
+      "upsellNote": "Après votre mariage, prolongez l'accès à votre galerie pendant 5 ans avec un livre photo HD et l'export en haute définition pour {price}."
     }
   },
   "Auth": {

@@ -1,3 +1,4 @@
+import { headers } from 'next/headers';
 import { useTranslations } from 'next-intl';
 import { setRequestLocale } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
@@ -5,27 +6,36 @@ import { buttonVariants } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { LegalFooter } from '@/components/layout/legal-footer';
-import { PLANS, type PlanTier } from '@/lib/payments/plans';
+import { PLANS } from '@/lib/payments/plans';
+import {
+  detectPricingRegion,
+  formatRegionalPlanPrice,
+  formatRegionalUpsellPrice,
+  type PricingRegion,
+} from '@/lib/payments/region';
 import { cn } from '@/lib/cn';
 
 export default async function LandingPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   setRequestLocale(locale);
+  const region = detectPricingRegion(await headers());
 
-  return <LandingContent />;
+  return <LandingContent region={region} />;
 }
 
-function LandingContent() {
+function LandingContent({ region }: { region: PricingRegion }) {
   const t = useTranslations('Landing');
   const tCommon = useTranslations('Common');
   const tPlans = useTranslations('Plans');
 
   const features = [
-    { key: 'invites', icon: '\u2709' },
-    { key: 'rsvp', icon: '\u2713' },
-    { key: 'checkin', icon: '\u25A1' },
-    { key: 'gallery', icon: '\u2740' },
+    { key: 'invites', icon: '✉' },
+    { key: 'rsvp', icon: '✓' },
+    { key: 'checkin', icon: '□' },
+    { key: 'gallery', icon: '❀' },
   ] as const;
+
+  const upsellPriceLabel = formatRegionalUpsellPrice(region, 'EUR');
 
   return (
     <>
@@ -111,6 +121,7 @@ function LandingContent() {
             {(['essential', 'premium'] as const).map((tier) => {
               const plan = PLANS[tier];
               const isPremium = tier === 'premium';
+              const priceLabel = formatRegionalPlanPrice(tier, region, 'EUR');
               return (
                 <Card
                   key={tier}
@@ -130,8 +141,11 @@ function LandingContent() {
                         {t(`pricing.${tier}.description`)}
                       </p>
                     </div>
-                    <div className="text-4xl font-semibold tracking-tight">
-                      {t(`pricing.${tier}.price`)}
+                    <div
+                      className="text-4xl font-semibold tracking-tight"
+                      data-testid={`price-${tier}`}
+                    >
+                      {priceLabel}
                     </div>
                     <ul className="flex flex-col gap-2 text-sm">
                       {plan.featureKeys.map((key) => (
@@ -160,8 +174,11 @@ function LandingContent() {
               );
             })}
           </div>
-          <p className="mx-auto mt-8 max-w-3xl rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-5 text-center text-sm text-[color:var(--color-muted)]">
-            {t('pricing.upsellNote')}
+          <p
+            className="mx-auto mt-8 max-w-3xl rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-5 text-center text-sm text-[color:var(--color-muted)]"
+            data-testid="upsell-note"
+          >
+            {t('pricing.upsellNote', { price: upsellPriceLabel })}
           </p>
         </section>
       </main>
