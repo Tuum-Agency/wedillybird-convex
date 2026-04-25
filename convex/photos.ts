@@ -287,3 +287,28 @@ export const internalMarkModerated = internalMutation({
     return { ok: true as const };
   },
 });
+
+/**
+ * Called from the variants Lambda once webp variants (thumb/medium/full) have
+ * been generated and uploaded to S3 under `processed/{photoId}/{variant}.webp`.
+ * Looked up by source `s3Key` so the Lambda doesn't need to know the Convex id.
+ */
+export const setVariants = internalMutation({
+  args: {
+    s3Key: v.string(),
+    thumb: v.string(),
+    medium: v.string(),
+    full: v.string(),
+  },
+  handler: async (ctx, { s3Key, thumb, medium, full }) => {
+    const photo = await ctx.db
+      .query('photos')
+      .withIndex('by_s3_key', (q) => q.eq('s3Key', s3Key))
+      .first();
+    if (!photo) return { ok: false as const, error: 'PHOTO_NOT_FOUND' };
+    await ctx.db.patch(photo._id, {
+      variants: { thumb, medium, full, generatedAt: Date.now() },
+    });
+    return { ok: true as const };
+  },
+});

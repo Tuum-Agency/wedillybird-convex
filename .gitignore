@@ -54,3 +54,15 @@ next-env.d.ts
 
 # claude agent internals
 .claude/
+
+# infra (CDK) build output — compiled JS/d.ts beside the .ts sources
+infra/bin/*.js
+infra/bin/*.d.ts
+infra/bin/*.js.map
+infra/lambdas/*.js
+infra/lambdas/*.d.ts
+infra/lambdas/*.js.map
+infra/lib/*.js
+infra/lib/*.d.ts
+infra/lib/*.js.map
+infra/cdk.out/

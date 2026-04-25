@@ -82,4 +82,44 @@ http.route({
   handler: moderationCallback,
 });
 
+const variantsCallback = httpAction(async (ctx, req) => {
+  const rawBody = await req.text();
+  const signature = req.headers.get(SIGNATURE_HEADER);
+  const timestamp = req.headers.get(TIMESTAMP_HEADER);
+  if (!signature || !timestamp) {
+    return new Response('missing signature headers', { status: 400 });
+  }
+  const skew = Math.abs(Date.now() - Number(timestamp));
+  if (!Number.isFinite(skew) || skew > MAX_TIMESTAMP_SKEW_MS) {
+    return new Response('stale or invalid timestamp', { status: 400 });
+  }
+  if (!(await verifySignature(rawBody, timestamp, signature))) {
+    return new Response('bad signature', { status: 401 });
+  }
+
+  let payload: { s3Key?: string; thumb?: string; medium?: string; full?: string };
+  try {
+    payload = JSON.parse(rawBody);
+  } catch {
+    return new Response('invalid JSON', { status: 400 });
+  }
+  if (!payload.s3Key || !payload.thumb || !payload.medium || !payload.full) {
+    return new Response('invalid payload', { status: 400 });
+  }
+
+  const result = await ctx.runMutation(internal.photos.setVariants, {
+    s3Key: payload.s3Key,
+    thumb: payload.thumb,
+    medium: payload.medium,
+    full: payload.full,
+  });
+  return Response.json(result);
+});
+
+http.route({
+  path: '/lambda/photo-variants-callback',
+  method: 'POST',
+  handler: variantsCallback,
+});
+
 export default http;

@@ -144,6 +144,63 @@ export class WedillybirdMediaStack extends Stack {
       );
 
       new CfnOutput(this, 'ModerationFunctionName', { value: moderationFunction.functionName });
+
+      /* ---------------------------------------------------------------- */
+      /*  Variants Lambda (sharp resize → webp thumb / medium / full)     */
+      /* ---------------------------------------------------------------- */
+      // Triggered in parallel with moderation on the same `incoming/` prefix.
+      // Running them independently is simpler than chaining via lambda.invoke
+      // (no IAM coupling, isolated retries) and the variants Lambda only
+      // touches `processed/` keys + a separate Convex callback path, so they
+      // never compete for the same DB row.
+      const variantsFunction = new NodejsFunction(this, 'VariantsFunction', {
+        entry: path.join(__dirname, '..', 'lambdas', 'variants.ts'),
+        handler: 'handler',
+        runtime: lambda.Runtime.NODEJS_22_X,
+        architecture: lambda.Architecture.ARM_64,
+        memorySize: 1536,
+        timeout: Duration.seconds(60),
+        environment: {
+          CONVEX_SITE_URL: props.convexSiteUrl,
+          LAMBDA_CALLBACK_SECRET: props.lambdaCallbackSecret,
+        },
+        bundling: {
+          target: 'node22',
+          format: OutputFormat.CJS,
+          sourceMap: true,
+          // sharp ships native bindings (.node files). Keep it external from the
+          // esbuild bundle and reinstall it into node_modules for the Lambda's
+          // arch (ARM64 Linux) via a post-bundling hook, so the right prebuilt
+          // binary is shipped instead of the host's (likely macOS arm64).
+          externalModules: ['sharp'],
+          nodeModules: ['sharp'],
+          forceDockerBundling: false,
+          commandHooks: {
+            beforeBundling: () => [],
+            beforeInstall: () => [],
+            afterBundling: (_input: string, output: string) => [
+              [
+                `cd ${output}`,
+                'rm -rf node_modules/sharp',
+                'npm install --no-save --os=linux --cpu=arm64 sharp@^0.33.5',
+              ].join(' && '),
+            ],
+          },
+        },
+        description: 'Wedillybird photo variants generation (sharp → webp 320/800/2000)',
+      });
+
+      this.bucket.grantRead(variantsFunction);
+      this.bucket.grantPut(variantsFunction, 'processed/*');
+
+      variantsFunction.addEventSource(
+        new S3EventSource(this.bucket, {
+          events: [s3.EventType.OBJECT_CREATED],
+          filters: [{ prefix: 'incoming/' }],
+        }),
+      );
+
+      new CfnOutput(this, 'VariantsFunctionName', { value: variantsFunction.functionName });
     }
   }
 }

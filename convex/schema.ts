@@ -222,6 +222,15 @@ export default defineSchema({
         decidedAt: v.number(),
       }),
     ),
+    // S3 keys for sharp-generated webp variants (set by the variants Lambda after upload).
+    variants: v.optional(
+      v.object({
+        thumb: v.string(),
+        medium: v.string(),
+        full: v.string(),
+        generatedAt: v.number(),
+      }),
+    ),
     createdAt: v.number(),
   })
     .index('by_event', ['eventId'])
