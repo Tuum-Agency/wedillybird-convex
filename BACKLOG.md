@@ -53,21 +53,66 @@ Items différés au fil des sprints. Chacun est **drop-in** : la plomberie appli
 
 ## Galerie (post-Sprint 5)
 
-### Migration AWS S3 + CloudFront
-- Actuellement sur Convex storage (limite 1 GB free)
-- À faire :
-  - Bucket S3 `eu-west-3` Paris + CloudFront
-  - Lambda presigned URL generator
-  - Migration job `convex/migratePhotos.ts` qui copie les `_storage` vers S3 et patche les rows
-- **Bloqué par** : creds AWS
+### ~~Migration AWS S3 + CloudFront~~ ✅ Fait (PR #12)
+- Bucket `wedillybird-media-prod` (eu-west-3) + CloudFront `media.wedillybird.com`
+- Action Convex `photosActions.createOwnerS3UploadUrl` / `createGuestS3UploadUrl` (presigned PUT, 5 min)
+- `photos.s3Key` + index `by_s3_key`, `storageId` rendu optionnel pour fallback lecture des photos legacy
+- `PhotoUploader` PUT direct vers S3 (au lieu de POST Convex storage)
+- **Restant** : migration job `convex/migratePhotos.ts` pour rapatrier les éventuelles photos `_storage` legacy → S3 (idempotent, dry-run d'abord). Pas urgent tant que la dev DB n'a pas de photos en prod.
 
-### Modération Rekognition
-- Lambda déclenchée sur S3 PUT
-- Si `ModerationLabels` détecte explicit/violence → patch `photos.status = 'rejected'`
-- Sinon `photos.status = 'approved'`
-- Remplace l'auto-approve actuel sur uploads owner
+### ~~Modération Rekognition~~ ✅ Fait (PR #12)
+- Lambda `WedillybirdMediaStack-ModerationFunction` déclenchée sur S3 PUT `incoming/`
+- Rekognition cross-region (Lambda eu-west-3 → Rekognition eu-west-1, Bytes inline car Rekognition pas dispo en eu-west-3)
+- Rejet si `Explicit Nudity / Sexual Activity / Graphic Violence / Visually Disturbing / Hate Symbols` ≥ 80 % confidence
+- Callback HMAC SHA-256 vers `convex/http.ts /lambda/photo-moderation-callback` → `internal.photos.internalMarkModerated`
+- Snapshot dans `photos.moderation: { source, decision, topLabel, topConfidence, labels, decidedAt }`
 
 ### Génération variantes (sharp Lambda)
-- Versions thumbnail (320px), medium (800px), full (2000px)
-- Stocke `photos.variants: { thumb, medium, full }` (storage IDs)
-- Galerie utilise `thumb` en grid, `medium` en lightbox
+- **Bloqué par** : Docker en local (libvips natif) ou layer sharp pré-construit pour ARM64 (ex. `pH200/sharp-layer`)
+- **Travail** :
+  - Nouvelle Lambda `variants` ou extension de `moderation` : déclenchée après `decision = approved`
+  - Génère thumbnail 320 px, medium 800 px, full 2000 px en webp (mode `cover`)
+  - Upload vers `processed/{photoId}/{variant}.webp`
+  - Callback Convex `internalSetVariants` → `photos.variants: { thumb, medium, full }` (`s3Key` strings)
+  - Galerie : `thumb` en grid, `medium` en lightbox, `full` au download
+- **CDK** : utiliser `NodejsFunction` avec `bundling.nodeModules: ['sharp']` + `forceDockerBundling: true`, ou attacher un Layer ARM64 pré-construit
+- **Permissions Lambda** : `s3:GetObject` sur `incoming/`, `s3:PutObject` sur `processed/`
+
+## AWS — opérations & sécurité (post-PR #12)
+
+### Sortie de sandbox SES (PENDING)
+- Demande soumise via `aws sesv2 put-account-details --production-access-enabled` (réponse AWS sous 24-48 h)
+- Surveille `admin@tuumagency.com` pour la confirmation
+- Une fois acceptée : passer `EMAIL_DRIVER=mock` → `ses` sur Vercel Production / Preview
+- En cas de refus : revoir use-case description, prouver opt-in et gestion bounces/complaints
+
+### IAM scope-down avant prod élargie
+- L'utilisateur `wedillybird-dev` a actuellement `AdministratorAccess` (bootstrap). À scoper avant ouverture équipe :
+  - `s3:{PutObject,GetObject,DeleteObject,ListBucket}` sur `arn:aws:s3:::wedillybird-media-prod*`
+  - `ses:{SendEmail,SendRawEmail}` sur `arn:aws:ses:eu-west-3:487046110766:identity/wedillybird.com`
+  - `cloudfront:CreateInvalidation` sur la distribution `E3O56ZG0J0BA9J` (purge cache après suppression)
+  - `rekognition:DetectModerationLabels` sur `*`
+- Créer un `wedillybird-app-runtime` IAM user séparé pour Vercel (read-only sur SES, write sur S3 incoming/), distinct du `wedillybird-dev` qui sert au déploiement CDK
+
+### Rotation de l'access key initiale
+- La clé `AKIAXCZRV3YXAVVRYIWU` a transité dans des screenshots de la session de bootstrap → la rotater :
+  - Créer une nouvelle clé `wedillybird-dev` via console
+  - Mettre à jour `.env.local`, Vercel (`AWS_ACCESS_KEY_ID` + `AWS_SECRET_ACCESS_KEY` Production + Preview), Convex env
+  - Désactiver l'ancienne clé puis la supprimer après 24 h sans erreur
+
+## Câblage métier emails (post-PR #12)
+
+La plomberie `lib/email/` est en place avec drivers SES + mock et 3 templates. Reste à brancher dans le code applicatif :
+
+### Rappel invité (`renderGuestReminder`)
+- Cron Convex (action) qui scanne `guests` avec `rsvpStatus='attending'` et `event.eventDate - now() ∈ [7d±1h, 1d±1h]`
+- Pour chaque match : `sendEmail({ to: guest.email, ... renderGuestReminder({ daysUntilEvent: 7|1 }) })`
+- Champ `guests.lastReminderSentAt` (à ajouter au schema) pour éviter les doublons
+
+### Notification pro (`renderProNotification`)
+- `team-member-added` : depuis `organizations.inviteOrgMember` mutation
+- `payment-received` : depuis `payments.markSucceeded` (webhook Stripe)
+- `subscription-renewed` / `subscription-failed` : depuis le futur câblage Stripe Subscriptions (cf. section Paiements)
+
+### Facture Stripe (`renderStripeInvoice`)
+- Bloqué par item « PDF facture » (cf. Paiements) — l'email peut linker vers la page hosted invoice de Stripe en attendant le PDF self-hosted

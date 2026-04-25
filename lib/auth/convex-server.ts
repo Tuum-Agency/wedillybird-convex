@@ -254,20 +254,22 @@ export const convexApi = {
     { guestId: string; requesterId: string },
     { ok: true }
   >('guests:undoCheckIn'),
-  createOwnerUploadUrl: makeFunctionReference<
-    'mutation',
-    { eventId: string; requesterId: string },
-    { uploadUrl: string }
-  >('photos:createOwnerUploadUrl'),
-  createGuestUploadUrl: makeFunctionReference<'mutation', { token: string }, { uploadUrl: string }>(
-    'photos:createGuestUploadUrl',
-  ),
+  createOwnerS3UploadUrl: makeFunctionReference<
+    'action',
+    { eventId: string; requesterId: string; contentType: string },
+    { uploadUrl: string; s3Key: string }
+  >('photosActions:createOwnerS3UploadUrl'),
+  createGuestS3UploadUrl: makeFunctionReference<
+    'action',
+    { token: string; contentType: string },
+    { uploadUrl: string; s3Key: string }
+  >('photosActions:createGuestS3UploadUrl'),
   confirmOwnerUpload: makeFunctionReference<
     'mutation',
     {
       eventId: string;
       requesterId: string;
-      storageId: string;
+      s3Key: string;
       sizeBytes: number;
       contentType: string;
       width?: number;
@@ -279,7 +281,7 @@ export const convexApi = {
     'mutation',
     {
       token: string;
-      storageId: string;
+      s3Key: string;
       sizeBytes: number;
       contentType: string;
       width?: number;

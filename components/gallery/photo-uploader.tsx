@@ -14,10 +14,11 @@ interface OwnerProps extends BaseProps {
   eventId: string;
   getUploadUrl: (
     eventId: string,
-  ) => Promise<{ ok: true; uploadUrl: string } | { ok: false; error: string }>;
+    contentType: string,
+  ) => Promise<{ ok: true; uploadUrl: string; s3Key: string } | { ok: false; error: string }>;
   confirm: (input: {
     eventId: string;
-    storageId: string;
+    s3Key: string;
     sizeBytes: number;
     contentType: string;
     width?: number;
@@ -31,10 +32,11 @@ interface GuestProps extends BaseProps {
   uploaderName?: string;
   getUploadUrl: (
     token: string,
-  ) => Promise<{ ok: true; uploadUrl: string } | { ok: false; error: string }>;
+    contentType: string,
+  ) => Promise<{ ok: true; uploadUrl: string; s3Key: string } | { ok: false; error: string }>;
   confirm: (input: {
     token: string;
-    storageId: string;
+    s3Key: string;
     sizeBytes: number;
     contentType: string;
     width?: number;
@@ -116,23 +118,22 @@ async function uploadOne(props: PhotoUploaderProps, file: File): Promise<void> {
 
   const urlResult =
     props.mode === 'owner'
-      ? await props.getUploadUrl(props.eventId)
-      : await props.getUploadUrl(props.token);
+      ? await props.getUploadUrl(props.eventId, contentType)
+      : await props.getUploadUrl(props.token, contentType);
   if (!urlResult.ok) throw new Error(urlResult.error);
 
   const uploadResponse = await fetch(urlResult.uploadUrl, {
-    method: 'POST',
+    method: 'PUT',
     headers: { 'Content-Type': contentType },
     body: compressed,
   });
   if (!uploadResponse.ok) throw new Error('UPLOAD_FAILED');
-  const { storageId } = (await uploadResponse.json()) as { storageId: string };
 
   const confirmResult =
     props.mode === 'owner'
       ? await props.confirm({
           eventId: props.eventId,
-          storageId,
+          s3Key: urlResult.s3Key,
           sizeBytes: compressed.size,
           contentType,
           width,
@@ -140,7 +141,7 @@ async function uploadOne(props: PhotoUploaderProps, file: File): Promise<void> {
         })
       : await props.confirm({
           token: props.token,
-          storageId,
+          s3Key: urlResult.s3Key,
           sizeBytes: compressed.size,
           contentType,
           width,
@@ -153,7 +154,7 @@ async function uploadOne(props: PhotoUploaderProps, file: File): Promise<void> {
 
 function errorKey(message: string): 'size' | 'type' | 'network' | 'generic' {
   if (message === 'INVALID_SIZE') return 'size';
-  if (message === 'INVALID_CONTENT_TYPE') return 'type';
+  if (message === 'INVALID_CONTENT_TYPE' || message === 'INVALID_TYPE') return 'type';
   if (message === 'UPLOAD_FAILED') return 'network';
   return 'generic';
 }

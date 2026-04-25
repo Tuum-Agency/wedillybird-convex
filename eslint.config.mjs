@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     'out/**',
     'build/**',
     'next-env.d.ts',
+    // CDK build artifacts (Lambda bundles, CloudFormation templates).
+    'infra/cdk.out/**',
+    'infra/node_modules/**',
   ]),
 ]);
 
