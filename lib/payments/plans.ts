@@ -5,23 +5,44 @@ export type Currency = 'EUR' | 'XOF' | 'MAD' | 'TND';
 export interface PlanDefinition {
   tier: PlanTier;
   maxGuests: number;
+  /** i18n keys (under `Plans.features.*`) listing what's included. */
+  featureKeys: ReadonlyArray<string>;
   prices: Record<Currency, number>; // amount in minor units (cents, sub-units)
 }
+
+const COMMON_FEATURES = [
+  'invitationPage',
+  'qrCodes',
+  'rsvpRealtime',
+  'checkinOffline',
+  'sharedGallery',
+] as const;
 
 export const PLANS: Record<PlanTier, PlanDefinition> = {
   free: {
     tier: 'free',
     maxGuests: 30,
+    featureKeys: COMMON_FEATURES,
     prices: { EUR: 0, XOF: 0, MAD: 0, TND: 0 },
   },
   essential: {
     tier: 'essential',
     maxGuests: 150,
+    featureKeys: [...COMMON_FEATURES, 'customBranding', 'csvExport', 'prioritySupport'],
     prices: { EUR: 4900, XOF: 3200000, MAD: 53000, TND: 16500 },
   },
   premium: {
     tier: 'premium',
     maxGuests: 1000,
+    featureKeys: [
+      ...COMMON_FEATURES,
+      'customBranding',
+      'csvExport',
+      'prioritySupport',
+      'unlimitedGallery',
+      'noWatermark',
+      'dedicatedSupport',
+    ],
     prices: { EUR: 11900, XOF: 7800000, MAD: 129000, TND: 40000 },
   },
 };

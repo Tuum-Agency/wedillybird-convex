@@ -18,6 +18,7 @@ const UPGRADE_TARGETS: Record<'free' | 'essential', PaidPlanTier[]> = {
 
 export function UpgradeCard({ eventId, currentTier, currency }: Props) {
   const t = useTranslations('Upgrade');
+  const tPlans = useTranslations('Plans');
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [selecting, setSelecting] = useState<PaidPlanTier | null>(null);
@@ -79,9 +80,19 @@ export function UpgradeCard({ eventId, currentTier, currency }: Props) {
                 <span className="font-display text-lg font-semibold">{t(`plans.${plan}`)}</span>
                 <span className="font-display text-lg">{formatAmount(price, currency)}</span>
               </div>
-              <p className="text-sm text-[color:var(--color-muted)]">
+              <p className="text-sm font-medium">
                 {t('maxGuests', { count: PLANS[plan].maxGuests })}
               </p>
+              <ul className="flex flex-col gap-1.5 text-xs">
+                {PLANS[plan].featureKeys.map((key) => (
+                  <li key={key} className="flex items-start gap-1.5">
+                    <span aria-hidden className="mt-0.5 text-[color:var(--color-accent)]">
+                      ✓
+                    </span>
+                    <span>{tPlans(`features.${key}` as const)}</span>
+                  </li>
+                ))}
+              </ul>
               <Button
                 onClick={() => handleSelect(plan)}
                 disabled={pending}
@@ -93,6 +104,9 @@ export function UpgradeCard({ eventId, currentTier, currency }: Props) {
           );
         })}
       </ul>
+      <p className="rounded-lg bg-[color:var(--color-ivory-100)] p-3 text-xs leading-relaxed text-[color:var(--color-muted)]">
+        {tPlans('quotaNoteShort')}
+      </p>
       {error ? (
         <p role="alert" className="text-sm text-[color:var(--color-destructive)]">
           {t(`errors.${error.toLowerCase()}` as const)}

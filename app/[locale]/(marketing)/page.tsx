@@ -5,6 +5,7 @@ import { buttonVariants } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { LegalFooter } from '@/components/layout/legal-footer';
+import { PLANS, type PlanTier } from '@/lib/payments/plans';
 import { cn } from '@/lib/cn';
 
 export default async function LandingPage({ params }: { params: Promise<{ locale: string }> }) {
@@ -17,6 +18,7 @@ export default async function LandingPage({ params }: { params: Promise<{ locale
 function LandingContent() {
   const t = useTranslations('Landing');
   const tCommon = useTranslations('Common');
+  const tPlans = useTranslations('Plans');
 
   const features = [
     { key: 'invites', icon: '\u2709' },
@@ -106,44 +108,63 @@ function LandingContent() {
             </h2>
           </div>
           <div className="grid gap-6 md:grid-cols-3">
-            {(['free', 'essential', 'premium'] as const).map((tier, idx) => (
-              <Card
-                key={tier}
-                className={
-                  idx === 1
-                    ? 'border-[color:var(--color-primary)] ring-1 ring-[color:var(--color-primary)]'
-                    : ''
-                }
-              >
-                <CardContent className="flex flex-col gap-4 p-8">
-                  {idx === 1 && <Badge variant="primary">Recommandé</Badge>}
-                  <div>
-                    <h3 className="font-display text-2xl font-semibold">
-                      {t(`pricing.${tier}.name`)}
-                    </h3>
-                    <p className="mt-1 text-sm text-[color:var(--color-muted)]">
-                      {t(`pricing.${tier}.description`)}
+            {(['free', 'essential', 'premium'] as const).map((tier, idx) => {
+              const plan = PLANS[tier as PlanTier];
+              return (
+                <Card
+                  key={tier}
+                  className={
+                    idx === 1
+                      ? 'border-[color:var(--color-primary)] ring-1 ring-[color:var(--color-primary)]'
+                      : ''
+                  }
+                >
+                  <CardContent className="flex h-full flex-col gap-4 p-8">
+                    {idx === 1 && <Badge variant="primary">Recommandé</Badge>}
+                    <div>
+                      <h3 className="font-display text-2xl font-semibold">
+                        {t(`pricing.${tier}.name`)}
+                      </h3>
+                      <p className="mt-1 text-sm text-[color:var(--color-muted)]">
+                        {t(`pricing.${tier}.description`)}
+                      </p>
+                    </div>
+                    <div className="text-4xl font-semibold tracking-tight">
+                      {t(`pricing.${tier}.price`)}
+                    </div>
+                    <ul className="flex flex-col gap-2 text-sm">
+                      {plan.featureKeys.map((key) => (
+                        <li key={key} className="flex items-start gap-2">
+                          <span aria-hidden className="mt-0.5 text-[color:var(--color-accent)]">
+                            ✓
+                          </span>
+                          <span>{tPlans(`features.${key}` as const)}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    <p className="mt-2 rounded-lg bg-[color:var(--color-ivory-100)] p-3 text-xs leading-relaxed text-[color:var(--color-muted)]">
+                      {tPlans('quotaNoteShort')}
                     </p>
-                  </div>
-                  <div className="text-4xl font-semibold tracking-tight">
-                    {t(`pricing.${tier}.price`)}
-                  </div>
-                  <Link
-                    href="/sign-up"
-                    className={cn(
-                      buttonVariants({
-                        variant: idx === 1 ? 'primary' : 'outline',
-                        size: 'md',
-                      }),
-                      'mt-2 w-full',
-                    )}
-                  >
-                    {tCommon('continue')}
-                  </Link>
-                </CardContent>
-              </Card>
-            ))}
+                    <Link
+                      href="/sign-up"
+                      className={cn(
+                        buttonVariants({
+                          variant: idx === 1 ? 'primary' : 'outline',
+                          size: 'md',
+                        }),
+                        'mt-auto w-full',
+                      )}
+                    >
+                      {tCommon('continue')}
+                    </Link>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
+          <p className="mx-auto mt-8 max-w-3xl text-center text-sm text-[color:var(--color-muted)]">
+            {tPlans('quotaNoteLong')}
+          </p>
         </section>
       </main>
 
