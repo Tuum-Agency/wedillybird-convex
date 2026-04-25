@@ -99,6 +99,16 @@ export const convexApi = {
       updatedAt: number;
     }>
   >('events:listByOwner'),
+  reconcileEventMaxGuests: makeFunctionReference<
+    'mutation',
+    { eventId: string; requesterId: string },
+    {
+      ok: true;
+      changed: boolean;
+      planTier?: 'free' | 'essential' | 'premium';
+      maxGuests?: number;
+    }
+  >('events:reconcileMaxGuests'),
   getEventById: makeFunctionReference<
     'query',
     { eventId: string; requesterId: string },

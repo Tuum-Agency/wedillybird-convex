@@ -83,12 +83,15 @@ export const markSucceeded = mutation({
     });
 
     const event = await ctx.db.get(payment.eventId);
-    if (event && event.planTier !== payment.plan) {
-      await ctx.db.patch(event._id, {
-        planTier: payment.plan,
-        maxGuests: PLAN_MAX_GUESTS[payment.plan],
-        updatedAt: Date.now(),
-      });
+    if (event) {
+      const targetMax = PLAN_MAX_GUESTS[payment.plan];
+      if (event.planTier !== payment.plan || event.maxGuests !== targetMax) {
+        await ctx.db.patch(event._id, {
+          planTier: payment.plan,
+          maxGuests: targetMax,
+          updatedAt: Date.now(),
+        });
+      }
     }
 
     return { ok: true as const, alreadyApplied: false };

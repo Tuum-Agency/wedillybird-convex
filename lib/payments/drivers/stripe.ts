@@ -3,6 +3,7 @@ import type {
   CheckoutInput,
   CheckoutSession,
   PaymentDriver,
+  SessionStatus,
   VerifiedWebhookEvent,
 } from '../provider';
 import type { Currency } from '../plans';
@@ -55,7 +56,7 @@ export const stripeDriver: PaymentDriver = {
           },
         },
       ],
-      success_url: input.successUrl,
+      success_url: appendSessionIdParam(input.successUrl),
       cancel_url: input.cancelUrl,
       metadata: {
         eventId: input.eventId,
@@ -104,7 +105,29 @@ export const stripeDriver: PaymentDriver = {
     }
     throw new Error('UNSUPPORTED_EVENT');
   },
+
+  async retrieveSessionStatus(providerSessionId: string): Promise<SessionStatus> {
+    const stripe = getStripe();
+    const session = await stripe.checkout.sessions.retrieve(providerSessionId);
+    const currencyRaw = (session.currency ?? '').toUpperCase();
+    if (!isCurrency(currencyRaw)) throw new Error('INVALID_CURRENCY');
+    const stripeAmount = session.amount_total ?? 0;
+    const override = STRIPE_CURRENCY_DIVISOR_OVERRIDE[currencyRaw];
+    const amountMinor = override ? stripeAmount * override : stripeAmount;
+    return {
+      paid: session.payment_status === 'paid',
+      providerSessionId: session.id,
+      providerEventId: session.id,
+      amountMinor,
+      currency: currencyRaw,
+    };
+  },
 };
+
+function appendSessionIdParam(url: string): string {
+  const sep = url.includes('?') ? '&' : '?';
+  return `${url}${sep}session_id={CHECKOUT_SESSION_ID}`;
+}
 
 function parseSession(
   session: Stripe.Checkout.Session,

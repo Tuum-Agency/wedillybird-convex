@@ -4,6 +4,7 @@ const stripeMock = {
   checkout: {
     sessions: {
       create: vi.fn(),
+      retrieve: vi.fn(),
     },
   },
   webhooks: {
@@ -24,6 +25,7 @@ beforeEach(() => {
   process.env.STRIPE_SECRET_KEY = 'sk_test_dummy';
   process.env.STRIPE_WEBHOOK_SECRET = 'whsec_dummy';
   stripeMock.checkout.sessions.create.mockReset();
+  stripeMock.checkout.sessions.retrieve.mockReset();
   stripeMock.webhooks.constructEvent.mockReset();
   vi.resetModules();
 });
@@ -67,6 +69,7 @@ describe('payments/drivers/stripe — createCheckout', () => {
     expect(args.line_items[0].price_data.unit_amount).toBe(4900);
     expect(args.metadata).toEqual({ eventId: 'evt_1', userId: 'usr_1', plan: 'essential' });
     expect(args.locale).toBe('fr');
+    expect(args.success_url).toContain('session_id={CHECKOUT_SESSION_ID}');
   });
 
   it('converts XOF centimes to whole units before passing to Stripe', async () => {
@@ -202,5 +205,53 @@ describe('payments/drivers/stripe — verifyAndParseWebhook', () => {
     await expect(stripeDriver.verifyAndParseWebhook('{}', 'sig')).rejects.toThrow(
       'UNSUPPORTED_EVENT',
     );
+  });
+});
+
+describe('payments/drivers/stripe — retrieveSessionStatus', () => {
+  it('returns paid:true when Stripe reports payment_status === paid', async () => {
+    stripeMock.checkout.sessions.retrieve.mockResolvedValue({
+      id: 'cs_test_paid',
+      currency: 'eur',
+      amount_total: 4900,
+      payment_status: 'paid',
+    });
+    const { stripeDriver } = await import('@/lib/payments/drivers/stripe');
+
+    const result = await stripeDriver.retrieveSessionStatus('cs_test_paid');
+    expect(result).toEqual({
+      paid: true,
+      providerSessionId: 'cs_test_paid',
+      providerEventId: 'cs_test_paid',
+      amountMinor: 4900,
+      currency: 'EUR',
+    });
+  });
+
+  it('returns paid:false when payment_status is not paid', async () => {
+    stripeMock.checkout.sessions.retrieve.mockResolvedValue({
+      id: 'cs_test_unpaid',
+      currency: 'eur',
+      amount_total: 4900,
+      payment_status: 'unpaid',
+    });
+    const { stripeDriver } = await import('@/lib/payments/drivers/stripe');
+
+    const result = await stripeDriver.retrieveSessionStatus('cs_test_unpaid');
+    expect(result.paid).toBe(false);
+  });
+
+  it('multiplies XOF whole units back to internal centimes', async () => {
+    stripeMock.checkout.sessions.retrieve.mockResolvedValue({
+      id: 'cs_xof',
+      currency: 'xof',
+      amount_total: 32000,
+      payment_status: 'paid',
+    });
+    const { stripeDriver } = await import('@/lib/payments/drivers/stripe');
+
+    const result = await stripeDriver.retrieveSessionStatus('cs_xof');
+    expect(result.amountMinor).toBe(3200000);
+    expect(result.currency).toBe('XOF');
   });
 });

@@ -2,6 +2,7 @@ import type {
   CheckoutInput,
   CheckoutSession,
   PaymentDriver,
+  SessionStatus,
   VerifiedWebhookEvent,
 } from '../provider';
 import { isCurrency } from '../plans';
@@ -14,18 +15,32 @@ export const mockDriver: PaymentDriver = {
   name: 'mock',
   async createCheckout(input: CheckoutInput): Promise<CheckoutSession> {
     const sessionId = randomId('mock_sess');
+    const sep = input.successUrl.includes('?') ? '&' : '?';
+    const successWithSession = `${input.successUrl}${sep}session_id=${sessionId}&provider=mock`;
     const params = new URLSearchParams({
       session: sessionId,
       eventId: input.eventId,
       plan: input.plan,
       currency: input.currency,
       amount: String(input.amountMinor),
-      successUrl: input.successUrl,
+      successUrl: successWithSession,
       cancelUrl: input.cancelUrl,
     });
     return {
       providerSessionId: sessionId,
       redirectUrl: `/api/checkout/mock?${params.toString()}`,
+    };
+  },
+
+  async retrieveSessionStatus(providerSessionId: string): Promise<SessionStatus> {
+    // Mock: assumes the auto-success endpoint already marked the payment.
+    // Returns paid:true so the success page reconciliation succeeds idempotently.
+    return {
+      paid: true,
+      providerSessionId,
+      providerEventId: `mock_evt_${providerSessionId}`,
+      amountMinor: 0,
+      currency: 'EUR',
     };
   },
 

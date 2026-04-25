@@ -22,6 +22,23 @@ describe('payments/drivers/mock — createCheckout', () => {
     expect(session.redirectUrl).toContain('currency=EUR');
     expect(session.redirectUrl).toContain('amount=4900');
   });
+
+  it('embeds session_id and provider in the success URL for finalization', async () => {
+    const session = await mockDriver.createCheckout(checkoutInput);
+    expect(session.redirectUrl).toContain(
+      encodeURIComponent(`session_id=${session.providerSessionId}`),
+    );
+    expect(session.redirectUrl).toContain(encodeURIComponent('provider=mock'));
+  });
+});
+
+describe('payments/drivers/mock — retrieveSessionStatus', () => {
+  it('returns paid:true echoing back the session id', async () => {
+    const result = await mockDriver.retrieveSessionStatus('mock_sess_xyz');
+    expect(result.paid).toBe(true);
+    expect(result.providerSessionId).toBe('mock_sess_xyz');
+    expect(result.providerEventId).toBe('mock_evt_mock_sess_xyz');
+  });
 });
 
 describe('payments/drivers/mock — verifyAndParseWebhook', () => {

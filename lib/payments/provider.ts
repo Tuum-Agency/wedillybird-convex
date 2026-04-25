@@ -26,8 +26,17 @@ export interface VerifiedWebhookEvent {
   failureReason?: string;
 }
 
+export interface SessionStatus {
+  paid: boolean;
+  providerSessionId: string;
+  providerEventId: string;
+  amountMinor: number;
+  currency: Currency;
+}
+
 export interface PaymentDriver {
   readonly name: ProviderName;
   createCheckout(input: CheckoutInput): Promise<CheckoutSession>;
   verifyAndParseWebhook(rawBody: string, signature: string | null): Promise<VerifiedWebhookEvent>;
+  retrieveSessionStatus(providerSessionId: string): Promise<SessionStatus>;
 }
