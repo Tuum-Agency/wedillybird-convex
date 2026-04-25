@@ -1,0 +1,206 @@
+import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
+
+const stripeMock = {
+  checkout: {
+    sessions: {
+      create: vi.fn(),
+    },
+  },
+  webhooks: {
+    constructEvent: vi.fn(),
+  },
+};
+
+vi.mock('stripe', () => ({
+  default: function StripeMock() {
+    return stripeMock;
+  },
+}));
+
+const ORIGINAL_KEY = process.env.STRIPE_SECRET_KEY;
+const ORIGINAL_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
+
+beforeEach(() => {
+  process.env.STRIPE_SECRET_KEY = 'sk_test_dummy';
+  process.env.STRIPE_WEBHOOK_SECRET = 'whsec_dummy';
+  stripeMock.checkout.sessions.create.mockReset();
+  stripeMock.webhooks.constructEvent.mockReset();
+  vi.resetModules();
+});
+
+afterEach(() => {
+  if (ORIGINAL_KEY === undefined) delete process.env.STRIPE_SECRET_KEY;
+  else process.env.STRIPE_SECRET_KEY = ORIGINAL_KEY;
+  if (ORIGINAL_SECRET === undefined) delete process.env.STRIPE_WEBHOOK_SECRET;
+  else process.env.STRIPE_WEBHOOK_SECRET = ORIGINAL_SECRET;
+});
+
+const checkoutInput = {
+  provider: 'stripe' as const,
+  plan: 'essential' as const,
+  currency: 'EUR' as const,
+  amountMinor: 4900,
+  eventId: 'evt_1',
+  userId: 'usr_1',
+  successUrl: 'https://app.test/ok',
+  cancelUrl: 'https://app.test/cancel',
+};
+
+describe('payments/drivers/stripe — createCheckout', () => {
+  it('forwards plan + amount + metadata to Stripe and returns session id + url', async () => {
+    stripeMock.checkout.sessions.create.mockResolvedValue({
+      id: 'cs_test_xyz',
+      url: 'https://checkout.stripe.com/cs_test_xyz',
+    });
+    const { stripeDriver } = await import('@/lib/payments/drivers/stripe');
+
+    const result = await stripeDriver.createCheckout(checkoutInput);
+
+    expect(result).toEqual({
+      providerSessionId: 'cs_test_xyz',
+      redirectUrl: 'https://checkout.stripe.com/cs_test_xyz',
+    });
+    expect(stripeMock.checkout.sessions.create).toHaveBeenCalledTimes(1);
+    const args = stripeMock.checkout.sessions.create.mock.calls[0]![0];
+    expect(args.mode).toBe('payment');
+    expect(args.line_items[0].price_data.currency).toBe('eur');
+    expect(args.line_items[0].price_data.unit_amount).toBe(4900);
+    expect(args.metadata).toEqual({ eventId: 'evt_1', userId: 'usr_1', plan: 'essential' });
+    expect(args.locale).toBe('fr');
+  });
+
+  it('converts XOF centimes to whole units before passing to Stripe', async () => {
+    stripeMock.checkout.sessions.create.mockResolvedValue({
+      id: 'cs_x',
+      url: 'https://checkout.stripe.com/cs_x',
+    });
+    const { stripeDriver } = await import('@/lib/payments/drivers/stripe');
+
+    await stripeDriver.createCheckout({
+      ...checkoutInput,
+      currency: 'XOF',
+      amountMinor: 3200000, // 32 000 XOF
+    });
+
+    const args = stripeMock.checkout.sessions.create.mock.calls[0]![0];
+    expect(args.line_items[0].price_data.currency).toBe('xof');
+    expect(args.line_items[0].price_data.unit_amount).toBe(32000);
+  });
+
+  it('throws when Stripe omits the session url', async () => {
+    stripeMock.checkout.sessions.create.mockResolvedValue({ id: 'cs_only_id' });
+    const { stripeDriver } = await import('@/lib/payments/drivers/stripe');
+
+    await expect(stripeDriver.createCheckout(checkoutInput)).rejects.toThrow(
+      'STRIPE_NO_REDIRECT_URL',
+    );
+  });
+
+  it('throws NOT_CONFIGURED when STRIPE_SECRET_KEY is missing', async () => {
+    delete process.env.STRIPE_SECRET_KEY;
+    const { stripeDriver } = await import('@/lib/payments/drivers/stripe');
+
+    await expect(stripeDriver.createCheckout(checkoutInput)).rejects.toThrow(
+      'STRIPE_DRIVER_NOT_CONFIGURED',
+    );
+  });
+});
+
+describe('payments/drivers/stripe — verifyAndParseWebhook', () => {
+  it('returns succeeded for checkout.session.completed', async () => {
+    stripeMock.webhooks.constructEvent.mockReturnValue({
+      id: 'evt_1',
+      type: 'checkout.session.completed',
+      data: {
+        object: {
+          id: 'cs_test_1',
+          currency: 'eur',
+          amount_total: 4900,
+          payment_status: 'paid',
+        },
+      },
+    });
+    const { stripeDriver } = await import('@/lib/payments/drivers/stripe');
+
+    const result = await stripeDriver.verifyAndParseWebhook('{}', 'sig');
+    expect(result).toEqual({
+      providerSessionId: 'cs_test_1',
+      providerEventId: 'evt_1',
+      status: 'succeeded',
+      amountMinor: 4900,
+      currency: 'EUR',
+      failureReason: undefined,
+    });
+  });
+
+  it('returns failed for async_payment_failed', async () => {
+    stripeMock.webhooks.constructEvent.mockReturnValue({
+      id: 'evt_2',
+      type: 'checkout.session.async_payment_failed',
+      data: {
+        object: {
+          id: 'cs_test_2',
+          currency: 'eur',
+          amount_total: 4900,
+          payment_status: 'unpaid',
+        },
+      },
+    });
+    const { stripeDriver } = await import('@/lib/payments/drivers/stripe');
+
+    const result = await stripeDriver.verifyAndParseWebhook('{}', 'sig');
+    expect(result.status).toBe('failed');
+    expect(result.failureReason).toBe('unpaid');
+  });
+
+  it('multiplies stripe XOF whole units back to internal centimes', async () => {
+    stripeMock.webhooks.constructEvent.mockReturnValue({
+      id: 'evt_3',
+      type: 'checkout.session.completed',
+      data: {
+        object: {
+          id: 'cs_test_3',
+          currency: 'xof',
+          amount_total: 32000,
+          payment_status: 'paid',
+        },
+      },
+    });
+    const { stripeDriver } = await import('@/lib/payments/drivers/stripe');
+
+    const result = await stripeDriver.verifyAndParseWebhook('{}', 'sig');
+    expect(result.amountMinor).toBe(3200000);
+    expect(result.currency).toBe('XOF');
+  });
+
+  it('rejects missing signature', async () => {
+    const { stripeDriver } = await import('@/lib/payments/drivers/stripe');
+    await expect(stripeDriver.verifyAndParseWebhook('{}', null)).rejects.toThrow(
+      'INVALID_SIGNATURE',
+    );
+  });
+
+  it('rejects when constructEvent throws', async () => {
+    stripeMock.webhooks.constructEvent.mockImplementation(() => {
+      throw new Error('signature mismatch');
+    });
+    const { stripeDriver } = await import('@/lib/payments/drivers/stripe');
+
+    await expect(stripeDriver.verifyAndParseWebhook('{}', 'bad')).rejects.toThrow(
+      'INVALID_SIGNATURE',
+    );
+  });
+
+  it('rejects unsupported event types', async () => {
+    stripeMock.webhooks.constructEvent.mockReturnValue({
+      id: 'evt_x',
+      type: 'invoice.created',
+      data: { object: {} },
+    });
+    const { stripeDriver } = await import('@/lib/payments/drivers/stripe');
+
+    await expect(stripeDriver.verifyAndParseWebhook('{}', 'sig')).rejects.toThrow(
+      'UNSUPPORTED_EVENT',
+    );
+  });
+});
