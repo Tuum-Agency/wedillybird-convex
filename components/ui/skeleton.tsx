@@ -14,7 +14,7 @@ export function Skeleton({ className, ...props }: HTMLAttributes<HTMLDivElement>
       className={cn(
         'shimmer rounded-md',
         // Fallback solide (sans le shimmer) pour reduced-motion users.
-        'motion-reduce:bg-[color:var(--color-brand-100)] motion-reduce:animate-none',
+        'motion-reduce:animate-none motion-reduce:bg-[color:var(--color-brand-100)]',
         className,
       )}
       {...props}

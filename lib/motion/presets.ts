@@ -36,7 +36,10 @@ export const pageTransition: Transition = {
 export const pageVariants: Variants = {
   initial: { opacity: 0 },
   animate: { opacity: 1, transition: pageTransition },
-  exit: { opacity: 0, transition: { duration: 0.18, ease: EASE_OUT_QUINT as unknown as Transition['ease'] } },
+  exit: {
+    opacity: 0,
+    transition: { duration: 0.18, ease: EASE_OUT_QUINT as unknown as Transition['ease'] },
+  },
 };
 
 /* -------------------------------------------------------------------------- */

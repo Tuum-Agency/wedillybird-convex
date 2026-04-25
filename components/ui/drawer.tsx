@@ -35,7 +35,7 @@ export function DrawerContent({
       >
         <div
           aria-hidden
-          className="bg-[color:var(--color-border-strong)] mx-auto mt-3 mb-2 h-1.5 w-12 rounded-full"
+          className="mx-auto mt-3 mb-2 h-1.5 w-12 rounded-full bg-[color:var(--color-border-strong)]"
         />
         <div className="flex flex-col overflow-y-auto px-5 pb-6">{children}</div>
       </VaulDrawer.Content>
@@ -50,10 +50,7 @@ export function DrawerHeader({ className, children }: { className?: string; chil
 export function DrawerTitle({ className, children }: { className?: string; children: ReactNode }) {
   return (
     <VaulDrawer.Title
-      className={cn(
-        'font-display text-xl text-[color:var(--color-foreground)] italic',
-        className,
-      )}
+      className={cn('font-display text-xl text-[color:var(--color-foreground)] italic', className)}
     >
       {children}
     </VaulDrawer.Title>
