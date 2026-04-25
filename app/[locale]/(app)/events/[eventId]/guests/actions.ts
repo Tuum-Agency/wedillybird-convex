@@ -53,7 +53,11 @@ export async function addGuestAction(
       ...(parsed.data.notes ? { notes: parsed.data.notes } : {}),
     });
   } catch (err) {
-    return { ok: false, error: err instanceof Error ? err.message : 'UNKNOWN' };
+    const message = err instanceof Error ? err.message : 'UNKNOWN';
+    if (message.includes('INVITATION_LIMIT_REACHED')) {
+      return { ok: false, error: 'INVITATION_LIMIT_REACHED' };
+    }
+    return { ok: false, error: message };
   }
 
   revalidatePath(`/events/${eventId}/guests`);

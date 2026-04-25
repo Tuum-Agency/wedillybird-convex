@@ -40,7 +40,7 @@ export const add = mutation({
     notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    await assertEventOwnership(ctx, args.eventId, args.requesterId);
+    const event = await assertEventOwnership(ctx, args.eventId, args.requesterId);
 
     const fullName = args.fullName.trim();
     if (fullName.length < 1 || fullName.length > 120) throw new Error('INVALID_FULL_NAME');
@@ -50,6 +50,16 @@ export const add = mutation({
       args.plusOnesAllowed > 10
     ) {
       throw new Error('INVALID_PLUS_ONES');
+    }
+
+    // maxGuests is the cap on invitation slots (= guest entries), not on
+    // physical attendees. Plus-ones do not count toward this quota.
+    const existing = await ctx.db
+      .query('guests')
+      .withIndex('by_event', (q) => q.eq('eventId', args.eventId))
+      .collect();
+    if (existing.length >= event.maxGuests) {
+      throw new Error('INVITATION_LIMIT_REACHED');
     }
 
     const qrCodeToken = await uniqueQrToken(ctx);
