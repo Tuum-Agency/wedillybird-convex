@@ -98,6 +98,22 @@ describe('GuestsManager', () => {
     expect(screen.queryByText('Awa')).toBe(null);
   });
 
+  it('shows the invitation-quota error when the server reports INVITATION_LIMIT_REACHED', async () => {
+    addGuestActionMock.mockResolvedValue({
+      ok: false,
+      error: 'INVITATION_LIMIT_REACHED',
+    });
+    const user = userEvent.setup();
+    render(<GuestsManager eventId={EVENT_ID} initialGuests={[]} />);
+
+    await user.click(screen.getByRole('button', { name: 'Guests.addGuest' }));
+    await user.type(screen.getByLabelText('Guests.fullNameLabel'), 'Awa');
+    await user.click(screen.getByTestId('submit-guest'));
+
+    expect(await screen.findByText('Guests.errors.limitReached')).toBeInTheDocument();
+    expect(screen.queryByText('Awa')).toBe(null);
+  });
+
   it('removes a guest after confirmation', async () => {
     removeGuestActionMock.mockResolvedValue({ ok: true });
     const user = userEvent.setup();

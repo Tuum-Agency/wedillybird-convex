@@ -35,7 +35,7 @@
       "article3Title": "3. Compte et accès",
       "article3Body": "L'accès au Service nécessite la création d'un compte via vérification d'un numéro WhatsApp. L'Utilisateur est responsable de la confidentialité de son numéro et de toute action effectuée depuis son compte. Tout usage non autorisé doit être signalé immédiatement.",
       "article4Title": "4. Tarification et paiement",
-      "article4Body": "Le Service est proposé en formule gratuite (jusqu'à 30 invités) et formules payantes (Sérénité 49 €, Prestige 119 €). Les paiements sont traités par Stripe (Europe) ou CinetPay (Afrique). Les achats sont fermes et définitifs.",
+      "article4Body": "Le Service est proposé en formule gratuite (jusqu'à 30 invitations) et formules payantes (Sérénité 49 €, Prestige 119 €). Le quota du plan se mesure en invitations envoyées, chaque invitation pouvant représenter plusieurs personnes physiques via les accompagnants. Les paiements sont traités par Stripe (Europe) ou CinetPay (Afrique). Les achats sont fermes et définitifs.",
       "article5Title": "5. Propriété intellectuelle",
       "article5Body": "L'Utilisateur conserve la propriété des contenus qu'il téléverse. Il accorde à Wedillybird une licence non-exclusive d'usage de ces contenus aux seules fins du fonctionnement du Service. Wedillybird conserve la propriété de la plateforme, du code et de la marque.",
       "article6Title": "6. Responsabilité",
@@ -102,11 +102,15 @@
       },
       "pricing": {
         "q": "Quels sont les tarifs ?",
-        "a": "Formule Essentiel (gratuite, jusqu'à 30 invités), Sérénité (49 €, jusqu'à 150 invités), Prestige (119 €, jusqu'à 1000 invités). Paiement unique par mariage."
+        "a": "Formule Essentiel (gratuite, jusqu'à 30 invitations), Sérénité (49 €, jusqu'à 150 invitations), Prestige (119 €, jusqu'à 1000 invitations). Paiement unique par mariage. Une invitation correspond à une fiche/QR code unique envoyé à un invité principal qui peut amener plusieurs accompagnants."
       },
       "support": {
         "q": "Comment contacter le support ?",
         "a": "Écrivez à support@wedillybird.com. Réponse sous 24h ouvrées."
+      },
+      "guestVsInvitation": {
+        "q": "Quelle est la différence entre une invitation et un invité ?",
+        "a": "Une invitation = une fiche dans votre liste qui correspond à une personne principale (ex. votre cousine Aminata) à qui vous envoyez un lien personnalisé avec son QR code. Cette personne peut indiquer dans sa réponse qu'elle viendra accompagnée de N personnes (par exemple son conjoint et ses enfants). Le quota du plan compte le nombre d'invitations envoyées, pas le nombre total de personnes qui viennent. Donc avec la formule Sérénité (150 invitations), vous pouvez accueillir bien plus de 150 personnes physiques le jour J."
       }
     }
   },
@@ -140,17 +144,17 @@
       "free": {
         "name": "Essentiel",
         "price": "Gratuit",
-        "description": "Jusqu'à 30 invités"
+        "description": "Jusqu'à 30 invitations"
       },
       "essential": {
         "name": "Sérénité",
         "price": "49 €",
-        "description": "Jusqu'à 150 invités"
+        "description": "Jusqu'à 150 invitations"
       },
       "premium": {
         "name": "Prestige",
         "price": "119 €",
-        "description": "Invités illimités + galerie"
+        "description": "Invitations illimitées + galerie"
       }
     }
   },
@@ -218,7 +222,7 @@
     "venueSection": "Lieu",
     "noVenue": "Aucun lieu défini pour le moment.",
     "guestsTitle": "Invités",
-    "guestsSummary": "{total, plural, =0 {Aucun invité ajouté} =1 {1 invité} other {# invités}} · {attending, plural, =0 {aucune confirmation} =1 {1 confirmé} other {# confirmés}} · limite {max}",
+    "guestsSummary": "{total, plural, =0 {Aucune invitation envoyée} =1 {1 invitation} other {# invitations}} · {attending, plural, =0 {aucune confirmation} =1 {1 confirmé} other {# confirmés}} · limite {max} invitations",
     "manageGuests": "Gérer les invités",
     "openCheckIn": "Check-in",
     "openGallery": "Galerie",
@@ -227,12 +231,13 @@
     "draftHint": "Cet événement est en brouillon. Publiez-le pour activer les invitations et la galerie."
   },
   "Guests": {
-    "title": "Liste d'invités",
-    "listTitle": "Tous les invités",
-    "summary": "{total, plural, =0 {Aucun invité} =1 {1 invité} other {# invités}} sur {max} autorisés",
+    "title": "Liste d'invitations",
+    "listTitle": "Toutes les invitations",
+    "summary": "{total, plural, =0 {Aucune invitation} =1 {1 invitation} other {# invitations}} sur {max} autorisées",
+    "summaryHint": "Une invitation = une fiche/QR code envoyé à un invité principal qui peut amener N accompagnants. Le quota du plan compte les fiches, pas les personnes physiques.",
     "backToEvent": "Retour à l'événement",
-    "empty": "Personne n'a encore été ajouté. Invitez vos proches pour commencer.",
-    "addGuest": "Ajouter un invité",
+    "empty": "Aucune invitation envoyée. Ajoutez votre premier invité pour commencer.",
+    "addGuest": "Ajouter une invitation",
     "adding": "Ajout…",
     "fullNameLabel": "Nom complet",
     "fullNamePlaceholder": "Aminata Diallo",
@@ -249,7 +254,8 @@
     "rsvpDeclined": "Décliné",
     "rsvpMaybe": "Peut-être",
     "errors": {
-      "submit": "Impossible d'ajouter l'invité. Réessayez."
+      "submit": "Impossible d'ajouter l'invitation. Réessayez.",
+      "limitReached": "Quota d'invitations atteint pour cette formule. Passez à une formule supérieure pour en ajouter plus."
     }
   },
   "Invitation": {
@@ -398,18 +404,18 @@
   },
   "Upgrade": {
     "title": "Passer à une formule supérieure",
-    "subtitle": "Augmentez le nombre d'invités et débloquez plus de fonctionnalités.",
+    "subtitle": "Augmentez votre quota d'invitations et débloquez plus de fonctionnalités. Chaque invitation peut amener plusieurs accompagnants.",
     "selectPlan": "Choisir cette formule",
     "redirecting": "Redirection…",
     "alreadyPremium": "Vous êtes déjà sur la formule la plus complète.",
-    "maxGuests": "Jusqu'à {count} invités",
+    "maxGuests": "Jusqu'à {count} invitations",
     "plans": {
       "free": "Essentiel",
       "essential": "Sérénité",
       "premium": "Prestige"
     },
     "successTitle": "Paiement confirmé",
-    "successBody": "Votre événement est désormais sur la formule {plan}. Limite d'invités : {max}.",
+    "successBody": "Votre événement est désormais sur la formule {plan}. Quota d'invitations : {max}.",
     "processingTitle": "Paiement en cours de traitement",
     "processingBody": "Nous finalisons votre paiement. Rafraîchissez cette page dans quelques secondes pour voir votre nouvelle formule.",
     "cancelledTitle": "Paiement annulé",

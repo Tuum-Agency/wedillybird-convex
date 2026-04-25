@@ -214,6 +214,10 @@ function AddGuestForm({
         setFieldErrors(flat);
         return;
       }
+      if (result.error === 'INVITATION_LIMIT_REACHED') {
+        setError(t('errors.limitReached'));
+        return;
+      }
       setError(t('errors.submit'));
     });
   }
