@@ -148,11 +148,10 @@ export class WedillybirdMediaStack extends Stack {
       /* ---------------------------------------------------------------- */
       /*  Variants Lambda (sharp resize → webp thumb / medium / full)     */
       /* ---------------------------------------------------------------- */
-      // Triggered in parallel with moderation on the same `incoming/` prefix.
-      // Running them independently is simpler than chaining via lambda.invoke
-      // (no IAM coupling, isolated retries) and the variants Lambda only
-      // touches `processed/` keys + a separate Convex callback path, so they
-      // never compete for the same DB row.
+      // S3 disallows two notification rules with the same prefix + event type,
+      // so variants is *invoked async* by the moderation Lambda when decision
+      // === 'approved'. This also avoids running sharp on photos that will be
+      // rejected anyway (cost saving).
       const variantsFunction = new NodejsFunction(this, 'VariantsFunction', {
         entry: path.join(__dirname, '..', 'lambdas', 'variants.ts'),
         handler: 'handler',
@@ -193,12 +192,9 @@ export class WedillybirdMediaStack extends Stack {
       this.bucket.grantRead(variantsFunction);
       this.bucket.grantPut(variantsFunction, 'processed/*');
 
-      variantsFunction.addEventSource(
-        new S3EventSource(this.bucket, {
-          events: [s3.EventType.OBJECT_CREATED],
-          filters: [{ prefix: 'incoming/' }],
-        }),
-      );
+      // Moderation invokes variants async on approved photos.
+      variantsFunction.grantInvoke(moderationFunction);
+      moderationFunction.addEnvironment('VARIANTS_FUNCTION_NAME', variantsFunction.functionName);
 
       new CfnOutput(this, 'VariantsFunctionName', { value: variantsFunction.functionName });
     }

@@ -1,10 +1,11 @@
-import type { S3Event } from 'aws-lambda';
+import type { S3Event, S3EventRecord } from 'aws-lambda';
 import {
   RekognitionClient,
   DetectModerationLabelsCommand,
   type ModerationLabel,
 } from '@aws-sdk/client-rekognition';
 import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
+import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
 import { createHmac } from 'node:crypto';
 
 const REJECT_LABELS = new Set([
@@ -39,6 +40,26 @@ function requireEnv(name: string): string {
   const value = process.env[name];
   if (!value) throw new Error(`Missing env var ${name}`);
   return value;
+}
+
+const lambdaClient = new LambdaClient({});
+
+async function invokeVariantsAsync(record: S3EventRecord): Promise<void> {
+  const functionName = process.env.VARIANTS_FUNCTION_NAME;
+  if (!functionName) {
+    console.log('[moderation] VARIANTS_FUNCTION_NAME unset; skipping variants invoke');
+    return;
+  }
+  // The variants Lambda's handler accepts an S3Event; forward a single-record
+  // synthetic event so it can read the same S3 object.
+  const payload: S3Event = { Records: [record] };
+  await lambdaClient.send(
+    new InvokeCommand({
+      FunctionName: functionName,
+      InvocationType: 'Event', // async fire-and-forget
+      Payload: Buffer.from(JSON.stringify(payload)),
+    }),
+  );
 }
 
 function decideFromLabels(labels: readonly ModerationLabel[]): {
@@ -129,5 +150,18 @@ export const handler = async (event: S3Event): Promise<void> => {
         .map((l) => ({ name: l.Name, confidence: l.Confidence })),
     });
     console.log(`decision=${decision} top=${topLabel ?? 'none'}@${topConfidence ?? 0}`);
+
+    // Trigger sharp variants asynchronously for approved photos only.
+    if (decision === 'approved') {
+      try {
+        await invokeVariantsAsync(record);
+      } catch (err) {
+        console.error(
+          `[moderation] failed to invoke variants for ${s3Key}: ${err instanceof Error ? err.message : err}`,
+        );
+        // Don't rethrow — the photo is approved and the user-visible flow
+        // doesn't depend on variants existing.
+      }
+    }
   }
 };
