@@ -1,5 +1,6 @@
 import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
+import { internal } from './_generated/api';
 
 const PROVIDER = v.union(v.literal('stripe'), v.literal('cinetpay'), v.literal('mock'));
 const CURRENCY = v.union(v.literal('EUR'), v.literal('XOF'), v.literal('MAD'), v.literal('TND'));
@@ -94,9 +95,33 @@ export const markSucceeded = mutation({
       }
     }
 
+    // Best-effort owner notification (only if owner has an email on file).
+    const owner = await ctx.db.get(payment.userId);
+    if (owner?.email) {
+      const amountFormatted = formatAmount(payment.amountMinor, payment.currency);
+      const eventTitle = event?.title ?? 'votre événement';
+      await ctx.scheduler.runAfter(0, internal.emailActions.sendProNotification, {
+        to: owner.email,
+        recipientName: owner.fullName ?? owner.phone ?? 'Bonjour',
+        organizationName: eventTitle,
+        kind: 'payment-received' as const,
+        detail: `Votre paiement de ${amountFormatted} pour le plan ${payment.plan} a été reçu.`,
+        ctaLabel: 'Voir l’événement',
+        ctaUrl: `${process.env.NEXT_PUBLIC_APP_URL ?? 'https://wedillybird.com'}/events/${payment.eventId}`,
+      });
+    }
+
     return { ok: true as const, alreadyApplied: false };
   },
 });
+
+function formatAmount(amountMinor: number, currency: string): string {
+  const amount = amountMinor / 100;
+  if (currency === 'EUR')
+    return `${amount.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} €`;
+  if (currency === 'XOF') return `${amount.toLocaleString('fr-FR')} FCFA`;
+  return `${amount.toLocaleString('fr-FR')} ${currency}`;
+}
 
 export const markFailed = mutation({
   args: {

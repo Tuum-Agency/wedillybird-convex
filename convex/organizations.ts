@@ -1,5 +1,6 @@
 import { v } from 'convex/values';
 import { mutation, query, type MutationCtx, type QueryCtx } from './_generated/server';
+import { internal } from './_generated/api';
 import type { Doc, Id } from './_generated/dataModel';
 
 const SLUG_MAX_ATTEMPTS = 8;
@@ -155,8 +156,10 @@ export const myOrganization = query({
       primaryColor: org.primaryColor,
       accentColor: org.accentColor,
       logoUrl,
+      stripeCustomerId: org.stripeCustomerId,
       subscriptionTier: org.subscriptionTier,
       subscriptionStatus: org.subscriptionStatus,
+      subscriptionPeriodEnd: org.subscriptionPeriodEnd,
       myRole: membership.role,
     };
   },
@@ -282,6 +285,26 @@ export const invite = mutation({
       invitedBy: args.requesterId,
       invitedAt: now,
     });
+
+    // Notify any existing org members that someone was invited (best effort).
+    if (args.email) {
+      const org = await ctx.db.get(args.organizationId);
+      const inviter = await ctx.db.get(args.requesterId);
+      if (org && inviter) {
+        const inviteeName = args.email.split('@')[0] ?? 'collègue';
+        const inviterLabel = inviter.fullName ?? inviter.phone ?? 'un membre';
+        await ctx.scheduler.runAfter(0, internal.emailActions.sendProNotification, {
+          to: args.email,
+          recipientName: inviteeName,
+          organizationName: org.name,
+          kind: 'team-member-added' as const,
+          detail: `${inviterLabel} vous invite à rejoindre ${org.name} sur Wedillybird.`,
+          ctaLabel: 'Accepter l’invitation',
+          ctaUrl: `${process.env.NEXT_PUBLIC_APP_URL ?? 'https://wedillybird.com'}/pro/invite/${token}`,
+        });
+      }
+    }
+
     return { id, inviteToken: token };
   },
 });

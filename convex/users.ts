@@ -1,5 +1,5 @@
 import { v } from 'convex/values';
-import { mutation } from './_generated/server';
+import { mutation, query } from './_generated/server';
 
 export const completeOnboarding = mutation({
   args: {
@@ -24,5 +24,20 @@ export const completeOnboarding = mutation({
     });
 
     return { ok: true as const };
+  },
+});
+
+export const getById = query({
+  args: { userId: v.id('users') },
+  handler: async (ctx, { userId }) => {
+    const user = await ctx.db.get(userId);
+    if (!user) return null;
+    return {
+      _id: user._id,
+      phone: user.phone,
+      email: user.email,
+      fullName: user.fullName,
+      role: user.role,
+    };
   },
 });
