@@ -402,6 +402,24 @@
       "unknown": "Une erreur est survenue. Réessayez."
     }
   },
+  "Plans": {
+    "quotaUnit": "invitations",
+    "quotaNoteShort": "Une invitation = un QR code envoyé à un invité principal qui peut amener des accompagnants.",
+    "quotaNoteLong": "Important : le quota se mesure en invitations envoyées (= fiches/QR codes), pas en personnes physiques. Chaque invitation peut amener plusieurs accompagnants. Une formule à 150 invitations peut donc accueillir 200, 300, 400 personnes le jour J selon les accompagnants.",
+    "features": {
+      "invitationPage": "Page d'invitation publique personnalisée",
+      "qrCodes": "QR code unique pour chaque invité",
+      "rsvpRealtime": "Suivi RSVP en temps réel",
+      "checkinOffline": "Check-in offline le jour J",
+      "sharedGallery": "Galerie photo partagée (modération)",
+      "customBranding": "Couleurs et police personnalisées de l'invitation",
+      "csvExport": "Export CSV de la liste invités",
+      "prioritySupport": "Support email prioritaire",
+      "unlimitedGallery": "Galerie photo illimitée",
+      "noWatermark": "Sans filigrane Wedillybird",
+      "dedicatedSupport": "Support dédié 7j/7"
+    }
+  },
   "Upgrade": {
     "title": "Passer à une formule supérieure",
     "subtitle": "Augmentez votre quota d'invitations et débloquez plus de fonctionnalités. Chaque invitation peut amener plusieurs accompagnants.",

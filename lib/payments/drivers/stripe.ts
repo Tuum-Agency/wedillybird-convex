@@ -24,6 +24,16 @@ const PLAN_LABEL: Record<string, string> = {
   premium: 'Wedillybird — Prestige',
 };
 
+// Description shown on Stripe Checkout under the line item. The quota is
+// counted in invitations sent (un QR code par invité principal, accompagnants
+// illimités), pas en personnes physiques.
+const PLAN_STRIPE_DESCRIPTION: Record<string, string> = {
+  essential:
+    "Jusqu'à 150 invitations envoyées (1 QR code par invité principal, accompagnants illimités). Page d'invitation personnalisée, RSVP temps réel, check-in offline, galerie partagée, branding, export CSV, support prioritaire.",
+  premium:
+    "Jusqu'à 1000 invitations envoyées (1 QR code par invité principal, accompagnants illimités). Tout Sérénité + galerie illimitée, sans filigrane Wedillybird, support dédié 7j/7.",
+};
+
 // Stripe expects ISO 4217 currency codes lowercase. We store XOF in centimes
 // internally (divisor 100), but Stripe represents XOF as zero-decimal. Ditto
 // TND uses millimes (divisor 1000), which Stripe handles natively for TND.
@@ -52,6 +62,11 @@ export const stripeDriver: PaymentDriver = {
             unit_amount: toStripeAmount(input.amountMinor, input.currency),
             product_data: {
               name: PLAN_LABEL[input.plan] ?? input.plan,
+              description: PLAN_STRIPE_DESCRIPTION[input.plan],
+              metadata: {
+                plan: input.plan,
+                quotaUnit: 'invitations',
+              },
             },
           },
         },
