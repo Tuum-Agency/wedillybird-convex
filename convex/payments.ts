@@ -154,6 +154,44 @@ export const markFailed = mutation({
   },
 });
 
+export const findById = query({
+  args: { paymentId: v.id('payments'), requesterId: v.id('users') },
+  handler: async (ctx, { paymentId, requesterId }) => {
+    const payment = await ctx.db.get(paymentId);
+    if (!payment) return null;
+    if (payment.userId !== requesterId) throw new Error('FORBIDDEN');
+
+    const event = await ctx.db.get(payment.eventId);
+    const owner = await ctx.db.get(payment.userId);
+    let organizationName: string | null = null;
+    if (event?.organizationId) {
+      const org = await ctx.db.get(event.organizationId);
+      organizationName = org?.name ?? null;
+    }
+    return {
+      payment: {
+        _id: payment._id,
+        userId: payment.userId,
+        eventId: payment.eventId,
+        plan: payment.plan,
+        currency: payment.currency,
+        amountMinor: payment.amountMinor,
+        provider: payment.provider,
+        status: payment.status,
+        createdAt: payment.createdAt,
+      },
+      event: event
+        ? { _id: event._id, title: event.title, organizationId: event.organizationId ?? null }
+        : null,
+      organization: { name: organizationName ?? event?.title ?? 'Wedillybird' },
+      owner: {
+        fullName: owner?.fullName,
+        email: owner?.email,
+      },
+    };
+  },
+});
+
 export const listByEvent = query({
   args: { eventId: v.id('events'), requesterId: v.id('users') },
   handler: async (ctx, { eventId, requesterId }) => {

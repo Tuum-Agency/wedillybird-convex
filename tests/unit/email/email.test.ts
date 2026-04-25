@@ -67,6 +67,23 @@ describe('templates rendering', () => {
     expect(out.subject).toBe('Facture INV-001 — 79,00 €');
   });
 
+  it('includes self-hosted PDF link when provided', () => {
+    const out = renderStripeInvoice({
+      recipientName: 'Awa',
+      organizationName: 'Studio Lumière',
+      invoiceNumber: 'INV-002',
+      amountFormatted: '79,00 €',
+      periodLabel: 'Mai 2026',
+      invoiceUrl: 'https://invoice.stripe.com/x',
+      pdfUrl: 'https://files.stripe.com/x.pdf',
+      selfHostedPdfUrl: 'https://wedillybird.com/api/payments/p1/invoice.pdf',
+    });
+    expect(out.html).toContain('https://wedillybird.com/api/payments/p1/invoice.pdf');
+    expect(out.html).toContain('PDF Wedillybird');
+    expect(out.html).toContain('https://files.stripe.com/x.pdf');
+    expect(out.text).toContain('https://wedillybird.com/api/payments/p1/invoice.pdf');
+  });
+
   it('escapes HTML in user-provided values', () => {
     const out = renderGuestReminder({
       guestName: '<script>alert(1)</script>',

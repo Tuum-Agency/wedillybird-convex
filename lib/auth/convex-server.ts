@@ -381,6 +381,26 @@ export const convexApi = {
     },
     { ok: true; alreadyApplied: boolean }
   >('payments:markFailed'),
+  findPaymentById: makeFunctionReference<
+    'query',
+    { paymentId: string; requesterId: string },
+    {
+      payment: {
+        _id: string;
+        userId: string;
+        eventId: string;
+        plan: 'essential' | 'premium';
+        currency: 'EUR' | 'XOF' | 'MAD' | 'TND';
+        amountMinor: number;
+        provider: 'stripe' | 'cinetpay' | 'mock';
+        status: 'pending' | 'succeeded' | 'failed' | 'cancelled';
+        createdAt: number;
+      };
+      event: { _id: string; title: string; organizationId: string | null } | null;
+      organization: { name: string };
+      owner: { fullName?: string; email?: string };
+    } | null
+  >('payments:findById'),
   listPaymentsByEvent: makeFunctionReference<
     'query',
     { eventId: string; requesterId: string },

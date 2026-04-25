@@ -7,8 +7,12 @@ export type StripeInvoiceInput = {
   invoiceNumber: string;
   amountFormatted: string;
   periodLabel: string;
+  /** Stripe-hosted invoice URL (live invoice, payment status, history). */
   invoiceUrl: string;
+  /** Stripe-generated PDF URL (their CDN). */
   pdfUrl?: string;
+  /** Wedillybird self-hosted PDF URL (our /api/payments/[paymentId]/invoice.pdf). */
+  selfHostedPdfUrl?: string;
 };
 
 export function renderStripeInvoice(input: StripeInvoiceInput): EmailRendered {
@@ -20,6 +24,7 @@ export function renderStripeInvoice(input: StripeInvoiceInput): EmailRendered {
     periodLabel,
     invoiceUrl,
     pdfUrl,
+    selfHostedPdfUrl,
   } = input;
 
   const subject = `Facture ${invoiceNumber} — ${amountFormatted}`;
@@ -31,7 +36,8 @@ export function renderStripeInvoice(input: StripeInvoiceInput): EmailRendered {
       paragraph(`Votre facture ${invoiceNumber} pour ${organizationName} est disponible.`) +
       paragraph(`Montant : ${amountFormatted} — Période : ${periodLabel}`) +
       button('Consulter la facture', invoiceUrl) +
-      (pdfUrl ? paragraph(`PDF : ${pdfUrl}`) : ''),
+      (selfHostedPdfUrl ? paragraph(`Télécharger le PDF Wedillybird : ${selfHostedPdfUrl}`) : '') +
+      (pdfUrl ? paragraph(`Reçu Stripe (PDF) : ${pdfUrl}`) : ''),
     footer: 'Pour toute question concernant cette facture, contactez le support Wedillybird.',
   });
 
@@ -44,7 +50,8 @@ export function renderStripeInvoice(input: StripeInvoiceInput): EmailRendered {
     '',
     'Consulter en ligne :',
     invoiceUrl,
-    ...(pdfUrl ? ['', 'PDF :', pdfUrl] : []),
+    ...(selfHostedPdfUrl ? ['', 'Télécharger le PDF Wedillybird :', selfHostedPdfUrl] : []),
+    ...(pdfUrl ? ['', 'Reçu Stripe (PDF) :', pdfUrl] : []),
     '',
     '— Wedillybird',
   ].join('\n');
