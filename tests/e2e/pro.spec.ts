@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { test } from '@playwright/test';
 
 test.describe('Pro — unauthenticated', () => {
   test('/pro/dashboard redirects to /sign-in', async ({ page }) => {
