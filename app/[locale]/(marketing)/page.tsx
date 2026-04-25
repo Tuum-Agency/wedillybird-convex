@@ -4,6 +4,7 @@ import { Link } from '@/i18n/navigation';
 import { buttonVariants } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { LegalFooter } from '@/components/layout/legal-footer';
 import { cn } from '@/lib/cn';
 
 export default async function LandingPage({ params }: { params: Promise<{ locale: string }> }) {
@@ -43,7 +44,7 @@ function LandingContent() {
         </nav>
       </header>
 
-      <main className="flex-1">
+      <main id="main-content" className="flex-1" tabIndex={-1}>
         <section className="container-page flex flex-col items-center pt-16 pb-24 text-center sm:pt-24 sm:pb-32">
           <Badge variant="accent" className="mb-6">
             WhatsApp-first
@@ -146,14 +147,7 @@ function LandingContent() {
         </section>
       </main>
 
-      <footer className="border-t border-[color:var(--color-border)]">
-        <div className="container-page flex flex-col items-center justify-between gap-4 py-8 text-sm text-[color:var(--color-muted)] sm:flex-row">
-          <p>
-            &copy; {new Date().getFullYear()} {tCommon('appName')}
-          </p>
-          <p className="font-display">{tCommon('tagline')}</p>
-        </div>
-      </footer>
+      <LegalFooter />
     </>
   );
 }

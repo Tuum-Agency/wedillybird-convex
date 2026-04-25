@@ -13,7 +13,102 @@
     "back": "Retour",
     "loading": "Chargement…",
     "error": "Une erreur est survenue",
-    "retry": "Réessayer"
+    "retry": "Réessayer",
+    "skipToContent": "Aller au contenu principal"
+  },
+  "Footer": {
+    "allRightsReserved": "Tous droits réservés",
+    "navLabel": "Liens légaux",
+    "terms": "CGU",
+    "privacy": "Confidentialité",
+    "cookies": "Cookies",
+    "faq": "FAQ"
+  },
+  "Legal": {
+    "terms": {
+      "title": "Conditions générales d'utilisation",
+      "lastUpdated": "Dernière mise à jour : 25 avril 2026",
+      "article1Title": "1. Objet",
+      "article1Body": "Wedillybird (« le Service ») fournit une plateforme SaaS d'organisation de mariage permettant la gestion d'invités, l'envoi d'invitations WhatsApp, le suivi RSVP, le check-in et le partage de galerie photo. Les présentes CGU régissent l'utilisation du Service par toute personne y accédant (« l'Utilisateur »).",
+      "article2Title": "2. Acceptation",
+      "article2Body": "L'utilisation du Service implique l'acceptation pleine et entière des présentes CGU. L'Utilisateur reconnaît en avoir pris connaissance et les accepter sans réserve lors de la création de son compte.",
+      "article3Title": "3. Compte et accès",
+      "article3Body": "L'accès au Service nécessite la création d'un compte via vérification d'un numéro WhatsApp. L'Utilisateur est responsable de la confidentialité de son numéro et de toute action effectuée depuis son compte. Tout usage non autorisé doit être signalé immédiatement.",
+      "article4Title": "4. Tarification et paiement",
+      "article4Body": "Le Service est proposé en formule gratuite (jusqu'à 30 invités) et formules payantes (Sérénité 49 €, Prestige 119 €). Les paiements sont traités par Stripe (Europe) ou CinetPay (Afrique). Les achats sont fermes et définitifs.",
+      "article5Title": "5. Propriété intellectuelle",
+      "article5Body": "L'Utilisateur conserve la propriété des contenus qu'il téléverse. Il accorde à Wedillybird une licence non-exclusive d'usage de ces contenus aux seules fins du fonctionnement du Service. Wedillybird conserve la propriété de la plateforme, du code et de la marque.",
+      "article6Title": "6. Responsabilité",
+      "article6Body": "Le Service est fourni « en l'état ». Wedillybird s'efforce d'assurer une disponibilité maximale mais ne garantit pas l'absence d'interruption. La responsabilité de Wedillybird est limitée au montant payé par l'Utilisateur sur les 12 derniers mois.",
+      "article7Title": "7. Droit applicable et litiges",
+      "article7Body": "Les présentes CGU sont régies par le droit français. Tout litige relatif à leur exécution sera de la compétence exclusive des tribunaux de Paris, sauf disposition d'ordre public contraire."
+    },
+    "privacy": {
+      "title": "Politique de confidentialité",
+      "lastUpdated": "Dernière mise à jour : 25 avril 2026",
+      "controllerTitle": "Responsable de traitement",
+      "controllerBody": "Wedillybird, plateforme exploitée par Tuum Agency, est responsable du traitement des données collectées via le Service.",
+      "dataCollectedTitle": "Données collectées",
+      "dataCollectedBody": "Numéro WhatsApp (authentification), nom et email (profil), informations relatives aux mariages organisés (dates, lieux, listes d'invités), photos partagées dans la galerie, journaux techniques (IP, user-agent).",
+      "purposesTitle": "Finalités",
+      "purposesBody": "Fournir le Service, authentifier les utilisateurs, envoyer les invitations et notifications, traiter les paiements, prévenir les fraudes, améliorer la plateforme.",
+      "legalBasisTitle": "Bases légales (RGPD)",
+      "legalBasisBody": "Exécution du contrat (compte, paiements, fonctionnalités), intérêt légitime (sécurité, prévention des abus), consentement (cookies non-essentiels, communications marketing).",
+      "retentionTitle": "Durée de conservation",
+      "retentionBody": "Données du compte : durée de l'abonnement + 3 ans. Données de paiement : durée légale (10 ans pour la facturation). Logs techniques : 12 mois maximum.",
+      "subprocessorsTitle": "Sous-traitants",
+      "subprocessorsBody": "Convex (base de données, US), Vercel (hébergement, US/EU), Stripe (paiement, EU/US), CinetPay (paiement Afrique, CI), Meta WhatsApp Cloud API (envoi messages, EU/US). Tous engagés par des clauses contractuelles types ou des mécanismes équivalents.",
+      "rightsTitle": "Vos droits",
+      "rightsBody": "Accès, rectification, effacement, opposition, portabilité, limitation. Pour exercer un droit, écrivez à privacy@wedillybird.com. Vous pouvez également déposer une réclamation auprès de la CNIL.",
+      "contactTitle": "Contact",
+      "contactBody": "Email : privacy@wedillybird.com. Réponse sous 30 jours conformément au RGPD."
+    },
+    "cookies": {
+      "title": "Politique de cookies",
+      "lastUpdated": "Dernière mise à jour : 25 avril 2026",
+      "whatTitle": "Qu'est-ce qu'un cookie ?",
+      "whatBody": "Un cookie est un petit fichier texte stocké sur votre appareil par un site web. Wedillybird utilise des cookies essentiels au fonctionnement du Service.",
+      "typesTitle": "Cookies utilisés",
+      "typesBody": "Cookie de session (authentification, signé HMAC, expire après 30 jours d'inactivité). Stockage local IndexedDB (cache offline pour le check-in). Aucun cookie publicitaire ou de tracking tiers n'est déposé.",
+      "controlTitle": "Contrôler les cookies",
+      "controlBody": "Vous pouvez supprimer les cookies via les paramètres de votre navigateur. La désactivation du cookie de session vous déconnectera du Service.",
+      "thirdPartiesTitle": "Cookies tiers",
+      "thirdPartiesBody": "Stripe et CinetPay déposent leurs propres cookies sur leurs pages de paiement (hors domaine Wedillybird) pour prévenir la fraude. Consultez leurs politiques respectives."
+    }
+  },
+  "Faq": {
+    "title": "Questions fréquentes",
+    "subtitle": "Tout ce qu'il faut savoir sur Wedillybird.",
+    "questions": {
+      "account": {
+        "q": "Comment créer mon compte ?",
+        "a": "Cliquez sur « Créer un compte », saisissez votre numéro WhatsApp et entrez le code à 6 chiffres reçu sur WhatsApp. Aucun mot de passe n'est nécessaire."
+      },
+      "invitations": {
+        "q": "Comment envoyer les invitations à mes invités ?",
+        "a": "Ajoutez vos invités depuis la page « Gérer les invités », puis envoyez-leur le lien personnalisé que Wedillybird génère pour chacun. Chaque invité a un QR code unique pour le check-in."
+      },
+      "rsvp": {
+        "q": "Comment fonctionne le suivi RSVP ?",
+        "a": "Vos invités répondent directement depuis leur lien personnalisé. Vous voyez les réponses en temps réel sur votre tableau de bord avec le nombre de confirmés, déclinés, en attente."
+      },
+      "checkin": {
+        "q": "Le check-in fonctionne-t-il sans internet ?",
+        "a": "Oui. La page de check-in cache la liste des invités localement. Vous pouvez scanner les QR codes même sans connexion ; les données se synchroniseront dès que la connexion revient."
+      },
+      "gallery": {
+        "q": "Mes invités peuvent-ils ajouter des photos à la galerie ?",
+        "a": "Oui. Depuis leur page d'invitation, ils peuvent uploader des photos qui seront soumises à votre modération avant d'apparaître dans la galerie partagée."
+      },
+      "pricing": {
+        "q": "Quels sont les tarifs ?",
+        "a": "Formule Essentiel (gratuite, jusqu'à 30 invités), Sérénité (49 €, jusqu'à 150 invités), Prestige (119 €, jusqu'à 1000 invités). Paiement unique par mariage."
+      },
+      "support": {
+        "q": "Comment contacter le support ?",
+        "a": "Écrivez à support@wedillybird.com. Réponse sous 24h ouvrées."
+      }
+    }
   },
   "Landing": {
     "hero": {

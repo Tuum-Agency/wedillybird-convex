@@ -5,6 +5,7 @@ import { setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { routing } from '@/i18n/routing';
 import { ConvexClientProvider } from '@/components/providers/convex-client-provider';
+import { SkipLink } from '@/components/layout/skip-link';
 import '../globals.css';
 
 const inter = Inter({
@@ -63,6 +64,7 @@ export default async function LocaleLayout({
       <body className="bg-background text-foreground flex min-h-full flex-col font-sans">
         <NextIntlClientProvider>
           <ConvexClientProvider convexUrl={process.env.NEXT_PUBLIC_CONVEX_URL}>
+            <SkipLink />
             {children}
           </ConvexClientProvider>
         </NextIntlClientProvider>
