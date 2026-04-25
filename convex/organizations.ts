@@ -1,7 +1,28 @@
 import { v } from 'convex/values';
-import { mutation, query, type MutationCtx, type QueryCtx } from './_generated/server';
+import {
+  internalMutation,
+  mutation,
+  query,
+  type MutationCtx,
+  type QueryCtx,
+} from './_generated/server';
 import { internal } from './_generated/api';
 import type { Doc, Id } from './_generated/dataModel';
+
+function cdnDomain(): string {
+  const domain = process.env.CLOUDFRONT_DOMAIN;
+  if (!domain) throw new Error('Missing CLOUDFRONT_DOMAIN env var on Convex deployment');
+  return domain;
+}
+
+async function resolveOrgLogoUrl(
+  ctx: QueryCtx | MutationCtx,
+  org: Doc<'organizations'>,
+): Promise<string | null> {
+  if (org.logoS3Key) return `https://${cdnDomain()}/${org.logoS3Key}`;
+  if (org.logoStorageId) return await ctx.storage.getUrl(org.logoStorageId);
+  return null;
+}
 
 const SLUG_MAX_ATTEMPTS = 8;
 const ROLE = v.union(
@@ -112,6 +133,12 @@ export const create = mutation({
   },
 });
 
+const HEX_COLOR_RE = /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
+
+function assertHexColor(value: string, field: string): void {
+  if (!HEX_COLOR_RE.test(value)) throw new Error(`INVALID_${field}`);
+}
+
 export const updateBranding = mutation({
   args: {
     organizationId: v.id('organizations'),
@@ -120,6 +147,7 @@ export const updateBranding = mutation({
     primaryColor: v.optional(v.string()),
     accentColor: v.optional(v.string()),
     logoStorageId: v.optional(v.id('_storage')),
+    logoS3Key: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     await assertCanManage(ctx, args.organizationId, args.requesterId);
@@ -129,9 +157,20 @@ export const updateBranding = mutation({
       if (trimmed.length < 1 || trimmed.length > 120) throw new Error('INVALID_NAME');
       patch.name = trimmed;
     }
-    if (args.primaryColor !== undefined) patch.primaryColor = args.primaryColor;
-    if (args.accentColor !== undefined) patch.accentColor = args.accentColor;
+    if (args.primaryColor !== undefined) {
+      assertHexColor(args.primaryColor, 'PRIMARY_COLOR');
+      patch.primaryColor = args.primaryColor;
+    }
+    if (args.accentColor !== undefined) {
+      assertHexColor(args.accentColor, 'ACCENT_COLOR');
+      patch.accentColor = args.accentColor;
+    }
     if (args.logoStorageId !== undefined) patch.logoStorageId = args.logoStorageId;
+    if (args.logoS3Key !== undefined) {
+      // Setting an S3 key supersedes any legacy Convex storage logo.
+      patch.logoS3Key = args.logoS3Key;
+      patch.logoStorageId = undefined;
+    }
     await ctx.db.patch(args.organizationId, patch);
     return { ok: true as const };
   },
@@ -148,7 +187,7 @@ export const myOrganization = query({
     if (!membership) return null;
     const org = await ctx.db.get(membership.organizationId);
     if (!org) return null;
-    const logoUrl = org.logoStorageId ? await ctx.storage.getUrl(org.logoStorageId) : null;
+    const logoUrl = await resolveOrgLogoUrl(ctx, org);
     return {
       _id: org._id,
       name: org.name,
@@ -171,7 +210,7 @@ export const getById = query({
     const membership = await assertCanRead(ctx, organizationId, requesterId);
     const org = await ctx.db.get(organizationId);
     if (!org) throw new Error('NOT_FOUND');
-    const logoUrl = org.logoStorageId ? await ctx.storage.getUrl(org.logoStorageId) : null;
+    const logoUrl = await resolveOrgLogoUrl(ctx, org);
     return {
       _id: org._id,
       name: org.name,
@@ -394,5 +433,63 @@ export const findByStripeCustomer = query({
       .query('organizations')
       .withIndex('by_stripe_customer', (q) => q.eq('stripeCustomerId', stripeCustomerId))
       .first();
+  },
+});
+
+export const getBySlug = query({
+  args: { slug: v.string() },
+  handler: async (ctx, { slug }) => {
+    const org = await ctx.db
+      .query('organizations')
+      .withIndex('by_slug', (q) => q.eq('slug', slug))
+      .first();
+    if (!org) return null;
+    const logoUrl = await resolveOrgLogoUrl(ctx, org);
+    return {
+      _id: org._id,
+      name: org.name,
+      slug: org.slug,
+      primaryColor: org.primaryColor,
+      accentColor: org.accentColor,
+      logoUrl,
+    };
+  },
+});
+
+export const listPublicEventsBySlug = query({
+  args: { slug: v.string() },
+  handler: async (ctx, { slug }) => {
+    const org = await ctx.db
+      .query('organizations')
+      .withIndex('by_slug', (q) => q.eq('slug', slug))
+      .first();
+    if (!org) return null;
+    const events = await ctx.db
+      .query('events')
+      .withIndex('by_organization', (q) => q.eq('organizationId', org._id))
+      .order('desc')
+      .collect();
+    return events
+      .filter((e) => e.status === 'active')
+      .map((e) => ({
+        _id: e._id,
+        title: e.title,
+        slug: e.slug,
+        coupleNames: e.coupleNames,
+        eventDate: e.eventDate,
+        timezone: e.timezone,
+      }));
+  },
+});
+
+export const internalAttachLogoS3Key = internalMutation({
+  args: { organizationId: v.id('organizations'), logoS3Key: v.string() },
+  handler: async (ctx, { organizationId, logoS3Key }) => {
+    await ctx.db.patch(organizationId, {
+      logoS3Key,
+      logoStorageId: undefined,
+      updatedAt: Date.now(),
+    });
+    return { ok: true as const };
   },
 });

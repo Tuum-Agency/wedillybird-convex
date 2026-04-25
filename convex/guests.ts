@@ -182,6 +182,36 @@ export const getByToken = query({
     if (!event) return null;
     if (event.status === 'cancelled' || event.status === 'archived') return null;
 
+    let organization: {
+      _id: string;
+      name: string;
+      slug: string;
+      primaryColor?: string;
+      accentColor?: string;
+      logoUrl: string | null;
+    } | null = null;
+
+    if (event.organizationId) {
+      const org = await ctx.db.get(event.organizationId);
+      if (org) {
+        const cdn = process.env.CLOUDFRONT_DOMAIN;
+        const logoUrl =
+          org.logoS3Key && cdn
+            ? `https://${cdn}/${org.logoS3Key}`
+            : org.logoStorageId
+              ? await ctx.storage.getUrl(org.logoStorageId)
+              : null;
+        organization = {
+          _id: org._id,
+          name: org.name,
+          slug: org.slug,
+          primaryColor: org.primaryColor,
+          accentColor: org.accentColor,
+          logoUrl,
+        };
+      }
+    }
+
     return {
       guest: {
         _id: guest._id,
@@ -202,6 +232,7 @@ export const getByToken = query({
         venue: event.venue,
         theme: event.theme,
       },
+      organization,
     };
   },
 });

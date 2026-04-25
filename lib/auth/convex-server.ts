@@ -207,6 +207,14 @@ export const convexApi = {
         venue?: { name: string; address: string; lat?: number; lng?: number };
         theme?: { primaryColor: string; accentColor: string; fontFamily: string };
       };
+      organization: {
+        _id: string;
+        name: string;
+        slug: string;
+        primaryColor?: string;
+        accentColor?: string;
+        logoUrl: string | null;
+      } | null;
     } | null
   >('guests:getByToken'),
   submitRsvp: makeFunctionReference<
@@ -522,6 +530,47 @@ export const convexApi = {
       role: 'couple' | 'pro' | 'guest' | 'admin';
     } | null
   >('users:getById'),
+  updateOrgBranding: makeFunctionReference<
+    'mutation',
+    {
+      organizationId: string;
+      requesterId: string;
+      name?: string;
+      primaryColor?: string;
+      accentColor?: string;
+      logoS3Key?: string;
+    },
+    { ok: true }
+  >('organizations:updateBranding'),
+  createOrgLogoUploadUrl: makeFunctionReference<
+    'action',
+    { organizationId: string; requesterId: string; contentType: string },
+    { uploadUrl: string; s3Key: string }
+  >('brandingActions:createOrgLogoUploadUrl'),
+  getOrgBySlug: makeFunctionReference<
+    'query',
+    { slug: string },
+    {
+      _id: string;
+      name: string;
+      slug: string;
+      primaryColor?: string;
+      accentColor?: string;
+      logoUrl: string | null;
+    } | null
+  >('organizations:getBySlug'),
+  listPublicOrgEvents: makeFunctionReference<
+    'query',
+    { slug: string },
+    Array<{
+      _id: string;
+      title: string;
+      slug: string;
+      coupleNames: { partnerA: string; partnerB: string };
+      eventDate: number;
+      timezone: string;
+    }> | null
+  >('organizations:listPublicEventsBySlug'),
 } satisfies Record<
   string,
   FunctionReference<'query' | 'mutation' | 'action', 'public', Args, unknown>

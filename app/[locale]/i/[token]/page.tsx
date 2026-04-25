@@ -19,11 +19,15 @@ export default async function InvitationPage({
   const data = await convex.query(convexApi.getGuestByToken, { token });
   if (!data) notFound();
 
-  const { guest, event } = data;
+  const { guest, event, organization } = data;
   const t = await getTranslations('Invitation');
 
-  const primaryColor = event.theme?.primaryColor ?? 'var(--color-primary)';
-  const accentColor = event.theme?.accentColor ?? 'var(--color-accent)';
+  // Org branding (if event belongs to an org with branding) takes priority over
+  // the per-event theme — pros customise their org once, not every event.
+  const primaryColor =
+    organization?.primaryColor ?? event.theme?.primaryColor ?? 'var(--color-primary)';
+  const accentColor =
+    organization?.accentColor ?? event.theme?.accentColor ?? 'var(--color-accent)';
   const fontFamily = event.theme?.fontFamily ?? 'var(--font-serif)';
 
   const themeStyle = {
@@ -37,6 +41,15 @@ export default async function InvitationPage({
       style={themeStyle}
     >
       <article className="flex w-full max-w-xl flex-col gap-8">
+        {organization?.logoUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={organization.logoUrl}
+            alt={organization.name}
+            className="mx-auto h-16 w-auto object-contain"
+            data-testid="org-logo"
+          />
+        ) : null}
         <header className="flex flex-col items-center gap-3 text-center">
           <p className="text-sm tracking-[0.3em] text-[color:var(--color-muted)] uppercase">
             {t('youreInvited')}

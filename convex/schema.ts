@@ -31,7 +31,10 @@ export default defineSchema({
     ownerId: v.id('users'),
     name: v.string(),
     slug: v.string(),
+    // Legacy Convex storage logo. Kept optional for backwards compat reads;
+    // new uploads go through S3 (logoS3Key).
     logoStorageId: v.optional(v.id('_storage')),
+    logoS3Key: v.optional(v.string()),
     primaryColor: v.optional(v.string()),
     accentColor: v.optional(v.string()),
     stripeCustomerId: v.optional(v.string()),
