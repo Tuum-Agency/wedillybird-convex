@@ -117,6 +117,29 @@ export default defineSchema({
     .index('by_user', ['userId'])
     .index('by_event_user', ['eventId', 'userId']),
 
+  payments: defineTable({
+    userId: v.id('users'),
+    eventId: v.id('events'),
+    plan: v.union(v.literal('essential'), v.literal('premium')),
+    currency: v.union(v.literal('EUR'), v.literal('XOF'), v.literal('MAD'), v.literal('TND')),
+    amountMinor: v.number(),
+    provider: v.union(v.literal('stripe'), v.literal('cinetpay'), v.literal('mock')),
+    providerSessionId: v.string(),
+    providerEventId: v.optional(v.string()),
+    status: v.union(
+      v.literal('pending'),
+      v.literal('succeeded'),
+      v.literal('failed'),
+      v.literal('cancelled'),
+    ),
+    failureReason: v.optional(v.string()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index('by_user', ['userId'])
+    .index('by_event', ['eventId'])
+    .index('by_session', ['provider', 'providerSessionId']),
+
   photos: defineTable({
     eventId: v.id('events'),
     storageId: v.id('_storage'),
