@@ -14,17 +14,15 @@ test.describe('Landing page', () => {
     await expect(page.getByRole('link', { name: /préparer mon mariage/i }).first()).toBeVisible();
   });
 
-  test('rend les sections narratives V3 (manifesto, comparaison, stats, FAQ)', async ({ page }) => {
+  test('rend les chapitres narratifs V4 (manifesto, cinematic, FAQ)', async ({ page }) => {
     await page.goto('/');
-    // Manifesto
+    // Chapitre 02 — Manifesto (absorbe Stats + Comparison via diptyque + pull-quote)
     await expect(
       page.getByRole('heading', { name: /un mariage ne se prépare plus/i }),
     ).toBeVisible();
-    // Comparaison PDF vs Wedillybird
-    await expect(page.getByRole('heading', { name: /du pdf à la conversation/i })).toBeVisible();
-    // Stats avec ticker
-    await expect(page.getByRole('heading', { name: /plus simple, plus rapide/i })).toBeVisible();
-    // FAQ
+    // Chapitre 04 — Cinématique invitation
+    await expect(page.getByRole('heading', { name: /une enveloppe qui s'ouvre/i })).toBeVisible();
+    // Chapitre 07 — FAQ
     await expect(
       page.getByRole('heading', { name: /tout ce que vous voulez savoir/i }),
     ).toBeVisible();
@@ -48,8 +46,10 @@ test.describe('Landing page', () => {
 
     await expect(pricing.getByRole('heading', { name: /essentiel/i })).toBeVisible();
     await expect(pricing.getByRole('heading', { name: /^premium$/i })).toBeVisible();
-    // L'ancien tier 'free' (Gratuit) ne doit plus apparaître.
-    await expect(pricing.getByText(/gratuit/i)).toHaveCount(0);
+    // L'ancien tier 'free' (Gratuit) ne doit plus apparaître comme heading
+    // de plan. Le mot 'gratuit' reste légitime dans la trust line ("Report
+    // gratuit en cas d'annulation"), donc on cible un heading exact.
+    await expect(pricing.getByRole('heading', { name: /^gratuit$/i })).toHaveCount(0);
     // Le bandeau d'upsell post-mariage doit être affiché.
     await expect(pricing.getByTestId('upsell-note')).toBeVisible();
   });
