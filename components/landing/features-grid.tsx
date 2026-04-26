@@ -44,41 +44,48 @@ export function LandingFeaturesGrid() {
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={inViewOnce}
-          className="mb-12 inline-block font-mono text-[11px] tracking-[0.32em] text-[color:var(--color-ink-500)] uppercase"
+          className="mb-10 inline-block font-mono text-[11px] tracking-[0.32em] text-[color:var(--color-ink-500)] uppercase"
         >
           {t('chapter')}
         </motion.span>
 
-        {/* Titre + subtitle en split asymétrique */}
-        <motion.div
+        {/* Header de section — stack vertical aligné gauche, pattern Aesop /
+            Atelier Isabey. Pas de split bancal : eyebrow + titre + subtitle
+            en colonne, max-w contraint pour aérer la composition. */}
+        <motion.header
           initial="hidden"
           whileInView="visible"
           viewport={inViewOnce}
           variants={scrollRevealParent}
-          className="mb-16 grid gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:gap-20"
+          className="mb-20 flex max-w-4xl flex-col gap-7"
         >
-          <motion.div variants={scrollReveal} className="flex flex-col">
-            <span className="text-xs font-medium tracking-[0.24em] text-[color:var(--color-gold-700)] uppercase">
-              {t('eyebrow')}
-            </span>
-            <h2
-              className="font-display mt-5 text-balance italic"
-              style={{
-                fontSize: 'clamp(2.25rem, 5.5vw, 4rem)',
-                lineHeight: 1.0,
-                letterSpacing: '-0.025em',
-                color: 'var(--color-ink-900)',
-              }}
-            >
-              {t('title')}
-            </h2>
-          </motion.div>
-          <motion.div variants={scrollReveal} className="flex items-end">
-            <p className="max-w-md text-base leading-relaxed text-[color:var(--color-ink-500)] sm:text-lg">
-              {t('subtitle')}
-            </p>
-          </motion.div>
-        </motion.div>
+          <motion.span
+            variants={scrollReveal}
+            className="text-xs font-medium tracking-[0.24em] text-[color:var(--color-gold-700)] uppercase"
+          >
+            {t('eyebrow')}
+          </motion.span>
+
+          <motion.h2
+            variants={scrollReveal}
+            className="font-display text-balance italic"
+            style={{
+              fontSize: 'clamp(2.25rem, 5vw, 3.75rem)',
+              lineHeight: 1.02,
+              letterSpacing: '-0.025em',
+              color: 'var(--color-ink-900)',
+            }}
+          >
+            {t('title')}
+          </motion.h2>
+
+          <motion.p
+            variants={scrollReveal}
+            className="max-w-xl text-base leading-relaxed text-[color:var(--color-ink-500)] sm:text-lg"
+          >
+            {t('subtitle')}
+          </motion.p>
+        </motion.header>
 
         {/* Grid 12 cols zigzag — 7+5 puis 5+7. Pas de col-span-2 cabossé. */}
         <motion.div
