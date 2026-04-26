@@ -2,33 +2,36 @@
 
 import { motion } from 'motion/react';
 import { useTranslations } from 'next-intl';
-import { MessageCircle, Users, QrCode, Camera, type LucideIcon } from 'lucide-react';
 import { inViewOnce, scrollReveal, scrollRevealParent } from '@/lib/motion/presets';
+import { VisualInvitations, VisualRSVP, VisualCheckin, VisualGallery } from './feature-visuals';
 
 interface FeatureDef {
   key: 'invites' | 'rsvp' | 'checkin' | 'gallery';
-  Icon: LucideIcon;
-  highlightCount: 3;
+  Visual: () => React.JSX.Element;
+  /** Largeur en colonnes sur grid-cols-12. La paire (7 + 5) ou (5 + 7) zigzag. */
+  span: 7 | 5;
+  number: '01' | '02' | '03' | '04';
 }
 
 const FEATURES: FeatureDef[] = [
-  { key: 'invites', Icon: MessageCircle, highlightCount: 3 },
-  { key: 'rsvp', Icon: Users, highlightCount: 3 },
-  { key: 'checkin', Icon: QrCode, highlightCount: 3 },
-  { key: 'gallery', Icon: Camera, highlightCount: 3 },
+  { key: 'invites', Visual: VisualInvitations, span: 7, number: '01' },
+  { key: 'rsvp', Visual: VisualRSVP, span: 5, number: '02' },
+  { key: 'checkin', Visual: VisualCheckin, span: 5, number: '03' },
+  { key: 'gallery', Visual: VisualGallery, span: 7, number: '04' },
 ];
 
 /**
- * Landing — 4 piliers V4.
+ * Landing — 4 piliers V4 (re-refonte après feedback "espace vide à droite").
  *
- * Refonte typo : Geist Sans en H3 (pas Fraunces italic partout — diktat de
- * l'audit : Fraunces réservé aux 5 moments cinématiques). Eyebrow chapitre
- * en mono caps. Bullets avec fleurons gold ✦ — pas de checks verts sage qui
- * cassaient la palette.
+ * Layout zigzag éditorial 7/5 + 5/7 sur grid-cols-12 (pattern Linear / Vercel
+ * features). Pas d'espace mort. Chaque card a un visuel SVG signature qui
+ * illustre la fonctionnalité (bulles WhatsApp, donut RSVP, QR code, polaroids).
  *
- * Cards en composition asymétrique : la première (Invitations WhatsApp,
- * pilier signature) est plus grande, les 3 autres en grid 3 colonnes en
- * dessous. Pattern Linear features grid.
+ * Card large (span 7) : layout horizontal — visuel à droite, texte à gauche.
+ * Card moyenne (span 5) : layout vertical — visuel en haut, texte en bas.
+ *
+ * Numérotation 01/02/03/04 en mono caps qui ancre l'esthétique éditoriale
+ * 2026 (Linear, Mercury, Off Menu).
  */
 export function LandingFeaturesGrid() {
   const t = useTranslations('Landing.features');
@@ -46,6 +49,7 @@ export function LandingFeaturesGrid() {
           {t('chapter')}
         </motion.span>
 
+        {/* Titre + subtitle en split asymétrique */}
         <motion.div
           initial="hidden"
           whileInView="visible"
@@ -76,78 +80,100 @@ export function LandingFeaturesGrid() {
           </motion.div>
         </motion.div>
 
-        {/* Grille asymétrique : 1ère card large + 3 cards moyennes en dessous */}
+        {/* Grid 12 cols zigzag — 7+5 puis 5+7. Pas de col-span-2 cabossé. */}
         <motion.div
           initial="hidden"
           whileInView="visible"
           viewport={inViewOnce}
           variants={scrollRevealParent}
-          className="grid gap-5 md:grid-cols-2 lg:grid-cols-6"
+          className="grid grid-cols-1 gap-5 lg:grid-cols-12"
         >
-          {FEATURES.map(({ key, Icon, highlightCount }, idx) => (
-            <motion.article
-              key={key}
-              variants={scrollReveal}
-              className={[
-                'group relative flex flex-col gap-5 overflow-hidden rounded-3xl border border-[color:var(--color-border)] bg-white p-8 transition-[transform,box-shadow,border-color] duration-300',
-                '[@media(hover:hover)]:hover:-translate-y-1.5 [@media(hover:hover)]:hover:border-[color:var(--color-blush-300)] [@media(hover:hover)]:hover:shadow-[var(--shadow-blush)]',
-                idx === 0 ? 'lg:col-span-3 lg:row-span-2' : 'lg:col-span-2',
-              ].join(' ')}
-            >
-              {/* Halo blush en hover */}
-              <span
-                aria-hidden
-                className="pointer-events-none absolute -top-20 -right-20 h-48 w-48 rounded-full opacity-0 blur-3xl transition-opacity duration-500 [@media(hover:hover)]:group-hover:opacity-100"
-                style={{
-                  background:
-                    'radial-gradient(closest-side, oklch(85% 0.06 22 / 60%), transparent)',
-                }}
-              />
-
-              <span
-                aria-hidden
-                className="flex h-14 w-14 items-center justify-center rounded-2xl"
-                style={{
-                  background:
-                    'linear-gradient(135deg, oklch(95% 0.025 22) 0%, oklch(91% 0.045 22) 100%)',
-                  color: 'var(--color-blush-700)',
-                  boxShadow: '0 1px 0 oklch(91% 0.045 22)',
-                }}
+          {FEATURES.map(({ key, Visual, span, number }) => {
+            const isWide = span === 7;
+            return (
+              <motion.article
+                key={key}
+                variants={scrollReveal}
+                className={[
+                  'group relative flex flex-col overflow-hidden rounded-3xl border border-[color:var(--color-border)] bg-white transition-[transform,box-shadow,border-color] duration-300',
+                  '[@media(hover:hover)]:hover:-translate-y-1.5 [@media(hover:hover)]:hover:border-[color:var(--color-blush-300)] [@media(hover:hover)]:hover:shadow-[var(--shadow-blush)]',
+                  isWide ? 'lg:col-span-7 lg:flex-row' : 'lg:col-span-5',
+                ].join(' ')}
               >
-                <Icon className="h-6 w-6" strokeWidth={1.5} aria-hidden />
-              </span>
+                {/* Halo blush en hover */}
+                <span
+                  aria-hidden
+                  className="pointer-events-none absolute -top-20 -right-20 h-48 w-48 rounded-full opacity-0 blur-3xl transition-opacity duration-500 [@media(hover:hover)]:group-hover:opacity-100"
+                  style={{
+                    background:
+                      'radial-gradient(closest-side, oklch(85% 0.06 22 / 60%), transparent)',
+                  }}
+                />
 
-              <div className="flex flex-col gap-3">
-                <h3
-                  className="text-2xl font-medium tracking-tight text-[color:var(--color-ink-900)] sm:text-3xl"
-                  style={{ letterSpacing: '-0.022em', lineHeight: 1.05 }}
+                {/* Visuel SVG — moitié droite si wide, haut si normal */}
+                <div
+                  className={[
+                    'relative flex items-center justify-center overflow-hidden bg-[color:var(--color-ivory-50)]',
+                    isWide
+                      ? 'aspect-[5/3] lg:order-2 lg:aspect-auto lg:w-[42%] lg:flex-shrink-0'
+                      : 'aspect-[5/3]',
+                  ].join(' ')}
+                  style={{
+                    background:
+                      'linear-gradient(135deg, oklch(98% 0.012 25) 0%, oklch(95% 0.025 22) 100%)',
+                  }}
                 >
-                  {t(`${key}.title`)}
-                </h3>
-                <p className="text-sm leading-relaxed text-[color:var(--color-ink-500)] sm:text-base">
-                  {t(`${key}.description`)}
-                </p>
-              </div>
-
-              <ul className="mt-auto flex flex-col gap-2 border-t border-[color:var(--color-border)] pt-5">
-                {Array.from({ length: highlightCount }).map((_, i) => (
-                  <li
-                    key={i}
-                    className="flex items-start gap-2.5 text-sm text-[color:var(--color-ink-700)]"
+                  <div className="h-full w-full p-4">
+                    <Visual />
+                  </div>
+                  {/* Numéro en filigrane */}
+                  <span
+                    aria-hidden
+                    className="font-display absolute top-4 right-5 text-sm tracking-[0.24em] text-[color:var(--color-gold-700)] uppercase italic"
+                    style={{ letterSpacing: '0.32em' }}
                   >
-                    <span
-                      aria-hidden
-                      className="font-display mt-0.5 inline-block flex-shrink-0 text-[color:var(--color-gold-500)] italic"
-                      style={{ fontSize: '14px', lineHeight: 1, letterSpacing: 0 }}
-                    >
-                      ✦
-                    </span>
-                    {t(`${key}.highlights.${i}`)}
-                  </li>
-                ))}
-              </ul>
-            </motion.article>
-          ))}
+                    {number}
+                  </span>
+                </div>
+
+                {/* Texte */}
+                <div
+                  className={[
+                    'flex flex-1 flex-col gap-4 p-7 sm:p-8',
+                    isWide ? 'lg:order-1 lg:p-10' : '',
+                  ].join(' ')}
+                >
+                  <h3
+                    className="text-2xl font-medium tracking-tight text-balance text-[color:var(--color-ink-900)] sm:text-3xl"
+                    style={{ letterSpacing: '-0.022em', lineHeight: 1.05 }}
+                  >
+                    {t(`${key}.title`)}
+                  </h3>
+                  <p className="text-sm leading-relaxed text-[color:var(--color-ink-500)] sm:text-base">
+                    {t(`${key}.description`)}
+                  </p>
+
+                  <ul className="mt-auto flex flex-col gap-2 border-t border-[color:var(--color-border)] pt-5">
+                    {[0, 1, 2].map((i) => (
+                      <li
+                        key={i}
+                        className="flex items-start gap-2.5 text-sm text-[color:var(--color-ink-700)]"
+                      >
+                        <span
+                          aria-hidden
+                          className="font-display mt-0.5 inline-block flex-shrink-0 text-[color:var(--color-gold-500)] italic"
+                          style={{ fontSize: '14px', lineHeight: 1, letterSpacing: 0 }}
+                        >
+                          ✦
+                        </span>
+                        {t(`${key}.highlights.${i}`)}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </motion.article>
+            );
+          })}
         </motion.div>
       </div>
     </section>
