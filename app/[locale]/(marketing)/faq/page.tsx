@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
-import { getTranslations } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { LegalFooter } from '@/components/layout/legal-footer';
+import { EditorialPage } from '@/components/marketing/editorial-page';
+import { FaqList } from '@/components/marketing/faq-list';
 
 export async function generateMetadata({
   params,
@@ -12,46 +14,24 @@ export async function generateMetadata({
   return { title: t('title') };
 }
 
-const KEYS = [
-  'account',
-  'invitations',
-  'rsvp',
-  'checkin',
-  'gallery',
-  'pricing',
-  'support',
-] as const;
-
-export default async function FaqPage() {
+/**
+ * FAQ V4 — page publique éditoriale, pattern Aesop / Atelier Isabey.
+ * Server component qui rend le titre + délègue l'accordion au client.
+ */
+export default async function FaqPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  setRequestLocale(locale);
   const t = await getTranslations('Faq');
+
   return (
     <>
-      <main
-        id="main-content"
-        className="container-page flex flex-1 flex-col gap-6 py-12"
-        tabIndex={-1}
-      >
-        <header className="flex flex-col gap-2">
-          <h1 className="font-display text-3xl font-semibold tracking-tight">{t('title')}</h1>
-          <p className="text-sm text-[color:var(--color-muted)]">{t('subtitle')}</p>
-        </header>
-        <ul className="mx-auto flex w-full max-w-2xl flex-col gap-4">
-          {KEYS.map((k) => (
-            <li
-              key={k}
-              className="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-5"
-            >
-              <details className="group flex flex-col gap-2">
-                <summary className="font-display cursor-pointer text-lg font-semibold">
-                  {t(`questions.${k}.q` as const)}
-                </summary>
-                <p className="mt-2 text-sm leading-relaxed text-[color:var(--color-muted)]">
-                  {t(`questions.${k}.a` as const)}
-                </p>
-              </details>
-            </li>
-          ))}
-        </ul>
+      <main id="main-content" className="container-page flex-1 py-20" tabIndex={-1}>
+        <EditorialPage eyebrow="VOS QUESTIONS" title={t('title')}>
+          <p className="-mt-4 max-w-xl text-base leading-relaxed text-[color:var(--color-ink-500)] sm:text-lg">
+            {t('subtitle')}
+          </p>
+          <FaqList />
+        </EditorialPage>
       </main>
       <LegalFooter />
     </>

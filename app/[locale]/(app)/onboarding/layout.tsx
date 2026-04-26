@@ -4,46 +4,37 @@ import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 
 /**
- * Layout auth V4 — split éditorial mariage premium.
+ * Onboarding layout V4 — split éditorial dédié, identique en grammaire au
+ * AuthLayout pour assurer la continuité visuelle post sign-in/verify.
  *
- * Desktop (≥lg) : 50/50.
- *   - Gauche : photo couple Provence regradée, overlay blush, tagline italique
- *     en surimpression bas + filet gold ornemental.
- *   - Droite : zone formulaire ivoire avec paper-grain, card centrée max-w-md.
- *
- * Mobile : stack vertical. Photo masquée (perf 3G Afrique), juste le brand
- * en haut + form en card centrée.
- *
- * Pattern Linear sign-in / Mercury onboarding / Stripe checkout.
+ * Le wizard (client component) est rendu côté droit, la photo de Provence
+ * regradée + le tagline éditorial à gauche soutiennent le moment.
  */
-export default function AuthLayout({ children }: { children: ReactNode }) {
+export default function OnboardingLayout({ children }: { children: ReactNode }) {
   return (
     <div className="grid min-h-screen lg:grid-cols-2">
-      <AuthAside />
+      <OnboardingAside />
       <main className="paper-grain relative flex flex-col bg-[color:var(--color-ivory-50)]">
-        <AuthHeader />
+        <OnboardingHeader />
         <div className="flex flex-1 items-center justify-center px-6 pb-16">
           <div className="w-full max-w-md">{children}</div>
         </div>
-        <AuthFooter />
       </main>
     </div>
   );
 }
 
-function AuthAside() {
-  const t = useTranslations('Landing.hero');
+function OnboardingAside() {
   return (
     <aside className="relative hidden overflow-hidden lg:block" aria-hidden>
       <Image
-        src="https://images.unsplash.com/photo-1606216794074-735e91aa2c92?auto=format&fit=crop&w=1600&q=85"
+        src="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1600&q=85"
         alt=""
         fill
         priority
         sizes="50vw"
         className="object-cover"
       />
-      {/* Overlay blush + ivoire pour réchauffer la photo et soutenir le texte */}
       <div
         className="absolute inset-0"
         style={{
@@ -53,10 +44,8 @@ function AuthAside() {
           ].join(', '),
         }}
       />
-      {/* Texture grain papier */}
       <div className="paper-grain pointer-events-none absolute inset-0" />
 
-      {/* Brand en haut-gauche */}
       <Link
         href="/"
         className="font-display absolute top-8 left-8 inline-flex items-center gap-2 text-xl tracking-tight text-white italic"
@@ -68,10 +57,9 @@ function AuthAside() {
         Wedillybird
       </Link>
 
-      {/* Tagline éditorial en bas-gauche */}
       <div className="absolute right-8 bottom-12 left-8 flex flex-col gap-4">
         <span className="font-mono text-[10px] tracking-[0.32em] text-white/80 uppercase">
-          Préparez votre grand jour
+          Bienvenue
         </span>
         <p
           className="font-display text-balance text-white italic"
@@ -82,9 +70,8 @@ function AuthAside() {
             textShadow: '0 2px 8px oklch(22% 0.018 28 / 30%)',
           }}
         >
-          {t('title')} <span style={{ color: 'oklch(95% 0.025 22)' }}>{t('titleAccent')}</span>
+          Votre mariage commence <span style={{ color: 'oklch(95% 0.025 22)' }}>maintenant.</span>
         </p>
-        {/* Filet ornemental gold */}
         <span
           aria-hidden
           className="mt-2 inline-block h-px w-16"
@@ -95,10 +82,10 @@ function AuthAside() {
   );
 }
 
-function AuthHeader() {
+function OnboardingHeader() {
   const tCommon = useTranslations('Common');
   return (
-    <header className="flex h-20 items-center justify-between px-6 lg:hidden">
+    <header className="flex h-20 items-center px-6 lg:hidden">
       <Link
         href="/"
         className="font-display inline-flex items-center gap-2 text-xl tracking-tight text-[color:var(--color-ink-900)] italic"
@@ -109,23 +96,6 @@ function AuthHeader() {
         />
         {tCommon('appName')}
       </Link>
-      <Link
-        href="/"
-        className="font-mono text-[10px] tracking-[0.24em] text-[color:var(--color-ink-500)] uppercase transition-colors hover:text-[color:var(--color-ink-900)]"
-      >
-        ← Accueil
-      </Link>
     </header>
-  );
-}
-
-function AuthFooter() {
-  const t = useTranslations('Auth');
-  return (
-    <footer className="flex justify-center px-6 pb-8 lg:pb-10">
-      <p className="max-w-sm text-center font-mono text-[10px] leading-relaxed tracking-[0.16em] text-[color:var(--color-ink-300)] uppercase">
-        {t('privacy')}
-      </p>
-    </footer>
   );
 }

@@ -15,6 +15,10 @@ export async function generateMetadata({
   return { title: t('stepProfile') };
 }
 
+/**
+ * Onboarding V4 — server component qui valide la session puis délègue au
+ * wizard client. Le layout split éditorial est dans `./layout.tsx`.
+ */
 export default async function OnboardingPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   setRequestLocale(locale);
@@ -31,11 +35,5 @@ export default async function OnboardingPage({ params }: { params: Promise<{ loc
     redirect({ href: '/dashboard', locale });
   }
 
-  return (
-    <main className="container-page flex flex-1 items-center justify-center py-10">
-      <div className="w-full max-w-md">
-        <OnboardingWizard />
-      </div>
-    </main>
-  );
+  return <OnboardingWizard />;
 }

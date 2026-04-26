@@ -18,6 +18,18 @@ vi.mock('next-intl', () => ({
   useTranslations: (namespace?: string) => (key: string) => `${namespace ?? 'T'}.${key}`,
 }));
 
+// Mock Motion : passe les enfants directement, pas d'animations en jsdom.
+// useReducedMotion = true → désactive les transforms (ce qui ferait que
+// AnimatePresence garde les deux steps simultanément).
+vi.mock('motion/react', async () => {
+  const actual = await vi.importActual<typeof import('motion/react')>('motion/react');
+  return {
+    ...actual,
+    useReducedMotion: () => true,
+    AnimatePresence: ({ children }: { children: React.ReactNode }) => children,
+  };
+});
+
 import { OnboardingWizard } from '@/components/onboarding/onboarding-wizard';
 
 beforeEach(() => {
