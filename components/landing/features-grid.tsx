@@ -2,7 +2,7 @@
 
 import { motion } from 'motion/react';
 import { useTranslations } from 'next-intl';
-import { MessageCircle, Users, QrCode, Camera, Check, type LucideIcon } from 'lucide-react';
+import { MessageCircle, Users, QrCode, Camera, type LucideIcon } from 'lucide-react';
 import { inViewOnce, scrollReveal, scrollRevealParent } from '@/lib/motion/presets';
 
 interface FeatureDef {
@@ -19,63 +19,80 @@ const FEATURES: FeatureDef[] = [
 ];
 
 /**
- * Landing — 4 piliers V3.
+ * Landing — 4 piliers V4.
  *
- * Cards verticales avec icône Lucide (plus d'émojis), titre, description longue,
- * 3 highlights bullet-point. Stagger 80 ms desktop, hover lift -3px.
+ * Refonte typo : Geist Sans en H3 (pas Fraunces italic partout — diktat de
+ * l'audit : Fraunces réservé aux 5 moments cinématiques). Eyebrow chapitre
+ * en mono caps. Bullets avec fleurons gold ✦ — pas de checks verts sage qui
+ * cassaient la palette.
  *
- * Inspiration : Linear features grid, Vercel platform overview.
+ * Cards en composition asymétrique : la première (Invitations WhatsApp,
+ * pilier signature) est plus grande, les 3 autres en grid 3 colonnes en
+ * dessous. Pattern Linear features grid.
  */
 export function LandingFeaturesGrid() {
   const t = useTranslations('Landing.features');
 
   return (
-    <section id="features" className="paper-grain relative bg-[color:var(--color-surface)] py-28">
+    <section id="features" className="paper-grain relative bg-[color:var(--color-ivory-100)] py-32">
       <div className="container-page">
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
+        {/* Eyebrow chapitre */}
+        <motion.span
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
           viewport={inViewOnce}
-          variants={scrollRevealParent}
-          className="mx-auto mb-16 flex max-w-3xl flex-col items-center gap-3 text-center"
+          className="mb-12 inline-block font-mono text-[11px] tracking-[0.32em] text-[color:var(--color-ink-500)] uppercase"
         >
-          <motion.span
-            variants={scrollReveal}
-            className="text-xs font-medium tracking-[0.2em] text-[color:var(--color-champagne-700)] uppercase"
-          >
-            {t('eyebrow')}
-          </motion.span>
-          <motion.h2
-            variants={scrollReveal}
-            className="font-display text-balance italic"
-            style={{
-              fontSize: 'clamp(2rem, 5vw, 3.5rem)',
-              lineHeight: 1.05,
-              letterSpacing: '-0.022em',
-            }}
-          >
-            {t('title')}
-          </motion.h2>
-          <motion.p
-            variants={scrollReveal}
-            className="max-w-xl text-base text-[color:var(--color-ink-500)]"
-          >
-            {t('subtitle')}
-          </motion.p>
-        </motion.div>
+          {t('chapter')}
+        </motion.span>
 
         <motion.div
           initial="hidden"
           whileInView="visible"
           viewport={inViewOnce}
           variants={scrollRevealParent}
-          className="grid gap-5 md:grid-cols-2"
+          className="mb-16 grid gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:gap-20"
         >
-          {FEATURES.map(({ key, Icon, highlightCount }) => (
+          <motion.div variants={scrollReveal} className="flex flex-col">
+            <span className="text-xs font-medium tracking-[0.24em] text-[color:var(--color-gold-700)] uppercase">
+              {t('eyebrow')}
+            </span>
+            <h2
+              className="font-display mt-5 text-balance italic"
+              style={{
+                fontSize: 'clamp(2.25rem, 5.5vw, 4rem)',
+                lineHeight: 1.0,
+                letterSpacing: '-0.025em',
+                color: 'var(--color-ink-900)',
+              }}
+            >
+              {t('title')}
+            </h2>
+          </motion.div>
+          <motion.div variants={scrollReveal} className="flex items-end">
+            <p className="max-w-md text-base leading-relaxed text-[color:var(--color-ink-500)] sm:text-lg">
+              {t('subtitle')}
+            </p>
+          </motion.div>
+        </motion.div>
+
+        {/* Grille asymétrique : 1ère card large + 3 cards moyennes en dessous */}
+        <motion.div
+          initial="hidden"
+          whileInView="visible"
+          viewport={inViewOnce}
+          variants={scrollRevealParent}
+          className="grid gap-5 md:grid-cols-2 lg:grid-cols-6"
+        >
+          {FEATURES.map(({ key, Icon, highlightCount }, idx) => (
             <motion.article
               key={key}
               variants={scrollReveal}
-              className="group relative flex flex-col gap-5 overflow-hidden rounded-3xl border border-[color:var(--color-border)] bg-white p-8 transition-[transform,box-shadow,border-color] duration-300 [@media(hover:hover)]:hover:-translate-y-1.5 [@media(hover:hover)]:hover:border-[color:var(--color-blush-300)] [@media(hover:hover)]:hover:shadow-[var(--shadow-blush)]"
+              className={[
+                'group relative flex flex-col gap-5 overflow-hidden rounded-3xl border border-[color:var(--color-border)] bg-white p-8 transition-[transform,box-shadow,border-color] duration-300',
+                '[@media(hover:hover)]:hover:-translate-y-1.5 [@media(hover:hover)]:hover:border-[color:var(--color-blush-300)] [@media(hover:hover)]:hover:shadow-[var(--shadow-blush)]',
+                idx === 0 ? 'lg:col-span-3 lg:row-span-2' : 'lg:col-span-2',
+              ].join(' ')}
             >
               {/* Halo blush en hover */}
               <span
@@ -102,34 +119,30 @@ export function LandingFeaturesGrid() {
 
               <div className="flex flex-col gap-3">
                 <h3
-                  className="font-display text-2xl italic sm:text-3xl"
-                  style={{ letterSpacing: '-0.018em', lineHeight: 1.05 }}
+                  className="text-2xl font-medium tracking-tight text-[color:var(--color-ink-900)] sm:text-3xl"
+                  style={{ letterSpacing: '-0.022em', lineHeight: 1.05 }}
                 >
                   {t(`${key}.title`)}
                 </h3>
-                <p className="text-sm leading-relaxed text-[color:var(--color-ink-500)]">
+                <p className="text-sm leading-relaxed text-[color:var(--color-ink-500)] sm:text-base">
                   {t(`${key}.description`)}
                 </p>
               </div>
 
               <ul className="mt-auto flex flex-col gap-2 border-t border-[color:var(--color-border)] pt-5">
-                {Array.from({ length: highlightCount }).map((_, idx) => (
+                {Array.from({ length: highlightCount }).map((_, i) => (
                   <li
-                    key={idx}
+                    key={i}
                     className="flex items-start gap-2.5 text-sm text-[color:var(--color-ink-700)]"
                   >
                     <span
                       aria-hidden
-                      className="mt-0.5 flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full"
-                      style={{ background: 'oklch(82% 0.045 145)' }}
+                      className="font-display mt-0.5 inline-block flex-shrink-0 text-[color:var(--color-gold-500)] italic"
+                      style={{ fontSize: '14px', lineHeight: 1, letterSpacing: 0 }}
                     >
-                      <Check
-                        className="h-2.5 w-2.5 text-[color:var(--color-sage-700)]"
-                        strokeWidth={3}
-                        aria-hidden
-                      />
+                      ✦
                     </span>
-                    {t(`${key}.highlights.${idx}`)}
+                    {t(`${key}.highlights.${i}`)}
                   </li>
                 ))}
               </ul>

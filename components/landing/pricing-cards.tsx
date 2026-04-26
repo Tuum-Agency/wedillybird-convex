@@ -2,7 +2,7 @@
 
 import { motion } from 'motion/react';
 import { useTranslations } from 'next-intl';
-import { Check, ShieldCheck, Calendar, Sparkles, Star } from 'lucide-react';
+import { ShieldCheck, Calendar, Sparkles, Star } from 'lucide-react';
 import { Link } from '@/i18n/navigation';
 import { buttonVariants } from '@/components/ui/button';
 import { PLANS } from '@/lib/payments/plans';
@@ -33,8 +33,18 @@ export function LandingPricingCards({ prices, upsellPriceLabel }: Props) {
   ];
 
   return (
-    <section id="pricing" className="paper-grain relative bg-[color:var(--color-surface)] py-28">
+    <section id="pricing" className="paper-grain relative bg-[color:var(--color-surface)] py-32">
       <div className="container-page">
+        {/* Eyebrow chapitre */}
+        <motion.span
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={inViewOnce}
+          className="mb-12 inline-block font-mono text-[11px] tracking-[0.32em] text-[color:var(--color-ink-500)] uppercase"
+        >
+          {t('pricing.chapter')}
+        </motion.span>
+
         <motion.div
           initial="hidden"
           whileInView="visible"
@@ -44,7 +54,7 @@ export function LandingPricingCards({ prices, upsellPriceLabel }: Props) {
         >
           <motion.span
             variants={scrollReveal}
-            className="text-xs font-medium tracking-[0.2em] text-[color:var(--color-champagne-700)] uppercase"
+            className="text-xs font-medium tracking-[0.24em] text-[color:var(--color-gold-700)] uppercase"
           >
             {t('pricing.eyebrow')}
           </motion.span>
@@ -81,12 +91,23 @@ export function LandingPricingCards({ prices, upsellPriceLabel }: Props) {
                 key={tier}
                 variants={scrollReveal}
                 className={cn(
-                  'relative flex flex-col gap-6 rounded-3xl p-8 transition-[transform,box-shadow,border-color] duration-300',
+                  'relative flex flex-col gap-6 overflow-hidden rounded-3xl p-8 transition-[transform,box-shadow,border-color] duration-300',
                   recommended
-                    ? 'border-2 border-[color:var(--color-blush-400)] bg-white shadow-[var(--shadow-blush)] [@media(hover:hover)]:hover:-translate-y-2'
+                    ? 'group border-2 border-[color:var(--color-blush-400)] bg-white shadow-[var(--shadow-blush)] [@media(hover:hover)]:hover:-translate-y-2'
                     : 'border border-[color:var(--color-border)] bg-white shadow-[var(--shadow-soft)] [@media(hover:hover)]:hover:-translate-y-1 [@media(hover:hover)]:hover:border-[color:var(--color-border-strong)]',
                 )}
               >
+                {/* Sparkle gold qui traverse au hover (Premium only) */}
+                {recommended && (
+                  <span
+                    aria-hidden
+                    className="pointer-events-none absolute inset-0 -translate-x-full opacity-0 transition-all duration-700 [@media(hover:hover)]:group-hover:translate-x-full [@media(hover:hover)]:group-hover:opacity-100"
+                    style={{
+                      background:
+                        'linear-gradient(115deg, transparent 30%, oklch(88% 0.05 80 / 35%) 48%, oklch(78% 0.075 78 / 50%) 50%, oklch(88% 0.05 80 / 35%) 52%, transparent 70%)',
+                    }}
+                  />
+                )}
                 {recommended && (
                   <span
                     className="absolute -top-3.5 right-7 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold tracking-wide text-white shadow-[var(--shadow-soft)]"
@@ -137,14 +158,10 @@ export function LandingPricingCards({ prices, upsellPriceLabel }: Props) {
                     <li key={key} className="flex items-start gap-2.5">
                       <span
                         aria-hidden
-                        className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full"
-                        style={{ background: 'oklch(82% 0.045 145)' }}
+                        className="font-display mt-0.5 inline-block flex-shrink-0 text-[color:var(--color-gold-500)] italic"
+                        style={{ fontSize: '14px', lineHeight: 1, letterSpacing: 0 }}
                       >
-                        <Check
-                          className="h-3 w-3 text-[color:var(--color-sage-700)]"
-                          strokeWidth={3}
-                          aria-hidden
-                        />
+                        ✦
                       </span>
                       <span className="leading-relaxed text-[color:var(--color-ink-700)]">
                         {tPlans(`features.${key}` as const)}

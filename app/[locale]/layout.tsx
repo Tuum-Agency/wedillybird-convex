@@ -53,7 +53,9 @@ export const metadata: Metadata = {
 };
 
 export const viewport = {
-  themeColor: '#2c1a11',
+  // Ivoire chaud (token --color-ivory-50). Cohérent avec la palette mariage
+  // claire — la barre de status mobile se fond avec le fond du site.
+  themeColor: '#fbf6ee',
 };
 
 export function generateStaticParams() {

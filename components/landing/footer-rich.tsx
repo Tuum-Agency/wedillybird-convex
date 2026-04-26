@@ -1,31 +1,56 @@
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
-import { Heart, Send } from 'lucide-react';
+import { Send } from 'lucide-react';
 
 /**
- * Landing — Footer riche V3.
+ * Landing — Footer V4.
+ *
+ * Fix audit verdicts :
+ * - Drapeaux emoji unicode → libellés texte séparés par middots (rendu
+ *   homogène cross-OS, plus élégant)
+ * - <span> non-cliquables → <Link> ou anchors fonctionnels
+ * - "Tuum Agency · Paris & Dakar" leak → retiré (signature Wedillybird seule)
  *
  * Block tagline + newsletter + 4 colonnes (Produit, Pros, Ressources, Légal)
- * + drapeaux régions + logos paiement (Stripe + CinetPay) + copyright.
- *
- * Server component (pas de 'use client') — pas d'animation côté footer.
- * Le formulaire newsletter est passive (input + submit) qui pointe vers une
- * future route /api/newsletter (TODO sprint marketing).
+ * + régions + logos paiement (Stripe + CinetPay) + copyright.
  */
-const PRODUCT_LINKS = ['features', 'pricing', 'demo', 'templates'] as const;
-const PROS_LINKS = ['planners', 'venues', 'agencies', 'api'] as const;
-const RESOURCES_LINKS = ['blog', 'guide', 'faq', 'support'] as const;
-const LEGAL_LINKS = ['terms', 'privacy', 'cookies', 'rgpd'] as const;
+const PRODUCT_LINKS = [
+  { key: 'features', href: '/#features' as const },
+  { key: 'pricing', href: '/#pricing' as const },
+  { key: 'demo', href: '/sign-up' as const },
+  { key: 'templates', href: '/sign-up' as const },
+] as const;
+
+const PROS_LINKS = [
+  { key: 'planners', href: '/sign-up' as const },
+  { key: 'venues', href: '/sign-up' as const },
+  { key: 'agencies', href: '/sign-up' as const },
+  { key: 'api', href: '/sign-up' as const },
+] as const;
+
+const RESOURCES_LINKS = [
+  { key: 'blog', href: '/' as const },
+  { key: 'guide', href: '/faq' as const },
+  { key: 'faq', href: '/faq' as const },
+  { key: 'support', href: '/faq' as const },
+] as const;
+
+const LEGAL_LINKS = [
+  { key: 'terms', href: '/legal/terms' as const },
+  { key: 'privacy', href: '/legal/privacy' as const },
+  { key: 'cookies', href: '/legal/cookies' as const },
+  { key: 'rgpd', href: '/legal/privacy' as const },
+] as const;
 
 const REGIONS = [
-  { code: 'fr', label: 'France', flag: '🇫🇷' },
-  { code: 'sn', label: 'Sénégal', flag: '🇸🇳' },
-  { code: 'ci', label: 'Côte d’Ivoire', flag: '🇨🇮' },
-  { code: 'ml', label: 'Mali', flag: '🇲🇱' },
-  { code: 'bf', label: 'Burkina Faso', flag: '🇧🇫' },
-  { code: 'tg', label: 'Togo', flag: '🇹🇬' },
-  { code: 'bj', label: 'Bénin', flag: '🇧🇯' },
-  { code: 'cm', label: 'Cameroun', flag: '🇨🇲' },
+  'France',
+  'Sénégal',
+  'Côte d’Ivoire',
+  'Mali',
+  'Burkina Faso',
+  'Togo',
+  'Bénin',
+  'Cameroun',
 ] as const;
 
 export function LandingFooterRich() {
@@ -43,10 +68,9 @@ export function LandingFooterRich() {
               href="/"
               className="font-display inline-flex items-center gap-2 text-2xl tracking-tight text-[color:var(--color-ink-900)] italic"
             >
-              <Heart
-                className="h-5 w-5 fill-[oklch(72%_0.09_20)] text-[oklch(72%_0.09_20)]"
-                strokeWidth={1.5}
+              <span
                 aria-hidden
+                className="inline-block h-2 w-2 rounded-full bg-[color:var(--color-gold-500)]"
               />
               {tCommon('appName')}
             </Link>
@@ -58,7 +82,7 @@ export function LandingFooterRich() {
           <div className="flex flex-col gap-4">
             <h3
               className="font-display text-2xl italic"
-              style={{ letterSpacing: '-0.018em', lineHeight: 1.1 }}
+              style={{ letterSpacing: '-0.018em', lineHeight: 1.1, color: 'var(--color-ink-900)' }}
             >
               {t('newsletterTitle')}
             </h3>
@@ -90,34 +114,34 @@ export function LandingFooterRich() {
           </div>
         </div>
 
-        {/* Block middle : 4 colonnes liens */}
+        {/* Block middle : 4 colonnes liens cliquables */}
         <div className="grid gap-10 py-14 sm:grid-cols-2 lg:grid-cols-4">
           <FooterColumn
             title={t('columns.product.title')}
-            links={PRODUCT_LINKS.map((k) => ({
-              key: k,
-              label: t(`columns.product.links.${k}`),
+            links={PRODUCT_LINKS.map((l) => ({
+              ...l,
+              label: t(`columns.product.links.${l.key}`),
             }))}
           />
           <FooterColumn
             title={t('columns.pros.title')}
-            links={PROS_LINKS.map((k) => ({
-              key: k,
-              label: t(`columns.pros.links.${k}`),
+            links={PROS_LINKS.map((l) => ({
+              ...l,
+              label: t(`columns.pros.links.${l.key}`),
             }))}
           />
           <FooterColumn
             title={t('columns.resources.title')}
-            links={RESOURCES_LINKS.map((k) => ({
-              key: k,
-              label: t(`columns.resources.links.${k}`),
+            links={RESOURCES_LINKS.map((l) => ({
+              ...l,
+              label: t(`columns.resources.links.${l.key}`),
             }))}
           />
           <FooterColumn
             title={t('columns.legal.title')}
-            links={LEGAL_LINKS.map((k) => ({
-              key: k,
-              label: t(`columns.legal.links.${k}`),
+            links={LEGAL_LINKS.map((l) => ({
+              ...l,
+              label: t(`columns.legal.links.${l.key}`),
             }))}
           />
         </div>
@@ -125,21 +149,25 @@ export function LandingFooterRich() {
         {/* Block regions + paiements */}
         <div className="flex flex-col gap-6 border-t border-[color:var(--color-border)] pt-10 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-col gap-2">
-            <span className="text-xs font-medium tracking-wide text-[color:var(--color-ink-500)] uppercase">
+            <span className="font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-ink-500)] uppercase">
               {t('regions')}
             </span>
-            <ul className="flex flex-wrap gap-3 text-sm text-[color:var(--color-ink-700)]">
-              {REGIONS.map((r) => (
-                <li key={r.code} className="inline-flex items-center gap-1.5">
-                  <span aria-hidden>{r.flag}</span>
-                  <span>{r.label}</span>
-                </li>
+            <p className="text-sm text-[color:var(--color-ink-700)]">
+              {REGIONS.map((r, i) => (
+                <span key={r}>
+                  {r}
+                  {i < REGIONS.length - 1 && (
+                    <span className="mx-2 text-[color:var(--color-ink-300)]" aria-hidden>
+                      ·
+                    </span>
+                  )}
+                </span>
               ))}
-            </ul>
+            </p>
           </div>
 
           <div className="flex flex-col gap-2 lg:items-end">
-            <span className="text-xs font-medium tracking-wide text-[color:var(--color-ink-500)] uppercase">
+            <span className="font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-ink-500)] uppercase">
               {t('payments')}
             </span>
             <div className="flex items-center gap-4">
@@ -154,11 +182,8 @@ export function LandingFooterRich() {
         </div>
 
         {/* Copyright */}
-        <div className="mt-10 flex flex-col items-start gap-2 border-t border-[color:var(--color-border)] pt-8 text-xs text-[color:var(--color-ink-300)] sm:flex-row sm:items-center sm:justify-between">
-          <span>
-            © {year} Wedillybird · {t('rights')}
-          </span>
-          <span>Tuum Agency · Paris &amp; Dakar</span>
+        <div className="mt-10 border-t border-[color:var(--color-border)] pt-8 font-mono text-[10px] tracking-[0.24em] text-[color:var(--color-ink-300)] uppercase">
+          © {year} Wedillybird · {t('rights')}
         </div>
       </div>
     </footer>
@@ -170,19 +195,22 @@ function FooterColumn({
   links,
 }: {
   title: string;
-  links: ReadonlyArray<{ key: string; label: string }>;
+  links: ReadonlyArray<{ key: string; label: string; href: string }>;
 }) {
   return (
     <div className="flex flex-col gap-3">
-      <h4 className="text-sm font-semibold tracking-wide text-[color:var(--color-ink-900)]">
+      <h4 className="font-mono text-[11px] font-semibold tracking-[0.24em] text-[color:var(--color-ink-900)] uppercase">
         {title}
       </h4>
       <ul className="flex flex-col gap-2">
         {links.map((link) => (
           <li key={link.key}>
-            <span className="cursor-default text-sm text-[color:var(--color-ink-500)] transition-colors hover:text-[color:var(--color-blush-700)]">
+            <a
+              href={link.href}
+              className="text-sm text-[color:var(--color-ink-500)] transition-colors hover:text-[color:var(--color-blush-700)]"
+            >
               {link.label}
-            </span>
+            </a>
           </li>
         ))}
       </ul>

@@ -1,21 +1,30 @@
 'use client';
 
+import Image from 'next/image';
 import { motion, useReducedMotion } from 'motion/react';
 import { useTranslations } from 'next-intl';
-import { ArrowRight, ShieldCheck, Sparkles, Globe } from 'lucide-react';
-import { Link } from '@/i18n/navigation';
-import { buttonVariants } from '@/components/ui/button';
-import { cn } from '@/lib/cn';
-import { PhoneMockup } from './phone-mockup';
+import { ArrowRight } from 'lucide-react';
+import { InvitationCard3D } from './invitation-card-3d';
+import { MagneticCta } from './magnetic-cta';
 
 /**
- * Landing — Hero V3.
+ * Landing — Hero V4.
  *
- * Layout split desktop : copy à gauche (titre Fraunces géant + sous-titre +
- * 2 CTAs + trust line), mockup phone WhatsApp à droite. Mobile : copy en haut,
- * phone en bas.
+ * Composition éditoriale asymétrique inspirée Adovasio (SOTD wedding éditorial)
+ * et Mercury (rigueur compositionnelle). Pas de téléphone — la figure héroïque
+ * est une carte d'invitation 3D scannée qui slow-rotate au mouse-move.
  *
- * Palette V3 : ivoire + blush, mesh radial gold/blush. Plus de terracotta.
+ * Layout :
+ * - Photo hero plein cadre derrière, floutée + overlay ivoire 65 % pour
+ *   garantir la lisibilité tout en posant l'émotion mariage
+ * - Copy géant gauche (clamp 3rem → 7rem), titre split italique + roman
+ * - Carte d'invitation 3D droite, ratio 5:7, rotation suit le curseur
+ * - Trust strip mono caps en bas
+ * - Magnetic CTA primary + canvas-confetti au hover
+ *
+ * Eyebrow "CHAPITRE 01 — L'INVITATION" (mono caps tracking large).
+ *
+ * Promesse retenue après brainstorming : "Le mariage se vit dans la conversation."
  */
 export function LandingHero() {
   const t = useTranslations('Landing.hero');
@@ -23,138 +32,164 @@ export function LandingHero() {
 
   const containerVariants = {
     hidden: {},
-    visible: {
-      transition: { staggerChildren: reduced ? 0 : 0.08, delayChildren: 0.05 },
-    },
+    visible: { transition: { staggerChildren: reduced ? 0 : 0.1, delayChildren: 0.1 } },
   };
 
   const itemVariants = {
-    hidden: { opacity: 0, y: reduced ? 0 : 16 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' as const } },
+    hidden: { opacity: 0, y: reduced ? 0 : 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: 'easeOut' as const } },
   };
 
   return (
-    <section className="paper-grain relative isolate overflow-hidden pt-12 pb-20 sm:pt-20 sm:pb-28">
-      {/* Mesh gradient blush + champagne sur ivoire */}
+    <section className="relative isolate min-h-[100svh] overflow-hidden">
+      {/* Photo hero plein cadre — couple Provence golden hour, Unsplash regradé */}
+      <div className="absolute inset-0 -z-20">
+        <Image
+          src="https://images.unsplash.com/photo-1606216794074-735e91aa2c92?auto=format&fit=crop&w=2400&q=85"
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover"
+        />
+      </div>
+
+      {/* Overlay ivoire 70 % pour garder l'émotion sans écraser la copy */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 -z-10"
+        className="absolute inset-0 -z-10"
         style={{
           background: [
-            'radial-gradient(50% 35% at 80% 10%, oklch(85% 0.06 22 / 45%) 0%, transparent 75%)',
-            'radial-gradient(45% 30% at 12% 28%, oklch(92% 0.035 80 / 40%) 0%, transparent 75%)',
-            'radial-gradient(70% 50% at 50% 110%, oklch(95% 0.025 22 / 75%) 0%, transparent 80%)',
-            'oklch(98.5% 0.008 85)',
+            'radial-gradient(60% 50% at 12% 30%, oklch(98.5% 0.008 85 / 88%) 0%, oklch(98.5% 0.008 85 / 70%) 60%, transparent 100%)',
+            'linear-gradient(135deg, oklch(98.5% 0.008 85 / 70%) 0%, oklch(95% 0.025 22 / 50%) 60%, oklch(92% 0.035 80 / 40%) 100%)',
           ].join(', '),
         }}
       />
 
+      {/* Texture grain global */}
+      <div aria-hidden className="paper-grain pointer-events-none absolute inset-0 -z-10" />
+
       <motion.div
-        className="container-wide relative grid items-center gap-14 lg:grid-cols-[1.05fr_0.9fr] lg:gap-20"
+        className="container-wide relative grid min-h-[100svh] items-center gap-16 py-24 lg:grid-cols-[1.15fr_0.85fr] lg:gap-12 lg:py-32"
         initial="hidden"
         animate="visible"
         variants={containerVariants}
       >
         {/* Copy column */}
-        <div className="flex flex-col items-center text-center lg:items-start lg:text-left">
+        <div className="flex flex-col">
           <motion.span
             variants={itemVariants}
-            className="mb-7 inline-flex items-center gap-2 rounded-full border border-[color:var(--color-border-strong)] bg-white/85 px-4 py-1.5 text-xs font-medium tracking-wide text-[color:var(--color-foreground)] shadow-[var(--shadow-soft)] backdrop-blur"
+            className="mb-10 font-mono text-[11px] tracking-[0.32em] text-[color:var(--color-ink-500)] uppercase"
           >
-            <Sparkles
-              className="h-3.5 w-3.5 text-[color:var(--color-champagne-700)]"
-              strokeWidth={2}
-              aria-hidden
-            />
-            {t('badge')}
+            {t('chapter')}
           </motion.span>
 
           <motion.h1
             variants={itemVariants}
-            className="max-w-2xl text-balance"
+            className="text-balance"
             style={{
-              fontFamily: 'var(--font-display)',
-              fontStyle: 'italic',
+              fontFamily: 'var(--font-sans)',
               fontWeight: 400,
-              fontSize: 'clamp(2.5rem, 7.5vw, 5.5rem)',
-              lineHeight: 0.98,
-              letterSpacing: '-0.025em',
+              fontSize: 'clamp(2.75rem, 7.5vw, 5.75rem)',
+              lineHeight: 0.97,
+              letterSpacing: '-0.035em',
               color: 'var(--color-ink-900)',
             }}
           >
             {t('title')}
+            <br />
+            <span
+              style={{
+                fontFamily: 'var(--font-display)',
+                fontStyle: 'italic',
+                fontWeight: 400,
+                color: 'var(--color-blush-700)',
+                letterSpacing: '-0.025em',
+              }}
+            >
+              {t('titleAccent')}
+            </span>
           </motion.h1>
 
           <motion.p
             variants={itemVariants}
-            className="mt-7 max-w-xl text-base leading-relaxed text-pretty text-[color:var(--color-ink-500)] sm:text-lg"
+            className="mt-9 max-w-xl text-base leading-relaxed text-pretty text-[color:var(--color-ink-700)] sm:text-lg"
           >
             {t('subtitle')}
           </motion.p>
 
           <motion.div
             variants={itemVariants}
-            className="mt-10 flex w-full flex-col items-center gap-3 sm:flex-row sm:flex-wrap lg:items-start lg:justify-start"
+            className="mt-12 flex flex-col items-start gap-3 sm:flex-row sm:flex-wrap sm:items-center"
           >
-            <Link
+            <MagneticCta
               href="/sign-up"
-              className={cn(buttonVariants({ variant: 'primary', size: 'xl' }), 'group min-w-56')}
+              variant="primary"
+              size="xl"
+              className="min-w-60"
+              withConfetti
             >
               {t('ctaPrimary')}
               <ArrowRight
                 className="ml-1 h-4 w-4 transition-transform [@media(hover:hover)]:group-hover:translate-x-0.5"
                 aria-hidden
               />
-            </Link>
-            <Link
-              href="/#pricing"
-              className={cn(buttonVariants({ variant: 'outline', size: 'xl' }), 'min-w-56')}
-            >
+            </MagneticCta>
+            <MagneticCta href="/#pricing" variant="outline" size="xl" className="min-w-52">
               {t('ctaSecondary')}
-            </Link>
+            </MagneticCta>
           </motion.div>
 
-          <motion.ul
+          {/* Trust strip — mono caps */}
+          <motion.div
             variants={itemVariants}
-            className="mt-10 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-[color:var(--color-ink-500)] lg:justify-start"
+            className="mt-16 flex flex-col gap-3 border-t border-[color:var(--color-border)] pt-6 font-mono text-[10px] tracking-[0.28em] text-[color:var(--color-ink-500)] uppercase sm:flex-row sm:items-center sm:gap-8 sm:pt-7"
           >
-            <li className="inline-flex items-center gap-1.5">
-              <ShieldCheck
-                className="h-3.5 w-3.5 text-[color:var(--color-sage-700)]"
-                strokeWidth={2.25}
+            <span className="inline-flex items-center gap-2">
+              <span
                 aria-hidden
+                className="inline-block h-1 w-1 rounded-full bg-[color:var(--color-gold-500)]"
               />
-              {t('trust.noCard')}
-            </li>
-            <li aria-hidden className="text-[color:var(--color-border-strong)]">
-              ·
-            </li>
-            <li className="inline-flex items-center gap-1.5">
-              <ShieldCheck
-                className="h-3.5 w-3.5 text-[color:var(--color-sage-700)]"
-                strokeWidth={2.25}
+              {t('trust.stat')}
+            </span>
+            <span className="inline-flex items-center gap-2">
+              <span
                 aria-hidden
+                className="inline-block h-1 w-1 rounded-full bg-[color:var(--color-gold-500)]"
               />
-              {t('trust.refund')}
-            </li>
-            <li aria-hidden className="text-[color:var(--color-border-strong)]">
-              ·
-            </li>
-            <li className="inline-flex items-center gap-1.5">
-              <Globe
-                className="h-3.5 w-3.5 text-[color:var(--color-champagne-700)]"
-                strokeWidth={2.25}
+              {t('trust.rating')}
+            </span>
+            <span className="hidden items-center gap-2 lg:inline-flex">
+              <span
                 aria-hidden
+                className="inline-block h-1 w-1 rounded-full bg-[color:var(--color-gold-500)]"
               />
-              {t('trust.frAndAfrica')}
-            </li>
-          </motion.ul>
+              {t('trust.regions')}
+            </span>
+          </motion.div>
         </div>
 
-        {/* Phone mockup column */}
-        <motion.div variants={itemVariants} className="flex items-center justify-center">
-          <PhoneMockup />
+        {/* Carte invitation 3D column */}
+        <motion.div
+          variants={itemVariants}
+          className="flex items-center justify-center lg:justify-end"
+        >
+          <InvitationCard3D />
         </motion.div>
+      </motion.div>
+
+      {/* Scroll cue subtil */}
+      <motion.div
+        aria-hidden
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1.4, duration: 0.8 }}
+        className="absolute bottom-8 left-1/2 hidden -translate-x-1/2 lg:block"
+      >
+        <span className="font-mono text-[9px] tracking-[0.32em] text-[color:var(--color-ink-500)] uppercase">
+          Scroll
+        </span>
+        <div className="mx-auto mt-2 h-10 w-px bg-gradient-to-b from-[color:var(--color-ink-500)] to-transparent" />
       </motion.div>
     </section>
   );

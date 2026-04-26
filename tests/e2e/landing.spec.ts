@@ -7,10 +7,10 @@ test.describe('Landing page', () => {
 
     const hero = page.getByRole('heading', { level: 1 });
     await expect(hero).toBeVisible();
-    // Le titre v3 est "Le grand jour mérite une invitation à la hauteur.".
-    await expect(hero).toContainText(/grand jour/i);
+    // Promesse V4 : "Le mariage se vit dans la conversation. Faites-le exister là."
+    await expect(hero).toContainText(/se vit dans la conversation/i);
 
-    // CTA primary v3 = "Préparer mon mariage".
+    // CTA primary v4 = "Préparer mon mariage".
     await expect(page.getByRole('link', { name: /préparer mon mariage/i }).first()).toBeVisible();
   });
 
@@ -68,9 +68,9 @@ test.describe('Landing page', () => {
 
   test('clic sur CTA secondaire descend à la section pricing', async ({ page }) => {
     await page.goto('/');
-    // CTA secondaire v2 = "Voir les tarifs" qui pointe vers #pricing.
+    // CTA secondaire v4 = "Voir les formules" qui pointe vers #pricing.
     await page
-      .getByRole('link', { name: /voir les tarifs/i })
+      .getByRole('link', { name: /voir les formules/i })
       .first()
       .click();
     await expect(page).toHaveURL(/#pricing$/);

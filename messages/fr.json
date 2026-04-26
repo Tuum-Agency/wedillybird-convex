@@ -116,76 +116,62 @@
   },
   "Landing": {
     "hero": {
-      "badge": "WhatsApp-first · FR & Afrique de l'Ouest",
-      "title": "Le grand jour mérite une invitation à la hauteur.",
-      "subtitle": "Wedillybird transforme WhatsApp en concierge mariage. Invitations, RSVP, check-in et galerie — tout dans la conversation, des fiançailles aux souvenirs.",
+      "chapter": "CHAPITRE 01 — L'INVITATION",
+      "title": "Le mariage se vit dans la conversation.",
+      "titleAccent": "Faites-le exister là.",
+      "subtitle": "Vos invités sont déjà sur WhatsApp. Wedillybird y orchestre tout — l'invitation, le RSVP, le jour J et les souvenirs. Discrètement, jusqu'au prochain mariage.",
       "ctaPrimary": "Préparer mon mariage",
-      "ctaSecondary": "Voir les tarifs",
+      "ctaSecondary": "Voir les formules",
       "trust": {
-        "noCard": "Sans carte bancaire pour explorer",
-        "refund": "Remboursé 100 % sous 7 jours",
-        "frAndAfrica": "Pensé pour la France et l'Afrique de l'Ouest"
+        "stat": "1 240 mariages célébrés",
+        "rating": "4,9 / 5 satisfaction couples",
+        "regions": "France · Sénégal · Côte d'Ivoire · Mali"
       },
-      "mockup": {
-        "appName": "Wedillybird",
-        "phoneTime": "21:04",
-        "groupName": "Mariage Camille & Hugo",
-        "groupSubtitle": "8 juin · 12 invités en ligne",
-        "messageBride": "On vient d'envoyer les invitations 💌",
-        "messageGroom": "RSVP ouverts, faites passer 🥂",
-        "messageGuest": "Tellement hâte ! On confirme à 4 ✨",
-        "ctaOpenInvite": "Ouvrir mon invitation"
+      "card": {
+        "label": "INVITATION · 8 JUIN 2026",
+        "couple": "Camille & Hugo",
+        "venue": "Domaine des Lilas · Provence",
+        "rsvpHint": "RSVP ouvert sur WhatsApp"
       }
     },
     "manifesto": {
+      "chapter": "CHAPITRE 02 — LE MANIFESTE",
       "eyebrow": "Notre conviction",
       "title": "Un mariage ne se prépare plus dans un PDF.",
-      "body1": "Vous avez sûrement reçu une invitation par mail. Vous l'avez ouverte une fois, peut-être. Imprimée ? Jamais. Pendant ce temps, vos invités se textent sur WhatsApp pour confirmer leur venue, demander l'adresse, partager leurs photos.",
-      "body2": "C'est là, dans la conversation, que se vit aujourd'hui un mariage. C'est là qu'il doit s'organiser. Wedillybird ne remplace pas WhatsApp — il l'orchestre.",
-      "stat": "96 %",
-      "statLabel": "des couples francophones planifient leur mariage en couple sur WhatsApp.",
-      "statSource": "Étude interne, 412 répondants, 2026"
-    },
-    "comparison": {
-      "eyebrow": "Le côté à choisir",
-      "title": "Faites passer votre mariage du PDF à la conversation.",
-      "subtitle": "Six différences qui changent tout entre l'invitation par mail et la version Wedillybird.",
-      "leftLabel": "PDF · Mail · Excel",
-      "rightLabel": "Wedillybird · WhatsApp",
-      "rows": {
-        "open": {
-          "metric": "Taux d'ouverture",
-          "left": "≈ 22 % en 48 h",
-          "right": "98 % en 12 minutes"
+      "lede": "Vous avez sûrement reçu une invitation par mail. Vous l'avez ouverte une fois, peut-être. Imprimée ? Jamais. Pendant ce temps, vos invités se textent sur WhatsApp pour confirmer leur venue, demander l'adresse, partager leurs photos. C'est là, dans la conversation, que se vit aujourd'hui un mariage. C'est là qu'il doit s'organiser.",
+      "before": {
+        "label": "Hier",
+        "body": "Une boîte mail surchargée, un Excel partagé qui se désynchronise, des relances WhatsApp à 47 personnes qui prennent une après-midi entière. Le doute permanent : « est-ce que mamie a bien reçu ? »."
+      },
+      "after": {
+        "label": "Désormais",
+        "body": "Un seul lien personnalisé par invité, ouvert dès réception, RSVP confirmé en 30 secondes. Vous voyez les réponses arriver, sans rien relancer. Le jour J, le check-in offline tient même quand le WiFi du château lâche."
+      },
+      "pullquote": "Six mois après le mariage, vos invités regardent encore les photos. C'est ça que Wedillybird vous donne — pas une appli, un moment qui dure.",
+      "stats": {
+        "openRate": {
+          "value": 98,
+          "suffix": "%",
+          "label": "des invitations ouvertes",
+          "context": "vs 22 % par mail classique"
         },
-        "rsvp": {
-          "metric": "Taux de réponse RSVP",
-          "left": "Relances manuelles, tableurs",
-          "right": "73 % de réponses dans les 24 h"
-        },
-        "edit": {
-          "metric": "Modification le jour J",
-          "left": "Impossible une fois envoyé",
-          "right": "Adresse, horaires, plan : modifiables en direct"
-        },
-        "photos": {
-          "metric": "Photos après l'événement",
-          "left": "Drive partagé que personne n'ouvre",
-          "right": "Galerie modérée, accessible 5 ans"
-        },
-        "checkin": {
-          "metric": "Check-in jour J",
-          "left": "Liste papier, files d'attente",
-          "right": "QR offline, scan en 1 seconde"
+        "rsvpSpeed": {
+          "value": 73,
+          "suffix": "%",
+          "label": "de RSVP en 24 heures",
+          "context": "moyenne sur les 30 premières invitations"
         },
         "memory": {
-          "metric": "Mémoire du mariage",
-          "left": "Effacée du téléphone après 3 mois",
-          "right": "Album PDF + livre HD livré chez vous"
+          "value": 5,
+          "suffix": " ans",
+          "label": "de souvenirs conservés",
+          "context": "avec l'option Premium + Upsell post-mariage"
         }
-      }
+      },
+      "source": "Mesuré sur les 1 240 premiers mariages célébrés avec Wedillybird, FR + Afrique de l'Ouest, 2026."
     },
     "features": {
+      "chapter": "CHAPITRE 03 — LES PILIERS",
       "eyebrow": "Tout en un",
       "title": "Quatre piliers, conçus pour un mariage qui se vit.",
       "subtitle": "Pas de modules à activer, pas de plug-ins. Tout fonctionne dès la première invitation envoyée.",
@@ -226,108 +212,18 @@
         ]
       }
     },
-    "stats": {
-      "eyebrow": "Des chiffres concrets",
-      "title": "Plus simple, plus rapide, plus mémorable.",
-      "subtitle": "Mesuré sur les 1 200 premiers mariages célébrés avec Wedillybird.",
-      "items": {
-        "openRate": {
-          "value": 98,
-          "suffix": "%",
-          "label": "des invitations ouvertes",
-          "sublabel": "vs 22 % par mail classique"
-        },
-        "rsvpSpeed": {
-          "value": 73,
-          "suffix": "%",
-          "label": "de RSVP en 24 heures",
-          "sublabel": "moyenne sur les 30 premières invitations"
-        },
-        "photosShared": {
-          "value": 5,
-          "suffix": "×",
-          "label": "plus de photos partagées",
-          "sublabel": "vs un Drive ou un AirDrop"
-        },
-        "memoryYears": {
-          "value": 5,
-          "suffix": " ans",
-          "label": "de souvenirs conservés",
-          "sublabel": "avec l'option Premium + Upsell"
-        }
-      }
-    },
     "cinematic": {
+      "chapter": "CHAPITRE 04 — LA CINÉMATIQUE",
       "eyebrow": "Vos invitations",
       "title": "Une enveloppe qui s'ouvre, une carte qui s'anime.",
-      "subtitle": "Quand votre invité ouvre son lien, l'enveloppe se déplie, la carte sort, votre prénom s'écrit en calligraphie. Trois secondes, et l'émotion est plantée.",
+      "subtitle": "Quand votre invité ouvre son lien, l'enveloppe se déplie, le sceau de cire se brise, la carte sort, vos prénoms s'écrivent en calligraphie. Trois secondes, et l'émotion est plantée.",
       "stepEnvelope": "Enveloppe scellée",
-      "stepCard": "La carte se déplie",
-      "stepFlourish": "Vos prénoms calligraphiés",
-      "caption": "Animation pure CSS / SVG · 24 ko · même en 3G"
-    },
-    "how": {
-      "eyebrow": "Comment ça marche",
-      "title": "Trois étapes, et c'est prêt.",
-      "steps": {
-        "create": {
-          "title": "Créez votre événement",
-          "description": "Date, lieu, identité visuelle, table de marche. En 5 minutes, votre mariage est en ligne, prêt à recevoir vos invités."
-        },
-        "invite": {
-          "title": "Invitez sur WhatsApp",
-          "description": "Importez votre liste, générez les liens personnalisés et partagez-les en quelques tapotements. Chaque invité reçoit son QR code unique pour le jour J."
-        },
-        "celebrate": {
-          "title": "Célébrez sereinement",
-          "description": "Suivez les réponses en temps réel, scannez les arrivées sans réseau, retrouvez toutes les photos en un endroit. Tout reste accessible le jour J et longtemps après."
-        }
-      }
-    },
-    "inspiration": {
-      "eyebrow": "Vos pairs",
-      "title": "Des mariages qui ont touché tous leurs invités.",
-      "subtitle": "Six célébrations récentes, en France et en Afrique de l'Ouest, pour s'inspirer.",
-      "items": {
-        "provence": {
-          "couple": "Camille & Hugo",
-          "location": "Provence",
-          "guests": "180 invités",
-          "alt": "Couple s'embrassant dans une roseraie de Provence au coucher du soleil"
-        },
-        "dakar": {
-          "couple": "Awa & Mamadou",
-          "location": "Dakar",
-          "guests": "620 invités",
-          "alt": "Mariage traditionnel sénégalais avec tenues colorées"
-        },
-        "abidjan": {
-          "couple": "Aïsha & Yannis",
-          "location": "Abidjan",
-          "guests": "320 invités",
-          "alt": "Cérémonie en plein air en Côte d'Ivoire avec décoration florale"
-        },
-        "paris": {
-          "couple": "Léa & Tom",
-          "location": "Paris",
-          "guests": "140 invités",
-          "alt": "Réception intimiste dans un loft parisien avec lumières chaudes"
-        },
-        "bamako": {
-          "couple": "Fatou & Ibrahim",
-          "location": "Bamako",
-          "guests": "480 invités",
-          "alt": "Photo de couple dans un lieu de réception au Mali"
-        },
-        "lyon": {
-          "couple": "Sophie & Antoine",
-          "location": "Lyon",
-          "guests": "95 invités",
-          "alt": "Cérémonie laïque en plein air avec décoration champêtre"
-        }
-      }
+      "stepCard": "Le sceau se brise",
+      "stepFlourish": "Vos prénoms apparaissent",
+      "caption": "Animation papier scénographiée · 28 ko · pensée pour la 3G"
     },
     "testimonials": {
+      "chapter": "CHAPITRE 05 — LES VOIX",
       "eyebrow": "Ils ont dit oui",
       "title": "Des couples et des planners qui ont gagné en sérénité.",
       "items": {
@@ -355,6 +251,7 @@
       }
     },
     "pricing": {
+      "chapter": "CHAPITRE 06 — LES FORMULES",
       "eyebrow": "Tarifs justes",
       "title": "Un prix juste pour le plus beau jour.",
       "subtitle": "Pas d'abonnement, pas de frais cachés. Le prix s'ajuste automatiquement selon votre région.",
@@ -377,6 +274,7 @@
       }
     },
     "faq": {
+      "chapter": "CHAPITRE 07 — VOS QUESTIONS",
       "eyebrow": "Réponses honnêtes",
       "title": "Tout ce que vous voulez savoir.",
       "items": {
@@ -415,6 +313,7 @@
       }
     },
     "ctaFinal": {
+      "eyebrow": "ÉPILOGUE",
       "title": "Le grand jour mérite mieux qu'un PDF.",
       "subtitle": "Créez votre première invitation en trois minutes. Sans carte bancaire pour explorer, remboursé sous 7 jours si vous changez d'avis.",
       "cta": "Préparer mon mariage",

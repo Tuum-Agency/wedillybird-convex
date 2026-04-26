@@ -100,6 +100,12 @@
   --color-accent-foreground: #ffffff;
   --color-accent-soft: var(--color-champagne-100);
 
+  /* Gold ornement — accent papeterie premium (✦ fleurons, séparateurs, sceaux). */
+  --color-gold-300: oklch(88% 0.05 80);
+  --color-gold-500: oklch(78% 0.075 78);
+  --color-gold-700: oklch(58% 0.075 80);
+  --color-gold-soft: oklch(96% 0.022 85);
+
   --color-success: var(--color-sage-500);
   --color-warning: oklch(75% 0.16 75);
   --color-danger: oklch(58% 0.19 25);
@@ -134,23 +140,16 @@
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-/* ---------- Mode sombre (dashboard pro) ---------- */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-background: oklch(15% 0.012 28);
-    --color-surface: oklch(19% 0.015 28);
-    --color-surface-elevated: oklch(23% 0.018 28);
-    --color-surface-warm: oklch(22% 0.03 28);
-    --color-foreground: oklch(94% 0.012 70);
-    --color-muted: oklch(60% 0.02 60);
-    --color-muted-foreground: oklch(75% 0.018 65);
-    --color-border: oklch(28% 0.018 28);
-    --color-border-strong: oklch(38% 0.02 30);
-    --color-primary: var(--color-blush-400);
-    --color-primary-hover: var(--color-blush-300);
-    --color-primary-soft: oklch(28% 0.06 22);
-    --color-accent-soft: oklch(28% 0.05 80);
-  }
+/*
+ * Mode sombre — désactivé pour la V3 mariage premium.
+ *
+ * Wedillybird est un site mariage : la palette claire (blush + ivoire) est
+ * notre direction de marque. Aucun auto-switch sur prefers-color-scheme:dark.
+ * Le dashboard pro réintroduira son thème via `[data-theme="dark"]` explicite
+ * et controllé par l'utilisateur (pas par le système), sprint séparé.
+ */
+:root {
+  color-scheme: light;
 }
 
 /* ---------- Base typography ---------- */
