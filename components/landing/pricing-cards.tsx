@@ -91,22 +91,31 @@ export function LandingPricingCards({ prices, upsellPriceLabel }: Props) {
                 key={tier}
                 variants={scrollReveal}
                 className={cn(
-                  'relative flex flex-col gap-6 overflow-hidden rounded-3xl p-8 transition-[transform,box-shadow,border-color] duration-300',
+                  // Pas d'overflow-hidden ici : sinon le badge "Recommandé"
+                  // qui déborde en -top-3.5 est coupé. L'overflow-hidden est
+                  // déplacé sur le wrapper interne du sparkle.
+                  'relative flex flex-col gap-6 rounded-3xl p-8 transition-[transform,box-shadow,border-color] duration-300',
                   recommended
                     ? 'group border-2 border-[color:var(--color-blush-400)] bg-white shadow-[var(--shadow-blush)] [@media(hover:hover)]:hover:-translate-y-2'
                     : 'border border-[color:var(--color-border)] bg-white shadow-[var(--shadow-soft)] [@media(hover:hover)]:hover:-translate-y-1 [@media(hover:hover)]:hover:border-[color:var(--color-border-strong)]',
                 )}
               >
-                {/* Sparkle gold qui traverse au hover (Premium only) */}
+                {/* Sparkle gold qui traverse au hover (Premium only).
+                    Wrapper dédié avec overflow-hidden + rounded-3xl pour
+                    contenir le sparkle SANS couper le badge externe. */}
                 {recommended && (
-                  <span
+                  <div
                     aria-hidden
-                    className="pointer-events-none absolute inset-0 -translate-x-full opacity-0 transition-all duration-700 [@media(hover:hover)]:group-hover:translate-x-full [@media(hover:hover)]:group-hover:opacity-100"
-                    style={{
-                      background:
-                        'linear-gradient(115deg, transparent 30%, oklch(88% 0.05 80 / 35%) 48%, oklch(78% 0.075 78 / 50%) 50%, oklch(88% 0.05 80 / 35%) 52%, transparent 70%)',
-                    }}
-                  />
+                    className="pointer-events-none absolute inset-0 overflow-hidden rounded-3xl"
+                  >
+                    <span
+                      className="absolute inset-0 -translate-x-full opacity-0 transition-all duration-700 [@media(hover:hover)]:group-hover:translate-x-full [@media(hover:hover)]:group-hover:opacity-100"
+                      style={{
+                        background:
+                          'linear-gradient(115deg, transparent 30%, oklch(88% 0.05 80 / 35%) 48%, oklch(78% 0.075 78 / 50%) 50%, oklch(88% 0.05 80 / 35%) 52%, transparent 70%)',
+                      }}
+                    />
+                  </div>
                 )}
                 {recommended && (
                   <span
