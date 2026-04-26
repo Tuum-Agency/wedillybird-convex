@@ -1,15 +1,17 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Landing page', () => {
-  test('rend le hero FR avec titre et CTA', async ({ page }) => {
+  test('rend le hero FR avec titre éditorial et CTA principal', async ({ page }) => {
     await page.goto('/');
     await expect(page).toHaveTitle(/Wedillybird/);
 
     const hero = page.getByRole('heading', { level: 1 });
     await expect(hero).toBeVisible();
-    await expect(hero).toContainText(/mariage/i);
+    // Le titre v2 est "Le grand jour mérite mieux qu'un PDF.".
+    await expect(hero).toContainText(/grand jour/i);
 
-    await expect(page.getByRole('link', { name: /commencer gratuitement/i })).toBeVisible();
+    // CTA primary v2 = "Préparer mon mariage".
+    await expect(page.getByRole('link', { name: /préparer mon mariage/i })).toBeVisible();
   });
 
   test('la section features affiche les quatre piliers', async ({ page }) => {
@@ -18,7 +20,7 @@ test.describe('Landing page', () => {
     await expect(features).toBeVisible();
 
     await expect(features.getByRole('heading', { name: /invitations whatsapp/i })).toBeVisible();
-    await expect(features.getByRole('heading', { name: /suivi rsvp/i })).toBeVisible();
+    await expect(features.getByRole('heading', { name: /rsvp temps réel/i })).toBeVisible();
     await expect(features.getByRole('heading', { name: /check-in/i })).toBeVisible();
     await expect(features.getByRole('heading', { name: /galerie partagée/i })).toBeVisible();
   });
@@ -48,10 +50,11 @@ test.describe('Landing page', () => {
     expect(lang).toBe('fr');
   });
 
-  test('clic sur CTA secondaire descend à la section features', async ({ page }) => {
+  test('clic sur CTA secondaire descend à la section pricing', async ({ page }) => {
     await page.goto('/');
-    await page.getByRole('link', { name: /voir une démo/i }).click();
-    await expect(page).toHaveURL(/#features$/);
+    // CTA secondaire v2 = "Voir les tarifs" qui pointe vers #pricing.
+    await page.getByRole('link', { name: /voir les tarifs/i }).first().click();
+    await expect(page).toHaveURL(/#pricing$/);
   });
 });
 

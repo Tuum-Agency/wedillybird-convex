@@ -69,10 +69,7 @@ export function LandingHero() {
           variants={itemVariants}
           className="mb-8 inline-flex items-center gap-2 rounded-full border border-[color:var(--color-border-strong)] bg-[color:var(--color-surface)]/80 px-4 py-1.5 text-xs font-medium tracking-wide text-[color:var(--color-foreground)] shadow-[var(--shadow-soft)] backdrop-blur"
         >
-          <span
-            className="h-1.5 w-1.5 rounded-full bg-[color:var(--color-success)]"
-            aria-hidden
-          />
+          <span className="h-1.5 w-1.5 rounded-full bg-[color:var(--color-success)]" aria-hidden />
           {t('hero.badge')}
         </motion.span>
 
@@ -94,7 +91,7 @@ export function LandingHero() {
 
         <motion.p
           variants={itemVariants}
-          className="mt-7 max-w-2xl text-pretty text-base leading-relaxed text-[color:var(--color-muted-foreground)] sm:text-lg"
+          className="mt-7 max-w-2xl text-base leading-relaxed text-pretty text-[color:var(--color-muted-foreground)] sm:text-lg"
         >
           {t('hero.subtitle')}
         </motion.p>
