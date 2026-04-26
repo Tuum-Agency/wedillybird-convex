@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Fraunces, Geist, Geist_Mono } from 'next/font/google';
+import { Bodoni_Moda, Geist, Geist_Mono } from 'next/font/google';
 import { NextIntlClientProvider, hasLocale } from 'next-intl';
 import { setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
@@ -23,15 +23,17 @@ const geistMono = Geist_Mono({
   display: 'swap',
 });
 
-// Display — Fraunces Italic comme proxy de Migra Italic (Pangram Pangram, payante).
-// Une seule weight (italic uniquement) = bundle minimal. C'est la signature
-// éditoriale du brand : hero landing, page invitation, noms du couple.
+// Display — Bodoni Moda Italic (Google Fonts, OFL).
+// Didone moderne variable, signature éditoriale "magazine de mode" italienne.
+// Sortie de Fraunces (sur-utilisée par tous les SaaS premium 2024-2026) pour
+// une typographie plus rare, plus tranchante, plus haute en contraste —
+// l'ADN visuel de Vogue Italia, Atelier Isabey, des éditoriaux luxe.
 //
-// Migration future possible vers Migra : remplacer ce font + bumper la variable
-// --font-display dans globals.css. Le reste des composants n'a rien à changer.
-const fraunces = Fraunces({
+// Variable axes : weight 400-900 + optical sizing automatique.
+// Fallback Iowan Old Style Italic / Georgia gérés dans globals.css.
+const bodoniModa = Bodoni_Moda({
   variable: '--font-display',
-  weight: ['400', '500'],
+  weight: ['400', '500', '600'],
   style: ['italic'],
   subsets: ['latin'],
   display: 'swap',
@@ -80,7 +82,7 @@ export default async function LocaleLayout({
   return (
     <html
       lang={locale}
-      className={`${geistSans.variable} ${geistMono.variable} ${fraunces.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${bodoniModa.variable} h-full antialiased`}
     >
       <body className="bg-background text-foreground flex min-h-full flex-col font-sans">
         <NextIntlClientProvider>
