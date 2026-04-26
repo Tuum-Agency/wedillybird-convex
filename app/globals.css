@@ -1,93 +1,116 @@
 @import 'tailwindcss';
 
 /*
- * Wedillybird — Design tokens v2 (avril 2026, OKLCH, redesign foundations).
+ * Wedillybird — Design tokens v3 (avril 2026, redesign Landing V3 premium).
  *
- * Source: .context/redesign-direction.md
- * Palette: terracotta-sienna anchor sur ivoire chaud. Sauge pour les success
- * states. Night-charbon-brun pour le ink primaire.
+ * Direction artistique : "Mariage éditorial premium" — palette claire blush /
+ * champagne / ivoire, accents gold subtils. Inspirée Aesop / Le Labo / Beverly's
+ * (papeterie mariage Awwwards SOTD).
  *
- * Pourquoi OKLCH: luminosité perceptuelle constante → contrastes prédictibles.
+ * Pourquoi OKLCH : luminosité perceptuelle constante → contrastes prédictibles.
  * Indispensable pour le branding multi-tenant (un planner override `--brand-500`,
- * on contraint server-side L ∈ [35,65] % pour garantir AA peu importe la teinte).
+ * on contraint server-side L ∈ [35, 65] % pour garantir AA peu importe la teinte).
  *
- * Les anciens tokens hex (`--color-terracotta-600`, etc.) sont conservés en alias
- * pour rétro-compat le temps que les composants migrent vers les nouveaux noms
- * sémantiques (`--color-primary`, `--color-accent`, etc.).
+ * Les anciens alias terracotta sont conservés un sprint en rétro-compat pour
+ * laisser le dashboard pro respirer, puis seront supprimés.
  */
 
 @theme {
-  /* ---------- Palette OKLCH ---------- */
+  /* ---------- Palette OKLCH — "Wedillybird Bloom" ---------- */
 
-  /* Ivoire (canvas, surfaces) */
-  --color-ivory-50: oklch(98% 0.012 75);
-  --color-ivory-100: oklch(96% 0.018 70);
-  --color-ivory-200: oklch(93% 0.022 65);
+  /* Blush — primary scale (rose poudré chaud) */
+  --color-blush-50: oklch(98% 0.012 25);
+  --color-blush-100: oklch(95% 0.025 22);
+  --color-blush-200: oklch(91% 0.045 22);
+  --color-blush-300: oklch(85% 0.06 22);
+  --color-blush-400: oklch(78% 0.075 22);
+  --color-blush-500: oklch(72% 0.09 20);
+  --color-blush-600: oklch(62% 0.095 20);
+  --color-blush-700: oklch(48% 0.085 22);
+  --color-blush-800: oklch(36% 0.07 24);
+  --color-blush-900: oklch(24% 0.05 26);
 
-  /* Brand — terracotta scale */
-  --color-brand-50: oklch(96% 0.025 40);
-  --color-brand-100: oklch(92% 0.045 38);
-  --color-brand-200: oklch(86% 0.085 38);
-  --color-brand-300: oklch(78% 0.115 36);
-  --color-brand-400: oklch(70% 0.14 35);
-  --color-brand-500: oklch(62% 0.155 35);
-  --color-brand-600: oklch(54% 0.165 33);
-  --color-brand-700: oklch(48% 0.165 32);
-  --color-brand-800: oklch(38% 0.14 31);
-  --color-brand-900: oklch(28% 0.11 30);
+  /* Champagne — accent gold subtil */
+  --color-champagne-50: oklch(98% 0.012 90);
+  --color-champagne-100: oklch(95% 0.022 85);
+  --color-champagne-200: oklch(92% 0.035 80);
+  --color-champagne-300: oklch(88% 0.05 80);
+  --color-champagne-500: oklch(78% 0.075 78);
+  --color-champagne-700: oklch(58% 0.075 80);
 
-  /* Sauge — accent froid, success states */
-  --color-sage-50: oklch(96% 0.02 145);
-  --color-sage-100: oklch(91% 0.035 142);
-  --color-sage-300: oklch(78% 0.06 140);
-  --color-sage-500: oklch(65% 0.08 142);
-  --color-sage-700: oklch(48% 0.075 144);
+  /* Ivory — canvas et surfaces */
+  --color-ivory-50: oklch(98.5% 0.008 85);
+  --color-ivory-100: oklch(96.5% 0.015 80);
+  --color-ivory-200: oklch(94% 0.022 78);
 
-  /* Night — ink primaire (charbon brun, pas noir pur) */
-  --color-night-500: oklch(35% 0.02 40);
-  --color-night-700: oklch(22% 0.025 40);
-  --color-night-900: oklch(15% 0.02 38);
+  /* Sage — success doux (jamais primary) */
+  --color-sage-50: oklch(96% 0.018 145);
+  --color-sage-300: oklch(82% 0.045 145);
+  --color-sage-500: oklch(68% 0.08 145);
+  --color-sage-700: oklch(50% 0.08 145);
 
-  /* Aliases hex retained for rétro-compat (existing components reference these) */
-  --color-terracotta-50: var(--color-brand-50);
-  --color-terracotta-100: var(--color-brand-100);
-  --color-terracotta-300: var(--color-brand-300);
-  --color-terracotta-500: var(--color-brand-500);
-  --color-terracotta-600: var(--color-brand-600);
-  --color-terracotta-700: var(--color-brand-700);
+  /* Ink — texte (charbon brun-rosé chaud, jamais noir pur) */
+  --color-ink-300: oklch(58% 0.022 28);
+  --color-ink-500: oklch(42% 0.022 28);
+  --color-ink-700: oklch(28% 0.02 28);
+  --color-ink-900: oklch(18% 0.018 28);
+
+  /* Aliases brand pour rétro-compat composants existants */
+  --color-brand-50: var(--color-blush-50);
+  --color-brand-100: var(--color-blush-100);
+  --color-brand-200: var(--color-blush-200);
+  --color-brand-300: var(--color-blush-300);
+  --color-brand-400: var(--color-blush-400);
+  --color-brand-500: var(--color-blush-500);
+  --color-brand-600: var(--color-blush-600);
+  --color-brand-700: var(--color-blush-700);
+  --color-brand-800: var(--color-blush-800);
+  --color-brand-900: var(--color-blush-900);
+
+  /* Aliases night → ink */
+  --color-night-500: var(--color-ink-500);
+  --color-night-700: var(--color-ink-700);
+  --color-night-900: var(--color-ink-900);
+
+  /* Aliases terracotta historiques (à supprimer post-V3 stable) */
+  --color-terracotta-50: var(--color-blush-50);
+  --color-terracotta-100: var(--color-blush-100);
+  --color-terracotta-300: var(--color-blush-300);
+  --color-terracotta-500: var(--color-blush-500);
+  --color-terracotta-600: var(--color-blush-600);
+  --color-terracotta-700: var(--color-blush-700);
 
   /* ---------- Tokens sémantiques (light) ---------- */
   --color-background: var(--color-ivory-50);
   --color-surface: #ffffff;
   --color-surface-elevated: var(--color-ivory-100);
-  --color-foreground: var(--color-night-700);
-  --color-muted: oklch(60% 0.015 50);
-  --color-muted-foreground: var(--color-night-500);
-  --color-border: oklch(91% 0.012 70);
-  --color-border-strong: oklch(82% 0.02 65);
+  --color-surface-warm: var(--color-blush-50);
+  --color-foreground: var(--color-ink-900);
+  --color-muted: oklch(60% 0.018 35);
+  --color-muted-foreground: var(--color-ink-500);
+  --color-border: oklch(92% 0.012 60);
+  --color-border-strong: oklch(84% 0.022 50);
 
-  --color-primary: var(--color-brand-700);
+  --color-primary: var(--color-blush-700);
   --color-primary-foreground: var(--color-ivory-50);
-  --color-primary-hover: var(--color-brand-800);
-  --color-primary-soft: var(--color-brand-50);
+  --color-primary-hover: var(--color-blush-800);
+  --color-primary-soft: var(--color-blush-100);
 
-  --color-accent: var(--color-sage-500);
+  --color-accent: var(--color-champagne-700);
   --color-accent-foreground: #ffffff;
-  --color-accent-soft: var(--color-sage-50);
+  --color-accent-soft: var(--color-champagne-100);
 
-  --color-success: oklch(65% 0.14 145);
+  --color-success: var(--color-sage-500);
   --color-warning: oklch(75% 0.16 75);
   --color-danger: oklch(58% 0.19 25);
   --color-info: oklch(65% 0.11 220);
-
-  /* Conserve `--color-destructive` en alias de --color-danger pour rétro-compat */
   --color-destructive: var(--color-danger);
 
   /* ---------- Typo ---------- */
   --font-sans: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-mono), ui-monospace, 'SFMono-Regular', monospace;
   --font-display: var(--font-display), 'Iowan Old Style Italic', Georgia, serif;
-  --font-serif: var(--font-display); /* alias rétro-compat */
+  --font-serif: var(--font-display);
 
   /* ---------- Rayons ---------- */
   --radius-xs: 0.25rem;
@@ -97,11 +120,13 @@
   --radius-xl: 1rem;
   --radius-2xl: 1.25rem;
   --radius-3xl: 1.5rem;
+  --radius-4xl: 2rem;
 
-  /* ---------- Ombres (alpha en oklab pour rendu doux) ---------- */
-  --shadow-soft: 0 1px 2px oklch(0% 0 0 / 4%), 0 4px 12px oklch(0% 0 0 / 6%);
-  --shadow-lifted: 0 4px 10px oklch(0% 0 0 / 6%), 0 12px 32px oklch(0% 0 0 / 8%);
+  /* ---------- Ombres ---------- */
+  --shadow-soft: 0 1px 2px oklch(0% 0 0 / 4%), 0 4px 12px oklch(48% 0.085 22 / 6%);
+  --shadow-lifted: 0 4px 10px oklch(0% 0 0 / 5%), 0 14px 36px oklch(48% 0.085 22 / 9%);
   --shadow-popover: 0 10px 30px oklch(0% 0 0 / 12%), 0 2px 6px oklch(0% 0 0 / 6%);
+  --shadow-blush: 0 20px 60px -15px oklch(72% 0.09 20 / 35%);
 
   /* ---------- Animation easings ---------- */
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
@@ -109,21 +134,22 @@
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-/* ---------- Mode sombre (dashboard pro par défaut, propre theme system 2026+) ---------- */
+/* ---------- Mode sombre (dashboard pro) ---------- */
 @media (prefers-color-scheme: dark) {
   :root {
-    --color-background: oklch(15% 0.012 35);
-    --color-surface: oklch(19% 0.015 35);
-    --color-surface-elevated: oklch(23% 0.018 35);
+    --color-background: oklch(15% 0.012 28);
+    --color-surface: oklch(19% 0.015 28);
+    --color-surface-elevated: oklch(23% 0.018 28);
+    --color-surface-warm: oklch(22% 0.03 28);
     --color-foreground: oklch(94% 0.012 70);
     --color-muted: oklch(60% 0.02 60);
     --color-muted-foreground: oklch(75% 0.018 65);
-    --color-border: oklch(28% 0.018 35);
-    --color-border-strong: oklch(38% 0.02 38);
-    --color-primary: var(--color-brand-500);
-    --color-primary-hover: var(--color-brand-400);
-    --color-primary-soft: oklch(28% 0.08 32);
-    --color-accent-soft: oklch(28% 0.04 142);
+    --color-border: oklch(28% 0.018 28);
+    --color-border-strong: oklch(38% 0.02 30);
+    --color-primary: var(--color-blush-400);
+    --color-primary-hover: var(--color-blush-300);
+    --color-primary-soft: oklch(28% 0.06 22);
+    --color-accent-soft: oklch(28% 0.05 80);
   }
 }
 
@@ -144,7 +170,7 @@ h3,
   letter-spacing: -0.018em;
 }
 
-/* ---------- Animations keyframes (CSS-native, JS-free) ---------- */
+/* ---------- Animations keyframes ---------- */
 @keyframes wbb-fade-in {
   from {
     opacity: 0;
@@ -185,6 +211,16 @@ h3,
   }
 }
 
+@keyframes wbb-float {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -199,6 +235,10 @@ h3,
 /* ---------- Utilities ---------- */
 @utility container-page {
   @apply mx-auto w-full max-w-6xl px-5 sm:px-8;
+}
+
+@utility container-wide {
+  @apply mx-auto w-full max-w-7xl px-5 sm:px-8;
 }
 
 @utility focus-ring {
@@ -217,13 +257,59 @@ h3,
   animation: wbb-scale-in 220ms var(--ease-out-quint) both;
 }
 
+@utility animate-float {
+  animation: wbb-float 6s ease-in-out infinite;
+}
+
 @utility shimmer {
   background-image: linear-gradient(
     90deg,
-    var(--color-brand-50) 0%,
-    var(--color-brand-100) 50%,
-    var(--color-brand-50) 100%
+    var(--color-blush-50) 0%,
+    var(--color-blush-100) 50%,
+    var(--color-blush-50) 100%
   );
   background-size: 200% 100%;
   animation: wbb-shimmer 1.6s ease-in-out infinite;
+}
+
+/*
+ * Texture grain papier — classe CSS standard (pas @utility, car Tailwind v4
+ * interdit les pseudo-éléments dans @utility names).
+ *
+ * Casse le rendu numérique trop "flat" sur les sections premium. SVG noise
+ * inline en data URI, superposé en multiply à 5 % pour rester invisible mais
+ * tactile.
+ */
+.paper-grain {
+  position: relative;
+  isolation: isolate;
+}
+
+.paper-grain::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.05;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml;utf8,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 220px;
+}
+
+/* Filet ornemental gold — séparateur entre sections premium */
+.ornament-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25rem;
+  color: var(--color-champagne-700);
+}
+
+.ornament-divider::before,
+.ornament-divider::after {
+  content: '';
+  display: block;
+  width: 4rem;
+  height: 1px;
+  background: linear-gradient(to right, transparent, currentColor, transparent);
 }

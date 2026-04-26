@@ -2,23 +2,23 @@
 
 import { motion, useReducedMotion } from 'motion/react';
 import { useTranslations } from 'next-intl';
+import { ArrowRight, ShieldCheck, Sparkles, Globe } from 'lucide-react';
 import { Link } from '@/i18n/navigation';
 import { buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/cn';
+import { PhoneMockup } from './phone-mockup';
 
 /**
- * Landing — Hero V2.
+ * Landing — Hero V3.
  *
- * Direction artistique : typo Fraunces Italic géante (signature éditoriale,
- * proxy Migra), dégradé mesh OKLCH brand-50 → ivory derrière, deux CTAs
- * distincts (couple / pro), badge WhatsApp-first, micro stats live.
+ * Layout split desktop : copy à gauche (titre Fraunces géant + sous-titre +
+ * 2 CTAs + trust line), mockup phone WhatsApp à droite. Mobile : copy en haut,
+ * phone en bas.
  *
- * Animations sobres — fade + slide up stagger sur l'apparition. Tout désactivé
- * si `prefers-reduced-motion`. Pas de hero video, pas de parallax (perf 3G
- * Afrique critique).
+ * Palette V3 : ivoire + blush, mesh radial gold/blush. Plus de terracotta.
  */
 export function LandingHero() {
-  const t = useTranslations('Landing');
+  const t = useTranslations('Landing.hero');
   const reduced = useReducedMotion();
 
   const containerVariants = {
@@ -29,118 +29,132 @@ export function LandingHero() {
   };
 
   const itemVariants = {
-    hidden: { opacity: 0, y: reduced ? 0 : 14 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.55, ease: 'easeOut' as const } },
+    hidden: { opacity: 0, y: reduced ? 0 : 16 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' as const } },
   };
 
   return (
-    <section className="relative isolate overflow-hidden">
-      {/* Dégradé mesh OKLCH terracotta → ivoire */}
+    <section className="paper-grain relative isolate overflow-hidden pt-12 pb-20 sm:pt-20 sm:pb-28">
+      {/* Mesh gradient blush + champagne sur ivoire */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 -z-10"
         style={{
           background: [
-            'radial-gradient(60% 40% at 75% 0%, oklch(86% 0.085 38 / 35%) 0%, transparent 70%)',
-            'radial-gradient(50% 35% at 15% 30%, oklch(91% 0.035 142 / 25%) 0%, transparent 75%)',
-            'radial-gradient(70% 50% at 50% 110%, oklch(96% 0.025 40 / 70%) 0%, transparent 80%)',
-            'oklch(98% 0.012 75)',
+            'radial-gradient(50% 35% at 80% 10%, oklch(85% 0.06 22 / 45%) 0%, transparent 75%)',
+            'radial-gradient(45% 30% at 12% 28%, oklch(92% 0.035 80 / 40%) 0%, transparent 75%)',
+            'radial-gradient(70% 50% at 50% 110%, oklch(95% 0.025 22 / 75%) 0%, transparent 80%)',
+            'oklch(98.5% 0.008 85)',
           ].join(', '),
-        }}
-      />
-      {/* Grille subtile */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 -z-10 opacity-[0.035]"
-        style={{
-          backgroundImage:
-            'linear-gradient(oklch(22% 0.025 40) 1px, transparent 1px), linear-gradient(90deg, oklch(22% 0.025 40) 1px, transparent 1px)',
-          backgroundSize: '64px 64px',
         }}
       />
 
       <motion.div
-        className="container-page relative flex flex-col items-center pt-20 pb-28 text-center sm:pt-28 sm:pb-36"
+        className="container-wide relative grid items-center gap-14 lg:grid-cols-[1.05fr_0.9fr] lg:gap-20"
         initial="hidden"
         animate="visible"
         variants={containerVariants}
       >
-        <motion.span
-          variants={itemVariants}
-          className="mb-8 inline-flex items-center gap-2 rounded-full border border-[color:var(--color-border-strong)] bg-[color:var(--color-surface)]/80 px-4 py-1.5 text-xs font-medium tracking-wide text-[color:var(--color-foreground)] shadow-[var(--shadow-soft)] backdrop-blur"
-        >
-          <span className="h-1.5 w-1.5 rounded-full bg-[color:var(--color-success)]" aria-hidden />
-          {t('hero.badge')}
-        </motion.span>
-
-        <motion.h1
-          variants={itemVariants}
-          className="mx-auto max-w-5xl text-balance"
-          style={{
-            fontFamily: 'var(--font-display)',
-            fontStyle: 'italic',
-            fontWeight: 400,
-            fontSize: 'clamp(2.75rem, 9vw, 6.5rem)',
-            lineHeight: 0.98,
-            letterSpacing: '-0.025em',
-            color: 'var(--color-foreground)',
-          }}
-        >
-          {t('hero.title')}
-        </motion.h1>
-
-        <motion.p
-          variants={itemVariants}
-          className="mt-7 max-w-2xl text-base leading-relaxed text-pretty text-[color:var(--color-muted-foreground)] sm:text-lg"
-        >
-          {t('hero.subtitle')}
-        </motion.p>
-
-        <motion.div
-          variants={itemVariants}
-          className="mt-10 flex flex-col items-center gap-3 sm:flex-row"
-        >
-          <Link
-            href="/sign-up"
-            className={cn(buttonVariants({ variant: 'primary', size: 'xl' }), 'min-w-56')}
+        {/* Copy column */}
+        <div className="flex flex-col items-center text-center lg:items-start lg:text-left">
+          <motion.span
+            variants={itemVariants}
+            className="mb-7 inline-flex items-center gap-2 rounded-full border border-[color:var(--color-border-strong)] bg-white/85 px-4 py-1.5 text-xs font-medium tracking-wide text-[color:var(--color-foreground)] shadow-[var(--shadow-soft)] backdrop-blur"
           >
-            {t('hero.ctaPrimary')}
-            <span aria-hidden className="ml-1">
-              →
-            </span>
-          </Link>
-          <Link
-            href="/#pricing"
-            className={cn(buttonVariants({ variant: 'outline', size: 'xl' }), 'min-w-56')}
+            <Sparkles
+              className="h-3.5 w-3.5 text-[color:var(--color-champagne-700)]"
+              strokeWidth={2}
+              aria-hidden
+            />
+            {t('badge')}
+          </motion.span>
+
+          <motion.h1
+            variants={itemVariants}
+            className="max-w-2xl text-balance"
+            style={{
+              fontFamily: 'var(--font-display)',
+              fontStyle: 'italic',
+              fontWeight: 400,
+              fontSize: 'clamp(2.5rem, 7.5vw, 5.5rem)',
+              lineHeight: 0.98,
+              letterSpacing: '-0.025em',
+              color: 'var(--color-ink-900)',
+            }}
           >
-            {t('hero.ctaSecondary')}
-          </Link>
+            {t('title')}
+          </motion.h1>
+
+          <motion.p
+            variants={itemVariants}
+            className="mt-7 max-w-xl text-base leading-relaxed text-pretty text-[color:var(--color-ink-500)] sm:text-lg"
+          >
+            {t('subtitle')}
+          </motion.p>
+
+          <motion.div
+            variants={itemVariants}
+            className="mt-10 flex w-full flex-col items-center gap-3 sm:flex-row sm:flex-wrap lg:items-start lg:justify-start"
+          >
+            <Link
+              href="/sign-up"
+              className={cn(buttonVariants({ variant: 'primary', size: 'xl' }), 'group min-w-56')}
+            >
+              {t('ctaPrimary')}
+              <ArrowRight
+                className="ml-1 h-4 w-4 transition-transform [@media(hover:hover)]:group-hover:translate-x-0.5"
+                aria-hidden
+              />
+            </Link>
+            <Link
+              href="/#pricing"
+              className={cn(buttonVariants({ variant: 'outline', size: 'xl' }), 'min-w-56')}
+            >
+              {t('ctaSecondary')}
+            </Link>
+          </motion.div>
+
+          <motion.ul
+            variants={itemVariants}
+            className="mt-10 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-[color:var(--color-ink-500)] lg:justify-start"
+          >
+            <li className="inline-flex items-center gap-1.5">
+              <ShieldCheck
+                className="h-3.5 w-3.5 text-[color:var(--color-sage-700)]"
+                strokeWidth={2.25}
+                aria-hidden
+              />
+              {t('trust.noCard')}
+            </li>
+            <li aria-hidden className="text-[color:var(--color-border-strong)]">
+              ·
+            </li>
+            <li className="inline-flex items-center gap-1.5">
+              <ShieldCheck
+                className="h-3.5 w-3.5 text-[color:var(--color-sage-700)]"
+                strokeWidth={2.25}
+                aria-hidden
+              />
+              {t('trust.refund')}
+            </li>
+            <li aria-hidden className="text-[color:var(--color-border-strong)]">
+              ·
+            </li>
+            <li className="inline-flex items-center gap-1.5">
+              <Globe
+                className="h-3.5 w-3.5 text-[color:var(--color-champagne-700)]"
+                strokeWidth={2.25}
+                aria-hidden
+              />
+              {t('trust.frAndAfrica')}
+            </li>
+          </motion.ul>
+        </div>
+
+        {/* Phone mockup column */}
+        <motion.div variants={itemVariants} className="flex items-center justify-center">
+          <PhoneMockup />
         </motion.div>
-
-        {/* Trust line */}
-        <motion.p
-          variants={itemVariants}
-          className="mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-[color:var(--color-muted-foreground)]"
-        >
-          <span className="inline-flex items-center gap-1.5">
-            <span aria-hidden>✓</span>
-            {t('hero.trust.noCard')}
-          </span>
-          <span aria-hidden className="opacity-30">
-            ·
-          </span>
-          <span className="inline-flex items-center gap-1.5">
-            <span aria-hidden>✓</span>
-            {t('hero.trust.refund')}
-          </span>
-          <span aria-hidden className="opacity-30">
-            ·
-          </span>
-          <span className="inline-flex items-center gap-1.5">
-            <span aria-hidden>✓</span>
-            {t('hero.trust.frAndAfrica')}
-          </span>
-        </motion.p>
       </motion.div>
     </section>
   );

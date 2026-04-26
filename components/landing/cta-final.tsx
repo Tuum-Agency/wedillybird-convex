@@ -2,16 +2,17 @@
 
 import { motion } from 'motion/react';
 import { useTranslations } from 'next-intl';
+import { ArrowRight, Heart } from 'lucide-react';
 import { Link } from '@/i18n/navigation';
 import { buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/cn';
 import { inViewOnce, scrollReveal } from '@/lib/motion/presets';
 
 /**
- * Landing — CTA final V2.
+ * Landing — CTA final V3.
  *
- * Reprend l'esthétique du hero (dégradé mesh) en plus compact, avec un seul
- * CTA proéminent. Pour fermer le scroll de la landing sur une note d'action.
+ * Citation éditoriale "Le grand jour mérite mieux qu'un PDF.", gradient
+ * blush+champagne plein-largeur, micro-trust avec stat sociale, 1 CTA.
  */
 export function LandingCtaFinal() {
   const t = useTranslations('Landing.ctaFinal');
@@ -23,50 +24,60 @@ export function LandingCtaFinal() {
         whileInView="visible"
         viewport={inViewOnce}
         variants={scrollReveal}
-        className="relative isolate overflow-hidden rounded-[2rem] px-8 py-16 text-center sm:px-16 sm:py-20"
+        className="paper-grain relative isolate overflow-hidden rounded-[2.5rem] px-8 py-20 text-center sm:px-16 sm:py-28"
       >
         <div
           aria-hidden
           className="absolute inset-0 -z-10"
           style={{
             background: [
-              'radial-gradient(60% 70% at 50% 0%, oklch(86% 0.085 38 / 60%) 0%, transparent 75%)',
-              'oklch(96% 0.018 70)',
+              'radial-gradient(60% 70% at 50% 0%, oklch(85% 0.06 22 / 65%) 0%, transparent 75%)',
+              'radial-gradient(40% 50% at 80% 100%, oklch(92% 0.035 80 / 55%) 0%, transparent 75%)',
+              'oklch(98% 0.012 25)',
             ].join(', '),
           }}
         />
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 -z-10 rounded-[2rem]"
+          className="pointer-events-none absolute inset-0 -z-10 rounded-[2.5rem]"
           style={{
-            boxShadow: 'inset 0 0 0 1px oklch(86% 0.020 65)',
+            boxShadow: 'inset 0 0 0 1px oklch(91% 0.045 22)',
           }}
         />
+
+        {/* Ornement gold central */}
+        <div aria-hidden className="ornament-divider mb-6 text-[color:var(--color-champagne-700)]">
+          <Heart className="h-3.5 w-3.5 fill-[oklch(78%_0.075_78)]" strokeWidth={1.5} aria-hidden />
+        </div>
+
         <h2
           className="font-display mx-auto max-w-3xl text-balance italic"
           style={{
-            fontSize: 'clamp(2rem, 5vw, 3.5rem)',
-            lineHeight: 1.05,
-            letterSpacing: '-0.02em',
+            fontSize: 'clamp(2.25rem, 5.5vw, 4rem)',
+            lineHeight: 1.02,
+            letterSpacing: '-0.025em',
+            color: 'var(--color-ink-900)',
           }}
         >
           {t('title')}
         </h2>
-        <p className="mx-auto mt-5 max-w-xl text-base text-[color:var(--color-muted-foreground)]">
+        <p className="mx-auto mt-6 max-w-xl text-base text-[color:var(--color-ink-500)] sm:text-lg">
           {t('subtitle')}
         </p>
         <Link
           href="/sign-up"
           className={cn(
             buttonVariants({ variant: 'primary', size: 'xl' }),
-            'mt-9 inline-flex min-w-64',
+            'group mt-10 inline-flex min-w-64',
           )}
         >
           {t('cta')}
-          <span aria-hidden className="ml-1">
-            →
-          </span>
+          <ArrowRight
+            className="ml-1 h-4 w-4 transition-transform [@media(hover:hover)]:group-hover:translate-x-0.5"
+            aria-hidden
+          />
         </Link>
+        <p className="mt-7 text-xs text-[color:var(--color-ink-300)]">{t('trust')}</p>
       </motion.div>
     </section>
   );

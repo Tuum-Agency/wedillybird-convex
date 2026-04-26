@@ -7,11 +7,27 @@ test.describe('Landing page', () => {
 
     const hero = page.getByRole('heading', { level: 1 });
     await expect(hero).toBeVisible();
-    // Le titre v2 est "Le grand jour mérite mieux qu'un PDF.".
+    // Le titre v3 est "Le grand jour mérite une invitation à la hauteur.".
     await expect(hero).toContainText(/grand jour/i);
 
-    // CTA primary v2 = "Préparer mon mariage".
-    await expect(page.getByRole('link', { name: /préparer mon mariage/i })).toBeVisible();
+    // CTA primary v3 = "Préparer mon mariage".
+    await expect(page.getByRole('link', { name: /préparer mon mariage/i }).first()).toBeVisible();
+  });
+
+  test('rend les sections narratives V3 (manifesto, comparaison, stats, FAQ)', async ({ page }) => {
+    await page.goto('/');
+    // Manifesto
+    await expect(
+      page.getByRole('heading', { name: /un mariage ne se prépare plus/i }),
+    ).toBeVisible();
+    // Comparaison PDF vs Wedillybird
+    await expect(page.getByRole('heading', { name: /du pdf à la conversation/i })).toBeVisible();
+    // Stats avec ticker
+    await expect(page.getByRole('heading', { name: /plus simple, plus rapide/i })).toBeVisible();
+    // FAQ
+    await expect(
+      page.getByRole('heading', { name: /tout ce que vous voulez savoir/i }),
+    ).toBeVisible();
   });
 
   test('la section features affiche les quatre piliers', async ({ page }) => {

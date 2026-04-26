@@ -1,42 +1,62 @@
 'use client';
 
+import Image from 'next/image';
 import { motion } from 'motion/react';
 import { useTranslations } from 'next-intl';
 import { inViewOnce, scrollReveal, scrollRevealParent } from '@/lib/motion/presets';
 
-const TESTIMONIALS = ['couple-fr', 'couple-sn', 'planner-pro'] as const;
+const TESTIMONIALS = [
+  {
+    key: 'couple-fr',
+    photo:
+      'https://images.unsplash.com/photo-1606800052052-a08af7148866?auto=format&fit=crop&w=400&q=80',
+  },
+  {
+    key: 'couple-sn',
+    photo:
+      'https://images.unsplash.com/photo-1583939411023-7c6cdb40b09f?auto=format&fit=crop&w=400&q=80',
+  },
+  {
+    key: 'planner-pro',
+    photo:
+      'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=400&q=80',
+  },
+] as const;
 
 /**
- * Landing — Témoignages V2.
+ * Landing — Témoignages V3.
  *
- * 3 cards : couple France, couple Sénégal, planner pro. Mix volontaire des
- * deux marchés pour signaler immédiatement l'inclusivité (cf. brief UX).
- * Pas de photos (assets non fournis) — initiales en cercle terracotta + nom +
- * lieu. Le user pourra ajouter des photos réelles plus tard.
+ * 3 cards : France (Provence), Sénégal (Dakar), Wedding planner (Bordeaux).
+ * Photos rondes Unsplash + quote longue Fraunces italic + nom + lieu+date.
+ * Mosaïque géographique volontaire pour signaler l'inclusivité.
  */
 export function LandingTestimonials() {
   const t = useTranslations('Landing.testimonials');
 
   return (
-    <section className="border-y border-[color:var(--color-border)] bg-[color:var(--color-surface-elevated)] py-24">
+    <section className="border-y border-[color:var(--color-border)] bg-[color:var(--color-ivory-100)] py-28">
       <div className="container-page">
         <motion.div
           initial="hidden"
           whileInView="visible"
           viewport={inViewOnce}
           variants={scrollRevealParent}
-          className="mb-14 flex flex-col items-center gap-3 text-center"
+          className="mx-auto mb-14 flex max-w-3xl flex-col items-center gap-3 text-center"
         >
           <motion.span
             variants={scrollReveal}
-            className="text-xs font-medium tracking-[0.2em] text-[color:var(--color-primary)] uppercase"
+            className="text-xs font-medium tracking-[0.2em] text-[color:var(--color-champagne-700)] uppercase"
           >
             {t('eyebrow')}
           </motion.span>
           <motion.h2
             variants={scrollReveal}
-            className="font-display max-w-2xl text-3xl text-balance italic sm:text-4xl md:text-5xl"
-            style={{ letterSpacing: '-0.02em', lineHeight: 1.05 }}
+            className="font-display text-balance italic"
+            style={{
+              fontSize: 'clamp(2rem, 5vw, 3.5rem)',
+              lineHeight: 1.05,
+              letterSpacing: '-0.022em',
+            }}
           >
             {t('title')}
           </motion.h2>
@@ -47,44 +67,48 @@ export function LandingTestimonials() {
           whileInView="visible"
           viewport={inViewOnce}
           variants={scrollRevealParent}
-          className="grid gap-5 md:grid-cols-3"
+          className="grid gap-6 md:grid-cols-3"
         >
-          {TESTIMONIALS.map((id) => {
-            const initials = t(`items.${id}.initials`);
-            return (
-              <motion.figure
-                key={id}
-                variants={scrollReveal}
-                className="flex flex-col gap-5 rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-7"
+          {TESTIMONIALS.map(({ key, photo }) => (
+            <motion.figure
+              key={key}
+              variants={scrollReveal}
+              className="flex flex-col gap-6 rounded-3xl border border-[color:var(--color-border)] bg-white p-8 shadow-[var(--shadow-soft)]"
+            >
+              <span
+                aria-hidden
+                className="font-display text-5xl text-[color:var(--color-blush-300)] italic"
+                style={{ lineHeight: 0.5 }}
               >
-                <span
-                  aria-hidden
-                  className="font-display text-3xl text-[color:var(--color-primary)] italic"
-                >
-                  &ldquo;
-                </span>
-                <blockquote className="text-base leading-relaxed text-[color:var(--color-foreground)]">
-                  {t(`items.${id}.quote`)}
-                </blockquote>
-                <figcaption className="mt-auto flex items-center gap-3">
-                  <span
-                    className="flex h-11 w-11 items-center justify-center rounded-full bg-[color:var(--color-primary-soft)] text-sm font-semibold text-[color:var(--color-primary)]"
-                    aria-hidden
-                  >
-                    {initials}
+                &ldquo;
+              </span>
+              <blockquote
+                className="font-display text-lg leading-snug text-pretty text-[color:var(--color-ink-900)] italic"
+                style={{ letterSpacing: '-0.012em' }}
+              >
+                {t(`items.${key}.quote`)}
+              </blockquote>
+              <figcaption className="mt-auto flex items-center gap-3 border-t border-[color:var(--color-border)] pt-5">
+                <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-full ring-1 ring-[color:var(--color-blush-200)]">
+                  <Image
+                    src={photo}
+                    alt={t(`items.${key}.alt`)}
+                    fill
+                    sizes="48px"
+                    className="object-cover"
+                  />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-sm font-semibold text-[color:var(--color-ink-900)]">
+                    {t(`items.${key}.name`)}
                   </span>
-                  <span className="flex flex-col">
-                    <span className="text-sm font-medium text-[color:var(--color-foreground)]">
-                      {t(`items.${id}.name`)}
-                    </span>
-                    <span className="text-xs text-[color:var(--color-muted-foreground)]">
-                      {t(`items.${id}.location`)}
-                    </span>
+                  <span className="text-xs text-[color:var(--color-ink-500)]">
+                    {t(`items.${key}.location`)}
                   </span>
-                </figcaption>
-              </motion.figure>
-            );
-          })}
+                </div>
+              </figcaption>
+            </motion.figure>
+          ))}
         </motion.div>
       </div>
     </section>
