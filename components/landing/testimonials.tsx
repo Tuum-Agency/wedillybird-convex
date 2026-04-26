@@ -34,7 +34,10 @@ export function LandingTestimonials() {
   const t = useTranslations('Landing.testimonials');
 
   return (
-    <section className="border-y border-[color:var(--color-border)] bg-[color:var(--color-ivory-100)] py-28">
+    <section
+      id="testimonials"
+      className="border-y border-[color:var(--color-border)] bg-[color:var(--color-ivory-100)] py-28"
+    >
       <div className="container-page">
         <motion.div
           initial="hidden"

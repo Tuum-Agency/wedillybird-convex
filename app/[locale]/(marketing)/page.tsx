@@ -63,32 +63,53 @@ function LandingShell({
 
   return (
     <LenisProvider>
-      {/* Top nav — sticky transparente, devient opaque au scroll via backdrop-blur */}
+      {/* Top nav — sticky, pattern Linear/Mercury : logo + nav-items groupés
+          à gauche, auth CTAs à droite. Évite le trou central que produisait
+          un justify-between avec logo seul gauche / 4 items collés à droite. */}
       <header className="sticky top-0 z-30 border-b border-[color:var(--color-border)] bg-[color:var(--color-ivory-50)]/85 backdrop-blur supports-[backdrop-filter]:bg-[color:var(--color-ivory-50)]/65">
-        <div className="container-page flex items-center justify-between py-4">
-          <Link
-            href="/"
-            className="font-display inline-flex items-center gap-2 text-xl tracking-tight text-[color:var(--color-ink-900)] italic"
-          >
-            <span
-              aria-hidden
-              className="inline-block h-2 w-2 rounded-full bg-[color:var(--color-gold-500)]"
-            />
-            {tCommon('appName')}
-          </Link>
-          <nav className="flex items-center gap-2 sm:gap-4">
+        <div className="container-page flex items-center justify-between gap-6 py-4">
+          {/* Bloc gauche : logo + nav éditoriale groupés */}
+          <div className="flex items-center gap-10">
             <Link
-              href="/#features"
-              className="hidden font-mono text-[10px] tracking-[0.24em] text-[color:var(--color-ink-500)] uppercase transition-colors hover:text-[color:var(--color-ink-900)] sm:inline-block"
+              href="/"
+              className="font-display inline-flex items-center gap-2 text-xl tracking-tight text-[color:var(--color-ink-900)] italic"
             >
-              Piliers
+              <span
+                aria-hidden
+                className="inline-block h-2 w-2 rounded-full bg-[color:var(--color-gold-500)]"
+              />
+              {tCommon('appName')}
             </Link>
-            <Link
-              href="/#pricing"
-              className="hidden font-mono text-[10px] tracking-[0.24em] text-[color:var(--color-ink-500)] uppercase transition-colors hover:text-[color:var(--color-ink-900)] sm:inline-block"
-            >
-              Tarifs
-            </Link>
+            <nav aria-label="Navigation principale" className="hidden items-center gap-7 md:flex">
+              <Link
+                href="/#features"
+                className="font-mono text-[10px] tracking-[0.24em] text-[color:var(--color-ink-500)] uppercase transition-colors hover:text-[color:var(--color-ink-900)]"
+              >
+                Piliers
+              </Link>
+              <Link
+                href="/#pricing"
+                className="font-mono text-[10px] tracking-[0.24em] text-[color:var(--color-ink-500)] uppercase transition-colors hover:text-[color:var(--color-ink-900)]"
+              >
+                Tarifs
+              </Link>
+              <Link
+                href="/#testimonials"
+                className="font-mono text-[10px] tracking-[0.24em] text-[color:var(--color-ink-500)] uppercase transition-colors hover:text-[color:var(--color-ink-900)]"
+              >
+                Témoignages
+              </Link>
+              <Link
+                href="/faq"
+                className="font-mono text-[10px] tracking-[0.24em] text-[color:var(--color-ink-500)] uppercase transition-colors hover:text-[color:var(--color-ink-900)]"
+              >
+                FAQ
+              </Link>
+            </nav>
+          </div>
+
+          {/* Bloc droite : auth CTAs */}
+          <div className="flex items-center gap-3">
             <Link
               href="/sign-in"
               className="text-sm font-medium text-[color:var(--color-ink-900)] transition-colors hover:text-[color:var(--color-blush-700)]"
@@ -101,7 +122,7 @@ function LandingShell({
             >
               {tCommon('signUp')}
             </Link>
-          </nav>
+          </div>
         </div>
       </header>
 
