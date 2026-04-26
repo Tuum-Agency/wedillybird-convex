@@ -333,109 +333,123 @@ export function LandingCinematicInvitation() {
                 <FlourishOrnament cx={100} cy={-260} scale={0.45} flip />
               </g>
 
-              {/* Carte (derrière l'enveloppe initialement) */}
-              <g ref={cardRef} filter="url(#card-shadow)">
-                <rect
-                  x="-100"
-                  y="-145"
-                  width="200"
-                  height="260"
-                  rx="4"
-                  fill="url(#card-grad)"
-                  stroke="oklch(82% 0.045 22)"
-                  strokeWidth="0.6"
-                />
-                {/* Texture grain papier sur la carte */}
-                <rect
-                  x="-100"
-                  y="-145"
-                  width="200"
-                  height="260"
-                  rx="4"
-                  filter="url(#paper-grain-svg)"
-                  opacity="0.4"
-                />
-                {/* Filet ornemental haut */}
-                <line
-                  x1="-65"
-                  y1="-105"
-                  x2="65"
-                  y2="-105"
-                  stroke="oklch(78% 0.075 78)"
-                  strokeWidth="0.5"
-                />
-                <text
-                  x="0"
-                  y="-65"
-                  textAnchor="middle"
-                  fontFamily="var(--font-mono)"
-                  fontWeight="500"
-                  fontSize="9"
-                  fill="oklch(45% 0.022 28)"
-                  letterSpacing="2"
-                >
-                  VOUS ÊTES INVITÉS
-                </text>
-                <text
-                  x="0"
-                  y="-15"
-                  textAnchor="middle"
-                  fontFamily="var(--font-display)"
-                  fontStyle="italic"
-                  fontWeight="400"
-                  fontSize="34"
-                  fill="oklch(22% 0.018 28)"
-                  letterSpacing="-0.025em"
-                >
-                  Camille
-                </text>
-                <text
-                  x="0"
-                  y="14"
-                  textAnchor="middle"
-                  fontFamily="var(--font-display)"
-                  fontStyle="italic"
-                  fontWeight="300"
-                  fontSize="14"
-                  fill="oklch(58% 0.075 80)"
-                  letterSpacing="0.4em"
-                >
-                  &amp;
-                </text>
-                <text
-                  x="0"
-                  y="50"
-                  textAnchor="middle"
-                  fontFamily="var(--font-display)"
-                  fontStyle="italic"
-                  fontWeight="400"
-                  fontSize="34"
-                  fill="oklch(22% 0.018 28)"
-                  letterSpacing="-0.025em"
-                >
-                  Hugo
-                </text>
-                {/* Filet ornemental bas */}
-                <line
-                  x1="-40"
-                  y1="80"
-                  x2="40"
-                  y2="80"
-                  stroke="oklch(78% 0.075 78)"
-                  strokeWidth="0.5"
-                />
-                <text
-                  x="0"
-                  y="100"
-                  textAnchor="middle"
-                  fontFamily="var(--font-mono)"
-                  fontWeight="500"
-                  fontSize="8"
-                  fill="oklch(45% 0.022 28)"
-                  letterSpacing="2"
-                >
-                  8 JUIN 2026 · PROVENCE
-                </text>
+              {/*
+               * Carte (derrière l'enveloppe initialement).
+               *
+               * Wrapper <g transform="translate(0,-35)"> qui repositionne
+               * statiquement la carte 35 px plus haut → bottom de la carte
+               * coïncide avec le bord bas de l'enveloppe (y=80) au lieu de
+               * dépasser de 35 px (y=115). Pré-scroll, la carte est donc
+               * entièrement masquée derrière l'enveloppe + flap fermé.
+               *
+               * Le <g cardRef> intérieur est animé indépendamment par GSAP
+               * (transform CSS) — les deux transforms se composent sans
+               * conflit (wrapper SSR statique + GSAP runtime dynamique).
+               */}
+              <g transform="translate(0, -35)">
+                <g ref={cardRef} filter="url(#card-shadow)">
+                  <rect
+                    x="-100"
+                    y="-145"
+                    width="200"
+                    height="260"
+                    rx="4"
+                    fill="url(#card-grad)"
+                    stroke="oklch(82% 0.045 22)"
+                    strokeWidth="0.6"
+                  />
+                  {/* Texture grain papier sur la carte */}
+                  <rect
+                    x="-100"
+                    y="-145"
+                    width="200"
+                    height="260"
+                    rx="4"
+                    filter="url(#paper-grain-svg)"
+                    opacity="0.4"
+                  />
+                  {/* Filet ornemental haut */}
+                  <line
+                    x1="-65"
+                    y1="-105"
+                    x2="65"
+                    y2="-105"
+                    stroke="oklch(78% 0.075 78)"
+                    strokeWidth="0.5"
+                  />
+                  <text
+                    x="0"
+                    y="-65"
+                    textAnchor="middle"
+                    fontFamily="var(--font-mono)"
+                    fontWeight="500"
+                    fontSize="9"
+                    fill="oklch(45% 0.022 28)"
+                    letterSpacing="2"
+                  >
+                    VOUS ÊTES INVITÉS
+                  </text>
+                  <text
+                    x="0"
+                    y="-15"
+                    textAnchor="middle"
+                    fontFamily="var(--font-display)"
+                    fontStyle="italic"
+                    fontWeight="400"
+                    fontSize="34"
+                    fill="oklch(22% 0.018 28)"
+                    letterSpacing="-0.025em"
+                  >
+                    Camille
+                  </text>
+                  <text
+                    x="0"
+                    y="14"
+                    textAnchor="middle"
+                    fontFamily="var(--font-display)"
+                    fontStyle="italic"
+                    fontWeight="300"
+                    fontSize="14"
+                    fill="oklch(58% 0.075 80)"
+                    letterSpacing="0.4em"
+                  >
+                    &amp;
+                  </text>
+                  <text
+                    x="0"
+                    y="50"
+                    textAnchor="middle"
+                    fontFamily="var(--font-display)"
+                    fontStyle="italic"
+                    fontWeight="400"
+                    fontSize="34"
+                    fill="oklch(22% 0.018 28)"
+                    letterSpacing="-0.025em"
+                  >
+                    Hugo
+                  </text>
+                  {/* Filet ornemental bas */}
+                  <line
+                    x1="-40"
+                    y1="80"
+                    x2="40"
+                    y2="80"
+                    stroke="oklch(78% 0.075 78)"
+                    strokeWidth="0.5"
+                  />
+                  <text
+                    x="0"
+                    y="100"
+                    textAnchor="middle"
+                    fontFamily="var(--font-mono)"
+                    fontWeight="500"
+                    fontSize="8"
+                    fill="oklch(45% 0.022 28)"
+                    letterSpacing="2"
+                  >
+                    8 JUIN 2026 · PROVENCE
+                  </text>
+                </g>
               </g>
 
               {/* Enveloppe — corps */}
