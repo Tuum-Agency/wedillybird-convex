@@ -108,14 +108,10 @@ function LandingShell({
             </nav>
           </div>
 
-          {/* Bloc droite : auth CTAs */}
+          {/* Bloc droite : un seul CTA primary. Le flow OTP WhatsApp est unifié
+              (sign-in/sign-up = même action), donc un seul bouton. Le lien
+              "déjà un compte ?" sera proposé sur la page sign-in elle-même. */}
           <div className="flex items-center gap-3">
-            <Link
-              href="/sign-in"
-              className="text-sm font-medium text-[color:var(--color-ink-900)] transition-colors hover:text-[color:var(--color-blush-700)]"
-            >
-              {tCommon('signIn')}
-            </Link>
             <Link
               href="/sign-up"
               className={cn(buttonVariants({ variant: 'primary', size: 'sm' }))}
