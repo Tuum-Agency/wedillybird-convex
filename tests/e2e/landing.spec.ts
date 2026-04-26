@@ -53,7 +53,10 @@ test.describe('Landing page', () => {
   test('clic sur CTA secondaire descend à la section pricing', async ({ page }) => {
     await page.goto('/');
     // CTA secondaire v2 = "Voir les tarifs" qui pointe vers #pricing.
-    await page.getByRole('link', { name: /voir les tarifs/i }).first().click();
+    await page
+      .getByRole('link', { name: /voir les tarifs/i })
+      .first()
+      .click();
     await expect(page).toHaveURL(/#pricing$/);
   });
 });
