@@ -34,7 +34,9 @@ test.describe('Landing page', () => {
     await expect(features).toBeVisible();
 
     await expect(features.getByRole('heading', { name: /invitations whatsapp/i })).toBeVisible();
-    await expect(features.getByRole('heading', { name: /rsvp temps réel/i })).toBeVisible();
+    // Le titre V4 est "RSVP en temps réel" — pattern flexible avec .* pour
+    // tolérer l'évolution du wording (en|live|...) sans casser le test.
+    await expect(features.getByRole('heading', { name: /rsvp.*temps.*réel/i })).toBeVisible();
     await expect(features.getByRole('heading', { name: /check-in/i })).toBeVisible();
     await expect(features.getByRole('heading', { name: /galerie partagée/i })).toBeVisible();
   });
