@@ -25,12 +25,22 @@ export const convexApi = {
     { phone: string; code: string },
     { userId: string; sessionToken: string; phone: string }
   >('auth:verifyOtp'),
+  requestMagicLink: makeFunctionReference<
+    'action',
+    { email: string; ipAddress?: string },
+    { email: string }
+  >('auth:requestMagicLink'),
+  verifyMagicLink: makeFunctionReference<
+    'mutation',
+    { email: string; token: string },
+    { userId: string; sessionToken: string; email: string }
+  >('auth:verifyMagicLink'),
   currentUser: makeFunctionReference<
     'query',
     { userId: string },
     {
       _id: string;
-      phone: string;
+      phone?: string;
       email?: string;
       fullName?: string;
       avatarUrl?: string;
@@ -51,7 +61,7 @@ export const convexApi = {
     { phone: string },
     {
       _id: string;
-      phone: string;
+      phone?: string;
       email?: string;
       fullName?: string;
       role: 'couple' | 'pro' | 'guest' | 'admin';
@@ -516,7 +526,7 @@ export const convexApi = {
     { userId: string },
     {
       _id: string;
-      phone: string;
+      phone?: string;
       email?: string;
       fullName?: string;
       role: 'couple' | 'pro' | 'guest' | 'admin';

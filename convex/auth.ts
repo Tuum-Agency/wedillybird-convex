@@ -3,6 +3,14 @@ import { action, internalMutation, internalQuery, mutation, query } from './_gen
 import { internal } from './_generated/api';
 import type { Id } from './_generated/dataModel';
 import {
+  MAGIC_LINK_EXPIRY_MS,
+  MAGIC_LINK_RATE_WINDOW_MS,
+  MAX_MAGIC_LINKS_PER_HOUR,
+  generateMagicToken,
+  hashMagicToken,
+  verifyMagicTokenHash,
+} from './lib/magicLink';
+import {
   MAX_ATTEMPTS,
   MAX_OTP_PER_HOUR,
   OTP_EXPIRY_MS,
@@ -12,6 +20,14 @@ import {
   verifyOtpHash,
 } from './lib/otp';
 import { isValidE164, normalizePhone } from './lib/phone';
+
+function normalizeEmail(email: string): string {
+  return email.trim().toLowerCase();
+}
+
+function isValidEmail(email: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
 
 export const requestOtp = action({
   args: {
@@ -193,6 +209,143 @@ export const userByPhone = query({
       role: user.role,
       locale: user.locale,
     };
+  },
+});
+
+/* -------------------------------------------------------------------------- */
+/*  Email Magic Link — fallback auth pour les utilisateurs sans WhatsApp.     */
+/*  Pattern miroir de requestOtp/verifyOtp avec un token long single-use.     */
+/* -------------------------------------------------------------------------- */
+
+export const requestMagicLink = action({
+  args: {
+    email: v.string(),
+    ipAddress: v.optional(v.string()),
+  },
+  handler: async (ctx, { email, ipAddress }) => {
+    const normalized = normalizeEmail(email);
+    if (!isValidEmail(normalized)) {
+      throw new Error('INVALID_EMAIL');
+    }
+
+    const rateOk = await ctx.runQuery(internal.auth._checkMagicLinkRate, {
+      email: normalized,
+    });
+    if (!rateOk) {
+      throw new Error('RATE_LIMITED');
+    }
+
+    const token = generateMagicToken();
+    const tokenHash = await hashMagicToken(token, normalized);
+
+    await ctx.runMutation(internal.auth._saveMagicLinkSession, {
+      email: normalized,
+      tokenHash,
+      ipAddress,
+    });
+
+    // Envoi via SES (driver mock en dev). On délègue à emailActions pour
+    // que le SES client soit instancié dans un node action.
+    await ctx.runAction(internal.emailActions.sendMagicLinkEmail, {
+      to: normalized,
+      token,
+      ipAddress,
+    });
+
+    return { email: normalized };
+  },
+});
+
+export const verifyMagicLink = mutation({
+  args: {
+    email: v.string(),
+    token: v.string(),
+  },
+  handler: async (ctx, { email, token }) => {
+    const normalized = normalizeEmail(email);
+    if (!isValidEmail(normalized)) {
+      throw new Error('INVALID_EMAIL');
+    }
+    if (!/^[a-f0-9]{64}$/.test(token)) {
+      throw new Error('INVALID_TOKEN');
+    }
+
+    const now = Date.now();
+
+    const session = await ctx.db
+      .query('magicLinkSessions')
+      .withIndex('by_email', (q) => q.eq('email', normalized))
+      .filter((q) => q.eq(q.field('consumedAt'), undefined))
+      .order('desc')
+      .first();
+
+    if (!session) {
+      throw new Error('NO_ACTIVE_LINK');
+    }
+
+    if (session.expiresAt < now) {
+      throw new Error('LINK_EXPIRED');
+    }
+
+    const valid = await verifyMagicTokenHash(token, normalized, session.tokenHash);
+
+    if (!valid) {
+      throw new Error('INVALID_TOKEN');
+    }
+
+    await ctx.db.patch(session._id, { consumedAt: now });
+
+    let userId: Id<'users'>;
+    const existing = await ctx.db
+      .query('users')
+      .withIndex('by_email', (q) => q.eq('email', normalized))
+      .first();
+
+    if (existing) {
+      await ctx.db.patch(existing._id, { lastSeenAt: now });
+      userId = existing._id;
+    } else {
+      userId = await ctx.db.insert('users', {
+        email: normalized,
+        locale: 'fr',
+        role: 'couple',
+        createdAt: now,
+        lastSeenAt: now,
+      });
+    }
+
+    const sessionToken = crypto.randomUUID();
+    return { userId, sessionToken, email: normalized };
+  },
+});
+
+export const _checkMagicLinkRate = internalQuery({
+  args: { email: v.string() },
+  handler: async (ctx, { email }) => {
+    const windowStart = Date.now() - MAGIC_LINK_RATE_WINDOW_MS;
+    const recent = await ctx.db
+      .query('magicLinkSessions')
+      .withIndex('by_email_expires', (q) => q.eq('email', email).gte('expiresAt', windowStart))
+      .collect();
+    return recent.length < MAX_MAGIC_LINKS_PER_HOUR;
+  },
+});
+
+export const _saveMagicLinkSession = internalMutation({
+  args: {
+    email: v.string(),
+    tokenHash: v.string(),
+    ipAddress: v.optional(v.string()),
+  },
+  handler: async (ctx, { email, tokenHash, ipAddress }) => {
+    const now = Date.now();
+    return ctx.db.insert('magicLinkSessions', {
+      email,
+      tokenHash,
+      expiresAt: now + MAGIC_LINK_EXPIRY_MS,
+      createdAt: now,
+      ...(ipAddress ? { ipAddress } : {}),
+    });
   },
 });
 

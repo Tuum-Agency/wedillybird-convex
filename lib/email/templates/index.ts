@@ -1,4 +1,5 @@
 export { renderGuestReminder, type GuestReminderInput } from './guest-reminder';
+export { renderMagicLink, type MagicLinkInput } from './magic-link';
 export {
   renderProNotification,
   type ProNotificationInput,

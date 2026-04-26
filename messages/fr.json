@@ -386,11 +386,30 @@
     "resendIn": "Renvoyer dans {seconds}s",
     "noPhone": "Aucun numéro n'a été fourni. Recommencez depuis la connexion.",
     "privacy": "En continuant, vous acceptez notre politique de confidentialité.",
+    "methodSwitcherLabel": "Méthode de connexion",
+    "methodWhatsapp": "WhatsApp",
+    "methodEmail": "Email",
+    "emailLabel": "Adresse email",
+    "emailPlaceholder": "vous@email.com",
+    "magicLinkSendCta": "Recevoir mon lien",
+    "magicLinkSending": "Envoi…",
+    "magicLinkSentEyebrow": "LIEN ENVOYÉ",
+    "magicLinkSentTitle": "Vérifiez votre boîte mail.",
+    "magicLinkSentDescription": "Nous venons d'envoyer un lien à {email}. Il est valable 15 minutes et n'est utilisable qu'une seule fois. Pensez à vérifier vos courriers indésirables.",
+    "magicLinkChangeEmail": "Utiliser une autre adresse",
+    "errorBanner": {
+      "expired": "Le lien a expiré. Demandez-en un nouveau.",
+      "invalid_link": "Le lien est invalide. Vérifiez le lien reçu par email.",
+      "invalid_token": "Le lien est invalide ou déjà utilisé.",
+      "no_active_link": "Aucun lien en attente pour cette adresse.",
+      "unknown": "Une erreur est survenue. Réessayez."
+    },
     "errors": {
       "invalidPhone": "Numéro de téléphone invalide",
+      "invalidEmail": "Adresse email invalide",
       "invalidCode": "Code incorrect ou expiré",
       "tooManyAttempts": "Trop de tentatives, réessayez dans quelques minutes",
-      "rateLimited": "Trop de codes demandés. Patientez quelques minutes.",
+      "rateLimited": "Trop de demandes. Patientez quelques minutes.",
       "expired": "Code expiré, demandez-en un nouveau.",
       "unknown": "Une erreur est survenue. Réessayez."
     }

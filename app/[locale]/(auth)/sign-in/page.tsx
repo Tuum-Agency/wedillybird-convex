@@ -2,7 +2,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import type { Metadata } from 'next';
 import { Link } from '@/i18n/navigation';
 import { AuthCard } from '@/components/auth/auth-card';
-import { SignInForm } from '@/components/auth/sign-in-form';
+import { AuthMethodSwitcher } from '@/components/auth/auth-method-switcher';
 
 export async function generateMetadata({
   params,
@@ -40,7 +40,7 @@ export default async function SignInPage({ params }: { params: Promise<{ locale:
         </p>
       }
     >
-      <SignInForm />
+      <AuthMethodSwitcher />
     </AuthCard>
   );
 }

@@ -3,7 +3,9 @@ import { v } from 'convex/values';
 
 export default defineSchema({
   users: defineTable({
-    phone: v.string(),
+    // Optional depuis l'ajout du Magic Link (avril 2026) : un user peut être
+    // créé via email-only si pas de WhatsApp. Au moins un de phone/email.
+    phone: v.optional(v.string()),
     email: v.optional(v.string()),
     fullName: v.optional(v.string()),
     avatarUrl: v.optional(v.string()),
@@ -250,4 +252,23 @@ export default defineSchema({
   })
     .index('by_phone', ['phone'])
     .index('by_phone_expires', ['phone', 'expiresAt']),
+
+  /**
+   * Magic Link sessions — fallback auth par email pour les utilisateurs
+   * sans WhatsApp. Pattern miroir de otpSessions :
+   *  - tokenHash : SHA-256 du token (32 bytes random) avec email en salt
+   *  - expiresAt : issuedAt + 15 min (court pour limiter l'exposition)
+   *  - consumedAt : single-use, set quand le token est utilisé
+   */
+  magicLinkSessions: defineTable({
+    email: v.string(),
+    tokenHash: v.string(),
+    expiresAt: v.number(),
+    consumedAt: v.optional(v.number()),
+    createdAt: v.number(),
+    ipAddress: v.optional(v.string()),
+  })
+    .index('by_email', ['email'])
+    .index('by_email_expires', ['email', 'expiresAt'])
+    .index('by_token_hash', ['tokenHash']),
 });

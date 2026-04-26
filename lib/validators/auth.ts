@@ -35,6 +35,22 @@ export const onboardingSchema = z.object({
     .or(z.literal('').transform(() => undefined)),
 });
 
+export const emailSchema = z.string().trim().toLowerCase().email('Email invalide');
+
+export const requestMagicLinkSchema = z.object({
+  email: emailSchema,
+});
+
+export const verifyMagicLinkSchema = z.object({
+  email: emailSchema,
+  token: z
+    .string()
+    .trim()
+    .regex(/^[a-f0-9]{64}$/, 'Token invalide'),
+});
+
 export type RequestOtpInput = z.infer<typeof requestOtpSchema>;
 export type VerifyOtpInput = z.infer<typeof verifyOtpSchema>;
 export type OnboardingInput = z.infer<typeof onboardingSchema>;
+export type RequestMagicLinkInput = z.infer<typeof requestMagicLinkSchema>;
+export type VerifyMagicLinkInput = z.infer<typeof verifyMagicLinkSchema>;
