@@ -144,6 +144,42 @@ Reproduire `.env.local` sur Vercel → Project Settings → Environment Variable
   - Mettre à jour `.env.local`, Vercel (`AWS_ACCESS_KEY_ID` + `AWS_SECRET_ACCESS_KEY` Production + Preview), Convex env
   - Désactiver l'ancienne clé puis la supprimer après 24 h sans erreur
 
+## Infrastructure de tests
+
+### Convex env vars shadow `.env.local` côté dev
+- Découvert pendant les tests anti-doublon (avril 2026) : le déploiement Convex dev `capable-crocodile-720` a `WHATSAPP_ACCESS_TOKEN` + `WHATSAPP_PHONE_NUMBER_ID` définis en env vars Convex.
+- Conséquence : même quand `.env.local` du projet Next.js commente WhatsApp pour activer le mock, les actions Convex (qui tournent côté Convex cloud, pas Next.js) utilisent l'env vars Convex et envoient des messages réels via Meta Cloud API. Le retour `provider: 'meta_cloud'` dans `auth.requestOtp / auth.requestLinkPhone` est le tell.
+- **Pour les tests E2E mockés du flow WhatsApp** :
+  - Soit `pnpx convex env unset WHATSAPP_ACCESS_TOKEN WHATSAPP_PHONE_NUMBER_ID` avant les tests, puis restaurer après
+  - Soit ajouter un mode test dédié dans `convex/auth.ts` (`requestOtp` + `requestLinkPhone`) qui force le mock si `process.env.E2E_MODE === '1'`
+- Idem côté SES : si `EMAIL_DRIVER` est set sur Convex, ça override le `.env.local` de Next.js. À vérifier avant E2E mail.
+
+### Test E2E linking happy path (manquant)
+- Couvert par tests unit + Convex CLI tests (4 anti-doublon ✅, 1 happy-path partiel ✅, 1 verify check ✅)
+- Manque : Playwright test bout-en-bout qui mocke OTP côté Convex (cf. note ci-dessus), navigue UI, vérifie patch `users.phone` après verify avec bon code
+- À programmer avec le mode test E2E_MODE dédié
+
+### Test "vraie vie" préprod (Vercel preview)
+- Une fois le preview Vercel déployé, faire le scénario complet avec un vrai numéro + un vrai email :
+  - Sign-up via magic link → onboarding → dashboard → carte "Activer WhatsApp" → ajouter numéro → réception SMS WhatsApp → saisie code → vérifier user.phone patché
+  - Bonus : tester le rejet `PHONE_TAKEN` avec un numéro déjà pris en prod
+- Bloqué par : déploiement preview Vercel (cf. checklist Production en haut)
+
+## Refactoring critique (avant prod élargie)
+
+### Pricing alignment Stripe Prices
+- Source de vérité : `.context/redesign-direction.md` section "Pricing figé"
+- État actuel : `lib/payments/plans.ts` aligné côté code (Essentiel 19€, Premium 49€, +29€ upsell post-mariage)
+- À faire côté Stripe :
+  - Recréer les Prices test/prod : Particuliers (19€ + 49€ + 29€ upsell) + Pros récurrents (89€/179€/349€/mo)
+  - Mettre à jour `STRIPE_PRICE_*` env vars dev + Vercel
+  - Supprimer/désactiver les anciens `price_1TQ712…` divergents
+  - Tester le checkout sur chaque tier
+
+### CGU article 4 — réécriture
+- `messages/fr.json:39` (article 4 des CGU) parle encore d'une "formule gratuite (jusqu'à 30 invitations)" + plans "Sérénité 49 €, Prestige 119 €" — obsolète vs grille canonique
+- À réécrire : 2 plans particuliers (Essentiel 19€, Premium 49€) + upsell post-mariage 29€ + tier Pros (Starter 89€, Business 179€, Agency 349€). Mention que les paiements sont fermes et définitifs (déjà OK), remboursement 100% sous 7j si event non envoyé.
+
 ## Câblage métier emails (post-PR #12)
 
 La plomberie `lib/email/` est en place avec drivers SES + mock et 3 templates. Reste à brancher dans le code applicatif :
