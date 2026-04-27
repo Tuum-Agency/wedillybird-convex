@@ -228,13 +228,7 @@ export default async function EventDetailPage({
             </form>
             <Link
               href={`/events/${eventId}/edit` as never}
-              aria-disabled
-              tabIndex={-1}
-              className={cn(
-                buttonVariants({ variant: 'ghost', size: 'md' }),
-                'pointer-events-none flex-1 cursor-not-allowed opacity-50',
-              )}
-              title="Bientôt disponible"
+              className={cn(buttonVariants({ variant: 'outline', size: 'md' }), 'flex-1')}
             >
               <Eye className="h-4 w-4" strokeWidth={2} aria-hidden />
               Modifier les détails

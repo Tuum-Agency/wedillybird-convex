@@ -109,6 +109,22 @@ export const convexApi = {
       updatedAt: number;
     }>
   >('events:listByOwner'),
+  updateEvent: makeFunctionReference<
+    'mutation',
+    {
+      eventId: string;
+      requesterId: string;
+      title?: string;
+      partnerA?: string;
+      partnerB?: string;
+      eventDate?: number;
+      timezone?: string;
+      venue?: { name: string; address: string };
+      clearVenue?: boolean;
+      theme?: { primaryColor: string; accentColor: string; fontFamily: string };
+    },
+    { ok: true }
+  >('events:update'),
   reconcileEventMaxGuests: makeFunctionReference<
     'mutation',
     { eventId: string; requesterId: string },

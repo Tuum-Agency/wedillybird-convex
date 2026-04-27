@@ -66,6 +66,27 @@ export const createEventSchema = z.object({
 
 export type CreateEventInput = z.infer<typeof createEventSchema>;
 
+/**
+ * Édition partielle d'un événement existant. Tous les champs sont optionnels :
+ * on n'envoie que ce qui change. `clearVenue=true` permet de retirer un lieu
+ * sans en remettre un (cas où le couple n'a plus de lieu).
+ */
+export const updateEventSchema = z.object({
+  title: eventTitleSchema.optional(),
+  partnerA: partnerNameSchema.optional(),
+  partnerB: partnerNameSchema.optional(),
+  eventDate: eventDateSchema.optional(),
+  timezone: timezoneSchema.optional(),
+  venueName: z.string().trim().max(120).optional(),
+  venueAddress: z.string().trim().max(240).optional(),
+  clearVenue: z.boolean().optional(),
+  themePrimary: z.string().regex(HEX_COLOR, 'Couleur invalide').optional(),
+  themeAccent: z.string().regex(HEX_COLOR, 'Couleur invalide').optional(),
+  themeFont: z.string().trim().max(80).optional(),
+});
+
+export type UpdateEventInput = z.infer<typeof updateEventSchema>;
+
 export interface NormalizedEventInput {
   title: string;
   partnerA: string;

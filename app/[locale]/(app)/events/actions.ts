@@ -2,7 +2,11 @@
 
 import { revalidatePath } from 'next/cache';
 import { redirect } from '@/i18n/navigation';
-import { createEventSchema, normalizeCreateEvent } from '@/lib/validators/events';
+import {
+  createEventSchema,
+  normalizeCreateEvent,
+  updateEventSchema,
+} from '@/lib/validators/events';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
 import { getSession } from '@/lib/auth/session';
 
@@ -13,6 +17,10 @@ export type CreateEventResult =
 export type EventStatusToggleResult =
   | { ok: true; status: 'draft' | 'active' | 'archived' | 'cancelled' }
   | { ok: false; error: string };
+
+export type UpdateEventResult =
+  | { ok: true }
+  | { ok: false; error: string; fieldErrors?: Record<string, string[] | undefined> };
 
 export async function createEventAction(formData: FormData): Promise<CreateEventResult> {
   const session = await getSession();
@@ -70,6 +78,87 @@ export async function createEventAction(formData: FormData): Promise<CreateEvent
  */
 export async function togglePublishAction(formData: FormData): Promise<void> {
   await togglePublishActionWithResult(formData);
+}
+
+/**
+ * Met à jour les détails d'un événement existant. Champs optionnels —
+ * on n'envoie à Convex que ce qui change. Le particulier peut accéder
+ * via /events/[id]/edit, le pro peut aussi (collab non implémenté ici).
+ */
+export async function updateEventAction(
+  eventId: string,
+  formData: FormData,
+): Promise<UpdateEventResult> {
+  const session = await getSession();
+  if (!session) return { ok: false, error: 'UNAUTHENTICATED' };
+
+  const rawTitle = formData.get('title');
+  const rawPartnerA = formData.get('partnerA');
+  const rawPartnerB = formData.get('partnerB');
+  const rawDate = formData.get('eventDate');
+  const rawTimezone = formData.get('timezone');
+  const rawVenueName = formData.get('venueName');
+  const rawVenueAddress = formData.get('venueAddress');
+  const rawClearVenue = formData.get('clearVenue') === '1';
+  const rawThemePrimary = formData.get('themePrimary');
+  const rawThemeAccent = formData.get('themeAccent');
+  const rawThemeFont = formData.get('themeFont');
+
+  const parsed = updateEventSchema.safeParse({
+    title: rawTitle ? String(rawTitle) : undefined,
+    partnerA: rawPartnerA ? String(rawPartnerA) : undefined,
+    partnerB: rawPartnerB ? String(rawPartnerB) : undefined,
+    eventDate: rawDate ? String(rawDate) : undefined,
+    timezone: rawTimezone ? String(rawTimezone) : undefined,
+    venueName: rawVenueName ? String(rawVenueName) : undefined,
+    venueAddress: rawVenueAddress ? String(rawVenueAddress) : undefined,
+    clearVenue: rawClearVenue || undefined,
+    themePrimary: rawThemePrimary ? String(rawThemePrimary) : undefined,
+    themeAccent: rawThemeAccent ? String(rawThemeAccent) : undefined,
+    themeFont: rawThemeFont ? String(rawThemeFont) : undefined,
+  });
+
+  if (!parsed.success) {
+    return {
+      ok: false,
+      error: 'INVALID_INPUT',
+      fieldErrors: parsed.error.flatten().fieldErrors,
+    };
+  }
+
+  const data = parsed.data;
+  const venue =
+    data.venueName && data.venueAddress
+      ? { name: data.venueName, address: data.venueAddress }
+      : undefined;
+  const theme =
+    data.themePrimary && data.themeAccent && data.themeFont
+      ? {
+          primaryColor: data.themePrimary,
+          accentColor: data.themeAccent,
+          fontFamily: data.themeFont,
+        }
+      : undefined;
+
+  const convex = getConvexServerClient();
+  try {
+    await convex.mutation(convexApi.updateEvent, {
+      eventId,
+      requesterId: session.userId,
+      ...(data.title !== undefined ? { title: data.title } : {}),
+      ...(data.partnerA !== undefined ? { partnerA: data.partnerA } : {}),
+      ...(data.partnerB !== undefined ? { partnerB: data.partnerB } : {}),
+      ...(data.eventDate !== undefined ? { eventDate: data.eventDate } : {}),
+      ...(data.timezone !== undefined ? { timezone: data.timezone } : {}),
+      ...(venue ? { venue } : {}),
+      ...(data.clearVenue ? { clearVenue: true } : {}),
+      ...(theme ? { theme } : {}),
+    });
+    revalidatePath(`/fr/events/${eventId}`);
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : 'UNKNOWN' };
+  }
 }
 
 export async function togglePublishActionWithResult(

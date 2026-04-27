@@ -63,6 +63,81 @@ export const reconcileMaxGuests = mutation({
   },
 });
 
+export const update = mutation({
+  args: {
+    eventId: v.id('events'),
+    requesterId: v.id('users'),
+    title: v.optional(v.string()),
+    partnerA: v.optional(v.string()),
+    partnerB: v.optional(v.string()),
+    eventDate: v.optional(v.number()),
+    timezone: v.optional(v.string()),
+    venue: v.optional(
+      v.object({
+        name: v.string(),
+        address: v.string(),
+      }),
+    ),
+    clearVenue: v.optional(v.boolean()),
+    theme: v.optional(
+      v.object({
+        primaryColor: v.string(),
+        accentColor: v.string(),
+        fontFamily: v.string(),
+      }),
+    ),
+  },
+  handler: async (ctx, args) => {
+    const ev = await ctx.db.get(args.eventId);
+    if (!ev) throw new Error('EVENT_NOT_FOUND');
+    if (ev.ownerId !== args.requesterId) throw new Error('FORBIDDEN');
+
+    const patch: Partial<Doc<'events'>> = {};
+
+    if (args.title !== undefined) {
+      const title = args.title.trim();
+      if (title.length < 2 || title.length > 120) throw new Error('INVALID_TITLE');
+      patch.title = title;
+    }
+
+    if (args.partnerA !== undefined || args.partnerB !== undefined) {
+      const partnerA = (args.partnerA ?? ev.coupleNames.partnerA).trim();
+      const partnerB = (args.partnerB ?? ev.coupleNames.partnerB).trim();
+      if (partnerA.length < 1 || partnerB.length < 1) throw new Error('INVALID_COUPLE_NAMES');
+      patch.coupleNames = { partnerA, partnerB };
+    }
+
+    if (args.eventDate !== undefined) {
+      if (!Number.isFinite(args.eventDate) || args.eventDate <= Date.now()) {
+        throw new Error('INVALID_DATE');
+      }
+      patch.eventDate = args.eventDate;
+    }
+
+    if (args.timezone !== undefined) {
+      if (args.timezone.length === 0) throw new Error('INVALID_TIMEZONE');
+      patch.timezone = args.timezone;
+    }
+
+    if (args.clearVenue) {
+      patch.venue = undefined;
+    } else if (args.venue) {
+      patch.venue = {
+        name: args.venue.name.trim(),
+        address: args.venue.address.trim(),
+      };
+    }
+
+    if (args.theme) {
+      patch.theme = args.theme;
+    }
+
+    patch.updatedAt = Date.now();
+    await ctx.db.patch(args.eventId, patch);
+    return { ok: true as const };
+  },
+});
+
 export const create = mutation({
   args: {
     ownerId: v.id('users'),
