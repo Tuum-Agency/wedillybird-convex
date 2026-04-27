@@ -1,6 +1,7 @@
 import { headers } from 'next/headers';
 import { useTranslations } from 'next-intl';
 import { setRequestLocale } from 'next-intl/server';
+import { ArrowRight } from 'lucide-react';
 import { Link } from '@/i18n/navigation';
 import { buttonVariants } from '@/components/ui/button';
 import { LenisProvider } from '@/components/landing/lenis-provider';
@@ -114,9 +115,14 @@ function LandingShell({
           <div className="flex items-center gap-3">
             <Link
               href="/sign-up"
-              className={cn(buttonVariants({ variant: 'primary', size: 'sm' }))}
+              className={cn(buttonVariants({ variant: 'primary', size: 'sm' }), 'group')}
             >
               {tCommon('getStarted')}
+              <ArrowRight
+                className="h-3.5 w-3.5 transition-transform duration-200 [@media(hover:hover)]:group-hover:translate-x-0.5"
+                strokeWidth={2.25}
+                aria-hidden
+              />
             </Link>
           </div>
         </div>
