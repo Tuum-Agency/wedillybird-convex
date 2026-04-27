@@ -1,11 +1,14 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
+import { Sparkles, ArrowLeft } from 'lucide-react';
 import { Link, redirect } from '@/i18n/navigation';
 import { getSession } from '@/lib/auth/session';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
-import { Button } from '@/components/ui/button';
+import { buttonVariants } from '@/components/ui/button';
+import { AppShell } from '@/components/app/app-shell';
 import { getPaymentDriver } from '@/lib/payments';
 import type { ProviderName } from '@/lib/payments/country';
+import { cn } from '@/lib/cn';
 
 function isProviderName(value: string | undefined): value is ProviderName {
   return value === 'stripe' || value === 'cinetpay' || value === 'mock';
@@ -29,9 +32,7 @@ export default async function UpgradeSuccessPage({
 
   const convex = getConvexServerClient();
 
-  // Fallback finalization: if the Stripe webhook hasn't fired yet (or in dev
-  // without `stripe listen`), reconcile the payment using the session_id query
-  // param Stripe appends to the success URL. The mutations are idempotent.
+  // Fallback finalization (idempotent) si webhook pas encore arrivé.
   let reconciliationFailed = false;
   if (sp.session_id) {
     try {
@@ -56,31 +57,56 @@ export default async function UpgradeSuccessPage({
   });
   if (!event) notFound();
 
+  const user = await convex.query(convexApi.currentUser, { userId: session!.userId });
   const t = await getTranslations('Upgrade');
-  // Webhook hasn't reconciled yet (or payment failed). UI shows a processing state.
   const isPending = event.planTier === undefined;
 
   return (
-    <main className="container-page flex flex-1 flex-col items-center justify-center gap-6 py-16 text-center">
-      <h1 className="font-display text-3xl font-semibold tracking-tight">
-        {isPending ? t('processingTitle') : t('successTitle')}
-      </h1>
-      <p className="text-base text-[color:var(--color-muted)]">
-        {isPending
-          ? t('processingBody')
-          : t('successBody', {
-              plan: t(`plans.${event.planTier!}` as const),
-              days: event.planTier === 'premium' ? 180 : 30,
-            })}
-      </p>
-      {isPending && reconciliationFailed ? (
-        <p role="alert" className="text-sm text-[color:var(--color-destructive)]">
-          {t('errors.reconciliation')}
+    <AppShell userName={user?.fullName}>
+      <div className="container-page mx-auto flex min-h-[60vh] max-w-2xl flex-col items-center justify-center gap-7 py-16 text-center">
+        <span
+          className="flex h-16 w-16 items-center justify-center rounded-full text-white shadow-[var(--shadow-blush)]"
+          style={{
+            background: isPending
+              ? 'linear-gradient(135deg, oklch(78% 0.075 78) 0%, oklch(58% 0.075 80) 100%)'
+              : 'linear-gradient(135deg, oklch(72% 0.09 20) 0%, oklch(58% 0.075 80) 100%)',
+          }}
+          aria-hidden
+        >
+          <Sparkles className="h-7 w-7" strokeWidth={1.75} />
+        </span>
+        <h1
+          className="font-display text-balance italic"
+          style={{
+            fontSize: 'clamp(2rem, 4.5vw, 3rem)',
+            lineHeight: 1.05,
+            letterSpacing: '-0.022em',
+            color: 'var(--color-ink-900)',
+          }}
+        >
+          {isPending ? t('processingTitle') : t('successTitle')}
+        </h1>
+        <p className="max-w-md text-base leading-relaxed text-[color:var(--color-ink-500)] sm:text-lg">
+          {isPending
+            ? t('processingBody')
+            : t('successBody', {
+                plan: t(`plans.${event.planTier!}` as const),
+                days: event.planTier === 'premium' ? 180 : 30,
+              })}
         </p>
-      ) : null}
-      <Link href={`/events/${eventId}`}>
-        <Button>{t('backToEvent')}</Button>
-      </Link>
-    </main>
+        {isPending && reconciliationFailed ? (
+          <p role="alert" className="text-sm text-[color:var(--color-destructive)]">
+            {t('errors.reconciliation')}
+          </p>
+        ) : null}
+        <Link
+          href={`/events/${eventId}`}
+          className={cn(buttonVariants({ variant: 'primary', size: 'lg' }), 'mt-4')}
+        >
+          <ArrowLeft className="h-4 w-4" strokeWidth={2} aria-hidden />
+          {t('backToEvent')}
+        </Link>
+      </div>
+    </AppShell>
   );
 }

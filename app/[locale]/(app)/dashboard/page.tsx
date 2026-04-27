@@ -1,11 +1,13 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import type { Metadata } from 'next';
+import { Plus } from 'lucide-react';
 import { Link, redirect } from '@/i18n/navigation';
 import { getSession } from '@/lib/auth/session';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { signOutAction } from '@/app/[locale]/(auth)/actions';
+import { buttonVariants } from '@/components/ui/button';
+import { AppShell } from '@/components/app/app-shell';
+import { DashboardEventsList } from '@/components/dashboard/events-list';
+import { cn } from '@/lib/cn';
 
 export async function generateMetadata({
   params,
@@ -17,8 +19,17 @@ export async function generateMetadata({
   return { title: t('greeting', { name: '' }).trim() };
 }
 
-type EventStatus = 'draft' | 'active' | 'archived' | 'cancelled';
-
+/**
+ * Dashboard couple V4 — header éditorial + grid événements animée.
+ *
+ * Server component qui :
+ *  1. Vérifie la session, redirige vers /sign-in si absent
+ *  2. Vérifie l'onboarding, redirige vers /onboarding si pas terminé
+ *  3. Redirige les pros vers /pro/dashboard
+ *  4. Liste les events de l'utilisateur (couple)
+ *
+ * Le rendu délègue les animations à DashboardEventsList (client component).
+ */
 export default async function DashboardPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   setRequestLocale(locale);
@@ -43,106 +54,88 @@ export default async function DashboardPage({ params }: { params: Promise<{ loca
   }
 
   const events = await convex.query(convexApi.listEventsByOwner, { ownerId: session!.userId });
-
   const t = await getTranslations('Dashboard');
-  const tCommon = await getTranslations('Common');
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <header className="container-page flex h-16 items-center justify-between border-b border-[color:var(--color-border)]">
-        <span className="font-display text-xl font-semibold">Wedillybird</span>
-        <form action={signOutAction}>
-          <Button type="submit" variant="ghost" size="sm">
-            {tCommon('signOut')}
-          </Button>
-        </form>
-      </header>
-
-      <main className="container-page flex flex-1 flex-col gap-8 py-10">
-        <section className="flex flex-col gap-1">
-          <h1 className="font-display text-3xl font-semibold tracking-tight">
-            {t('greeting', { name: user!.fullName ?? '' })}
-          </h1>
-          <p className="text-sm text-[color:var(--color-muted)]">
-            {events.length === 0 ? t('noEvents') : t('eventsTitle')}
-          </p>
-        </section>
-
-        {events.length === 0 ? (
-          <section>
-            <Link href="/events/new">
-              <Button size="lg">{t('createEvent')}</Button>
-            </Link>
-          </section>
-        ) : (
-          <section className="flex flex-col gap-4">
-            <div className="flex items-center justify-between">
-              <h2 className="font-display text-xl font-semibold">{t('eventsTitle')}</h2>
-              <Link href="/events/new">
-                <Button size="sm">{t('createEvent')}</Button>
+    <AppShell userName={user!.fullName}>
+      <div className="container-page py-12 sm:py-16">
+        {/* Eyebrow + greeting éditorial */}
+        <header className="mb-12 flex flex-col gap-4">
+          <span className="font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-ink-500)] uppercase">
+            Tableau de bord
+          </span>
+          <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
+            <h1
+              className="font-display text-balance italic"
+              style={{
+                fontSize: 'clamp(2rem, 4.5vw, 3rem)',
+                lineHeight: 1.05,
+                letterSpacing: '-0.022em',
+                color: 'var(--color-ink-900)',
+              }}
+            >
+              {t('greeting', { name: user!.fullName ?? '' })}
+            </h1>
+            {events.length > 0 ? (
+              <Link
+                href="/events/new"
+                className={cn(buttonVariants({ variant: 'primary', size: 'md' }), 'group')}
+              >
+                <Plus className="h-4 w-4" strokeWidth={2} aria-hidden />
+                {t('createEvent')}
               </Link>
-            </div>
-            <ul className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              {events.map((ev) => (
-                <li key={ev._id}>
-                  <Link
-                    href={`/events/${ev._id}`}
-                    className="focus-ring flex flex-col gap-3 rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-5 transition-colors hover:bg-[color:var(--color-ivory-100)]"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <h3 className="font-display text-lg leading-tight font-semibold">
-                        {ev.title}
-                      </h3>
-                      <Badge variant={statusVariant(ev.status)}>{t(statusKey(ev.status))}</Badge>
-                    </div>
-                    <p className="text-sm text-[color:var(--color-muted)]">
-                      {ev.coupleNames.partnerA} & {ev.coupleNames.partnerB}
-                    </p>
-                    <p className="text-sm">
-                      {new Intl.DateTimeFormat('fr', {
-                        dateStyle: 'long',
-                        timeStyle: 'short',
-                        timeZone: ev.timezone,
-                      }).format(new Date(ev.eventDate))}
-                    </p>
-                    {ev.venue ? (
-                      <p className="text-xs text-[color:var(--color-muted)]">{ev.venue.name}</p>
-                    ) : null}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
-      </main>
-    </div>
+            ) : null}
+          </div>
+        </header>
+
+        {events.length === 0 ? <EmptyState /> : <DashboardEventsList events={events} />}
+      </div>
+    </AppShell>
   );
 }
 
-function statusKey(
-  status: EventStatus,
-): 'draftBadge' | 'activeBadge' | 'archivedBadge' | 'cancelledBadge' {
-  switch (status) {
-    case 'active':
-      return 'activeBadge';
-    case 'archived':
-      return 'archivedBadge';
-    case 'cancelled':
-      return 'cancelledBadge';
-    default:
-      return 'draftBadge';
-  }
-}
-
-function statusVariant(status: EventStatus): 'primary' | 'neutral' | 'destructive' | 'accent' {
-  switch (status) {
-    case 'active':
-      return 'accent';
-    case 'cancelled':
-      return 'destructive';
-    case 'archived':
-      return 'neutral';
-    default:
-      return 'primary';
-  }
+/**
+ * Empty state V4 — pas d'événements encore. CTA grand format pour engager
+ * la première création.
+ */
+async function EmptyState() {
+  const t = await getTranslations('Dashboard');
+  return (
+    <section className="flex flex-col items-center gap-7 rounded-3xl border border-dashed border-[color:var(--color-border-strong)] bg-white/60 px-8 py-16 text-center">
+      <span
+        aria-hidden
+        className="flex h-16 w-16 items-center justify-center rounded-full"
+        style={{
+          background: 'linear-gradient(135deg, oklch(95% 0.025 22) 0%, oklch(91% 0.045 22) 100%)',
+          color: 'var(--color-blush-700)',
+        }}
+      >
+        <Plus className="h-7 w-7" strokeWidth={1.5} aria-hidden />
+      </span>
+      <div className="flex flex-col gap-3">
+        <h2
+          className="font-display text-balance italic"
+          style={{
+            fontSize: 'clamp(1.5rem, 2.5vw, 2rem)',
+            lineHeight: 1.15,
+            letterSpacing: '-0.018em',
+            color: 'var(--color-ink-900)',
+          }}
+        >
+          {t('noEvents')}
+        </h2>
+        <p className="max-w-md text-sm leading-relaxed text-[color:var(--color-ink-500)] sm:text-base">
+          Créez votre premier mariage en quelques minutes. Date, lieu, identité visuelle — vous
+          pourrez tout modifier à tout moment.
+        </p>
+      </div>
+      <Link
+        href="/events/new"
+        className={cn(buttonVariants({ variant: 'primary', size: 'lg' }), 'mt-2')}
+      >
+        <Plus className="h-4 w-4" strokeWidth={2} aria-hidden />
+        {t('createEvent')}
+      </Link>
+    </section>
+  );
 }

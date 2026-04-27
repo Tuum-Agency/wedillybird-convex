@@ -1,31 +1,47 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
+import { ArrowLeft, Calendar, MapPin, Camera, QrCode, Users } from 'lucide-react';
 import { Link, redirect } from '@/i18n/navigation';
 import { getSession } from '@/lib/auth/session';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { buttonVariants } from '@/components/ui/button';
+import { AppShell } from '@/components/app/app-shell';
 import { LiveGuestStats } from '@/components/events/live-guest-stats';
 import { UpgradeCard } from '@/components/payments/upgrade-card';
 import { routePayment } from '@/lib/payments/country';
+import { cn } from '@/lib/cn';
 
 type EventStatus = 'draft' | 'active' | 'archived' | 'cancelled';
 
-function statusKey(
-  status: EventStatus,
-): 'draftBadge' | 'activeBadge' | 'archivedBadge' | 'cancelledBadge' {
-  if (status === 'active') return 'activeBadge';
-  if (status === 'archived') return 'archivedBadge';
-  if (status === 'cancelled') return 'cancelledBadge';
-  return 'draftBadge';
-}
-
-function statusVariant(status: EventStatus): 'primary' | 'neutral' | 'destructive' | 'accent' {
-  if (status === 'active') return 'accent';
-  if (status === 'cancelled') return 'destructive';
-  if (status === 'archived') return 'neutral';
-  return 'primary';
-}
+const STATUS_CONFIG: Record<
+  EventStatus,
+  { labelKey: string; bg: string; fg: string; dot: string }
+> = {
+  draft: {
+    labelKey: 'draftBadge',
+    bg: 'oklch(94% 0.022 78)',
+    fg: 'var(--color-ink-700)',
+    dot: 'oklch(78% 0.075 78)',
+  },
+  active: {
+    labelKey: 'activeBadge',
+    bg: 'oklch(96% 0.018 145)',
+    fg: 'oklch(50% 0.08 145)',
+    dot: 'oklch(50% 0.08 145)',
+  },
+  archived: {
+    labelKey: 'archivedBadge',
+    bg: 'oklch(94% 0.012 78)',
+    fg: 'var(--color-ink-500)',
+    dot: 'var(--color-ink-500)',
+  },
+  cancelled: {
+    labelKey: 'cancelledBadge',
+    bg: 'oklch(96% 0.025 25)',
+    fg: 'var(--color-blush-700)',
+    dot: 'var(--color-blush-700)',
+  },
+};
 
 export default async function EventDetailPage({
   params,
@@ -52,70 +68,109 @@ export default async function EventDetailPage({
     requesterId: session!.userId,
   });
 
+  const user = await convex.query(convexApi.currentUser, { userId: session!.userId });
   const t = await getTranslations('EventDetail');
   const tDash = await getTranslations('Dashboard');
+  const statusCfg = STATUS_CONFIG[event.status];
+
+  const dateFormatted = new Intl.DateTimeFormat('fr', {
+    dateStyle: 'long',
+    timeStyle: 'short',
+    timeZone: event.timezone,
+  }).format(new Date(event.eventDate));
 
   return (
-    <main className="container-page flex flex-1 flex-col gap-8 py-10">
-      <section className="flex flex-col gap-2">
-        <Link href="/dashboard" className="text-sm text-[color:var(--color-muted)] hover:underline">
-          ← {t('backToDashboard')}
-        </Link>
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <h1 className="font-display text-3xl font-semibold tracking-tight">{event.title}</h1>
-            <p className="text-sm text-[color:var(--color-muted)]">
-              {event.coupleNames.partnerA} &amp; {event.coupleNames.partnerB}
-            </p>
+    <AppShell userName={user?.fullName}>
+      <div className="container-page flex flex-col gap-12 py-12 sm:py-16">
+        {/* Breadcrumb + header éditorial */}
+        <div className="flex flex-col gap-5">
+          <Link
+            href="/dashboard"
+            className="inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-ink-500)] uppercase transition-colors hover:text-[color:var(--color-ink-900)]"
+          >
+            <ArrowLeft className="h-3 w-3" strokeWidth={2} aria-hidden />
+            {t('backToDashboard')}
+          </Link>
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="flex flex-col gap-2">
+              <h1
+                className="font-display text-balance italic"
+                style={{
+                  fontSize: 'clamp(2rem, 4.5vw, 3rem)',
+                  lineHeight: 1.05,
+                  letterSpacing: '-0.022em',
+                  color: 'var(--color-ink-900)',
+                }}
+              >
+                {event.coupleNames.partnerA}{' '}
+                <span style={{ color: 'var(--color-gold-500)' }}>&amp;</span>{' '}
+                {event.coupleNames.partnerB}
+              </h1>
+              <p className="text-sm text-[color:var(--color-ink-500)]">{event.title}</p>
+            </div>
+            <span
+              className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 font-mono text-[10px] tracking-[0.18em] uppercase"
+              style={{ background: statusCfg.bg, color: statusCfg.fg }}
+            >
+              <span
+                aria-hidden
+                className="inline-block h-1.5 w-1.5 rounded-full"
+                style={{ background: statusCfg.dot }}
+              />
+              {tDash(statusCfg.labelKey)}
+            </span>
           </div>
-          <Badge variant={statusVariant(event.status)}>{tDash(statusKey(event.status))}</Badge>
         </div>
-      </section>
 
-      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <article className="flex flex-col gap-2 rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-5">
-          <h2 className="font-display text-lg font-semibold">{t('dateSection')}</h2>
-          <p>
-            {new Intl.DateTimeFormat('fr', {
-              dateStyle: 'long',
-              timeStyle: 'short',
-              timeZone: event.timezone,
-            }).format(new Date(event.eventDate))}
-          </p>
-          <p className="text-xs text-[color:var(--color-muted)]">{event.timezone}</p>
-        </article>
+        {/* Cards date + lieu */}
+        <section className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <DetailCard
+            Icon={Calendar}
+            label={t('dateSection')}
+            primary={dateFormatted}
+            secondary={event.timezone}
+          />
+          <DetailCard
+            Icon={MapPin}
+            label={t('venueSection')}
+            primary={event.venue?.name ?? t('noVenue')}
+            secondary={event.venue?.address}
+          />
+        </section>
 
-        <article className="flex flex-col gap-2 rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-5">
-          <h2 className="font-display text-lg font-semibold">{t('venueSection')}</h2>
-          {event.venue ? (
-            <>
-              <p>{event.venue.name}</p>
-              <p className="text-sm text-[color:var(--color-muted)]">{event.venue.address}</p>
-            </>
-          ) : (
-            <p className="text-sm text-[color:var(--color-muted)]">{t('noVenue')}</p>
-          )}
-        </article>
-      </section>
+        {/* Live guest stats (component existant) */}
+        <LiveGuestStats
+          eventId={eventId}
+          requesterId={session!.userId}
+          initialCounts={counts}
+          maxGuests={event.maxGuests}
+        />
 
-      <LiveGuestStats
-        eventId={eventId}
-        requesterId={session!.userId}
-        initialCounts={counts}
-        maxGuests={event.maxGuests}
-      />
+        {/* Upgrade card (component existant) */}
+        <UpgradeCard
+          eventId={eventId}
+          currentTier={event.planTier}
+          currency={routePayment(undefined).currency}
+        />
 
-      <UpgradeCard
-        eventId={eventId}
-        currentTier={event.planTier}
-        currency={routePayment(undefined).currency}
-      />
-
-      <section className="flex flex-col gap-4 rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-5">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="font-display text-xl font-semibold">{t('guestsTitle')}</h2>
-            <p className="text-sm text-[color:var(--color-muted)]">
+        {/* Actions section */}
+        <section className="flex flex-col gap-5 rounded-3xl border border-[color:var(--color-border)] bg-white p-7 shadow-[var(--shadow-soft)]">
+          <div className="flex flex-col gap-2">
+            <span className="font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-blush-700)] uppercase">
+              Vos invités
+            </span>
+            <h2
+              className="font-display italic"
+              style={{
+                fontSize: 'clamp(1.5rem, 2.4vw, 2rem)',
+                lineHeight: 1.15,
+                letterSpacing: '-0.018em',
+                color: 'var(--color-ink-900)',
+              }}
+            >
+              {t('guestsTitle')}
+            </h2>
+            <p className="text-sm leading-relaxed text-[color:var(--color-ink-500)] sm:text-base">
               {t('guestsSummary', {
                 total: counts.total,
                 attending: counts.attending,
@@ -123,19 +178,67 @@ export default async function EventDetailPage({
               })}
             </p>
           </div>
-          <div className="flex gap-2">
-            <Link href={`/events/${eventId}/gallery`}>
-              <Button variant="ghost">{t('openGallery')}</Button>
+          <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
+            <Link
+              href={`/events/${eventId}/guests`}
+              className={cn(buttonVariants({ variant: 'primary', size: 'md' }), 'flex-1')}
+            >
+              <Users className="h-4 w-4" strokeWidth={2} aria-hidden />
+              {t('manageGuests')}
             </Link>
-            <Link href={`/events/${eventId}/check-in`}>
-              <Button variant="ghost">{t('openCheckIn')}</Button>
+            <Link
+              href={`/events/${eventId}/check-in`}
+              className={cn(buttonVariants({ variant: 'outline', size: 'md' }), 'flex-1')}
+            >
+              <QrCode className="h-4 w-4" strokeWidth={2} aria-hidden />
+              {t('openCheckIn')}
             </Link>
-            <Link href={`/events/${eventId}/guests`}>
-              <Button>{t('manageGuests')}</Button>
+            <Link
+              href={`/events/${eventId}/gallery`}
+              className={cn(buttonVariants({ variant: 'outline', size: 'md' }), 'flex-1')}
+            >
+              <Camera className="h-4 w-4" strokeWidth={2} aria-hidden />
+              {t('openGallery')}
             </Link>
           </div>
-        </div>
-      </section>
-    </main>
+        </section>
+      </div>
+    </AppShell>
+  );
+}
+
+function DetailCard({
+  Icon,
+  label,
+  primary,
+  secondary,
+}: {
+  Icon: typeof Calendar;
+  label: string;
+  primary: string;
+  secondary?: string;
+}) {
+  return (
+    <article className="flex items-start gap-4 rounded-3xl border border-[color:var(--color-border)] bg-white p-6 shadow-[var(--shadow-soft)]">
+      <span
+        aria-hidden
+        className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl"
+        style={{
+          background: 'oklch(95% 0.025 22)',
+          color: 'var(--color-blush-700)',
+        }}
+      >
+        <Icon className="h-4 w-4" strokeWidth={1.75} />
+      </span>
+      <div className="flex flex-col gap-1">
+        <span className="font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-ink-500)] uppercase">
+          {label}
+        </span>
+        <p className="text-base font-medium text-[color:var(--color-ink-900)]">{primary}</p>
+        {secondary ? (
+          <p className="text-sm text-[color:var(--color-ink-500)]">{secondary}</p>
+        ) : null}
+      </div>
+    </article>
   );
 }
