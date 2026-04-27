@@ -627,6 +627,15 @@
       "unknown": "Une erreur est survenue. Réessayez."
     }
   },
+  "OrgPublic": {
+    "poweredBy": "Propulsé par",
+    "eventEyebrow": "Mariage",
+    "dateLabel": "Date & heure",
+    "venueLabel": "Lieu",
+    "eventCta": "Vous avez reçu une invitation ? Ouvrez-la depuis le lien personnel envoyé par les mariés.",
+    "notFoundTitle": "Organisation introuvable",
+    "notFoundDescription": "Le sous-domaine demandé ne correspond à aucune organisation Wedillybird active."
+  },
   "EventStats": {
     "liveTitle": "RSVP en temps réel",
     "pending": "En attente",

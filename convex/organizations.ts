@@ -282,6 +282,39 @@ export const getById = query({
   },
 });
 
+/**
+ * Lookup public d'une organisation par slug — utilisé par le layout
+ * `(public-org)` côté Next pour appliquer le branding orga (logo,
+ * primaryColor, accentColor) sur les pages servies sous le sous-domaine
+ * `<slug>.wedillybird.com`.
+ *
+ * Aucune PII n'est exposée (pas de stripeCustomerId, pas de membership,
+ * pas d'email/phone). On retourne uniquement ce qui est nécessaire pour
+ * le rendu public d'une page d'événement ou d'invitation sous le
+ * sous-domaine de l'orga.
+ */
+export const findBySlug = query({
+  args: { slug: v.string() },
+  handler: async (ctx, { slug }) => {
+    const trimmed = slug.trim().toLowerCase();
+    if (!trimmed) return null;
+    const org = await ctx.db
+      .query('organizations')
+      .withIndex('by_slug', (q) => q.eq('slug', trimmed))
+      .first();
+    if (!org) return null;
+    const logoUrl = org.logoStorageId ? await ctx.storage.getUrl(org.logoStorageId) : null;
+    return {
+      _id: org._id,
+      name: org.name,
+      slug: org.slug,
+      primaryColor: org.primaryColor,
+      accentColor: org.accentColor,
+      logoUrl,
+    };
+  },
+});
+
 export const listEvents = query({
   args: { organizationId: v.id('organizations'), requesterId: v.id('users') },
   handler: async (ctx, { organizationId, requesterId }) => {

@@ -76,11 +76,14 @@ Reproduire `.env.local` sur Vercel → Project Settings → Environment Variable
 - Composant `OrganizationBranding` réutilisant `PhotoUploader` mode 'owner'
 - Mutation `organizations.updateBranding` déjà câblée
 
-### Sous-domaine wildcard `<slug>.wedillybird.com`
-- **Bloqué par** : config DNS wildcard `*.wedillybird.com` chez le registrar + Vercel domain wildcard
-- **Travail** :
-  - Middleware `proxy.ts` : détecter sous-domaine, rewrite vers `/orgs/[slug]/...`
-  - Route group `(public-org)` avec layout custom utilisant le branding
+### Sous-domaine wildcard `<slug>.wedillybird.com` — Code livré ✅
+- **Reste à faire (infra externe)** : config DNS wildcard `*.wedillybird.com` chez le registrar + Vercel domain wildcard pointant sur l'app.
+- **Code livré** :
+  - `proxy.ts` détecte `<slug>.wedillybird.com` (whitelist `www`, `api`, `media`, `app`, `admin`) et rewrite vers `/orgs/[slug]/...` en gardant l'URL utilisateur. Override dev `?orgPreview=<slug>` actif sur `localhost` uniquement.
+  - Route group `app/[locale]/(public-org)/orgs/[slug]/` avec `layout.tsx` qui fetch l'orga via `convexApi.findOrgBySlug`, applique le branding (logo + `--brand-primary`/`--brand-accent` en CSS vars) et `notFound()` si slug inconnu.
+  - Pages servies : `event/[eventSlug]` (event public) et `i/[token]` (invitation guest sous le sous-domaine de l'orga).
+  - Convex queries publiques : `organizations.findBySlug` (PII-free) et `events.findPublicEventBySlug` (filtre `status=active` + `organizationId` matching).
+  - Tests : `tests/unit/middleware/proxy.test.ts` (extractOrgSlug — 14 cas) + `tests/e2e/wildcard-subdomain.spec.ts` (skip propre si pas d'orga seedée).
 - **Référence** : Vercel multi-tenant docs
 
 ### Invite par lien WhatsApp auto

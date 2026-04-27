@@ -343,12 +343,7 @@ export type PaygPublishGateInput = {
     organizationId?: Id<'organizations'>;
   };
   organization: {
-    subscriptionStatus?:
-      | 'trialing'
-      | 'active'
-      | 'past_due'
-      | 'canceled'
-      | 'unpaid';
+    subscriptionStatus?: 'trialing' | 'active' | 'past_due' | 'canceled' | 'unpaid';
     paygCredits?: number;
   } | null;
 };
@@ -505,6 +500,56 @@ export const getBySlug = query({
       theme: ev.theme,
       status: ev.status,
       maxGuests: ev.maxGuests,
+    };
+  },
+});
+
+/**
+ * Lookup public d'un event qui appartient à une organisation donnée et qui
+ * est `status: 'active'`. Sert la page d'événement publique sous le
+ * sous-domaine `<slug>.wedillybird.com/event/<eventSlug>`.
+ *
+ * Le slug d'event est globalement unique (index `by_slug`) mais on filtre
+ * en plus sur l'organizationId pour empêcher qu'un sous-domaine d'orga A
+ * affiche un event de l'orga B (même si l'attaquant connaît le slug).
+ *
+ * On retourne uniquement le shape "public" (pas d'ownerId, pas de
+ * planTier, pas de messagingConfig) — la page publique n'a pas à les
+ * exposer.
+ */
+export const findPublicEventBySlug = query({
+  args: {
+    orgSlug: v.string(),
+    eventSlug: v.string(),
+  },
+  handler: async (ctx, { orgSlug, eventSlug }) => {
+    const slug = eventSlug.trim();
+    const orgSlugTrim = orgSlug.trim().toLowerCase();
+    if (!slug || !orgSlugTrim) return null;
+
+    const org = await ctx.db
+      .query('organizations')
+      .withIndex('by_slug', (q) => q.eq('slug', orgSlugTrim))
+      .first();
+    if (!org) return null;
+
+    const ev = await ctx.db
+      .query('events')
+      .withIndex('by_slug', (q) => q.eq('slug', slug))
+      .first();
+    if (!ev) return null;
+    if (ev.organizationId !== org._id) return null;
+    if (ev.status !== 'active') return null;
+
+    return {
+      _id: ev._id,
+      slug: ev.slug,
+      title: ev.title,
+      coupleNames: ev.coupleNames,
+      eventDate: ev.eventDate,
+      timezone: ev.timezone,
+      venue: ev.venue,
+      theme: ev.theme,
     };
   },
 });

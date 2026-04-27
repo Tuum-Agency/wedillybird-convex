@@ -534,6 +534,32 @@ export const convexApi = {
       myRole: 'owner' | 'admin' | 'planner' | 'viewer';
     } | null
   >('organizations:myOrganization'),
+  findOrgBySlug: makeFunctionReference<
+    'query',
+    { slug: string },
+    {
+      _id: string;
+      name: string;
+      slug: string;
+      primaryColor?: string;
+      accentColor?: string;
+      logoUrl: string | null;
+    } | null
+  >('organizations:findBySlug'),
+  findPublicEventBySlug: makeFunctionReference<
+    'query',
+    { orgSlug: string; eventSlug: string },
+    {
+      _id: string;
+      slug: string;
+      title: string;
+      coupleNames: { partnerA: string; partnerB: string };
+      eventDate: number;
+      timezone: string;
+      venue?: { name: string; address: string; lat?: number; lng?: number };
+      theme?: { primaryColor: string; accentColor: string; fontFamily: string };
+    } | null
+  >('events:findPublicEventBySlug'),
   updateOrgBranding: makeFunctionReference<
     'mutation',
     {
