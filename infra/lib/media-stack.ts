@@ -29,6 +29,13 @@ export type WedillybirdMediaStackProps = StackProps & {
    */
   convexSiteUrl?: string;
   lambdaCallbackSecret?: string;
+  /**
+   * Optional. If set, the moderation Lambda calls the OpenAI Moderation API
+   * (`omni-moderation-latest`) as an additional semantic safety net after
+   * Rekognition. Free of charge but requires an API key. Skipped silently
+   * when absent (Lambda still works, just without this last layer).
+   */
+  openaiApiKey?: string;
 };
 
 export class WedillybirdMediaStack extends Stack {
@@ -119,6 +126,7 @@ export class WedillybirdMediaStack extends Stack {
         environment: {
           CONVEX_SITE_URL: props.convexSiteUrl,
           LAMBDA_CALLBACK_SECRET: props.lambdaCallbackSecret,
+          ...(props.openaiApiKey ? { OPENAI_API_KEY: props.openaiApiKey } : {}),
         },
         bundling: {
           target: 'node22',
@@ -130,7 +138,26 @@ export class WedillybirdMediaStack extends Stack {
 
       moderationFunction.addToRolePolicy(
         new iam.PolicyStatement({
-          actions: ['rekognition:DetectModerationLabels'],
+          // DetectText : OCR pour matcher les mots-clés blacklist (anatomie
+          // explicite, drogues, argot — fait passer les illustrations
+          // anatomiques avec légende).
+          // DetectLabels : détecte si l'image est une illustration / dessin /
+          // schéma — dans ce cas on évite l'auto-approbation et on demande
+          // une validation owner manuelle.
+          // CreateCollection / DescribeCollection / IndexFaces : indexation
+          // automatique des visages des photos approved pour permettre la
+          // recherche par selfie depuis l'invité ("retrouver mes photos").
+          // DeleteCollection : nettoyage à la suppression / archivage de
+          // l'event (cleanup côté Convex à câbler — cf. BACKLOG).
+          actions: [
+            'rekognition:DetectModerationLabels',
+            'rekognition:DetectText',
+            'rekognition:DetectLabels',
+            'rekognition:CreateCollection',
+            'rekognition:DescribeCollection',
+            'rekognition:IndexFaces',
+            'rekognition:DeleteCollection',
+          ],
           resources: ['*'],
         }),
       );

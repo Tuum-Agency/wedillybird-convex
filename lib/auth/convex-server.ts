@@ -79,6 +79,7 @@ export const convexApi = {
       timezone: string;
       venue?: { name: string; address: string };
       theme?: { primaryColor: string; accentColor: string; fontFamily: string };
+      pendingPlanTier?: 'essential' | 'premium';
     },
     { id: string; slug: string }
   >('events:create'),
@@ -104,6 +105,7 @@ export const convexApi = {
       timezone: string;
       status: 'draft' | 'active' | 'archived' | 'cancelled';
       planTier: 'essential' | 'premium' | undefined;
+      pendingPlanTier?: 'essential' | 'premium';
       maxGuests: number;
       venue?: { name: string; address: string; lat?: number; lng?: number };
       updatedAt: number;
@@ -114,9 +116,12 @@ export const convexApi = {
     {
       eventId: string;
       requesterId: string;
-      templateStyle: 'classic' | 'warm' | 'african' | 'minimal' | 'festive';
+      templateStyle?: 'classic' | 'warm' | 'african' | 'minimal' | 'festive';
       personalMessage?: string;
-      preferredChannel: 'whatsapp' | 'email' | 'both';
+      preferredChannel?: 'whatsapp' | 'email' | 'both';
+      customTemplateId?: string;
+      clearCustomTemplate?: boolean;
+      templateNotifyChannel?: 'whatsapp' | 'email' | 'both';
     },
     { ok: true }
   >('events:updateMessagingConfig'),
@@ -161,11 +166,15 @@ export const convexApi = {
       theme?: { primaryColor: string; accentColor: string; fontFamily: string };
       status: 'draft' | 'active' | 'archived' | 'cancelled';
       planTier: 'essential' | 'premium' | undefined;
+      pendingPlanTier?: 'essential' | 'premium';
       maxGuests: number;
+      galleryExpiresAt?: number;
       messagingConfig?: {
         templateStyle: 'classic' | 'warm' | 'african' | 'minimal' | 'festive';
         personalMessage?: string;
         preferredChannel: 'whatsapp' | 'email' | 'both';
+        customTemplateId?: string;
+        templateNotifyChannel?: 'whatsapp' | 'email' | 'both';
       };
       updatedAt: number;
     } | null
@@ -358,6 +367,8 @@ export const convexApi = {
       sizeBytes: number;
       contentType: string;
       createdAt: number;
+      moderationReason?: string;
+      moderationDecision?: 'approved' | 'rejected' | 'manual_review';
     }>
   >('photos:listForOwner'),
   listApprovedPhotosForGuest: makeFunctionReference<
@@ -382,6 +393,25 @@ export const convexApi = {
     { photoId: string; requesterId: string },
     { ok: true }
   >('photos:remove'),
+  searchPhotosByFace: makeFunctionReference<
+    'action',
+    {
+      eventId: string;
+      selfieBase64: string;
+      requesterId?: string;
+      guestToken?: string;
+    },
+    | { ok: true; photoIds: string[]; matchCount: number }
+    | {
+        ok: false;
+        error:
+          | 'NO_FACE_DETECTED'
+          | 'NO_COLLECTION_YET'
+          | 'FORBIDDEN'
+          | 'INVALID_TOKEN'
+          | 'UNKNOWN';
+      }
+  >('photos:searchPhotosByFace'),
   recordPaymentIntent: makeFunctionReference<
     'mutation',
     {
@@ -561,6 +591,22 @@ export const convexApi = {
       subscriptionStatus?: 'trialing' | 'active' | 'past_due' | 'canceled' | 'unpaid';
     } | null
   >('organizations:findByStripeSubscription'),
+  markPaygPurchase: makeFunctionReference<
+    'mutation',
+    {
+      organizationId: string;
+      requesterId: string;
+      stripeSessionId: string;
+      amountMinor: number;
+      currency: 'EUR' | 'XOF' | 'MAD' | 'TND';
+    },
+    { ok: true; alreadyApplied: boolean }
+  >('paygPurchases:markPurchase'),
+  getPaygCreditsByOrganization: makeFunctionReference<
+    'query',
+    { organizationId: string; requesterId: string },
+    { credits: number } | null
+  >('paygPurchases:getCreditsByOrganization'),
   getUserById: makeFunctionReference<
     'query',
     { userId: string },
@@ -602,6 +648,67 @@ export const convexApi = {
     { userId: string; email: string; code: string },
     { ok: true }
   >('auth:verifyLinkEmail'),
+  // ---- WhatsApp custom templates ----
+  createWhatsappTemplate: makeFunctionReference<
+    'mutation',
+    {
+      eventId: string;
+      requesterId: string;
+      bodyText: string;
+      ctaLabel: string;
+      nameHint?: string;
+    },
+    { id: string; name: string }
+  >('whatsappTemplates:create'),
+  updateWhatsappTemplateDraft: makeFunctionReference<
+    'mutation',
+    {
+      templateId: string;
+      requesterId: string;
+      bodyText?: string;
+      ctaLabel?: string;
+    },
+    { ok: true }
+  >('whatsappTemplates:updateDraft'),
+  submitWhatsappTemplateToMeta: makeFunctionReference<
+    'action',
+    { templateId: string; requesterId: string },
+    { ok: boolean; mock?: boolean; metaTemplateId?: string; error?: string }
+  >('whatsappTemplates:submitToMeta'),
+  listWhatsappTemplatesByEvent: makeFunctionReference<
+    'query',
+    { eventId: string; requesterId: string },
+    Array<{
+      _id: string;
+      name: string;
+      bodyText: string;
+      ctaLabel: string;
+      ctaUrlPattern: string;
+      status: 'draft' | 'pending' | 'approved' | 'rejected' | 'paused' | 'disabled';
+      metaTemplateId?: string;
+      rejectionReason?: string;
+      submittedAt?: number;
+      reviewedAt?: number;
+      createdAt: number;
+      updatedAt: number;
+    }>
+  >('whatsappTemplates:listByEvent'),
+  applyWhatsappTemplateWebhook: makeFunctionReference<
+    'mutation',
+    {
+      metaTemplateId: string;
+      metaName?: string;
+      status: string;
+      reason?: string;
+    },
+    | { ok: true; status: string; changed: boolean }
+    | { ok: false; error: 'TEMPLATE_NOT_FOUND' }
+  >('whatsappTemplates:applyWebhookStatusUpdate'),
+  dispatchTemplateNotifications: makeFunctionReference<
+    'action',
+    Record<string, never>,
+    { dispatched: number; skipped: number }
+  >('whatsappTemplateNotifications:dispatchPendingNotifications'),
 } satisfies Record<
   string,
   FunctionReference<'query' | 'mutation' | 'action', 'public', Args, unknown>

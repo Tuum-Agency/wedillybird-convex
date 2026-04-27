@@ -52,17 +52,26 @@ const moderationCallback = httpAction(async (ctx, req) => {
 
   let payload: {
     s3Key?: string;
-    decision?: 'approved' | 'rejected';
+    decision?: 'approved' | 'rejected' | 'manual_review';
     topLabel?: string;
     topConfidence?: number;
     labels?: Array<{ name: string; confidence: number }>;
+    ocrText?: string;
+    ocrFlaggedKeyword?: string;
+    contentLabels?: string[];
+    reviewReason?: string;
   };
   try {
     payload = JSON.parse(rawBody);
   } catch {
     return new Response('invalid JSON', { status: 400 });
   }
-  if (!payload.s3Key || (payload.decision !== 'approved' && payload.decision !== 'rejected')) {
+  if (
+    !payload.s3Key ||
+    (payload.decision !== 'approved' &&
+      payload.decision !== 'rejected' &&
+      payload.decision !== 'manual_review')
+  ) {
     return new Response('invalid payload', { status: 400 });
   }
 
@@ -72,6 +81,10 @@ const moderationCallback = httpAction(async (ctx, req) => {
     topLabel: payload.topLabel,
     topConfidence: payload.topConfidence,
     labels: payload.labels,
+    ocrText: payload.ocrText,
+    ocrFlaggedKeyword: payload.ocrFlaggedKeyword,
+    contentLabels: payload.contentLabels,
+    reviewReason: payload.reviewReason,
   });
   return Response.json(result);
 });
@@ -80,6 +93,70 @@ http.route({
   path: '/lambda/photo-moderation-callback',
   method: 'POST',
   handler: moderationCallback,
+});
+
+/**
+ * Callback HMAC distinct du verdict modération : posté par le Lambda APRÈS
+ * une modération `approved` réussie + IndexFaces sur la photo. Stocke les
+ * visages détectés dans `photoFaces` pour permettre la recherche par selfie.
+ *
+ * Idempotent côté mutation interne (vérifie `photoId + faceId` avant insert).
+ */
+const facesCallback = httpAction(async (ctx, req) => {
+  const rawBody = await req.text();
+  const signature = req.headers.get(SIGNATURE_HEADER);
+  const timestamp = req.headers.get(TIMESTAMP_HEADER);
+  if (!signature || !timestamp) {
+    return new Response('missing signature headers', { status: 400 });
+  }
+  const skew = Math.abs(Date.now() - Number(timestamp));
+  if (!Number.isFinite(skew) || skew > MAX_TIMESTAMP_SKEW_MS) {
+    return new Response('stale or invalid timestamp', { status: 400 });
+  }
+  if (!(await verifySignature(rawBody, timestamp, signature))) {
+    return new Response('bad signature', { status: 401 });
+  }
+
+  let payload: {
+    s3Key?: string;
+    collectionId?: string;
+    faces?: Array<{
+      faceId?: string;
+      boundingBox?: { width: number; height: number; left: number; top: number };
+      confidence?: number;
+    }>;
+  };
+  try {
+    payload = JSON.parse(rawBody);
+  } catch {
+    return new Response('invalid JSON', { status: 400 });
+  }
+  if (!payload.s3Key || !payload.collectionId || !Array.isArray(payload.faces)) {
+    return new Response('invalid payload', { status: 400 });
+  }
+
+  const cleanFaces = payload.faces
+    .filter((f): f is { faceId: string; boundingBox?: { width: number; height: number; left: number; top: number }; confidence?: number } =>
+      typeof f.faceId === 'string' && f.faceId.length > 0,
+    )
+    .map((f) => ({
+      faceId: f.faceId,
+      boundingBox: f.boundingBox,
+      confidence: f.confidence,
+    }));
+
+  const result = await ctx.runMutation(internal.photos.internalRegisterPhotoFaces, {
+    s3Key: payload.s3Key,
+    collectionId: payload.collectionId,
+    faces: cleanFaces,
+  });
+  return Response.json(result);
+});
+
+http.route({
+  path: '/lambda/photo-faces-callback',
+  method: 'POST',
+  handler: facesCallback,
 });
 
 export default http;

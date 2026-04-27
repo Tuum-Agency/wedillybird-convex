@@ -104,3 +104,34 @@ export async function removePhotoAction(
     return { ok: false, error: err instanceof Error ? err.message : 'UNKNOWN' };
   }
 }
+
+export type FaceSearchResult =
+  | { ok: true; photoIds: string[]; matchCount: number }
+  | { ok: false; error: string };
+
+export async function faceSearchOwnerAction(
+  eventId: string,
+  selfieBase64: string,
+): Promise<FaceSearchResult> {
+  const session = await getSession();
+  if (!session) return { ok: false, error: 'FORBIDDEN' };
+
+  try {
+    const convex = getConvexServerClient();
+    const result = await convex.action(convexApi.searchPhotosByFace, {
+      eventId,
+      selfieBase64,
+      requesterId: session.userId,
+    });
+    if (result.ok) {
+      return { ok: true, photoIds: result.photoIds, matchCount: result.matchCount };
+    }
+    return { ok: false, error: result.error };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'UNKNOWN';
+    if (message.includes('NO_FACE_DETECTED')) return { ok: false, error: 'NO_FACE_DETECTED' };
+    if (message.includes('NO_COLLECTION_YET')) return { ok: false, error: 'NO_COLLECTION_YET' };
+    if (message.includes('FORBIDDEN')) return { ok: false, error: 'FORBIDDEN' };
+    return { ok: false, error: 'UNKNOWN' };
+  }
+}

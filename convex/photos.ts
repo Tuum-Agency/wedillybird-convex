@@ -1,5 +1,6 @@
 import { v } from 'convex/values';
 import {
+  action,
   internalMutation,
   internalQuery,
   mutation,
@@ -115,17 +116,20 @@ export const confirmOwnerUpload = mutation({
     assertUploadShape(args.sizeBytes, args.contentType);
     assertGalleryOpen(event);
 
+    // Toutes les photos (owner ET guest) entrent en `pending` et passent par
+    // la modération Rekognition (Lambda S3 → callback Convex). C'est le seul
+    // moyen d'éviter qu'un owner uploade un contenu inapproprié visible sur
+    // la galerie publique. L'owner peut override manuellement si Rekognition
+    // rejette à tort, via `moderatePhoto` (bouton "Approuver" sur l'UI).
     const id = await ctx.db.insert('photos', {
       eventId: args.eventId,
       s3Key: args.s3Key,
       uploadedBy: args.requesterId,
-      status: 'approved',
+      status: 'pending',
       sizeBytes: args.sizeBytes,
       contentType: args.contentType,
       width: args.width,
       height: args.height,
-      moderatedAt: Date.now(),
-      moderatedBy: args.requesterId,
       createdAt: Date.now(),
     });
     return { id };
@@ -199,6 +203,8 @@ export const listForOwner = query({
         sizeBytes: p.sizeBytes,
         contentType: p.contentType,
         createdAt: p.createdAt,
+        moderationReason: p.moderation?.reviewReason,
+        moderationDecision: p.moderation?.decision,
       })),
     );
   },
@@ -273,23 +279,194 @@ export const remove = mutation({
 /*  Internal mutations for Lambda callbacks (Phase 5: moderation, variants)   */
 /* -------------------------------------------------------------------------- */
 
+/**
+ * Enregistre les visages extraits par le Lambda IndexFaces post-modération.
+ *  1. Trouve la photo par `s3Key` ; abandonne si absente (photo déjà supprimée
+ *     ou non encore confirmée — race condition rare).
+ *  2. Patch l'event avec `faceCollectionId` si pas encore set (premier index
+ *     pour cet event).
+ *  3. Insère 1 row par face ; idempotent par `photoId + faceId` (re-livraison
+ *     du callback ne crée pas de doublon).
+ */
+export const internalRegisterPhotoFaces = internalMutation({
+  args: {
+    s3Key: v.string(),
+    collectionId: v.string(),
+    faces: v.array(
+      v.object({
+        faceId: v.string(),
+        boundingBox: v.optional(
+          v.object({
+            width: v.number(),
+            height: v.number(),
+            left: v.number(),
+            top: v.number(),
+          }),
+        ),
+        confidence: v.optional(v.number()),
+      }),
+    ),
+  },
+  handler: async (ctx, { s3Key, collectionId, faces }) => {
+    const photo = await ctx.db
+      .query('photos')
+      .withIndex('by_s3_key', (q) => q.eq('s3Key', s3Key))
+      .first();
+    if (!photo) return { ok: false as const, error: 'PHOTO_NOT_FOUND' };
+
+    const event = await ctx.db.get(photo.eventId);
+    if (event && !event.faceCollectionId) {
+      await ctx.db.patch(photo.eventId, { faceCollectionId: collectionId });
+    }
+
+    let inserted = 0;
+    const now = Date.now();
+    for (const face of faces) {
+      // Idempotence : skip si déjà enregistré pour cette photo.
+      const existing = await ctx.db
+        .query('photoFaces')
+        .withIndex('by_photo', (q) => q.eq('photoId', photo._id))
+        .filter((q) => q.eq(q.field('faceId'), face.faceId))
+        .first();
+      if (existing) continue;
+      await ctx.db.insert('photoFaces', {
+        photoId: photo._id,
+        eventId: photo.eventId,
+        faceId: face.faceId,
+        ...(face.boundingBox ? { boundingBox: face.boundingBox } : {}),
+        ...(face.confidence !== undefined ? { confidence: face.confidence } : {}),
+        createdAt: now,
+      });
+      inserted += 1;
+    }
+
+    return { ok: true as const, inserted, total: faces.length };
+  },
+});
+
+/**
+ * Vérifie qu'un requester (owner / collaborator / guestToken) peut utiliser
+ * la recherche par face sur cet event ; retourne `event.faceCollectionId`
+ * (peut être undefined si aucune photo n'a été indexée). Throw FORBIDDEN si
+ * non autorisé.
+ *
+ * Utilisé par l'action `searchPhotosByFace` qui ne peut pas accéder à la DB
+ * directement (action = runtime Node).
+ */
+export const _resolveSearchAccess = internalQuery({
+  args: {
+    eventId: v.id('events'),
+    requesterId: v.optional(v.id('users')),
+    guestToken: v.optional(v.string()),
+  },
+  handler: async (ctx, { eventId, requesterId, guestToken }) => {
+    const event = await ctx.db.get(eventId);
+    if (!event) return { ok: false as const, error: 'EVENT_NOT_FOUND' as const };
+
+    let allowed = false;
+    if (requesterId) {
+      if (event.ownerId === requesterId) {
+        allowed = true;
+      } else {
+        const collab = await ctx.db
+          .query('eventCollaborators')
+          .withIndex('by_event_user', (q) => q.eq('eventId', eventId).eq('userId', requesterId))
+          .first();
+        if (collab) allowed = true;
+      }
+    }
+    if (!allowed && guestToken) {
+      const guest = await ctx.db
+        .query('guests')
+        .withIndex('by_qr_token', (q) => q.eq('qrCodeToken', guestToken))
+        .first();
+      if (!guest) return { ok: false as const, error: 'INVALID_TOKEN' as const };
+      if (guest.eventId !== eventId) return { ok: false as const, error: 'INVALID_TOKEN' as const };
+      allowed = true;
+    }
+    if (!allowed) return { ok: false as const, error: 'FORBIDDEN' as const };
+
+    return {
+      ok: true as const,
+      faceCollectionId: event.faceCollectionId,
+    };
+  },
+});
+
+/**
+ * Pour un set de Rekognition Face IDs, retourne les `photoId` correspondants
+ * (filtrés sur `status: 'approved'`, dédupliqués). Utilisé en aval de
+ * `SearchFacesByImage`.
+ */
+export const _photoIdsForFaceIds = internalQuery({
+  args: {
+    eventId: v.id('events'),
+    faceIds: v.array(v.string()),
+  },
+  handler: async (ctx, { eventId, faceIds }) => {
+    const photoIds = new Set<Id<'photos'>>();
+    for (const faceId of faceIds) {
+      const rows = await ctx.db
+        .query('photoFaces')
+        .withIndex('by_face', (q) => q.eq('faceId', faceId))
+        .collect();
+      for (const row of rows) {
+        if (row.eventId !== eventId) continue;
+        photoIds.add(row.photoId);
+      }
+    }
+    const filtered: Id<'photos'>[] = [];
+    for (const id of photoIds) {
+      const photo = await ctx.db.get(id);
+      if (photo && photo.status === 'approved') filtered.push(id);
+    }
+    return filtered;
+  },
+});
+
 export const internalMarkModerated = internalMutation({
   args: {
     s3Key: v.string(),
-    decision: v.union(v.literal('approved'), v.literal('rejected')),
+    decision: v.union(
+      v.literal('approved'),
+      v.literal('rejected'),
+      v.literal('manual_review'),
+    ),
     topLabel: v.optional(v.string()),
     topConfidence: v.optional(v.number()),
     labels: v.optional(v.array(v.object({ name: v.string(), confidence: v.number() }))),
+    ocrText: v.optional(v.string()),
+    ocrFlaggedKeyword: v.optional(v.string()),
+    contentLabels: v.optional(v.array(v.string())),
+    reviewReason: v.optional(v.string()),
   },
-  handler: async (ctx, { s3Key, decision, topLabel, topConfidence, labels }) => {
+  handler: async (
+    ctx,
+    {
+      s3Key,
+      decision,
+      topLabel,
+      topConfidence,
+      labels,
+      ocrText,
+      ocrFlaggedKeyword,
+      contentLabels,
+      reviewReason,
+    },
+  ) => {
     const photo = await ctx.db
       .query('photos')
       .withIndex('by_s3_key', (q) => q.eq('s3Key', s3Key))
       .first();
     if (!photo) return { ok: false as const, error: 'PHOTO_NOT_FOUND' };
     const now = Date.now();
+    // `manual_review` = Rekognition incertain → on garde `status: 'pending'` et
+    // on stocke seulement le verdict + raison pour que l'owner puisse décider.
+    // `approved` / `rejected` = on patch le status.
+    const statusPatch =
+      decision === 'manual_review' ? { status: 'pending' as const } : { status: decision };
     await ctx.db.patch(photo._id, {
-      status: decision,
+      ...statusPatch,
       moderatedAt: now,
       moderation: {
         source: 'rekognition' as const,
@@ -297,9 +474,95 @@ export const internalMarkModerated = internalMutation({
         topLabel,
         topConfidence,
         labels,
+        ocrText,
+        ocrFlaggedKeyword,
+        contentLabels,
+        reviewReason,
         decidedAt: now,
       },
     });
     return { ok: true as const };
+  },
+});
+
+/* -------------------------------------------------------------------------- */
+/*  Face search — public action consommée par les server actions Next         */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Recherche de photos par selfie. Trampoline qui :
+ *  1. Vérifie l'autorisation (owner / collaborator / guestToken)
+ *  2. Charge `event.faceCollectionId` ; absent → NO_COLLECTION_YET
+ *  3. Délègue à `internal.photosFaceSearch.searchByImage` (Node runtime)
+ *     pour appeler Rekognition `SearchFacesByImage`
+ *  4. Croise les Face IDs trouvés avec `photoFaces` → `photoId[]` filtré
+ *     sur `status: 'approved'` puis dédupliqué
+ *
+ * Le selfie n'est jamais persisté : il transite uniquement en mémoire vers
+ * Rekognition.
+ */
+export type SearchPhotosByFaceResult =
+  | { ok: true; photoIds: string[]; matchCount: number }
+  | {
+      ok: false;
+      error: 'NO_FACE_DETECTED' | 'NO_COLLECTION_YET' | 'FORBIDDEN' | 'INVALID_TOKEN' | 'UNKNOWN';
+    };
+
+export const searchPhotosByFace = action({
+  args: {
+    eventId: v.id('events'),
+    selfieBase64: v.string(),
+    requesterId: v.optional(v.id('users')),
+    guestToken: v.optional(v.string()),
+  },
+  handler: async (ctx, args): Promise<SearchPhotosByFaceResult> => {
+    const access = await ctx.runQuery(internal.photos._resolveSearchAccess, {
+      eventId: args.eventId,
+      requesterId: args.requesterId,
+      guestToken: args.guestToken,
+    });
+    if (!access.ok) {
+      if (access.error === 'EVENT_NOT_FOUND' || access.error === 'FORBIDDEN') {
+        return { ok: false as const, error: 'FORBIDDEN' as const };
+      }
+      if (access.error === 'INVALID_TOKEN') {
+        return { ok: false as const, error: 'INVALID_TOKEN' as const };
+      }
+      return { ok: false as const, error: 'UNKNOWN' as const };
+    }
+
+    if (!access.faceCollectionId) {
+      return { ok: false as const, error: 'NO_COLLECTION_YET' as const };
+    }
+
+    let searchResult: { status: 'matches'; faceIds: string[] } | { status: 'no_face_in_selfie' } | { status: 'no_match' };
+    try {
+      searchResult = await ctx.runAction(internal.photosFaceSearch.searchByImage, {
+        collectionId: access.faceCollectionId,
+        selfieBase64: args.selfieBase64,
+      });
+    } catch (err) {
+      console.error(
+        `[searchPhotosByFace] Rekognition error: ${err instanceof Error ? err.message : err}`,
+      );
+      return { ok: false as const, error: 'UNKNOWN' as const };
+    }
+
+    if (searchResult.status === 'no_face_in_selfie') {
+      return { ok: false as const, error: 'NO_FACE_DETECTED' as const };
+    }
+    if (searchResult.status === 'no_match') {
+      return { ok: true as const, photoIds: [], matchCount: 0 };
+    }
+
+    const photoIds: Id<'photos'>[] = await ctx.runQuery(internal.photos._photoIdsForFaceIds, {
+      eventId: args.eventId,
+      faceIds: searchResult.faceIds,
+    });
+    return {
+      ok: true as const,
+      photoIds: photoIds.map((id) => id.toString()),
+      matchCount: photoIds.length,
+    };
   },
 });
