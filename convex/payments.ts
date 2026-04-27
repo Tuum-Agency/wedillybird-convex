@@ -169,6 +169,27 @@ export const markSucceeded = mutation({
         ctaLabel: 'Voir l’événement',
         ctaUrl: `${process.env.NEXT_PUBLIC_APP_URL ?? 'https://wedillybird.com'}/events/${payment.eventId}`,
       });
+
+      // Facture associée — envoyée juste après la confirmation. Le numéro de
+      // facture est dérivé de `providerSessionId` (suffix court humain) ;
+      // suffisant tant qu'on n'a pas une vraie séquence comptable. Si un PDF
+      // est généré côté `lib/payments/invoice.ts`, on lui passera l'URL.
+      const invoiceNumber = `INV-${providerSessionId.slice(-8).toUpperCase()}`;
+      const periodLabel = new Date(now).toLocaleDateString('fr-FR', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      });
+      const invoiceUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? 'https://wedillybird.com'}/events/${payment.eventId}/invoice?session=${providerSessionId}`;
+      await ctx.scheduler.runAfter(0, internal.emailActions.sendStripeInvoice, {
+        to: owner.email,
+        recipientName: owner.fullName ?? owner.phone ?? 'Bonjour',
+        organizationName: eventTitle,
+        invoiceNumber,
+        amountFormatted,
+        periodLabel,
+        invoiceUrl,
+      });
     }
 
     return { ok: true as const, alreadyApplied: false };

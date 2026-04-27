@@ -9,6 +9,7 @@ import {
   renderLinkCode,
   renderMagicLink,
   renderProNotification,
+  renderStripeInvoice,
   type ProNotificationKind,
 } from '../lib/email/templates';
 import type { EmailRendered } from '../lib/email/types';
@@ -183,6 +184,41 @@ export const sendProNotification = internalAction({
     if (!result.ok) {
       console.error(
         `[email] failed to send pro notification ${args.kind} to ${args.to}: ${result.error}`,
+      );
+    }
+    return result;
+  },
+});
+
+/* -------------------------------------------------------------------------- */
+/*  Stripe invoice receipts                                                    */
+/* -------------------------------------------------------------------------- */
+
+export const sendStripeInvoice = internalAction({
+  args: {
+    to: v.string(),
+    recipientName: v.string(),
+    organizationName: v.string(),
+    invoiceNumber: v.string(),
+    amountFormatted: v.string(),
+    periodLabel: v.string(),
+    invoiceUrl: v.string(),
+    pdfUrl: v.optional(v.string()),
+  },
+  handler: async (_ctx, args) => {
+    const rendered = renderStripeInvoice({
+      recipientName: args.recipientName,
+      organizationName: args.organizationName,
+      invoiceNumber: args.invoiceNumber,
+      amountFormatted: args.amountFormatted,
+      periodLabel: args.periodLabel,
+      invoiceUrl: args.invoiceUrl,
+      pdfUrl: args.pdfUrl,
+    });
+    const result = await dispatch(args.to, rendered);
+    if (!result.ok) {
+      console.error(
+        `[email] failed to send stripe invoice ${args.invoiceNumber} to ${args.to}: ${result.error}`,
       );
     }
     return result;

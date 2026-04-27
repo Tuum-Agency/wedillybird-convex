@@ -362,6 +362,7 @@ export const updateSubscription = mutation({
   },
   handler: async (ctx, args) => {
     const { organizationId, ...rest } = args;
+    const before = await ctx.db.get(organizationId);
     const patch: Partial<Doc<'organizations'>> = { updatedAt: Date.now() };
     if (rest.stripeCustomerId !== undefined) patch.stripeCustomerId = rest.stripeCustomerId;
     if (rest.stripeSubscriptionId !== undefined)
@@ -371,6 +372,50 @@ export const updateSubscription = mutation({
     if (rest.subscriptionPeriodEnd !== undefined)
       patch.subscriptionPeriodEnd = rest.subscriptionPeriodEnd;
     await ctx.db.patch(organizationId, patch);
+
+    // Best-effort transition email to the org owner. Triggered once per
+    // distinct transition: trialing → active (welcome), active → past_due
+    // (alert), * → canceled (notice). Idempotent: only fires when the
+    // status actually changed.
+    if (before && rest.subscriptionStatus !== undefined) {
+      const prevStatus = before.subscriptionStatus;
+      const nextStatus = rest.subscriptionStatus;
+      if (prevStatus !== nextStatus) {
+        const owner = await ctx.db.get(before.ownerId);
+        if (owner?.email) {
+          let kind: 'subscription-renewed' | 'subscription-failed' | null = null;
+          let detail = '';
+          if (
+            (prevStatus === 'trialing' || prevStatus === undefined) &&
+            nextStatus === 'active'
+          ) {
+            kind = 'subscription-renewed';
+            detail = `Votre abonnement ${before.name} est désormais actif. Bienvenue !`;
+          } else if (nextStatus === 'past_due') {
+            kind = 'subscription-failed';
+            detail = `Le paiement de votre abonnement ${before.name} a échoué. Mettez à jour votre moyen de paiement pour conserver l’accès.`;
+          } else if (nextStatus === 'canceled') {
+            kind = 'subscription-failed';
+            detail = `Votre abonnement ${before.name} a été annulé. Vous pouvez le réactiver à tout moment depuis votre espace Pro.`;
+          } else if (prevStatus === 'past_due' && nextStatus === 'active') {
+            kind = 'subscription-renewed';
+            detail = `Le paiement de votre abonnement ${before.name} a bien été reçu. Merci !`;
+          }
+          if (kind) {
+            await ctx.scheduler.runAfter(0, internal.emailActions.sendProNotification, {
+              to: owner.email,
+              recipientName: owner.fullName ?? owner.phone ?? 'Bonjour',
+              organizationName: before.name,
+              kind,
+              detail,
+              ctaLabel: 'Gérer mon abonnement',
+              ctaUrl: `${process.env.NEXT_PUBLIC_APP_URL ?? 'https://wedillybird.com'}/pro/billing`,
+            });
+          }
+        }
+      }
+    }
+
     return { ok: true as const };
   },
 });
