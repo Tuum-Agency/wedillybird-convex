@@ -5,12 +5,15 @@ import type { ProviderName } from '@/lib/payments/country';
 import { verifyAndParseSubscriptionWebhook } from '@/lib/payments/drivers/stripe';
 
 function isProviderName(value: string): value is ProviderName {
-  return value === 'stripe' || value === 'cinetpay' || value === 'mock';
+  // CinetPay désactivé : décommenter la clause `value === 'cinetpay'` quand les
+  // credentials prod (CINETPAY_API_KEY + CINETPAY_SITE_ID) seront disponibles.
+  return value === 'stripe' || /* value === 'cinetpay' || */ value === 'mock';
 }
 
 function readSignatureHeader(headers: Headers, provider: ProviderName): string | null {
   if (provider === 'stripe') return headers.get('stripe-signature');
-  if (provider === 'cinetpay') return headers.get('x-token') ?? headers.get('x-signature');
+  // CinetPay désactivé — header `x-token` ignoré tant que webhook non actif.
+  // if (provider === 'cinetpay') return headers.get('x-token') ?? headers.get('x-signature');
   return headers.get('x-signature');
 }
 

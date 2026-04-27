@@ -13,7 +13,7 @@ import { NewsletterForm } from '@/components/landing/newsletter-form';
  * - "Tuum Agency · Paris & Dakar" leak → retiré (signature Wedillybird seule)
  *
  * Block tagline + newsletter + 4 colonnes (Produit, Pros, Ressources, Légal)
- * + régions + logos paiement (Stripe + CinetPay) + copyright.
+ * + régions + logos paiement (Stripe ; CinetPay désactivé tant que pas configuré) + copyright.
  */
 const PRODUCT_LINKS = [
   { key: 'features', href: '/#features' as const },
@@ -150,9 +150,13 @@ export function LandingFooterRich() {
               <span className="rounded-md border border-[color:var(--color-border)] bg-white px-3 py-1.5 text-xs font-bold tracking-wide text-[#635bff]">
                 Stripe
               </span>
+              {/* Badge CinetPay désactivé tant que les credentials prod ne sont
+                  pas disponibles. Réactiver quand CINETPAY_API_KEY + CINETPAY_SITE_ID
+                  seront configurés sur Vercel.
               <span className="rounded-md border border-[color:var(--color-border)] bg-white px-3 py-1.5 text-xs font-bold tracking-wide text-[oklch(45%_0.13_152)]">
                 CinetPay
               </span>
+              */}
             </div>
           </div>
         </div>

@@ -37,7 +37,7 @@
       "article3Title": "3. Compte et accès",
       "article3Body": "L'accès au Service nécessite la création d'un compte via vérification d'un numéro WhatsApp. L'Utilisateur est responsable de la confidentialité de son numéro et de toute action effectuée depuis son compte. Tout usage non autorisé doit être signalé immédiatement.",
       "article4Title": "4. Tarification et paiement",
-      "article4Body": "Le Service est proposé en formule gratuite (jusqu'à 30 invitations) et formules payantes (Sérénité 49 €, Prestige 119 €). Le quota du plan se mesure en invitations envoyées, chaque invitation pouvant représenter plusieurs personnes physiques via les accompagnants. Les paiements sont traités par Stripe (Europe) ou CinetPay (Afrique). Les achats sont fermes et définitifs.",
+      "article4Body": "Le Service est proposé en formule gratuite (jusqu'à 30 invitations) et formules payantes (Sérénité 49 €, Prestige 119 €). Le quota du plan se mesure en invitations envoyées, chaque invitation pouvant représenter plusieurs personnes physiques via les accompagnants. Les paiements sont traités par Stripe. Les achats sont fermes et définitifs.",
       "article5Title": "5. Propriété intellectuelle",
       "article5Body": "L'Utilisateur conserve la propriété des contenus qu'il téléverse. Il accorde à Wedillybird une licence non-exclusive d'usage de ces contenus aux seules fins du fonctionnement du Service. Wedillybird conserve la propriété de la plateforme, du code et de la marque.",
       "article6Title": "6. Responsabilité",
@@ -59,7 +59,7 @@
       "retentionTitle": "Durée de conservation",
       "retentionBody": "Données du compte : durée de l'abonnement + 3 ans. Données de paiement : durée légale (10 ans pour la facturation). Logs techniques : 12 mois maximum.",
       "subprocessorsTitle": "Sous-traitants",
-      "subprocessorsBody": "Convex (base de données, US), Vercel (hébergement, US/EU), Stripe (paiement, EU/US), CinetPay (paiement Afrique, CI), Meta WhatsApp Cloud API (envoi messages, EU/US). Tous engagés par des clauses contractuelles types ou des mécanismes équivalents.",
+      "subprocessorsBody": "Convex (base de données, US), Vercel (hébergement, US/EU), Stripe (paiement, EU/US), Meta WhatsApp Cloud API (envoi messages, EU/US). Tous engagés par des clauses contractuelles types ou des mécanismes équivalents.",
       "rightsTitle": "Vos droits",
       "rightsBody": "Accès, rectification, effacement, opposition, portabilité, limitation. Pour exercer un droit, écrivez à privacy@wedillybird.com. Vous pouvez également déposer une réclamation auprès de la CNIL.",
       "contactTitle": "Contact",
@@ -75,7 +75,7 @@
       "controlTitle": "Contrôler les cookies",
       "controlBody": "Vous pouvez supprimer les cookies via les paramètres de votre navigateur. La désactivation du cookie de session vous déconnectera du Service.",
       "thirdPartiesTitle": "Cookies tiers",
-      "thirdPartiesBody": "Stripe et CinetPay déposent leurs propres cookies sur leurs pages de paiement (hors domaine Wedillybird) pour prévenir la fraude. Consultez leurs politiques respectives."
+      "thirdPartiesBody": "Stripe dépose ses propres cookies sur ses pages de paiement (hors domaine Wedillybird) pour prévenir la fraude. Consultez sa politique de confidentialité."
     }
   },
   "Account": {
