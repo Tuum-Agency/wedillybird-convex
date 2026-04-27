@@ -25,22 +25,25 @@ test.describe('Legal pages', () => {
   });
 });
 
-test.describe('FAQ', () => {
-  test("/faq liste au moins 7 questions dans l'accordion", async ({ page }) => {
-    await page.goto('/faq');
-    // V4 : accordion Motion remplace les <details>/<summary>. Chaque question
-    // est un <button aria-expanded="..."> dans un <li>.
-    const buttons = page
+test.describe('FAQ section (sur la landing)', () => {
+  test('la section #faq de la landing liste au moins 7 questions', async ({ page }) => {
+    await page.goto('/#faq');
+    // V4 : la FAQ vit en section ancrée sur la landing (id='faq').
+    // Plus de page /faq dédiée — accordion Motion <button aria-expanded>.
+    const faqSection = page.locator('#faq');
+    await expect(faqSection).toBeVisible();
+    const buttons = faqSection
       .getByRole('button', { expanded: false })
-      .or(page.getByRole('button', { expanded: true }));
+      .or(faqSection.getByRole('button', { expanded: true }));
     expect(await buttons.count()).toBeGreaterThanOrEqual(7);
   });
 
   test('FAQ accordion bascule la réponse au clic', async ({ page }) => {
-    await page.goto('/faq');
+    await page.goto('/#faq');
     // La première question est ouverte par défaut (V4 ergonomie). On ouvre la
     // deuxième pour vérifier le toggle.
-    const buttons = page.getByRole('button', { name: /\?$/ });
+    const faqSection = page.locator('#faq');
+    const buttons = faqSection.getByRole('button', { name: /\?$/ });
     const second = buttons.nth(1);
     await expect(second).toHaveAttribute('aria-expanded', 'false');
     await second.click();

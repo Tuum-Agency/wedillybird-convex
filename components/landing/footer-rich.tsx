@@ -31,9 +31,9 @@ const PROS_LINKS = [
 
 const RESOURCES_LINKS = [
   { key: 'blog', href: '/' as const },
-  { key: 'guide', href: '/faq' as const },
-  { key: 'faq', href: '/faq' as const },
-  { key: 'support', href: '/faq' as const },
+  { key: 'guide', href: '/#faq' as const },
+  { key: 'faq', href: '/#faq' as const },
+  { key: 'support', href: '/#faq' as const },
 ] as const;
 
 const LEGAL_LINKS = [

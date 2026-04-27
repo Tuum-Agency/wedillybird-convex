@@ -101,7 +101,7 @@ function LandingShell({
               Témoignages
             </Link>
             <Link
-              href="/faq"
+              href="/#faq"
               className="font-mono text-[10px] tracking-[0.24em] text-[color:var(--color-ink-500)] uppercase transition-colors hover:text-[color:var(--color-ink-900)]"
             >
               FAQ
