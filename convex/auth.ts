@@ -61,7 +61,10 @@ export const requestOtp = action({
     const templateName = process.env.WHATSAPP_OTP_TEMPLATE ?? 'otp_code';
     const graphVersion = process.env.WHATSAPP_GRAPH_VERSION ?? 'v23.0';
 
-    if (!accessToken || !phoneNumberId) {
+    // Mode E2E : on court-circuite Meta même si les credentials sont posés
+    // côté env Convex. Le code OTP est loggé pour récupération depuis les
+    // tests Playwright via la query interne `auth._lastOtpCodeForPhone`.
+    if (process.env.E2E_MODE === '1' || !accessToken || !phoneNumberId) {
       console.info(`[whatsapp:mock] OTP ${code} -> ${normalized}`);
       return { phone: normalized, channel: 'whatsapp' as const, provider: 'mock' as const };
     }
@@ -435,7 +438,8 @@ export const requestLinkPhone = action({
     const templateName = process.env.WHATSAPP_OTP_TEMPLATE ?? 'otp_code';
     const graphVersion = process.env.WHATSAPP_GRAPH_VERSION ?? 'v23.0';
 
-    if (!accessToken || !phoneNumberId) {
+    // Mode E2E : court-circuit identique à `requestOtp`.
+    if (process.env.E2E_MODE === '1' || !accessToken || !phoneNumberId) {
       console.info(`[whatsapp:mock] LINK ${code} -> ${normalized}`);
       return { phone: normalized, channel: 'whatsapp' as const, provider: 'mock' as const };
     }
@@ -672,5 +676,92 @@ export const _saveLinkVerification = internalMutation({
       createdAt: now,
       ...(ipAddress ? { ipAddress } : {}),
     });
+  },
+});
+
+/* -------------------------------------------------------------------------- */
+/*  E2E test helpers — réservés aux tests Playwright. Tous les chemins ici    */
+/*  vérifient `process.env.E2E_MODE === '1'` côté Convex et lèvent une        */
+/*  erreur sinon. Ne JAMAIS activer `E2E_MODE` en prod.                       */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Pendant E2E uniquement : génère un OTP de linking phone, le persiste en
+ * base, et retourne le code en clair pour que le test puisse appeler
+ * `verifyLinkPhone` ensuite. Aucun envoi WhatsApp réel — court-circuit total.
+ */
+export const _e2eIssueLinkPhoneCode = action({
+  args: {
+    userId: v.id('users'),
+    phone: v.string(),
+  },
+  handler: async (ctx, { userId, phone }) => {
+    if (process.env.E2E_MODE !== '1') {
+      throw new Error('E2E_MODE_DISABLED');
+    }
+    const normalized = normalizePhone(phone);
+    if (!normalized || !isValidE164(normalized)) {
+      throw new Error('INVALID_PHONE');
+    }
+
+    const conflict = await ctx.runQuery(internal.auth._userByPhone, { phone: normalized });
+    if (conflict && conflict._id !== userId) {
+      throw new Error('PHONE_TAKEN');
+    }
+    if (conflict && conflict._id === userId) {
+      throw new Error('ALREADY_LINKED');
+    }
+
+    const code = generateOtpCode();
+    const codeHash = await hashOtp(code, normalized);
+
+    await ctx.runMutation(internal.auth._saveLinkVerification, {
+      userId,
+      targetKind: 'phone' as const,
+      targetValue: normalized,
+      codeHash,
+    });
+
+    return { phone: normalized, code };
+  },
+});
+
+/**
+ * Pendant E2E uniquement : génère un OTP de linking email, le persiste en
+ * base, et retourne le code en clair. Pas d'envoi SES réel.
+ */
+export const _e2eIssueLinkEmailCode = action({
+  args: {
+    userId: v.id('users'),
+    email: v.string(),
+  },
+  handler: async (ctx, { userId, email }) => {
+    if (process.env.E2E_MODE !== '1') {
+      throw new Error('E2E_MODE_DISABLED');
+    }
+    const normalized = normalizeEmail(email);
+    if (!isValidEmail(normalized)) {
+      throw new Error('INVALID_EMAIL');
+    }
+
+    const conflict = await ctx.runQuery(internal.auth._userByEmail, { email: normalized });
+    if (conflict && conflict._id !== userId) {
+      throw new Error('EMAIL_TAKEN');
+    }
+    if (conflict && conflict._id === userId) {
+      throw new Error('ALREADY_LINKED');
+    }
+
+    const code = generateOtpCode();
+    const codeHash = await hashOtp(code, normalized);
+
+    await ctx.runMutation(internal.auth._saveLinkVerification, {
+      userId,
+      targetKind: 'email' as const,
+      targetValue: normalized,
+      codeHash,
+    });
+
+    return { email: normalized, code };
   },
 });

@@ -151,24 +151,40 @@ Reproduire `.env.local` sur Vercel → Project Settings → Environment Variable
 
 ## Infrastructure de tests
 
-### Convex env vars shadow `.env.local` côté dev
+### Convex env vars shadow `.env.local` côté dev — résolu via `E2E_MODE` ✅
 - Découvert pendant les tests anti-doublon (avril 2026) : le déploiement Convex dev `capable-crocodile-720` a `WHATSAPP_ACCESS_TOKEN` + `WHATSAPP_PHONE_NUMBER_ID` définis en env vars Convex.
-- Conséquence : même quand `.env.local` du projet Next.js commente WhatsApp pour activer le mock, les actions Convex (qui tournent côté Convex cloud, pas Next.js) utilisent l'env vars Convex et envoient des messages réels via Meta Cloud API. Le retour `provider: 'meta_cloud'` dans `auth.requestOtp / auth.requestLinkPhone` est le tell.
-- **Pour les tests E2E mockés du flow WhatsApp** :
-  - Soit `pnpx convex env unset WHATSAPP_ACCESS_TOKEN WHATSAPP_PHONE_NUMBER_ID` avant les tests, puis restaurer après
-  - Soit ajouter un mode test dédié dans `convex/auth.ts` (`requestOtp` + `requestLinkPhone`) qui force le mock si `process.env.E2E_MODE === '1'`
-- Idem côté SES : si `EMAIL_DRIVER` est set sur Convex, ça override le `.env.local` de Next.js. À vérifier avant E2E mail.
+- Conséquence : même quand `.env.local` du projet Next.js commente WhatsApp pour activer le mock, les actions Convex (qui tournent côté Convex cloud, pas Next.js) utilisaient l'env vars Convex et envoyaient des messages réels via Meta Cloud API. Le retour `provider: 'meta_cloud'` dans `auth.requestOtp / auth.requestLinkPhone` était le tell.
+- **Solution livrée** : flag `E2E_MODE=1` checké côté `lib/whatsapp/index.ts:createWhatsAppClient`, `lib/email/index.ts:getEmailDriver`, `convex/auth.ts:requestOtp / requestLinkPhone`, `convex/emailActions.ts:dispatch`. Quand le flag est posé, tous les drivers retombent sur le mock peu importe les credentials.
+- **Procédure E2E** :
+  ```bash
+  pnpx convex env set E2E_MODE 1                       # côté Convex deployment dev
+  pnpm exec playwright test                             # le webServer Playwright pose déjà E2E_MODE=1 côté Next.js
+  pnpx convex env unset E2E_MODE                        # restauration à la fin
+  ```
+- Helpers E2E-only ajoutés : `auth:_e2eIssueLinkPhoneCode` / `auth:_e2eIssueLinkEmailCode` (génèrent un OTP de linking et renvoient le code en clair, garde `process.env.E2E_MODE === '1'` côté handler).
 
-### Test E2E linking happy path (manquant)
-- Couvert par tests unit + Convex CLI tests (4 anti-doublon ✅, 1 happy-path partiel ✅, 1 verify check ✅)
-- Manque : Playwright test bout-en-bout qui mocke OTP côté Convex (cf. note ci-dessus), navigue UI, vérifie patch `users.phone` après verify avec bon code
-- À programmer avec le mode test E2E_MODE dédié
+### Test E2E linking happy path
+- Couvert par tests unit + Convex CLI tests (4 anti-doublon ✅, 1 happy-path partiel ✅, 1 verify check ✅).
+- Spec Playwright `tests/e2e/auth-linking.spec.ts` créée — couvre le scénario heureux (seed user email-only → mock OTP via `_e2eIssueLinkPhoneCode` → verify) et l'erreur `PHONE_TAKEN`.
+- État actuel : la mécanique d'injection de session magic-link UI complète n'est pas encore câblée → la spec UI est `test.skip()` proprement avec un commentaire expliquant le pré-requis (route `/api/dev/sign-in-by-email`). La logique de génération de code mock est validée côté Convex CLI (helpers utilisables).
+- À programmer dans un sprint dédié : exposer un endpoint `/api/dev/sign-in-by-email` (équivalent `/api/dev/login` mais email-based) pour permettre le test UI sans avoir à mocker la réception du magic link.
 
 ### Test "vraie vie" préprod (Vercel preview)
 - Une fois le preview Vercel déployé, faire le scénario complet avec un vrai numéro + un vrai email :
   - Sign-up via magic link → onboarding → dashboard → carte "Activer WhatsApp" → ajouter numéro → réception SMS WhatsApp → saisie code → vérifier user.phone patché
   - Bonus : tester le rejet `PHONE_TAKEN` avec un numéro déjà pris en prod
 - Bloqué par : déploiement preview Vercel (cf. checklist Production en haut)
+
+### Détection de doublons users — script d'audit ✅
+- Internal query `users:_scanDuplicates` ajoutée à `convex/users.ts`. Lance via :
+  ```bash
+  unset CONVEX_DEPLOYMENT CONVEX_URL CONVEX_SITE_URL
+  export CONVEX_DEPLOYMENT="dev:capable-crocodile-720"
+  pnpx convex run users:_scanDuplicates
+  ```
+- Heuristique : groupement par `fullName.toLowerCase().trim()`, score 100 si email identique, 80 si phone normalisé identique, 50 si juste fullName.
+- Read-only — aucune fusion automatique. Loggue les 50 paires top-score côté Convex log + retourne le rapport.
+- À lancer manuellement de temps en temps. Si paires trouvées, fusion à coder dans un sprint dédié (cf. fusion auto / merge UX dashboard).
 
 ## Templates WhatsApp Cloud API
 
@@ -186,11 +202,26 @@ Tous nommés en `snake_case`, créés une fois côté Wedillybird, validés Meta
 | Nom | Catégorie | Usage | Variables | État |
 |---|---|---|---|---|
 | `otp_code` | authentication | Login WhatsApp + linking | code | ✅ utilisé |
-| `team_invitation` | utility | Pro invite collaborateur | nom équipe, lien token | À créer (cf. Multi-utilisateurs) |
-| `wedding_invitation` | marketing | Invitation principale couple → invités | prénom invité, prénoms couple, date, lien personnalisé | À créer |
-| `rsvp_reminder_d7` | utility | Rappel J-7 invités `attending` qui ne sont pas confirmés | prénom invité, prénoms couple, date, lien | À créer |
-| `rsvp_reminder_d1` | utility | Rappel veille | prénom invité, prénoms couple, lieu, lien | À créer |
-| `rsvp_confirmation` | utility | Accusé réception après que l'invité a répondu RSVP | prénom invité, statut (présent/absent), prénoms couple | À créer |
+| `team_invitation` | utility | Pro invite collaborateur | prénom invité, nom inviteur, nom orga | 📤 Codé dans `scripts/submit-whatsapp-templates.ts` — soumission Meta à lancer |
+| `wedding_invitation_*` (5 styles) | marketing | Invitation couple → invités | prénom, couple, date, mot perso | 📤 Codé — soumission Meta à lancer |
+| `template_status_update` | utility | Notif couple sur validation/refus de leur template custom | prénom, nom template, statut, raison | 📤 Codé — soumission Meta à lancer |
+| `rsvp_reminder_d7` | utility | Rappel J-7 invités `attending` qui ne sont pas confirmés | prénom invité, prénoms couple, date | 📤 Codé — soumission Meta à lancer |
+| `rsvp_reminder_d1` | utility | Rappel veille | prénom invité, prénoms couple, lieu | 📤 Codé — soumission Meta à lancer |
+| `rsvp_confirmation` | utility | Accusé réception après que l'invité a répondu RSVP | prénom invité, statut RSVP, prénoms couple | 📤 Codé — soumission Meta à lancer |
+
+**Lancer la soumission** :
+```bash
+# 1. Preview des payloads (no-op API)
+pnpx tsx scripts/submit-whatsapp-templates.ts --dry-run
+
+# 2. Soumettre un seul template ciblé
+WHATSAPP_ACCESS_TOKEN=EAAxxx WHATSAPP_WABA_ID=123456 \
+  pnpx tsx scripts/submit-whatsapp-templates.ts --template team_invitation
+
+# 3. Soumettre tout (idempotent : skip si déjà existant côté Meta)
+WHATSAPP_ACCESS_TOKEN=EAAxxx WHATSAPP_WABA_ID=123456 \
+  pnpx tsx scripts/submit-whatsapp-templates.ts
+```
 
 ### Personnalisation par le couple — décision architecture pending
 Trois options pour permettre au couple de personnaliser son message d'invitation :

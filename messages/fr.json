@@ -981,6 +981,26 @@
       "invalidDate": "La date doit être dans le futur."
     }
   },
+  "Billing": {
+    "paygHistory": {
+      "title": "Historique de vos achats",
+      "eyebrow": "Pay-as-you-go",
+      "empty": "Aucun achat Pay-as-you-go pour le moment. Vos transactions apparaîtront ici dès votre premier crédit acheté.",
+      "columnDate": "Date",
+      "columnAmount": "Montant",
+      "columnCurrency": "Devise",
+      "columnTransaction": "Transaction",
+      "columnStatus": "Statut",
+      "statusSucceeded": "Réglé"
+    }
+  },
+  "WhatsApp": {
+    "reminders": {
+      "d7Description": "Rappel envoyé une semaine avant l'événement aux invités confirmés.",
+      "d1Description": "Rappel envoyé la veille de l'événement aux invités confirmés.",
+      "templateMissing": "Template Meta indisponible — l'envoi WhatsApp est suspendu, l'email reste actif."
+    }
+  },
   "Emails": {
     "common": {
       "greeting": "Bonjour {name},",
@@ -1010,6 +1030,10 @@
       "subscriptionFailed": {
         "subject": "Échec de paiement — {organizationName}",
         "ctaLabel": "Mettre à jour mon paiement"
+      },
+      "paygCreditActivated": {
+        "subject": "Crédit Pay-as-you-go activé — {organizationName}",
+        "ctaLabel": "Voir mon solde"
       }
     },
     "stripeInvoice": {
