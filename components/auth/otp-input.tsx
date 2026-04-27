@@ -100,7 +100,7 @@ export function OtpInput({
       <div
         role="group"
         aria-label="Code de vérification"
-        className="flex gap-2"
+        className="flex justify-center gap-2"
         onPaste={handlePaste}
       >
         {digits.map((digit, i) => (
