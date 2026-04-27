@@ -136,8 +136,14 @@ const facesCallback = httpAction(async (ctx, req) => {
   }
 
   const cleanFaces = payload.faces
-    .filter((f): f is { faceId: string; boundingBox?: { width: number; height: number; left: number; top: number }; confidence?: number } =>
-      typeof f.faceId === 'string' && f.faceId.length > 0,
+    .filter(
+      (
+        f,
+      ): f is {
+        faceId: string;
+        boundingBox?: { width: number; height: number; left: number; top: number };
+        confidence?: number;
+      } => typeof f.faceId === 'string' && f.faceId.length > 0,
     )
     .map((f) => ({
       faceId: f.faceId,
@@ -157,6 +163,60 @@ http.route({
   path: '/lambda/photo-faces-callback',
   method: 'POST',
   handler: facesCallback,
+});
+
+/**
+ * Callback HMAC posté par le Lambda Sharp après génération des variantes
+ * (thumb/medium/large) en `processed/{eventId}/{photoId}/{size}.webp`.
+ * Patche `photos.variants` avec les keys WebP.
+ *
+ * Best-effort : si la photo n'existe plus côté Convex (deleted entre l'upload
+ * et le callback), on no-op proprement (200 ok). Les variantes orphelines
+ * en S3 sont nettoyées via la lifecycle rule `archive-processed`.
+ */
+const variantsCallback = httpAction(async (ctx, req) => {
+  const rawBody = await req.text();
+  const signature = req.headers.get(SIGNATURE_HEADER);
+  const timestamp = req.headers.get(TIMESTAMP_HEADER);
+  if (!signature || !timestamp) {
+    return new Response('missing signature headers', { status: 400 });
+  }
+  const skew = Math.abs(Date.now() - Number(timestamp));
+  if (!Number.isFinite(skew) || skew > MAX_TIMESTAMP_SKEW_MS) {
+    return new Response('stale or invalid timestamp', { status: 400 });
+  }
+  if (!(await verifySignature(rawBody, timestamp, signature))) {
+    return new Response('bad signature', { status: 401 });
+  }
+
+  let payload: {
+    s3Key?: string;
+    variants?: { thumb?: string; medium?: string; large?: string };
+  };
+  try {
+    payload = JSON.parse(rawBody);
+  } catch {
+    return new Response('invalid JSON', { status: 400 });
+  }
+  if (!payload.s3Key || !payload.variants || typeof payload.variants !== 'object') {
+    return new Response('invalid payload', { status: 400 });
+  }
+
+  const result = await ctx.runMutation(internal.photos.internalSetVariants, {
+    s3Key: payload.s3Key,
+    variants: {
+      ...(payload.variants.thumb ? { thumb: payload.variants.thumb } : {}),
+      ...(payload.variants.medium ? { medium: payload.variants.medium } : {}),
+      ...(payload.variants.large ? { large: payload.variants.large } : {}),
+    },
+  });
+  return Response.json(result);
+});
+
+http.route({
+  path: '/lambda/photo-variants-callback',
+  method: 'POST',
+  handler: variantsCallback,
 });
 
 export default http;

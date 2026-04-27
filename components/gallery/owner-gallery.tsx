@@ -21,6 +21,14 @@ type Status = 'pending' | 'approved' | 'rejected';
 export interface OwnerPhotoItem {
   _id: string;
   url: string | null;
+  /**
+   * Variantes WebP responsives générées par le Lambda Sharp à l'upload.
+   * - `thumb` (256 px) → grid masonry. ~12 KB / image vs ~2 MB original.
+   * - `medium` (1024 px) → lightbox.
+   * - `large` (2048 px) → download.
+   * Fallback sur `url` si absentes (anciennes photos / Lambda en échec).
+   */
+  variants?: { thumb?: string; medium?: string; large?: string };
   status: Status;
   uploaderName?: string;
   uploadedByGuestToken?: boolean;
@@ -186,7 +194,7 @@ export function OwnerGallery({ eventId, initialPhotos }: Props) {
         </p>
       ) : (
         <ul
-          className="gap-3 [column-fill:_balance] columns-2 sm:columns-3 md:columns-4"
+          className="columns-2 gap-3 [column-fill:_balance] sm:columns-3 md:columns-4"
           data-testid="photo-grid"
         >
           {filtered.map((p) => (
@@ -199,7 +207,7 @@ export function OwnerGallery({ eventId, initialPhotos }: Props) {
               {p.url ? (
                 // eslint-disable-next-line @next/next/no-img-element -- Convex storage URLs are external; next/image requires remotePatterns config
                 <img
-                  src={p.url}
+                  src={p.variants?.thumb ?? p.url}
                   alt={p.uploaderName ?? ''}
                   loading="lazy"
                   width={p.width}
@@ -209,7 +217,9 @@ export function OwnerGallery({ eventId, initialPhotos }: Props) {
               ) : (
                 <div
                   className="w-full rounded-lg bg-[color:var(--color-ivory-100)]"
-                  style={{ aspectRatio: p.width && p.height ? `${p.width} / ${p.height}` : '1 / 1' }}
+                  style={{
+                    aspectRatio: p.width && p.height ? `${p.width} / ${p.height}` : '1 / 1',
+                  }}
                 />
               )}
               <div className="flex items-center justify-between gap-2 text-xs">

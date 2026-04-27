@@ -60,6 +60,35 @@ async function resolvePhotoUrl(ctx: QueryCtx, photo: Doc<'photos'>): Promise<str
   return null;
 }
 
+/**
+ * Convertit une key S3 (`processed/{eventId}/{photoId}/medium.webp`) en URL
+ * CloudFront. Retourne `null` si la key est absente. Utilisé pour exposer
+ * les variantes Sharp côté UI via la même distribution CDN que l'original.
+ */
+function variantUrl(s3Key: string | undefined): string | null {
+  if (!s3Key) return null;
+  return `https://${cdnDomain()}/${s3Key}`;
+}
+
+interface PublicVariants {
+  thumb?: string;
+  medium?: string;
+  large?: string;
+}
+
+function resolveVariantUrls(photo: Doc<'photos'>): PublicVariants | undefined {
+  if (!photo.variants) return undefined;
+  const thumb = variantUrl(photo.variants.thumb);
+  const medium = variantUrl(photo.variants.medium);
+  const large = variantUrl(photo.variants.large);
+  if (!thumb && !medium && !large) return undefined;
+  return {
+    ...(thumb ? { thumb } : {}),
+    ...(medium ? { medium } : {}),
+    ...(large ? { large } : {}),
+  };
+}
+
 function assertUploadShape(sizeBytes: number, contentType: string): void {
   if (!Number.isFinite(sizeBytes) || sizeBytes <= 0 || sizeBytes > MAX_BYTES_PER_UPLOAD) {
     throw new Error('INVALID_SIZE');
@@ -201,6 +230,7 @@ export const listForOwner = query({
       rows.map(async (p) => ({
         _id: p._id,
         url: await resolvePhotoUrl(ctx, p),
+        variants: resolveVariantUrls(p),
         status: p.status,
         uploaderName: p.uploaderName,
         uploadedByGuestToken: p.uploadedByGuestToken ? true : undefined,
@@ -230,6 +260,7 @@ export const listApprovedForGuest = query({
       rows.map(async (p) => ({
         _id: p._id,
         url: await resolvePhotoUrl(ctx, p),
+        variants: resolveVariantUrls(p),
         uploaderName: p.uploaderName,
         width: p.width,
         height: p.height,
@@ -454,11 +485,7 @@ export const _photoIdsForFaceIds = internalQuery({
 export const internalMarkModerated = internalMutation({
   args: {
     s3Key: v.string(),
-    decision: v.union(
-      v.literal('approved'),
-      v.literal('rejected'),
-      v.literal('manual_review'),
-    ),
+    decision: v.union(v.literal('approved'), v.literal('rejected'), v.literal('manual_review')),
     topLabel: v.optional(v.string()),
     topConfidence: v.optional(v.number()),
     labels: v.optional(v.array(v.object({ name: v.string(), confidence: v.number() }))),
@@ -512,6 +539,42 @@ export const internalMarkModerated = internalMutation({
   },
 });
 
+/**
+ * Enregistre les variantes WebP générées par le Lambda Sharp (thumb/medium/
+ * large). Idempotent : un re-upload de la même photo écrase les keys (le
+ * naming `processed/{eventId}/{photoId}/{size}.webp` est déterministe).
+ *
+ * Best-effort : si la photo a été supprimée entre l'upload et le callback,
+ * on no-op. Les keys peuvent être partiellement set (ex: thumb réussi mais
+ * medium en échec) — la mutation merge avec les valeurs existantes.
+ */
+export const internalSetVariants = internalMutation({
+  args: {
+    s3Key: v.string(),
+    variants: v.object({
+      thumb: v.optional(v.string()),
+      medium: v.optional(v.string()),
+      large: v.optional(v.string()),
+    }),
+  },
+  handler: async (ctx, { s3Key, variants }) => {
+    const photo = await ctx.db
+      .query('photos')
+      .withIndex('by_s3_key', (q) => q.eq('s3Key', s3Key))
+      .first();
+    if (!photo) return { ok: false as const, error: 'PHOTO_NOT_FOUND' };
+
+    const merged = {
+      ...(photo.variants ?? {}),
+      ...(variants.thumb ? { thumb: variants.thumb } : {}),
+      ...(variants.medium ? { medium: variants.medium } : {}),
+      ...(variants.large ? { large: variants.large } : {}),
+    };
+    await ctx.db.patch(photo._id, { variants: merged });
+    return { ok: true as const };
+  },
+});
+
 /* -------------------------------------------------------------------------- */
 /*  Face search — public action consommée par les server actions Next         */
 /* -------------------------------------------------------------------------- */
@@ -532,9 +595,7 @@ export const _checkFaceSearchRateLimit = internalMutation({
 
     const now = Date.now();
     const decision = decideRateLimit(
-      existing
-        ? { count: existing.count, windowStartedAt: existing.windowStartedAt }
-        : null,
+      existing ? { count: existing.count, windowStartedAt: existing.windowStartedAt } : null,
       now,
       FACE_SEARCH_MAX_HITS,
       FACE_SEARCH_WINDOW_MS,
@@ -632,7 +693,10 @@ export const searchPhotosByFace = action({
       return { ok: false as const, error: 'NO_COLLECTION_YET' as const };
     }
 
-    let searchResult: { status: 'matches'; faceIds: string[] } | { status: 'no_face_in_selfie' } | { status: 'no_match' };
+    let searchResult:
+      | { status: 'matches'; faceIds: string[] }
+      | { status: 'no_face_in_selfie' }
+      | { status: 'no_match' };
     try {
       searchResult = await ctx.runAction(internal.photosFaceSearch.searchByImage, {
         collectionId: access.faceCollectionId,

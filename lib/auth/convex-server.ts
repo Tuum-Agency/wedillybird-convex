@@ -360,6 +360,7 @@ export const convexApi = {
     Array<{
       _id: string;
       url: string | null;
+      variants?: { thumb?: string; medium?: string; large?: string };
       status: 'pending' | 'approved' | 'rejected';
       uploaderName?: string;
       uploadedByGuestToken?: boolean;
@@ -378,6 +379,7 @@ export const convexApi = {
     Array<{
       _id: string;
       url: string | null;
+      variants?: { thumb?: string; medium?: string; large?: string };
       uploaderName?: string;
       width?: number;
       height?: number;
@@ -532,6 +534,33 @@ export const convexApi = {
       myRole: 'owner' | 'admin' | 'planner' | 'viewer';
     } | null
   >('organizations:myOrganization'),
+  updateOrgBranding: makeFunctionReference<
+    'mutation',
+    {
+      organizationId: string;
+      requesterId: string;
+      name?: string;
+      primaryColor?: string;
+      accentColor?: string;
+      logoStorageId?: string;
+    },
+    { ok: true }
+  >('organizations:updateBranding'),
+  generateOrgLogoUploadUrl: makeFunctionReference<
+    'mutation',
+    { organizationId: string; requesterId: string },
+    { uploadUrl: string }
+  >('organizations:generateLogoUploadUrl'),
+  setOrgLogo: makeFunctionReference<
+    'mutation',
+    { organizationId: string; requesterId: string; logoStorageId: string },
+    { ok: true }
+  >('organizations:setLogo'),
+  clearOrgLogo: makeFunctionReference<
+    'mutation',
+    { organizationId: string; requesterId: string },
+    { ok: true; alreadyEmpty?: boolean }
+  >('organizations:clearLogo'),
   getOrganization: makeFunctionReference<
     'query',
     { organizationId: string; requesterId: string },
@@ -732,8 +761,7 @@ export const convexApi = {
       status: string;
       reason?: string;
     },
-    | { ok: true; status: string; changed: boolean }
-    | { ok: false; error: 'TEMPLATE_NOT_FOUND' }
+    { ok: true; status: string; changed: boolean } | { ok: false; error: 'TEMPLATE_NOT_FOUND' }
   >('whatsappTemplates:applyWebhookStatusUpdate'),
   dispatchTemplateNotifications: makeFunctionReference<
     'action',

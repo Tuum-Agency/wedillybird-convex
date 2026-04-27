@@ -171,6 +171,71 @@ export class WedillybirdMediaStack extends Stack {
       );
 
       new CfnOutput(this, 'ModerationFunctionName', { value: moderationFunction.functionName });
+
+      /* ------------------------------------------------------------------ */
+      /*  Variants Lambda (Sharp resize → thumb/medium/large WebP)          */
+      /* ------------------------------------------------------------------ */
+      /* Tourne en parallèle de la modération sur le même trigger S3        */
+      /* `incoming/`. Sharp est un binaire natif : on le marque              */
+      /* `nodeModules: ['sharp']` pour qu'esbuild copie le module dans le    */
+      /* bundle plutôt que de l'inliner — sinon le binaire `linux-arm64`    */
+      /* compilé pendant `pnpm install` n'arriverait pas dans la Lambda.    */
+      /* Architecture ARM64 alignée avec la modération (coût / perf).        */
+      /* ------------------------------------------------------------------ */
+      const variantsFunction = new NodejsFunction(this, 'VariantsFunction', {
+        entry: path.join(__dirname, '..', 'lambdas', 'variants.ts'),
+        handler: 'handler',
+        runtime: lambda.Runtime.NODEJS_22_X,
+        architecture: lambda.Architecture.ARM_64,
+        // Sharp peut consommer 200-400 MB de RAM sur des images 12 MP. 1 GB
+        // donne aussi plus de CPU (Lambda alloue le CPU proportionnellement
+        // à la mémoire), ce qui réduit le wall-time de ~2.5x sur Sharp.
+        memorySize: 1024,
+        timeout: Duration.seconds(60),
+        environment: {
+          CONVEX_SITE_URL: props.convexSiteUrl,
+          LAMBDA_CALLBACK_SECRET: props.lambdaCallbackSecret,
+        },
+        // Lockfile de l'infra (pnpm workspace : root). CDK l'utilise pour
+        // détecter le package manager (pnpm) lors du bundling Docker pour
+        // installer les `nodeModules` natifs (Sharp).
+        depsLockFilePath: path.join(__dirname, '..', '..', 'pnpm-lock.yaml'),
+        bundling: {
+          target: 'node22',
+          format: OutputFormat.CJS,
+          sourceMap: true,
+          // Sharp a un binaire natif `linux-arm64`. On le force comme
+          // dépendance externe non-bundlée et esbuild copie le module
+          // installé en `node_modules/sharp` dans le bundle final. Le
+          // bundling Docker (par défaut sur CDK pour `nodeModules`) cross-
+          // compile correctement le binaire `linux-arm64` même depuis
+          // un dev macOS/x86_64. cf. https://sharp.pixelplumbing.com/install#aws-lambda
+          nodeModules: ['sharp'],
+          // Le SDK AWS est natif au runtime Lambda Node 22 — on l'externalise
+          // pour réduire la taille du bundle.
+          externalModules: ['@aws-sdk/client-s3'],
+        },
+        description: 'Wedillybird photo variants (Sharp WebP thumb/medium/large)',
+      });
+
+      this.bucket.grantRead(variantsFunction);
+      // PUT scope-down : `processed/*` uniquement, pas les uploads bruts ni
+      // d'autres prefix S3 (pas de risque d'overwrite d'un objet `incoming/`).
+      variantsFunction.addToRolePolicy(
+        new iam.PolicyStatement({
+          actions: ['s3:PutObject', 's3:PutObjectAcl'],
+          resources: [`${this.bucket.bucketArn}/processed/*`],
+        }),
+      );
+
+      variantsFunction.addEventSource(
+        new S3EventSource(this.bucket, {
+          events: [s3.EventType.OBJECT_CREATED],
+          filters: [{ prefix: 'incoming/' }],
+        }),
+      );
+
+      new CfnOutput(this, 'VariantsFunctionName', { value: variantsFunction.functionName });
     }
   }
 }

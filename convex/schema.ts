@@ -78,12 +78,7 @@ export default defineSchema({
     requesterId: v.id('users'),
     stripeSessionId: v.string(),
     amountMinor: v.number(),
-    currency: v.union(
-      v.literal('EUR'),
-      v.literal('XOF'),
-      v.literal('MAD'),
-      v.literal('TND'),
-    ),
+    currency: v.union(v.literal('EUR'), v.literal('XOF'), v.literal('MAD'), v.literal('TND')),
     createdAt: v.number(),
   })
     .index('by_session', ['stripeSessionId'])
@@ -302,6 +297,25 @@ export default defineSchema({
     height: v.optional(v.number()),
     sizeBytes: v.number(),
     contentType: v.string(),
+    /**
+     * Variantes WebP générées par le Lambda Sharp à l'upload : `thumb-256`,
+     * `medium-1024`, `large-2048`. Stockées sous `processed/{eventId}/{photoId}/{size}.webp`
+     * et exposées via CloudFront (même distribution que `s3Key`).
+     *
+     * - thumb (max 256px) : grid masonry galerie owner/guest, ~12 KB / image.
+     * - medium (max 1024px) : lightbox / face search hits, ~80 KB / image.
+     * - large (max 2048px) : download single + ZIP (full-resolution-ish).
+     *
+     * Si absent (Lambda pas tourné, échec, ancienne photo) : fallback sur
+     * `s3Key` original côté UI.
+     */
+    variants: v.optional(
+      v.object({
+        thumb: v.optional(v.string()),
+        medium: v.optional(v.string()),
+        large: v.optional(v.string()),
+      }),
+    ),
     moderatedAt: v.optional(v.number()),
     moderatedBy: v.optional(v.id('users')),
     moderation: v.optional(
@@ -310,11 +324,7 @@ export default defineSchema({
         // `manual_review` = Rekognition n'a ni rejeté ni approuvé en confiance
         // (image détectée comme illustration suspecte ou OCR ambigu) — la
         // photo reste `status: 'pending'` jusqu'à intervention owner explicite.
-        decision: v.union(
-          v.literal('approved'),
-          v.literal('rejected'),
-          v.literal('manual_review'),
-        ),
+        decision: v.union(v.literal('approved'), v.literal('rejected'), v.literal('manual_review')),
         topLabel: v.optional(v.string()),
         topConfidence: v.optional(v.number()),
         labels: v.optional(v.array(v.object({ name: v.string(), confidence: v.number() }))),

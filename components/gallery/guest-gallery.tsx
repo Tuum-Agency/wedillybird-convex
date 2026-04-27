@@ -16,6 +16,11 @@ import {
 export interface GuestPhotoItem {
   _id: string;
   url: string | null;
+  /**
+   * Variantes WebP (thumb/medium/large) pour servir des images légères côté
+   * mobile invité. Fallback sur `url` si absentes.
+   */
+  variants?: { thumb?: string; medium?: string; large?: string };
   uploaderName?: string;
   width?: number;
   height?: number;
@@ -48,20 +53,21 @@ export function GuestGallery({ token, inviteeName, initialPhotos }: Props) {
 
   useEffect(() => {
     if (lastUploadAt === null) return;
-    const elapsed = Date.now() - lastUploadAt;
-    if (elapsed >= RECENT_UPLOAD_WINDOW_MS) {
-      setLastUploadAt(null);
-      return;
+    const remaining = RECENT_UPLOAD_WINDOW_MS - (Date.now() - lastUploadAt);
+    if (remaining <= 0) {
+      // Reset asynchrone via timer 0 pour ne pas appeler setState dans le
+      // body de l'effect (cascading renders).
+      const t = window.setTimeout(() => setLastUploadAt(null), 0);
+      return () => window.clearTimeout(t);
     }
     const interval = window.setInterval(() => {
       router.refresh();
-      // Stoppe le polling quand la fenêtre est écoulée — sans attendre le
-      // prochain tick — pour éviter un refresh inutile en bord de fenêtre.
-      if (Date.now() - lastUploadAt >= RECENT_UPLOAD_WINDOW_MS) {
-        setLastUploadAt(null);
-      }
     }, POLL_INTERVAL_MS);
-    return () => window.clearInterval(interval);
+    const expiry = window.setTimeout(() => setLastUploadAt(null), remaining);
+    return () => {
+      window.clearInterval(interval);
+      window.clearTimeout(expiry);
+    };
   }, [lastUploadAt, router]);
 
   const filtered = useMemo(() => {
@@ -119,7 +125,7 @@ export function GuestGallery({ token, inviteeName, initialPhotos }: Props) {
         </p>
       ) : (
         <ul
-          className="gap-3 [column-fill:_balance] columns-2 sm:columns-3 md:columns-4"
+          className="columns-2 gap-3 [column-fill:_balance] sm:columns-3 md:columns-4"
           data-testid="photo-grid"
         >
           {filtered.map((p) => (
@@ -131,7 +137,7 @@ export function GuestGallery({ token, inviteeName, initialPhotos }: Props) {
               {p.url ? (
                 // eslint-disable-next-line @next/next/no-img-element -- Convex storage URLs are external; next/image requires remotePatterns config
                 <img
-                  src={p.url}
+                  src={p.variants?.thumb ?? p.url}
                   alt={p.uploaderName ?? ''}
                   loading="lazy"
                   width={p.width}
@@ -141,7 +147,9 @@ export function GuestGallery({ token, inviteeName, initialPhotos }: Props) {
               ) : (
                 <div
                   className="w-full bg-[color:var(--color-ivory-100)]"
-                  style={{ aspectRatio: p.width && p.height ? `${p.width} / ${p.height}` : '1 / 1' }}
+                  style={{
+                    aspectRatio: p.width && p.height ? `${p.width} / ${p.height}` : '1 / 1',
+                  }}
                 />
               )}
               {p.uploaderName ? (

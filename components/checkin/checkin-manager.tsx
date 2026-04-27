@@ -16,6 +16,7 @@ import {
   getCacheMeta,
   markCachedCheckedIn,
 } from '@/lib/offline/guests-db';
+import { countPendingCheckIns, drainPendingCheckIns, enqueueCheckIn } from '@/lib/checkin/queue';
 
 const QrScanner = dynamic(() => import('./qr-scanner').then((m) => m.QrScanner), {
   ssr: false,
@@ -59,7 +60,37 @@ export function CheckInManager({ eventId, initialGuests }: Props) {
   const [lastSyncedAt, setLastSyncedAt] = useState<number | null>(null);
   const [now, setNow] = useState<number>(() => Date.now());
   const [pending, startTransition] = useTransition();
+  const [pendingQueueCount, setPendingQueueCount] = useState(0);
+  const [queueSyncedAt, setQueueSyncedAt] = useState<number | null>(null);
+  const [queueSyncedCount, setQueueSyncedCount] = useState<number | null>(null);
+  const draining = useRef(false);
   const lastScannedRef = useRef<{ token: string; at: number } | null>(null);
+
+  const refreshQueueCount = useCallback(async () => {
+    try {
+      const count = await countPendingCheckIns(eventId);
+      setPendingQueueCount(count);
+    } catch {
+      // ignore (Dexie indisponible côté SSR ou storage refusé)
+    }
+  }, [eventId]);
+
+  const drainQueue = useCallback(async () => {
+    if (draining.current) return;
+    draining.current = true;
+    try {
+      const result = await drainPendingCheckIns(eventId);
+      if (result.synced > 0) {
+        setQueueSyncedAt(Date.now());
+        setQueueSyncedCount(result.synced);
+      }
+      await refreshQueueCount();
+    } catch {
+      // silencieux : on retentera au prochain online ou au prochain scan online
+    } finally {
+      draining.current = false;
+    }
+  }, [eventId, refreshQueueCount]);
 
   useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), 1000);
@@ -76,15 +107,25 @@ export function CheckInManager({ eventId, initialGuests }: Props) {
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const update = () => setIsOnline(navigator.onLine);
-    update();
+    const update = () => {
+      const next = navigator.onLine;
+      setIsOnline(next);
+      if (next) void drainQueue();
+    };
+    // Initial check + queue count différés via microtask pour éviter de
+    // déclencher setState dans le body de l'effect (cascading renders).
+    const init = window.setTimeout(() => {
+      update();
+      void refreshQueueCount();
+    }, 0);
     window.addEventListener('online', update);
     window.addEventListener('offline', update);
     return () => {
+      window.clearTimeout(init);
       window.removeEventListener('online', update);
       window.removeEventListener('offline', update);
     };
-  }, []);
+  }, [drainQueue, refreshQueueCount]);
 
   const pushToast = useCallback((toast: Toast) => {
     setToasts((prev) => [toast, ...prev].slice(0, 5));
@@ -129,15 +170,24 @@ export function CheckInManager({ eventId, initialGuests }: Props) {
         });
         return;
       }
+      const scannedAt = Date.now();
+      try {
+        await enqueueCheckIn({ eventId, token, scannedAt });
+        await markCachedCheckedIn(eventId, token, scannedAt);
+        await refreshQueueCount();
+      } catch {
+        // On affiche le toast quand même : l'opérateur a la trace visuelle même
+        // si la persistance Dexie échoue (storage plein, mode privé bloquant).
+      }
       pushToast({
-        id: `${token}-offline-${Date.now()}`,
+        id: `${token}-offline-${scannedAt}`,
         status: 'offline',
         guestName: cached.fullName,
         plusOnesAllowed: cached.plusOnesAllowed,
-        timestamp: Date.now(),
+        timestamp: scannedAt,
       });
     },
-    [eventId, pushToast, t],
+    [eventId, pushToast, refreshQueueCount, t],
   );
 
   const submit = useCallback(
@@ -196,6 +246,36 @@ export function CheckInManager({ eventId, initialGuests }: Props) {
         </span>
         <span>{t('guestsCached', { count: initialGuests.length })}</span>
       </div>
+
+      {pendingQueueCount > 0 ? (
+        <div
+          className="flex items-center justify-between gap-3 rounded-xl border border-dashed border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-3 text-xs"
+          data-testid="pending-queue-badge"
+          data-count={pendingQueueCount}
+        >
+          <span>{t('pendingQueue', { count: pendingQueueCount })}</span>
+          {isOnline ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => void drainQueue()}
+              data-testid="pending-queue-sync"
+            >
+              {t('pendingQueueSyncNow')}
+            </Button>
+          ) : null}
+        </div>
+      ) : null}
+
+      {queueSyncedCount && queueSyncedAt && now - queueSyncedAt < 6_000 ? (
+        <div
+          className="rounded-xl border border-[color:var(--color-accent)] bg-[color:var(--color-surface)] p-3 text-xs"
+          data-testid="pending-queue-synced"
+        >
+          {t('pendingQueueSynced', { count: queueSyncedCount })}
+        </div>
+      ) : null}
 
       <QrScanner onScan={submit} paused={paused || pending} />
 
