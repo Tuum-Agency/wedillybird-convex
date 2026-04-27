@@ -103,10 +103,18 @@ export async function completeOnboardingAction(formData: FormData): Promise<Acti
       userId: session.userId,
       fullName: parsed.data.fullName,
       role: parsed.data.role,
-      ...(parsed.data.email ? { email: parsed.data.email } : {}),
+      email: parsed.data.email,
     });
   } catch (err) {
-    return { ok: false, error: err instanceof Error ? err.message : 'UNKNOWN' };
+    const message = err instanceof Error ? err.message : 'UNKNOWN';
+    if (message.includes('EMAIL_TAKEN')) {
+      return {
+        ok: false,
+        error: 'EMAIL_TAKEN',
+        fieldErrors: { email: ['Cette adresse email est déjà utilisée par un autre compte.'] },
+      };
+    }
+    return { ok: false, error: message };
   }
 
   redirect({ href: '/dashboard', locale: 'fr' });

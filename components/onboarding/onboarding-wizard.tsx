@@ -28,36 +28,46 @@ const ROLE_OPTIONS: ReadonlyArray<{
   { value: 'pro', titleKey: 'rolePro', descriptionKey: 'roleProDescription', Icon: Briefcase },
 ];
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 /**
  * OnboardingWizard V4 — wizard 2 steps avec animations Motion sobres.
  *
- * Step 0 : profil (nom + email optionnel)
+ * Step 0 : profil (nom + email **obligatoire** depuis avril 2026)
  * Step 1 : rôle (couple vs pro) avec radio cards
  *
- * Animations niveau B : transitions step-to-step en AnimatePresence (slide
- * left/right + fade), progress bar gold qui remplit, success ✦ sur radio
- * sélectionné.
+ * Email policy :
+ *  - Si l'user vient de magic link → `initialEmail` pré-rempli + readonly
+ *  - Si l'user vient de WhatsApp → champ vide, obligatoire, validé client
+ *  - Empêche les doublons (cf. convex/users.completeOnboarding EMAIL_TAKEN)
  */
-export function OnboardingWizard() {
+export function OnboardingWizard({ initialEmail = '' }: { initialEmail?: string }) {
   const t = useTranslations('Onboarding');
   const tCommon = useTranslations('Common');
   const reduced = useReducedMotion();
   const [step, setStep] = useState<0 | 1>(0);
   const [direction, setDirection] = useState<1 | -1>(1);
-  const [form, setForm] = useState<FormState>({ fullName: '', email: '', role: null });
+  const [form, setForm] = useState<FormState>({
+    fullName: '',
+    email: initialEmail,
+    role: null,
+  });
   const [fieldErrors, setFieldErrors] = useState<Record<string, string | undefined>>({});
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
-  const canGoNext = step === 0 && form.fullName.trim().length >= 2;
+  const emailLocked = initialEmail.length > 0;
+  const canGoNext =
+    step === 0 && form.fullName.trim().length >= 2 && EMAIL_RE.test(form.email.trim());
   const canSubmit = step === 1 && form.role !== null;
 
   function goToStep1() {
     const trimmed = form.fullName.trim();
+    const trimmedEmail = form.email.trim();
     const errors: Record<string, string | undefined> = {};
     if (trimmed.length < 2) errors.fullName = t('fullNameLabel');
-    if (form.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
-      errors.email = t('emailLabel');
+    if (!trimmedEmail || !EMAIL_RE.test(trimmedEmail)) {
+      errors.email = t('emailInvalid');
     }
     setFieldErrors(errors);
     if (Object.keys(errors).length > 0) return;
@@ -71,7 +81,7 @@ export function OnboardingWizard() {
     const formData = new FormData();
     formData.set('fullName', form.fullName.trim());
     formData.set('role', form.role);
-    if (form.email.trim()) formData.set('email', form.email.trim());
+    formData.set('email', form.email.trim());
 
     startTransition(async () => {
       const result = await completeOnboardingAction(formData);
@@ -82,7 +92,7 @@ export function OnboardingWizard() {
           if (v && v.length > 0) flat[k] = v[0];
         }
         setFieldErrors(flat);
-        if (flat.fullName) {
+        if (flat.fullName || flat.email) {
           setDirection(-1);
           setStep(0);
         }
@@ -163,11 +173,21 @@ export function OnboardingWizard() {
                 name="email"
                 type="email"
                 autoComplete="email"
+                inputMode="email"
+                required
+                readOnly={emailLocked}
                 placeholder={t('emailPlaceholder')}
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
                 aria-invalid={!!fieldErrors.email}
               />
+              {emailLocked ? (
+                <p className="text-xs text-[color:var(--color-ink-500)]">{t('emailLockedHint')}</p>
+              ) : (
+                <p className="text-xs text-[color:var(--color-ink-500)]">
+                  {t('emailRequiredHint')}
+                </p>
+              )}
               {fieldErrors.email ? (
                 <p className="text-xs text-[color:var(--color-destructive)]">{fieldErrors.email}</p>
               ) : null}

@@ -6,6 +6,7 @@ import { internal } from './_generated/api';
 import { internalAction } from './_generated/server';
 import {
   renderGuestReminder,
+  renderLinkCode,
   renderMagicLink,
   renderProNotification,
   type ProNotificationKind,
@@ -108,6 +109,26 @@ export const sendGuestReminder = internalAction({
 /* -------------------------------------------------------------------------- */
 /*  Magic Link email (fallback auth)                                           */
 /* -------------------------------------------------------------------------- */
+
+export const sendLinkCodeEmail = internalAction({
+  args: {
+    to: v.string(),
+    code: v.string(),
+    ipAddress: v.optional(v.string()),
+  },
+  handler: async (_ctx, { to, code, ipAddress }) => {
+    const rendered = renderLinkCode({
+      code,
+      expiresInMinutes: 10,
+      requestIp: ipAddress,
+    });
+    const result = await dispatch(to, rendered);
+    if (!result.ok) {
+      console.error(`[email] failed to send link code to ${to}: ${result.error}`);
+    }
+    return result;
+  },
+});
 
 export const sendMagicLinkEmail = internalAction({
   args: {

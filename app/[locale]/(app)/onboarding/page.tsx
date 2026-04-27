@@ -35,5 +35,9 @@ export default async function OnboardingPage({ params }: { params: Promise<{ loc
     redirect({ href: '/dashboard', locale });
   }
 
-  return <OnboardingWizard />;
+  // Si l'user vient de magic link, son email est déjà set sur le record.
+  // On le pre-fill en readonly pour qu'il n'y touche pas (c'est l'identifiant
+  // qui l'a authentifié). Pour les users WhatsApp-first, le champ est vide
+  // et obligatoire — politique anti-doublon depuis avril 2026.
+  return <OnboardingWizard initialEmail={user?.email ?? ''} />;
 }

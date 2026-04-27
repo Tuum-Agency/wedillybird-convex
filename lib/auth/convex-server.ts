@@ -53,7 +53,7 @@ export const convexApi = {
   >('auth:currentUser'),
   completeOnboarding: makeFunctionReference<
     'mutation',
-    { userId: string; fullName: string; role: 'couple' | 'pro'; email?: string },
+    { userId: string; fullName: string; role: 'couple' | 'pro'; email: string },
     { ok: true }
   >('users:completeOnboarding'),
   userByPhone: makeFunctionReference<
@@ -537,6 +537,26 @@ export const convexApi = {
     { email: string; source?: string; ipAddress?: string },
     { id: string; alreadyActive: boolean; reactivated: boolean }
   >('newsletter:subscribe'),
+  requestLinkPhone: makeFunctionReference<
+    'action',
+    { userId: string; phone: string; ipAddress?: string },
+    { phone: string; channel: 'whatsapp'; provider: 'meta_cloud' | 'mock' }
+  >('auth:requestLinkPhone'),
+  verifyLinkPhone: makeFunctionReference<
+    'mutation',
+    { userId: string; phone: string; code: string },
+    { ok: true }
+  >('auth:verifyLinkPhone'),
+  requestLinkEmail: makeFunctionReference<
+    'action',
+    { userId: string; email: string; ipAddress?: string },
+    { email: string }
+  >('auth:requestLinkEmail'),
+  verifyLinkEmail: makeFunctionReference<
+    'mutation',
+    { userId: string; email: string; code: string },
+    { ok: true }
+  >('auth:verifyLinkEmail'),
 } satisfies Record<
   string,
   FunctionReference<'query' | 'mutation' | 'action', 'public', Args, unknown>

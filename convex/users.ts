@@ -6,7 +6,7 @@ export const completeOnboarding = mutation({
     userId: v.id('users'),
     fullName: v.string(),
     role: v.union(v.literal('couple'), v.literal('pro')),
-    email: v.optional(v.string()),
+    email: v.string(),
   },
   handler: async (ctx, { userId, fullName, role, email }) => {
     const user = await ctx.db.get(userId);
@@ -17,10 +17,26 @@ export const completeOnboarding = mutation({
       throw new Error('INVALID_NAME');
     }
 
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+      throw new Error('INVALID_EMAIL');
+    }
+
+    // Strict ownership : si un autre user possède déjà cet email → block.
+    // Le user qui s'est connecté via magic link a déjà cet email sur son
+    // record (cas légitime), donc on autorise quand existing._id === userId.
+    const conflict = await ctx.db
+      .query('users')
+      .withIndex('by_email', (q) => q.eq('email', normalizedEmail))
+      .first();
+    if (conflict && conflict._id !== userId) {
+      throw new Error('EMAIL_TAKEN');
+    }
+
     await ctx.db.patch(userId, {
       fullName: trimmed,
       role,
-      ...(email ? { email: email.toLowerCase() } : {}),
+      email: normalizedEmail,
     });
 
     return { ok: true as const };

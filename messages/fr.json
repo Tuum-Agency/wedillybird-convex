@@ -78,6 +78,62 @@
       "thirdPartiesBody": "Stripe et CinetPay déposent leurs propres cookies sur leurs pages de paiement (hors domaine Wedillybird) pour prévenir la fraude. Consultez leurs politiques respectives."
     }
   },
+  "Account": {
+    "link": {
+      "eyebrow": "ACTIVER",
+      "phone": {
+        "title": "Activez la connexion WhatsApp",
+        "description": "Recevez un code par WhatsApp pour vous connecter sans mot de passe. Plus rapide qu'un email.",
+        "cta": "Lier mon WhatsApp",
+        "drawer": {
+          "title": "Lier votre WhatsApp",
+          "step1Description": "Entrez votre numéro WhatsApp pour recevoir un code à 6 chiffres.",
+          "step2Description": "Entrez le code envoyé sur {value}.",
+          "successTitle": "WhatsApp lié à votre compte",
+          "successDescription": "Vous pouvez maintenant vous connecter avec votre numéro."
+        }
+      },
+      "email": {
+        "title": "Activez la connexion email",
+        "description": "Recevez un code par email pour vous connecter sans WhatsApp. Pratique pour vos invités plus âgés.",
+        "cta": "Lier mon email",
+        "drawer": {
+          "title": "Lier votre adresse email",
+          "step1Description": "Entrez votre email pour recevoir un code à 6 chiffres.",
+          "step2Description": "Entrez le code envoyé à {value}.",
+          "successTitle": "Email lié à votre compte",
+          "successDescription": "Vous pouvez maintenant vous connecter avec votre adresse email."
+        }
+      },
+      "phoneLabel": "Numéro WhatsApp",
+      "phonePlaceholder": "+33 6 12 34 56 78",
+      "emailLabel": "Adresse email",
+      "emailPlaceholder": "vous@email.com",
+      "codeLabel": "Code à 6 chiffres reçu",
+      "sendCode": "Envoyer le code",
+      "sending": "Envoi…",
+      "verify": "Vérifier",
+      "verifying": "Vérification…",
+      "changeValue": "Modifier",
+      "done": "Terminé",
+      "errors": {
+        "invalidPhone": "Numéro de téléphone invalide",
+        "invalidEmail": "Adresse email invalide",
+        "invalidCode": "Code incorrect ou incomplet",
+        "phoneTaken": "Ce numéro est déjà utilisé par un autre compte. Connectez-vous avec ce numéro pour le retrouver.",
+        "emailTaken": "Cette adresse est déjà utilisée par un autre compte. Connectez-vous avec cette adresse pour la retrouver.",
+        "alreadyLinked": "Cet identifiant est déjà associé à votre compte.",
+        "rateLimited": "Trop de demandes. Patientez quelques minutes.",
+        "noActiveLink": "Aucun code en attente. Demandez-en un nouveau.",
+        "expired": "Le code a expiré. Demandez-en un nouveau.",
+        "tooManyAttempts": "Trop de tentatives. Demandez un nouveau code.",
+        "sendFailed": "Envoi impossible. Réessayez dans un instant.",
+        "network": "Réseau indisponible. Vérifiez votre connexion.",
+        "unauthenticated": "Session expirée. Reconnectez-vous.",
+        "unknown": "Une erreur est survenue. Réessayez."
+      }
+    }
+  },
   "Contact": {
     "eyebrow": "ÉCRIVEZ-NOUS",
     "title": "Une question, un projet, un mot doux ?",
@@ -461,8 +517,11 @@
     "stepRoleDescription": "Choisissez votre rôle pour personnaliser votre expérience.",
     "fullNameLabel": "Prénom et nom",
     "fullNamePlaceholder": "Amadou Diallo",
-    "emailLabel": "Email (optionnel)",
+    "emailLabel": "Email",
     "emailPlaceholder": "vous@exemple.com",
+    "emailInvalid": "Adresse email invalide",
+    "emailRequiredHint": "Nécessaire pour vous connecter avec un lien magique et recevoir vos factures.",
+    "emailLockedHint": "C'est l'adresse avec laquelle vous vous êtes connecté. Pour la modifier, contactez le support.",
     "roleCouple": "Un couple qui se marie",
     "roleCoupleDescription": "Pour organiser votre propre mariage.",
     "rolePro": "Un professionnel",

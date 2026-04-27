@@ -273,6 +273,34 @@ export default defineSchema({
     .index('by_token_hash', ['tokenHash']),
 
   /**
+   * Link verifications — codes OTP 6 chiffres pour ajouter un identifiant
+   * (phone OU email) à un user existant. Distinct de `otpSessions` /
+   * `magicLinkSessions` qui sont pour le login. Évite les doublons : un user
+   * peut activer sa 2e méthode de connexion sans créer un compte distinct.
+   *
+   * Pattern :
+   *  1. Sender : `auth.requestLink{Phone,Email}` génère un code 6 digits,
+   *     vérifie que le target n'appartient pas déjà à un autre user, envoie
+   *     via WhatsApp (phone) ou SES (email)
+   *  2. Verifier : `auth.verifyLink{Phone,Email}` vérifie le code, patche
+   *     `users.{phone|email}` (block si pris entre-temps : race condition)
+   */
+  linkVerifications: defineTable({
+    userId: v.id('users'),
+    targetKind: v.union(v.literal('phone'), v.literal('email')),
+    targetValue: v.string(),
+    codeHash: v.string(),
+    attempts: v.number(),
+    expiresAt: v.number(),
+    consumedAt: v.optional(v.number()),
+    createdAt: v.number(),
+    ipAddress: v.optional(v.string()),
+  })
+    .index('by_user', ['userId'])
+    .index('by_user_kind', ['userId', 'targetKind'])
+    .index('by_user_kind_expires', ['userId', 'targetKind', 'expiresAt']),
+
+  /**
    * Newsletter subscribers — abonnés à la newsletter publique. MVP store-first :
    * on capture l'email avant de brancher un service externe (Brevo, Mailchimp).
    *

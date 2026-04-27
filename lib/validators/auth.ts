@@ -27,12 +27,7 @@ export const verifyOtpSchema = z.object({
 export const onboardingSchema = z.object({
   fullName: z.string().trim().min(2, 'Nom trop court').max(80, 'Nom trop long'),
   role: z.enum(['couple', 'pro']),
-  email: z
-    .string()
-    .trim()
-    .email('Email invalide')
-    .optional()
-    .or(z.literal('').transform(() => undefined)),
+  email: z.string().trim().toLowerCase().email('Email invalide'),
 });
 
 export const emailSchema = z.string().trim().toLowerCase().email('Email invalide');

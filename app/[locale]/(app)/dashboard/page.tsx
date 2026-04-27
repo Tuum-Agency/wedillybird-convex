@@ -7,6 +7,7 @@ import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
 import { buttonVariants } from '@/components/ui/button';
 import { AppShell } from '@/components/app/app-shell';
 import { DashboardEventsList } from '@/components/dashboard/events-list';
+import { LinkMethodCard } from '@/components/account/link-method-card';
 import { cn } from '@/lib/cn';
 
 export async function generateMetadata({
@@ -88,9 +89,29 @@ export default async function DashboardPage({ params }: { params: Promise<{ loca
           </div>
         </header>
 
+        <LinkMethodSection user={user!} />
+
         {events.length === 0 ? <EmptyState /> : <DashboardEventsList events={events} />}
       </div>
     </AppShell>
+  );
+}
+
+/**
+ * Affiche les cartes "Activer la 2e méthode de connexion" si l'user n'a
+ * qu'une seule méthode (phone XOR email). Politique anti-doublon depuis
+ * avril 2026 : on encourage chaque user à avoir les 2 identifiants.
+ */
+function LinkMethodSection({ user }: { user: { phone?: string; email?: string } }) {
+  const hasPhone = !!user.phone;
+  const hasEmail = !!user.email;
+  if (hasPhone && hasEmail) return null;
+
+  return (
+    <section className="mb-10 grid gap-4 md:grid-cols-2">
+      {!hasPhone ? <LinkMethodCard method="phone" /> : null}
+      {!hasEmail ? <LinkMethodCard method="email" /> : null}
+    </section>
   );
 }
 

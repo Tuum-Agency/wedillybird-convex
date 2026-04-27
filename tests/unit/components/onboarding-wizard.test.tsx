@@ -45,14 +45,16 @@ describe('OnboardingWizard', () => {
     expect(screen.getByLabelText('Onboarding.fullNameLabel')).toBeInTheDocument();
   });
 
-  it('disables Next until fullName has 2+ chars', async () => {
+  it('disables Next until both fullName (2+ chars) and a valid email are set', async () => {
     const user = userEvent.setup();
     render(<OnboardingWizard />);
     const next = screen.getByRole('button', { name: 'Onboarding.next' });
     expect(next).toBeDisabled();
 
-    const name = screen.getByLabelText('Onboarding.fullNameLabel');
-    await user.type(name, 'Al');
+    await user.type(screen.getByLabelText('Onboarding.fullNameLabel'), 'Al');
+    expect(next).toBeDisabled();
+
+    await user.type(screen.getByLabelText('Onboarding.emailLabel'), 'al@example.com');
     expect(next).toBeEnabled();
   });
 
@@ -60,6 +62,7 @@ describe('OnboardingWizard', () => {
     const user = userEvent.setup();
     render(<OnboardingWizard />);
     await user.type(screen.getByLabelText('Onboarding.fullNameLabel'), 'Alice Martin');
+    await user.type(screen.getByLabelText('Onboarding.emailLabel'), 'alice@example.com');
     await user.click(screen.getByRole('button', { name: 'Onboarding.next' }));
 
     expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent('stepRole');
@@ -74,16 +77,24 @@ describe('OnboardingWizard', () => {
     await user.type(screen.getByLabelText('Onboarding.emailLabel'), 'not-an-email');
     await user.click(screen.getByRole('button', { name: 'Onboarding.next' }));
 
-    // Still on step 1
+    // Still on step 1 because email is invalid
     expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent('stepProfile');
   });
 
-  it('submits with fullName and selected role (redirect handled server-side)', async () => {
+  it('pre-fills email and locks the field when initialEmail is provided', () => {
+    render(<OnboardingWizard initialEmail="alice@example.com" />);
+    const emailInput = screen.getByLabelText('Onboarding.emailLabel') as HTMLInputElement;
+    expect(emailInput.value).toBe('alice@example.com');
+    expect(emailInput).toHaveAttribute('readonly');
+  });
+
+  it('submits with fullName, email and selected role', async () => {
     completeOnboardingActionMock.mockResolvedValue({ ok: true });
     const user = userEvent.setup();
     render(<OnboardingWizard />);
 
     await user.type(screen.getByLabelText('Onboarding.fullNameLabel'), 'Alice Martin');
+    await user.type(screen.getByLabelText('Onboarding.emailLabel'), 'alice@example.com');
     await user.click(screen.getByRole('button', { name: 'Onboarding.next' }));
 
     const group = screen.getByRole('radiogroup');
@@ -94,5 +105,6 @@ describe('OnboardingWizard', () => {
     const formData = completeOnboardingActionMock.mock.calls[0]![0] as FormData;
     expect(formData.get('fullName')).toBe('Alice Martin');
     expect(formData.get('role')).toBe('couple');
+    expect(formData.get('email')).toBe('alice@example.com');
   });
 });
