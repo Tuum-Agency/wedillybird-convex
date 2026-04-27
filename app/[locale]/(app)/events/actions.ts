@@ -43,6 +43,7 @@ export async function createEventAction(formData: FormData): Promise<CreateEvent
     themePrimary: formData.get('themePrimary') ?? undefined,
     themeAccent: formData.get('themeAccent') ?? undefined,
     themeFont: formData.get('themeFont') ?? undefined,
+    pendingPlanTier: formData.get('pendingPlanTier') ?? undefined,
   });
 
   if (!parsed.success) {
@@ -139,6 +140,7 @@ export async function updateMessagingConfigAction(
   const templateStyle = String(formData.get('templateStyle') ?? '');
   const personalMessage = String(formData.get('personalMessage') ?? '').trim();
   const preferredChannel = String(formData.get('preferredChannel') ?? '');
+  const clearCustomTemplate = formData.get('clearCustomTemplate') === '1';
 
   if (!eventId) return { ok: false, error: 'INVALID_INPUT' };
   if (!['classic', 'warm', 'african', 'minimal', 'festive'].includes(templateStyle)) {
@@ -159,6 +161,7 @@ export async function updateMessagingConfigAction(
       templateStyle: templateStyle as 'classic' | 'warm' | 'african' | 'minimal' | 'festive',
       ...(personalMessage ? { personalMessage } : {}),
       preferredChannel: preferredChannel as 'whatsapp' | 'email' | 'both',
+      ...(clearCustomTemplate ? { clearCustomTemplate: true } : {}),
     });
     revalidatePath(`/fr/events/${eventId}`);
     revalidatePath(`/fr/events/${eventId}/messaging`);
@@ -280,4 +283,86 @@ export async function togglePublishActionWithResult(
     console.error('[togglePublish] failed', err);
     return { ok: false, error: err instanceof Error ? err.message : 'UNKNOWN' };
   }
+}
+
+export type SubmitCustomTemplateResult =
+  | { ok: true; templateId: string; metaTemplateId?: string; mock: boolean }
+  | { ok: false; error: string };
+
+/**
+ * Création + soumission Meta d'un template custom WhatsApp + activation
+ * sur l'événement courant + persistance du canal de notification souhaité.
+ *
+ * Atomique côté UX (un seul submit) mais 3 appels Convex en série :
+ *  1. `whatsappTemplates:create` (validation + insert draft)
+ *  2. `whatsappTemplates:submitToMeta` (HTTP Meta + transition pending)
+ *  3. `events:updateMessagingConfig` (active le custom + sauve le channel)
+ */
+export async function submitCustomTemplateAction(
+  formData: FormData,
+): Promise<SubmitCustomTemplateResult> {
+  const session = await getSession();
+  if (!session) return { ok: false, error: 'UNAUTHENTICATED' };
+
+  const eventId = String(formData.get('eventId') ?? '');
+  const bodyText = String(formData.get('bodyText') ?? '');
+  const ctaLabel = String(formData.get('ctaLabel') ?? '');
+  const templateNotifyChannel = String(formData.get('templateNotifyChannel') ?? 'email');
+
+  if (!eventId) return { ok: false, error: 'INVALID_INPUT' };
+  if (bodyText.trim().length < 20) return { ok: false, error: 'BODY_TOO_SHORT' };
+  if (bodyText.trim().length > 1024) return { ok: false, error: 'BODY_TOO_LONG' };
+  if (!/\{\{1\}\}/.test(bodyText)) return { ok: false, error: 'BODY_MISSING_GUEST_PLACEHOLDER' };
+  if (ctaLabel.trim().length === 0) return { ok: false, error: 'CTA_LABEL_REQUIRED' };
+  if (ctaLabel.trim().length > 25) return { ok: false, error: 'CTA_LABEL_TOO_LONG' };
+  if (!['whatsapp', 'email', 'both'].includes(templateNotifyChannel)) {
+    return { ok: false, error: 'INVALID_CHANNEL' };
+  }
+
+  const convex = getConvexServerClient();
+
+  let templateId: string;
+  try {
+    const created = await convex.mutation(convexApi.createWhatsappTemplate, {
+      eventId,
+      requesterId: session.userId,
+      bodyText,
+      ctaLabel,
+    });
+    templateId = created.id;
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : 'CREATE_FAILED' };
+  }
+
+  let mock = false;
+  let metaTemplateId: string | undefined;
+  try {
+    const submitted = await convex.action(convexApi.submitWhatsappTemplateToMeta, {
+      templateId,
+      requesterId: session.userId,
+    });
+    if (!submitted.ok) {
+      return { ok: false, error: submitted.error ?? 'SUBMIT_FAILED' };
+    }
+    mock = submitted.mock ?? false;
+    metaTemplateId = submitted.metaTemplateId;
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : 'SUBMIT_FAILED' };
+  }
+
+  try {
+    await convex.mutation(convexApi.updateEventMessagingConfig, {
+      eventId,
+      requesterId: session.userId,
+      customTemplateId: templateId,
+      templateNotifyChannel: templateNotifyChannel as 'whatsapp' | 'email' | 'both',
+    });
+  } catch (err) {
+    console.error('[submitCustomTemplate] updateMessagingConfig failed', err);
+    // Ne casse pas le retour ok : le template est créé + soumis, juste pas
+    // activé sur l'event. L'UI peut retry.
+  }
+
+  revalidatePath(`/fr/events/${eventId}/messaging`);
+  return { ok: true, templateId, metaTemplateId, mock };
 }

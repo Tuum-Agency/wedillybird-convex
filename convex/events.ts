@@ -147,30 +147,61 @@ export const updateMessagingConfig = mutation({
   args: {
     eventId: v.id('events'),
     requesterId: v.id('users'),
-    templateStyle: v.union(
-      v.literal('classic'),
-      v.literal('warm'),
-      v.literal('african'),
-      v.literal('minimal'),
-      v.literal('festive'),
+    templateStyle: v.optional(
+      v.union(
+        v.literal('classic'),
+        v.literal('warm'),
+        v.literal('african'),
+        v.literal('minimal'),
+        v.literal('festive'),
+      ),
     ),
     personalMessage: v.optional(v.string()),
-    preferredChannel: v.union(v.literal('whatsapp'), v.literal('email'), v.literal('both')),
+    preferredChannel: v.optional(
+      v.union(v.literal('whatsapp'), v.literal('email'), v.literal('both')),
+    ),
+    customTemplateId: v.optional(v.id('whatsappTemplates')),
+    clearCustomTemplate: v.optional(v.boolean()),
+    templateNotifyChannel: v.optional(
+      v.union(v.literal('whatsapp'), v.literal('email'), v.literal('both')),
+    ),
   },
   handler: async (ctx, args) => {
     const ev = await ctx.db.get(args.eventId);
     if (!ev) throw new Error('EVENT_NOT_FOUND');
     if (ev.ownerId !== args.requesterId) throw new Error('FORBIDDEN');
 
-    const personalMessage = args.personalMessage?.trim() ?? '';
-    if (personalMessage.length > 60) throw new Error('PERSONAL_MESSAGE_TOO_LONG');
+    const personalMessage = args.personalMessage?.trim() ?? undefined;
+    if (personalMessage !== undefined && personalMessage.length > 60) {
+      throw new Error('PERSONAL_MESSAGE_TOO_LONG');
+    }
+
+    const previous = ev.messagingConfig;
+    const next = {
+      templateStyle: args.templateStyle ?? previous?.templateStyle ?? ('warm' as const),
+      preferredChannel:
+        args.preferredChannel ?? previous?.preferredChannel ?? ('whatsapp' as const),
+      ...(personalMessage
+        ? { personalMessage }
+        : args.personalMessage === undefined && previous?.personalMessage
+          ? { personalMessage: previous.personalMessage }
+          : {}),
+      ...(args.clearCustomTemplate
+        ? {}
+        : args.customTemplateId !== undefined
+          ? { customTemplateId: args.customTemplateId }
+          : previous?.customTemplateId
+            ? { customTemplateId: previous.customTemplateId }
+            : {}),
+      ...(args.templateNotifyChannel !== undefined
+        ? { templateNotifyChannel: args.templateNotifyChannel }
+        : previous?.templateNotifyChannel
+          ? { templateNotifyChannel: previous.templateNotifyChannel }
+          : {}),
+    };
 
     await ctx.db.patch(args.eventId, {
-      messagingConfig: {
-        templateStyle: args.templateStyle,
-        ...(personalMessage ? { personalMessage } : {}),
-        preferredChannel: args.preferredChannel,
-      },
+      messagingConfig: next,
       updatedAt: Date.now(),
     });
 
@@ -199,6 +230,12 @@ export const create = mutation({
         fontFamily: v.string(),
       }),
     ),
+    /**
+     * Plan envisagé par le couple lors de la création (étape "Choisir votre
+     * forfait" du wizard). Devient le `planTier` officiel après paiement
+     * réussi via Stripe Checkout.
+     */
+    pendingPlanTier: v.optional(v.union(v.literal('essential'), v.literal('premium'))),
   },
   handler: async (ctx, args) => {
     const owner = await ctx.db.get(args.ownerId);
@@ -231,6 +268,7 @@ export const create = mutation({
       ...(args.theme ? { theme: args.theme } : {}),
       status: 'draft' as const,
       // planTier left undefined until the owner pays (Essentiel or Premium).
+      ...(args.pendingPlanTier ? { pendingPlanTier: args.pendingPlanTier } : {}),
       maxGuests: ANTI_ABUSE_GUEST_CAP,
       createdAt: now,
       updatedAt: now,
@@ -257,6 +295,7 @@ export const listByOwner = query({
       timezone: e.timezone,
       status: e.status,
       planTier: e.planTier,
+      pendingPlanTier: e.pendingPlanTier,
       maxGuests: e.maxGuests,
       venue: e.venue,
       updatedAt: e.updatedAt,
@@ -277,6 +316,36 @@ export const getById = query({
       if (!collab) throw new Error('FORBIDDEN');
     }
     return ev;
+  },
+});
+
+/**
+ * Bascule un event en `active` (publié). Owner-only. Le payment-gating
+ * (= refus de publier si `planTier === undefined`) est appliqué ici car
+ * c'est le seul point d'entrée serveur — l'UI le double côté client en
+ * désactivant le bouton, mais la mutation DOIT le rejeter aussi pour
+ * sécuriser le funnel.
+ */
+export const publish = mutation({
+  args: { eventId: v.id('events'), requesterId: v.id('users') },
+  handler: async (ctx, { eventId, requesterId }) => {
+    const ev = await ctx.db.get(eventId);
+    if (!ev) throw new Error('EVENT_NOT_FOUND');
+    if (ev.ownerId !== requesterId) throw new Error('FORBIDDEN');
+    if (ev.planTier === undefined) throw new Error('PLAN_REQUIRED');
+    await ctx.db.patch(eventId, { status: 'active' as const, updatedAt: Date.now() });
+    return { ok: true as const, status: 'active' as const };
+  },
+});
+
+export const unpublish = mutation({
+  args: { eventId: v.id('events'), requesterId: v.id('users') },
+  handler: async (ctx, { eventId, requesterId }) => {
+    const ev = await ctx.db.get(eventId);
+    if (!ev) throw new Error('EVENT_NOT_FOUND');
+    if (ev.ownerId !== requesterId) throw new Error('FORBIDDEN');
+    await ctx.db.patch(eventId, { status: 'draft' as const, updatedAt: Date.now() });
+    return { ok: true as const, status: 'draft' as const };
   },
 });
 
@@ -335,6 +404,7 @@ export type EventListItem = {
   timezone: string;
   status: 'draft' | 'active' | 'archived' | 'cancelled';
   planTier?: 'essential' | 'premium';
+  pendingPlanTier?: 'essential' | 'premium';
   paidAt?: number;
   galleryExpiresAt?: number;
   maxGuests: number;
