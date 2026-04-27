@@ -23,11 +23,15 @@ export interface AppShellProps {
    * entre le brand et le user menu. Server-renderable.
    */
   nav?: ReactNode;
-  /** Nom de l'utilisateur affiché en discret avant le bouton signOut. */
+  /**
+   * Nom de l'utilisateur — gardé pour rétrocompatibilité d'API mais plus
+   * affiché : le grand titre "Bonjour {name}" du dashboard suffit, on évite
+   * la redondance dans le header.
+   */
   userName?: string;
 }
 
-export function AppShell({ children, nav, userName }: AppShellProps) {
+export function AppShell({ children, nav }: AppShellProps) {
   const tCommon = useTranslations('Common');
 
   return (
@@ -46,11 +50,6 @@ export function AppShell({ children, nav, userName }: AppShellProps) {
           </div>
 
           <div className="flex items-center gap-4">
-            {userName ? (
-              <span className="hidden font-mono text-[10px] tracking-[0.24em] text-[color:var(--color-ink-500)] uppercase sm:inline-block">
-                {userName}
-              </span>
-            ) : null}
             <form action={signOutAction}>
               <button
                 type="submit"

@@ -55,10 +55,19 @@ export default async function DashboardPage({ params }: { params: Promise<{ loca
   }
 
   const events = await convex.query(convexApi.listEventsByOwner, { ownerId: session!.userId });
+
+  // Particuliers (couple) avec un seul mariage → redirect direct vers la page
+  // de l'événement. Le dashboard liste-de-cards est un pattern pro/multi-events
+  // qui n'a pas de sens pour un compte particulier qui n'a droit qu'à un seul
+  // mariage par sa formule.
+  if (user!.role === 'couple' && events.length === 1) {
+    redirect({ href: `/events/${events[0]!._id}` as never, locale });
+  }
+
   const t = await getTranslations('Dashboard');
 
   return (
-    <AppShell userName={user!.fullName}>
+    <AppShell>
       <div className="container-page py-12 sm:py-16">
         {/* Eyebrow + greeting éditorial */}
         <header className="mb-12 flex flex-col gap-4">
