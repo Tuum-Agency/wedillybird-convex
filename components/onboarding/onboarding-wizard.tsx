@@ -1,16 +1,19 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useMemo, useState, useTransition } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { useTranslations } from 'next-intl';
-import { Heart, Briefcase, Check } from 'lucide-react';
+import { Heart, Briefcase, Check, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { OtpInput } from '@/components/auth/otp-input';
 import { cn } from '@/lib/cn';
 import { completeOnboardingAction } from '@/app/[locale]/(auth)/actions';
 
 type Role = 'couple' | 'pro';
+type StepKey = 'profile' | 'secure' | 'role';
+type SecureSubStep = 'input' | 'verify';
 
 interface FormState {
   fullName: string;
@@ -30,22 +33,47 @@ const ROLE_OPTIONS: ReadonlyArray<{
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+const STEP_EYEBROW: Record<StepKey, string> = {
+  profile: 'PROFIL',
+  secure: 'SÉCURITÉ',
+  role: 'PARCOURS',
+};
+
 /**
- * OnboardingWizard V4 — wizard 2 steps avec animations Motion sobres.
+ * OnboardingWizard V5 — wizard 2 ou 3 steps avec animations Motion sobres.
  *
- * Step 0 : profil (nom + email **obligatoire** depuis avril 2026)
- * Step 1 : rôle (couple vs pro) avec radio cards
+ * Politique d'identité unique (avril 2026) : un compte doit avoir email ET phone.
  *
- * Email policy :
- *  - Si l'user vient de magic link → `initialEmail` pré-rempli + readonly
- *  - Si l'user vient de WhatsApp → champ vide, obligatoire, validé client
- *  - Empêche les doublons (cf. convex/users.completeOnboarding EMAIL_TAKEN)
+ * Steps dynamiques :
+ *  - profile : nom + email (obligatoire)
+ *  - secure  : phone WhatsApp via OTP (n'apparaît que si l'user n'en a pas)
+ *  - role    : couple vs pro (toujours dernier)
+ *
+ * Logique d'apparition du step `secure` :
+ *  - initialEmail rempli + initialPhone vide (magic link) → step `secure` ajouté.
+ *  - initialPhone rempli (WhatsApp) → step `secure` masqué (l'email est déjà
+ *    demandé au step profile).
+ *  - aucun des deux (rare) → step `secure` ajouté pour récolter le phone après
+ *    l'email saisi au profile.
  */
-export function OnboardingWizard({ initialEmail = '' }: { initialEmail?: string }) {
+export function OnboardingWizard({
+  initialEmail = '',
+  initialPhone = '',
+}: {
+  initialEmail?: string;
+  initialPhone?: string;
+}) {
   const t = useTranslations('Onboarding');
   const tCommon = useTranslations('Common');
   const reduced = useReducedMotion();
-  const [step, setStep] = useState<0 | 1>(0);
+
+  const needsPhone = initialPhone.trim().length === 0;
+  const steps = useMemo<ReadonlyArray<StepKey>>(
+    () => (needsPhone ? ['profile', 'secure', 'role'] : ['profile', 'role']),
+    [needsPhone],
+  );
+
+  const [stepIndex, setStepIndex] = useState(0);
   const [direction, setDirection] = useState<1 | -1>(1);
   const [form, setForm] = useState<FormState>({
     fullName: '',
@@ -56,12 +84,30 @@ export function OnboardingWizard({ initialEmail = '' }: { initialEmail?: string 
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
-  const emailLocked = initialEmail.length > 0;
-  const canGoNext =
-    step === 0 && form.fullName.trim().length >= 2 && EMAIL_RE.test(form.email.trim());
-  const canSubmit = step === 1 && form.role !== null;
+  // État local du step `secure` (phone OTP)
+  const [secureSubStep, setSecureSubStep] = useState<SecureSubStep>('input');
+  const [phone, setPhone] = useState('');
+  const [otpCode, setOtpCode] = useState('');
+  const [secureError, setSecureError] = useState<string | null>(null);
+  const [securePending, startSecureTransition] = useTransition();
 
-  function goToStep1() {
+  const currentStep = steps[stepIndex]!;
+  const emailLocked = initialEmail.length > 0;
+
+  const canGoFromProfile = form.fullName.trim().length >= 2 && EMAIL_RE.test(form.email.trim());
+  const canSubmitRole = currentStep === 'role' && form.role !== null;
+
+  function goNext() {
+    setDirection(1);
+    setStepIndex((i) => Math.min(i + 1, steps.length - 1));
+  }
+
+  function goPrev() {
+    setDirection(-1);
+    setStepIndex((i) => Math.max(i - 1, 0));
+  }
+
+  function handleProfileNext() {
     const trimmed = form.fullName.trim();
     const trimmedEmail = form.email.trim();
     const errors: Record<string, string | undefined> = {};
@@ -71,8 +117,63 @@ export function OnboardingWizard({ initialEmail = '' }: { initialEmail?: string 
     }
     setFieldErrors(errors);
     if (Object.keys(errors).length > 0) return;
-    setDirection(1);
-    setStep(1);
+    goNext();
+  }
+
+  function sendPhoneCode() {
+    setSecureError(null);
+    const trimmed = phone.trim();
+    if (!trimmed) {
+      setSecureError(t('errors.invalidPhone'));
+      return;
+    }
+    startSecureTransition(async () => {
+      try {
+        const res = await fetch('/api/account/link/phone/request', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ phone: trimmed }),
+        });
+        const json = (await res.json().catch(() => ({}))) as {
+          ok?: boolean;
+          error?: string;
+        };
+        if (res.ok && json.ok) {
+          setSecureSubStep('verify');
+          setOtpCode('');
+          return;
+        }
+        setSecureError(mapLinkErrorToCopy(json.error ?? 'UNKNOWN', t));
+      } catch {
+        setSecureError(t('errors.network'));
+      }
+    });
+  }
+
+  function verifyPhoneCode() {
+    setSecureError(null);
+    if (!/^\d{6}$/.test(otpCode)) {
+      setSecureError(t('errors.invalidCode'));
+      return;
+    }
+    startSecureTransition(async () => {
+      try {
+        const res = await fetch('/api/account/link/phone/verify', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ phone: phone.trim(), code: otpCode }),
+        });
+        const json = (await res.json().catch(() => ({}))) as { ok?: boolean; error?: string };
+        if (res.ok && json.ok) {
+          // succès → on avance vers le step rôle
+          goNext();
+          return;
+        }
+        setSecureError(mapLinkErrorToCopy(json.error ?? 'UNKNOWN', t));
+      } catch {
+        setSecureError(t('errors.network'));
+      }
+    });
   }
 
   function submit() {
@@ -94,7 +195,7 @@ export function OnboardingWizard({ initialEmail = '' }: { initialEmail?: string 
         setFieldErrors(flat);
         if (flat.fullName || flat.email) {
           setDirection(-1);
-          setStep(0);
+          setStepIndex(0);
         }
         return;
       }
@@ -113,15 +214,15 @@ export function OnboardingWizard({ initialEmail = '' }: { initialEmail?: string 
       {/* Eyebrow + progress */}
       <div className="flex flex-col gap-4">
         <span className="font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-gold-700)] uppercase">
-          ÉTAPE {String(step + 1).padStart(2, '0')} — {step === 0 ? 'PROFIL' : 'PARCOURS'}
+          ÉTAPE {String(stepIndex + 1).padStart(2, '0')} — {STEP_EYEBROW[currentStep]}
         </span>
-        <Progress current={step} total={2} />
+        <Progress current={stepIndex} total={steps.length} />
       </div>
 
       <AnimatePresence mode="wait" custom={direction}>
-        {step === 0 ? (
+        {currentStep === 'profile' ? (
           <motion.section
-            key="step-0"
+            key="step-profile"
             custom={direction}
             variants={variants}
             initial="enter"
@@ -193,13 +294,107 @@ export function OnboardingWizard({ initialEmail = '' }: { initialEmail?: string 
               ) : null}
             </div>
 
-            <Button size="lg" onClick={goToStep1} disabled={!canGoNext}>
+            <Button size="lg" onClick={handleProfileNext} disabled={!canGoFromProfile}>
               {t('next')}
             </Button>
           </motion.section>
+        ) : currentStep === 'secure' ? (
+          <motion.section
+            key="step-secure"
+            custom={direction}
+            variants={variants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={{ duration: 0.4, ease: 'easeOut' }}
+            className="flex flex-col gap-6"
+          >
+            <header className="flex flex-col gap-3">
+              <span
+                aria-hidden
+                className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[color:var(--color-blush-50)] text-[color:var(--color-blush-700)]"
+              >
+                <ShieldCheck className="h-5 w-5" strokeWidth={1.75} aria-hidden />
+              </span>
+              <h2
+                className="font-display italic"
+                style={{
+                  fontSize: 'clamp(1.75rem, 2.8vw, 2.25rem)',
+                  lineHeight: 1.05,
+                  letterSpacing: '-0.022em',
+                  color: 'var(--color-ink-900)',
+                }}
+              >
+                {t('stepSecure')}
+              </h2>
+              <p className="text-sm leading-relaxed text-[color:var(--color-ink-500)] sm:text-base">
+                {t('stepSecureDescription')}
+              </p>
+            </header>
+
+            {secureSubStep === 'input' ? (
+              <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="onboarding-phone">{t('phoneLabel')}</Label>
+                  <Input
+                    id="onboarding-phone"
+                    name="phone"
+                    type="tel"
+                    autoComplete="tel"
+                    inputMode="tel"
+                    autoFocus
+                    placeholder={t('phonePlaceholder')}
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    aria-invalid={!!secureError}
+                  />
+                  <p className="text-xs text-[color:var(--color-ink-500)]">
+                    {t('phoneRequiredHint')}
+                  </p>
+                  {secureError ? (
+                    <p role="alert" className="text-xs text-[color:var(--color-destructive)]">
+                      {secureError}
+                    </p>
+                  ) : null}
+                </div>
+                <Button
+                  size="lg"
+                  onClick={sendPhoneCode}
+                  disabled={securePending || phone.trim().length === 0}
+                >
+                  {securePending ? t('sending') : t('sendCode')}
+                </Button>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-4">
+                <p className="text-xs text-[color:var(--color-ink-500)]">
+                  {t('codeSentTo', { phone: phone.trim() })}
+                </p>
+                <OtpInput onChange={setOtpCode} error={secureError ?? undefined} autoFocus />
+                <Button
+                  size="lg"
+                  onClick={verifyPhoneCode}
+                  disabled={securePending || otpCode.length < 6}
+                >
+                  {securePending ? t('verifying') : t('verifyCode')}
+                </Button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSecureSubStep('input');
+                    setSecureError(null);
+                    setOtpCode('');
+                  }}
+                  className="font-mono text-[10px] tracking-[0.24em] text-[color:var(--color-ink-500)] uppercase transition-colors hover:text-[color:var(--color-blush-700)]"
+                >
+                  ← {t('changeNumber')}
+                </button>
+              </div>
+            )}
+          </motion.section>
         ) : (
           <motion.section
-            key="step-1"
+            key="step-role"
             custom={direction}
             variants={variants}
             initial="enter"
@@ -284,18 +479,10 @@ export function OnboardingWizard({ initialEmail = '' }: { initialEmail?: string 
             ) : null}
 
             <div className="flex items-center justify-between gap-3">
-              <Button
-                variant="ghost"
-                onClick={() => {
-                  setDirection(-1);
-                  setStep(0);
-                }}
-                disabled={pending}
-                type="button"
-              >
+              <Button variant="ghost" onClick={goPrev} disabled={pending} type="button">
                 {tCommon('back')}
               </Button>
-              <Button size="lg" onClick={submit} disabled={!canSubmit || pending}>
+              <Button size="lg" onClick={submit} disabled={!canSubmitRole || pending}>
                 {pending ? tCommon('loading') : t('finish')}
               </Button>
             </div>
@@ -324,4 +511,36 @@ function Progress({ current, total }: { current: number; total: number }) {
       ))}
     </div>
   );
+}
+
+/**
+ * Map des codes d'erreur retournés par l'API `/api/account/link/phone/*` vers
+ * la copie FR de l'onboarding. Pas de fusion avec un user existant : si le
+ * numéro est déjà utilisé, on guide vers la connexion WhatsApp.
+ */
+function mapLinkErrorToCopy(
+  code: string,
+  t: (k: string, v?: Record<string, string>) => string,
+): string {
+  switch (code) {
+    case 'PHONE_TAKEN':
+      return t('errors.phoneTaken');
+    case 'ALREADY_LINKED':
+      return t('errors.alreadyLinked');
+    case 'INVALID_PHONE':
+      return t('errors.invalidPhone');
+    case 'INVALID_CODE':
+      return t('errors.invalidCode');
+    case 'LINK_EXPIRED':
+    case 'NO_ACTIVE_LINK':
+      return t('errors.expiredCode');
+    case 'TOO_MANY_ATTEMPTS':
+      return t('errors.tooManyAttempts');
+    case 'RATE_LIMITED':
+      return t('errors.rateLimited');
+    case 'SEND_FAILED':
+      return t('errors.sendFailed');
+    default:
+      return t('errors.network');
+  }
 }

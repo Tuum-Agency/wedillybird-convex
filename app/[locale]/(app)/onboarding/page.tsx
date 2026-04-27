@@ -35,9 +35,11 @@ export default async function OnboardingPage({ params }: { params: Promise<{ loc
     redirect({ href: '/dashboard', locale });
   }
 
-  // Si l'user vient de magic link, son email est déjà set sur le record.
-  // On le pre-fill en readonly pour qu'il n'y touche pas (c'est l'identifiant
-  // qui l'a authentifié). Pour les users WhatsApp-first, le champ est vide
-  // et obligatoire — politique anti-doublon depuis avril 2026.
-  return <OnboardingWizard initialEmail={user?.email ?? ''} />;
+  // Politique d'identité unique (avril 2026) : un user doit avoir À LA FOIS
+  // un email ET un numéro WhatsApp pour finaliser l'onboarding. Ça évite les
+  // doublons (même personne, deux comptes) et donne une voie de recovery si
+  // un canal est perdu.
+  // - Si l'user vient de magic link → email déjà rempli, on demandera le phone.
+  // - Si l'user vient de WhatsApp → phone déjà rempli, on demandera l'email.
+  return <OnboardingWizard initialEmail={user?.email ?? ''} initialPhone={user?.phone ?? ''} />;
 }
