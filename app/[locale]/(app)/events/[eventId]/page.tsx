@@ -10,6 +10,7 @@ import {
   Eye,
   Sparkles,
   Archive,
+  Settings,
 } from 'lucide-react';
 import { Link, redirect } from '@/i18n/navigation';
 import { getSession } from '@/lib/auth/session';
@@ -197,10 +198,7 @@ export default async function EventDetailPage({
             ) : null}
           </div>
           <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
-            <form
-              action={togglePublishAction}
-              className={event.status === 'draft' ? 'flex-1' : 'flex-1'}
-            >
+            <form action={togglePublishAction} className="flex-1">
               <input type="hidden" name="eventId" value={eventId} />
               <input
                 type="hidden"
@@ -227,10 +225,17 @@ export default async function EventDetailPage({
               </Button>
             </form>
             <Link
-              href={`/events/${eventId}/edit` as never}
+              href={`/events/${eventId}/preview` as never}
               className={cn(buttonVariants({ variant: 'outline', size: 'md' }), 'flex-1')}
             >
               <Eye className="h-4 w-4" strokeWidth={2} aria-hidden />
+              Aperçu de l&apos;invitation
+            </Link>
+            <Link
+              href={`/events/${eventId}/edit` as never}
+              className={cn(buttonVariants({ variant: 'outline', size: 'md' }), 'flex-1')}
+            >
+              <Settings className="h-4 w-4" strokeWidth={2} aria-hidden />
               Modifier les détails
             </Link>
           </div>
