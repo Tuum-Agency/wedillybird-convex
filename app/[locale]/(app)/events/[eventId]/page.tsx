@@ -5,6 +5,7 @@ import {
   Calendar,
   MapPin,
   Camera,
+  MessageCircle,
   QrCode,
   Users,
   Eye,
@@ -197,8 +198,8 @@ export default async function EventDetailPage({
               </p>
             ) : null}
           </div>
-          <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
-            <form action={togglePublishAction} className="flex-1">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3">
+            <form action={togglePublishAction} className="w-full">
               <input type="hidden" name="eventId" value={eventId} />
               <input
                 type="hidden"
@@ -226,14 +227,21 @@ export default async function EventDetailPage({
             </form>
             <Link
               href={`/events/${eventId}/preview` as never}
-              className={cn(buttonVariants({ variant: 'outline', size: 'md' }), 'flex-1')}
+              className={cn(buttonVariants({ variant: 'outline', size: 'md' }), 'w-full')}
             >
               <Eye className="h-4 w-4" strokeWidth={2} aria-hidden />
               Aperçu de l&apos;invitation
             </Link>
             <Link
+              href={`/events/${eventId}/messaging` as never}
+              className={cn(buttonVariants({ variant: 'outline', size: 'md' }), 'w-full')}
+            >
+              <MessageCircle className="h-4 w-4" strokeWidth={2} aria-hidden />
+              Personnaliser le message
+            </Link>
+            <Link
               href={`/events/${eventId}/edit` as never}
-              className={cn(buttonVariants({ variant: 'outline', size: 'md' }), 'flex-1')}
+              className={cn(buttonVariants({ variant: 'outline', size: 'md' }), 'w-full')}
             >
               <Settings className="h-4 w-4" strokeWidth={2} aria-hidden />
               Modifier les détails

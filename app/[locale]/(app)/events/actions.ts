@@ -22,6 +22,8 @@ export type UpdateEventResult =
   | { ok: true }
   | { ok: false; error: string; fieldErrors?: Record<string, string[] | undefined> };
 
+export type UpdateMessagingConfigResult = { ok: true } | { ok: false; error: string };
+
 export async function createEventAction(formData: FormData): Promise<CreateEventResult> {
   const session = await getSession();
   if (!session) return { ok: false, error: 'UNAUTHENTICATED' };
@@ -78,6 +80,50 @@ export async function createEventAction(formData: FormData): Promise<CreateEvent
  */
 export async function togglePublishAction(formData: FormData): Promise<void> {
   await togglePublishActionWithResult(formData);
+}
+
+/**
+ * Met à jour la config messaging d'un événement (style template, mot perso,
+ * canal préféré). Validation : style ∈ 4 valeurs autorisées, mot perso
+ * <= 60 chars, canal ∈ {whatsapp, email, both}.
+ */
+export async function updateMessagingConfigAction(
+  formData: FormData,
+): Promise<UpdateMessagingConfigResult> {
+  const session = await getSession();
+  if (!session) return { ok: false, error: 'UNAUTHENTICATED' };
+
+  const eventId = String(formData.get('eventId') ?? '');
+  const templateStyle = String(formData.get('templateStyle') ?? '');
+  const personalMessage = String(formData.get('personalMessage') ?? '').trim();
+  const preferredChannel = String(formData.get('preferredChannel') ?? '');
+
+  if (!eventId) return { ok: false, error: 'INVALID_INPUT' };
+  if (!['classic', 'warm', 'african', 'minimal'].includes(templateStyle)) {
+    return { ok: false, error: 'INVALID_STYLE' };
+  }
+  if (!['whatsapp', 'email', 'both'].includes(preferredChannel)) {
+    return { ok: false, error: 'INVALID_CHANNEL' };
+  }
+  if (personalMessage.length > 60) {
+    return { ok: false, error: 'PERSONAL_MESSAGE_TOO_LONG' };
+  }
+
+  const convex = getConvexServerClient();
+  try {
+    await convex.mutation(convexApi.updateEventMessagingConfig, {
+      eventId,
+      requesterId: session.userId,
+      templateStyle: templateStyle as 'classic' | 'warm' | 'african' | 'minimal',
+      ...(personalMessage ? { personalMessage } : {}),
+      preferredChannel: preferredChannel as 'whatsapp' | 'email' | 'both',
+    });
+    revalidatePath(`/fr/events/${eventId}`);
+    revalidatePath(`/fr/events/${eventId}/messaging`);
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : 'UNKNOWN' };
+  }
 }
 
 /**

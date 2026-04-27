@@ -23,4 +23,18 @@ export function createWhatsAppClient(
 
 export { WhatsAppMockClient } from './mock';
 export { WhatsAppMetaCloudClient } from './meta-cloud';
-export type { WhatsAppClient, WhatsAppOtpParams, WhatsAppSendResult } from './types';
+export {
+  INVITATION_STYLES,
+  DEFAULT_INVITATION_STYLE,
+  DEFAULT_PERSONAL_MESSAGE_FALLBACK,
+  renderInvitationPreview,
+  getMetaTemplateName,
+  type InvitationStyle,
+  type InvitationStyleId,
+} from './templates';
+export type {
+  WhatsAppClient,
+  WhatsAppOtpParams,
+  WhatsAppInvitationParams,
+  WhatsAppSendResult,
+} from './types';

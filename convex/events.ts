@@ -138,6 +138,45 @@ export const update = mutation({
   },
 });
 
+/**
+ * Met à jour la config messaging d'un événement (style template, mot perso,
+ * canal préféré). Owner-only. Permet au couple de personnaliser comment
+ * l'invitation arrive aux guests.
+ */
+export const updateMessagingConfig = mutation({
+  args: {
+    eventId: v.id('events'),
+    requesterId: v.id('users'),
+    templateStyle: v.union(
+      v.literal('classic'),
+      v.literal('warm'),
+      v.literal('african'),
+      v.literal('minimal'),
+    ),
+    personalMessage: v.optional(v.string()),
+    preferredChannel: v.union(v.literal('whatsapp'), v.literal('email'), v.literal('both')),
+  },
+  handler: async (ctx, args) => {
+    const ev = await ctx.db.get(args.eventId);
+    if (!ev) throw new Error('EVENT_NOT_FOUND');
+    if (ev.ownerId !== args.requesterId) throw new Error('FORBIDDEN');
+
+    const personalMessage = args.personalMessage?.trim() ?? '';
+    if (personalMessage.length > 60) throw new Error('PERSONAL_MESSAGE_TOO_LONG');
+
+    await ctx.db.patch(args.eventId, {
+      messagingConfig: {
+        templateStyle: args.templateStyle,
+        ...(personalMessage ? { personalMessage } : {}),
+        preferredChannel: args.preferredChannel,
+      },
+      updatedAt: Date.now(),
+    });
+
+    return { ok: true as const };
+  },
+});
+
 export const create = mutation({
   args: {
     ownerId: v.id('users'),

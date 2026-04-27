@@ -1,0 +1,111 @@
+/**
+ * Définition des templates d'invitation WhatsApp.
+ *
+ * Chaque style correspond à un template Meta validé (catégorie `marketing`),
+ * avec 5 variables au même index pour rester homogène :
+ *   {{1}} = prénom de l'invité
+ *   {{2}} = prénoms du couple ("Mamadou & Marie")
+ *   {{3}} = date formatée ("30 avril 2026")
+ *   {{4}} = lien d'invitation personnalisé (URL paramètre du bouton CTA)
+ *   {{5}} = mot perso du couple (max 60 chars — peut être vide)
+ *
+ * Les `bodyText` ci-dessous correspondent **exactement** au texte qui sera
+ * soumis à Meta Business Manager pour validation. Toute modification ici
+ * doit être suivie d'une re-soumission Meta + nouvelle validation 24-48h.
+ *
+ * Catégorie Meta : `marketing` (les rappels J-7/J-1 utilisent des templates
+ * `utility` séparés — cf. BACKLOG section "Templates WhatsApp Cloud API").
+ */
+
+export type InvitationStyleId = 'classic' | 'warm' | 'african' | 'minimal';
+
+export interface InvitationStyle {
+  id: InvitationStyleId;
+  /** Nom de template Meta validé. Configurable via env var pour override. */
+  metaTemplateName: string;
+  /** Env var qui peut override le metaTemplateName pour ce style. */
+  metaTemplateEnvVar: string;
+  /** Body avec placeholders {{1}}…{{5}} — copie exacte du template Meta. */
+  bodyText: string;
+  /** Label CTA du bouton URL (max 25 chars selon Meta). */
+  ctaLabel: string;
+}
+
+export const INVITATION_STYLES: Record<InvitationStyleId, InvitationStyle> = {
+  classic: {
+    id: 'classic',
+    metaTemplateName: 'wedding_invitation_classic',
+    metaTemplateEnvVar: 'WHATSAPP_INVITATION_TEMPLATE_CLASSIC',
+    bodyText:
+      "Bonjour {{1}},\n\n{{2}} ont l'honneur de vous convier à leur mariage le {{3}}.\n\n{{5}}\n\nNous vous remercions de bien vouloir confirmer votre présence en cliquant sur le bouton ci-dessous.",
+    ctaLabel: 'Confirmer ma présence',
+  },
+  warm: {
+    id: 'warm',
+    metaTemplateName: 'wedding_invitation_warm',
+    metaTemplateEnvVar: 'WHATSAPP_INVITATION_TEMPLATE_WARM',
+    bodyText:
+      "Coucou {{1}} !\n\n{{2}} se marient le {{3}} et nous serions ravis de vous compter parmi nous.\n\n{{5}}\n\nRéponds vite à l'invitation ci-dessous, on a hâte de te voir.",
+    ctaLabel: 'Répondre',
+  },
+  african: {
+    id: 'african',
+    metaTemplateName: 'wedding_invitation_african',
+    metaTemplateEnvVar: 'WHATSAPP_INVITATION_TEMPLATE_AFRICAN',
+    bodyText:
+      'Cher·chère {{1}},\n\nAvec joie et bénédictions, {{2}} célèbrent leur union le {{3}}. Votre présence sera notre plus belle bénédiction.\n\n{{5}}\n\nMerci de confirmer votre venue ci-dessous.',
+    ctaLabel: 'Confirmer ma venue',
+  },
+  minimal: {
+    id: 'minimal',
+    metaTemplateName: 'wedding_invitation_minimal',
+    metaTemplateEnvVar: 'WHATSAPP_INVITATION_TEMPLATE_MINIMAL',
+    bodyText: '{{1}}, vous êtes invité·e.\n\n{{2}}\n{{3}}\n\n{{5}}',
+    ctaLabel: 'Voir l’invitation',
+  },
+};
+
+export const DEFAULT_INVITATION_STYLE: InvitationStyleId = 'warm';
+
+/**
+ * Mot perso fallback quand le couple n'a rien saisi : Meta refuse les
+ * variables vides, donc on envoie une phrase neutre par défaut.
+ */
+export const DEFAULT_PERSONAL_MESSAGE_FALLBACK = 'Au plaisir de vous voir.';
+
+/**
+ * Substitue les variables dans le bodyText pour générer un aperçu visuel
+ * (utilisé par le composant WhatsAppMessageMockup, PAS pour l'envoi réel
+ * — l'envoi passe les paramètres séparément à l'API Meta).
+ */
+export function renderInvitationPreview(
+  styleId: InvitationStyleId,
+  params: {
+    guestFirstName: string;
+    coupleNames: string;
+    eventDate: string;
+    invitationUrl: string;
+    personalMessage: string;
+  },
+): string {
+  const style = INVITATION_STYLES[styleId];
+  const personalMessage = params.personalMessage.trim() || DEFAULT_PERSONAL_MESSAGE_FALLBACK;
+  return style.bodyText
+    .replace('{{1}}', params.guestFirstName)
+    .replace('{{2}}', params.coupleNames)
+    .replace('{{3}}', params.eventDate)
+    .replace('{{4}}', params.invitationUrl)
+    .replace('{{5}}', personalMessage);
+}
+
+/**
+ * Récupère le nom de template Meta à utiliser pour un style donné, en
+ * tenant compte d'un éventuel override par env var.
+ */
+export function getMetaTemplateName(
+  styleId: InvitationStyleId,
+  env: Record<string, string | undefined> = process.env,
+): string {
+  const style = INVITATION_STYLES[styleId];
+  return env[style.metaTemplateEnvVar] ?? style.metaTemplateName;
+}

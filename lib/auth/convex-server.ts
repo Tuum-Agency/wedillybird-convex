@@ -109,6 +109,17 @@ export const convexApi = {
       updatedAt: number;
     }>
   >('events:listByOwner'),
+  updateEventMessagingConfig: makeFunctionReference<
+    'mutation',
+    {
+      eventId: string;
+      requesterId: string;
+      templateStyle: 'classic' | 'warm' | 'african' | 'minimal';
+      personalMessage?: string;
+      preferredChannel: 'whatsapp' | 'email' | 'both';
+    },
+    { ok: true }
+  >('events:updateMessagingConfig'),
   updateEvent: makeFunctionReference<
     'mutation',
     {
@@ -151,6 +162,11 @@ export const convexApi = {
       status: 'draft' | 'active' | 'archived' | 'cancelled';
       planTier: 'essential' | 'premium' | undefined;
       maxGuests: number;
+      messagingConfig?: {
+        templateStyle: 'classic' | 'warm' | 'african' | 'minimal';
+        personalMessage?: string;
+        preferredChannel: 'whatsapp' | 'email' | 'both';
+      };
       updatedAt: number;
     } | null
   >('events:getById'),

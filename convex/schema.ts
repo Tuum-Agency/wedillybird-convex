@@ -125,6 +125,28 @@ export default defineSchema({
     // (Essential = J+30, Premium = J+180) on payment success. Post-event upsell
     // pushes this to J+5y.
     galleryExpiresAt: v.optional(v.number()),
+    /**
+     * Configuration du message d'invitation WhatsApp envoyé aux invités.
+     * Le couple choisit un style préfabriqué (Wedillybird-prefab MVP — cf.
+     * `lib/whatsapp/templates.ts`) et personnalise via un mot perso libre
+     * (max 60 chars) + un canal préféré.
+     *
+     * Tier supérieur (Premium) débloquera les templates 100% custom plus
+     * tard (cf. BACKLOG section "Templates WhatsApp Cloud API"). Pour
+     * cette phase, customTemplateId est réservé pour W3.
+     */
+    messagingConfig: v.optional(
+      v.object({
+        templateStyle: v.union(
+          v.literal('classic'),
+          v.literal('warm'),
+          v.literal('african'),
+          v.literal('minimal'),
+        ),
+        personalMessage: v.optional(v.string()),
+        preferredChannel: v.union(v.literal('whatsapp'), v.literal('email'), v.literal('both')),
+      }),
+    ),
     createdAt: v.number(),
     updatedAt: v.number(),
   })
