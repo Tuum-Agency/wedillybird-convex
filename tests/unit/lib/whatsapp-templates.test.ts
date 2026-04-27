@@ -8,10 +8,11 @@ import {
 } from '@/lib/whatsapp/templates';
 
 describe('INVITATION_STYLES', () => {
-  it('définit exactement 4 styles avec les bons IDs', () => {
+  it('définit 5 styles avec les bons IDs', () => {
     expect(Object.keys(INVITATION_STYLES).sort()).toEqual([
       'african',
       'classic',
+      'festive',
       'minimal',
       'warm',
     ]);

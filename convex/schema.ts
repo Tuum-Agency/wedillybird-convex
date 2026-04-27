@@ -142,6 +142,7 @@ export default defineSchema({
           v.literal('warm'),
           v.literal('african'),
           v.literal('minimal'),
+          v.literal('festive'),
         ),
         personalMessage: v.optional(v.string()),
         preferredChannel: v.union(v.literal('whatsapp'), v.literal('email'), v.literal('both')),

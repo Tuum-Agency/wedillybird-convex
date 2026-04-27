@@ -1,6 +1,7 @@
 import { v } from 'convex/values';
 import {
   internalMutation,
+  internalQuery,
   mutation,
   query,
   type MutationCtx,
@@ -219,13 +220,17 @@ export const countByEvent = query({
     let declined = 0;
     let pending = 0;
     let maybe = 0;
+    let invited = 0;
+    let withPhone = 0;
     for (const g of rows) {
       if (g.rsvpStatus === 'attending') attending++;
       else if (g.rsvpStatus === 'declined') declined++;
       else if (g.rsvpStatus === 'maybe') maybe++;
       else pending++;
+      if (g.invitationSentAt) invited++;
+      if (g.phone) withPhone++;
     }
-    return { total: rows.length, attending, declined, pending, maybe };
+    return { total: rows.length, attending, declined, pending, maybe, invited, withPhone };
   },
 });
 
@@ -305,6 +310,52 @@ export const undoCheckIn = mutation({
       updatedAt: Date.now(),
     });
     return { ok: true as const };
+  },
+});
+
+/**
+ * Liste les guests d'un event qui n'ont pas encore reçu leur invitation
+ * (pas de invitationSentAt) et qui ont un phone (pour WhatsApp). Utilisé
+ * par l'action `invitationActions.broadcast` pour itérer.
+ */
+export const listToInvite = internalQuery({
+  args: { eventId: v.id('events') },
+  handler: async (ctx, { eventId }) => {
+    const guests = await ctx.db
+      .query('guests')
+      .withIndex('by_event', (q) => q.eq('eventId', eventId))
+      .collect();
+    return guests
+      .filter((g) => !g.invitationSentAt && g.phone)
+      .map((g) => ({
+        _id: g._id,
+        fullName: g.fullName,
+        phone: g.phone!,
+        qrCodeToken: g.qrCodeToken,
+      }));
+  },
+});
+
+/**
+ * Patche un guest après envoi réussi de son invitation. Idempotent : si
+ * déjà set, ne fait rien (on n'écrase pas le timestamp initial).
+ */
+export const markInvitationSent = internalMutation({
+  args: {
+    guestId: v.id('guests'),
+    channel: v.union(v.literal('whatsapp'), v.literal('email'), v.literal('sms')),
+  },
+  handler: async (ctx, { guestId, channel }) => {
+    const guest = await ctx.db.get(guestId);
+    if (!guest) return { ok: false as const, reason: 'NOT_FOUND' as const };
+    if (guest.invitationSentAt) return { ok: true as const, alreadySent: true };
+    const now = Date.now();
+    await ctx.db.patch(guestId, {
+      invitationSentAt: now,
+      invitationChannel: channel,
+      updatedAt: now,
+    });
+    return { ok: true as const, alreadySent: false };
   },
 });
 

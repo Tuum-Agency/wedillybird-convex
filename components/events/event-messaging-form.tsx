@@ -11,7 +11,7 @@ import { INVITATION_STYLES, type InvitationStyleId } from '@/lib/whatsapp/templa
 import { WhatsAppMessageMockup } from '@/components/events/whatsapp-message-mockup';
 import { updateMessagingConfigAction } from '@/app/[locale]/(app)/events/actions';
 
-const STYLES_ORDER: InvitationStyleId[] = ['warm', 'classic', 'african', 'minimal'];
+const STYLES_ORDER: InvitationStyleId[] = ['warm', 'classic', 'african', 'festive', 'minimal'];
 
 const STYLE_LABELS: Record<InvitationStyleId, { label: string; tagline: string }> = {
   warm: {
@@ -25,6 +25,10 @@ const STYLE_LABELS: Record<InvitationStyleId, { label: string; tagline: string }
   african: {
     label: 'Africain-traditionnel',
     tagline: 'Ton communautaire, accent sur les bénédictions et la célébration partagée.',
+  },
+  festive: {
+    label: 'Festif',
+    tagline: 'Énergique, célébration, emoji 🎉. Pour les couples qui veulent faire la fête.',
   },
   minimal: {
     label: 'Minimal',

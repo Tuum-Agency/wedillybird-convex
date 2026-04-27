@@ -24,6 +24,10 @@ export type UpdateEventResult =
 
 export type UpdateMessagingConfigResult = { ok: true } | { ok: false; error: string };
 
+export type BroadcastInvitationsResult =
+  | { ok: true; sent: number; failed: number; total: number; mock: boolean }
+  | { ok: false; error: string };
+
 export async function createEventAction(formData: FormData): Promise<CreateEventResult> {
   const session = await getSession();
   if (!session) return { ok: false, error: 'UNAUTHENTICATED' };
@@ -83,6 +87,44 @@ export async function togglePublishAction(formData: FormData): Promise<void> {
 }
 
 /**
+ * Lance le broadcast des invitations WhatsApp à tous les guests qui n'ont
+ * pas encore reçu leur invitation. Owner-only (validé côté Convex).
+ * L'event doit être `status: 'active'` (publié) — sinon la mutation throw
+ * EVENT_NOT_PUBLISHED.
+ */
+export async function broadcastInvitationsAction(
+  eventId: string,
+): Promise<BroadcastInvitationsResult> {
+  const session = await getSession();
+  if (!session) return { ok: false, error: 'UNAUTHENTICATED' };
+
+  const convex = getConvexServerClient();
+  try {
+    const result = await convex.action(convexApi.broadcastInvitations, {
+      eventId,
+      requesterId: session.userId,
+    });
+    revalidatePath(`/fr/events/${eventId}`);
+    return {
+      ok: true,
+      sent: result.sent,
+      failed: result.failed,
+      total: result.total,
+      mock: result.mock,
+    };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'UNKNOWN';
+    if (message.includes('EVENT_NOT_PUBLISHED')) {
+      return { ok: false, error: 'EVENT_NOT_PUBLISHED' };
+    }
+    if (message.includes('FORBIDDEN')) {
+      return { ok: false, error: 'FORBIDDEN' };
+    }
+    return { ok: false, error: 'UNKNOWN' };
+  }
+}
+
+/**
  * Met à jour la config messaging d'un événement (style template, mot perso,
  * canal préféré). Validation : style ∈ 4 valeurs autorisées, mot perso
  * <= 60 chars, canal ∈ {whatsapp, email, both}.
@@ -99,7 +141,7 @@ export async function updateMessagingConfigAction(
   const preferredChannel = String(formData.get('preferredChannel') ?? '');
 
   if (!eventId) return { ok: false, error: 'INVALID_INPUT' };
-  if (!['classic', 'warm', 'african', 'minimal'].includes(templateStyle)) {
+  if (!['classic', 'warm', 'african', 'minimal', 'festive'].includes(templateStyle)) {
     return { ok: false, error: 'INVALID_STYLE' };
   }
   if (!['whatsapp', 'email', 'both'].includes(preferredChannel)) {
@@ -114,7 +156,7 @@ export async function updateMessagingConfigAction(
     await convex.mutation(convexApi.updateEventMessagingConfig, {
       eventId,
       requesterId: session.userId,
-      templateStyle: templateStyle as 'classic' | 'warm' | 'african' | 'minimal',
+      templateStyle: templateStyle as 'classic' | 'warm' | 'african' | 'minimal' | 'festive',
       ...(personalMessage ? { personalMessage } : {}),
       preferredChannel: preferredChannel as 'whatsapp' | 'email' | 'both',
     });

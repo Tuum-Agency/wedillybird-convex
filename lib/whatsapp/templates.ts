@@ -17,7 +17,7 @@
  * `utility` séparés — cf. BACKLOG section "Templates WhatsApp Cloud API").
  */
 
-export type InvitationStyleId = 'classic' | 'warm' | 'african' | 'minimal';
+export type InvitationStyleId = 'classic' | 'warm' | 'african' | 'minimal' | 'festive';
 
 export interface InvitationStyle {
   id: InvitationStyleId;
@@ -62,6 +62,14 @@ export const INVITATION_STYLES: Record<InvitationStyleId, InvitationStyle> = {
     metaTemplateEnvVar: 'WHATSAPP_INVITATION_TEMPLATE_MINIMAL',
     bodyText: '{{1}}, vous êtes invité·e.\n\n{{2}}\n{{3}}\n\n{{5}}',
     ctaLabel: 'Voir l’invitation',
+  },
+  festive: {
+    id: 'festive',
+    metaTemplateName: 'wedding_invitation_festive',
+    metaTemplateEnvVar: 'WHATSAPP_INVITATION_TEMPLATE_FESTIVE',
+    bodyText:
+      '🎉 {{1}}, on a une grande nouvelle !\n\n{{2}} se disent OUI le {{3}} et on tient absolument à célébrer ce jour avec vous.\n\n{{5}}\n\nRendez-vous sur l’invitation pour confirmer votre présence.',
+    ctaLabel: 'Je viens fêter ça !',
   },
 };
 

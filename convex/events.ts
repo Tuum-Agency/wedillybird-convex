@@ -1,5 +1,5 @@
 import { v } from 'convex/values';
-import { mutation, query } from './_generated/server';
+import { internalQuery, mutation, query } from './_generated/server';
 import type { Doc, Id } from './_generated/dataModel';
 
 const SLUG_MAX_ATTEMPTS = 10;
@@ -152,6 +152,7 @@ export const updateMessagingConfig = mutation({
       v.literal('warm'),
       v.literal('african'),
       v.literal('minimal'),
+      v.literal('festive'),
     ),
     personalMessage: v.optional(v.string()),
     preferredChannel: v.union(v.literal('whatsapp'), v.literal('email'), v.literal('both')),
@@ -298,6 +299,29 @@ export const getBySlug = query({
       theme: ev.theme,
       status: ev.status,
       maxGuests: ev.maxGuests,
+    };
+  },
+});
+
+/**
+ * Récupère un event vérifié pour ownership + sa messagingConfig — utilisé
+ * par les actions Convex (broadcast invitations, rappels) qui doivent
+ * accéder à la DB depuis un contexte sans mutation. Owner-only.
+ */
+export const _getForBroadcast = internalQuery({
+  args: { eventId: v.id('events'), requesterId: v.id('users') },
+  handler: async (ctx, { eventId, requesterId }) => {
+    const ev = await ctx.db.get(eventId);
+    if (!ev) return null;
+    if (ev.ownerId !== requesterId) return null;
+    return {
+      _id: ev._id,
+      title: ev.title,
+      coupleNames: ev.coupleNames,
+      eventDate: ev.eventDate,
+      timezone: ev.timezone,
+      status: ev.status,
+      messagingConfig: ev.messagingConfig,
     };
   },
 });

@@ -18,6 +18,7 @@ import { getSession } from '@/lib/auth/session';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { AppShell } from '@/components/app/app-shell';
+import { BroadcastInvitationsCard } from '@/components/events/broadcast-invitations-card';
 import { LiveGuestStats } from '@/components/events/live-guest-stats';
 import { UpgradeCard } from '@/components/payments/upgrade-card';
 import { routePayment } from '@/lib/payments/country';
@@ -164,6 +165,18 @@ export default async function EventDetailPage({
           requesterId={session!.userId}
           initialCounts={counts}
           maxGuests={event.maxGuests}
+        />
+
+        {/* Broadcast invitations — visible quand event publié + au moins 1
+            guest avec phone. Disabled selon contexte. */}
+        <BroadcastInvitationsCard
+          eventId={eventId}
+          eventStatus={event.status}
+          counts={{
+            total: counts.total,
+            invited: counts.invited,
+            withPhone: counts.withPhone,
+          }}
         />
 
         {/* Upgrade card (component existant) */}

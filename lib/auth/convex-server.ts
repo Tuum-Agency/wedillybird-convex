@@ -114,7 +114,7 @@ export const convexApi = {
     {
       eventId: string;
       requesterId: string;
-      templateStyle: 'classic' | 'warm' | 'african' | 'minimal';
+      templateStyle: 'classic' | 'warm' | 'african' | 'minimal' | 'festive';
       personalMessage?: string;
       preferredChannel: 'whatsapp' | 'email' | 'both';
     },
@@ -163,7 +163,7 @@ export const convexApi = {
       planTier: 'essential' | 'premium' | undefined;
       maxGuests: number;
       messagingConfig?: {
-        templateStyle: 'classic' | 'warm' | 'african' | 'minimal';
+        templateStyle: 'classic' | 'warm' | 'african' | 'minimal' | 'festive';
         personalMessage?: string;
         preferredChannel: 'whatsapp' | 'email' | 'both';
       };
@@ -224,7 +224,15 @@ export const convexApi = {
   countGuestsByEvent: makeFunctionReference<
     'query',
     { eventId: string; requesterId: string },
-    { total: number; attending: number; declined: number; pending: number; maybe: number }
+    {
+      total: number;
+      attending: number;
+      declined: number;
+      pending: number;
+      maybe: number;
+      invited: number;
+      withPhone: number;
+    }
   >('guests:countByEvent'),
   getGuestByToken: makeFunctionReference<
     'query',
@@ -569,6 +577,11 @@ export const convexApi = {
     { email: string; source?: string; ipAddress?: string },
     { id: string; alreadyActive: boolean; reactivated: boolean }
   >('newsletter:subscribe'),
+  broadcastInvitations: makeFunctionReference<
+    'action',
+    { eventId: string; requesterId: string },
+    { sent: number; failed: number; skipped: number; total: number; style: string; mock: boolean }
+  >('invitationActions:broadcast'),
   requestLinkPhone: makeFunctionReference<
     'action',
     { userId: string; phone: string; ipAddress?: string },
