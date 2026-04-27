@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
 import { sendEmail } from '@/lib/email';
 import { renderNewsletterSignup } from '@/lib/email/templates';
 import { isHoneypotTriggered, newsletterSchema } from '@/lib/validators/contact';
@@ -6,11 +7,13 @@ import { isHoneypotTriggered, newsletterSchema } from '@/lib/validators/contact'
 /**
  * POST /api/newsletter — inscription newsletter (footer landing).
  *
- * MVP : forwarde la demande à hello@wedillybird.com. Quand on aura un
- * service newsletter (Brevo, Mailchimp), on remplacera par un appel API
- * direct ici.
+ * Store-first : on persiste l'abonné dans Convex `newsletterSubscribers`
+ * (idempotent : déjà inscrit → no-op), PUIS on envoie une notif admin via
+ * SES en best-effort. Si SES échoue, on garde quand même l'abonné — le
+ * stockage Convex est la source de vérité pour les futures campagnes
+ * (Brevo/Mailchimp viendront se brancher plus tard sur listActive).
  *
- * Supporte FormData (form HTML classique du footer) ET JSON (fetch).
+ * Supporte FormData (form HTML classique sans JS) ET JSON (fetch).
  */
 
 const CONTACT_INBOX = process.env.CONTACT_INBOX_EMAIL ?? 'hello@wedillybird.com';
@@ -66,21 +69,47 @@ export async function POST(request: Request) {
       ? payload.source.slice(0, 60)
       : 'footer';
 
+  // 1. Store-first : persist le subscriber dans Convex (idempotent).
+  let subscribeResult: { alreadyActive: boolean; reactivated: boolean };
+  try {
+    const convex = getConvexServerClient();
+    subscribeResult = await convex.mutation(convexApi.newsletterSubscribe, {
+      email: parsed.data.email,
+      source,
+      ipAddress: ip,
+    });
+  } catch (err) {
+    console.error('[newsletter] convex subscribe failed', err);
+    return NextResponse.json({ ok: false, error: 'STORE_FAILED' }, { status: 502 });
+  }
+
+  // 2. Si déjà inscrit et actif, on n'envoie pas une 2e notif admin.
+  if (subscribeResult.alreadyActive) {
+    return NextResponse.json({ ok: true, alreadyActive: true });
+  }
+
+  // 3. Notif admin SES en best-effort. Si échec, on log mais on retourne
+  //    ok — le subscriber est dans Convex, c'est ça qui compte.
   const rendered = renderNewsletterSignup({
     email: parsed.data.email,
     requestIp: ip,
     source,
   });
 
-  const result = await sendEmail({
+  const sendResult = await sendEmail({
     to: CONTACT_INBOX,
     rendered,
   });
 
-  if (!result.ok) {
-    console.error('[newsletter] sendEmail failed', { error: result.error });
-    return NextResponse.json({ ok: false, error: 'SEND_FAILED' }, { status: 502 });
+  if (!sendResult.ok) {
+    console.error('[newsletter] sendEmail failed (subscriber stored)', {
+      error: sendResult.error,
+    });
   }
 
-  return NextResponse.json({ ok: true, messageId: result.messageId });
+  return NextResponse.json({
+    ok: true,
+    reactivated: subscribeResult.reactivated,
+    notificationSent: sendResult.ok,
+  });
 }

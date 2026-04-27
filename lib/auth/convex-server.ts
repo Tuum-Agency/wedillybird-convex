@@ -532,6 +532,11 @@ export const convexApi = {
       role: 'couple' | 'pro' | 'guest' | 'admin';
     } | null
   >('users:getById'),
+  newsletterSubscribe: makeFunctionReference<
+    'mutation',
+    { email: string; source?: string; ipAddress?: string },
+    { id: string; alreadyActive: boolean; reactivated: boolean }
+  >('newsletter:subscribe'),
 } satisfies Record<
   string,
   FunctionReference<'query' | 'mutation' | 'action', 'public', Args, unknown>

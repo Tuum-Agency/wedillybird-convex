@@ -271,4 +271,28 @@ export default defineSchema({
     .index('by_email', ['email'])
     .index('by_email_expires', ['email', 'expiresAt'])
     .index('by_token_hash', ['tokenHash']),
+
+  /**
+   * Newsletter subscribers — abonnés à la newsletter publique. MVP store-first :
+   * on capture l'email avant de brancher un service externe (Brevo, Mailchimp).
+   *
+   * Toggle status pour permettre désabonnement plus tard sans hard-delete (RGPD :
+   * un soft-delete avec timestamp permet la traçabilité, hard-delete sur demande
+   * explicite via `rights` privacy policy).
+   *
+   * Pas de double opt-in pour le moment — `confirmedAt` réservé pour quand on
+   * branchera le système de campagnes (lien de confirmation dans le mail
+   * de bienvenue).
+   */
+  newsletterSubscribers: defineTable({
+    email: v.string(),
+    status: v.union(v.literal('active'), v.literal('unsubscribed')),
+    source: v.optional(v.string()),
+    subscribedAt: v.number(),
+    unsubscribedAt: v.optional(v.number()),
+    confirmedAt: v.optional(v.number()),
+    ipAddress: v.optional(v.string()),
+  })
+    .index('by_email', ['email'])
+    .index('by_status_subscribedAt', ['status', 'subscribedAt']),
 });
