@@ -2,6 +2,50 @@
 
 Items différés au fil des sprints. Chacun est **drop-in** : la plomberie applicative est déjà en place, seul le câblage final reste.
 
+## Production / Vercel — checklist mise en prod
+
+> **À me rappeler dès que l'utilisateur parle de "faire la production" / "go live" / "déployer en prod"**. Ne jamais lancer un deploy sans avoir validé chaque item ci-dessous.
+
+### Env vars Vercel (Production + Preview)
+Reproduire `.env.local` sur Vercel → Project Settings → Environment Variables :
+
+- **Convex** : `CONVEX_DEPLOY_KEY` (généré dans Convex dashboard), `NEXT_PUBLIC_CONVEX_URL` (URL du déploiement prod), `NEXT_PUBLIC_CONVEX_SITE_URL`
+- **Session** : `SESSION_SECRET` (`openssl rand -hex 32`, **distinct** du dev)
+- **Stripe** (live mode) : `STRIPE_SECRET_KEY` (`sk_live_…`), `STRIPE_WEBHOOK_SECRET`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` (`pk_live_…`), `STRIPE_PRICE_STARTER`, `STRIPE_PRICE_BUSINESS`, `STRIPE_PRICE_AGENCY` (à recréer avec la grille canonique 89/179/349 €)
+- **AWS / SES** : `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION=eu-west-3`, `AWS_ACCOUNT_ID`, `SES_FROM_ADDRESS=noreply@wedillybird.com`, `SES_CONFIGURATION_SET=wedillybird-default`, `EMAIL_DRIVER=ses`
+- **S3 / CloudFront** : `S3_BUCKET=wedillybird-media-prod`, `CLOUDFRONT_DOMAIN=media.wedillybird.com`, `CLOUDFRONT_DISTRIBUTION_ID=E3O56ZG0J0BA9J`
+- **CinetPay** (quand ouvert) : `CINETPAY_API_KEY`, `CINETPAY_SITE_ID`
+- **Lambda** : `LAMBDA_CALLBACK_SECRET`
+- **WhatsApp** (quand template prod validé) : `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_OTP_TEMPLATE`, `WHATSAPP_INVITE_TEMPLATE`
+- **Contact inbox** (optionnel, sinon default codé) : `CONTACT_INBOX_EMAIL=hello@wedillybird.com`
+
+### Bloqueurs prod externes
+1. **SES sortie de sandbox** — cf. section "AWS — opérations & sécurité". Sans ça, magic link / contact / newsletter / rappels invités n'arrivent qu'à des adresses vérifiées.
+2. **Stripe Customer Portal** — à configurer dans Stripe Dashboard (Settings → Customer Portal) avant ouverture des subscriptions pro.
+3. **CinetPay creds prod** — à récupérer sur dashboard CinetPay (apiKey + siteId).
+4. **DNS wildcard `*.wedillybird.com`** — Vercel domain + registrar, requis pour multi-tenant pro (sous-domaines `slug.wedillybird.com`).
+5. **WhatsApp template `team_invitation`** — à créer + valider dans Meta Business Manager.
+6. **Boîte `hello@wedillybird.com`** — vérifier MX configuré sur le domaine, sinon les emails de contact bouncent silencieusement.
+7. **Pricing alignment** — la grille canonique (Essentiel 19€, Premium 49€, Pros 89/179/349 €/mo) doit être recréée dans Stripe Prices ; les `price_1TQ712…` actuels divergent (cf. CLAUDE.md).
+8. **Rotation clé AWS** `AKIAXCZRV3YXAVVRYIWU` — clé déjà exposée en dev, à rotater avant ouverture trafic prod (cf. "Rotation de l'access key initiale").
+
+### Pré-déploiement checklist
+- [ ] CI verte sur `main` (format, lint, typecheck, unit, build, e2e)
+- [ ] `pnpx convex deploy` exécuté → schema + functions à jour sur le déploiement prod
+- [ ] Vercel preview URL testée manuellement (golden path : sign-up WhatsApp, magic link email, /contact, newsletter footer, RSVP `/i/[token]`, paiement test Stripe)
+- [ ] DNS `wedillybird.com` pointé sur Vercel + certificat SSL provisionné
+- [ ] Webhooks Stripe configurés sur le domaine prod (`https://wedillybird.com/api/webhooks/stripe`) avec le secret `STRIPE_WEBHOOK_SECRET` aligné
+- [ ] Webhooks CinetPay (si activé) pointés sur prod (`/api/webhooks/cinetpay`)
+- [ ] Lambda Rekognition callback URL pointe sur le Convex prod (`<prod-deploy>.convex.site/lambda/photo-moderation-callback`)
+
+### Post-déploiement checklist
+- [ ] Smoke test `/contact` → vérifier réception sur `hello@wedillybird.com`
+- [ ] Smoke test magic link → vérifier réception sur un email réel
+- [ ] Smoke test newsletter footer → vérifier insertion Convex `newsletterSubscribers` + notif admin
+- [ ] Smoke test paiement live (1 €) puis remboursé immédiatement (validation flow Stripe)
+- [ ] Vérifier Sentry / monitoring branché (si applicable)
+- [ ] CGU `messages/fr.json` article 4 à réécrire (mention obsolète d'une formule "gratuite" + mauvais noms Sérénité/Prestige)
+
 ## Paiements
 
 ### CinetPay driver (post-Sprint 6)
