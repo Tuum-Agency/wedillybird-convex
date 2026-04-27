@@ -112,6 +112,12 @@ export const create = mutation({
   },
 });
 
+const HEX_COLOR_RE = /^#([0-9a-fA-F]{6}|[0-9a-fA-F]{3})$/;
+
+function assertHexColor(value: string, field: string): void {
+  if (!HEX_COLOR_RE.test(value.trim())) throw new Error(`INVALID_${field}`);
+}
+
 export const updateBranding = mutation({
   args: {
     organizationId: v.id('organizations'),
@@ -129,11 +135,101 @@ export const updateBranding = mutation({
       if (trimmed.length < 1 || trimmed.length > 120) throw new Error('INVALID_NAME');
       patch.name = trimmed;
     }
-    if (args.primaryColor !== undefined) patch.primaryColor = args.primaryColor;
-    if (args.accentColor !== undefined) patch.accentColor = args.accentColor;
+    if (args.primaryColor !== undefined) {
+      assertHexColor(args.primaryColor, 'PRIMARY_COLOR');
+      patch.primaryColor = args.primaryColor.trim();
+    }
+    if (args.accentColor !== undefined) {
+      assertHexColor(args.accentColor, 'ACCENT_COLOR');
+      patch.accentColor = args.accentColor.trim();
+    }
     if (args.logoStorageId !== undefined) patch.logoStorageId = args.logoStorageId;
     await ctx.db.patch(args.organizationId, patch);
     return { ok: true as const };
+  },
+});
+
+/**
+ * Generates a single-use upload URL pointing at Convex storage. The client
+ * POSTs the logo file directly to this URL (multipart) and gets back a
+ * `{ storageId }` it then commits via `setLogo`.
+ *
+ * Permission : seuls les owners/admins de l'orga peuvent obtenir une URL
+ * d'upload. On vérifie d'abord la membership avant d'allouer un slot storage,
+ * pour éviter qu'un user authentifié sans droit obtienne une URL signée.
+ */
+export const generateLogoUploadUrl = mutation({
+  args: {
+    organizationId: v.id('organizations'),
+    requesterId: v.id('users'),
+  },
+  handler: async (ctx, { organizationId, requesterId }) => {
+    await assertCanManage(ctx, organizationId, requesterId);
+    const uploadUrl = await ctx.storage.generateUploadUrl();
+    return { uploadUrl };
+  },
+});
+
+/**
+ * Commits a freshly uploaded logo : remplace `logoStorageId` et supprime
+ * l'ancien blob si présent (économie de stockage). On ne touche pas aux
+ * couleurs ici — le composant `BrandingForm` enchaîne logo + couleurs via
+ * `updateBranding` quand l'utilisateur soumet.
+ */
+export const setLogo = mutation({
+  args: {
+    organizationId: v.id('organizations'),
+    requesterId: v.id('users'),
+    logoStorageId: v.id('_storage'),
+  },
+  handler: async (ctx, { organizationId, requesterId, logoStorageId }) => {
+    await assertCanManage(ctx, organizationId, requesterId);
+    const org = await ctx.db.get(organizationId);
+    if (!org) throw new Error('NOT_FOUND');
+    const previous = org.logoStorageId;
+    await ctx.db.patch(organizationId, {
+      logoStorageId,
+      updatedAt: Date.now(),
+    });
+    if (previous && previous !== logoStorageId) {
+      // Best-effort cleanup — si la suppression rate (storage déjà GC), on
+      // continue sans bloquer.
+      try {
+        await ctx.storage.delete(previous);
+      } catch {
+        // ignore
+      }
+    }
+    return { ok: true as const };
+  },
+});
+
+/**
+ * Supprime le logo courant (si présent) et nettoie le storage Convex
+ * associé. Pratique pour permettre au pro de revenir à l'état "pas de logo
+ * → mark Wedillybird".
+ */
+export const clearLogo = mutation({
+  args: {
+    organizationId: v.id('organizations'),
+    requesterId: v.id('users'),
+  },
+  handler: async (ctx, { organizationId, requesterId }) => {
+    await assertCanManage(ctx, organizationId, requesterId);
+    const org = await ctx.db.get(organizationId);
+    if (!org) throw new Error('NOT_FOUND');
+    if (!org.logoStorageId) return { ok: true as const, alreadyEmpty: true };
+    const previous = org.logoStorageId;
+    await ctx.db.patch(organizationId, {
+      logoStorageId: undefined,
+      updatedAt: Date.now(),
+    });
+    try {
+      await ctx.storage.delete(previous);
+    } catch {
+      // ignore
+    }
+    return { ok: true as const, alreadyEmpty: false };
   },
 });
 
@@ -385,10 +481,7 @@ export const updateSubscription = mutation({
         if (owner?.email) {
           let kind: 'subscription-renewed' | 'subscription-failed' | null = null;
           let detail = '';
-          if (
-            (prevStatus === 'trialing' || prevStatus === undefined) &&
-            nextStatus === 'active'
-          ) {
+          if ((prevStatus === 'trialing' || prevStatus === undefined) && nextStatus === 'active') {
             kind = 'subscription-renewed';
             detail = `Votre abonnement ${before.name} est désormais actif. Bienvenue !`;
           } else if (nextStatus === 'past_due') {
