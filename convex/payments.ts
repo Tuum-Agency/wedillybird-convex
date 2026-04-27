@@ -1,5 +1,5 @@
 import { v } from 'convex/values';
-import { mutation, query } from './_generated/server';
+import { internalMutation, mutation, query } from './_generated/server';
 import { internal } from './_generated/api';
 
 const PROVIDER = v.union(v.literal('stripe'), v.literal('cinetpay'), v.literal('mock'));
@@ -14,6 +14,39 @@ const GALLERY_RETENTION_DAYS: Record<'essential' | 'premium', number> = {
 };
 const POST_EVENT_UPSELL_RETENTION_DAYS = 5 * 365;
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
+
+// keep in sync with lib/payments/reconcile.ts
+// `convex/` and `lib/` cannot import each other (separate tsconfig projects),
+// so the reconciliation logic is duplicated. Both copies must stay aligned.
+type ReconciliationPatch = {
+  planTier: 'essential' | 'premium';
+  paidAt: number;
+  galleryExpiresAt: number;
+};
+function computeEventReconciliation(input: {
+  event: {
+    planTier?: 'essential' | 'premium';
+    paidAt?: number;
+    galleryExpiresAt?: number;
+    eventDate: number;
+  };
+  payment: { plan: 'essential' | 'premium' };
+  now: number;
+}): ReconciliationPatch | null {
+  const { event, payment, now } = input;
+  const expectedExpiresAt =
+    event.eventDate + GALLERY_RETENTION_DAYS[payment.plan] * MS_PER_DAY;
+  const needsUpdate =
+    event.planTier !== payment.plan ||
+    event.paidAt === undefined ||
+    event.galleryExpiresAt !== expectedExpiresAt;
+  if (!needsUpdate) return null;
+  return {
+    planTier: payment.plan,
+    paidAt: event.paidAt ?? now,
+    galleryExpiresAt: expectedExpiresAt,
+  };
+}
 
 export const recordIntent = mutation({
   args: {
@@ -73,38 +106,56 @@ export const markSucceeded = mutation({
       .first();
     if (!payment) throw new Error('PAYMENT_NOT_FOUND');
 
-    if (payment.providerEventId === providerEventId && payment.status === 'succeeded') {
-      return { ok: true as const, alreadyApplied: true };
-    }
-    if (payment.status === 'succeeded') {
-      return { ok: true as const, alreadyApplied: true };
+    const alreadyApplied = payment.status === 'succeeded';
+    const now = Date.now();
+
+    if (!alreadyApplied) {
+      await ctx.db.patch(payment._id, {
+        status: 'succeeded',
+        providerEventId,
+        updatedAt: now,
+      });
     }
 
-    await ctx.db.patch(payment._id, {
-      status: 'succeeded',
-      providerEventId,
-      updatedAt: Date.now(),
-    });
-
+    // Self-healing event reconciliation: even when the payment is already
+    // marked `succeeded`, the corresponding event document may have been left
+    // in an inconsistent state (e.g. `planTier` set but `paidAt` /
+    // `galleryExpiresAt` missing because of a partial earlier write or a bug
+    // in a previous webhook handler). We always attempt to bring the event
+    // back in line with the payment's plan — but only patch when something
+    // actually diverges, to avoid spurious `updatedAt` churn.
     const event = await ctx.db.get(payment.eventId);
     if (event) {
-      const galleryExpiresAt = event.eventDate + GALLERY_RETENTION_DAYS[payment.plan] * MS_PER_DAY;
-      const now = Date.now();
-      const needsUpdate =
-        event.planTier !== payment.plan ||
-        event.paidAt === undefined ||
-        event.galleryExpiresAt !== galleryExpiresAt;
-      if (needsUpdate) {
-        await ctx.db.patch(event._id, {
-          planTier: payment.plan,
-          paidAt: event.paidAt ?? now,
-          galleryExpiresAt,
-          updatedAt: now,
-        });
+      const patch = computeEventReconciliation({
+        event: {
+          planTier: event.planTier,
+          paidAt: event.paidAt,
+          galleryExpiresAt: event.galleryExpiresAt,
+          eventDate: event.eventDate,
+        },
+        payment: { plan: payment.plan },
+        now,
+      });
+      if (patch) {
+        // Clear pendingPlanTier — il a servi à pré-remplir le checkout, le
+        // tier officiel `planTier` prend le relais une fois le paiement
+        // confirmé. On laisse `pendingPlanTier` à `undefined` plutôt que de
+        // supprimer le champ pour éviter les diffs inutiles si déjà absent.
+        const fullPatch =
+          event.pendingPlanTier !== undefined
+            ? { ...patch, pendingPlanTier: undefined, updatedAt: now }
+            : { ...patch, updatedAt: now };
+        await ctx.db.patch(event._id, fullPatch);
       }
     }
 
+    if (alreadyApplied) {
+      return { ok: true as const, alreadyApplied: true };
+    }
+
     // Best-effort owner notification (only if owner has an email on file).
+    // Only sent on the first transition to `succeeded` — repeat webhooks for
+    // an already-applied payment must not retrigger the email.
     const owner = await ctx.db.get(payment.userId);
     if (owner?.email) {
       const amountFormatted = formatAmount(payment.amountMinor, payment.currency);
@@ -198,5 +249,71 @@ export const extendRetentionPostEvent = mutation({
     }
     await ctx.db.patch(eventId, { galleryExpiresAt: newExpiresAt, updatedAt: Date.now() });
     return { ok: true as const, alreadyExtended: false };
+  },
+});
+
+/**
+ * One-shot repair for events whose denormalised payment fields drifted
+ * from their corresponding `payments` row (typically because an earlier
+ * version of `markSucceeded` returned early on the idempotency guard
+ * without ever patching the event).
+ *
+ * Scans every event with `planTier !== undefined` AND (`paidAt === undefined`
+ * OR `galleryExpiresAt === undefined`), then for each finds the most recent
+ * `succeeded` payment and applies the same reconciliation as `markSucceeded`.
+ *
+ * Internal-only — invoke via:
+ *   pnpx convex run payments:_repairOrphanedEventGalleries
+ */
+export const _repairOrphanedEventGalleries = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const now = Date.now();
+    const skipped: Array<{ eventId: string; reason: string }> = [];
+    let scanned = 0;
+    let repaired = 0;
+
+    const events = await ctx.db.query('events').collect();
+    for (const event of events) {
+      if (event.planTier === undefined) continue;
+      if (event.paidAt !== undefined && event.galleryExpiresAt !== undefined) continue;
+
+      scanned += 1;
+
+      const payments = await ctx.db
+        .query('payments')
+        .withIndex('by_event', (q) => q.eq('eventId', event._id))
+        .collect();
+      const succeeded = payments
+        .filter((p) => p.status === 'succeeded')
+        .sort((a, b) => b.updatedAt - a.updatedAt);
+      const payment = succeeded[0];
+
+      if (!payment) {
+        skipped.push({ eventId: event._id, reason: 'NO_SUCCEEDED_PAYMENT' });
+        continue;
+      }
+
+      const patch = computeEventReconciliation({
+        event: {
+          planTier: event.planTier,
+          paidAt: event.paidAt,
+          galleryExpiresAt: event.galleryExpiresAt,
+          eventDate: event.eventDate,
+        },
+        payment: { plan: payment.plan },
+        now,
+      });
+
+      if (!patch) {
+        skipped.push({ eventId: event._id, reason: 'ALREADY_CONSISTENT' });
+        continue;
+      }
+
+      await ctx.db.patch(event._id, { ...patch, updatedAt: now });
+      repaired += 1;
+    }
+
+    return { scanned, repaired, skipped };
   },
 });

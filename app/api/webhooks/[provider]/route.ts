@@ -69,6 +69,17 @@ export async function POST(
           return NextResponse.json({ ok: true, kind: 'subscription.deleted' });
         }
 
+        if (subscriptionEvent.kind === 'payg.purchased') {
+          await convex.mutation(convexApi.markPaygPurchase, {
+            organizationId: subscriptionEvent.organizationId,
+            requesterId: subscriptionEvent.requesterId,
+            stripeSessionId: subscriptionEvent.stripeSessionId,
+            amountMinor: subscriptionEvent.amountMinor,
+            currency: subscriptionEvent.currency,
+          });
+          return NextResponse.json({ ok: true, kind: 'payg.purchased' });
+        }
+
         // invoice.paid / invoice.payment_failed: schema unchanged here.
         // Pro-notification emails are queued by Convex via the org subscription
         // mutation flow when needed.

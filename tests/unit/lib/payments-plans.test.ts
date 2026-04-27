@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
   PLANS,
   POST_EVENT_UPSELL,
@@ -10,6 +10,8 @@ import {
   getUpsellPrice,
   isCurrency,
   isPaidPlan,
+  priceIdForPlan,
+  priceIdForPostEventUpsell,
 } from '@/lib/payments/plans';
 
 describe('payments/plans — canonical grid v2', () => {
@@ -71,5 +73,78 @@ describe('payments/plans — canonical grid v2', () => {
     expect(formatAmount(1900, 'EUR')).toMatch(/19,00/);
     expect(formatAmount(4900, 'EUR')).toMatch(/49,00/);
     expect(formatAmount(40000, 'TND')).toMatch(/40,000/); // TND uses millimes
+  });
+});
+
+describe('priceIdForPlan / priceIdForPostEventUpsell', () => {
+  const ORIGINAL_ENV = { ...process.env };
+
+  beforeEach(() => {
+    process.env.STRIPE_PRICE_ESSENTIAL = 'price_essential_TEST';
+    process.env.STRIPE_PRICE_PREMIUM = 'price_premium_TEST';
+    process.env.STRIPE_PRICE_POST_EVENT_UPSELL = 'price_upsell_TEST';
+    delete process.env.STRIPE_PRICE_ESSENTIAL_EUR;
+    delete process.env.STRIPE_PRICE_ESSENTIAL_MAD;
+    delete process.env.STRIPE_PRICE_ESSENTIAL_TND;
+    delete process.env.STRIPE_PRICE_PREMIUM_EUR;
+    delete process.env.STRIPE_PRICE_PREMIUM_MAD;
+    delete process.env.STRIPE_PRICE_PREMIUM_TND;
+    delete process.env.STRIPE_PRICE_POST_EVENT_UPSELL_EUR;
+    delete process.env.STRIPE_PRICE_POST_EVENT_UPSELL_MAD;
+    delete process.env.STRIPE_PRICE_POST_EVENT_UPSELL_TND;
+  });
+
+  afterEach(() => {
+    process.env = { ...ORIGINAL_ENV };
+  });
+
+  it('reads env vars per plan tier (EUR by default)', () => {
+    expect(priceIdForPlan('essential')).toBe('price_essential_TEST');
+    expect(priceIdForPlan('premium')).toBe('price_premium_TEST');
+  });
+
+  it('returns undefined when env var is missing (driver fallback to price_data)', () => {
+    delete process.env.STRIPE_PRICE_ESSENTIAL;
+    expect(priceIdForPlan('essential')).toBeUndefined();
+  });
+
+  it('priceIdForPlan(plan, "EUR") prefers _EUR suffix and falls back to legacy alias', () => {
+    process.env.STRIPE_PRICE_ESSENTIAL_EUR = 'price_essential_EUR_TEST';
+    expect(priceIdForPlan('essential', 'EUR')).toBe('price_essential_EUR_TEST');
+    delete process.env.STRIPE_PRICE_ESSENTIAL_EUR;
+    expect(priceIdForPlan('essential', 'EUR')).toBe('price_essential_TEST');
+  });
+
+  it('priceIdForPlan(plan, "MAD") reads STRIPE_PRICE_<PLAN>_MAD only', () => {
+    process.env.STRIPE_PRICE_ESSENTIAL_MAD = 'price_essential_MAD_TEST';
+    expect(priceIdForPlan('essential', 'MAD')).toBe('price_essential_MAD_TEST');
+    delete process.env.STRIPE_PRICE_ESSENTIAL_MAD;
+    // Legacy alias only applies to EUR — MAD must be undefined when missing.
+    expect(priceIdForPlan('essential', 'MAD')).toBeUndefined();
+  });
+
+  it('priceIdForPlan(plan, "TND") reads STRIPE_PRICE_<PLAN>_TND only', () => {
+    process.env.STRIPE_PRICE_ESSENTIAL_TND = 'price_essential_TND_TEST';
+    expect(priceIdForPlan('essential', 'TND')).toBe('price_essential_TND_TEST');
+    delete process.env.STRIPE_PRICE_ESSENTIAL_TND;
+    expect(priceIdForPlan('essential', 'TND')).toBeUndefined();
+  });
+
+  it('priceIdForPlan(plan, "XOF") is always undefined (XOF non Stripe → CinetPay)', () => {
+    process.env.STRIPE_PRICE_ESSENTIAL_XOF = 'price_should_be_ignored';
+    expect(priceIdForPlan('essential', 'XOF')).toBeUndefined();
+    expect(priceIdForPlan('premium', 'XOF')).toBeUndefined();
+  });
+
+  it('reads the upsell env var (EUR)', () => {
+    expect(priceIdForPostEventUpsell()).toBe('price_upsell_TEST');
+    delete process.env.STRIPE_PRICE_POST_EVENT_UPSELL;
+    expect(priceIdForPostEventUpsell()).toBeUndefined();
+  });
+
+  it('priceIdForPostEventUpsell honours per-currency env vars', () => {
+    process.env.STRIPE_PRICE_POST_EVENT_UPSELL_MAD = 'price_upsell_MAD_TEST';
+    expect(priceIdForPostEventUpsell('MAD')).toBe('price_upsell_MAD_TEST');
+    expect(priceIdForPostEventUpsell('XOF')).toBeUndefined();
   });
 });

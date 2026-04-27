@@ -6,6 +6,11 @@
  * Particuliers : paiement one-shot, 2 plans + 1 upsell post-mariage.
  * Pas de tier gratuit. Pas de quota d'invitations particuliers (capacity-based
  * → features-based, cf. spec).
+ *
+ * Multi-devises : EUR via Stripe, XOF via CinetPay, MAD/TND via Stripe.
+ * Les Stripe Prices stables sont nommés `STRIPE_PRICE_<PLAN>_<CURRENCY>` (ex.
+ * STRIPE_PRICE_ESSENTIAL_MAD). Le suffix sans devise (`STRIPE_PRICE_ESSENTIAL`)
+ * reste un alias EUR pour rétro-compat env.
  */
 
 export type PlanTier = 'essential' | 'premium';
@@ -115,4 +120,42 @@ const MINOR_UNIT_DIVISOR: Record<Currency, number> = {
 export function formatAmount(minor: number, currency: Currency): string {
   const value = minor / MINOR_UNIT_DIVISOR[currency];
   return FORMATTER_BY_CURRENCY[currency].format(value);
+}
+
+/**
+ * Stripe Price IDs des plans particuliers (one-shot), résolus par devise.
+ *
+ * Convention env vars :
+ *   STRIPE_PRICE_<PLAN>_<CURRENCY>   (ex. STRIPE_PRICE_ESSENTIAL_MAD)
+ *   STRIPE_PRICE_<PLAN>              (alias EUR pour rétro-compat env)
+ *
+ * Devise XOF : non supportée par Stripe (Stripe rejette la création d'un Price
+ * en XOF). Le routage CinetPay s'occupe de XOF — la fonction renvoie
+ * `undefined` pour cette devise (le driver Stripe ne devrait jamais être
+ * appelé avec XOF, mais on conserve un comportement défensif).
+ *
+ * Optionnel — si l'env var n'est pas définie, le driver Stripe peut tomber
+ * sur `price_data` à la volée. Préférer toujours les Price IDs stables pour
+ * pouvoir changer les tarifs sans déploiement (cf. scripts/sync-stripe-prices.ts).
+ */
+export function priceIdForPlan(plan: PlanTier, currency: Currency = 'EUR'): string | undefined {
+  if (currency === 'XOF') return undefined;
+  const planUpper = plan.toUpperCase();
+  const currencyEnvName = `STRIPE_PRICE_${planUpper}_${currency}` as const;
+  const currencyValue = process.env[currencyEnvName];
+  if (currencyValue) return currencyValue;
+  if (currency === 'EUR') {
+    const legacyName = `STRIPE_PRICE_${planUpper}` as const;
+    return process.env[legacyName];
+  }
+  return undefined;
+}
+
+export function priceIdForPostEventUpsell(currency: Currency = 'EUR'): string | undefined {
+  if (currency === 'XOF') return undefined;
+  const currencyEnvName = `STRIPE_PRICE_POST_EVENT_UPSELL_${currency}` as const;
+  const currencyValue = process.env[currencyEnvName];
+  if (currencyValue) return currencyValue;
+  if (currency === 'EUR') return process.env.STRIPE_PRICE_POST_EVENT_UPSELL;
+  return undefined;
 }

@@ -1,11 +1,15 @@
 import { redirect } from 'next/navigation';
-import { Check, Sparkles } from 'lucide-react';
+import { Check, Sparkles, Zap } from 'lucide-react';
 import { getSession } from '@/lib/auth/session';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
-import { SUBSCRIPTION_TIER_PRICES, type SubscriptionTier } from '@/lib/payments/subscriptions';
+import {
+  SUBSCRIPTION_TIER_PRICES,
+  PAYG_PRO_PRICE,
+  type SubscriptionTier,
+} from '@/lib/payments/subscriptions';
 import { Button } from '@/components/ui/button';
 import { ProShell, ProNav } from '@/components/pro/pro-shell';
-import { subscribeAction, openBillingPortalAction } from './actions';
+import { subscribeAction, openBillingPortalAction, payAsYouGoAction } from './actions';
 
 const TIER_ORDER: readonly SubscriptionTier[] = ['starter', 'business', 'agency'];
 
@@ -61,7 +65,7 @@ function formatPeriodEnd(timestamp: number | undefined): string | null {
 export default async function ProBillingPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string }>;
+  searchParams: Promise<{ status?: string; kind?: string }>;
 }) {
   const session = await getSession();
   if (!session) redirect('/login?next=/pro/billing');
@@ -73,14 +77,25 @@ export default async function ProBillingPage({
   const user = await convex.query(convexApi.currentUser, { userId: session.userId });
   const params = await searchParams;
   const banner =
-    params.status === 'success'
-      ? { kind: 'success' as const, text: 'Abonnement activé. Bienvenue !' }
-      : params.status === 'cancel'
-        ? {
-            kind: 'info' as const,
-            text: 'Souscription annulée. Vous pouvez réessayer à tout moment.',
-          }
-        : null;
+    params.status === 'success' && params.kind === 'payg'
+      ? {
+          kind: 'success' as const,
+          text: 'Achat Pay-as-you-go confirmé. Vous avez +1 crédit événement.',
+        }
+      : params.status === 'success'
+        ? { kind: 'success' as const, text: 'Abonnement activé. Bienvenue !' }
+        : params.status === 'cancel'
+          ? {
+              kind: 'info' as const,
+              text: 'Souscription annulée. Vous pouvez réessayer à tout moment.',
+            }
+          : null;
+
+  const paygCredits =
+    (await convex.query(convexApi.getPaygCreditsByOrganization, {
+      organizationId: org._id,
+      requesterId: session.userId,
+    })) ?? { credits: 0 };
 
   const currentTier = org.subscriptionTier;
   const isCurrentTier = (tier: SubscriptionTier) => currentTier === tier;
@@ -294,6 +309,43 @@ export default async function ProBillingPage({
               </article>
             );
           })}
+        </section>
+
+        {/* Pay-as-you-go — alternative à l'abonnement, paiement à l'événement. */}
+        <section
+          className="flex flex-col gap-4 rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-6 sm:flex-row sm:items-center sm:justify-between"
+          data-testid="payg-card"
+        >
+          <div className="flex flex-1 flex-col gap-2">
+            <div className="flex items-center gap-2">
+              <Zap className="h-4 w-4 text-[color:var(--color-gold-500)]" strokeWidth={2} aria-hidden />
+              <h3 className="font-display text-lg italic" style={{ letterSpacing: '-0.018em' }}>
+                Pay-as-you-go
+              </h3>
+              {paygCredits.credits > 0 ? (
+                <span
+                  className="rounded-full bg-[color:var(--color-gold-100)] px-2 py-0.5 font-mono text-[10px] tracking-[0.18em] text-[color:var(--color-gold-700)] uppercase"
+                  data-testid="payg-credits-badge"
+                >
+                  {paygCredits.credits} crédit{paygCredits.credits > 1 ? 's' : ''} dispo
+                </span>
+              ) : null}
+            </div>
+            <p className="text-sm leading-relaxed text-[color:var(--color-muted-foreground)]">
+              {formatPrice(PAYG_PRO_PRICE.amountMinor)} pour activer un événement
+              ponctuel sans abonnement. Idéal pour un test ou un mariage isolé.
+            </p>
+          </div>
+          <form action={payAsYouGoAction}>
+            <Button
+              type="submit"
+              variant="outline"
+              size="md"
+              data-testid="buy-payg"
+            >
+              Acheter un crédit
+            </Button>
+          </form>
         </section>
 
         <footer className="text-center font-mono text-[10px] tracking-[0.24em] text-[color:var(--color-muted-foreground)] uppercase">
