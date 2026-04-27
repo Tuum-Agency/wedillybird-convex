@@ -1,7 +1,9 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server';
+import { ArrowLeft } from 'lucide-react';
 import { Link, redirect } from '@/i18n/navigation';
 import { getSession } from '@/lib/auth/session';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
+import { ProShell, ProNav } from '@/components/pro/pro-shell';
 import { TeamManager } from '@/components/pro/team-manager';
 
 export default async function ProTeamPage({ params }: { params: Promise<{ locale: string }> }) {
@@ -20,26 +22,47 @@ export default async function ProTeamPage({ params }: { params: Promise<{ locale
     requesterId: session!.userId,
   });
 
+  const user = await convex.query(convexApi.currentUser, { userId: session!.userId });
   const t = await getTranslations('Pro');
 
   return (
-    <main className="container-page flex flex-1 flex-col gap-6 py-10">
-      <header className="flex flex-col gap-2">
-        <Link
-          href="/pro/dashboard"
-          className="text-sm text-[color:var(--color-muted)] hover:underline"
-        >
-          ← {t('backToDashboard')}
-        </Link>
-        <h1 className="font-display text-3xl font-semibold tracking-tight">{t('teamTitle')}</h1>
-        <p className="text-sm text-[color:var(--color-muted)]">{t('teamSubtitle')}</p>
-      </header>
+    <ProShell
+      orgName={org!.name}
+      orgPrimaryColor={org!.primaryColor ?? undefined}
+      userName={user?.fullName}
+      nav={<ProNav current="team" />}
+    >
+      <div className="container-page flex flex-col gap-10 py-12 sm:py-16">
+        <header className="flex flex-col gap-3">
+          <Link
+            href="/pro/dashboard"
+            className="inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-muted-foreground)] uppercase transition-colors hover:text-[color:var(--color-foreground)]"
+          >
+            <ArrowLeft className="h-3 w-3" strokeWidth={2} aria-hidden />
+            {t('backToDashboard')}
+          </Link>
+          <h1
+            className="font-display text-balance italic"
+            style={{
+              fontSize: 'clamp(2rem, 4.5vw, 3rem)',
+              lineHeight: 1.05,
+              letterSpacing: '-0.022em',
+              color: 'var(--color-foreground)',
+            }}
+          >
+            {t('teamTitle')}
+          </h1>
+          <p className="text-base leading-relaxed text-[color:var(--color-muted-foreground)] sm:text-lg">
+            {t('teamSubtitle')}
+          </p>
+        </header>
 
-      <TeamManager
-        organizationId={org!._id}
-        canManage={org!.myRole === 'owner' || org!.myRole === 'admin'}
-        initialMembers={members}
-      />
-    </main>
+        <TeamManager
+          organizationId={org!._id}
+          canManage={org!.myRole === 'owner' || org!.myRole === 'admin'}
+          initialMembers={members}
+        />
+      </div>
+    </ProShell>
   );
 }

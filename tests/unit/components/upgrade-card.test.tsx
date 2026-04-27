@@ -33,7 +33,7 @@ afterEach(() => {
 
 describe('UpgradeCard', () => {
   it('shows essential + premium when current tier is free', () => {
-    render(<UpgradeCard eventId="evt_1" currentTier="free" currency="EUR" />);
+    render(<UpgradeCard eventId="evt_1" currentTier={undefined} currency="EUR" />);
     expect(screen.getByTestId('upgrade-plan-essential')).toBeInTheDocument();
     expect(screen.getByTestId('upgrade-plan-premium')).toBeInTheDocument();
   });
@@ -57,7 +57,7 @@ describe('UpgradeCard', () => {
     });
     const user = userEvent.setup();
 
-    render(<UpgradeCard eventId="evt_1" currentTier="free" currency="EUR" />);
+    render(<UpgradeCard eventId="evt_1" currentTier={undefined} currency="EUR" />);
     await user.click(screen.getByTestId('upgrade-cta-essential'));
 
     await waitFor(() =>
@@ -76,7 +76,7 @@ describe('UpgradeCard', () => {
     });
     const user = userEvent.setup();
 
-    render(<UpgradeCard eventId="evt_1" currentTier="free" currency="EUR" />);
+    render(<UpgradeCard eventId="evt_1" currentTier={undefined} currency="EUR" />);
     await user.click(screen.getByTestId('upgrade-cta-premium'));
 
     expect(await screen.findByRole('alert')).toHaveTextContent(/forbidden/);

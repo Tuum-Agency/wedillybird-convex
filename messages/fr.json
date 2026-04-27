@@ -102,7 +102,7 @@
       },
       "pricing": {
         "q": "Quels sont les tarifs ?",
-        "a": "Formule Essentiel (gratuite, jusqu'à 30 invitations), Sérénité (49 €, jusqu'à 150 invitations), Prestige (119 €, jusqu'à 1000 invitations). Paiement unique par mariage. Une invitation correspond à une fiche/QR code unique envoyé à un invité principal qui peut amener plusieurs accompagnants."
+        "a": "Deux formules en paiement unique par mariage : Essentiel (19 €) pour les invitations WhatsApp, le RSVP, le check-in QR et le tableau de bord ; Premium (49 €) qui ajoute la galerie photo partagée pendant 6 mois et l'album PDF final. Un upsell post-mariage à +29 € permet de garder votre galerie 5 ans avec un livre photo HD et l'export haute définition."
       },
       "support": {
         "q": "Comment contacter le support ?",
@@ -116,46 +116,256 @@
   },
   "Landing": {
     "hero": {
-      "title": "L'organisation de mariage, simplifiée par WhatsApp",
-      "subtitle": "Invitations, RSVP, check-in, galerie partagée. Tout ce dont vous avez besoin, rien de superflu.",
-      "ctaPrimary": "Commencer gratuitement",
-      "ctaSecondary": "Voir une démo"
+      "chapter": "CHAPITRE 01 — L'INVITATION",
+      "title": "Le mariage se vit dans la conversation.",
+      "titleAccent": "Faites-le exister là.",
+      "subtitle": "Vos invités sont déjà sur WhatsApp. Wedillybird y orchestre tout — l'invitation, le RSVP, le jour J et les souvenirs. Discrètement, jusqu'au prochain mariage.",
+      "ctaPrimary": "Préparer mon mariage",
+      "ctaSecondary": "Voir les formules",
+      "trust": {
+        "stat": "1 240 mariages célébrés",
+        "rating": "4,9 / 5 satisfaction couples",
+        "regions": "France · Sénégal · Côte d'Ivoire · Mali"
+      },
+      "card": {
+        "label": "INVITATION · 8 JUIN 2026",
+        "couple": "Camille & Hugo",
+        "venue": "Domaine des Lilas · Provence",
+        "rsvpHint": "RSVP ouvert sur WhatsApp"
+      }
+    },
+    "manifesto": {
+      "chapter": "CHAPITRE 02 — LE MANIFESTE",
+      "eyebrow": "Notre conviction",
+      "title": "Un mariage ne se prépare plus dans un PDF.",
+      "lede": "Vous avez sûrement reçu une invitation par mail. Vous l'avez ouverte une fois, peut-être. Imprimée ? Jamais. Pendant ce temps, vos invités se textent sur WhatsApp pour confirmer leur venue, demander l'adresse, partager leurs photos. C'est là, dans la conversation, que se vit aujourd'hui un mariage. C'est là qu'il doit s'organiser.",
+      "before": {
+        "label": "Hier",
+        "body": "Une boîte mail surchargée, un Excel partagé qui se désynchronise, des relances WhatsApp à 47 personnes qui prennent une après-midi entière. Le doute permanent : « est-ce que mamie a bien reçu ? »."
+      },
+      "after": {
+        "label": "Désormais",
+        "body": "Un seul lien personnalisé par invité, ouvert dès réception, RSVP confirmé en 30 secondes. Vous voyez les réponses arriver, sans rien relancer. Le jour J, le check-in offline tient même quand le WiFi du château lâche."
+      },
+      "pullquote": "Six mois après le mariage, vos invités regardent encore les photos. C'est ça que Wedillybird vous donne — pas une appli, un moment qui dure.",
+      "stats": {
+        "openRate": {
+          "value": 98,
+          "suffix": "%",
+          "label": "des invitations ouvertes",
+          "context": "vs 22 % par mail classique"
+        },
+        "rsvpSpeed": {
+          "value": 73,
+          "suffix": "%",
+          "label": "de RSVP en 24 heures",
+          "context": "moyenne sur les 30 premières invitations"
+        },
+        "memory": {
+          "value": 5,
+          "suffix": " ans",
+          "label": "de souvenirs conservés",
+          "context": "avec l'option Premium + Upsell post-mariage"
+        }
+      },
+      "source": "Mesuré sur les 1 240 premiers mariages célébrés avec Wedillybird, FR + Afrique de l'Ouest, 2026."
     },
     "features": {
+      "chapter": "CHAPITRE 03 — LES PILIERS",
+      "eyebrow": "Tout en un",
+      "title": "Quatre piliers, conçus pour un mariage qui se vit.",
+      "subtitle": "Pas de modules à activer, pas de plug-ins. Tout fonctionne dès la première invitation envoyée.",
       "invites": {
         "title": "Invitations WhatsApp",
-        "description": "Envoyez des invitations personnalisées avec QR code directement sur WhatsApp."
+        "description": "Un lien personnalisé par invité, partagé là où il sera vraiment lu. Page d'invitation aux couleurs de votre mariage, ouverte en deux secondes — sans appli à installer.",
+        "highlights": [
+          "Liens uniques par invité",
+          "Page personnalisable (couleurs, photo, texte)",
+          "Aucune appli à installer côté invités"
+        ]
       },
       "rsvp": {
-        "title": "Suivi RSVP en temps réel",
-        "description": "Visualisez les réponses de vos invités au fur et à mesure, sans relance manuelle."
+        "title": "RSVP en temps réel",
+        "description": "Vos invités confirment en 30 secondes : présence, accompagnants, régime alimentaire, message aux mariés. Vous voyez les réponses arriver depuis votre tableau de bord, sans relance manuelle.",
+        "highlights": [
+          "Compteur live confirmés / déclinés / en attente",
+          "Régimes alimentaires agrégés par catégorie",
+          "Export CSV pour le traiteur"
+        ]
       },
       "checkin": {
-        "title": "Check-in le jour J",
-        "description": "Scannez les QR codes à l'entrée, même sans connexion internet."
+        "title": "Check-in QR offline",
+        "description": "Scannez les QR codes à l'entrée, même sans réseau. La liste de vos invités est cachée localement sur le téléphone du témoin — tout se synchronise au retour de la connexion.",
+        "highlights": [
+          "Marche sans 4G ni WiFi",
+          "Cache local IndexedDB chiffré",
+          "Toast de bienvenue personnalisé"
+        ]
       },
       "gallery": {
-        "title": "Galerie partagée",
-        "description": "Invitez vos proches à partager leurs photos et vidéos dans un espace privé."
+        "title": "Galerie partagée modérée",
+        "description": "Invités et témoins déposent leurs photos depuis leur lien. Modération automatique avant publication, album PDF final et livre photo HD livré chez vous en option.",
+        "highlights": [
+          "Modération IA + manuelle",
+          "Album PDF imprimable",
+          "Conservation jusqu'à 5 ans"
+        ]
+      }
+    },
+    "cinematic": {
+      "chapter": "CHAPITRE 04 — LA CINÉMATIQUE",
+      "eyebrow": "Vos invitations",
+      "title": "Une enveloppe qui s'ouvre, une carte qui s'anime.",
+      "subtitle": "Quand votre invité ouvre son lien, l'enveloppe se déplie, le sceau de cire se brise, la carte sort, vos prénoms s'écrivent en calligraphie. Trois secondes, et l'émotion est plantée.",
+      "stepEnvelope": "Enveloppe scellée",
+      "stepCard": "Le sceau se brise",
+      "stepFlourish": "Vos prénoms apparaissent",
+      "caption": "Animation papier scénographiée · 28 ko · pensée pour la 3G"
+    },
+    "testimonials": {
+      "chapter": "CHAPITRE 05 — LES VOIX",
+      "eyebrow": "Ils ont dit oui",
+      "title": "Des couples et des planners qui ont gagné en sérénité.",
+      "items": {
+        "couple-fr": {
+          "quote": "On a invité 180 personnes en quatre tapotements. Le check-in offline a sauvé l'entrée quand le WiFi du château a lâché — personne n'a attendu plus de cinq secondes.",
+          "name": "Camille & Hugo",
+          "location": "Mariage en Provence · juin 2026",
+          "initials": "CH",
+          "alt": "Portrait de Camille et Hugo souriants"
+        },
+        "couple-sn": {
+          "quote": "On était plus de 600 invités sur trois jours, à Dakar. Wedillybird a tenu là où Excel et nos groupes WhatsApp craquaient. La galerie partagée a fait revenir les souvenirs encore une fois trois mois après.",
+          "name": "Awa & Mamadou",
+          "location": "Mariage à Dakar · novembre 2025",
+          "initials": "AM",
+          "alt": "Awa et Mamadou en tenue traditionnelle sénégalaise"
+        },
+        "planner-pro": {
+          "quote": "Je gère huit mariages cette saison avec mon branding sur chaque page invité. Mes couples voient mon agence, pas un outil tiers — c'est exactement ce qu'il manquait au marché francophone.",
+          "name": "Studio Lumière",
+          "location": "Wedding planner · Bordeaux",
+          "initials": "SL",
+          "alt": "Wedding planner française devant un mariage en extérieur"
+        }
       }
     },
     "pricing": {
-      "title": "Un prix juste pour chaque mariage",
-      "free": {
-        "name": "Essentiel",
-        "price": "Gratuit",
-        "description": "Jusqu'à 30 invitations"
-      },
+      "chapter": "CHAPITRE 06 — LES FORMULES",
+      "eyebrow": "Tarifs justes",
+      "title": "Un prix juste pour le plus beau jour.",
+      "subtitle": "Pas d'abonnement, pas de frais cachés. Le prix s'ajuste automatiquement selon votre région.",
+      "perEvent": "/ mariage",
+      "recommended": "Recommandé",
       "essential": {
-        "name": "Sérénité",
-        "price": "49 €",
-        "description": "Jusqu'à 150 invitations"
+        "name": "Essentiel",
+        "description": "Le minimum pour digitaliser votre mariage."
       },
       "premium": {
-        "name": "Prestige",
-        "price": "119 €",
-        "description": "Invitations illimitées + galerie"
+        "name": "Premium",
+        "description": "L'Essentiel + galerie 6 mois et album PDF final."
+      },
+      "upsellTitle": "Et après le mariage ?",
+      "upsellNote": "Pour {price}, on prolonge votre galerie 5 ans, on imprime un livre photo HD et on vous livre un export ZIP en haute définition.",
+      "trust": {
+        "refund": "Remboursé sous 7 jours",
+        "noSubscription": "Aucun abonnement",
+        "freePostpone": "Report gratuit en cas d'annulation"
       }
+    },
+    "faq": {
+      "chapter": "CHAPITRE 07 — VOS QUESTIONS",
+      "eyebrow": "Réponses honnêtes",
+      "title": "Tout ce que vous voulez savoir.",
+      "items": {
+        "whyWhatsapp": {
+          "q": "Pourquoi WhatsApp et pas un mail ou une appli dédiée ?",
+          "a": "Parce que vos invités sont déjà là. WhatsApp affiche un taux d'ouverture de 98 % vs 22 % pour un email, et ne demande aucune installation. C'est le canal le plus universel en France et en Afrique francophone."
+        },
+        "olderGuests": {
+          "q": "Mes invités âgés ou peu à l'aise avec le numérique vont-ils s'en sortir ?",
+          "a": "Oui. La page d'invitation s'ouvre dans le navigateur de WhatsApp en un tap — pas d'appli, pas de compte à créer. Le RSVP se fait en 3 boutons. Plus de 92 % des grands-parents testés ont confirmé sans aide."
+        },
+        "guestLimit": {
+          "q": "Combien d'invités maximum ?",
+          "a": "Aucune limite technique. Le forfait Essentiel et Premium incluent jusqu'à 500 invitations par mariage. Au-delà, on adapte (cas des mariages 600+ invités fréquents en Afrique de l'Ouest, contactez-nous)."
+        },
+        "cancellation": {
+          "q": "Et si on doit annuler ou reporter le mariage ?",
+          "a": "Annulation sans frais sous 7 jours après l'achat. Au-delà, en cas d'annulation, le report de votre événement est gratuit (jusqu'à 24 mois). On a vu 2020 — votre tranquillité passe avant."
+        },
+        "afterEvent": {
+          "q": "Qu'est-ce qu'on garde après le mariage ?",
+          "a": "Avec Premium : galerie modérée pendant 6 mois + album PDF final. Avec l'upsell post-mariage à 29 € : on prolonge la galerie 5 ans, on imprime un livre photo HD et on vous livre un ZIP haute définition de toutes les photos."
+        },
+        "africa3g": {
+          "q": "Comment ça marche en Afrique sans 4G stable ?",
+          "a": "Le check-in jour J fonctionne 100 % offline (cache local IndexedDB chiffré). La galerie compresse les photos avant upload. La page invitation pèse moins de 80 ko — testée en 3G Sénégal et Côte d'Ivoire à 2 secondes de chargement."
+        },
+        "branding": {
+          "q": "Peut-on personnaliser le design des invitations ?",
+          "a": "Oui. Couleurs principale et accent, photo de couverture, polices de caractères, texte d'introduction. Pour les wedding planners pro, le branding agence (logo, couleurs, sous-domaine) est inclus dans la formule Business."
+        },
+        "data": {
+          "q": "Que faites-vous des données de mes invités ?",
+          "a": "Stockées en Europe (Convex Frankfurt, Vercel Paris), chiffrées au repos. Aucun partage avec des tiers, aucune publicité. Suppression complète sur demande, conformément au RGPD. Détails dans notre politique de confidentialité."
+        }
+      }
+    },
+    "ctaFinal": {
+      "eyebrow": "ÉPILOGUE",
+      "title": "Le grand jour mérite mieux qu'un PDF.",
+      "subtitle": "Créez votre première invitation en trois minutes. Sans carte bancaire pour explorer, remboursé sous 7 jours si vous changez d'avis.",
+      "cta": "Préparer mon mariage",
+      "trust": "1 240 mariages célébrés · 4,9 / 5 satisfaction couples"
+    },
+    "footer": {
+      "tagline": "WhatsApp-first wedding concierge. Conçu en France, pensé pour les diasporas francophones.",
+      "newsletterTitle": "Recevez nos templates d'invitation gratuits",
+      "newsletterSubtitle": "Une fois par mois, des modèles signés par des wedding designers reconnus, et zéro spam.",
+      "newsletterPlaceholder": "vous@email.com",
+      "newsletterCta": "Recevoir",
+      "columns": {
+        "product": {
+          "title": "Produit",
+          "links": {
+            "features": "Fonctionnalités",
+            "pricing": "Tarifs",
+            "demo": "Démo en direct",
+            "templates": "Templates d'invitation"
+          }
+        },
+        "pros": {
+          "title": "Pour les pros",
+          "links": {
+            "planners": "Wedding planners",
+            "venues": "Lieux de réception",
+            "agencies": "Agences",
+            "api": "API & intégrations"
+          }
+        },
+        "resources": {
+          "title": "Ressources",
+          "links": {
+            "blog": "Journal de mariage",
+            "guide": "Guide du mariage",
+            "faq": "FAQ",
+            "support": "Support"
+          }
+        },
+        "legal": {
+          "title": "Confiance",
+          "links": {
+            "terms": "CGU",
+            "privacy": "Confidentialité",
+            "cookies": "Cookies",
+            "rgpd": "Vos droits RGPD"
+          }
+        }
+      },
+      "regions": "Disponible en :",
+      "payments": "Paiements sécurisés via",
+      "rights": "Tous droits réservés"
     }
   },
   "Auth": {
@@ -176,11 +386,30 @@
     "resendIn": "Renvoyer dans {seconds}s",
     "noPhone": "Aucun numéro n'a été fourni. Recommencez depuis la connexion.",
     "privacy": "En continuant, vous acceptez notre politique de confidentialité.",
+    "methodSwitcherLabel": "Méthode de connexion",
+    "methodWhatsapp": "WhatsApp",
+    "methodEmail": "Email",
+    "emailLabel": "Adresse email",
+    "emailPlaceholder": "vous@email.com",
+    "magicLinkSendCta": "Recevoir mon lien",
+    "magicLinkSending": "Envoi…",
+    "magicLinkSentEyebrow": "LIEN ENVOYÉ",
+    "magicLinkSentTitle": "Vérifiez votre boîte mail.",
+    "magicLinkSentDescription": "Nous venons d'envoyer un lien à {email}. Il est valable 15 minutes et n'est utilisable qu'une seule fois. Pensez à vérifier vos courriers indésirables.",
+    "magicLinkChangeEmail": "Utiliser une autre adresse",
+    "errorBanner": {
+      "expired": "Le lien a expiré. Demandez-en un nouveau.",
+      "invalid_link": "Le lien est invalide. Vérifiez le lien reçu par email.",
+      "invalid_token": "Le lien est invalide ou déjà utilisé.",
+      "no_active_link": "Aucun lien en attente pour cette adresse.",
+      "unknown": "Une erreur est survenue. Réessayez."
+    },
     "errors": {
       "invalidPhone": "Numéro de téléphone invalide",
+      "invalidEmail": "Adresse email invalide",
       "invalidCode": "Code incorrect ou expiré",
       "tooManyAttempts": "Trop de tentatives, réessayez dans quelques minutes",
-      "rateLimited": "Trop de codes demandés. Patientez quelques minutes.",
+      "rateLimited": "Trop de demandes. Patientez quelques minutes.",
       "expired": "Code expiré, demandez-en un nouveau.",
       "unknown": "Une erreur est survenue. Réessayez."
     }
@@ -403,37 +632,32 @@
     }
   },
   "Plans": {
-    "quotaUnit": "invitations",
-    "quotaNoteShort": "Une invitation = un QR code envoyé à un invité principal qui peut amener des accompagnants.",
-    "quotaNoteLong": "Important : le quota se mesure en invitations envoyées (= fiches/QR codes), pas en personnes physiques. Chaque invitation peut amener plusieurs accompagnants. Une formule à 150 invitations peut donc accueillir 200, 300, 400 personnes le jour J selon les accompagnants.",
     "features": {
       "invitationPage": "Page d'invitation publique personnalisée",
       "qrCodes": "QR code unique pour chaque invité",
       "rsvpRealtime": "Suivi RSVP en temps réel",
       "checkinOffline": "Check-in offline le jour J",
-      "sharedGallery": "Galerie photo partagée (modération)",
-      "customBranding": "Couleurs et police personnalisées de l'invitation",
-      "csvExport": "Export CSV de la liste invités",
-      "prioritySupport": "Support email prioritaire",
-      "unlimitedGallery": "Galerie photo illimitée",
-      "noWatermark": "Sans filigrane Wedillybird",
-      "dedicatedSupport": "Support dédié 7j/7"
+      "basicDashboard": "Tableau de bord couple (suivi des réponses, statistiques)",
+      "gallerySharedExtended": "Galerie partagée (active jusqu'à 6 mois après le mariage)",
+      "pdfAlbumFinal": "Album PDF final imprimable de la galerie",
+      "galleryRetention5y": "Galerie conservée 5 ans après le mariage",
+      "photoBookHd": "Livre photo HD imprimé livré à domicile",
+      "exportHd": "Export ZIP haute définition de toutes les photos"
     }
   },
   "Upgrade": {
-    "title": "Passer à une formule supérieure",
-    "subtitle": "Augmentez votre quota d'invitations et débloquez plus de fonctionnalités. Chaque invitation peut amener plusieurs accompagnants.",
+    "title": "Choisir votre formule",
+    "subtitle": "Sélectionnez l'expérience adaptée à votre mariage. Paiement unique, pas d'abonnement.",
     "selectPlan": "Choisir cette formule",
     "redirecting": "Redirection…",
     "alreadyPremium": "Vous êtes déjà sur la formule la plus complète.",
-    "maxGuests": "Jusqu'à {count} invitations",
+    "galleryRetention": "Galerie active {days, plural, =1 {# jour} other {# jours}} après le mariage",
     "plans": {
-      "free": "Essentiel",
-      "essential": "Sérénité",
-      "premium": "Prestige"
+      "essential": "Essentiel",
+      "premium": "Premium"
     },
     "successTitle": "Paiement confirmé",
-    "successBody": "Votre événement est désormais sur la formule {plan}. Quota d'invitations : {max}.",
+    "successBody": "Votre événement est désormais en formule {plan}. Galerie active jusqu'à J+{days}.",
     "processingTitle": "Paiement en cours de traitement",
     "processingBody": "Nous finalisons votre paiement. Rafraîchissez cette page dans quelques secondes pour voir votre nouvelle formule.",
     "cancelledTitle": "Paiement annulé",

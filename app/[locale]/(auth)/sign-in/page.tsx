@@ -1,7 +1,8 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import type { Metadata } from 'next';
 import { Link } from '@/i18n/navigation';
-import { SignInForm } from '@/components/auth/sign-in-form';
+import { AuthCard } from '@/components/auth/auth-card';
+import { AuthMethodSwitcher } from '@/components/auth/auth-method-switcher';
 
 export async function generateMetadata({
   params,
@@ -13,6 +14,13 @@ export async function generateMetadata({
   return { title: t('signInTitle') };
 }
 
+/**
+ * Sign-in V4 — server component qui délègue à AuthCard (animation Motion
+ * niveau B sobre) + SignInForm (logique client OTP request).
+ *
+ * Eyebrow "ÉTAPE 01 — IDENTITÉ" pour ancrer l'esthétique éditoriale et
+ * signaler à l'utilisateur que c'est le premier pas d'un parcours guidé.
+ */
 export default async function SignInPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   setRequestLocale(locale);
@@ -20,19 +28,19 @@ export default async function SignInPage({ params }: { params: Promise<{ locale:
   const tCommon = await getTranslations('Common');
 
   return (
-    <section className="flex flex-col gap-6">
-      <header className="flex flex-col gap-2 text-center">
-        <h1 className="font-display text-3xl font-semibold tracking-tight">{t('signInTitle')}</h1>
-        <p className="text-sm text-[color:var(--color-muted)]">{t('signInDescription')}</p>
-      </header>
-
-      <SignInForm />
-
-      <p className="text-center text-sm text-[color:var(--color-muted)]">
-        <Link href="/" className="underline-offset-4 hover:underline">
-          {tCommon('back')}
-        </Link>
-      </p>
-    </section>
+    <AuthCard
+      eyebrow="ÉTAPE 01 — IDENTITÉ"
+      title={t('signInTitle')}
+      description={t('signInDescription')}
+      footer={
+        <p className="text-center font-mono text-[10px] tracking-[0.24em] text-[color:var(--color-ink-500)] uppercase">
+          <Link href="/" className="transition-colors hover:text-[color:var(--color-blush-700)]">
+            ← {tCommon('back')}
+          </Link>
+        </p>
+      }
+    >
+      <AuthMethodSwitcher />
+    </AuthCard>
   );
 }

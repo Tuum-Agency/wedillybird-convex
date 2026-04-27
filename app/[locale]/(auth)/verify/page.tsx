@@ -1,8 +1,9 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import type { Metadata } from 'next';
 import { Link, redirect } from '@/i18n/navigation';
+import { AuthCard } from '@/components/auth/auth-card';
 import { VerifyForm } from '@/components/auth/verify-form';
-import { isValidE164 } from '@/lib/phone';
+import { isValidE164, maskPhone } from '@/lib/phone';
 
 export async function generateMetadata({
   params,
@@ -14,6 +15,11 @@ export async function generateMetadata({
   return { title: t('verifyTitle') };
 }
 
+/**
+ * Verify V4 — server component qui valide le téléphone E.164 puis affiche
+ * le form OTP côté client. Eyebrow "ÉTAPE 02 — VÉRIFICATION" pour signaler
+ * la progression dans le parcours.
+ */
 export default async function VerifyPage({
   params,
   searchParams,
@@ -35,18 +41,22 @@ export default async function VerifyPage({
   const t = await getTranslations('Auth');
 
   return (
-    <section className="flex flex-col gap-6">
-      <header className="flex flex-col gap-2 text-center">
-        <h1 className="font-display text-3xl font-semibold tracking-tight">{t('verifyTitle')}</h1>
-      </header>
-
+    <AuthCard
+      eyebrow="ÉTAPE 02 — VÉRIFICATION"
+      title={t('verifyTitle')}
+      description={t('verifyDescription', { phone: maskPhone(phone!) })}
+      footer={
+        <p className="text-center font-mono text-[10px] tracking-[0.24em] text-[color:var(--color-ink-500)] uppercase">
+          <Link
+            href="/sign-in"
+            className="transition-colors hover:text-[color:var(--color-blush-700)]"
+          >
+            ← {t('changeNumber')}
+          </Link>
+        </p>
+      }
+    >
       <VerifyForm phone={phone!} />
-
-      <p className="text-center text-sm text-[color:var(--color-muted)]">
-        <Link href="/sign-in" className="underline-offset-4 hover:underline">
-          {t('changeNumber')}
-        </Link>
-      </p>
-    </section>
+    </AuthCard>
   );
 }

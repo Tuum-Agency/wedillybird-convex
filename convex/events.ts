@@ -43,7 +43,8 @@ async function pickUniqueSlug(
   throw new Error('SLUG_GENERATION_FAILED');
 }
 
-const PLAN_MAX_GUESTS_FALLBACK = { free: 30, essential: 150, premium: 1000 } as const;
+// Anti-abuse cap, uniform across plans (B2C is now feature-based, not capacity-based).
+const ANTI_ABUSE_GUEST_CAP = 5000;
 
 export const reconcileMaxGuests = mutation({
   args: { eventId: v.id('events'), requesterId: v.id('users') },
@@ -51,10 +52,14 @@ export const reconcileMaxGuests = mutation({
     const ev = await ctx.db.get(eventId);
     if (!ev) throw new Error('EVENT_NOT_FOUND');
     if (ev.ownerId !== requesterId) throw new Error('FORBIDDEN');
-    const expected = PLAN_MAX_GUESTS_FALLBACK[ev.planTier];
-    if (ev.maxGuests === expected) return { ok: true as const, changed: false };
-    await ctx.db.patch(eventId, { maxGuests: expected, updatedAt: Date.now() });
-    return { ok: true as const, changed: true, planTier: ev.planTier, maxGuests: expected };
+    if (ev.maxGuests === ANTI_ABUSE_GUEST_CAP) return { ok: true as const, changed: false };
+    await ctx.db.patch(eventId, { maxGuests: ANTI_ABUSE_GUEST_CAP, updatedAt: Date.now() });
+    return {
+      ok: true as const,
+      changed: true,
+      planTier: ev.planTier,
+      maxGuests: ANTI_ABUSE_GUEST_CAP,
+    };
   },
 });
 
@@ -110,8 +115,8 @@ export const create = mutation({
         : {}),
       ...(args.theme ? { theme: args.theme } : {}),
       status: 'draft' as const,
-      planTier: 'free' as const,
-      maxGuests: 30,
+      // planTier left undefined until the owner pays (Essentiel or Premium).
+      maxGuests: ANTI_ABUSE_GUEST_CAP,
       createdAt: now,
       updatedAt: now,
     });
@@ -191,7 +196,9 @@ export type EventListItem = {
   eventDate: number;
   timezone: string;
   status: 'draft' | 'active' | 'archived' | 'cancelled';
-  planTier: 'free' | 'essential' | 'premium';
+  planTier?: 'essential' | 'premium';
+  paidAt?: number;
+  galleryExpiresAt?: number;
   maxGuests: number;
   venue?: { name: string; address: string; lat?: number; lng?: number };
   updatedAt: number;

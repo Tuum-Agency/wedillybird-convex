@@ -1,12 +1,31 @@
 import type { CSSProperties } from 'react';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
+import { Calendar, MapPin, Camera } from 'lucide-react';
 import { Link } from '@/i18n/navigation';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
-import { RsvpForm } from '@/components/invitee/rsvp-form';
+import { InvitationShell } from '@/components/invitation/invitation-shell';
+import { WeddingCountdown } from '@/components/invitation/wedding-countdown';
+import { RsvpFormV4 } from '@/components/invitation/rsvp-form-v4';
 
 export const dynamic = 'force-dynamic';
 
+/**
+ * Page invitation publique V4 — l'épée signature de Wedillybird.
+ *
+ * Architecture :
+ *  - Server component : lit Convex (token → guest + event), formatte la
+ *    date et le lieu, injecte la couleur d'accent du couple en CSS custom
+ *    property `--invitation-accent` sur la racine de la page
+ *  - InvitationShell (client) : orchestre la cinématique d'ouverture
+ *    auto-play (~4.6s) puis dévoile le contenu
+ *  - Contenu : header couple + countdown live + détails lieu + RSVP form
+ *    premium + lien vers galerie
+ *
+ * Personnalisation theme : si event.theme.primaryColor est défini, on
+ * l'utilise sur le sceau de cire, les filets gold, les bordures actives
+ * du RSVP form. Fallback sur la palette V4 par défaut sinon.
+ */
 export default async function InvitationPage({
   params,
 }: {
@@ -22,73 +41,198 @@ export default async function InvitationPage({
   const { guest, event } = data;
   const t = await getTranslations('Invitation');
 
-  const primaryColor = event.theme?.primaryColor ?? 'var(--color-primary)';
-  const accentColor = event.theme?.accentColor ?? 'var(--color-accent)';
-  const fontFamily = event.theme?.fontFamily ?? 'var(--font-serif)';
+  // Couleur d'accent — theme.primaryColor du couple si défini, sinon le
+  // blush V4 par défaut. Injectée comme CSS custom prop `--invitation-accent`.
+  const accentColor = event.theme?.primaryColor ?? 'oklch(72% 0.09 20)';
+
+  // Formatage date complet (long) pour le header invitation.
+  const eventDateFormatted = new Intl.DateTimeFormat('fr', {
+    dateStyle: 'full',
+    timeStyle: 'short',
+    timeZone: event.timezone,
+  }).format(new Date(event.eventDate));
+
+  // Formatage compact pour la cinématique (DD MMM YYYY en mono caps).
+  const eventDateCompact = new Intl.DateTimeFormat('fr', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    timeZone: event.timezone,
+  })
+    .format(new Date(event.eventDate))
+    .toUpperCase();
 
   const themeStyle = {
-    '--color-primary': primaryColor,
-    '--color-accent': accentColor,
+    '--invitation-accent': accentColor,
   } as CSSProperties;
 
   return (
     <main
-      className="flex min-h-screen flex-col items-center justify-center px-4 py-12"
+      className="paper-grain relative flex min-h-screen flex-col bg-[color:var(--color-ivory-50)]"
       style={themeStyle}
     >
-      <article className="flex w-full max-w-xl flex-col gap-8">
-        <header className="flex flex-col items-center gap-3 text-center">
-          <p className="text-sm tracking-[0.3em] text-[color:var(--color-muted)] uppercase">
-            {t('youreInvited')}
-          </p>
-          <h1
-            className="font-display text-4xl leading-tight font-semibold sm:text-5xl"
-            style={{ fontFamily }}
-          >
-            {event.coupleNames.partnerA}
-            <span className="mx-3 text-[color:var(--color-accent)]">&amp;</span>
-            {event.coupleNames.partnerB}
-          </h1>
-          <p className="text-base text-[color:var(--color-muted)]">
-            {new Intl.DateTimeFormat('fr', {
-              dateStyle: 'full',
-              timeStyle: 'short',
-              timeZone: event.timezone,
-            }).format(new Date(event.eventDate))}
-          </p>
-          {event.venue ? (
-            <p className="text-sm text-[color:var(--color-muted)]">
-              {event.venue.name} — {event.venue.address}
+      <InvitationShell
+        token={token}
+        partnerA={event.coupleNames.partnerA}
+        partnerB={event.coupleNames.partnerB}
+        formattedDate={eventDateCompact}
+        venueName={event.venue?.name}
+        accentColor={accentColor}
+      >
+        <article className="container-page mx-auto flex w-full max-w-2xl flex-col gap-16 py-16 sm:py-24">
+          {/* Header couple */}
+          <header className="flex flex-col items-center gap-5 text-center">
+            <span className="font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-ink-500)] uppercase">
+              {t('youreInvited')}
+            </span>
+            <h1
+              className="font-display text-balance italic"
+              style={{
+                fontSize: 'clamp(2.75rem, 7vw, 4.5rem)',
+                lineHeight: 1,
+                letterSpacing: '-0.025em',
+                color: 'var(--color-ink-900)',
+              }}
+            >
+              {event.coupleNames.partnerA}
+              <br />
+              <span
+                className="not-italic"
+                style={{
+                  fontFamily: 'var(--font-display)',
+                  fontSize: '0.4em',
+                  fontWeight: 300,
+                  letterSpacing: '0.4em',
+                  color: 'var(--invitation-accent)',
+                  display: 'inline-block',
+                  margin: '0.25em 0',
+                }}
+              >
+                &amp;
+              </span>
+              <br />
+              {event.coupleNames.partnerB}
+            </h1>
+            <span
+              aria-hidden
+              className="my-2 inline-block h-px w-16"
+              style={{ background: 'var(--invitation-accent)' }}
+            />
+            <p className="text-base leading-relaxed text-[color:var(--color-ink-700)] sm:text-lg">
+              {t('addressing', { name: guest.fullName })}
             </p>
-          ) : null}
-        </header>
+          </header>
 
-        <section className="flex flex-col gap-3 text-center">
-          <p className="text-base">{t('addressing', { name: guest.fullName })}</p>
-        </section>
+          {/* Countdown live */}
+          <section className="flex flex-col items-center gap-5">
+            <span className="font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-ink-500)] uppercase">
+              Compte à rebours
+            </span>
+            <WeddingCountdown eventDate={event.eventDate} accentColor={accentColor} />
+          </section>
 
-        <RsvpForm
-          token={token}
-          plusOnesAllowed={guest.plusOnesAllowed}
-          initial={{
-            rsvpStatus: guest.rsvpStatus,
-            plusOnesNames: guest.plusOnesNames,
-            dietaryRestrictions: guest.dietaryRestrictions,
-            notes: guest.notes,
-          }}
-        />
+          {/* Détails — date + lieu */}
+          <section className="flex flex-col gap-6 rounded-3xl border border-[color:var(--color-border)] bg-white p-8 shadow-[var(--shadow-soft)]">
+            <div className="flex items-start gap-4">
+              <span
+                aria-hidden
+                className="mt-1 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl text-white"
+                style={{ background: 'var(--invitation-accent)' }}
+              >
+                <Calendar className="h-4 w-4" strokeWidth={1.75} />
+              </span>
+              <div className="flex flex-col gap-1">
+                <span className="font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-ink-500)] uppercase">
+                  Date &amp; heure
+                </span>
+                <p className="text-base text-[color:var(--color-ink-900)] sm:text-lg">
+                  {eventDateFormatted}
+                </p>
+              </div>
+            </div>
 
-        <Link
-          href={`/i/${token}/gallery`}
-          className="focus-ring rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-4 py-3 text-center text-sm font-medium hover:bg-[color:var(--color-ivory-100)]"
-        >
-          {t('openGallery')}
-        </Link>
+            {event.venue ? (
+              <div className="flex items-start gap-4 border-t border-[color:var(--color-border)] pt-6">
+                <span
+                  aria-hidden
+                  className="mt-1 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl text-white"
+                  style={{ background: 'var(--invitation-accent)' }}
+                >
+                  <MapPin className="h-4 w-4" strokeWidth={1.75} />
+                </span>
+                <div className="flex flex-col gap-1">
+                  <span className="font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-ink-500)] uppercase">
+                    Lieu
+                  </span>
+                  <p className="text-base font-medium text-[color:var(--color-ink-900)] sm:text-lg">
+                    {event.venue.name}
+                  </p>
+                  <p className="text-sm text-[color:var(--color-ink-500)]">{event.venue.address}</p>
+                </div>
+              </div>
+            ) : null}
+          </section>
 
-        <footer className="text-center text-xs text-[color:var(--color-muted)]">
-          {t('poweredBy')} <span className="font-display font-semibold">Wedillybird</span>
-        </footer>
-      </article>
+          {/* RSVP form */}
+          <section className="flex flex-col gap-5">
+            <header className="flex flex-col items-center gap-3 text-center">
+              <span className="font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-ink-500)] uppercase">
+                Votre réponse
+              </span>
+            </header>
+            <RsvpFormV4
+              token={token}
+              plusOnesAllowed={guest.plusOnesAllowed}
+              accentColor={accentColor}
+              initial={{
+                rsvpStatus: guest.rsvpStatus,
+                plusOnesNames: guest.plusOnesNames,
+                dietaryRestrictions: guest.dietaryRestrictions,
+                notes: guest.notes,
+              }}
+            />
+          </section>
+
+          {/* Lien galerie */}
+          <Link
+            href={`/i/${token}/gallery`}
+            className="focus-ring group flex items-center justify-between gap-4 rounded-2xl border border-[color:var(--color-border)] bg-white px-6 py-5 transition-all hover:border-[color:var(--color-border-strong)] hover:shadow-[var(--shadow-soft)]"
+          >
+            <span className="flex items-center gap-3">
+              <span
+                aria-hidden
+                className="flex h-10 w-10 items-center justify-center rounded-xl text-white"
+                style={{ background: 'var(--invitation-accent)' }}
+              >
+                <Camera className="h-4 w-4" strokeWidth={1.75} />
+              </span>
+              <span className="flex flex-col">
+                <span className="text-base font-medium text-[color:var(--color-ink-900)]">
+                  {t('openGallery')}
+                </span>
+                <span className="font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-ink-500)] uppercase">
+                  Photos partagées par les invités
+                </span>
+              </span>
+            </span>
+            <span
+              aria-hidden
+              className="text-lg text-[color:var(--color-ink-500)] transition-transform group-hover:translate-x-1"
+            >
+              →
+            </span>
+          </Link>
+
+          <footer className="text-center">
+            <p className="font-mono text-[9px] tracking-[0.32em] text-[color:var(--color-ink-300)] uppercase">
+              {t('poweredBy')} ·{' '}
+              <span className="font-display normal-case italic" style={{ letterSpacing: 0 }}>
+                Wedillybird
+              </span>
+            </p>
+          </footer>
+        </article>
+      </InvitationShell>
     </main>
   );
 }

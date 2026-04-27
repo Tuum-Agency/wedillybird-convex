@@ -6,7 +6,10 @@ const COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
 
 export interface SessionPayload {
   userId: string;
-  phone: string;
+  /** Téléphone E.164. Présent pour les sessions OTP WhatsApp. */
+  phone?: string;
+  /** Email. Présent pour les sessions Magic Link. Au moins un de phone/email. */
+  email?: string;
   issuedAt: number;
 }
 

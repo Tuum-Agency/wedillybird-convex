@@ -6,6 +6,7 @@ import { internal } from './_generated/api';
 import { internalAction } from './_generated/server';
 import {
   renderGuestReminder,
+  renderMagicLink,
   renderProNotification,
   type ProNotificationKind,
 } from '../lib/email/templates';
@@ -103,6 +104,35 @@ export const sendGuestReminder = internalAction({
 /* -------------------------------------------------------------------------- */
 /*  Pro notifications (team member added, payment received, etc.)              */
 /* -------------------------------------------------------------------------- */
+
+/* -------------------------------------------------------------------------- */
+/*  Magic Link email (fallback auth)                                           */
+/* -------------------------------------------------------------------------- */
+
+export const sendMagicLinkEmail = internalAction({
+  args: {
+    to: v.string(),
+    token: v.string(),
+    ipAddress: v.optional(v.string()),
+  },
+  handler: async (_ctx, { to, token, ipAddress }) => {
+    const baseUrl = process.env.APP_BASE_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? '';
+    const verifyUrl = `${baseUrl.replace(/\/$/, '')}/api/auth/magic-link/verify?email=${encodeURIComponent(
+      to,
+    )}&token=${encodeURIComponent(token)}`;
+
+    const rendered = renderMagicLink({
+      verifyUrl,
+      expiresInMinutes: 15,
+      requestIp: ipAddress,
+    });
+    const result = await dispatch(to, rendered);
+    if (!result.ok) {
+      console.error(`[email] failed to send magic link to ${to}: ${result.error}`);
+    }
+    return result;
+  },
+});
 
 export const sendProNotification = internalAction({
   args: {

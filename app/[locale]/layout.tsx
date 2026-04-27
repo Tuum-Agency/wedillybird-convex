@@ -1,22 +1,40 @@
 import type { Metadata } from 'next';
-import { Cormorant_Garamond, Inter } from 'next/font/google';
+import { Bodoni_Moda, Geist, Geist_Mono } from 'next/font/google';
 import { NextIntlClientProvider, hasLocale } from 'next-intl';
 import { setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { routing } from '@/i18n/routing';
 import { ConvexClientProvider } from '@/components/providers/convex-client-provider';
 import { SkipLink } from '@/components/layout/skip-link';
+import { Toaster } from '@/components/ui/toast';
 import '../globals.css';
 
-const inter = Inter({
+// Body / UI — Geist Sans (Vercel, OFL). Successeur d'Inter recommandé en 2025+.
+const geistSans = Geist({
   variable: '--font-sans',
   subsets: ['latin'],
   display: 'swap',
 });
 
-const cormorant = Cormorant_Garamond({
-  variable: '--font-serif',
-  weight: ['400', '500', '600', '700'],
+// Mono — Geist Mono pour QR tokens, IDs, timestamps, IBAN factures.
+const geistMono = Geist_Mono({
+  variable: '--font-mono',
+  subsets: ['latin'],
+  display: 'swap',
+});
+
+// Display — Bodoni Moda Italic (Google Fonts, OFL).
+// Didone moderne variable, signature éditoriale "magazine de mode" italienne.
+// Sortie de Fraunces (sur-utilisée par tous les SaaS premium 2024-2026) pour
+// une typographie plus rare, plus tranchante, plus haute en contraste —
+// l'ADN visuel de Vogue Italia, Atelier Isabey, des éditoriaux luxe.
+//
+// Variable axes : weight 400-900 + optical sizing automatique.
+// Fallback Iowan Old Style Italic / Georgia gérés dans globals.css.
+const bodoniModa = Bodoni_Moda({
+  variable: '--font-display',
+  weight: ['400', '500', '600'],
+  style: ['italic'],
   subsets: ['latin'],
   display: 'swap',
 });
@@ -37,7 +55,9 @@ export const metadata: Metadata = {
 };
 
 export const viewport = {
-  themeColor: '#2c1a11',
+  // Ivoire chaud (token --color-ivory-50). Cohérent avec la palette mariage
+  // claire — la barre de status mobile se fond avec le fond du site.
+  themeColor: '#fbf6ee',
 };
 
 export function generateStaticParams() {
@@ -60,12 +80,16 @@ export default async function LocaleLayout({
   setRequestLocale(locale);
 
   return (
-    <html lang={locale} className={`${inter.variable} ${cormorant.variable} h-full antialiased`}>
+    <html
+      lang={locale}
+      className={`${geistSans.variable} ${geistMono.variable} ${bodoniModa.variable} h-full antialiased`}
+    >
       <body className="bg-background text-foreground flex min-h-full flex-col font-sans">
         <NextIntlClientProvider>
           <ConvexClientProvider convexUrl={process.env.NEXT_PUBLIC_CONVEX_URL}>
             <SkipLink />
             {children}
+            <Toaster />
           </ConvexClientProvider>
         </NextIntlClientProvider>
       </body>

@@ -26,17 +26,25 @@ test.describe('Legal pages', () => {
 });
 
 test.describe('FAQ', () => {
-  test('/faq lists at least 7 questions inside details/summary', async ({ page }) => {
+  test("/faq liste au moins 7 questions dans l'accordion", async ({ page }) => {
     await page.goto('/faq');
-    const details = page.locator('details');
-    expect(await details.count()).toBeGreaterThanOrEqual(7);
+    // V4 : accordion Motion remplace les <details>/<summary>. Chaque question
+    // est un <button aria-expanded="..."> dans un <li>.
+    const buttons = page
+      .getByRole('button', { expanded: false })
+      .or(page.getByRole('button', { expanded: true }));
+    expect(await buttons.count()).toBeGreaterThanOrEqual(7);
   });
 
-  test('FAQ summary toggles answer on click', async ({ page }) => {
+  test('FAQ accordion bascule la réponse au clic', async ({ page }) => {
     await page.goto('/faq');
-    const first = page.locator('details').first();
-    await first.locator('summary').click();
-    await expect(first).toHaveAttribute('open', '');
+    // La première question est ouverte par défaut (V4 ergonomie). On ouvre la
+    // deuxième pour vérifier le toggle.
+    const buttons = page.getByRole('button', { name: /\?$/ });
+    const second = buttons.nth(1);
+    await expect(second).toHaveAttribute('aria-expanded', 'false');
+    await second.click();
+    await expect(second).toHaveAttribute('aria-expanded', 'true');
   });
 });
 

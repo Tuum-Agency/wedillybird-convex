@@ -2,13 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getSession } from '@/lib/auth/session';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
-import {
-  PLANS,
-  isCurrency,
-  isPaidPlan,
-  type Currency,
-  type PaidPlanTier,
-} from '@/lib/payments/plans';
+import { PLANS, isCurrency, isPaidPlan, type Currency, type PlanTier } from '@/lib/payments/plans';
 import { detectCountryFromHeaders, routePayment } from '@/lib/payments/country';
 import { getPaymentDriver } from '@/lib/payments';
 
@@ -31,7 +25,7 @@ export async function POST(req: Request): Promise<Response> {
     return NextResponse.json({ error: 'INVALID_INPUT' }, { status: 400 });
   }
 
-  const plan = parsed.plan as PaidPlanTier;
+  const plan = parsed.plan as PlanTier;
   const country = detectCountryFromHeaders(req.headers);
   const routing = routePayment(country, {
     currency: parsed.currency as Currency | undefined,

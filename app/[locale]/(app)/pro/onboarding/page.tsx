@@ -2,6 +2,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { redirect } from '@/i18n/navigation';
 import { getSession } from '@/lib/auth/session';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
+import { ProShell } from '@/components/pro/pro-shell';
 import { OrgOnboardingForm } from '@/components/pro/org-onboarding-form';
 
 export default async function ProOnboardingPage({
@@ -29,16 +30,29 @@ export default async function ProOnboardingPage({
   const t = await getTranslations('Pro');
 
   return (
-    <main className="container-page flex flex-1 flex-col items-center justify-center gap-6 py-16">
-      <div className="flex w-full max-w-md flex-col gap-6">
-        <header className="flex flex-col gap-2 text-center">
-          <h1 className="font-display text-3xl font-semibold tracking-tight">
+    <ProShell userName={user!.fullName}>
+      <div className="container-page mx-auto flex min-h-[60vh] max-w-md flex-col items-center justify-center gap-8 py-16">
+        <header className="flex flex-col items-center gap-3 text-center">
+          <span className="font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-blush-300)] uppercase">
+            Configuration · Étape 01
+          </span>
+          <h1
+            className="font-display text-balance italic"
+            style={{
+              fontSize: 'clamp(1.875rem, 3.5vw, 2.5rem)',
+              lineHeight: 1.05,
+              letterSpacing: '-0.022em',
+              color: 'var(--color-foreground)',
+            }}
+          >
             {t('onboardingTitle')}
           </h1>
-          <p className="text-sm text-[color:var(--color-muted)]">{t('onboardingSubtitle')}</p>
+          <p className="text-sm leading-relaxed text-[color:var(--color-muted-foreground)] sm:text-base">
+            {t('onboardingSubtitle')}
+          </p>
         </header>
         <OrgOnboardingForm />
       </div>
-    </main>
+    </ProShell>
   );
 }

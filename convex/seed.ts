@@ -82,7 +82,7 @@ export const _resetTestData = internalMutation({
     const toDelete = await ctx.db.query('users').collect();
     let deleted = 0;
     for (const user of toDelete) {
-      if (testPhones.includes(user.phone)) {
+      if (user.phone && testPhones.includes(user.phone)) {
         await ctx.db.delete(user._id);
         deleted++;
       }

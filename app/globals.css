@@ -1,68 +1,218 @@
 @import 'tailwindcss';
 
+/*
+ * Wedillybird — Design tokens v3 (avril 2026, redesign Landing V3 premium).
+ *
+ * Direction artistique : "Mariage éditorial premium" — palette claire blush /
+ * champagne / ivoire, accents gold subtils. Inspirée Aesop / Le Labo / Beverly's
+ * (papeterie mariage Awwwards SOTD).
+ *
+ * Pourquoi OKLCH : luminosité perceptuelle constante → contrastes prédictibles.
+ * Indispensable pour le branding multi-tenant (un planner override `--brand-500`,
+ * on contraint server-side L ∈ [35, 65] % pour garantir AA peu importe la teinte).
+ *
+ * Les anciens alias terracotta sont conservés un sprint en rétro-compat pour
+ * laisser le dashboard pro respirer, puis seront supprimés.
+ */
+
 @theme {
-  /* Palette — ivoire, terracotta, sauge, nuit */
-  --color-ivory-50: #fbfaf5;
-  --color-ivory-100: #f6f3ea;
-  --color-ivory-200: #ecdfcf;
+  /* ---------- Palette OKLCH — "Wedillybird Bloom" ---------- */
 
-  --color-terracotta-50: #fbf1ec;
-  --color-terracotta-100: #f2d7c8;
-  --color-terracotta-300: #dfa58a;
-  --color-terracotta-500: #c37456;
-  --color-terracotta-600: #a85b3e;
-  --color-terracotta-700: #864730;
+  /* Blush — primary scale (rose poudré chaud) */
+  --color-blush-50: oklch(98% 0.012 25);
+  --color-blush-100: oklch(95% 0.025 22);
+  --color-blush-200: oklch(91% 0.045 22);
+  --color-blush-300: oklch(85% 0.06 22);
+  --color-blush-400: oklch(78% 0.075 22);
+  --color-blush-500: oklch(72% 0.09 20);
+  --color-blush-600: oklch(62% 0.095 20);
+  --color-blush-700: oklch(48% 0.085 22);
+  --color-blush-800: oklch(36% 0.07 24);
+  --color-blush-900: oklch(24% 0.05 26);
 
-  --color-sage-50: #f1f4ef;
-  --color-sage-100: #dce4d5;
-  --color-sage-300: #a7b8a1;
-  --color-sage-500: #6e8c74;
-  --color-sage-700: #475b4d;
+  /* Champagne — accent gold subtil */
+  --color-champagne-50: oklch(98% 0.012 90);
+  --color-champagne-100: oklch(95% 0.022 85);
+  --color-champagne-200: oklch(92% 0.035 80);
+  --color-champagne-300: oklch(88% 0.05 80);
+  --color-champagne-500: oklch(78% 0.075 78);
+  --color-champagne-700: oklch(58% 0.075 80);
 
-  --color-night-500: #2b2a2e;
-  --color-night-700: #1a191c;
-  --color-night-900: #0d0c0f;
+  /* Ivory — canvas et surfaces */
+  --color-ivory-50: oklch(98.5% 0.008 85);
+  --color-ivory-100: oklch(96.5% 0.015 80);
+  --color-ivory-200: oklch(94% 0.022 78);
 
-  /* Tokens sémantiques */
+  /* Sage — success doux (jamais primary) */
+  --color-sage-50: oklch(96% 0.018 145);
+  --color-sage-300: oklch(82% 0.045 145);
+  --color-sage-500: oklch(68% 0.08 145);
+  --color-sage-700: oklch(50% 0.08 145);
+
+  /* Ink — texte (charbon brun-rosé chaud, jamais noir pur) */
+  --color-ink-300: oklch(58% 0.022 28);
+  --color-ink-500: oklch(42% 0.022 28);
+  --color-ink-700: oklch(28% 0.02 28);
+  --color-ink-900: oklch(18% 0.018 28);
+
+  /* Aliases brand pour rétro-compat composants existants */
+  --color-brand-50: var(--color-blush-50);
+  --color-brand-100: var(--color-blush-100);
+  --color-brand-200: var(--color-blush-200);
+  --color-brand-300: var(--color-blush-300);
+  --color-brand-400: var(--color-blush-400);
+  --color-brand-500: var(--color-blush-500);
+  --color-brand-600: var(--color-blush-600);
+  --color-brand-700: var(--color-blush-700);
+  --color-brand-800: var(--color-blush-800);
+  --color-brand-900: var(--color-blush-900);
+
+  /* Aliases night → ink */
+  --color-night-500: var(--color-ink-500);
+  --color-night-700: var(--color-ink-700);
+  --color-night-900: var(--color-ink-900);
+
+  /* Aliases terracotta historiques (à supprimer post-V3 stable) */
+  --color-terracotta-50: var(--color-blush-50);
+  --color-terracotta-100: var(--color-blush-100);
+  --color-terracotta-300: var(--color-blush-300);
+  --color-terracotta-500: var(--color-blush-500);
+  --color-terracotta-600: var(--color-blush-600);
+  --color-terracotta-700: var(--color-blush-700);
+
+  /* ---------- Tokens sémantiques (light) ---------- */
   --color-background: var(--color-ivory-50);
   --color-surface: #ffffff;
-  --color-foreground: var(--color-night-700);
-  --color-muted: #6b6a70;
-  --color-border: #e8e3d6;
-  --color-primary: var(--color-terracotta-600);
+  --color-surface-elevated: var(--color-ivory-100);
+  --color-surface-warm: var(--color-blush-50);
+  --color-foreground: var(--color-ink-900);
+  --color-muted: oklch(60% 0.018 35);
+  --color-muted-foreground: var(--color-ink-500);
+  --color-border: oklch(92% 0.012 60);
+  --color-border-strong: oklch(84% 0.022 50);
+
+  --color-primary: var(--color-blush-700);
   --color-primary-foreground: var(--color-ivory-50);
-  --color-accent: var(--color-sage-500);
+  --color-primary-hover: var(--color-blush-800);
+  --color-primary-soft: var(--color-blush-100);
+
+  --color-accent: var(--color-champagne-700);
   --color-accent-foreground: #ffffff;
-  --color-destructive: #b23a3a;
+  --color-accent-soft: var(--color-champagne-100);
+
+  /* Gold ornement — accent papeterie premium (✦ fleurons, séparateurs, sceaux). */
+  --color-gold-300: oklch(88% 0.05 80);
+  --color-gold-500: oklch(78% 0.075 78);
+  --color-gold-700: oklch(58% 0.075 80);
+  --color-gold-soft: oklch(96% 0.022 85);
+
   --color-success: var(--color-sage-500);
+  --color-warning: oklch(75% 0.16 75);
+  --color-danger: oklch(58% 0.19 25);
+  --color-info: oklch(65% 0.11 220);
+  --color-destructive: var(--color-danger);
 
-  /* Typo */
+  /* ---------- Typo ---------- */
   --font-sans: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-serif: var(--font-serif), ui-serif, Georgia, serif;
+  --font-mono: var(--font-mono), ui-monospace, 'SFMono-Regular', monospace;
+  --font-display: var(--font-display), 'Iowan Old Style Italic', Georgia, serif;
+  --font-serif: var(--font-display);
 
-  /* Rayons */
+  /* ---------- Rayons ---------- */
   --radius-xs: 0.25rem;
   --radius-sm: 0.375rem;
   --radius-md: 0.5rem;
   --radius-lg: 0.75rem;
   --radius-xl: 1rem;
   --radius-2xl: 1.25rem;
+  --radius-3xl: 1.5rem;
+  --radius-4xl: 2rem;
 
-  /* Ombres */
-  --shadow-soft: 0 1px 2px rgb(0 0 0 / 0.04), 0 4px 12px rgb(0 0 0 / 0.06);
-  --shadow-lifted: 0 4px 10px rgb(0 0 0 / 0.06), 0 12px 32px rgb(0 0 0 / 0.08);
+  /* ---------- Ombres ---------- */
+  --shadow-soft: 0 1px 2px oklch(0% 0 0 / 4%), 0 4px 12px oklch(48% 0.085 22 / 6%);
+  --shadow-lifted: 0 4px 10px oklch(0% 0 0 / 5%), 0 14px 36px oklch(48% 0.085 22 / 9%);
+  --shadow-popover: 0 10px 30px oklch(0% 0 0 / 12%), 0 2px 6px oklch(0% 0 0 / 6%);
+  --shadow-blush: 0 20px 60px -15px oklch(72% 0.09 20 / 35%);
+
+  /* ---------- Animation easings ---------- */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-background: var(--color-night-900);
-    --color-surface: var(--color-night-700);
-    --color-foreground: var(--color-ivory-100);
-    --color-border: #2a292d;
-    --color-muted: #9a98a0;
-  }
+/*
+ * Mode sombre — landing/couple/auth restent forcés en light. Le dashboard pro
+ * (organisation B2B wedding planners) utilise un thème dark Linear-grade dédié,
+ * activé via `data-theme="dark"` sur le wrapper racine de la zone pro.
+ *
+ * Pas d'auto-switch sur `prefers-color-scheme:dark` côté navigateur — le mode
+ * sombre est strictement opt-in pour la zone pro.
+ */
+:root {
+  color-scheme: light;
 }
 
+/*
+ * Thème dark Linear-grade pour le dashboard pro.
+ *
+ * Inspiration : Linear, Mercury, Cron, Arc browser — interfaces denses,
+ * rigoureuses, où le dark crée la concentration. Palette ink-noir-bleuté
+ * + accents blush conservés (cohérence brand) + gold pour la signature.
+ *
+ * Override des tokens sémantiques uniquement — la palette OKLCH absolue
+ * (blush, champagne, gold, sage) reste inchangée pour rester cohérente.
+ */
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  /* Surfaces — charbon brun-violet, pas noir pur (signe une marque chaude) */
+  --color-background: oklch(15% 0.012 28);
+  --color-surface: oklch(19% 0.015 28);
+  --color-surface-elevated: oklch(23% 0.018 28);
+  --color-surface-warm: oklch(22% 0.03 28);
+
+  /* Texte — ivoire chaud, jamais blanc pur */
+  --color-foreground: oklch(94% 0.012 70);
+  --color-muted: oklch(60% 0.02 60);
+  --color-muted-foreground: oklch(75% 0.018 65);
+
+  /* Bordures — assez visibles pour structurer */
+  --color-border: oklch(28% 0.018 28);
+  --color-border-strong: oklch(38% 0.02 30);
+
+  /* Tokens ink (texte primaire) inversés */
+  --color-ink-300: oklch(58% 0.018 65);
+  --color-ink-500: oklch(72% 0.018 65);
+  --color-ink-700: oklch(85% 0.015 70);
+  --color-ink-900: oklch(94% 0.012 70);
+
+  /* Ivory tokens inversés vers les surfaces dark */
+  --color-ivory-50: oklch(15% 0.012 28);
+  --color-ivory-100: oklch(19% 0.015 28);
+  --color-ivory-200: oklch(23% 0.018 28);
+
+  /* Primary blush — décalé vers le clair pour rester accessible sur dark */
+  --color-primary: var(--color-blush-400);
+  --color-primary-hover: var(--color-blush-300);
+  --color-primary-soft: oklch(28% 0.06 22);
+
+  /* Accent champagne — décalé vers le clair */
+  --color-accent: var(--color-champagne-300);
+  --color-accent-soft: oklch(28% 0.05 80);
+
+  /* Ombres — plus marquées sur fond dark pour lift sensible */
+  --shadow-soft: 0 1px 2px oklch(0% 0 0 / 25%), 0 4px 12px oklch(0% 0 0 / 40%);
+  --shadow-lifted: 0 4px 10px oklch(0% 0 0 / 30%), 0 14px 36px oklch(0% 0 0 / 50%);
+  --shadow-blush: 0 20px 60px -15px oklch(72% 0.09 20 / 25%);
+}
+
+/* Désactive paper-grain en dark — le grain papier ne marche pas sur fond
+   sombre (créerait du moiré et casserait l'élégance). */
+[data-theme='dark'] .paper-grain::after {
+  display: none;
+}
+
+/* ---------- Base typography ---------- */
 body {
   font-family: var(--font-sans);
   font-feature-settings: 'ss01', 'cv11';
@@ -74,14 +224,151 @@ h1,
 h2,
 h3,
 .font-display {
-  font-family: var(--font-serif);
-  letter-spacing: -0.015em;
+  font-family: var(--font-display);
+  font-style: italic;
+  letter-spacing: -0.018em;
 }
 
+/* ---------- Animations keyframes ---------- */
+@keyframes wbb-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes wbb-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes wbb-shimmer {
+  from {
+    background-position: -200% 0;
+  }
+  to {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes wbb-scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes wbb-float {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ---------- Utilities ---------- */
 @utility container-page {
   @apply mx-auto w-full max-w-6xl px-5 sm:px-8;
 }
 
+@utility container-wide {
+  @apply mx-auto w-full max-w-7xl px-5 sm:px-8;
+}
+
 @utility focus-ring {
   @apply outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-background)];
+}
+
+@utility animate-fade-in {
+  animation: wbb-fade-in 320ms var(--ease-out-quint) both;
+}
+
+@utility animate-slide-up {
+  animation: wbb-slide-up 360ms var(--ease-out-quint) both;
+}
+
+@utility animate-scale-in {
+  animation: wbb-scale-in 220ms var(--ease-out-quint) both;
+}
+
+@utility animate-float {
+  animation: wbb-float 6s ease-in-out infinite;
+}
+
+@utility shimmer {
+  background-image: linear-gradient(
+    90deg,
+    var(--color-blush-50) 0%,
+    var(--color-blush-100) 50%,
+    var(--color-blush-50) 100%
+  );
+  background-size: 200% 100%;
+  animation: wbb-shimmer 1.6s ease-in-out infinite;
+}
+
+/*
+ * Texture grain papier — classe CSS standard (pas @utility, car Tailwind v4
+ * interdit les pseudo-éléments dans @utility names).
+ *
+ * Casse le rendu numérique trop "flat" sur les sections premium. SVG noise
+ * inline en data URI, superposé en multiply à 5 % pour rester invisible mais
+ * tactile.
+ */
+.paper-grain {
+  position: relative;
+  isolation: isolate;
+}
+
+.paper-grain::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.05;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml;utf8,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 220px;
+}
+
+/* Filet ornemental gold — séparateur entre sections premium */
+.ornament-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25rem;
+  color: var(--color-champagne-700);
+}
+
+.ornament-divider::before,
+.ornament-divider::after {
+  content: '';
+  display: block;
+  width: 4rem;
+  height: 1px;
+  background: linear-gradient(to right, transparent, currentColor, transparent);
 }

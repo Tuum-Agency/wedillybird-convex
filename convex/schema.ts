@@ -3,15 +3,19 @@ import { v } from 'convex/values';
 
 export default defineSchema({
   users: defineTable({
-    phone: v.string(),
+    // Optional depuis l'ajout du Magic Link (avril 2026) : un user peut être
+    // créé via email-only si pas de WhatsApp. Au moins un de phone/email.
+    phone: v.optional(v.string()),
     email: v.optional(v.string()),
     fullName: v.optional(v.string()),
     avatarUrl: v.optional(v.string()),
     locale: v.union(v.literal('fr')),
     role: v.union(v.literal('couple'), v.literal('pro'), v.literal('guest'), v.literal('admin')),
+    // For couples: 'essential' | 'premium' (per-event, set on payment).
+    // For pros: 'starter' | 'business' | 'agency' (subscription).
+    // Note: 'free' was removed in the pricing alignment v2 (avril 2026).
     planTier: v.optional(
       v.union(
-        v.literal('free'),
         v.literal('essential'),
         v.literal('premium'),
         v.literal('starter'),
@@ -112,8 +116,15 @@ export default defineSchema({
       v.literal('archived'),
       v.literal('cancelled'),
     ),
-    planTier: v.union(v.literal('free'), v.literal('essential'), v.literal('premium')),
+    // Set when the owner pays for one of the two B2C plans. Absent = unpaid draft.
+    planTier: v.optional(v.union(v.literal('essential'), v.literal('premium'))),
+    paidAt: v.optional(v.number()),
+    // Hard cap kept for anti-abuse (uniform across plans). Defaults to 5000 on create.
     maxGuests: v.number(),
+    // Gallery access expires after this timestamp. Computed from planTier
+    // (Essential = J+30, Premium = J+180) on payment success. Post-event upsell
+    // pushes this to J+5y.
+    galleryExpiresAt: v.optional(v.number()),
     createdAt: v.number(),
     updatedAt: v.number(),
   })
@@ -241,4 +252,23 @@ export default defineSchema({
   })
     .index('by_phone', ['phone'])
     .index('by_phone_expires', ['phone', 'expiresAt']),
+
+  /**
+   * Magic Link sessions — fallback auth par email pour les utilisateurs
+   * sans WhatsApp. Pattern miroir de otpSessions :
+   *  - tokenHash : SHA-256 du token (32 bytes random) avec email en salt
+   *  - expiresAt : issuedAt + 15 min (court pour limiter l'exposition)
+   *  - consumedAt : single-use, set quand le token est utilisé
+   */
+  magicLinkSessions: defineTable({
+    email: v.string(),
+    tokenHash: v.string(),
+    expiresAt: v.number(),
+    consumedAt: v.optional(v.number()),
+    createdAt: v.number(),
+    ipAddress: v.optional(v.string()),
+  })
+    .index('by_email', ['email'])
+    .index('by_email_expires', ['email', 'expiresAt'])
+    .index('by_token_hash', ['tokenHash']),
 });

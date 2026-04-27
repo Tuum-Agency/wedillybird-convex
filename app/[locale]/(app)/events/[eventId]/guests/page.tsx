@@ -1,8 +1,10 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
+import { ArrowLeft, Download } from 'lucide-react';
 import { Link, redirect } from '@/i18n/navigation';
 import { getSession } from '@/lib/auth/session';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
+import { AppShell } from '@/components/app/app-shell';
 import { GuestsManager } from '@/components/guests/guests-manager';
 
 export default async function GuestsPage({
@@ -30,36 +32,51 @@ export default async function GuestsPage({
     requesterId: session!.userId,
   });
 
+  const user = await convex.query(convexApi.currentUser, { userId: session!.userId });
   const t = await getTranslations('Guests');
   const tStats = await getTranslations('EventStats');
 
   return (
-    <main className="container-page flex flex-1 flex-col gap-6 py-10">
-      <header className="flex flex-col gap-2">
-        <Link
-          href={`/events/${eventId}`}
-          className="text-sm text-[color:var(--color-muted)] hover:underline"
-        >
-          ← {t('backToEvent')}
-        </Link>
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div className="flex flex-col gap-1">
-            <h1 className="font-display text-3xl font-semibold tracking-tight">{t('title')}</h1>
-            <p className="text-sm text-[color:var(--color-muted)]">
-              {t('summary', { total: guests.length, max: event.maxGuests })}
-            </p>
-          </div>
-          <a
-            href={`/api/events/${eventId}/guests.csv`}
-            className="focus-ring inline-flex items-center rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-3 py-2 text-sm font-medium hover:bg-[color:var(--color-ivory-100)]"
-            data-testid="export-csv"
+    <AppShell userName={user?.fullName}>
+      <div className="container-page flex flex-col gap-10 py-12 sm:py-16">
+        <header className="flex flex-col gap-5">
+          <Link
+            href={`/events/${eventId}`}
+            className="inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-ink-500)] uppercase transition-colors hover:text-[color:var(--color-ink-900)]"
           >
-            {tStats('export')}
-          </a>
-        </div>
-      </header>
+            <ArrowLeft className="h-3 w-3" strokeWidth={2} aria-hidden />
+            {t('backToEvent')}
+          </Link>
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div className="flex flex-col gap-2">
+              <h1
+                className="font-display text-balance italic"
+                style={{
+                  fontSize: 'clamp(2rem, 4.5vw, 3rem)',
+                  lineHeight: 1.05,
+                  letterSpacing: '-0.022em',
+                  color: 'var(--color-ink-900)',
+                }}
+              >
+                {t('title')}
+              </h1>
+              <p className="text-sm text-[color:var(--color-ink-500)] sm:text-base">
+                {t('summary', { total: guests.length, max: event.maxGuests })}
+              </p>
+            </div>
+            <a
+              href={`/api/events/${eventId}/guests.csv`}
+              className="focus-ring inline-flex items-center gap-2 rounded-full border border-[color:var(--color-border-strong)] bg-white px-4 py-2 text-sm font-medium text-[color:var(--color-ink-900)] transition-colors hover:bg-[color:var(--color-ivory-100)]"
+              data-testid="export-csv"
+            >
+              <Download className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />
+              {tStats('export')}
+            </a>
+          </div>
+        </header>
 
-      <GuestsManager eventId={eventId} initialGuests={guests} />
-    </main>
+        <GuestsManager eventId={eventId} initialGuests={guests} />
+      </div>
+    </AppShell>
   );
 }

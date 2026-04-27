@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { OtpInput } from '@/components/auth/otp-input';
 import { requestOtpAction, verifyOtpAction } from '@/app/[locale]/(auth)/actions';
-import { maskPhone } from '@/lib/phone';
 
 interface VerifyFormProps {
   phone: string;
@@ -94,16 +93,7 @@ export function VerifyForm({ phone }: VerifyFormProps) {
   }
 
   return (
-    <form
-      ref={formRef}
-      action={handleSubmit}
-      className="flex flex-col gap-5"
-      aria-describedby="verify-hint"
-    >
-      <p id="verify-hint" className="text-sm text-[color:var(--color-muted)]">
-        {t('verifyDescription', { phone: maskPhone(phone) })}
-      </p>
-
+    <form ref={formRef} action={handleSubmit} className="flex flex-col gap-5">
       <div className="flex flex-col gap-2">
         <Label htmlFor="code" className="sr-only">
           {t('codeLabel')}
