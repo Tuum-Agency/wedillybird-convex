@@ -82,15 +82,22 @@ export default async function EventDetailPage({
   return (
     <AppShell userName={user?.fullName}>
       <div className="container-page flex flex-col gap-12 py-12 sm:py-16">
-        {/* Breadcrumb + header éditorial */}
+        {/* Breadcrumb + header éditorial.
+            Pour un compte particulier (couple) le dashboard EST cette page :
+            on lui redirige déjà vers ici depuis /dashboard. Le breadcrumb
+            "Retour au tableau de bord" est donc caché pour ne pas le
+            renvoyer dans une boucle (on garde le breadcrumb pour les pros
+            et admins qui ont une vraie liste à laquelle revenir). */}
         <div className="flex flex-col gap-5">
-          <Link
-            href="/dashboard"
-            className="inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-ink-500)] uppercase transition-colors hover:text-[color:var(--color-ink-900)]"
-          >
-            <ArrowLeft className="h-3 w-3" strokeWidth={2} aria-hidden />
-            {t('backToDashboard')}
-          </Link>
+          {user?.role !== 'couple' ? (
+            <Link
+              href="/dashboard"
+              className="inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-ink-500)] uppercase transition-colors hover:text-[color:var(--color-ink-900)]"
+            >
+              <ArrowLeft className="h-3 w-3" strokeWidth={2} aria-hidden />
+              {t('backToDashboard')}
+            </Link>
+          ) : null}
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="flex flex-col gap-2">
               <h1
