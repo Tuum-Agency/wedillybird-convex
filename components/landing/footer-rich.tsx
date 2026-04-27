@@ -1,6 +1,7 @@
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { Send } from 'lucide-react';
+import { WedillybirdMark } from '@/components/brand/wedillybird-mark';
 
 /**
  * Landing — Footer V4.
@@ -66,12 +67,9 @@ export function LandingFooterRich() {
           <div className="flex flex-col gap-5">
             <Link
               href="/"
-              className="font-display inline-flex items-center gap-2 text-2xl tracking-tight text-[color:var(--color-ink-900)] italic"
+              className="font-display inline-flex items-center gap-3 text-2xl tracking-tight text-[color:var(--color-ink-900)] italic"
             >
-              <span
-                aria-hidden
-                className="inline-block h-2 w-2 rounded-full bg-[color:var(--color-gold-500)]"
-              />
+              <WedillybirdMark className="h-8 w-8 text-[color:var(--color-blush-500)]" />
               {tCommon('appName')}
             </Link>
             <p className="max-w-md text-sm leading-relaxed text-[color:var(--color-ink-500)]">

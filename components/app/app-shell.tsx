@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { useTranslations } from 'next-intl';
 import { LogOut } from 'lucide-react';
 import { Link } from '@/i18n/navigation';
+import { WedillybirdMark } from '@/components/brand/wedillybird-mark';
 import { signOutAction } from '@/app/[locale]/(auth)/actions';
 
 /**
@@ -36,12 +37,9 @@ export function AppShell({ children, nav, userName }: AppShellProps) {
           <div className="flex items-center gap-8">
             <Link
               href="/dashboard"
-              className="font-display inline-flex items-center gap-2 text-xl tracking-tight text-[color:var(--color-ink-900)] italic"
+              className="font-display inline-flex items-center gap-2.5 text-xl tracking-tight text-[color:var(--color-ink-900)] italic"
             >
-              <span
-                aria-hidden
-                className="inline-block h-2 w-2 rounded-full bg-[color:var(--color-gold-500)]"
-              />
+              <WedillybirdMark className="h-6 w-6 text-[color:var(--color-blush-500)]" />
               {tCommon('appName')}
             </Link>
             {nav}

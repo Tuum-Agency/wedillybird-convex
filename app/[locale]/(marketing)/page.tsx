@@ -3,6 +3,7 @@ import { useTranslations } from 'next-intl';
 import { setRequestLocale } from 'next-intl/server';
 import { ArrowRight } from 'lucide-react';
 import { Link } from '@/i18n/navigation';
+import { WedillybirdMark } from '@/components/brand/wedillybird-mark';
 import { buttonVariants } from '@/components/ui/button';
 import { LenisProvider } from '@/components/landing/lenis-provider';
 import { LandingHero } from '@/components/landing/hero';
@@ -73,12 +74,9 @@ function LandingShell({
           <div className="flex items-center gap-10">
             <Link
               href="/"
-              className="font-display inline-flex items-center gap-2 text-xl tracking-tight text-[color:var(--color-ink-900)] italic"
+              className="font-display inline-flex items-center gap-2.5 text-xl tracking-tight text-[color:var(--color-ink-900)] italic"
             >
-              <span
-                aria-hidden
-                className="inline-block h-2 w-2 rounded-full bg-[color:var(--color-gold-500)]"
-              />
+              <WedillybirdMark className="h-6 w-6 text-[color:var(--color-blush-500)]" />
               {tCommon('appName')}
             </Link>
             <nav aria-label="Navigation principale" className="hidden items-center gap-7 md:flex">

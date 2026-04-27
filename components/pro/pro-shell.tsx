@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { useTranslations } from 'next-intl';
 import { LogOut } from 'lucide-react';
 import { Link } from '@/i18n/navigation';
+import { WedillybirdMark } from '@/components/brand/wedillybird-mark';
 import { signOutAction } from '@/app/[locale]/(auth)/actions';
 
 /**
@@ -30,7 +31,9 @@ export interface ProShellProps {
 
 export function ProShell({ children, nav, orgName, orgPrimaryColor, userName }: ProShellProps) {
   const tCommon = useTranslations('Common');
-  const dotColor = orgPrimaryColor ?? 'var(--color-gold-500)';
+  // En mode dark, le mark utilise blush-300 par défaut (lisible sur fond
+  // charbon). Si l'org a une couleur custom, elle override le mark.
+  const markColor = orgPrimaryColor ?? 'var(--color-blush-300)';
 
   return (
     <div
@@ -42,13 +45,9 @@ export function ProShell({ children, nav, orgName, orgPrimaryColor, userName }: 
           <div className="flex items-center gap-8">
             <Link
               href="/pro/dashboard"
-              className="font-display inline-flex items-center gap-2 text-xl tracking-tight text-[color:var(--color-foreground)] italic"
+              className="font-display inline-flex items-center gap-2.5 text-xl tracking-tight text-[color:var(--color-foreground)] italic"
             >
-              <span
-                aria-hidden
-                className="inline-block h-2 w-2 rounded-full"
-                style={{ background: dotColor }}
-              />
+              <WedillybirdMark className="h-6 w-6" style={{ color: markColor }} />
               {orgName ?? tCommon('appName')}
             </Link>
             {nav}
