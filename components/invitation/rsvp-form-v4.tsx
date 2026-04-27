@@ -1,0 +1,354 @@
+'use client';
+
+import { useState, useTransition } from 'react';
+import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
+import { useTranslations } from 'next-intl';
+import { Heart, X, HelpCircle, Check, Sparkles } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { cn } from '@/lib/cn';
+import { submitRsvpAction, type RsvpActionResult } from '@/app/[locale]/i/[token]/actions';
+
+type RsvpStatus = 'attending' | 'declined' | 'maybe';
+
+interface Props {
+  token: string;
+  plusOnesAllowed: number;
+  accentColor?: string;
+  initial: {
+    rsvpStatus: 'pending' | RsvpStatus;
+    plusOnesNames?: string[];
+    dietaryRestrictions?: string;
+    notes?: string;
+  };
+}
+
+const STATUS_OPTIONS: Array<{
+  value: RsvpStatus;
+  Icon: typeof Heart;
+  /** Coleur sémantique appliquée à l'icône / bordure quand sélectionné. */
+  tone: 'positive' | 'negative' | 'neutral';
+}> = [
+  { value: 'attending', Icon: Heart, tone: 'positive' },
+  { value: 'maybe', Icon: HelpCircle, tone: 'neutral' },
+  { value: 'declined', Icon: X, tone: 'negative' },
+];
+
+/**
+ * RSVP form V4 — refonte premium pour la page invitation publique.
+ *
+ * - 3 boutons radio cards iconisés (Heart / HelpCircle / X) au lieu de
+ *   simples labels textuels
+ * - Animation Motion sur la sélection (border + halo blush)
+ * - Submit success → canvas-confetti blush + état confirmation animé
+ * - Compatible accessibilité (radio role native + ARIA)
+ *
+ * Conserve la même server action `submitRsvpAction` que la V3 pour ne
+ * pas dupliquer la logique métier.
+ */
+export function RsvpFormV4({ token, plusOnesAllowed, accentColor, initial }: Props) {
+  const t = useTranslations('Invitation');
+  const tCommon = useTranslations('Common');
+  const reduced = useReducedMotion();
+  const accent = accentColor ?? 'oklch(72% 0.09 20)';
+
+  const [status, setStatus] = useState<RsvpStatus | null>(
+    initial.rsvpStatus === 'pending' ? null : initial.rsvpStatus,
+  );
+  const [names, setNames] = useState<string[]>(
+    initial.plusOnesNames && initial.plusOnesNames.length > 0
+      ? initial.plusOnesNames
+      : Array(plusOnesAllowed).fill(''),
+  );
+  const [dietary, setDietary] = useState(initial.dietaryRestrictions ?? '');
+  const [notes, setNotes] = useState(initial.notes ?? '');
+  const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string | undefined>>({});
+  const [success, setSuccess] = useState(initial.rsvpStatus !== 'pending');
+  const [pending, startTransition] = useTransition();
+
+  function fireConfetti() {
+    if (reduced) return;
+    void (async () => {
+      try {
+        const confetti = (await import('canvas-confetti')).default;
+        confetti({
+          particleCount: 80,
+          spread: 75,
+          startVelocity: 35,
+          scalar: 0.9,
+          ticks: 140,
+          origin: { y: 0.6 },
+          colors: ['#f5d0c5', '#e8c5b4', '#d4b896', '#fbf6ee', '#c89788'],
+          disableForReducedMotion: true,
+        });
+      } catch {
+        // canvas-confetti non chargé : silent fail.
+      }
+    })();
+  }
+
+  function handleSubmit(formData: FormData) {
+    setError(null);
+    setFieldErrors({});
+    if (!status) {
+      setError(t('errors.pickStatus'));
+      return;
+    }
+    formData.set('rsvpStatus', status);
+    formData.delete('plusOnesNames');
+    if (status === 'attending') {
+      for (const n of names) {
+        if (n.trim().length > 0) formData.append('plusOnesNames', n.trim());
+      }
+    }
+
+    startTransition(async () => {
+      const result: RsvpActionResult = await submitRsvpAction(token, formData);
+      if (result.ok) {
+        setSuccess(true);
+        if (status === 'attending') fireConfetti();
+        return;
+      }
+      if (result.fieldErrors) {
+        const flat: Record<string, string | undefined> = {};
+        for (const [k, v] of Object.entries(result.fieldErrors)) {
+          if (v && v.length > 0) flat[k] = v[0];
+        }
+        setFieldErrors(flat);
+        return;
+      }
+      if (result.error === 'INVITATION_NOT_FOUND') setError(t('errors.notFound'));
+      else if (result.error === 'EVENT_CLOSED') setError(t('errors.eventClosed'));
+      else if (result.error === 'PLUS_ONES_EXCEEDED') setError(t('errors.plusOnesExceeded'));
+      else setError(t('errors.unknown'));
+    });
+  }
+
+  if (success) {
+    return (
+      <motion.div
+        data-testid="rsvp-success"
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: 'easeOut' }}
+        className="flex flex-col items-center gap-5 rounded-3xl border bg-white p-8 text-center shadow-[var(--shadow-blush)]"
+        style={{ borderColor: accent }}
+      >
+        <motion.span
+          initial={{ scale: 0, rotate: -90 }}
+          animate={{
+            scale: 1,
+            rotate: 0,
+            transition: { type: 'spring', stiffness: 280, damping: 16 },
+          }}
+          className="flex h-14 w-14 items-center justify-center rounded-full text-white shadow-[var(--shadow-soft)]"
+          style={{ background: accent }}
+          aria-hidden
+        >
+          <Sparkles className="h-6 w-6" strokeWidth={1.75} />
+        </motion.span>
+        <p
+          className="font-display text-balance italic"
+          style={{
+            fontSize: 'clamp(1.5rem, 2.6vw, 2rem)',
+            lineHeight: 1.15,
+            letterSpacing: '-0.018em',
+            color: 'var(--color-ink-900)',
+          }}
+        >
+          {t('thanks')}
+        </p>
+        <p className="max-w-sm text-sm leading-relaxed text-[color:var(--color-ink-500)] sm:text-base">
+          {status === 'attending'
+            ? t('thanksAttending')
+            : status === 'declined'
+              ? t('thanksDeclined')
+              : t('thanksMaybe')}
+        </p>
+        <button
+          type="button"
+          onClick={() => setSuccess(false)}
+          className="font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-ink-500)] uppercase transition-colors hover:text-[color:var(--color-ink-900)]"
+          data-testid="rsvp-change"
+        >
+          ← {t('changeAnswer')}
+        </button>
+      </motion.div>
+    );
+  }
+
+  return (
+    <form
+      action={handleSubmit}
+      className="flex flex-col gap-7 rounded-3xl border border-[color:var(--color-border)] bg-white p-6 shadow-[var(--shadow-soft)] sm:p-8"
+      data-testid="rsvp-form"
+    >
+      <fieldset className="flex flex-col gap-4">
+        <legend
+          className="font-display text-balance italic"
+          style={{
+            fontSize: 'clamp(1.25rem, 2vw, 1.625rem)',
+            lineHeight: 1.2,
+            letterSpacing: '-0.018em',
+            color: 'var(--color-ink-900)',
+          }}
+        >
+          {t('willYouAttend')}
+        </legend>
+        <div className="grid grid-cols-3 gap-2 sm:gap-3">
+          {STATUS_OPTIONS.map(({ value, Icon, tone }) => {
+            const selected = status === value;
+            return (
+              <label
+                key={value}
+                className={cn(
+                  'focus-ring group relative flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 px-3 py-5 text-center transition-all duration-200',
+                  selected
+                    ? 'shadow-[var(--shadow-blush)]'
+                    : 'border-[color:var(--color-border)] hover:border-[color:var(--color-border-strong)]',
+                )}
+                style={selected ? { borderColor: accent } : undefined}
+              >
+                <input
+                  type="radio"
+                  name="rsvpStatus"
+                  value={value}
+                  checked={selected}
+                  onChange={() => setStatus(value)}
+                  className="sr-only"
+                  data-testid={`rsvp-option-${value}`}
+                />
+                <span
+                  aria-hidden
+                  className={cn(
+                    'flex h-10 w-10 items-center justify-center rounded-full transition-colors',
+                    selected ? 'text-white' : 'text-[color:var(--color-ink-500)]',
+                  )}
+                  style={
+                    selected ? { background: accent } : { background: 'var(--color-ivory-100)' }
+                  }
+                >
+                  <Icon
+                    className="h-5 w-5"
+                    strokeWidth={1.75}
+                    fill={value === 'attending' && selected ? 'currentColor' : 'none'}
+                  />
+                </span>
+                <span
+                  className={cn(
+                    'text-sm font-medium',
+                    selected
+                      ? 'text-[color:var(--color-ink-900)]'
+                      : 'text-[color:var(--color-ink-700)]',
+                  )}
+                >
+                  {t(`status.${value}`)}
+                </span>
+                <AnimatePresence>
+                  {selected && (
+                    <motion.span
+                      key="check"
+                      initial={{ scale: 0, opacity: 0 }}
+                      animate={{
+                        scale: 1,
+                        opacity: 1,
+                        transition: { type: 'spring', stiffness: 320, damping: 18 },
+                      }}
+                      exit={{ scale: 0, opacity: 0 }}
+                      aria-hidden
+                      className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full text-white"
+                      style={{ background: accent }}
+                    >
+                      <Check className="h-3 w-3" strokeWidth={3} />
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+              </label>
+            );
+          })}
+        </div>
+      </fieldset>
+
+      <AnimatePresence initial={false}>
+        {status === 'attending' && plusOnesAllowed > 0 ? (
+          <motion.fieldset
+            key="plus-ones"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+            className="flex flex-col gap-3"
+          >
+            <legend className="font-medium text-[color:var(--color-ink-900)]">
+              {t('plusOnesLegend', { count: plusOnesAllowed })}
+            </legend>
+            <div className="flex flex-col gap-2">
+              {Array.from({ length: plusOnesAllowed }).map((_, i) => (
+                <Input
+                  key={i}
+                  name="plusOnesNames"
+                  placeholder={t('plusOnePlaceholder', { index: i + 1 })}
+                  value={names[i] ?? ''}
+                  onChange={(e) => {
+                    const next = [...names];
+                    next[i] = e.target.value;
+                    setNames(next);
+                  }}
+                  data-testid={`plus-one-${i}`}
+                />
+              ))}
+            </div>
+            {fieldErrors.plusOnesNames ? (
+              <p className="text-xs text-[color:var(--color-destructive)]">
+                {fieldErrors.plusOnesNames}
+              </p>
+            ) : null}
+          </motion.fieldset>
+        ) : null}
+
+        {status === 'attending' ? (
+          <motion.div
+            key="dietary"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+            className="flex flex-col gap-2"
+          >
+            <Label htmlFor="dietaryRestrictions">{t('dietaryLabel')}</Label>
+            <Input
+              id="dietaryRestrictions"
+              name="dietaryRestrictions"
+              placeholder={t('dietaryPlaceholder')}
+              value={dietary}
+              onChange={(e) => setDietary(e.target.value)}
+            />
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
+
+      <div className="flex flex-col gap-2">
+        <Label htmlFor="notes">{t('notesLabel')}</Label>
+        <Input
+          id="notes"
+          name="notes"
+          placeholder={t('notesPlaceholder')}
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+        />
+      </div>
+
+      {error ? (
+        <p id="rsvp-error" role="alert" className="text-sm text-[color:var(--color-destructive)]">
+          {error}
+        </p>
+      ) : null}
+
+      <Button type="submit" size="lg" disabled={pending} data-testid="submit-rsvp">
+        {pending ? tCommon('loading') : t('submit')}
+      </Button>
+    </form>
+  );
+}
