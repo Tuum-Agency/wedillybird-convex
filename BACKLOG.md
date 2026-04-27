@@ -48,11 +48,11 @@ Reproduire `.env.local` sur Vercel → Project Settings → Environment Variable
 
 ## Paiements
 
-### CinetPay driver (post-Sprint 6)
-- **Bloqué par** : creds `CINETPAY_API_KEY` + `CINETPAY_SITE_ID` (à créer sur dashboard CinetPay)
-- **Travail** : remplacer `lib/payments/drivers/cinetpay.ts` (stub `THROW NOT_CONFIGURED`) par une implémentation `fetch` directe contre l'API Pay-In + signature HMAC sur webhook
+### CinetPay driver (post-Sprint 6) ✅ livré
+- **Status** : driver implémenté (`lib/payments/drivers/cinetpay.ts`) — `createCheckout` POST sur `/v2/payment`, `verifyAndParseWebhook` HMAC SHA256 via header `x-token`, `retrieveSessionStatus` via `/v2/payment/check`. Skip silencieux `CINETPAY_DRIVER_NOT_CONFIGURED` tant que les env vars sont absentes (rollout progressif).
+- **Restant** : récupérer les creds prod `CINETPAY_API_KEY` + `CINETPAY_SITE_ID` sur dashboard CinetPay, configurer le webhook prod sur `https://wedillybird.com/api/webhooks/cinetpay`, décommenter le routage XOF/MAD/TND dans `lib/payments/country.ts:CINETPAY_BY_CURRENCY` quand prêt à activer le routage automatique par pays.
 - **Doc** : https://docs.cinetpay.com/api/1.0-en/checkout/initialisation
-- **Webhook header** : `x-token` (déjà géré par la route `/api/webhooks/[provider]`)
+- **Webhook header** : `x-token` (HMAC SHA256 des champs cpm_* concat).
 
 ### Stripe Subscriptions pour comptes pro (post-Sprint 7)
 - **Bloqué par** : créer 3 Stripe Prices recurring (Starter 29€/mo, Business 79€/mo, Agency 199€/mo)
@@ -62,10 +62,12 @@ Reproduire `.env.local` sur Vercel → Project Settings → Environment Variable
   - Page `/pro/billing` avec choix de tier + customer portal Stripe
 - **Schema** : déjà prêt sur `organizations.{stripeCustomerId, stripeSubscriptionId, subscriptionTier, subscriptionStatus, subscriptionPeriodEnd}`
 
-### PDF facture (post-Sprint 6)
-- Installer `@react-pdf/renderer`
-- Composant `<InvoicePDF payment={...} />` rendu côté serveur
-- Route `/api/payments/[paymentId]/invoice.pdf`
+### PDF facture (post-Sprint 6) ✅ livré
+- `@react-pdf/renderer` installé.
+- Composant `lib/payments/invoice.tsx` (`<InvoicePDF payment={...} />`) — en-tête Wedillybird, bloc émetteur/client, ligne plan, TVA 20 % isolée pour EUR, mention "TVA non applicable, art. 293 B du CGI" pour XOF/MAD/TND, footer mentions légales + provider.
+- Route `app/api/payments/[paymentId]/invoice.pdf/route.tsx` (GET) — auth session, query Convex `paymentsInvoice:getForInvoice` (ownership = buyer OR event owner), 200 `application/pdf` attachment idempotent.
+- Strings i18n dans `messages/fr.json` section `Invoice`.
+- Tests : `tests/unit/lib/invoice-pdf.test.tsx` (composant + buildInvoiceNumber) + `tests/unit/app/invoice-pdf-route.test.tsx` (401/403/404/200).
 
 ## Multi-utilisateurs (post-Sprint 7)
 

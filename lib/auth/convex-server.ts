@@ -157,6 +157,7 @@ export const convexApi = {
     {
       _id: string;
       ownerId: string;
+      organizationId?: string;
       slug: string;
       title: string;
       coupleNames: { partnerA: string; partnerB: string };
@@ -409,9 +410,15 @@ export const convexApi = {
           | 'NO_COLLECTION_YET'
           | 'FORBIDDEN'
           | 'INVALID_TOKEN'
+          | 'RATE_LIMITED'
           | 'UNKNOWN';
       }
   >('photos:searchPhotosByFace'),
+  archiveEvent: makeFunctionReference<
+    'mutation',
+    { eventId: string; requesterId: string },
+    { ok: true; alreadyArchived: boolean }
+  >('events:archive'),
   recordPaymentIntent: makeFunctionReference<
     'mutation',
     {
@@ -474,6 +481,30 @@ export const convexApi = {
       createdAt: number;
     }>
   >('payments:listByEvent'),
+  getPaymentForInvoice: makeFunctionReference<
+    'query',
+    { paymentId: string; requesterId: string },
+    {
+      payment: {
+        _id: string;
+        userId: string;
+        eventId: string;
+        plan: 'essential' | 'premium';
+        currency: 'EUR' | 'XOF' | 'MAD' | 'TND';
+        amountMinor: number;
+        provider: 'stripe' | 'cinetpay' | 'mock';
+        status: 'pending' | 'succeeded' | 'failed' | 'cancelled';
+        createdAt: number;
+        updatedAt: number;
+      };
+      event: { _id: string; title: string } | null;
+      customer: {
+        fullName?: string;
+        email?: string;
+        phone?: string;
+      } | null;
+    }
+  >('paymentsInvoice:getForInvoice'),
   createOrganization: makeFunctionReference<
     'mutation',
     {

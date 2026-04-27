@@ -10,6 +10,10 @@ export interface CheckoutInput {
   userId: string;
   successUrl: string;
   cancelUrl: string;
+  /** Optional — utilisé par CinetPay pour pré-remplir le formulaire mobile money. */
+  customerEmail?: string;
+  /** Optional — utilisé par CinetPay (paiement mobile money). */
+  customerPhone?: string;
 }
 
 export interface CheckoutSession {

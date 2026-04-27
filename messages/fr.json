@@ -565,7 +565,8 @@
     "planNone": "Aucun forfait",
     "planUpsellSuffix": "· Rétention 5 ans",
     "activatePlan": "Activer un forfait",
-    "publishLockedHint": "Activez votre forfait pour publier votre invitation et envoyer les RSVP. Le paiement est unique, pas d'abonnement."
+    "publishLockedHint": "Activez votre forfait pour publier votre invitation et envoyer les RSVP. Le paiement est unique, pas d'abonnement.",
+    "publishLockedHintPayg": "Vous n'avez plus de crédit Pay-as-you-go. Achetez-en un sur /pro/billing ou activez un abonnement."
   },
   "Guests": {
     "title": "Liste d'invitations",
@@ -698,6 +699,7 @@
         "noFace": "Aucun visage détecté dans votre photo. Essayez avec une photo plus claire.",
         "notIndexed": "L'indexation des visages n'est pas encore terminée. Réessayez dans quelques minutes.",
         "forbidden": "Vous n'avez pas accès à cette galerie.",
+        "rateLimited": "Trop de recherches récentes. Patientez quelques instants avant de réessayer.",
         "unknown": "Une erreur est survenue. Réessayez."
       }
     }
@@ -826,6 +828,38 @@
       "unknown": "Une erreur est survenue. Réessayez."
     }
   },
+  "Invoice": {
+    "title": "Facture",
+    "number": "N° {value}",
+    "issuedOn": "Émise le {date}",
+    "paidOn": "Réglée le {date}",
+    "issuerBlockTitle": "Émetteur",
+    "issuerName": "Wedillybird (Tuum Agency)",
+    "issuerEmail": "contact@wedillybird.com",
+    "issuerSiret": "SIRET — à compléter",
+    "issuerVat": "TVA intracom. — à compléter",
+    "customerBlockTitle": "Client",
+    "customerFallback": "Client particulier",
+    "columnDescription": "Désignation",
+    "columnAmountTtc": "Montant TTC",
+    "eventReference": "Événement : {title}",
+    "totalHt": "Total HT",
+    "totalTtc": "Total TTC",
+    "vatLabel": "TVA ({rate} %)",
+    "vatNotApplicable": "TVA non applicable, art. 293 B du CGI",
+    "footerSettledVia": "Paiement réglé via {provider} le {date}.",
+    "footerRetention": "Cette facture est conservée 10 ans conformément au Code de commerce.",
+    "footerSupport": "Pour toute question relative à cette facture, écrivez-nous à billing@wedillybird.com en précisant le numéro de facture {number}.",
+    "downloadCta": "Télécharger la facture",
+    "filenamePrefix": "facture-wedillybird",
+    "errors": {
+      "unauthorized": "Connectez-vous pour télécharger votre facture.",
+      "forbidden": "Vous n'avez pas accès à cette facture.",
+      "notFound": "Facture introuvable.",
+      "notPaid": "La facture sera disponible dès que le paiement sera confirmé.",
+      "unknown": "Impossible de générer la facture pour le moment."
+    }
+  },
   "EventCreate": {
     "title": "Créer votre mariage",
     "description": "Configurez l'essentiel. Vous pourrez tout modifier plus tard.",
@@ -861,6 +895,47 @@
     "errors": {
       "submit": "Impossible de créer l'événement. Réessayez.",
       "invalidDate": "La date doit être dans le futur."
+    }
+  },
+  "Emails": {
+    "common": {
+      "greeting": "Bonjour {name},",
+      "signature": "— Wedillybird",
+      "supportFooter": "Pour toute question, contactez le support Wedillybird."
+    },
+    "guestReminder": {
+      "subjectDayBefore": "C'est demain : {eventTitle}",
+      "subjectDaysBefore": "J-{days} avant {eventTitle}",
+      "preheader": "{eventTitle} approche — confirmez votre présence",
+      "ctaLabel": "Voir mon invitation",
+      "footer": "Cet email vous est envoyé par les hôtes de votre événement via Wedillybird."
+    },
+    "proNotification": {
+      "teamMemberAdded": {
+        "subject": "Nouveau membre dans {organizationName}",
+        "ctaLabel": "Accepter l'invitation"
+      },
+      "paymentReceived": {
+        "subject": "Paiement reçu — {organizationName}",
+        "ctaLabel": "Voir l'événement"
+      },
+      "subscriptionRenewed": {
+        "subject": "Abonnement renouvelé — {organizationName}",
+        "ctaLabel": "Gérer mon abonnement"
+      },
+      "subscriptionFailed": {
+        "subject": "Échec de paiement — {organizationName}",
+        "ctaLabel": "Mettre à jour mon paiement"
+      }
+    },
+    "stripeInvoice": {
+      "subject": "Facture {invoiceNumber} — {amountFormatted}",
+      "preheader": "Votre facture pour {periodLabel} est disponible",
+      "title": "Facture Wedillybird",
+      "amountLabel": "Montant",
+      "periodLabel": "Période",
+      "ctaLabel": "Consulter la facture",
+      "footer": "Pour toute question concernant cette facture, contactez le support Wedillybird."
     }
   }
 }
