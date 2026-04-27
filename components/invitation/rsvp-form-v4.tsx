@@ -27,12 +27,10 @@ interface Props {
 const STATUS_OPTIONS: Array<{
   value: RsvpStatus;
   Icon: typeof Heart;
-  /** Coleur sémantique appliquée à l'icône / bordure quand sélectionné. */
-  tone: 'positive' | 'negative' | 'neutral';
 }> = [
-  { value: 'attending', Icon: Heart, tone: 'positive' },
-  { value: 'maybe', Icon: HelpCircle, tone: 'neutral' },
-  { value: 'declined', Icon: X, tone: 'negative' },
+  { value: 'attending', Icon: Heart },
+  { value: 'maybe', Icon: HelpCircle },
+  { value: 'declined', Icon: X },
 ];
 
 /**
@@ -198,7 +196,7 @@ export function RsvpFormV4({ token, plusOnesAllowed, accentColor, initial }: Pro
           {t('willYouAttend')}
         </legend>
         <div className="grid grid-cols-3 gap-2 sm:gap-3">
-          {STATUS_OPTIONS.map(({ value, Icon, tone }) => {
+          {STATUS_OPTIONS.map(({ value, Icon }) => {
             const selected = status === value;
             return (
               <label

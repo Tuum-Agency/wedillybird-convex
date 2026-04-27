@@ -70,12 +70,15 @@ export function CinematicOpening({
   const accent = accentColor ?? 'oklch(72% 0.09 20)';
 
   // Orchestration des phases via setTimeout chaîné. Si reduced-motion,
-  // on saute directement au done.
+  // on saute directement au done. Le setState est différé en raf pour
+  // éviter le cascading render (lint react-hooks/exhaustive-deps).
   useEffect(() => {
     if (reduced) {
-      setPhase('done');
-      onComplete();
-      return;
+      const raf = requestAnimationFrame(() => {
+        setPhase('done');
+        onComplete();
+      });
+      return () => cancelAnimationFrame(raf);
     }
     if (skipped) return;
 

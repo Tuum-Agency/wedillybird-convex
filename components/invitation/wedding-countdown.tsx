@@ -26,9 +26,14 @@ export function WeddingCountdown({ eventDate, accentColor }: WeddingCountdownPro
   const accent = accentColor ?? 'oklch(58% 0.075 80)';
 
   useEffect(() => {
-    setNow(Date.now());
+    // Initial set différé en raf pour éviter le cascading render au mount
+    // (le setState sync serait flagué par eslint-plugin-react-hooks).
+    const raf = requestAnimationFrame(() => setNow(Date.now()));
     const id = setInterval(() => setNow(Date.now()), 60_000);
-    return () => clearInterval(id);
+    return () => {
+      cancelAnimationFrame(raf);
+      clearInterval(id);
+    };
   }, []);
 
   // SSR / first paint : on rend des placeholders pour éviter le hydration
