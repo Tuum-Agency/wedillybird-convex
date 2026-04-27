@@ -37,7 +37,10 @@ type DispatchOutcome = { ok: true; messageId: string } | { ok: false; error: str
 async function dispatch(to: string, rendered: EmailRendered): Promise<DispatchOutcome> {
   const driver = process.env.EMAIL_DRIVER ?? 'ses';
 
-  if (driver === 'mock') {
+  // Mode E2E : force le mock même si SES est configuré côté env Convex. Idem
+  // que pour WhatsApp (cf. `auth:requestOtp`) — évite l'envoi réel pendant
+  // les tests Playwright.
+  if (process.env.E2E_MODE === '1' || driver === 'mock') {
     const messageId = `mock-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
     console.log(`[email:mock] → ${to} | ${rendered.subject} | id=${messageId}`);
     return { ok: true, messageId };
@@ -166,6 +169,7 @@ export const sendProNotification = internalAction({
       v.literal('payment-received'),
       v.literal('subscription-renewed'),
       v.literal('subscription-failed'),
+      v.literal('payg-credit-activated'),
     ),
     detail: v.string(),
     ctaLabel: v.optional(v.string()),

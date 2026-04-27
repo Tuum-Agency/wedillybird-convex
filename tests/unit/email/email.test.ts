@@ -109,6 +109,22 @@ describe('templates rendering', () => {
     expect(out.html).toContain('https://wedillybird.com/pro/billing');
   });
 
+  it('renders payg-credit-activated pro notification with correct subject and CTA', () => {
+    const out = renderProNotification({
+      recipientName: 'Awa',
+      organizationName: 'Studio Lumière',
+      kind: 'payg-credit-activated',
+      detail: 'Votre achat Pay-as-you-go de 69,00 € a été confirmé.',
+      ctaLabel: 'Voir mon solde',
+      ctaUrl: 'https://wedillybird.com/pro/billing',
+    });
+    expect(out.subject).toBe('Crédit Pay-as-you-go activé — Studio Lumière');
+    expect(out.html).toContain('69,00 €');
+    expect(out.html).toContain('Voir mon solde');
+    expect(out.html).toContain('https://wedillybird.com/pro/billing');
+    expect(out.text).toContain('69,00 €');
+  });
+
   it('escapes HTML in user-provided values', () => {
     const out = renderGuestReminder({
       guestName: '<script>alert(1)</script>',

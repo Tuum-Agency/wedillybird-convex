@@ -122,3 +122,55 @@ export function getMetaTemplateName(
   const style = INVITATION_STYLES[styleId];
   return env[style.metaTemplateEnvVar] ?? style.metaTemplateName;
 }
+
+/* -------------------------------------------------------------------------- */
+/*  Templates rappels J-7 / J-1                                                */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Tier de rappel envoyé aux invités `attending` à l'approche de l'event.
+ * Cron quotidien dans `convex/reminders.ts` — fenêtre ±12 h autour de J-7
+ * et J-1. Idempotence via `guests.reminderD7SentAt` / `reminderD1SentAt`.
+ */
+export type ReminderTier = 'd7' | 'd1';
+
+/**
+ * Env vars qui pointent vers les noms de templates Meta validés pour
+ * chaque tier. Tant que les templates ne sont pas créés côté Meta Business
+ * Manager (cf. BACKLOG section "Templates WhatsApp Cloud API"), l'absence
+ * de l'env var déclenche un fallback email-only côté cron — l'envoi
+ * WhatsApp est skip avec un warning, l'email reste envoyé.
+ *
+ * Variables body attendues côté template Meta (cf. spec dans BACKLOG) :
+ *   D7 :
+ *     {{1}} = prénom de l'invité
+ *     {{2}} = prénoms du couple ("Aminata & Mamadou")
+ *     {{3}} = date formatée ("30 avril 2026")
+ *     {{4}} = lien personnalisé d'invitation (visible dans le body)
+ *   D1 :
+ *     {{1}} = prénom de l'invité
+ *     {{2}} = prénoms du couple
+ *     {{3}} = lieu / venue
+ *     {{4}} = lien personnalisé d'invitation
+ *
+ * Le bouton URL dynamique reçoit le `qrCodeToken` (dernier segment de
+ * `${baseUrl}/i/${qrCodeToken}`) — Meta exige le segment, pas l'URL pleine.
+ */
+export const REMINDER_TEMPLATE_ENV_VARS: Record<ReminderTier, string> = {
+  d7: 'WHATSAPP_REMINDER_D7_TEMPLATE',
+  d1: 'WHATSAPP_REMINDER_D1_TEMPLATE',
+};
+
+/**
+ * Résout le nom de template Meta pour un tier de rappel donné. Retourne
+ * `null` si l'env var correspondante n'est pas définie — le caller doit
+ * alors fallback sur l'email seul (cf. BACKLOG : templates non créés côté
+ * Meta tant que la grille tarifaire n'est pas finalisée).
+ */
+export function getReminderTemplateName(
+  tier: ReminderTier,
+  env: Record<string, string | undefined> = process.env,
+): string | null {
+  const value = env[REMINDER_TEMPLATE_ENV_VARS[tier]];
+  return value && value.trim().length > 0 ? value : null;
+}

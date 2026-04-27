@@ -3,7 +3,9 @@ import {
   DEFAULT_INVITATION_STYLE,
   DEFAULT_PERSONAL_MESSAGE_FALLBACK,
   INVITATION_STYLES,
+  REMINDER_TEMPLATE_ENV_VARS,
   getMetaTemplateName,
+  getReminderTemplateName,
   renderInvitationPreview,
 } from '@/lib/whatsapp/templates';
 
@@ -88,5 +90,34 @@ describe('getMetaTemplateName', () => {
         WHATSAPP_INVITATION_TEMPLATE_WARM: 'wedding_invitation_warm_v2',
       }),
     ).toBe('wedding_invitation_warm_v2');
+  });
+});
+
+describe('getReminderTemplateName', () => {
+  it('retourne null quand l’env var D7 est absente (fallback email-only)', () => {
+    expect(getReminderTemplateName('d7', {})).toBeNull();
+  });
+
+  it('retourne null quand l’env var D1 est absente', () => {
+    expect(getReminderTemplateName('d1', {})).toBeNull();
+  });
+
+  it('retourne null pour une env var vide / whitespace', () => {
+    expect(getReminderTemplateName('d7', { WHATSAPP_REMINDER_D7_TEMPLATE: '' })).toBeNull();
+    expect(getReminderTemplateName('d7', { WHATSAPP_REMINDER_D7_TEMPLATE: '   ' })).toBeNull();
+  });
+
+  it('retourne le nom de template configuré', () => {
+    expect(
+      getReminderTemplateName('d7', { WHATSAPP_REMINDER_D7_TEMPLATE: 'wedding_reminder_d7' }),
+    ).toBe('wedding_reminder_d7');
+    expect(
+      getReminderTemplateName('d1', { WHATSAPP_REMINDER_D1_TEMPLATE: 'wedding_reminder_d1' }),
+    ).toBe('wedding_reminder_d1');
+  });
+
+  it('expose les env vars canoniques pour usage côté docs / scripts', () => {
+    expect(REMINDER_TEMPLATE_ENV_VARS.d7).toBe('WHATSAPP_REMINDER_D7_TEMPLATE');
+    expect(REMINDER_TEMPLATE_ENV_VARS.d1).toBe('WHATSAPP_REMINDER_D1_TEMPLATE');
   });
 });

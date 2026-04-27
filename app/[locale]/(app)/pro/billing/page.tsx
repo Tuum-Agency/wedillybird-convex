@@ -53,6 +53,27 @@ function formatPrice(amountMinor: number): string {
   return `${(amountMinor / 100).toLocaleString('fr-FR', { minimumFractionDigits: 0 })} €`;
 }
 
+function formatPaygAmount(amountMinor: number, currency: string): string {
+  const amount = amountMinor / 100;
+  if (currency === 'EUR')
+    return `${amount.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} €`;
+  if (currency === 'XOF') return `${amount.toLocaleString('fr-FR')} FCFA`;
+  return `${amount.toLocaleString('fr-FR')} ${currency}`;
+}
+
+function formatPaygDate(timestamp: number): string {
+  return new Date(timestamp).toLocaleDateString('fr-FR', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
+}
+
+function truncateSessionId(value: string): string {
+  if (value.length <= 18) return value;
+  return `${value.slice(0, 8)}…${value.slice(-6)}`;
+}
+
 function formatPeriodEnd(timestamp: number | undefined): string | null {
   if (!timestamp) return null;
   return new Date(timestamp).toLocaleDateString('fr-FR', {
@@ -91,11 +112,15 @@ export default async function ProBillingPage({
             }
           : null;
 
-  const paygCredits =
-    (await convex.query(convexApi.getPaygCreditsByOrganization, {
-      organizationId: org._id,
-      requesterId: session.userId,
-    })) ?? { credits: 0 };
+  const paygCredits = (await convex.query(convexApi.getPaygCreditsByOrganization, {
+    organizationId: org._id,
+    requesterId: session.userId,
+  })) ?? { credits: 0 };
+
+  const paygHistory = await convex.query(convexApi.listPaygPurchasesByOrganization, {
+    organizationId: org._id,
+    requesterId: session.userId,
+  });
 
   const currentTier = org.subscriptionTier;
   const isCurrentTier = (tier: SubscriptionTier) => currentTier === tier;
@@ -318,7 +343,11 @@ export default async function ProBillingPage({
         >
           <div className="flex flex-1 flex-col gap-2">
             <div className="flex items-center gap-2">
-              <Zap className="h-4 w-4 text-[color:var(--color-gold-500)]" strokeWidth={2} aria-hidden />
+              <Zap
+                className="h-4 w-4 text-[color:var(--color-gold-500)]"
+                strokeWidth={2}
+                aria-hidden
+              />
               <h3 className="font-display text-lg italic" style={{ letterSpacing: '-0.018em' }}>
                 Pay-as-you-go
               </h3>
@@ -332,20 +361,111 @@ export default async function ProBillingPage({
               ) : null}
             </div>
             <p className="text-sm leading-relaxed text-[color:var(--color-muted-foreground)]">
-              {formatPrice(PAYG_PRO_PRICE.amountMinor)} pour activer un événement
-              ponctuel sans abonnement. Idéal pour un test ou un mariage isolé.
+              {formatPrice(PAYG_PRO_PRICE.amountMinor)} pour activer un événement ponctuel sans
+              abonnement. Idéal pour un test ou un mariage isolé.
             </p>
           </div>
           <form action={payAsYouGoAction}>
-            <Button
-              type="submit"
-              variant="outline"
-              size="md"
-              data-testid="buy-payg"
-            >
+            <Button type="submit" variant="outline" size="md" data-testid="buy-payg">
               Acheter un crédit
             </Button>
           </form>
+        </section>
+
+        {/* Historique des achats Pay-as-you-go (50 derniers, MVP sans pagination) */}
+        <section
+          className="rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-6"
+          data-testid="payg-history"
+        >
+          <header className="mb-4 flex flex-col gap-1">
+            <span className="font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-muted-foreground)] uppercase">
+              Pay-as-you-go
+            </span>
+            <h3
+              className="font-display italic"
+              style={{
+                fontSize: 'clamp(1.125rem, 1.6vw, 1.375rem)',
+                letterSpacing: '-0.018em',
+                color: 'var(--color-foreground)',
+              }}
+            >
+              Historique de vos achats
+            </h3>
+          </header>
+
+          {paygHistory.length === 0 ? (
+            <p
+              className="text-sm text-[color:var(--color-muted-foreground)]"
+              data-testid="payg-history-empty"
+            >
+              Aucun achat Pay-as-you-go pour le moment. Vos transactions apparaîtront ici dès votre
+              premier crédit acheté.
+            </p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse text-sm" data-testid="payg-history-table">
+                <thead>
+                  <tr className="border-b border-[color:var(--color-border)] text-left">
+                    <th className="py-2 pr-4 font-mono text-[10px] tracking-[0.18em] text-[color:var(--color-muted-foreground)] uppercase">
+                      Date
+                    </th>
+                    <th className="py-2 pr-4 font-mono text-[10px] tracking-[0.18em] text-[color:var(--color-muted-foreground)] uppercase">
+                      Montant
+                    </th>
+                    <th className="py-2 pr-4 font-mono text-[10px] tracking-[0.18em] text-[color:var(--color-muted-foreground)] uppercase">
+                      Devise
+                    </th>
+                    <th className="py-2 pr-4 font-mono text-[10px] tracking-[0.18em] text-[color:var(--color-muted-foreground)] uppercase">
+                      Transaction
+                    </th>
+                    <th className="py-2 font-mono text-[10px] tracking-[0.18em] text-[color:var(--color-muted-foreground)] uppercase">
+                      Statut
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {paygHistory.map((purchase) => (
+                    <tr
+                      key={purchase._id}
+                      className="border-b border-[color:var(--color-border)]/60 last:border-b-0"
+                      data-testid="payg-history-row"
+                    >
+                      <td className="py-3 pr-4 text-[color:var(--color-foreground)]">
+                        {formatPaygDate(purchase.createdAt)}
+                      </td>
+                      <td className="py-3 pr-4 text-[color:var(--color-foreground)] tabular-nums">
+                        {formatPaygAmount(purchase.amountMinor, purchase.currency)}
+                      </td>
+                      <td className="py-3 pr-4 font-mono text-xs text-[color:var(--color-muted-foreground)]">
+                        {purchase.currency}
+                      </td>
+                      <td className="py-3 pr-4 font-mono text-xs text-[color:var(--color-muted-foreground)]">
+                        <span title={purchase.stripeSessionId}>
+                          {truncateSessionId(purchase.stripeSessionId)}
+                        </span>
+                      </td>
+                      <td className="py-3">
+                        <span
+                          className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-mono text-[9px] tracking-[0.18em] uppercase"
+                          style={{
+                            background: 'oklch(26% 0.04 145)',
+                            color: 'oklch(82% 0.07 145)',
+                          }}
+                        >
+                          <span
+                            aria-hidden
+                            className="inline-block h-1.5 w-1.5 rounded-full"
+                            style={{ background: 'oklch(72% 0.08 145)' }}
+                          />
+                          Réglé
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </section>
 
         <footer className="text-center font-mono text-[10px] tracking-[0.24em] text-[color:var(--color-muted-foreground)] uppercase">

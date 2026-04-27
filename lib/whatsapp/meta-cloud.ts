@@ -2,6 +2,7 @@ import type {
   WhatsAppClient,
   WhatsAppInvitationParams,
   WhatsAppOtpParams,
+  WhatsAppReminderParams,
   WhatsAppSendResult,
 } from './types';
 
@@ -93,6 +94,51 @@ export class WhatsAppMetaCloudClient implements WhatsAppClient {
             sub_type: 'url',
             index: '0',
             parameters: [{ type: 'text', text: urlSegment }],
+          },
+        ],
+      },
+    };
+    return this.dispatch(body);
+  }
+
+  /**
+   * Envoie un rappel J-7 / J-1 via un template Meta de catégorie `utility`.
+   * Le bouton URL dynamique reçoit `urlButtonParam` comme dernier segment du
+   * lien personnalisé (en général le `qrCodeToken` de l'invité).
+   *
+   * Templates Meta attendus côté env :
+   *   - WHATSAPP_REMINDER_D7_TEMPLATE
+   *   - WHATSAPP_REMINDER_D1_TEMPLATE
+   *
+   * Tant que ces templates ne sont pas validés côté Meta Business Manager,
+   * l'envoi tombera en erreur 132001 (template not found) — d'où le fallback
+   * email-only côté `convex/reminders.ts` quand l'env var est absente.
+   */
+  async sendReminder({
+    to,
+    templateName,
+    bodyParams,
+    urlButtonParam,
+    locale = 'fr',
+  }: WhatsAppReminderParams): Promise<WhatsAppSendResult> {
+    const body = {
+      messaging_product: 'whatsapp',
+      recipient_type: 'individual',
+      to: to.replace(/^\+/, ''),
+      type: 'template',
+      template: {
+        name: templateName,
+        language: { code: locale === 'fr' ? 'fr' : 'en_US' },
+        components: [
+          {
+            type: 'body',
+            parameters: bodyParams.map((text) => ({ type: 'text', text })),
+          },
+          {
+            type: 'button',
+            sub_type: 'url',
+            index: '0',
+            parameters: [{ type: 'text', text: urlButtonParam }],
           },
         ],
       },

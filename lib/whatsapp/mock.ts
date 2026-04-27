@@ -2,6 +2,7 @@ import type {
   WhatsAppClient,
   WhatsAppInvitationParams,
   WhatsAppOtpParams,
+  WhatsAppReminderParams,
   WhatsAppSendResult,
 } from './types';
 
@@ -28,6 +29,17 @@ export class WhatsAppMockClient implements WhatsAppClient {
     return {
       success: true,
       messageId: `mock_invite_${Date.now()}`,
+      provider: 'mock',
+    };
+  }
+
+  async sendReminder(params: WhatsAppReminderParams): Promise<WhatsAppSendResult> {
+    this.logger(
+      `[whatsapp:mock] REMINDER (${params.templateName}) -> ${params.to} | body=[${params.bodyParams.join(', ')}] urlBtn="${params.urlButtonParam}"`,
+    );
+    return {
+      success: true,
+      messageId: `mock_reminder_${Date.now()}`,
       provider: 'mock',
     };
   }

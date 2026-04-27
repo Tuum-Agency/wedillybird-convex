@@ -5,7 +5,8 @@ export type ProNotificationKind =
   | 'team-member-added'
   | 'payment-received'
   | 'subscription-renewed'
-  | 'subscription-failed';
+  | 'subscription-failed'
+  | 'payg-credit-activated';
 
 export type ProNotificationInput = {
   recipientName: string;
@@ -21,6 +22,7 @@ const SUBJECTS: Record<ProNotificationKind, (org: string) => string> = {
   'payment-received': (org) => `Paiement reçu — ${org}`,
   'subscription-renewed': (org) => `Abonnement renouvelé — ${org}`,
   'subscription-failed': (org) => `Échec de paiement — ${org}`,
+  'payg-credit-activated': (org) => `Crédit Pay-as-you-go activé — ${org}`,
 };
 
 export function renderProNotification(input: ProNotificationInput): EmailRendered {

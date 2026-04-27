@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { reminderWindow } from '@/lib/reminders/window';
+import { reminderWindow, shouldSendEmail, shouldSendWhatsapp } from '@/lib/reminders/window';
 
 const MS_PER_DAY = 86_400_000;
 const MS_PER_HOUR = 3_600_000;
@@ -47,5 +47,27 @@ describe('reminderWindow', () => {
     const w1 = reminderWindow(now, 1);
     const w7 = reminderWindow(now, 7);
     expect(w1.end).toBeLessThan(w7.start);
+  });
+});
+
+describe('reminder channel routing (shouldSendEmail / shouldSendWhatsapp)', () => {
+  it('par défaut (config absente) envoie email seulement (back-compat)', () => {
+    expect(shouldSendEmail(undefined)).toBe(true);
+    expect(shouldSendWhatsapp(undefined)).toBe(false);
+  });
+
+  it('canal "email" → email seul', () => {
+    expect(shouldSendEmail('email')).toBe(true);
+    expect(shouldSendWhatsapp('email')).toBe(false);
+  });
+
+  it('canal "whatsapp" → WhatsApp seul', () => {
+    expect(shouldSendEmail('whatsapp')).toBe(false);
+    expect(shouldSendWhatsapp('whatsapp')).toBe(true);
+  });
+
+  it('canal "both" → email + WhatsApp', () => {
+    expect(shouldSendEmail('both')).toBe(true);
+    expect(shouldSendWhatsapp('both')).toBe(true);
   });
 });

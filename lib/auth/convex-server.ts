@@ -693,6 +693,17 @@ export const convexApi = {
     { organizationId: string; requesterId: string },
     { credits: number } | null
   >('paygPurchases:getCreditsByOrganization'),
+  listPaygPurchasesByOrganization: makeFunctionReference<
+    'query',
+    { organizationId: string; requesterId: string },
+    Array<{
+      _id: string;
+      amountMinor: number;
+      currency: 'EUR' | 'XOF' | 'MAD' | 'TND';
+      stripeSessionId: string;
+      createdAt: number;
+    }>
+  >('paygPurchases:listByOrganization'),
   getUserById: makeFunctionReference<
     'query',
     { userId: string },

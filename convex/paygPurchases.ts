@@ -1,12 +1,16 @@
 import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
+import { internal } from './_generated/api';
 
-const CURRENCY = v.union(
-  v.literal('EUR'),
-  v.literal('XOF'),
-  v.literal('MAD'),
-  v.literal('TND'),
-);
+const CURRENCY = v.union(v.literal('EUR'), v.literal('XOF'), v.literal('MAD'), v.literal('TND'));
+
+function formatPaygAmount(amountMinor: number, currency: string): string {
+  const amount = amountMinor / 100;
+  if (currency === 'EUR')
+    return `${amount.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} €`;
+  if (currency === 'XOF') return `${amount.toLocaleString('fr-FR')} FCFA`;
+  return `${amount.toLocaleString('fr-FR')} ${currency}`;
+}
 
 /**
  * Enregistre un achat Pay-as-you-go pro et crédite l'organisation.
@@ -52,6 +56,24 @@ export const markPurchase = mutation({
       updatedAt: now,
     });
 
+    // Best-effort owner notification: only sent on the first transition (the
+    // idempotency guard above already returned for repeat webhooks). If the
+    // owner has no email, we silently skip — the credit is still applied.
+    const owner = await ctx.db.get(org.ownerId);
+    if (owner?.email) {
+      const amountFormatted = formatPaygAmount(args.amountMinor, args.currency);
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://wedillybird.com';
+      await ctx.scheduler.runAfter(0, internal.emailActions.sendProNotification, {
+        to: owner.email,
+        recipientName: owner.fullName ?? owner.phone ?? 'Bonjour',
+        organizationName: org.name,
+        kind: 'payg-credit-activated' as const,
+        detail: `Votre achat Pay-as-you-go de ${amountFormatted} a été confirmé. Vous avez désormais ${currentCredits + 1} crédit${currentCredits + 1 > 1 ? 's' : ''} disponible${currentCredits + 1 > 1 ? 's' : ''} pour activer un événement ponctuel.`,
+        ctaLabel: 'Voir mon solde',
+        ctaUrl: `${baseUrl.replace(/\/$/, '')}/pro/billing`,
+      });
+    }
+
     return { ok: true as const, alreadyApplied: false };
   },
 });
@@ -71,5 +93,42 @@ export const getCreditsByOrganization = query({
       if (!member || member.status !== 'active') throw new Error('FORBIDDEN');
     }
     return { credits: org.paygCredits ?? 0 };
+  },
+});
+
+/**
+ * Liste les 50 derniers achats Pay-as-you-go d'une organisation, triés par
+ * date décroissante. Owner-only (le check d'accès est strictement identique
+ * à `getCreditsByOrganization`). MVP : pas de pagination — 50 achats c'est
+ * largement au-delà de la volumétrie attendue par compte pro.
+ */
+export const listByOrganization = query({
+  args: { organizationId: v.id('organizations'), requesterId: v.id('users') },
+  handler: async (ctx, { organizationId, requesterId }) => {
+    const org = await ctx.db.get(organizationId);
+    if (!org) return [];
+    if (org.ownerId !== requesterId) {
+      const member = await ctx.db
+        .query('organizationMemberships')
+        .withIndex('by_org_user', (q) =>
+          q.eq('organizationId', organizationId).eq('userId', requesterId),
+        )
+        .first();
+      if (!member || member.status !== 'active') throw new Error('FORBIDDEN');
+    }
+    const rows = await ctx.db
+      .query('paygPurchases')
+      .withIndex('by_organization', (q) => q.eq('organizationId', organizationId))
+      .collect();
+    return rows
+      .sort((a, b) => b.createdAt - a.createdAt)
+      .slice(0, 50)
+      .map((p) => ({
+        _id: p._id,
+        amountMinor: p.amountMinor,
+        currency: p.currency,
+        stripeSessionId: p.stripeSessionId,
+        createdAt: p.createdAt,
+      }));
   },
 });
