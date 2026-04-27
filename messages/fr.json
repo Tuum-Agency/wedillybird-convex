@@ -37,7 +37,7 @@
       "article3Title": "3. Compte et accès",
       "article3Body": "L'accès au Service nécessite la création d'un compte via vérification d'un numéro WhatsApp. L'Utilisateur est responsable de la confidentialité de son numéro et de toute action effectuée depuis son compte. Tout usage non autorisé doit être signalé immédiatement.",
       "article4Title": "4. Tarification et paiement",
-      "article4Body": "Le Service est proposé en formule gratuite (jusqu'à 30 invitations) et formules payantes (Sérénité 49 €, Prestige 119 €). Le quota du plan se mesure en invitations envoyées, chaque invitation pouvant représenter plusieurs personnes physiques via les accompagnants. Les paiements sont traités par Stripe. Les achats sont fermes et définitifs.",
+      "article4Body": "Le Service est proposé sans formule gratuite. Pour les particuliers organisant un mariage, deux formules en paiement unique : Essentiel (19 €, fonctionnalités de base + galerie 30 jours) et Premium (49 €, Essentiel + galerie 6 mois + album PDF). Un upsell post-mariage (+29 €) étend la galerie à 5 ans et ajoute le livre photo HD. Pour les professionnels, abonnement mensuel ou annuel (Starter 89 €/mois, Business 179 €/mois, Agency 349 €/mois, -20 % en annuel) ou paiement à l'événement (69 €). Les paiements sont traités par Stripe (Europe) ou CinetPay (Afrique de l'Ouest). Remboursement intégral sous 7 jours si l'événement n'a pas été envoyé. En cas d'annulation du mariage, report gratuit vers une autre date.",
       "article5Title": "5. Propriété intellectuelle",
       "article5Body": "L'Utilisateur conserve la propriété des contenus qu'il téléverse. Il accorde à Wedillybird une licence non-exclusive d'usage de ces contenus aux seules fins du fonctionnement du Service. Wedillybird conserve la propriété de la plateforme, du code et de la marque.",
       "article6Title": "6. Responsabilité",
@@ -59,7 +59,7 @@
       "retentionTitle": "Durée de conservation",
       "retentionBody": "Données du compte : durée de l'abonnement + 3 ans. Données de paiement : durée légale (10 ans pour la facturation). Logs techniques : 12 mois maximum.",
       "subprocessorsTitle": "Sous-traitants",
-      "subprocessorsBody": "Convex (base de données, US), Vercel (hébergement, US/EU), Stripe (paiement, EU/US), Meta WhatsApp Cloud API (envoi messages, EU/US). Tous engagés par des clauses contractuelles types ou des mécanismes équivalents.",
+      "subprocessorsBody": "Convex (base de données, US), Vercel (hébergement, US/EU), Stripe (paiement, EU/US), Meta WhatsApp Cloud API (envoi messages, EU/US), Amazon Rekognition Faces (indexation temporaire des visages pour la recherche photo, EU). Données minimisées, aucune revente ni partage marketing avec des tiers. Tous engagés par des clauses contractuelles types ou des mécanismes équivalents.",
       "rightsTitle": "Vos droits",
       "rightsBody": "Accès, rectification, effacement, opposition, portabilité, limitation. Pour exercer un droit, écrivez à privacy@wedillybird.com. Vous pouvez également déposer une réclamation auprès de la CNIL.",
       "contactTitle": "Contact",
@@ -556,7 +556,16 @@
     "openGallery": "Galerie",
     "publish": "Publier",
     "unpublish": "Repasser en brouillon",
-    "draftHint": "Cet événement est en brouillon. Publiez-le pour activer les invitations et la galerie."
+    "draftHint": "Cet événement est en brouillon. Publiez-le pour activer les invitations et la galerie.",
+    "planLabel": "Forfait",
+    "planEssential": "Essentiel",
+    "planPremium": "Premium",
+    "planEssentialPending": "Essentiel · à activer",
+    "planPremiumPending": "Premium · à activer",
+    "planNone": "Aucun forfait",
+    "planUpsellSuffix": "· Rétention 5 ans",
+    "activatePlan": "Activer un forfait",
+    "publishLockedHint": "Activez votre forfait pour publier votre invitation et envoyer les RSVP. Le paiement est unique, pas d'abonnement."
   },
   "Guests": {
     "title": "Liste d'invitations",
@@ -639,6 +648,10 @@
     "approve": "Approuver",
     "reject": "Refuser",
     "remove": "Supprimer",
+    "downloadAll": "Tout télécharger en ZIP",
+    "downloadOne": "Télécharger",
+    "downloading": "Préparation du ZIP…",
+    "downloadEmpty": "Aucune photo à télécharger",
     "filters": {
       "all": "Toutes",
       "pending": "En attente",
@@ -646,15 +659,47 @@
       "rejected": "Refusées"
     },
     "status": {
-      "pending": "En attente",
+      "pending": "Vérification en cours",
       "approved": "Approuvée",
-      "rejected": "Refusée"
+      "rejected": "Refusée — contenu inapproprié"
     },
+    "moderationNotice": "Toutes les photos sont vérifiées automatiquement (contenu adulte, violence, contenu choquant). La vérification prend quelques secondes. Vous pouvez forcer l'approbation manuellement si une photo a été refusée à tort.",
     "errors": {
       "size": "Image trop volumineuse",
       "type": "Format non supporté",
       "network": "Échec de l'envoi, vérifiez votre connexion",
       "generic": "Une erreur est survenue"
+    },
+    "lockedTitle": "Galerie verrouillée",
+    "lockedHint": "Activez un forfait Essentiel ou Premium pour ouvrir la galerie photo et la moderation.",
+    "lockedCta": "Voir les forfaits",
+    "expiredTitle": "Galerie expirée",
+    "expiredHint": "La période de rétention de votre forfait est terminée. Étendez l'accès à 5 ans avec l'upsell post-mariage.",
+    "expiredCta": "Étendre via l'upsell",
+    "faceSearch": {
+      "trigger": "Me retrouver dans les photos",
+      "triggerGuest": "Trouver mes photos",
+      "title": "Recherche par visage",
+      "close": "Fermer",
+      "consentTitle": "Avant de commencer",
+      "consentBody": "Votre photo est analysée par Amazon Rekognition pour identifier les photos où vous apparaissez. Elle n'est ni stockée ni associée à votre profil. Le résultat reste local à cette session.",
+      "consentAccept": "J'accepte, continuer",
+      "captureTitle": "Choisissez votre photo",
+      "uploadCta": "Choisir une photo",
+      "cameraCta": "Prendre un selfie",
+      "cameraUnavailable": "Caméra indisponible sur cet appareil — utilisez l'upload",
+      "searching": "Analyse en cours…",
+      "resultFound": "{count, plural, =1 {1 photo trouvée} other {# photos trouvées}}",
+      "viewMatches": "Voir mes photos",
+      "resultEmpty": "Aucune photo trouvée. Essayez avec une autre photo de vous.",
+      "retry": "Réessayer",
+      "showAll": "Voir toutes les photos",
+      "errors": {
+        "noFace": "Aucun visage détecté dans votre photo. Essayez avec une photo plus claire.",
+        "notIndexed": "L'indexation des visages n'est pas encore terminée. Réessayez dans quelques minutes.",
+        "forbidden": "Vous n'avez pas accès à cette galerie.",
+        "unknown": "Une erreur est survenue. Réessayez."
+      }
     }
   },
   "Checkin": {
@@ -731,6 +776,11 @@
     }
   },
   "Plans": {
+    "tiers": {
+      "essential": "Essentiel",
+      "premium": "Premium"
+    },
+    "retentionShort": "Galerie {days, plural, =1 {# jour} other {# jours}} après le mariage",
     "features": {
       "invitationPage": "Page d'invitation publique personnalisée",
       "qrCodes": "QR code unique pour chaque invité",
@@ -745,15 +795,15 @@
     }
   },
   "Upgrade": {
-    "title": "Choisir votre formule",
-    "subtitle": "Sélectionnez l'expérience adaptée à votre mariage. Paiement unique, pas d'abonnement.",
+    "title": "Activer votre forfait",
+    "subtitle": "Paiement unique, pas d'abonnement. Vous pourrez étendre la galerie à 5 ans après le mariage.",
     "selectPlan": "Choisir cette formule",
     "redirecting": "Redirection…",
     "alreadyPremium": "Vous êtes déjà sur la formule la plus complète.",
     "galleryRetention": "Galerie active {days, plural, =1 {# jour} other {# jours}} après le mariage",
     "plans": {
-      "essential": "Essentiel",
-      "premium": "Premium"
+      "essential": "Essentiel — 19 €",
+      "premium": "Premium — 49 €"
     },
     "successTitle": "Paiement confirmé",
     "successBody": "Votre événement est désormais en formule {plan}. Galerie active jusqu'à J+{days}.",
@@ -762,6 +812,8 @@
     "cancelledTitle": "Paiement annulé",
     "cancelledBody": "Aucun montant n'a été prélevé. Vous pouvez réessayer à tout moment.",
     "backToEvent": "Retour à l'événement",
+    "activatePending": "Activer mon forfait",
+    "pendingHint": "Forfait choisi : {plan}. Activez-le pour publier votre invitation et envoyer les RSVP.",
     "errors": {
       "invalid_input": "Données invalides",
       "invalid_plan_price": "Formule indisponible pour cette devise",
@@ -776,7 +828,7 @@
   },
   "EventCreate": {
     "title": "Créer votre mariage",
-    "description": "En 4 étapes, configurez l'essentiel. Vous pourrez tout modifier plus tard.",
+    "description": "Configurez l'essentiel. Vous pourrez tout modifier plus tard.",
     "stepCouple": "Le couple",
     "stepCoupleDescription": "Les prénoms qui apparaîtront sur les invitations.",
     "stepDate": "Date et fuseau",
@@ -785,6 +837,9 @@
     "stepVenueDescription": "Où vos invités vous retrouveront.",
     "stepTheme": "Thème visuel (optionnel)",
     "stepThemeDescription": "Personnalisez les couleurs de votre invitation.",
+    "stepPlan": "Choisir votre forfait",
+    "stepPlanDescription": "Paiement unique sans abonnement. Vous activerez votre forfait juste après pour publier votre invitation.",
+    "stepPlanLegal": "Le paiement n'est pas prélevé tant que vous n'avez pas activé le forfait. Remboursement intégral sous 7 jours si vous changez d'avis avant l'envoi des invitations.",
     "titleLabel": "Titre de l'événement",
     "titlePlaceholder": "Mariage de Fatou & Amadou",
     "partnerALabel": "Partenaire 1",

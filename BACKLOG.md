@@ -11,7 +11,7 @@ Reproduire `.env.local` sur Vercel → Project Settings → Environment Variable
 
 - **Convex** : `CONVEX_DEPLOY_KEY` (généré dans Convex dashboard), `NEXT_PUBLIC_CONVEX_URL` (URL du déploiement prod), `NEXT_PUBLIC_CONVEX_SITE_URL`
 - **Session** : `SESSION_SECRET` (`openssl rand -hex 32`, **distinct** du dev)
-- **Stripe** (live mode) : `STRIPE_SECRET_KEY` (`sk_live_…`), `STRIPE_WEBHOOK_SECRET`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` (`pk_live_…`), `STRIPE_PRICE_STARTER`, `STRIPE_PRICE_BUSINESS`, `STRIPE_PRICE_AGENCY` (à recréer avec la grille canonique 89/179/349 €)
+- **Stripe** (live mode) : `STRIPE_SECRET_KEY` (`sk_live_…`), `STRIPE_WEBHOOK_SECRET`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` (`pk_live_…`), `STRIPE_PRICE_ESSENTIAL`, `STRIPE_PRICE_PREMIUM`, `STRIPE_PRICE_POST_EVENT_UPSELL` (B2C 19/49/29 €), `STRIPE_PRICE_STARTER`/`STRIPE_PRICE_BUSINESS`/`STRIPE_PRICE_AGENCY` (mensuel 89/179/349 €) + `STRIPE_PRICE_*_ANNUAL` (annuel -20%) + `STRIPE_PRICE_PAYG_EVENT` (Pay-as-you-go 69 €). Tous générés par `scripts/sync-stripe-prices.ts`.
 - **AWS / SES** : `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION=eu-west-3`, `AWS_ACCOUNT_ID`, `SES_FROM_ADDRESS=noreply@wedillybird.com`, `SES_CONFIGURATION_SET=wedillybird-default`, `EMAIL_DRIVER=ses`
 - **S3 / CloudFront** : `S3_BUCKET=wedillybird-media-prod`, `CLOUDFRONT_DOMAIN=media.wedillybird.com`, `CLOUDFRONT_DISTRIBUTION_ID=E3O56ZG0J0BA9J`
 - **CinetPay** (quand ouvert) : `CINETPAY_API_KEY`, `CINETPAY_SITE_ID`
@@ -26,7 +26,7 @@ Reproduire `.env.local` sur Vercel → Project Settings → Environment Variable
 4. **DNS wildcard `*.wedillybird.com`** — Vercel domain + registrar, requis pour multi-tenant pro (sous-domaines `slug.wedillybird.com`).
 5. **WhatsApp template `team_invitation`** — à créer + valider dans Meta Business Manager.
 6. **Boîte `hello@wedillybird.com`** — vérifier MX configuré sur le domaine, sinon les emails de contact bouncent silencieusement.
-7. **Pricing alignment** — la grille canonique (Essentiel 19€, Premium 49€, Pros 89/179/349 €/mo) doit être recréée dans Stripe Prices ; les `price_1TQ712…` actuels divergent (cf. CLAUDE.md).
+7. **Pricing alignment** — code aligné sur la grille canonique ✅ (cf. section "Pricing alignment Stripe Prices" plus bas). Reste à lancer `scripts/sync-stripe-prices.ts` côté Stripe live et mettre à jour les env vars Vercel.
 8. **Rotation clé AWS** `AKIAXCZRV3YXAVVRYIWU` — clé déjà exposée en dev, à rotater avant ouverture trafic prod (cf. "Rotation de l'access key initiale").
 
 ### Pré-déploiement checklist
@@ -211,18 +211,39 @@ Décision à prendre avant d'implémenter : recommander A pour le MVP, garder B/
 
 ## Refactoring critique (avant prod élargie)
 
-### Pricing alignment Stripe Prices
+### Pricing alignment Stripe Prices ✅ (multi-devises)
 - Source de vérité : `.context/redesign-direction.md` section "Pricing figé"
-- État actuel : `lib/payments/plans.ts` aligné côté code (Essentiel 19€, Premium 49€, +29€ upsell post-mariage)
-- À faire côté Stripe :
-  - Recréer les Prices test/prod : Particuliers (19€ + 49€ + 29€ upsell) + Pros récurrents (89€/179€/349€/mo)
-  - Mettre à jour `STRIPE_PRICE_*` env vars dev + Vercel
-  - Supprimer/désactiver les anciens `price_1TQ712…` divergents
-  - Tester le checkout sur chaque tier
+- État actuel :
+  - `lib/payments/plans.ts` aligné (Essentiel 19€, Premium 49€, +29€ upsell post-mariage) ✅
+  - `lib/payments/subscriptions.ts` aligné sur la grille pros (Starter 89€/179€/349€/mo + variantes annuelles -20% arrondies au € supérieur + Pay-as-you-go 69€/event one-shot) — étendus avec `prices: Record<Currency, number>` (EUR/XOF/MAD/TND) ✅
+  - `convex/schema.ts` : ajout `events.pendingPlanTier` (forfait choisi avant paiement) ✅
+  - Étape "Choisir votre forfait" ajoutée dans `EventCreateWizard` (couple uniquement, pro saute) ✅
+  - Bouton Publier disabled tant qu'aucun paiement enregistré ✅
+  - Helpers `priceIdForPlan(plan, currency)` (B2C) et `priceIdForTier(tier, billing, currency)` (Pro mensuel/annuel) — multi-devises avec rétro-compat env legacy ✅
+  - Driver Stripe one-shot préfère `STRIPE_PRICE_<PLAN>_<CURRENCY>` (puis legacy `STRIPE_PRICE_<PLAN>` comme alias EUR) quand l'env var existe (fallback `price_data` sinon) ✅
+  - `tierForPriceId(priceId)` retourne désormais `{ tier, billing, currency }` et reconnaît les variantes `_MAD` / `_TND` ✅
+  - Script ops `scripts/sync-stripe-prices.ts` étendu : crée 1 Price Stripe par devise supportée (EUR + MAD + TND), idempotent, `--dry-run`, tolère les devises non supportées par le compte (warning + skip) ✅
+  - Stripe Prices EUR + MAD générés en TEST sur le compte Wedillybird ✅
+- À faire côté Stripe (live mode) :
+  - Lancer `pnpx tsx scripts/sync-stripe-prices.ts --dry-run` pour preview, puis sans flag pour appliquer
+  - Mettre à jour `STRIPE_PRICE_*_EUR` / `STRIPE_PRICE_*_MAD` / `STRIPE_PRICE_*_TND` env vars dev + Vercel (le script imprime le bloc copy-pastable)
+  - Tester le checkout sur chaque tier × devise supportée
+- TND : **non créé** côté compte test actuel (compte Stripe Wedillybird n'a pas de bank account TND → erreur `Invalid currency: tnd`). Pour activer le marché Tunisie : ouvrir un bank account TND dans Stripe Dashboard puis relancer le script. Tant qu'il n'y a pas de Price TND, le driver tombe sur `price_data` inline pour TND (fonctionnel mais sans Price stable).
+- XOF : routé vers CinetPay par design (mobile money Wave/Orange Money). Le script ne crée pas de Price XOF côté Stripe. **Bloqueur** : `CINETPAY_API_KEY` + `CINETPAY_SITE_ID` à configurer (cf. section "CinetPay driver").
+- Pay-as-you-go pro **code-side** : MVP livré ✅
+  - Schema : `organizations.paygCredits` (nb crédits non-consommés) + table `paygPurchases` (idempotent par `stripeSessionId`)
+  - Action server `payAsYouGoAction` + carte UI sur `/pro/billing` ("Acheter un crédit", 69 €)
+  - Driver Stripe `createPaygCheckout` (mode `payment`, metadata `kind=payg`)
+  - Webhook handler étendu : `payg.purchased` → `paygPurchases:markPurchase` (incrémente `paygCredits`)
+  - Mutation Convex `paygPurchases:markPurchase` + query `getCreditsByOrganization`
+  - Badge "N crédit(s) dispo" sur la page billing pro
+- **Reste à faire pour PAYG** :
+  - Gating à la création/publication d'event sous PAYG : décrémenter `paygCredits` quand l'orga sans subscription crée un event, refuser si `paygCredits === 0`. Aujourd'hui le crédit est tracé mais ne contraint rien — il faut le brancher dans `events:create` ou `events:publish` côté Convex.
+  - Notification email "Crédit PAYG activé" à l'achat (similaire à `renderProNotification kind=payment-received`).
+  - Historique des achats PAYG dans le dashboard pro (table `paygPurchases` à exposer en query).
 
-### CGU article 4 — réécriture
-- `messages/fr.json:39` (article 4 des CGU) parle encore d'une "formule gratuite (jusqu'à 30 invitations)" + plans "Sérénité 49 €, Prestige 119 €" — obsolète vs grille canonique
-- À réécrire : 2 plans particuliers (Essentiel 19€, Premium 49€) + upsell post-mariage 29€ + tier Pros (Starter 89€, Business 179€, Agency 349€). Mention que les paiements sont fermes et définitifs (déjà OK), remboursement 100% sous 7j si event non envoyé.
+### CGU article 4 — réécriture ✅
+- `messages/fr.json:40` réécrit pour la grille canonique (Essentiel 19 €, Premium 49 €, Upsell +29 €, plans pros 89/179/349 €/mo, PAYG 69 €). Mention Stripe (Europe) / CinetPay (Afrique de l'Ouest), remboursement 100 % sous 7j, report gratuit en cas d'annulation.
 
 ## Câblage métier emails (post-PR #12)
 
@@ -240,3 +261,20 @@ La plomberie `lib/email/` est en place avec drivers SES + mock et 3 templates. R
 
 ### Facture Stripe (`renderStripeInvoice`)
 - Bloqué par item « PDF facture » (cf. Paiements) — l'email peut linker vers la page hosted invoice de Stripe en attendant le PDF self-hosted
+
+## Galerie — recherche par visage (face search) — câblage et cleanup
+
+État livré (avril 2026) :
+- Schema : `events.faceCollectionId` + table `photoFaces` (`by_photo`/`by_event`/`by_face`)
+- Lambda `infra/lambdas/moderation.ts` : ensure collection + IndexFaces (max 5 par photo) + callback HMAC distinct vers `/lambda/photo-faces-callback`. Best-effort : un échec face indexing ne bloque pas la modération
+- Convex HTTP : `/lambda/photo-faces-callback` + mutation interne `photos:internalRegisterPhotoFaces` (idempotente sur `photoId + faceId`)
+- Action publique `photos:searchPhotosByFace({ eventId, selfieBase64, requesterId?, guestToken? })` : autorisation owner / collaborator / guestToken, distingue `NO_FACE_DETECTED` / `NO_COLLECTION_YET` / `FORBIDDEN` / `INVALID_TOKEN` / `UNKNOWN`. Le selfie n'est jamais persisté
+- IAM Lambda CDK : ajout `CreateCollection`, `DescribeCollection`, `IndexFaces`, `DeleteCollection`
+- Tests unitaires : `tests/unit/convex/face-search.test.ts` (23 cases : decode, wrapper Rekognition, response builder)
+
+À faire :
+- **Cleanup à la suppression event** : la mutation `events:remove` / `events:archive` n'existe pas encore. Quand elle sera ajoutée, déclencher `internal.photosFaceSearch.deleteFaceCollection({ collectionId: event.faceCollectionId })` après suppression DB pour libérer la collection Rekognition (sinon = leak côté AWS, ~5 c$/mois par 1000 visages stockés)
+- **Cleanup `photoFaces` à la suppression d'une photo individuelle** : `photos:remove` ne supprime aujourd'hui que la photo + l'objet S3, pas les rows `photoFaces` associées. À ajouter (boucle index `by_photo` → ctx.db.delete) + `Rekognition.DeleteFaces` pour libérer les Face IDs côté AWS
+- **IAM utilisateur AWS Convex (`wedillybird-dev` / `wedillybird-app-runtime`)** : ajouter `rekognition:SearchFacesByImage` + `rekognition:DeleteFaces` au scope-down listé dans la section "AWS — opérations & sécurité" (l'action Convex utilise `AWS_ACCESS_KEY_ID/SECRET` côté Convex env, pas le rôle IAM Lambda)
+- **UI Agent B** : composant `<FaceSearchModal />` qui prend webcam/file → base64 → server action → galerie filtrée par `photoIds`. Placer le bouton "Retrouver mes photos" sur `/i/[token]/gallery` (côté guest) ET `/events/[id]/gallery` (côté owner pour debug)
+- **Quota / rate-limit** : aucun quota par event ou par invité aujourd'hui. À considérer si abus (selfies répétés) — typiquement debounce côté UI + soft-limit Convex sur `searchPhotosByFace` par `requesterId` ou `guestToken` sur fenêtre 1 min
