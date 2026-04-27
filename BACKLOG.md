@@ -165,6 +165,50 @@ Reproduire `.env.local` sur Vercel → Project Settings → Environment Variable
   - Bonus : tester le rejet `PHONE_TAKEN` avec un numéro déjà pris en prod
 - Bloqué par : déploiement preview Vercel (cf. checklist Production en haut)
 
+## Templates WhatsApp Cloud API
+
+### Contexte
+Tout message WhatsApp envoyé via Meta Cloud API à un user qui n'a pas initié la conversation **doit utiliser un template pré-approuvé**. Cycle :
+
+1. Soumission via Meta Business Manager (catégorie `authentication` / `utility` / `marketing`)
+2. Validation Meta sous 24-48h (refus possibles si texte non conforme)
+3. Une fois approuvé, appelable via API avec `template.name` + `language.code` + `components.parameters`
+4. Nom unique par WABA → impossible d'avoir 2 templates `wedding_invitation` différents
+
+### Templates système à créer
+Tous nommés en `snake_case`, créés une fois côté Wedillybird, validés Meta, stockés dans env var (déjà le pattern `WHATSAPP_OTP_TEMPLATE=otp_code`) :
+
+| Nom | Catégorie | Usage | Variables | État |
+|---|---|---|---|---|
+| `otp_code` | authentication | Login WhatsApp + linking | code | ✅ utilisé |
+| `team_invitation` | utility | Pro invite collaborateur | nom équipe, lien token | À créer (cf. Multi-utilisateurs) |
+| `wedding_invitation` | marketing | Invitation principale couple → invités | prénom invité, prénoms couple, date, lien personnalisé | À créer |
+| `rsvp_reminder_d7` | utility | Rappel J-7 invités `attending` qui ne sont pas confirmés | prénom invité, prénoms couple, date, lien | À créer |
+| `rsvp_reminder_d1` | utility | Rappel veille | prénom invité, prénoms couple, lieu, lien | À créer |
+| `rsvp_confirmation` | utility | Accusé réception après que l'invité a répondu RSVP | prénom invité, statut (présent/absent), prénoms couple | À créer |
+
+### Personnalisation par le couple — décision architecture pending
+Trois options pour permettre au couple de personnaliser son message d'invitation :
+
+**Option A — Templates Wedillybird-only (recommandé MVP)**
+Le couple choisit parmi 3-4 styles préfabriqués (formel, chaleureux, africain, minimal) + remplit les variables (prénoms, mot perso libre dans une variable text de 60 chars max). Pas de soumission Meta côté couple. Simple, rapide.
+
+**Option B — Templates 100% custom par couple**
+Le couple écrit son texte complet, Wedillybird le soumet à Meta via API Business Management, attend la validation, puis envoie. Complexe : workflow asynchrone, gestion des refus, nom unique par WABA (suffixe couple slug ?), 24-48h d'attente avant que l'invitation puisse partir.
+
+**Option C — Hybrid**
+Default templates Wedillybird-prefab + option "template custom" réservée à un tier supérieur (Premium ou tier dédié). Coût/effort plus élevé, mais l'attente de validation est explicite.
+
+Décision à prendre avant d'implémenter : recommander A pour le MVP, garder B/C en option Pro post-MVP.
+
+### Travail à faire (un fois option choisie)
+- Créer les 5 templates dans Meta Business Manager + soumettre pour validation
+- Stocker les noms validés dans env vars (`WHATSAPP_INVITATION_TEMPLATE`, `WHATSAPP_REMINDER_D7_TEMPLATE`, etc.)
+- Étendre `lib/whatsapp/meta-cloud.ts` avec une fonction générique `sendTemplate({ to, templateName, languageCode, components })`
+- (Si Option A) UI pour choisir le style + saisir variables + preview
+- (Si Option B/C) Workflow Convex de soumission Meta + polling validation + notif au couple quand approuvé
+- Mutation cron qui scanne `guests` éligibles aux rappels et envoie via WhatsApp (déjà partiellement câblé pour SES dans `convex/reminders.ts`, à dupliquer pour WhatsApp)
+
 ## Refactoring critique (avant prod élargie)
 
 ### Pricing alignment Stripe Prices
