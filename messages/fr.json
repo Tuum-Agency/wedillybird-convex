@@ -4,6 +4,7 @@
     "tagline": "Votre mariage, organisé sans stress",
     "signIn": "Se connecter",
     "signUp": "Créer un compte",
+    "getStarted": "Démarrer",
     "signOut": "Se déconnecter",
     "continue": "Continuer",
     "cancel": "Annuler",
@@ -369,8 +370,8 @@
     }
   },
   "Auth": {
-    "signInTitle": "Connexion par WhatsApp",
-    "signInDescription": "Entrez votre numéro WhatsApp, nous vous envoyons un code à 6 chiffres.",
+    "signInTitle": "Bienvenue sur Wedillybird",
+    "signInDescription": "Que vous ayez déjà un compte ou non — entrez votre numéro WhatsApp ou votre email, on s'occupe du reste.",
     "verifyTitle": "Vérifiez votre code",
     "verifyDescription": "Nous avons envoyé un code à {phone}. Il expire dans 5 minutes.",
     "changeNumber": "Changer de numéro",

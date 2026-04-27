@@ -56,13 +56,14 @@ test.describe('Landing page', () => {
     await expect(pricing.getByTestId('upsell-note')).toBeVisible();
   });
 
-  test("le CTA principal d'inscription est présent dans le header", async ({ page }) => {
+  test('le CTA principal "Démarrer" est présent dans le header', async ({ page }) => {
     await page.goto('/');
-    // V4 : un seul CTA dans le header (le sign-in/sign-up est un flow unifié
-    // OTP WhatsApp, donc un seul bouton "Créer un compte"). Le lien "déjà un
-    // compte ?" sera offert sur la page sign-in elle-même.
+    // V4 : un seul CTA neutre "Démarrer" dans le header. Le flow OTP WhatsApp
+    // est unifié (sign-in = sign-up côté backend) — le libellé reste neutre
+    // pour ne pas confondre les utilisateurs revenants. Le message rassurant
+    // ("Que vous ayez déjà un compte ou non...") est sur la page /sign-in.
     const header = page.getByRole('banner');
-    await expect(header.getByRole('link', { name: /créer un compte/i })).toBeVisible();
+    await expect(header.getByRole('link', { name: /démarrer/i })).toBeVisible();
   });
 
   test('lang html vaut fr', async ({ page }) => {

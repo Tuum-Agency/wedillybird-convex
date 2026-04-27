@@ -116,7 +116,7 @@ function LandingShell({
               href="/sign-up"
               className={cn(buttonVariants({ variant: 'primary', size: 'sm' }))}
             >
-              {tCommon('signUp')}
+              {tCommon('getStarted')}
             </Link>
           </div>
         </div>
