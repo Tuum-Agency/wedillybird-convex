@@ -18,12 +18,13 @@ describe('INVITATION_STYLES', () => {
     ]);
   });
 
-  it('chaque style a les 5 placeholders {{1}}…{{5}}', () => {
+  it('chaque style a les 4 placeholders {{1}}…{{4}} séquentiels (Meta exige indices contigus)', () => {
     for (const style of Object.values(INVITATION_STYLES)) {
       expect(style.bodyText).toContain('{{1}}');
       expect(style.bodyText).toContain('{{2}}');
       expect(style.bodyText).toContain('{{3}}');
-      expect(style.bodyText).toContain('{{5}}');
+      expect(style.bodyText).toContain('{{4}}');
+      expect(style.bodyText).not.toContain('{{5}}');
     }
   });
 
@@ -54,7 +55,7 @@ describe('renderInvitationPreview', () => {
     expect(out).toContain('30 avril 2026');
     expect(out).toContain('On compte sur toi !');
     expect(out).not.toContain('{{1}}');
-    expect(out).not.toContain('{{5}}');
+    expect(out).not.toContain('{{4}}');
   });
 
   it('substitue les variables dans le body classic', () => {

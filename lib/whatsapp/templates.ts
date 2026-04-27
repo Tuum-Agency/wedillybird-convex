@@ -2,12 +2,15 @@
  * Définition des templates d'invitation WhatsApp.
  *
  * Chaque style correspond à un template Meta validé (catégorie `marketing`),
- * avec 5 variables au même index pour rester homogène :
+ * avec 4 variables séquentielles dans le body :
  *   {{1}} = prénom de l'invité
  *   {{2}} = prénoms du couple ("Mamadou & Marie")
  *   {{3}} = date formatée ("30 avril 2026")
- *   {{4}} = lien d'invitation personnalisé (URL paramètre du bouton CTA)
- *   {{5}} = mot perso du couple (max 60 chars — peut être vide)
+ *   {{4}} = mot perso du couple (max 60 chars — fallback poli si vide)
+ *
+ * Le bouton URL utilise une variable INDÉPENDANTE indexée à partir de {{1}}
+ * côté bouton — c'est le qrCodeToken de l'invité, pas le mot perso. Meta
+ * traite les vars body et bouton dans deux numérotations distinctes.
  *
  * Les `bodyText` ci-dessous correspondent **exactement** au texte qui sera
  * soumis à Meta Business Manager pour validation. Toute modification ici
@@ -25,7 +28,7 @@ export interface InvitationStyle {
   metaTemplateName: string;
   /** Env var qui peut override le metaTemplateName pour ce style. */
   metaTemplateEnvVar: string;
-  /** Body avec placeholders {{1}}…{{5}} — copie exacte du template Meta. */
+  /** Body avec placeholders {{1}}…{{4}} — copie exacte du template Meta. */
   bodyText: string;
   /** Label CTA du bouton URL (max 25 chars selon Meta). */
   ctaLabel: string;
@@ -37,7 +40,7 @@ export const INVITATION_STYLES: Record<InvitationStyleId, InvitationStyle> = {
     metaTemplateName: 'wedding_invitation_classic',
     metaTemplateEnvVar: 'WHATSAPP_INVITATION_TEMPLATE_CLASSIC',
     bodyText:
-      "Bonjour {{1}},\n\n{{2}} ont l'honneur de vous convier à leur mariage le {{3}}.\n\n{{5}}\n\nNous vous remercions de bien vouloir confirmer votre présence en cliquant sur le bouton ci-dessous.",
+      "Bonjour {{1}},\n\n{{2}} ont l'honneur de vous convier à leur mariage le {{3}}.\n\n{{4}}\n\nNous vous remercions de bien vouloir confirmer votre présence en cliquant sur le bouton ci-dessous.",
     ctaLabel: 'Confirmer ma présence',
   },
   warm: {
@@ -45,7 +48,7 @@ export const INVITATION_STYLES: Record<InvitationStyleId, InvitationStyle> = {
     metaTemplateName: 'wedding_invitation_warm',
     metaTemplateEnvVar: 'WHATSAPP_INVITATION_TEMPLATE_WARM',
     bodyText:
-      "Coucou {{1}} !\n\n{{2}} se marient le {{3}} et nous serions ravis de vous compter parmi nous.\n\n{{5}}\n\nRéponds vite à l'invitation ci-dessous, on a hâte de te voir.",
+      "Coucou {{1}} !\n\n{{2}} se marient le {{3}} et nous serions ravis de vous compter parmi nous.\n\n{{4}}\n\nRéponds vite à l'invitation ci-dessous, on a hâte de te voir.",
     ctaLabel: 'Répondre',
   },
   african: {
@@ -53,14 +56,15 @@ export const INVITATION_STYLES: Record<InvitationStyleId, InvitationStyle> = {
     metaTemplateName: 'wedding_invitation_african',
     metaTemplateEnvVar: 'WHATSAPP_INVITATION_TEMPLATE_AFRICAN',
     bodyText:
-      'Cher·chère {{1}},\n\nAvec joie et bénédictions, {{2}} célèbrent leur union le {{3}}. Votre présence sera notre plus belle bénédiction.\n\n{{5}}\n\nMerci de confirmer votre venue ci-dessous.',
+      'Cher·chère {{1}},\n\nAvec joie et bénédictions, {{2}} célèbrent leur union le {{3}}. Votre présence sera notre plus belle bénédiction.\n\n{{4}}\n\nMerci de confirmer votre venue ci-dessous.',
     ctaLabel: 'Confirmer ma venue',
   },
   minimal: {
     id: 'minimal',
     metaTemplateName: 'wedding_invitation_minimal',
     metaTemplateEnvVar: 'WHATSAPP_INVITATION_TEMPLATE_MINIMAL',
-    bodyText: '{{1}}, vous êtes invité·e.\n\n{{2}}\n{{3}}\n\n{{5}}',
+    bodyText:
+      'Save the date, {{1}}.\n\n{{2}}\nle {{3}}\n\n{{4}}\n\nMerci de répondre à cette invitation.',
     ctaLabel: 'Voir l’invitation',
   },
   festive: {
@@ -68,7 +72,7 @@ export const INVITATION_STYLES: Record<InvitationStyleId, InvitationStyle> = {
     metaTemplateName: 'wedding_invitation_festive',
     metaTemplateEnvVar: 'WHATSAPP_INVITATION_TEMPLATE_FESTIVE',
     bodyText:
-      '🎉 {{1}}, on a une grande nouvelle !\n\n{{2}} se disent OUI le {{3}} et on tient absolument à célébrer ce jour avec vous.\n\n{{5}}\n\nRendez-vous sur l’invitation pour confirmer votre présence.',
+      '🎉 {{1}}, on a une grande nouvelle !\n\n{{2}} se disent OUI le {{3}} et on tient absolument à célébrer ce jour avec vous.\n\n{{4}}\n\nRendez-vous sur l’invitation pour confirmer votre présence.',
     ctaLabel: 'Je viens fêter ça !',
   },
 };
@@ -92,7 +96,9 @@ export function renderInvitationPreview(
     guestFirstName: string;
     coupleNames: string;
     eventDate: string;
-    invitationUrl: string;
+    /** Conservé pour compat — l'URL n'est plus dans le body, mais reste utile
+     * pour des previews qui veulent l'afficher hors du template (ex: footer). */
+    invitationUrl?: string;
     personalMessage: string;
   },
 ): string {
@@ -102,8 +108,7 @@ export function renderInvitationPreview(
     .replace('{{1}}', params.guestFirstName)
     .replace('{{2}}', params.coupleNames)
     .replace('{{3}}', params.eventDate)
-    .replace('{{4}}', params.invitationUrl)
-    .replace('{{5}}', personalMessage);
+    .replace('{{4}}', personalMessage);
 }
 
 /**

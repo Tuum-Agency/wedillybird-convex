@@ -34,6 +34,11 @@ export default async function MessagingPage({
   });
   if (!event) notFound();
 
+  const customTemplates = await convex.query(convexApi.listWhatsappTemplatesByEvent, {
+    eventId,
+    requesterId: session!.userId,
+  });
+
   const eventDateFormatted = new Intl.DateTimeFormat('fr', {
     day: 'numeric',
     month: 'long',
@@ -88,7 +93,10 @@ export default async function MessagingPage({
             templateStyle: event.messagingConfig?.templateStyle ?? DEFAULT_INVITATION_STYLE,
             personalMessage: event.messagingConfig?.personalMessage ?? '',
             preferredChannel: event.messagingConfig?.preferredChannel ?? 'whatsapp',
+            customTemplateId: event.messagingConfig?.customTemplateId,
+            templateNotifyChannel: event.messagingConfig?.templateNotifyChannel ?? 'email',
           }}
+          customTemplates={customTemplates}
         />
       </div>
     </AppShell>

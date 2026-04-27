@@ -76,7 +76,6 @@ export const broadcast = action({
 
     for (const guest of guests) {
       const guestFirstName = guest.fullName.split(' ')[0] ?? guest.fullName;
-      const invitationUrl = `${baseUrl}/i/${guest.qrCodeToken}`;
 
       if (isMock) {
         console.info(
@@ -114,7 +113,6 @@ export const broadcast = action({
                       { type: 'text', text: guestFirstName },
                       { type: 'text', text: coupleNames },
                       { type: 'text', text: eventDateFormatted },
-                      { type: 'text', text: invitationUrl },
                       { type: 'text', text: personalMessage },
                     ],
                   },

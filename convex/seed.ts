@@ -72,6 +72,36 @@ export const seedTestUsers = mutation({
   },
 });
 
+/**
+ * Mutation utilitaire pour les tests E2E du flow linking : crée un user
+ * "magic-link-only" (email présent, phone absent) — état intermédiaire
+ * d'un user qui s'est connecté via magic link sans encore lier son
+ * WhatsApp. Idempotent.
+ */
+export const seedEmailOnlyUser = mutation({
+  args: { email: v.string() },
+  handler: async (ctx, { email }) => {
+    const normalized = email.trim().toLowerCase();
+    const existing = await ctx.db
+      .query('users')
+      .withIndex('by_email', (q) => q.eq('email', normalized))
+      .first();
+    if (existing) {
+      return { userId: existing._id, created: false };
+    }
+    const now = Date.now();
+    const userId = await ctx.db.insert('users', {
+      email: normalized,
+      fullName: 'Test Email-only',
+      role: 'couple' as const,
+      locale: 'fr' as const,
+      createdAt: now,
+      lastSeenAt: now,
+    });
+    return { userId, created: true };
+  },
+});
+
 export const _resetTestData = internalMutation({
   args: { confirmPhrase: v.string() },
   handler: async (ctx, { confirmPhrase }) => {

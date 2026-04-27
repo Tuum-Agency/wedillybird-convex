@@ -2,14 +2,30 @@
 
 import { useState, useTransition } from 'react';
 import { motion } from 'motion/react';
-import { Save } from 'lucide-react';
+import { Save, Sparkles } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/cn';
 import { INVITATION_STYLES, type InvitationStyleId } from '@/lib/whatsapp/templates';
 import { WhatsAppMessageMockup } from '@/components/events/whatsapp-message-mockup';
+import { TemplateStatusCard } from '@/components/events/template-status-card';
+import { CustomTemplateForm } from '@/components/events/custom-template-form';
 import { updateMessagingConfigAction } from '@/app/[locale]/(app)/events/actions';
+
+export interface CustomTemplateSummary {
+  _id: string;
+  name: string;
+  bodyText: string;
+  ctaLabel: string;
+  status: 'draft' | 'pending' | 'approved' | 'rejected' | 'paused' | 'disabled';
+  rejectionReason?: string;
+  submittedAt?: number;
+  reviewedAt?: number;
+  createdAt: number;
+}
+
+type ActiveStyle = InvitationStyleId | 'custom';
 
 const STYLES_ORDER: InvitationStyleId[] = ['warm', 'classic', 'african', 'festive', 'minimal'];
 
@@ -53,7 +69,10 @@ interface Props {
     templateStyle: InvitationStyleId;
     personalMessage: string;
     preferredChannel: 'whatsapp' | 'email' | 'both';
+    customTemplateId?: string;
+    templateNotifyChannel?: 'whatsapp' | 'email' | 'both';
   };
+  customTemplates?: CustomTemplateSummary[];
 }
 
 /**
@@ -67,13 +86,24 @@ export function EventMessagingForm({
   eventDate,
   previewInvitationUrl,
   initialValues,
+  customTemplates = [],
 }: Props) {
   const router = useRouter();
+  // Le custom est sélectionné par défaut si l'event y est rattaché ET qu'il
+  // existe au moins un template (peu importe son state).
+  const hasActiveCustom =
+    !!initialValues.customTemplateId &&
+    customTemplates.some((t) => t._id === initialValues.customTemplateId);
+  const latestCustom = customTemplates[0] ?? null;
+  const customApproved = latestCustom?.status === 'approved';
+
   const [style, setStyle] = useState<InvitationStyleId>(initialValues.templateStyle);
+  const [activeMode, setActiveMode] = useState<ActiveStyle>(hasActiveCustom ? 'custom' : style);
   const [personalMessage, setPersonalMessage] = useState(initialValues.personalMessage);
   const [preferredChannel, setPreferredChannel] = useState<'whatsapp' | 'email' | 'both'>(
     initialValues.preferredChannel,
   );
+  const notifyChannel = initialValues.templateNotifyChannel ?? 'email';
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -88,6 +118,12 @@ export function EventMessagingForm({
     fd.set('templateStyle', style);
     fd.set('personalMessage', personalMessage.trim());
     fd.set('preferredChannel', preferredChannel);
+    // Si l'utilisateur revient sur un préfab, on détache explicitement le
+    // custom (clearCustomTemplate=1). Sinon on n'envoie rien et le backend
+    // préserve l'existant.
+    if (activeMode !== 'custom') {
+      fd.set('clearCustomTemplate', '1');
+    }
 
     startTransition(async () => {
       const result = await updateMessagingConfigAction(fd);
@@ -115,14 +151,17 @@ export function EventMessagingForm({
           <div className="grid gap-3 sm:grid-cols-2">
             {STYLES_ORDER.map((id) => {
               const meta = STYLE_LABELS[id];
-              const selected = style === id;
+              const selected = activeMode === id;
               return (
                 <button
                   key={id}
                   type="button"
                   role="radio"
                   aria-checked={selected}
-                  onClick={() => setStyle(id)}
+                  onClick={() => {
+                    setStyle(id);
+                    setActiveMode(id);
+                  }}
                   className={cn(
                     'focus-ring flex flex-col items-start gap-2 rounded-2xl border p-5 text-left transition-all',
                     selected
@@ -151,7 +190,69 @@ export function EventMessagingForm({
                 </button>
               );
             })}
+
+            <button
+              type="button"
+              role="radio"
+              aria-checked={activeMode === 'custom'}
+              onClick={() => setActiveMode('custom')}
+              className={cn(
+                'focus-ring relative flex flex-col items-start gap-2 rounded-2xl border p-5 text-left transition-all sm:col-span-2',
+                activeMode === 'custom'
+                  ? 'border-[color:var(--color-blush-400)] bg-[color:var(--color-blush-50)] shadow-[var(--shadow-blush)]'
+                  : 'border-[color:var(--color-border)] bg-white hover:border-[color:var(--color-blush-300)] hover:shadow-[var(--shadow-soft)]',
+              )}
+            >
+              <span className="absolute top-4 right-4 inline-flex items-center gap-1 rounded-full bg-[color:var(--color-gold-100)] px-2.5 py-0.5 font-mono text-[10px] tracking-[0.18em] text-[color:var(--color-gold-700)] uppercase">
+                <Sparkles className="h-3 w-3" strokeWidth={2} aria-hidden /> Premium
+              </span>
+              <span
+                className="font-display text-lg italic"
+                style={{ letterSpacing: '-0.018em', lineHeight: 1.2 }}
+              >
+                Mon template personnalisé
+              </span>
+              <span className="text-sm leading-relaxed text-[color:var(--color-ink-500)]">
+                Écrivez votre propre message d&apos;invitation. Validation Meta sous 24-48h.
+                {customApproved
+                  ? ' Votre template est validé et utilisé pour les invitations.'
+                  : latestCustom
+                    ? ' Un template est en cours de validation.'
+                    : null}
+              </span>
+              {activeMode === 'custom' ? (
+                <motion.span
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1, transition: { type: 'spring', stiffness: 300 } }}
+                  className="font-mono text-[10px] tracking-[0.24em] text-[color:var(--color-blush-700)] uppercase"
+                >
+                  ✦ Sélectionné
+                </motion.span>
+              ) : null}
+            </button>
           </div>
+
+          {activeMode === 'custom' ? (
+            <div className="flex flex-col gap-4">
+              {latestCustom ? (
+                <TemplateStatusCard
+                  template={{
+                    name: latestCustom.name,
+                    status: latestCustom.status,
+                    rejectionReason: latestCustom.rejectionReason,
+                    submittedAt: latestCustom.submittedAt,
+                    reviewedAt: latestCustom.reviewedAt,
+                  }}
+                  notifyChannel={notifyChannel}
+                />
+              ) : null}
+              {!latestCustom ||
+              latestCustom.status === 'rejected' ||
+              latestCustom.status === 'disabled' ? (
+                <CustomTemplateForm eventId={eventId} defaultNotifyChannel={notifyChannel} />
+              ) : null}
+            </div>
+          ) : null}
         </Section>
 
         <Section

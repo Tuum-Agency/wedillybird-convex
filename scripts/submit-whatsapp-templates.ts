@@ -78,12 +78,11 @@ function buildInvitationTemplate(
   ctaLabel: string,
 ): MetaTemplateBody {
   // Exemples de valeurs réalistes que Meta utilise pour valider le template.
-  // Doivent matcher le nombre de placeholders dans le body.
+  // Doivent matcher le nombre de placeholders dans le body : {{1}}…{{4}}.
   const sampleVars = [
     'Aminata',
     'Mamadou & Marie',
     '30 avril 2026',
-    `${APP_BASE_URL}/i/abc123`,
     'On compte sur toi pour ce grand jour !',
   ];
 
@@ -154,6 +153,42 @@ async function submitTemplate(payload: MetaTemplateBody): Promise<void> {
   console.log(`   ✅ Submitted — id=${data.id} status=${data.status ?? 'PENDING'}`);
 }
 
+/**
+ * Construit le payload Meta pour le template UTILITY `template_status_update`,
+ * envoyé aux couples pour les notifier du résultat de validation Meta de
+ * leur template custom (cf. convex/whatsappTemplateNotifications.ts).
+ *
+ * Variables :
+ *   {{1}} = prénom du destinataire
+ *   {{2}} = nom du template concerné
+ *   {{3}} = verbe de status ("validé" / "refusé" / "désactivé" / "suspendu")
+ *   {{4}} = call-to-action ou raison de refus (chaîne libre, 1-200 chars)
+ */
+function buildTemplateStatusUpdate(): MetaTemplateBody {
+  const bodyText =
+    "Bonjour {{1}},\n\nVotre template WhatsApp « {{2}} » a été {{3}} par WhatsApp.\n\n{{4}}\n\nL’équipe Wedillybird.";
+
+  const sampleVars = [
+    'Aminata',
+    'wedding_invitation_warm',
+    'validé',
+    'Vous pouvez maintenant utiliser ce template pour vos invitations.',
+  ];
+
+  return {
+    name: 'template_status_update',
+    category: 'UTILITY',
+    language: 'fr',
+    components: [
+      {
+        type: 'BODY',
+        text: bodyText,
+        example: { body_text: [sampleVars] },
+      },
+    ],
+  };
+}
+
 async function main(): Promise<void> {
   console.log('🚀 Soumission des templates WhatsApp à Meta Business Manager');
   console.log(`   Graph version: ${GRAPH_VERSION}`);
@@ -161,9 +196,12 @@ async function main(): Promise<void> {
   console.log(`   Base URL:      ${APP_BASE_URL}`);
   if (DRY_RUN) console.log('   ⚠️  DRY_RUN mode — aucun appel API Meta');
 
-  const templates: MetaTemplateBody[] = Object.values(INVITATION_STYLES).map((style) =>
-    buildInvitationTemplate(style.metaTemplateName, style.bodyText, style.ctaLabel),
-  );
+  const templates: MetaTemplateBody[] = [
+    ...Object.values(INVITATION_STYLES).map((style) =>
+      buildInvitationTemplate(style.metaTemplateName, style.bodyText, style.ctaLabel),
+    ),
+    buildTemplateStatusUpdate(),
+  ];
 
   for (const template of templates) {
     await submitTemplate(template);

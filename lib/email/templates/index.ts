@@ -9,3 +9,8 @@ export {
   type ProNotificationKind,
 } from './pro-notification';
 export { renderStripeInvoice, type StripeInvoiceInput } from './stripe-invoice';
+export {
+  renderWhatsappTemplateStatusEmail,
+  type WhatsappTemplateStatusInput,
+  type TemplateStatusKind,
+} from './whatsapp-template-status';
