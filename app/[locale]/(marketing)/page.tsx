@@ -65,52 +65,53 @@ function LandingShell({
 
   return (
     <LenisProvider>
-      {/* Top nav — sticky, pattern Linear/Mercury : logo + nav-items groupés
-          à gauche, auth CTAs à droite. Évite le trou central que produisait
-          un justify-between avec logo seul gauche / 4 items collés à droite. */}
+      {/* Top nav — pattern Stripe / Vercel : 3 zones distinctes (logo gauche,
+          nav centrée, CTA droite) via grid-cols-[1fr_auto_1fr]. La colonne
+          centrale prend la largeur de son contenu et reste pile au milieu
+          quel que soit l'écart de tailles entre logo et CTA. */}
       <header className="sticky top-0 z-30 border-b border-[color:var(--color-border)] bg-[color:var(--color-ivory-50)]/85 backdrop-blur supports-[backdrop-filter]:bg-[color:var(--color-ivory-50)]/65">
-        <div className="container-page flex items-center justify-between gap-6 py-4">
-          {/* Bloc gauche : logo + nav éditoriale groupés */}
-          <div className="flex items-center gap-10">
-            <Link
-              href="/"
-              className="font-display inline-flex items-center gap-2.5 text-xl tracking-tight text-[color:var(--color-ink-900)] italic"
-            >
-              <WedillybirdMark className="h-6 w-6 text-[color:var(--color-blush-500)]" />
-              {tCommon('appName')}
-            </Link>
-            <nav aria-label="Navigation principale" className="hidden items-center gap-7 md:flex">
-              <Link
-                href="/#features"
-                className="font-mono text-[10px] tracking-[0.24em] text-[color:var(--color-ink-500)] uppercase transition-colors hover:text-[color:var(--color-ink-900)]"
-              >
-                Piliers
-              </Link>
-              <Link
-                href="/#pricing"
-                className="font-mono text-[10px] tracking-[0.24em] text-[color:var(--color-ink-500)] uppercase transition-colors hover:text-[color:var(--color-ink-900)]"
-              >
-                Tarifs
-              </Link>
-              <Link
-                href="/#testimonials"
-                className="font-mono text-[10px] tracking-[0.24em] text-[color:var(--color-ink-500)] uppercase transition-colors hover:text-[color:var(--color-ink-900)]"
-              >
-                Témoignages
-              </Link>
-              <Link
-                href="/faq"
-                className="font-mono text-[10px] tracking-[0.24em] text-[color:var(--color-ink-500)] uppercase transition-colors hover:text-[color:var(--color-ink-900)]"
-              >
-                FAQ
-              </Link>
-            </nav>
-          </div>
+        <div className="container-page grid grid-cols-[1fr_auto_1fr] items-center gap-6 py-4">
+          {/* Zone 1 : logo (gauche) */}
+          <Link
+            href="/"
+            className="font-display inline-flex items-center gap-2.5 text-xl tracking-tight text-[color:var(--color-ink-900)] italic"
+          >
+            <WedillybirdMark className="h-6 w-6 text-[color:var(--color-blush-500)]" />
+            {tCommon('appName')}
+          </Link>
 
-          {/* Bloc droite : un seul CTA primary. Le flow OTP WhatsApp est unifié
-              (sign-in/sign-up = même action), donc un seul bouton. Le lien
-              "déjà un compte ?" sera proposé sur la page sign-in elle-même. */}
-          <div className="flex items-center gap-3">
+          {/* Zone 2 : nav éditoriale centrée */}
+          <nav aria-label="Navigation principale" className="hidden items-center gap-7 md:flex">
+            <Link
+              href="/#features"
+              className="font-mono text-[10px] tracking-[0.24em] text-[color:var(--color-ink-500)] uppercase transition-colors hover:text-[color:var(--color-ink-900)]"
+            >
+              Piliers
+            </Link>
+            <Link
+              href="/#pricing"
+              className="font-mono text-[10px] tracking-[0.24em] text-[color:var(--color-ink-500)] uppercase transition-colors hover:text-[color:var(--color-ink-900)]"
+            >
+              Tarifs
+            </Link>
+            <Link
+              href="/#testimonials"
+              className="font-mono text-[10px] tracking-[0.24em] text-[color:var(--color-ink-500)] uppercase transition-colors hover:text-[color:var(--color-ink-900)]"
+            >
+              Témoignages
+            </Link>
+            <Link
+              href="/faq"
+              className="font-mono text-[10px] tracking-[0.24em] text-[color:var(--color-ink-500)] uppercase transition-colors hover:text-[color:var(--color-ink-900)]"
+            >
+              FAQ
+            </Link>
+          </nav>
+
+          {/* Zone 3 : CTA primary (droite). Flow OTP WhatsApp/email unifié,
+              donc un seul bouton 'Démarrer'. Le message d'orientation
+              ('Déjà un compte ? Se connecter') vit sur la page /sign-in. */}
+          <div className="flex items-center justify-end">
             <Link
               href="/sign-up"
               className={cn(buttonVariants({ variant: 'primary', size: 'sm' }), 'group')}
