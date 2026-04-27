@@ -1,7 +1,7 @@
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
-import { Send } from 'lucide-react';
 import { WedillybirdMark } from '@/components/brand/wedillybird-mark';
+import { NewsletterForm } from '@/components/landing/newsletter-form';
 
 /**
  * Landing — Footer V4.
@@ -34,6 +34,7 @@ const RESOURCES_LINKS = [
   { key: 'guide', href: '/#faq' as const },
   { key: 'faq', href: '/#faq' as const },
   { key: 'support', href: '/#faq' as const },
+  { key: 'contact', href: '/contact' as const },
 ] as const;
 
 const LEGAL_LINKS = [
@@ -85,30 +86,7 @@ export function LandingFooterRich() {
               {t('newsletterTitle')}
             </h3>
             <p className="text-sm text-[color:var(--color-ink-500)]">{t('newsletterSubtitle')}</p>
-            <form
-              className="flex flex-col gap-2 sm:flex-row"
-              action="/api/newsletter"
-              method="POST"
-            >
-              <label className="sr-only" htmlFor="footer-newsletter-email">
-                Email
-              </label>
-              <input
-                id="footer-newsletter-email"
-                type="email"
-                name="email"
-                required
-                placeholder={t('newsletterPlaceholder')}
-                className="focus-ring flex-1 rounded-full border border-[color:var(--color-border-strong)] bg-white px-5 py-3 text-sm text-[color:var(--color-ink-900)] placeholder:text-[color:var(--color-ink-300)]"
-              />
-              <button
-                type="submit"
-                className="inline-flex items-center justify-center gap-2 rounded-full bg-[color:var(--color-blush-700)] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[color:var(--color-blush-800)]"
-              >
-                {t('newsletterCta')}
-                <Send className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />
-              </button>
-            </form>
+            <NewsletterForm />
           </div>
         </div>
 

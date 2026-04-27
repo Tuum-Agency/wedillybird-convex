@@ -1,5 +1,7 @@
+export { renderContactMessage, type ContactMessageInput } from './contact-message';
 export { renderGuestReminder, type GuestReminderInput } from './guest-reminder';
 export { renderMagicLink, type MagicLinkInput } from './magic-link';
+export { renderNewsletterSignup, type NewsletterSignupInput } from './newsletter-signup';
 export {
   renderProNotification,
   type ProNotificationInput,

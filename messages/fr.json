@@ -23,7 +23,8 @@
     "terms": "CGU",
     "privacy": "Confidentialité",
     "cookies": "Cookies",
-    "faq": "FAQ"
+    "faq": "FAQ",
+    "contact": "Contact"
   },
   "Legal": {
     "terms": {
@@ -75,6 +76,40 @@
       "controlBody": "Vous pouvez supprimer les cookies via les paramètres de votre navigateur. La désactivation du cookie de session vous déconnectera du Service.",
       "thirdPartiesTitle": "Cookies tiers",
       "thirdPartiesBody": "Stripe et CinetPay déposent leurs propres cookies sur leurs pages de paiement (hors domaine Wedillybird) pour prévenir la fraude. Consultez leurs politiques respectives."
+    }
+  },
+  "Contact": {
+    "eyebrow": "ÉCRIVEZ-NOUS",
+    "title": "Une question, un projet, un mot doux ?",
+    "subtitle": "Toute notre équipe lit chaque message. Une réponse humaine sous 24 h ouvrées, en français — promesse simple.",
+    "infoTitle": "Autres canaux",
+    "infoEmail": "Email direct",
+    "infoEmailValue": "hello@wedillybird.com",
+    "infoSupport": "Support technique",
+    "infoSupportValue": "support@wedillybird.com",
+    "infoPrivacy": "Données personnelles",
+    "infoPrivacyValue": "privacy@wedillybird.com",
+    "infoHours": "Disponibilité",
+    "infoHoursValue": "Lundi à vendredi, 9 h – 19 h (CET)",
+    "form": {
+      "nameLabel": "Votre nom",
+      "namePlaceholder": "Aminata Diallo",
+      "emailLabel": "Adresse email",
+      "emailPlaceholder": "vous@email.com",
+      "subjectLabel": "Sujet",
+      "subjectPlaceholder": "Mariage en juin, j'aimerais en savoir plus…",
+      "messageLabel": "Message",
+      "messagePlaceholder": "Dites-nous tout — date envisagée, nombre d'invités, vos questions.",
+      "websiteLabel": "Laissez vide (anti-spam)",
+      "submit": "Envoyer le message",
+      "sending": "Envoi en cours…",
+      "successEyebrow": "MESSAGE REÇU",
+      "successTitle": "Merci, on revient vers vous très vite.",
+      "successDescription": "Votre message vient d'arriver dans la boîte de notre équipe. Réponse personnalisée sous 24 h ouvrées.",
+      "successBack": "Envoyer un autre message",
+      "errorGeneric": "Impossible d'envoyer le message. Réessayez dans un instant.",
+      "errorNetwork": "Réseau indisponible. Vérifiez votre connexion et réessayez.",
+      "errorValidation": "Quelques champs sont à corriger avant l'envoi."
     }
   },
   "Faq": {
@@ -326,6 +361,9 @@
       "newsletterSubtitle": "Une fois par mois, des modèles signés par des wedding designers reconnus, et zéro spam.",
       "newsletterPlaceholder": "vous@email.com",
       "newsletterCta": "Recevoir",
+      "newsletterSuccess": "Inscrit. À bientôt dans votre boîte mail.",
+      "newsletterError": "Inscription impossible. Réessayez dans un instant.",
+      "newsletterAriaLabel": "Inscription à la newsletter",
       "columns": {
         "product": {
           "title": "Produit",
@@ -351,7 +389,8 @@
             "blog": "Journal de mariage",
             "guide": "Guide du mariage",
             "faq": "FAQ",
-            "support": "Support"
+            "support": "Support",
+            "contact": "Contact"
           }
         },
         "legal": {
