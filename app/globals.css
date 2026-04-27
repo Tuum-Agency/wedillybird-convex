@@ -141,15 +141,75 @@
 }
 
 /*
- * Mode sombre — désactivé pour la V3 mariage premium.
+ * Mode sombre — landing/couple/auth restent forcés en light. Le dashboard pro
+ * (organisation B2B wedding planners) utilise un thème dark Linear-grade dédié,
+ * activé via `data-theme="dark"` sur le wrapper racine de la zone pro.
  *
- * Wedillybird est un site mariage : la palette claire (blush + ivoire) est
- * notre direction de marque. Aucun auto-switch sur prefers-color-scheme:dark.
- * Le dashboard pro réintroduira son thème via `[data-theme="dark"]` explicite
- * et controllé par l'utilisateur (pas par le système), sprint séparé.
+ * Pas d'auto-switch sur `prefers-color-scheme:dark` côté navigateur — le mode
+ * sombre est strictement opt-in pour la zone pro.
  */
 :root {
   color-scheme: light;
+}
+
+/*
+ * Thème dark Linear-grade pour le dashboard pro.
+ *
+ * Inspiration : Linear, Mercury, Cron, Arc browser — interfaces denses,
+ * rigoureuses, où le dark crée la concentration. Palette ink-noir-bleuté
+ * + accents blush conservés (cohérence brand) + gold pour la signature.
+ *
+ * Override des tokens sémantiques uniquement — la palette OKLCH absolue
+ * (blush, champagne, gold, sage) reste inchangée pour rester cohérente.
+ */
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  /* Surfaces — charbon brun-violet, pas noir pur (signe une marque chaude) */
+  --color-background: oklch(15% 0.012 28);
+  --color-surface: oklch(19% 0.015 28);
+  --color-surface-elevated: oklch(23% 0.018 28);
+  --color-surface-warm: oklch(22% 0.03 28);
+
+  /* Texte — ivoire chaud, jamais blanc pur */
+  --color-foreground: oklch(94% 0.012 70);
+  --color-muted: oklch(60% 0.02 60);
+  --color-muted-foreground: oklch(75% 0.018 65);
+
+  /* Bordures — assez visibles pour structurer */
+  --color-border: oklch(28% 0.018 28);
+  --color-border-strong: oklch(38% 0.02 30);
+
+  /* Tokens ink (texte primaire) inversés */
+  --color-ink-300: oklch(58% 0.018 65);
+  --color-ink-500: oklch(72% 0.018 65);
+  --color-ink-700: oklch(85% 0.015 70);
+  --color-ink-900: oklch(94% 0.012 70);
+
+  /* Ivory tokens inversés vers les surfaces dark */
+  --color-ivory-50: oklch(15% 0.012 28);
+  --color-ivory-100: oklch(19% 0.015 28);
+  --color-ivory-200: oklch(23% 0.018 28);
+
+  /* Primary blush — décalé vers le clair pour rester accessible sur dark */
+  --color-primary: var(--color-blush-400);
+  --color-primary-hover: var(--color-blush-300);
+  --color-primary-soft: oklch(28% 0.06 22);
+
+  /* Accent champagne — décalé vers le clair */
+  --color-accent: var(--color-champagne-300);
+  --color-accent-soft: oklch(28% 0.05 80);
+
+  /* Ombres — plus marquées sur fond dark pour lift sensible */
+  --shadow-soft: 0 1px 2px oklch(0% 0 0 / 25%), 0 4px 12px oklch(0% 0 0 / 40%);
+  --shadow-lifted: 0 4px 10px oklch(0% 0 0 / 30%), 0 14px 36px oklch(0% 0 0 / 50%);
+  --shadow-blush: 0 20px 60px -15px oklch(72% 0.09 20 / 25%);
+}
+
+/* Désactive paper-grain en dark — le grain papier ne marche pas sur fond
+   sombre (créerait du moiré et casserait l'élégance). */
+[data-theme='dark'] .paper-grain::after {
+  display: none;
 }
 
 /* ---------- Base typography ---------- */
