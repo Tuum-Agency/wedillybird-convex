@@ -39,12 +39,8 @@ const revokeOriginal = URL.revokeObjectURL;
 beforeEach(() => {
   vi.clearAllMocks();
   (global as { Image: unknown }).Image = FakeImage;
-  HTMLCanvasElement.prototype.getContext = vi
-    .fn()
-    .mockReturnValue({ drawImage: vi.fn() }) as never;
-  HTMLCanvasElement.prototype.toDataURL = vi
-    .fn()
-    .mockReturnValue('data:image/jpeg;base64,AAA');
+  HTMLCanvasElement.prototype.getContext = vi.fn().mockReturnValue({ drawImage: vi.fn() }) as never;
+  HTMLCanvasElement.prototype.toDataURL = vi.fn().mockReturnValue('data:image/jpeg;base64,AAA');
   URL.createObjectURL = vi.fn().mockReturnValue('blob:mock');
   URL.revokeObjectURL = vi.fn();
 });
@@ -62,9 +58,7 @@ describe('FaceSearchModal', () => {
     const onClose = vi.fn();
     const onResult = vi.fn();
     const search = vi.fn();
-    render(
-      <FaceSearchModal open={false} onClose={onClose} onResult={onResult} search={search} />,
-    );
+    render(<FaceSearchModal open={false} onClose={onClose} onResult={onResult} search={search} />);
     expect(screen.queryByTestId('face-search-modal')).toBeNull();
   });
 
@@ -74,9 +68,7 @@ describe('FaceSearchModal', () => {
     const search = vi.fn();
     const user = userEvent.setup();
 
-    render(
-      <FaceSearchModal open onClose={onClose} onResult={onResult} search={search} />,
-    );
+    render(<FaceSearchModal open onClose={onClose} onResult={onResult} search={search} />);
 
     expect(screen.getByTestId('face-search-modal')).toBeInTheDocument();
     const submit = screen.getByTestId('face-search-consent-submit') as HTMLButtonElement;
@@ -97,9 +89,7 @@ describe('FaceSearchModal', () => {
     const search = vi.fn();
     const user = userEvent.setup();
 
-    render(
-      <FaceSearchModal open onClose={onClose} onResult={onResult} search={search} />,
-    );
+    render(<FaceSearchModal open onClose={onClose} onResult={onResult} search={search} />);
 
     await user.click(screen.getByTestId('face-search-consent-checkbox'));
     await user.click(screen.getByTestId('face-search-consent-submit'));
@@ -119,9 +109,7 @@ describe('FaceSearchModal', () => {
     const search = vi.fn();
     const user = userEvent.setup();
 
-    render(
-      <FaceSearchModal open onClose={onClose} onResult={onResult} search={search} />,
-    );
+    render(<FaceSearchModal open onClose={onClose} onResult={onResult} search={search} />);
 
     await user.click(screen.getByTestId('face-search-consent-checkbox'));
     await user.click(screen.getByTestId('face-search-consent-submit'));
@@ -185,6 +173,65 @@ describe('FaceSearchModal', () => {
       expect(screen.getByTestId('face-search-result-error')).toBeInTheDocument();
     });
     expect(screen.getByText('errors.noFace')).toBeInTheDocument();
+  });
+
+  it('renders RATE_LIMITED error with French message and retry button', async () => {
+    Object.defineProperty(navigator, 'mediaDevices', {
+      configurable: true,
+      value: { getUserMedia: vi.fn() },
+    });
+
+    const onClose = vi.fn();
+    const onResult = vi.fn();
+    const search = vi.fn().mockResolvedValue({ ok: false, error: 'RATE_LIMITED' });
+    const user = userEvent.setup();
+
+    render(<FaceSearchModal open onClose={onClose} onResult={onResult} search={search} />);
+
+    await user.click(screen.getByTestId('face-search-consent-checkbox'));
+    await user.click(screen.getByTestId('face-search-consent-submit'));
+
+    const file = new File(['x'], 'me.jpg', { type: 'image/jpeg' });
+    await user.upload(screen.getByTestId('face-search-file-input') as HTMLInputElement, file);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('face-search-result-error')).toBeInTheDocument();
+    });
+    // Le mock next-intl renvoie la clé brute — on vérifie que c'est bien
+    // `errors.rateLimited` qui est utilisé (pas `errors.unknown`).
+    expect(screen.getByText('errors.rateLimited')).toBeInTheDocument();
+    // Un bouton "Réessayer" doit être présent pour relancer la capture.
+    expect(screen.getByTestId('face-search-retry')).toBeInTheDocument();
+
+    // Click retry → on retombe sur l'étape capture avec un input file fresh.
+    await user.click(screen.getByTestId('face-search-retry'));
+    await waitFor(() => {
+      expect(screen.queryByTestId('face-search-result-error')).toBeNull();
+    });
+    expect(screen.getByTestId('face-search-file-input')).toBeInTheDocument();
+  });
+
+  it('renders FORBIDDEN error with the corresponding French key', async () => {
+    Object.defineProperty(navigator, 'mediaDevices', {
+      configurable: true,
+      value: { getUserMedia: vi.fn() },
+    });
+
+    const search = vi.fn().mockResolvedValue({ ok: false, error: 'FORBIDDEN' });
+    const user = userEvent.setup();
+
+    render(<FaceSearchModal open onClose={vi.fn()} onResult={vi.fn()} search={search} />);
+
+    await user.click(screen.getByTestId('face-search-consent-checkbox'));
+    await user.click(screen.getByTestId('face-search-consent-submit'));
+
+    const file = new File(['x'], 'me.jpg', { type: 'image/jpeg' });
+    await user.upload(screen.getByTestId('face-search-file-input') as HTMLInputElement, file);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('face-search-result-error')).toBeInTheDocument();
+    });
+    expect(screen.getByText('errors.forbidden')).toBeInTheDocument();
   });
 
   it('renders an empty result when matchCount is zero', async () => {

@@ -13,7 +13,7 @@ import { decidePublishGate } from '../../../convex/events';
  */
 
 describe('decidePublishGate — particulier', () => {
-  it('autorise publish quand planTier est défini, sans toucher l\'orga', () => {
+  it("autorise publish quand planTier est défini, sans toucher l'orga", () => {
     const decision = decidePublishGate({
       event: { planTier: 'essential' },
       organization: null,
@@ -115,6 +115,28 @@ describe('decidePublishGate — pro PAYG (sans subscription active)', () => {
     const decision = decidePublishGate({
       event: { planTier: undefined, organizationId: orgId },
       organization: { subscriptionStatus: 'past_due', paygCredits: 0 },
+    });
+    expect(decision).toEqual({ ok: false, error: 'PAYG_CREDIT_REQUIRED' });
+  });
+
+  it('autorise publish PAYG quand sub est `canceled` mais crédits > 0 (souscription expirée + crédit one-shot)', () => {
+    // Cas réel : un pro se désabonne mais a encore 1 crédit PAYG en réserve
+    // pour couvrir un event ponctuel. La logique doit tomber sur PAYG sans
+    // râler que la subscription est `canceled`.
+    const decision = decidePublishGate({
+      event: { planTier: undefined, organizationId: orgId },
+      organization: { subscriptionStatus: 'canceled', paygCredits: 1 },
+    });
+    expect(decision).toEqual({ ok: true, consumeCredit: true, nextCredits: 0 });
+  });
+
+  it('rejette PAYG_CREDIT_REQUIRED si subscription `past_due` ET crédits exactement 0', () => {
+    // past_due = paiement en retard mais subscription pas encore canceled.
+    // Pas considéré comme `active` côté gate → on retombe sur PAYG, qui
+    // exige ≥1 crédit. 0 crédit → bloqué.
+    const decision = decidePublishGate({
+      event: { planTier: undefined, organizationId: orgId },
+      organization: { subscriptionStatus: 'past_due', paygCredits: undefined },
     });
     expect(decision).toEqual({ ok: false, error: 'PAYG_CREDIT_REQUIRED' });
   });

@@ -722,7 +722,10 @@
     "unknownGuest": "Code QR inconnu",
     "unknownGuestOffline": "Code QR hors ligne inconnu",
     "errorGeneric": "Erreur",
-    "undo": "Annuler"
+    "undo": "Annuler",
+    "pendingQueue": "{count, plural, =1 {1 check-in en attente de synchronisation} other {# check-ins en attente de synchronisation}}",
+    "pendingQueueSyncNow": "Synchroniser maintenant",
+    "pendingQueueSynced": "{count, plural, =1 {1 check-in synchronisé} other {# check-ins synchronisés}}"
   },
   "Pro": {
     "onboardingTitle": "Créer votre organisation",
@@ -774,6 +777,37 @@
       "cannot_assign_owner": "Le rôle propriétaire ne peut pas être attribué",
       "invite_not_found": "Invitation introuvable",
       "invite_already_used": "Cette invitation a déjà été utilisée",
+      "unknown": "Une erreur est survenue. Réessayez."
+    }
+  },
+  "Branding": {
+    "title": "Identité visuelle",
+    "eyebrow": "Réglages",
+    "subtitle": "Logo, couleurs : votre marque sur les pages publiques de vos mariages.",
+    "navLabel": "Réglages",
+    "logoSectionTitle": "Logo de l'agence",
+    "logoSectionDescription": "PNG, JPG ou WebP. Max 2 Mo. Ratio carré recommandé pour un rendu optimal.",
+    "logoUploadCta": "Choisir un logo",
+    "logoReplaceCta": "Changer le logo",
+    "logoRemoveCta": "Supprimer le logo",
+    "logoEmpty": "Aucun logo. Le mark Wedillybird sera affiché par défaut.",
+    "logoPreviewAlt": "Aperçu du logo de l'agence",
+    "colorsSectionTitle": "Couleurs de marque",
+    "colorsSectionDescription": "Couleur principale et couleur d'accent appliquées aux pages publiques (invitations, galerie partagée).",
+    "primaryColorLabel": "Couleur principale",
+    "accentColorLabel": "Couleur d'accent",
+    "saveCta": "Enregistrer",
+    "saving": "Enregistrement…",
+    "saveSuccess": "Identité enregistrée.",
+    "publicPagesNote": "Les pages publiques afficheront ce branding une fois la mise en route des sous-domaines wildcard finalisée.",
+    "errors": {
+      "unauthorized": "Connectez-vous pour modifier l'identité visuelle.",
+      "forbidden": "Seuls les administrateurs de l'organisation peuvent modifier l'identité.",
+      "no_org": "Aucune organisation associée à ce compte.",
+      "invalid_color": "Couleur invalide. Utilisez un code hexadécimal (#RRGGBB).",
+      "invalid_logo_type": "Format non supporté. Choisissez un PNG, JPG ou WebP.",
+      "invalid_logo_size": "Image trop volumineuse (2 Mo maximum).",
+      "upload_failed": "L'upload a échoué. Réessayez.",
       "unknown": "Une erreur est survenue. Réessayez."
     }
   },
@@ -859,6 +893,25 @@
       "notPaid": "La facture sera disponible dès que le paiement sera confirmé.",
       "unknown": "Impossible de générer la facture pour le moment."
     }
+  },
+  "InvoicePage": {
+    "eyebrow": "Comptabilité",
+    "title": "Vos factures",
+    "subtitle": "Tous les paiements confirmés pour {eventTitle}. Téléchargez la facture PDF associée à chaque transaction.",
+    "backToEvent": "Retour à l'événement",
+    "empty": "Aucune facture pour le moment. Les factures apparaissent ici dès qu'un paiement est confirmé.",
+    "columnDate": "Date",
+    "columnPlan": "Formule",
+    "columnAmount": "Montant",
+    "columnStatus": "Statut",
+    "columnActions": "Action",
+    "downloadCta": "Télécharger (PDF)",
+    "statusSucceeded": "Réglé",
+    "statusPending": "En attente",
+    "statusFailed": "Échoué",
+    "statusCancelled": "Annulé",
+    "planEssential": "Essentiel",
+    "planPremium": "Premium"
   },
   "EventCreate": {
     "title": "Créer votre mariage",
