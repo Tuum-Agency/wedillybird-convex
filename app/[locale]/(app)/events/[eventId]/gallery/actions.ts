@@ -131,6 +131,7 @@ export async function faceSearchOwnerAction(
     const message = err instanceof Error ? err.message : 'UNKNOWN';
     if (message.includes('NO_FACE_DETECTED')) return { ok: false, error: 'NO_FACE_DETECTED' };
     if (message.includes('NO_COLLECTION_YET')) return { ok: false, error: 'NO_COLLECTION_YET' };
+    if (message.includes('RATE_LIMITED')) return { ok: false, error: 'RATE_LIMITED' };
     if (message.includes('FORBIDDEN')) return { ok: false, error: 'FORBIDDEN' };
     return { ok: false, error: 'UNKNOWN' };
   }

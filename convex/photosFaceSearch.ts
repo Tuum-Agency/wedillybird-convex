@@ -147,7 +147,13 @@ export type SearchPhotosByFaceResult =
   | { ok: true; photoIds: string[]; matchCount: number }
   | {
       ok: false;
-      error: 'NO_FACE_DETECTED' | 'NO_COLLECTION_YET' | 'FORBIDDEN' | 'INVALID_TOKEN' | 'UNKNOWN';
+      error:
+        | 'NO_FACE_DETECTED'
+        | 'NO_COLLECTION_YET'
+        | 'FORBIDDEN'
+        | 'INVALID_TOKEN'
+        | 'RATE_LIMITED'
+        | 'UNKNOWN';
     };
 
 export function mapSearchAccessToError(
@@ -187,8 +193,7 @@ export function buildSearchResponse(
 /**
  * Supprime une Face Collection Rekognition. Best-effort : un échec ne doit
  * pas empêcher la suppression métier de l'event en amont. Appelé par les
- * cleanup workflows (à câbler à `events:remove` quand cette mutation existera
- * — cf. BACKLOG).
+ * cleanup workflows (archive event, etc.).
  */
 export const deleteFaceCollection = internalAction({
   args: { collectionId: v.string() },
@@ -204,6 +209,61 @@ export const deleteFaceCollection = internalAction({
       }
       return {
         ok: false as const,
+        error: err instanceof Error ? err.message : String(err),
+      };
+    }
+  },
+});
+
+/**
+ * Supprime une liste de Face IDs d'une Face Collection Rekognition. Utilisé
+ * lors de la suppression individuelle d'une photo : libérer les visages
+ * indexés associés évite de fausser les recherches futures (un selfie qui
+ * matchait sur cette photo continuerait sinon à remonter le faceId orphelin).
+ *
+ * Best-effort : un échec ne doit pas bloquer la suppression amont (les rows
+ * `photoFaces` sont déjà supprimées en DB, donc la recherche back ne peut
+ * plus produire de match. Ce cleanup AWS est purement hygiène / quota).
+ *
+ * Rekognition `DeleteFaces` accepte jusqu'à 4096 Face IDs par appel — on
+ * batche par 1000 par sécurité (taille raisonnable).
+ */
+export const deleteFacesFromCollection = internalAction({
+  args: {
+    collectionId: v.string(),
+    faceIds: v.array(v.string()),
+  },
+  handler: async (
+    _ctx,
+    { collectionId, faceIds },
+  ): Promise<{ ok: boolean; deleted: number; error?: string }> => {
+    if (faceIds.length === 0) {
+      return { ok: true as const, deleted: 0 };
+    }
+    try {
+      const { DeleteFacesCommand } = await import('@aws-sdk/client-rekognition');
+      const BATCH = 1000;
+      let deleted = 0;
+      for (let i = 0; i < faceIds.length; i += BATCH) {
+        const batch = faceIds.slice(i, i + BATCH);
+        const response = await getRekognition().send(
+          new DeleteFacesCommand({ CollectionId: collectionId, FaceIds: batch }),
+        );
+        deleted += response.DeletedFaces?.length ?? 0;
+      }
+      return { ok: true as const, deleted };
+    } catch (err) {
+      const name = (err as { name?: string }).name;
+      if (name === 'ResourceNotFoundException') {
+        // Collection déjà supprimée — rien à faire, succès silencieux.
+        return { ok: true as const, deleted: 0 };
+      }
+      console.error(
+        `[deleteFacesFromCollection] failed for ${collectionId}: ${err instanceof Error ? err.message : err}`,
+      );
+      return {
+        ok: false as const,
+        deleted: 0,
         error: err instanceof Error ? err.message : String(err),
       };
     }

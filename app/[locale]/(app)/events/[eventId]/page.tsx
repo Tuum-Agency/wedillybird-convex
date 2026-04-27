@@ -95,6 +95,38 @@ export default async function EventDetailPage({
 
   const isDraft = event.status === 'draft';
 
+  // Pour les events pro (rattachés à une organisation), le bouton Publier
+  // dépend des crédits PAYG ou d'une subscription active de l'orga, pas du
+  // `planTier` particulier (qui reste undefined). On précharge l'état pour
+  // pouvoir afficher un message clair "achetez un crédit" plutôt que la
+  // simple disable.
+  const orgId = event.organizationId;
+  let proPublishState:
+    | { kind: 'particulier' }
+    | { kind: 'pro_with_sub' }
+    | { kind: 'pro_with_credits'; credits: number }
+    | { kind: 'pro_no_credits' } = { kind: 'particulier' };
+  if (orgId) {
+    const credits = await convex
+      .query(convexApi.getPaygCreditsByOrganization, {
+        organizationId: orgId,
+        requesterId: session!.userId,
+      })
+      .catch(() => null);
+    const orgRole = (
+      await convex.query(convexApi.myOrganization, { userId: session!.userId }).catch(() => null)
+    );
+    const hasActiveSub =
+      orgRole?.subscriptionStatus === 'active' || orgRole?.subscriptionStatus === 'trialing';
+    if (hasActiveSub) {
+      proPublishState = { kind: 'pro_with_sub' };
+    } else if ((credits?.credits ?? 0) > 0) {
+      proPublishState = { kind: 'pro_with_credits', credits: credits!.credits };
+    } else {
+      proPublishState = { kind: 'pro_no_credits' };
+    }
+  }
+
   // Indicateur d'abonnement. `planTier` est `undefined` tant qu'aucun paiement
   // n'a été enregistré (= aucune galerie ouverte). On distingue 4 états :
   // pas de plan / pending (forfait choisi mais pas payé) / Essentiel payé /
@@ -206,11 +238,37 @@ export default async function EventDetailPage({
         >
           Pilotez votre mariage
         </h2>
-        {isDraft ? (
-          <p className="text-sm leading-relaxed text-[color:var(--color-ink-500)] sm:text-base">
-            {isPaid ? t('draftHint') : t('publishLockedHint')}
-          </p>
-        ) : null}
+        {(() => {
+          // Hint à afficher en haut de la section "Pilotez votre mariage".
+          // - Pro avec sub OU credits → message standard `draftHint`
+          // - Pro sans sub ni credits → message PAYG dédié
+          // - Particulier payé → `draftHint`
+          // - Particulier sans plan → `publishLockedHint`
+          if (!isDraft) return null;
+          if (proPublishState.kind === 'pro_no_credits') {
+            return (
+              <p className="text-sm leading-relaxed text-[color:var(--color-ink-500)] sm:text-base">
+                {t('publishLockedHintPayg')}
+              </p>
+            );
+          }
+          if (
+            proPublishState.kind === 'pro_with_sub' ||
+            proPublishState.kind === 'pro_with_credits' ||
+            isPaid
+          ) {
+            return (
+              <p className="text-sm leading-relaxed text-[color:var(--color-ink-500)] sm:text-base">
+                {t('draftHint')}
+              </p>
+            );
+          }
+          return (
+            <p className="text-sm leading-relaxed text-[color:var(--color-ink-500)] sm:text-base">
+              {t('publishLockedHint')}
+            </p>
+          );
+        })()}
       </div>
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3">
         <form action={togglePublishAction} className="w-full">
@@ -221,8 +279,19 @@ export default async function EventDetailPage({
             variant={isDraft ? 'primary' : 'outline'}
             size="md"
             className="w-full"
-            disabled={isDraft && !isPaid}
-            title={isDraft && !isPaid ? t('publishLockedHint') : undefined}
+            disabled={
+              isDraft &&
+              !isPaid &&
+              proPublishState.kind !== 'pro_with_sub' &&
+              proPublishState.kind !== 'pro_with_credits'
+            }
+            title={
+              isDraft && proPublishState.kind === 'pro_no_credits'
+                ? t('publishLockedHintPayg')
+                : isDraft && !isPaid && proPublishState.kind === 'particulier'
+                  ? t('publishLockedHint')
+                  : undefined
+            }
           >
             {isDraft ? (
               <>

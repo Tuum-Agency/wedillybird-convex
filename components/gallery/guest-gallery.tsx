@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { ScanFace } from 'lucide-react';
@@ -28,11 +28,41 @@ interface Props {
   initialPhotos: GuestPhotoItem[];
 }
 
+/** Fenêtre de polling après upload pour qu'un invité voie sa photo apparaître
+ * dès la fin de la modération Rekognition (en moyenne 2-5s, jusqu'à 30s en
+ * pire cas). Au-delà, on stoppe pour éviter un poll permanent inutile sur la
+ * page galerie publique. */
+const RECENT_UPLOAD_WINDOW_MS = 30 * 1000;
+const POLL_INTERVAL_MS = 5 * 1000;
+
 export function GuestGallery({ token, inviteeName, initialPhotos }: Props) {
   const t = useTranslations('Gallery');
   const router = useRouter();
   const [faceSearchOpen, setFaceSearchOpen] = useState(false);
   const [faceMatchedIds, setFaceMatchedIds] = useState<string[] | null>(null);
+  // Timestamp du dernier upload guest. Quand non-null, on poll toutes les 5s
+  // jusqu'à expiration de la fenêtre de modération. La query côté Convex ne
+  // retourne que les photos `approved`, donc le polling fait apparaître la
+  // photo du guest dès que Rekognition a validé.
+  const [lastUploadAt, setLastUploadAt] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (lastUploadAt === null) return;
+    const elapsed = Date.now() - lastUploadAt;
+    if (elapsed >= RECENT_UPLOAD_WINDOW_MS) {
+      setLastUploadAt(null);
+      return;
+    }
+    const interval = window.setInterval(() => {
+      router.refresh();
+      // Stoppe le polling quand la fenêtre est écoulée — sans attendre le
+      // prochain tick — pour éviter un refresh inutile en bord de fenêtre.
+      if (Date.now() - lastUploadAt >= RECENT_UPLOAD_WINDOW_MS) {
+        setLastUploadAt(null);
+      }
+    }, POLL_INTERVAL_MS);
+    return () => window.clearInterval(interval);
+  }, [lastUploadAt, router]);
 
   const filtered = useMemo(() => {
     if (faceMatchedIds === null) return initialPhotos;
@@ -72,7 +102,10 @@ export function GuestGallery({ token, inviteeName, initialPhotos }: Props) {
             uploaderName={inviteeName}
             getUploadUrl={createGuestUploadUrlAction}
             confirm={confirmGuestUploadAction}
-            onUploaded={() => router.refresh()}
+            onUploaded={() => {
+              router.refresh();
+              setLastUploadAt(Date.now());
+            }}
           />
         </div>
       </div>

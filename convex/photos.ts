@@ -10,6 +10,12 @@ import {
 } from './_generated/server';
 import { internal } from './_generated/api';
 import type { Doc, Id } from './_generated/dataModel';
+import {
+  FACE_SEARCH_MAX_HITS,
+  FACE_SEARCH_RATE_SCOPE,
+  FACE_SEARCH_WINDOW_MS,
+  decideRateLimit,
+} from './lib/rateLimit';
 
 const MAX_BYTES_PER_UPLOAD = 15 * 1024 * 1024;
 const ALLOWED_CONTENT_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
@@ -261,7 +267,28 @@ export const remove = mutation({
   handler: async (ctx, { photoId, requesterId }) => {
     const photo = await ctx.db.get(photoId);
     if (!photo) throw new Error('PHOTO_NOT_FOUND');
-    await assertEventOwnership(ctx, photo.eventId, requesterId);
+    const event = await assertEventOwnership(ctx, photo.eventId, requesterId);
+
+    // Cleanup des rows photoFaces associées + libération des Face IDs côté
+    // Rekognition. Best-effort : on collecte tous les faceIds, supprime les
+    // rows DB, puis schedule un internal action pour appeler DeleteFaces.
+    // Si l'event n'a pas de faceCollectionId, on saute l'appel AWS (rien à
+    // libérer côté Rekognition).
+    const photoFaceRows = await ctx.db
+      .query('photoFaces')
+      .withIndex('by_photo', (q) => q.eq('photoId', photoId))
+      .collect();
+    const faceIds: string[] = [];
+    for (const row of photoFaceRows) {
+      faceIds.push(row.faceId);
+      await ctx.db.delete(row._id);
+    }
+    if (faceIds.length > 0 && event.faceCollectionId) {
+      await ctx.scheduler.runAfter(0, internal.photosFaceSearch.deleteFacesFromCollection, {
+        collectionId: event.faceCollectionId,
+        faceIds,
+      });
+    }
 
     if (photo.s3Key) {
       await ctx.scheduler.runAfter(0, internal.photosActions.deleteS3Object, {
@@ -490,12 +517,60 @@ export const internalMarkModerated = internalMutation({
 /* -------------------------------------------------------------------------- */
 
 /**
+ * Internal mutation : check + bump du bucket rate-limit pour `searchPhotosByFace`.
+ * Limite anti-abus : `FACE_SEARCH_MAX_HITS` calls par `FACE_SEARCH_WINDOW_MS`
+ * par requesterId (ou guestToken). Atomique côté Convex car une mutation
+ * sérialise les writes sur le même document.
+ */
+export const _checkFaceSearchRateLimit = internalMutation({
+  args: { key: v.string() },
+  handler: async (ctx, { key }) => {
+    const existing = await ctx.db
+      .query('rateLimitBuckets')
+      .withIndex('by_scope_key', (q) => q.eq('scope', FACE_SEARCH_RATE_SCOPE).eq('key', key))
+      .first();
+
+    const now = Date.now();
+    const decision = decideRateLimit(
+      existing
+        ? { count: existing.count, windowStartedAt: existing.windowStartedAt }
+        : null,
+      now,
+      FACE_SEARCH_MAX_HITS,
+      FACE_SEARCH_WINDOW_MS,
+    );
+
+    if (!decision.allow) {
+      return { allow: false as const, retryAfterMs: decision.retryAfterMs };
+    }
+
+    if (existing) {
+      await ctx.db.patch(existing._id, {
+        count: decision.nextState.count,
+        windowStartedAt: decision.nextState.windowStartedAt,
+        updatedAt: now,
+      });
+    } else {
+      await ctx.db.insert('rateLimitBuckets', {
+        scope: FACE_SEARCH_RATE_SCOPE,
+        key,
+        count: decision.nextState.count,
+        windowStartedAt: decision.nextState.windowStartedAt,
+        updatedAt: now,
+      });
+    }
+    return { allow: true as const };
+  },
+});
+
+/**
  * Recherche de photos par selfie. Trampoline qui :
- *  1. Vérifie l'autorisation (owner / collaborator / guestToken)
- *  2. Charge `event.faceCollectionId` ; absent → NO_COLLECTION_YET
- *  3. Délègue à `internal.photosFaceSearch.searchByImage` (Node runtime)
+ *  1. Applique un rate-limit anti-abus (10 appels / 60s par requester)
+ *  2. Vérifie l'autorisation (owner / collaborator / guestToken)
+ *  3. Charge `event.faceCollectionId` ; absent → NO_COLLECTION_YET
+ *  4. Délègue à `internal.photosFaceSearch.searchByImage` (Node runtime)
  *     pour appeler Rekognition `SearchFacesByImage`
- *  4. Croise les Face IDs trouvés avec `photoFaces` → `photoId[]` filtré
+ *  5. Croise les Face IDs trouvés avec `photoFaces` → `photoId[]` filtré
  *     sur `status: 'approved'` puis dédupliqué
  *
  * Le selfie n'est jamais persisté : il transite uniquement en mémoire vers
@@ -505,7 +580,13 @@ export type SearchPhotosByFaceResult =
   | { ok: true; photoIds: string[]; matchCount: number }
   | {
       ok: false;
-      error: 'NO_FACE_DETECTED' | 'NO_COLLECTION_YET' | 'FORBIDDEN' | 'INVALID_TOKEN' | 'UNKNOWN';
+      error:
+        | 'NO_FACE_DETECTED'
+        | 'NO_COLLECTION_YET'
+        | 'FORBIDDEN'
+        | 'INVALID_TOKEN'
+        | 'RATE_LIMITED'
+        | 'UNKNOWN';
     };
 
 export const searchPhotosByFace = action({
@@ -516,6 +597,22 @@ export const searchPhotosByFace = action({
     guestToken: v.optional(v.string()),
   },
   handler: async (ctx, args): Promise<SearchPhotosByFaceResult> => {
+    // Rate-limit avant tout autre travail : on évite de payer un round-trip
+    // à Rekognition pour un caller en abus. La clé combine requesterId OU
+    // guestToken — un caller anonyme sans rien fournir tombe sur la chaîne
+    // `anonymous` (rare mais possible dans les tests).
+    const rateKey = args.requesterId
+      ? `user:${args.requesterId}`
+      : args.guestToken
+        ? `guest:${args.guestToken}`
+        : 'anonymous';
+    const rate = await ctx.runMutation(internal.photos._checkFaceSearchRateLimit, {
+      key: rateKey,
+    });
+    if (!rate.allow) {
+      return { ok: false as const, error: 'RATE_LIMITED' as const };
+    }
+
     const access = await ctx.runQuery(internal.photos._resolveSearchAccess, {
       eventId: args.eventId,
       requesterId: args.requesterId,

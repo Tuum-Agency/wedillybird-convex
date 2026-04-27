@@ -16,7 +16,20 @@ export type CreateEventResult =
 
 export type EventStatusToggleResult =
   | { ok: true; status: 'draft' | 'active' | 'archived' | 'cancelled' }
-  | { ok: false; error: string };
+  | {
+      ok: false;
+      /**
+       * Codes connus :
+       *  - `UNAUTHENTICATED` : pas de session
+       *  - `INVALID_INPUT` : eventId/action manquant
+       *  - `PLAN_REQUIRED` : event particulier sans plan payé
+       *  - `PAYG_CREDIT_REQUIRED` : event pro sans subscription active ni crédit
+       *  - `FORBIDDEN` : pas owner de l'event
+       *  - `EVENT_NOT_FOUND` : event introuvable
+       *  - `UNKNOWN` : autre erreur réseau / Convex
+       */
+      error: string;
+    };
 
 export type UpdateEventResult =
   | { ok: true }
@@ -281,7 +294,20 @@ export async function togglePublishActionWithResult(
     return { ok: true, status: result.status };
   } catch (err) {
     console.error('[togglePublish] failed', err);
-    return { ok: false, error: err instanceof Error ? err.message : 'UNKNOWN' };
+    const message = err instanceof Error ? err.message : 'UNKNOWN';
+    if (message.includes('PAYG_CREDIT_REQUIRED')) {
+      return { ok: false, error: 'PAYG_CREDIT_REQUIRED' };
+    }
+    if (message.includes('PLAN_REQUIRED')) {
+      return { ok: false, error: 'PLAN_REQUIRED' };
+    }
+    if (message.includes('FORBIDDEN')) {
+      return { ok: false, error: 'FORBIDDEN' };
+    }
+    if (message.includes('EVENT_NOT_FOUND')) {
+      return { ok: false, error: 'EVENT_NOT_FOUND' };
+    }
+    return { ok: false, error: 'UNKNOWN' };
   }
 }
 

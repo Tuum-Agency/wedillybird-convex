@@ -511,4 +511,22 @@ export default defineSchema({
   })
     .index('by_email', ['email'])
     .index('by_status_subscribedAt', ['status', 'subscribedAt']),
+
+  /**
+   * Buckets de rate-limit générique. Une row par couple (scope, key) — par ex.
+   * (`face_search`, `<userId>`) ou (`face_search`, `<guestToken>`). Le compteur
+   * se reset quand `windowStartedAt` est plus vieux que la fenêtre configurée
+   * côté caller (cf. `convex/lib/rateLimit.ts`).
+   *
+   * On utilise un bucket DB plutôt qu'un cache mémoire car les actions Convex
+   * sont stateless et peuvent tourner sur des workers différents — il faut un
+   * état partagé pour que le rate-limit soit fiable.
+   */
+  rateLimitBuckets: defineTable({
+    scope: v.string(),
+    key: v.string(),
+    count: v.number(),
+    windowStartedAt: v.number(),
+    updatedAt: v.number(),
+  }).index('by_scope_key', ['scope', 'key']),
 });

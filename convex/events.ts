@@ -1,5 +1,6 @@
 import { v } from 'convex/values';
 import { internalQuery, mutation, query } from './_generated/server';
+import { internal } from './_generated/api';
 import type { Doc, Id } from './_generated/dataModel';
 
 const SLUG_MAX_ATTEMPTS = 10;
@@ -320,11 +321,80 @@ export const getById = query({
 });
 
 /**
+ * Décide si un event peut être publié et, le cas échéant, ce qu'il faut
+ * patcher côté orga (consommation d'un crédit Pay-as-you-go). Fonction pure
+ * extraite pour être testable sans environnement Convex.
+ *
+ * Trois cas valides :
+ *  1. Particulier payé (`planTier !== undefined`) → publish OK, rien à faire
+ *     côté orga.
+ *  2. Pro avec subscription `active`/`trialing` → publish OK, pas de
+ *     consommation de crédit (la sub couvre).
+ *  3. Pro sans sub mais `paygCredits > 0` → publish OK, consomme 1 crédit
+ *     atomiquement.
+ *
+ * Cas refusés :
+ *  - Particulier sans plan ET sans orga → PLAN_REQUIRED.
+ *  - Pro sans sub ET sans crédit → PAYG_CREDIT_REQUIRED.
+ */
+export type PaygPublishGateInput = {
+  event: {
+    planTier?: 'essential' | 'premium';
+    organizationId?: Id<'organizations'>;
+  };
+  organization: {
+    subscriptionStatus?:
+      | 'trialing'
+      | 'active'
+      | 'past_due'
+      | 'canceled'
+      | 'unpaid';
+    paygCredits?: number;
+  } | null;
+};
+
+export type PaygPublishGateDecision =
+  | { ok: true; consumeCredit: false }
+  | { ok: true; consumeCredit: true; nextCredits: number }
+  | { ok: false; error: 'PLAN_REQUIRED' | 'PAYG_CREDIT_REQUIRED' };
+
+export function decidePublishGate(input: PaygPublishGateInput): PaygPublishGateDecision {
+  const { event, organization } = input;
+  // Particulier déjà payé : pas besoin de toucher l'orga.
+  if (event.planTier !== undefined) {
+    return { ok: true as const, consumeCredit: false as const };
+  }
+  // Particulier sans plan ET sans organisation → bloqué.
+  if (!event.organizationId) {
+    return { ok: false as const, error: 'PLAN_REQUIRED' as const };
+  }
+  // Pro : check subscription active OU PAYG credit.
+  const status = organization?.subscriptionStatus;
+  const hasActiveSub = status === 'active' || status === 'trialing';
+  if (hasActiveSub) {
+    return { ok: true as const, consumeCredit: false as const };
+  }
+  const credits = organization?.paygCredits ?? 0;
+  if (credits <= 0) {
+    return { ok: false as const, error: 'PAYG_CREDIT_REQUIRED' as const };
+  }
+  return {
+    ok: true as const,
+    consumeCredit: true as const,
+    nextCredits: credits - 1,
+  };
+}
+
+/**
  * Bascule un event en `active` (publié). Owner-only. Le payment-gating
- * (= refus de publier si `planTier === undefined`) est appliqué ici car
- * c'est le seul point d'entrée serveur — l'UI le double côté client en
- * désactivant le bouton, mais la mutation DOIT le rejeter aussi pour
- * sécuriser le funnel.
+ * (= refus de publier si pas de plan particulier ET orga sans sub ni crédit
+ * PAYG) est appliqué ici car c'est le seul point d'entrée serveur. L'UI le
+ * double côté client en désactivant le bouton, mais la mutation DOIT le
+ * rejeter aussi pour sécuriser le funnel.
+ *
+ * Cas pro PAYG : consomme atomiquement 1 crédit `paygCredits` sur l'orga
+ * avant de basculer le statut. Si l'orga a une subscription active, le
+ * crédit n'est pas touché.
  */
 export const publish = mutation({
   args: { eventId: v.id('events'), requesterId: v.id('users') },
@@ -332,9 +402,76 @@ export const publish = mutation({
     const ev = await ctx.db.get(eventId);
     if (!ev) throw new Error('EVENT_NOT_FOUND');
     if (ev.ownerId !== requesterId) throw new Error('FORBIDDEN');
-    if (ev.planTier === undefined) throw new Error('PLAN_REQUIRED');
-    await ctx.db.patch(eventId, { status: 'active' as const, updatedAt: Date.now() });
+
+    const org = ev.organizationId ? await ctx.db.get(ev.organizationId) : null;
+    const decision = decidePublishGate({
+      event: { planTier: ev.planTier, organizationId: ev.organizationId },
+      organization: org
+        ? { subscriptionStatus: org.subscriptionStatus, paygCredits: org.paygCredits }
+        : null,
+    });
+    if (!decision.ok) {
+      throw new Error(decision.error);
+    }
+
+    const now = Date.now();
+    if (decision.consumeCredit && ev.organizationId) {
+      await ctx.db.patch(ev.organizationId, {
+        paygCredits: decision.nextCredits,
+        updatedAt: now,
+      });
+    }
+    await ctx.db.patch(eventId, { status: 'active' as const, updatedAt: now });
     return { ok: true as const, status: 'active' as const };
+  },
+});
+
+/**
+ * Archive un event (soft delete). Owner-only. Bascule le status à `archived`
+ * et déclenche le cleanup AWS associé (Face Collection Rekognition + rows
+ * `photoFaces` côté DB). Pas de hard-delete des `events` ni des `photos` :
+ * la rétention métier (factures, RGPD) doit pouvoir s'appuyer dessus.
+ *
+ * Idempotent : si l'event est déjà `archived`, retourne `{ alreadyArchived:
+ * true }` sans rien faire.
+ */
+export const archive = mutation({
+  args: { eventId: v.id('events'), requesterId: v.id('users') },
+  handler: async (ctx, { eventId, requesterId }) => {
+    const ev = await ctx.db.get(eventId);
+    if (!ev) throw new Error('EVENT_NOT_FOUND');
+    if (ev.ownerId !== requesterId) throw new Error('FORBIDDEN');
+    if (ev.status === 'archived') {
+      return { ok: true as const, alreadyArchived: true as const };
+    }
+
+    const collectionId = ev.faceCollectionId;
+    const now = Date.now();
+
+    // Cleanup DB : supprime les rows `photoFaces` de l'event. Le
+    // `DeleteCollection` Rekognition libère côté AWS, mais on veut aussi
+    // les rows DB nettoyées pour ne pas laisser de pointers orphelins.
+    const photoFaceRows = await ctx.db
+      .query('photoFaces')
+      .withIndex('by_event', (q) => q.eq('eventId', eventId))
+      .collect();
+    for (const row of photoFaceRows) {
+      await ctx.db.delete(row._id);
+    }
+
+    // Cleanup AWS : delete la Face Collection en best-effort.
+    if (collectionId) {
+      await ctx.scheduler.runAfter(0, internal.photosFaceSearch.deleteFaceCollection, {
+        collectionId,
+      });
+    }
+
+    await ctx.db.patch(eventId, {
+      status: 'archived' as const,
+      faceCollectionId: undefined,
+      updatedAt: now,
+    });
+    return { ok: true as const, alreadyArchived: false as const };
   },
 });
 
