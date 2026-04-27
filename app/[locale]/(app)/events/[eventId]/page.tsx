@@ -1,14 +1,25 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
-import { ArrowLeft, Calendar, MapPin, Camera, QrCode, Users } from 'lucide-react';
+import {
+  ArrowLeft,
+  Calendar,
+  MapPin,
+  Camera,
+  QrCode,
+  Users,
+  Eye,
+  Sparkles,
+  Archive,
+} from 'lucide-react';
 import { Link, redirect } from '@/i18n/navigation';
 import { getSession } from '@/lib/auth/session';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
-import { buttonVariants } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { AppShell } from '@/components/app/app-shell';
 import { LiveGuestStats } from '@/components/events/live-guest-stats';
 import { UpgradeCard } from '@/components/payments/upgrade-card';
 import { routePayment } from '@/lib/payments/country';
+import { togglePublishAction } from '@/app/[locale]/(app)/events/actions';
 import { cn } from '@/lib/cn';
 
 type EventStatus = 'draft' | 'active' | 'archived' | 'cancelled';
@@ -160,7 +171,78 @@ export default async function EventDetailPage({
           currency={routePayment(undefined).currency}
         />
 
-        {/* Actions section */}
+        {/* Section actions sur l'événement (publier, modifier, aperçu).
+            Distincte de la section "Vos invités" ci-dessous qui couvre les
+            actions liées aux invités (gérer, check-in, galerie). */}
+        <section className="flex flex-col gap-5 rounded-3xl border border-[color:var(--color-border)] bg-white p-7 shadow-[var(--shadow-soft)]">
+          <div className="flex flex-col gap-2">
+            <span className="font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-gold-700)] uppercase">
+              Votre événement
+            </span>
+            <h2
+              className="font-display italic"
+              style={{
+                fontSize: 'clamp(1.5rem, 2.4vw, 2rem)',
+                lineHeight: 1.15,
+                letterSpacing: '-0.018em',
+                color: 'var(--color-ink-900)',
+              }}
+            >
+              Pilotez votre mariage
+            </h2>
+            {event.status === 'draft' ? (
+              <p className="text-sm leading-relaxed text-[color:var(--color-ink-500)] sm:text-base">
+                {t('draftHint')}
+              </p>
+            ) : null}
+          </div>
+          <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
+            <form
+              action={togglePublishAction}
+              className={event.status === 'draft' ? 'flex-1' : 'flex-1'}
+            >
+              <input type="hidden" name="eventId" value={eventId} />
+              <input
+                type="hidden"
+                name="action"
+                value={event.status === 'draft' ? 'publish' : 'unpublish'}
+              />
+              <Button
+                type="submit"
+                variant={event.status === 'draft' ? 'primary' : 'outline'}
+                size="md"
+                className="w-full"
+              >
+                {event.status === 'draft' ? (
+                  <>
+                    <Sparkles className="h-4 w-4" strokeWidth={2} aria-hidden />
+                    {t('publish')}
+                  </>
+                ) : (
+                  <>
+                    <Archive className="h-4 w-4" strokeWidth={2} aria-hidden />
+                    {t('unpublish')}
+                  </>
+                )}
+              </Button>
+            </form>
+            <Link
+              href={`/events/${eventId}/edit` as never}
+              aria-disabled
+              tabIndex={-1}
+              className={cn(
+                buttonVariants({ variant: 'ghost', size: 'md' }),
+                'pointer-events-none flex-1 cursor-not-allowed opacity-50',
+              )}
+              title="Bientôt disponible"
+            >
+              <Eye className="h-4 w-4" strokeWidth={2} aria-hidden />
+              Modifier les détails
+            </Link>
+          </div>
+        </section>
+
+        {/* Actions invités */}
         <section className="flex flex-col gap-5 rounded-3xl border border-[color:var(--color-border)] bg-white p-7 shadow-[var(--shadow-soft)]">
           <div className="flex flex-col gap-2">
             <span className="font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-blush-700)] uppercase">
