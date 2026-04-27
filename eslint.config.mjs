@@ -15,6 +15,8 @@ const eslintConfig = defineConfig([
     // CDK build artifacts (Lambda bundles, CloudFormation templates).
     'infra/cdk.out/**',
     'infra/node_modules/**',
+    // Convex codegen (auto-regenerated, not maintained by hand).
+    'convex/_generated/**',
   ]),
 ]);
 

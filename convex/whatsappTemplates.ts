@@ -27,15 +27,7 @@ const NAME_MAX = 512;
 const BODY_MAX = 1024;
 const CTA_LABEL_MAX = 25;
 
-const STATUS_VALUES = [
-  'draft',
-  'pending',
-  'approved',
-  'rejected',
-  'paused',
-  'disabled',
-] as const;
-type TemplateStatus = (typeof STATUS_VALUES)[number];
+type TemplateStatus = 'draft' | 'pending' | 'approved' | 'rejected' | 'paused' | 'disabled';
 
 function slugifyForMetaName(input: string): string {
   return input
@@ -54,7 +46,10 @@ function generateMetaName(eventId: string, hint: string): string {
   // les collisions sur re-submission.
   const slug = slugifyForMetaName(hint).slice(0, 24) || 'invite';
   const random = Math.random().toString(36).slice(2, 8);
-  const eventShort = eventId.slice(-8).toLowerCase().replace(/[^a-z0-9]/g, '');
+  const eventShort = eventId
+    .slice(-8)
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '');
   return `couple_${eventShort}_${slug}_${random}`.slice(0, NAME_MAX);
 }
 
@@ -99,7 +94,9 @@ export const create = mutation({
     const ctaLabel = validateCtaLabel(args.ctaLabel);
 
     const baseUrl = (
-      process.env.APP_BASE_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? 'https://wedillybird.com'
+      process.env.APP_BASE_URL ??
+      process.env.NEXT_PUBLIC_APP_URL ??
+      'https://wedillybird.com'
     ).replace(/\/$/, '');
     const ctaUrlPattern = `${baseUrl}/i/{{1}}`;
 
@@ -427,11 +424,19 @@ export const applyWebhookStatusUpdate = mutation({
 });
 
 async function applyStatus(
-  ctx: { db: { get: (id: Id<'whatsappTemplates'>) => Promise<unknown>; patch: (id: Id<'whatsappTemplates'>, patch: Record<string, unknown>) => Promise<void> } },
+  ctx: {
+    db: {
+      get: (id: Id<'whatsappTemplates'>) => Promise<unknown>;
+      patch: (id: Id<'whatsappTemplates'>, patch: Record<string, unknown>) => Promise<void>;
+    };
+  },
   id: Id<'whatsappTemplates'>,
   rawStatus: string,
   reason: string | undefined,
-): Promise<{ ok: true; status: TemplateStatus; changed: boolean } | { ok: false; error: 'TEMPLATE_NOT_FOUND' }> {
+): Promise<
+  | { ok: true; status: TemplateStatus; changed: boolean }
+  | { ok: false; error: 'TEMPLATE_NOT_FOUND' }
+> {
   const normalized = rawStatus.toLowerCase();
   const mapped: TemplateStatus =
     normalized === 'approved'

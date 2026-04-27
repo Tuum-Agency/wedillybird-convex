@@ -36,10 +36,15 @@ export default async function GalleryPage({
   // GALLERY_NOT_PURCHASED si `galleryExpiresAt` est undefined, et
   // GALLERY_EXPIRED si dépassé. On évite que l'utilisateur clique sur
   // upload pour rien — on bloque dès cette page avec un état distinct.
+  // Server Component : `Date.now()` est OK ici (rendu serveur, pas
+  // ré-évalué au runtime React). ESLint react-hooks/purity ne distingue
+  // pas server vs client — on désactive juste pour cette ligne.
+  // eslint-disable-next-line react-hooks/purity -- Server Component, no re-render concern
+  const nowMs = Date.now();
   const galleryStatus: 'open' | 'locked' | 'expired' =
     event.galleryExpiresAt === undefined
       ? 'locked'
-      : Date.now() > event.galleryExpiresAt
+      : nowMs > event.galleryExpiresAt
         ? 'expired'
         : 'open';
 

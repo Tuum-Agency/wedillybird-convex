@@ -6,6 +6,7 @@ const queryMock = vi.fn();
 const notFoundMock = vi.fn(() => {
   throw new Error('NOT_FOUND_THROWN');
 });
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- mock signature must accept arg
 const redirectMock = vi.fn((_target: unknown) => {
   throw new Error('REDIRECT_THROWN');
 });

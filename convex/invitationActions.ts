@@ -67,7 +67,6 @@ export const broadcast = action({
     const accessToken = process.env.WHATSAPP_ACCESS_TOKEN;
     const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
     const graphVersion = process.env.WHATSAPP_GRAPH_VERSION ?? 'v23.0';
-    const baseUrl = (process.env.APP_BASE_URL ?? 'https://wedillybird.com').replace(/\/$/, '');
     const templateName = getMetaTemplateName(styleId, process.env);
     const isMock = !accessToken || !phoneNumberId;
 
