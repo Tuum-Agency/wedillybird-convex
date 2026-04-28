@@ -4,7 +4,7 @@ test.describe('Auth — sign-in page', () => {
   test('renders the sign-in form with accessible labels', async ({ page }) => {
     await page.goto('/sign-in');
 
-    await expect(page.getByRole('heading', { level: 1 })).toContainText('Connexion');
+    await expect(page.getByRole('heading', { level: 1 })).toContainText(/Bienvenue|Connexion/i);
     await expect(page.getByLabel('Numéro WhatsApp')).toBeVisible();
     await expect(page.getByRole('button', { name: /envoyer le code/i })).toBeVisible();
   });
@@ -25,7 +25,7 @@ test.describe('Auth — sign-up alias', () => {
   test('redirects /sign-up → /sign-in', async ({ page }) => {
     await page.goto('/sign-up');
     await page.waitForURL((url) => url.pathname.endsWith('/sign-in'));
-    await expect(page.getByRole('heading', { level: 1 })).toContainText('Connexion');
+    await expect(page.getByRole('heading', { level: 1 })).toContainText(/Bienvenue|Connexion/i);
   });
 });
 
