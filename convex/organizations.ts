@@ -112,6 +112,12 @@ export const create = mutation({
   },
 });
 
+const HEX_COLOR_RE = /^#([0-9a-fA-F]{6}|[0-9a-fA-F]{3})$/;
+
+function assertHexColor(value: string, field: string): void {
+  if (!HEX_COLOR_RE.test(value.trim())) throw new Error(`INVALID_${field}`);
+}
+
 export const updateBranding = mutation({
   args: {
     organizationId: v.id('organizations'),
@@ -129,11 +135,101 @@ export const updateBranding = mutation({
       if (trimmed.length < 1 || trimmed.length > 120) throw new Error('INVALID_NAME');
       patch.name = trimmed;
     }
-    if (args.primaryColor !== undefined) patch.primaryColor = args.primaryColor;
-    if (args.accentColor !== undefined) patch.accentColor = args.accentColor;
+    if (args.primaryColor !== undefined) {
+      assertHexColor(args.primaryColor, 'PRIMARY_COLOR');
+      patch.primaryColor = args.primaryColor.trim();
+    }
+    if (args.accentColor !== undefined) {
+      assertHexColor(args.accentColor, 'ACCENT_COLOR');
+      patch.accentColor = args.accentColor.trim();
+    }
     if (args.logoStorageId !== undefined) patch.logoStorageId = args.logoStorageId;
     await ctx.db.patch(args.organizationId, patch);
     return { ok: true as const };
+  },
+});
+
+/**
+ * Generates a single-use upload URL pointing at Convex storage. The client
+ * POSTs the logo file directly to this URL (multipart) and gets back a
+ * `{ storageId }` it then commits via `setLogo`.
+ *
+ * Permission : seuls les owners/admins de l'orga peuvent obtenir une URL
+ * d'upload. On vérifie d'abord la membership avant d'allouer un slot storage,
+ * pour éviter qu'un user authentifié sans droit obtienne une URL signée.
+ */
+export const generateLogoUploadUrl = mutation({
+  args: {
+    organizationId: v.id('organizations'),
+    requesterId: v.id('users'),
+  },
+  handler: async (ctx, { organizationId, requesterId }) => {
+    await assertCanManage(ctx, organizationId, requesterId);
+    const uploadUrl = await ctx.storage.generateUploadUrl();
+    return { uploadUrl };
+  },
+});
+
+/**
+ * Commits a freshly uploaded logo : remplace `logoStorageId` et supprime
+ * l'ancien blob si présent (économie de stockage). On ne touche pas aux
+ * couleurs ici — le composant `BrandingForm` enchaîne logo + couleurs via
+ * `updateBranding` quand l'utilisateur soumet.
+ */
+export const setLogo = mutation({
+  args: {
+    organizationId: v.id('organizations'),
+    requesterId: v.id('users'),
+    logoStorageId: v.id('_storage'),
+  },
+  handler: async (ctx, { organizationId, requesterId, logoStorageId }) => {
+    await assertCanManage(ctx, organizationId, requesterId);
+    const org = await ctx.db.get(organizationId);
+    if (!org) throw new Error('NOT_FOUND');
+    const previous = org.logoStorageId;
+    await ctx.db.patch(organizationId, {
+      logoStorageId,
+      updatedAt: Date.now(),
+    });
+    if (previous && previous !== logoStorageId) {
+      // Best-effort cleanup — si la suppression rate (storage déjà GC), on
+      // continue sans bloquer.
+      try {
+        await ctx.storage.delete(previous);
+      } catch {
+        // ignore
+      }
+    }
+    return { ok: true as const };
+  },
+});
+
+/**
+ * Supprime le logo courant (si présent) et nettoie le storage Convex
+ * associé. Pratique pour permettre au pro de revenir à l'état "pas de logo
+ * → mark Wedillybird".
+ */
+export const clearLogo = mutation({
+  args: {
+    organizationId: v.id('organizations'),
+    requesterId: v.id('users'),
+  },
+  handler: async (ctx, { organizationId, requesterId }) => {
+    await assertCanManage(ctx, organizationId, requesterId);
+    const org = await ctx.db.get(organizationId);
+    if (!org) throw new Error('NOT_FOUND');
+    if (!org.logoStorageId) return { ok: true as const, alreadyEmpty: true };
+    const previous = org.logoStorageId;
+    await ctx.db.patch(organizationId, {
+      logoStorageId: undefined,
+      updatedAt: Date.now(),
+    });
+    try {
+      await ctx.storage.delete(previous);
+    } catch {
+      // ignore
+    }
+    return { ok: true as const, alreadyEmpty: false };
   },
 });
 
@@ -182,6 +278,39 @@ export const getById = query({
       subscriptionTier: org.subscriptionTier,
       subscriptionStatus: org.subscriptionStatus,
       myRole: membership.role,
+    };
+  },
+});
+
+/**
+ * Lookup public d'une organisation par slug — utilisé par le layout
+ * `(public-org)` côté Next pour appliquer le branding orga (logo,
+ * primaryColor, accentColor) sur les pages servies sous le sous-domaine
+ * `<slug>.wedillybird.com`.
+ *
+ * Aucune PII n'est exposée (pas de stripeCustomerId, pas de membership,
+ * pas d'email/phone). On retourne uniquement ce qui est nécessaire pour
+ * le rendu public d'une page d'événement ou d'invitation sous le
+ * sous-domaine de l'orga.
+ */
+export const findBySlug = query({
+  args: { slug: v.string() },
+  handler: async (ctx, { slug }) => {
+    const trimmed = slug.trim().toLowerCase();
+    if (!trimmed) return null;
+    const org = await ctx.db
+      .query('organizations')
+      .withIndex('by_slug', (q) => q.eq('slug', trimmed))
+      .first();
+    if (!org) return null;
+    const logoUrl = org.logoStorageId ? await ctx.storage.getUrl(org.logoStorageId) : null;
+    return {
+      _id: org._id,
+      name: org.name,
+      slug: org.slug,
+      primaryColor: org.primaryColor,
+      accentColor: org.accentColor,
+      logoUrl,
     };
   },
 });
@@ -362,6 +491,7 @@ export const updateSubscription = mutation({
   },
   handler: async (ctx, args) => {
     const { organizationId, ...rest } = args;
+    const before = await ctx.db.get(organizationId);
     const patch: Partial<Doc<'organizations'>> = { updatedAt: Date.now() };
     if (rest.stripeCustomerId !== undefined) patch.stripeCustomerId = rest.stripeCustomerId;
     if (rest.stripeSubscriptionId !== undefined)
@@ -371,6 +501,47 @@ export const updateSubscription = mutation({
     if (rest.subscriptionPeriodEnd !== undefined)
       patch.subscriptionPeriodEnd = rest.subscriptionPeriodEnd;
     await ctx.db.patch(organizationId, patch);
+
+    // Best-effort transition email to the org owner. Triggered once per
+    // distinct transition: trialing → active (welcome), active → past_due
+    // (alert), * → canceled (notice). Idempotent: only fires when the
+    // status actually changed.
+    if (before && rest.subscriptionStatus !== undefined) {
+      const prevStatus = before.subscriptionStatus;
+      const nextStatus = rest.subscriptionStatus;
+      if (prevStatus !== nextStatus) {
+        const owner = await ctx.db.get(before.ownerId);
+        if (owner?.email) {
+          let kind: 'subscription-renewed' | 'subscription-failed' | null = null;
+          let detail = '';
+          if ((prevStatus === 'trialing' || prevStatus === undefined) && nextStatus === 'active') {
+            kind = 'subscription-renewed';
+            detail = `Votre abonnement ${before.name} est désormais actif. Bienvenue !`;
+          } else if (nextStatus === 'past_due') {
+            kind = 'subscription-failed';
+            detail = `Le paiement de votre abonnement ${before.name} a échoué. Mettez à jour votre moyen de paiement pour conserver l’accès.`;
+          } else if (nextStatus === 'canceled') {
+            kind = 'subscription-failed';
+            detail = `Votre abonnement ${before.name} a été annulé. Vous pouvez le réactiver à tout moment depuis votre espace Pro.`;
+          } else if (prevStatus === 'past_due' && nextStatus === 'active') {
+            kind = 'subscription-renewed';
+            detail = `Le paiement de votre abonnement ${before.name} a bien été reçu. Merci !`;
+          }
+          if (kind) {
+            await ctx.scheduler.runAfter(0, internal.emailActions.sendProNotification, {
+              to: owner.email,
+              recipientName: owner.fullName ?? owner.phone ?? 'Bonjour',
+              organizationName: before.name,
+              kind,
+              detail,
+              ctaLabel: 'Gérer mon abonnement',
+              ctaUrl: `${process.env.NEXT_PUBLIC_APP_URL ?? 'https://wedillybird.com'}/pro/billing`,
+            });
+          }
+        }
+      }
+    }
+
     return { ok: true as const };
   },
 });

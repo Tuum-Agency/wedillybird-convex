@@ -61,7 +61,7 @@ export default async function NewEventPage({ params }: { params: Promise<{ local
           </p>
         </div>
 
-        <EventCreateWizard />
+        <EventCreateWizard userRole={user!.role ?? 'couple'} />
       </div>
     </AppShell>
   );

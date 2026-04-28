@@ -85,7 +85,7 @@ export function MagicLinkForm() {
             {t('magicLinkSentTitle', { email: sentTo })}
           </p>
           <p className="text-sm leading-relaxed text-[color:var(--color-ink-500)]">
-            {t('magicLinkSentDescription')}
+            {t('magicLinkSentDescription', { email: sentTo })}
           </p>
         </div>
         <button

@@ -35,5 +35,11 @@ export default async function OnboardingPage({ params }: { params: Promise<{ loc
     redirect({ href: '/dashboard', locale });
   }
 
-  return <OnboardingWizard />;
+  // Politique d'identité unique (avril 2026) : un user doit avoir À LA FOIS
+  // un email ET un numéro WhatsApp pour finaliser l'onboarding. Ça évite les
+  // doublons (même personne, deux comptes) et donne une voie de recovery si
+  // un canal est perdu.
+  // - Si l'user vient de magic link → email déjà rempli, on demandera le phone.
+  // - Si l'user vient de WhatsApp → phone déjà rempli, on demandera l'email.
+  return <OnboardingWizard initialEmail={user?.email ?? ''} initialPhone={user?.phone ?? ''} />;
 }

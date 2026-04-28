@@ -1,5 +1,5 @@
-import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
+import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 const pushMock = vi.fn();
@@ -15,7 +15,12 @@ vi.mock('@/app/[locale]/(auth)/actions', () => ({
 }));
 
 vi.mock('next-intl', () => ({
-  useTranslations: (namespace?: string) => (key: string) => `${namespace ?? 'T'}.${key}`,
+  useTranslations: (namespace?: string) => (key: string, vars?: Record<string, string>) => {
+    if (vars && Object.keys(vars).length > 0) {
+      return `${namespace ?? 'T'}.${key}:${JSON.stringify(vars)}`;
+    }
+    return `${namespace ?? 'T'}.${key}`;
+  },
 }));
 
 // Mock Motion : passe les enfants directement, pas d'animations en jsdom.
@@ -45,21 +50,24 @@ describe('OnboardingWizard', () => {
     expect(screen.getByLabelText('Onboarding.fullNameLabel')).toBeInTheDocument();
   });
 
-  it('disables Next until fullName has 2+ chars', async () => {
+  it('disables Next until both fullName (2+ chars) and a valid email are set', async () => {
     const user = userEvent.setup();
-    render(<OnboardingWizard />);
+    render(<OnboardingWizard initialPhone="+33612345678" />);
     const next = screen.getByRole('button', { name: 'Onboarding.next' });
     expect(next).toBeDisabled();
 
-    const name = screen.getByLabelText('Onboarding.fullNameLabel');
-    await user.type(name, 'Al');
+    await user.type(screen.getByLabelText('Onboarding.fullNameLabel'), 'Al');
+    expect(next).toBeDisabled();
+
+    await user.type(screen.getByLabelText('Onboarding.emailLabel'), 'al@example.com');
     expect(next).toBeEnabled();
   });
 
-  it('advances to step 2 (role) after clicking Next', async () => {
+  it('advances to role step (2 steps) when initialPhone is provided', async () => {
     const user = userEvent.setup();
-    render(<OnboardingWizard />);
+    render(<OnboardingWizard initialPhone="+33612345678" />);
     await user.type(screen.getByLabelText('Onboarding.fullNameLabel'), 'Alice Martin');
+    await user.type(screen.getByLabelText('Onboarding.emailLabel'), 'alice@example.com');
     await user.click(screen.getByRole('button', { name: 'Onboarding.next' }));
 
     expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent('stepRole');
@@ -69,21 +77,29 @@ describe('OnboardingWizard', () => {
 
   it('rejects invalid email format at step 1', async () => {
     const user = userEvent.setup();
-    render(<OnboardingWizard />);
+    render(<OnboardingWizard initialPhone="+33612345678" />);
     await user.type(screen.getByLabelText('Onboarding.fullNameLabel'), 'Alice Martin');
     await user.type(screen.getByLabelText('Onboarding.emailLabel'), 'not-an-email');
     await user.click(screen.getByRole('button', { name: 'Onboarding.next' }));
 
-    // Still on step 1
+    // Still on step 1 because email is invalid
     expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent('stepProfile');
   });
 
-  it('submits with fullName and selected role (redirect handled server-side)', async () => {
+  it('pre-fills email and locks the field when initialEmail is provided', () => {
+    render(<OnboardingWizard initialEmail="alice@example.com" initialPhone="+33612345678" />);
+    const emailInput = screen.getByLabelText('Onboarding.emailLabel') as HTMLInputElement;
+    expect(emailInput.value).toBe('alice@example.com');
+    expect(emailInput).toHaveAttribute('readonly');
+  });
+
+  it('submits with fullName, email and selected role (no secure step needed)', async () => {
     completeOnboardingActionMock.mockResolvedValue({ ok: true });
     const user = userEvent.setup();
-    render(<OnboardingWizard />);
+    render(<OnboardingWizard initialPhone="+33612345678" />);
 
     await user.type(screen.getByLabelText('Onboarding.fullNameLabel'), 'Alice Martin');
+    await user.type(screen.getByLabelText('Onboarding.emailLabel'), 'alice@example.com');
     await user.click(screen.getByRole('button', { name: 'Onboarding.next' }));
 
     const group = screen.getByRole('radiogroup');
@@ -94,5 +110,93 @@ describe('OnboardingWizard', () => {
     const formData = completeOnboardingActionMock.mock.calls[0]![0] as FormData;
     expect(formData.get('fullName')).toBe('Alice Martin');
     expect(formData.get('role')).toBe('couple');
+    expect(formData.get('email')).toBe('alice@example.com');
+  });
+
+  describe('secure step (phone link)', () => {
+    let fetchSpy: ReturnType<typeof vi.spyOn>;
+
+    beforeEach(() => {
+      fetchSpy = vi.spyOn(global, 'fetch');
+    });
+
+    afterEach(() => {
+      fetchSpy.mockRestore();
+    });
+
+    it('inserts secure step when initialEmail is provided and initialPhone is empty', async () => {
+      const user = userEvent.setup();
+      render(<OnboardingWizard initialEmail="alice@example.com" />);
+      await user.type(screen.getByLabelText('Onboarding.fullNameLabel'), 'Alice Martin');
+      await user.click(screen.getByRole('button', { name: 'Onboarding.next' }));
+
+      // Maintenant on est au step secure, pas role
+      expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent('stepSecure');
+      expect(screen.getByLabelText('Onboarding.phoneLabel')).toBeInTheDocument();
+      expect(screen.queryByRole('radiogroup')).not.toBeInTheDocument();
+    });
+
+    it('skips secure step when initialPhone is provided', async () => {
+      const user = userEvent.setup();
+      render(<OnboardingWizard initialPhone="+33612345678" />);
+      await user.type(screen.getByLabelText('Onboarding.fullNameLabel'), 'Alice Martin');
+      await user.type(screen.getByLabelText('Onboarding.emailLabel'), 'alice@example.com');
+      await user.click(screen.getByRole('button', { name: 'Onboarding.next' }));
+
+      expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent('stepRole');
+      expect(screen.queryByLabelText('Onboarding.phoneLabel')).not.toBeInTheDocument();
+    });
+
+    it('inserts secure step when both initialEmail and initialPhone are empty', async () => {
+      const user = userEvent.setup();
+      render(<OnboardingWizard />);
+      await user.type(screen.getByLabelText('Onboarding.fullNameLabel'), 'Alice Martin');
+      await user.type(screen.getByLabelText('Onboarding.emailLabel'), 'alice@example.com');
+      await user.click(screen.getByRole('button', { name: 'Onboarding.next' }));
+
+      expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent('stepSecure');
+    });
+
+    it('calls /api/account/link/phone/request when sending code', async () => {
+      fetchSpy.mockResolvedValue(
+        new Response(JSON.stringify({ ok: true, phone: '+33612345678' }), { status: 200 }),
+      );
+      const user = userEvent.setup();
+      render(<OnboardingWizard initialEmail="alice@example.com" />);
+
+      await user.type(screen.getByLabelText('Onboarding.fullNameLabel'), 'Alice Martin');
+      await user.click(screen.getByRole('button', { name: 'Onboarding.next' }));
+
+      await user.type(screen.getByLabelText('Onboarding.phoneLabel'), '+33612345678');
+      await user.click(screen.getByRole('button', { name: 'Onboarding.sendCode' }));
+
+      await waitFor(() => {
+        expect(fetchSpy).toHaveBeenCalledWith(
+          '/api/account/link/phone/request',
+          expect.objectContaining({
+            method: 'POST',
+            body: JSON.stringify({ phone: '+33612345678' }),
+          }),
+        );
+      });
+    });
+
+    it('shows PHONE_TAKEN copy when API returns that error', async () => {
+      fetchSpy.mockResolvedValue(
+        new Response(JSON.stringify({ ok: false, error: 'PHONE_TAKEN' }), { status: 400 }),
+      );
+      const user = userEvent.setup();
+      render(<OnboardingWizard initialEmail="alice@example.com" />);
+
+      await user.type(screen.getByLabelText('Onboarding.fullNameLabel'), 'Alice Martin');
+      await user.click(screen.getByRole('button', { name: 'Onboarding.next' }));
+
+      await user.type(screen.getByLabelText('Onboarding.phoneLabel'), '+33612345678');
+      await user.click(screen.getByRole('button', { name: 'Onboarding.sendCode' }));
+
+      await waitFor(() => {
+        expect(screen.getByRole('alert')).toHaveTextContent('Onboarding.errors.phoneTaken');
+      });
+    });
   });
 });

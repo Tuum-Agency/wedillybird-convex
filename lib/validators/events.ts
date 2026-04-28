@@ -51,6 +51,8 @@ export const themeSchema = z
   })
   .optional();
 
+export const planTierSchema = z.enum(['essential', 'premium']);
+
 export const createEventSchema = z.object({
   title: eventTitleSchema,
   partnerA: partnerNameSchema,
@@ -62,9 +64,31 @@ export const createEventSchema = z.object({
   themePrimary: z.string().regex(HEX_COLOR, 'Couleur invalide').optional(),
   themeAccent: z.string().regex(HEX_COLOR, 'Couleur invalide').optional(),
   themeFont: z.string().trim().max(80).optional(),
+  pendingPlanTier: planTierSchema.optional(),
 });
 
 export type CreateEventInput = z.infer<typeof createEventSchema>;
+
+/**
+ * Édition partielle d'un événement existant. Tous les champs sont optionnels :
+ * on n'envoie que ce qui change. `clearVenue=true` permet de retirer un lieu
+ * sans en remettre un (cas où le couple n'a plus de lieu).
+ */
+export const updateEventSchema = z.object({
+  title: eventTitleSchema.optional(),
+  partnerA: partnerNameSchema.optional(),
+  partnerB: partnerNameSchema.optional(),
+  eventDate: eventDateSchema.optional(),
+  timezone: timezoneSchema.optional(),
+  venueName: z.string().trim().max(120).optional(),
+  venueAddress: z.string().trim().max(240).optional(),
+  clearVenue: z.boolean().optional(),
+  themePrimary: z.string().regex(HEX_COLOR, 'Couleur invalide').optional(),
+  themeAccent: z.string().regex(HEX_COLOR, 'Couleur invalide').optional(),
+  themeFont: z.string().trim().max(80).optional(),
+});
+
+export type UpdateEventInput = z.infer<typeof updateEventSchema>;
 
 export interface NormalizedEventInput {
   title: string;
@@ -74,6 +98,7 @@ export interface NormalizedEventInput {
   timezone: string;
   venue?: { name: string; address: string };
   theme?: { primaryColor: string; accentColor: string; fontFamily: string };
+  pendingPlanTier?: 'essential' | 'premium';
 }
 
 export function normalizeCreateEvent(input: CreateEventInput): NormalizedEventInput {
@@ -97,5 +122,6 @@ export function normalizeCreateEvent(input: CreateEventInput): NormalizedEventIn
     timezone: input.timezone,
     ...(venue ? { venue } : {}),
     ...(theme ? { theme } : {}),
+    ...(input.pendingPlanTier ? { pendingPlanTier: input.pendingPlanTier } : {}),
   };
 }

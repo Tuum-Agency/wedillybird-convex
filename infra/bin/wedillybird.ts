@@ -34,5 +34,6 @@ new WedillybirdMediaStack(app, 'WedillybirdMediaStack', {
     .filter(Boolean),
   convexSiteUrl: process.env.NEXT_PUBLIC_CONVEX_SITE_URL ?? process.env.CONVEX_SITE_URL,
   lambdaCallbackSecret: process.env.LAMBDA_CALLBACK_SECRET,
-  description: 'Wedillybird media S3 bucket + CloudFront + Rekognition moderation Lambda',
+  openaiApiKey: process.env.OPENAI_API_KEY,
+  description: 'Wedillybird media S3 bucket + CloudFront + Rekognition + OpenAI moderation',
 });

@@ -36,6 +36,13 @@ export default defineConfig({
       SESSION_SECRET:
         process.env.SESSION_SECRET ?? 'test-session-secret-at-least-32-chars-long-xxxxx',
       WHATSAPP_MOCK: '1',
+      // Force le driver mock côté Next.js. Pour les actions Convex (qui
+      // tournent dans le cloud Convex), il faut aussi poser cette env var
+      // côté deployment dev avant de lancer les tests :
+      //   pnpx convex env set E2E_MODE 1
+      // Cf. tests/e2e/auth-linking.spec.ts pour le pattern de teardown.
+      E2E_MODE: '1',
+      EMAIL_DRIVER: 'mock',
     },
   },
 });

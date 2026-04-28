@@ -61,7 +61,10 @@ export const requestOtp = action({
     const templateName = process.env.WHATSAPP_OTP_TEMPLATE ?? 'otp_code';
     const graphVersion = process.env.WHATSAPP_GRAPH_VERSION ?? 'v23.0';
 
-    if (!accessToken || !phoneNumberId) {
+    // Mode E2E : on court-circuite Meta même si les credentials sont posés
+    // côté env Convex. Le code OTP est loggé pour récupération depuis les
+    // tests Playwright via la query interne `auth._lastOtpCodeForPhone`.
+    if (process.env.E2E_MODE === '1' || !accessToken || !phoneNumberId) {
       console.info(`[whatsapp:mock] OTP ${code} -> ${normalized}`);
       return { phone: normalized, channel: 'whatsapp' as const, provider: 'mock' as const };
     }
@@ -378,5 +381,387 @@ export const _saveOtpSession = internalMutation({
       createdAt: now,
       ...(ipAddress ? { ipAddress } : {}),
     });
+  },
+});
+
+/* -------------------------------------------------------------------------- */
+/*  Link verifications — ajouter un identifiant (phone OU email) à un user    */
+/*  existant. OTP 6 digits envoyés via WhatsApp ou SES.                       */
+/* -------------------------------------------------------------------------- */
+
+const LINK_EXPIRY_MS = 10 * 60 * 1000;
+const MAX_LINK_ATTEMPTS = 5;
+const MAX_LINKS_PER_HOUR = 5;
+const LINK_RATE_WINDOW_MS = 60 * 60 * 1000;
+
+export const requestLinkPhone = action({
+  args: {
+    userId: v.id('users'),
+    phone: v.string(),
+    ipAddress: v.optional(v.string()),
+  },
+  handler: async (ctx, { userId, phone, ipAddress }) => {
+    const normalized = normalizePhone(phone);
+    if (!normalized || !isValidE164(normalized)) {
+      throw new Error('INVALID_PHONE');
+    }
+
+    const conflict = await ctx.runQuery(internal.auth._userByPhone, { phone: normalized });
+    if (conflict && conflict._id !== userId) {
+      throw new Error('PHONE_TAKEN');
+    }
+    if (conflict && conflict._id === userId) {
+      throw new Error('ALREADY_LINKED');
+    }
+
+    const rateOk = await ctx.runQuery(internal.auth._checkLinkRate, {
+      userId,
+      targetKind: 'phone' as const,
+    });
+    if (!rateOk) {
+      throw new Error('RATE_LIMITED');
+    }
+
+    const code = generateOtpCode();
+    const codeHash = await hashOtp(code, normalized);
+
+    await ctx.runMutation(internal.auth._saveLinkVerification, {
+      userId,
+      targetKind: 'phone' as const,
+      targetValue: normalized,
+      codeHash,
+      ipAddress,
+    });
+
+    const accessToken = process.env.WHATSAPP_ACCESS_TOKEN;
+    const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
+    const templateName = process.env.WHATSAPP_OTP_TEMPLATE ?? 'otp_code';
+    const graphVersion = process.env.WHATSAPP_GRAPH_VERSION ?? 'v23.0';
+
+    // Mode E2E : court-circuit identique à `requestOtp`.
+    if (process.env.E2E_MODE === '1' || !accessToken || !phoneNumberId) {
+      console.info(`[whatsapp:mock] LINK ${code} -> ${normalized}`);
+      return { phone: normalized, channel: 'whatsapp' as const, provider: 'mock' as const };
+    }
+
+    const url = `https://graph.facebook.com/${graphVersion}/${phoneNumberId}/messages`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        messaging_product: 'whatsapp',
+        recipient_type: 'individual',
+        to: normalized.replace(/^\+/, ''),
+        type: 'template',
+        template: {
+          name: templateName,
+          language: { code: 'fr' },
+          components: [
+            { type: 'body', parameters: [{ type: 'text', text: code }] },
+            {
+              type: 'button',
+              sub_type: 'url',
+              index: '0',
+              parameters: [{ type: 'text', text: code }],
+            },
+          ],
+        },
+      }),
+    });
+    if (!res.ok) throw new Error('WHATSAPP_SEND_FAILED');
+
+    return { phone: normalized, channel: 'whatsapp' as const, provider: 'meta_cloud' as const };
+  },
+});
+
+export const verifyLinkPhone = mutation({
+  args: {
+    userId: v.id('users'),
+    phone: v.string(),
+    code: v.string(),
+  },
+  handler: async (ctx, { userId, phone, code }) => {
+    const normalized = normalizePhone(phone);
+    if (!normalized || !isValidE164(normalized)) {
+      throw new Error('INVALID_PHONE');
+    }
+    if (!/^\d{6}$/.test(code)) {
+      throw new Error('INVALID_CODE');
+    }
+
+    const now = Date.now();
+    const verification = await ctx.db
+      .query('linkVerifications')
+      .withIndex('by_user_kind', (q) => q.eq('userId', userId).eq('targetKind', 'phone'))
+      .filter((q) =>
+        q.and(q.eq(q.field('targetValue'), normalized), q.eq(q.field('consumedAt'), undefined)),
+      )
+      .order('desc')
+      .first();
+
+    if (!verification) throw new Error('NO_ACTIVE_LINK');
+    if (verification.expiresAt < now) throw new Error('LINK_EXPIRED');
+    if (verification.attempts >= MAX_LINK_ATTEMPTS) throw new Error('TOO_MANY_ATTEMPTS');
+
+    const valid = await verifyOtpHash(code, normalized, verification.codeHash);
+    await ctx.db.patch(verification._id, { attempts: verification.attempts + 1 });
+    if (!valid) throw new Error('INVALID_CODE');
+
+    // Race-condition defense : revérifier qu'aucun autre user n'a pris ce
+    // phone entre le request et le verify.
+    const conflict = await ctx.db
+      .query('users')
+      .withIndex('by_phone', (q) => q.eq('phone', normalized))
+      .first();
+    if (conflict && conflict._id !== userId) {
+      throw new Error('PHONE_TAKEN');
+    }
+
+    await ctx.db.patch(verification._id, { consumedAt: now });
+    await ctx.db.patch(userId, { phone: normalized, lastSeenAt: now });
+    return { ok: true as const };
+  },
+});
+
+export const requestLinkEmail = action({
+  args: {
+    userId: v.id('users'),
+    email: v.string(),
+    ipAddress: v.optional(v.string()),
+  },
+  handler: async (ctx, { userId, email, ipAddress }) => {
+    const normalized = normalizeEmail(email);
+    if (!isValidEmail(normalized)) {
+      throw new Error('INVALID_EMAIL');
+    }
+
+    const conflict = await ctx.runQuery(internal.auth._userByEmail, { email: normalized });
+    if (conflict && conflict._id !== userId) {
+      throw new Error('EMAIL_TAKEN');
+    }
+    if (conflict && conflict._id === userId) {
+      throw new Error('ALREADY_LINKED');
+    }
+
+    const rateOk = await ctx.runQuery(internal.auth._checkLinkRate, {
+      userId,
+      targetKind: 'email' as const,
+    });
+    if (!rateOk) {
+      throw new Error('RATE_LIMITED');
+    }
+
+    const code = generateOtpCode();
+    const codeHash = await hashOtp(code, normalized);
+
+    await ctx.runMutation(internal.auth._saveLinkVerification, {
+      userId,
+      targetKind: 'email' as const,
+      targetValue: normalized,
+      codeHash,
+      ipAddress,
+    });
+
+    await ctx.runAction(internal.emailActions.sendLinkCodeEmail, {
+      to: normalized,
+      code,
+      ipAddress,
+    });
+
+    return { email: normalized };
+  },
+});
+
+export const verifyLinkEmail = mutation({
+  args: {
+    userId: v.id('users'),
+    email: v.string(),
+    code: v.string(),
+  },
+  handler: async (ctx, { userId, email, code }) => {
+    const normalized = normalizeEmail(email);
+    if (!isValidEmail(normalized)) {
+      throw new Error('INVALID_EMAIL');
+    }
+    if (!/^\d{6}$/.test(code)) {
+      throw new Error('INVALID_CODE');
+    }
+
+    const now = Date.now();
+    const verification = await ctx.db
+      .query('linkVerifications')
+      .withIndex('by_user_kind', (q) => q.eq('userId', userId).eq('targetKind', 'email'))
+      .filter((q) =>
+        q.and(q.eq(q.field('targetValue'), normalized), q.eq(q.field('consumedAt'), undefined)),
+      )
+      .order('desc')
+      .first();
+
+    if (!verification) throw new Error('NO_ACTIVE_LINK');
+    if (verification.expiresAt < now) throw new Error('LINK_EXPIRED');
+    if (verification.attempts >= MAX_LINK_ATTEMPTS) throw new Error('TOO_MANY_ATTEMPTS');
+
+    const valid = await verifyOtpHash(code, normalized, verification.codeHash);
+    await ctx.db.patch(verification._id, { attempts: verification.attempts + 1 });
+    if (!valid) throw new Error('INVALID_CODE');
+
+    const conflict = await ctx.db
+      .query('users')
+      .withIndex('by_email', (q) => q.eq('email', normalized))
+      .first();
+    if (conflict && conflict._id !== userId) {
+      throw new Error('EMAIL_TAKEN');
+    }
+
+    await ctx.db.patch(verification._id, { consumedAt: now });
+    await ctx.db.patch(userId, { email: normalized, lastSeenAt: now });
+    return { ok: true as const };
+  },
+});
+
+export const _userByPhone = internalQuery({
+  args: { phone: v.string() },
+  handler: async (ctx, { phone }) => {
+    return ctx.db
+      .query('users')
+      .withIndex('by_phone', (q) => q.eq('phone', phone))
+      .first();
+  },
+});
+
+export const _userByEmail = internalQuery({
+  args: { email: v.string() },
+  handler: async (ctx, { email }) => {
+    return ctx.db
+      .query('users')
+      .withIndex('by_email', (q) => q.eq('email', email))
+      .first();
+  },
+});
+
+export const _checkLinkRate = internalQuery({
+  args: {
+    userId: v.id('users'),
+    targetKind: v.union(v.literal('phone'), v.literal('email')),
+  },
+  handler: async (ctx, { userId, targetKind }) => {
+    const windowStart = Date.now() - LINK_RATE_WINDOW_MS;
+    const recent = await ctx.db
+      .query('linkVerifications')
+      .withIndex('by_user_kind_expires', (q) =>
+        q.eq('userId', userId).eq('targetKind', targetKind).gte('expiresAt', windowStart),
+      )
+      .collect();
+    return recent.length < MAX_LINKS_PER_HOUR;
+  },
+});
+
+export const _saveLinkVerification = internalMutation({
+  args: {
+    userId: v.id('users'),
+    targetKind: v.union(v.literal('phone'), v.literal('email')),
+    targetValue: v.string(),
+    codeHash: v.string(),
+    ipAddress: v.optional(v.string()),
+  },
+  handler: async (ctx, { userId, targetKind, targetValue, codeHash, ipAddress }) => {
+    const now = Date.now();
+    return ctx.db.insert('linkVerifications', {
+      userId,
+      targetKind,
+      targetValue,
+      codeHash,
+      attempts: 0,
+      expiresAt: now + LINK_EXPIRY_MS,
+      createdAt: now,
+      ...(ipAddress ? { ipAddress } : {}),
+    });
+  },
+});
+
+/* -------------------------------------------------------------------------- */
+/*  E2E test helpers — réservés aux tests Playwright. Tous les chemins ici    */
+/*  vérifient `process.env.E2E_MODE === '1'` côté Convex et lèvent une        */
+/*  erreur sinon. Ne JAMAIS activer `E2E_MODE` en prod.                       */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Pendant E2E uniquement : génère un OTP de linking phone, le persiste en
+ * base, et retourne le code en clair pour que le test puisse appeler
+ * `verifyLinkPhone` ensuite. Aucun envoi WhatsApp réel — court-circuit total.
+ */
+export const _e2eIssueLinkPhoneCode = action({
+  args: {
+    userId: v.id('users'),
+    phone: v.string(),
+  },
+  handler: async (ctx, { userId, phone }) => {
+    if (process.env.E2E_MODE !== '1') {
+      throw new Error('E2E_MODE_DISABLED');
+    }
+    const normalized = normalizePhone(phone);
+    if (!normalized || !isValidE164(normalized)) {
+      throw new Error('INVALID_PHONE');
+    }
+
+    const conflict = await ctx.runQuery(internal.auth._userByPhone, { phone: normalized });
+    if (conflict && conflict._id !== userId) {
+      throw new Error('PHONE_TAKEN');
+    }
+    if (conflict && conflict._id === userId) {
+      throw new Error('ALREADY_LINKED');
+    }
+
+    const code = generateOtpCode();
+    const codeHash = await hashOtp(code, normalized);
+
+    await ctx.runMutation(internal.auth._saveLinkVerification, {
+      userId,
+      targetKind: 'phone' as const,
+      targetValue: normalized,
+      codeHash,
+    });
+
+    return { phone: normalized, code };
+  },
+});
+
+/**
+ * Pendant E2E uniquement : génère un OTP de linking email, le persiste en
+ * base, et retourne le code en clair. Pas d'envoi SES réel.
+ */
+export const _e2eIssueLinkEmailCode = action({
+  args: {
+    userId: v.id('users'),
+    email: v.string(),
+  },
+  handler: async (ctx, { userId, email }) => {
+    if (process.env.E2E_MODE !== '1') {
+      throw new Error('E2E_MODE_DISABLED');
+    }
+    const normalized = normalizeEmail(email);
+    if (!isValidEmail(normalized)) {
+      throw new Error('INVALID_EMAIL');
+    }
+
+    const conflict = await ctx.runQuery(internal.auth._userByEmail, { email: normalized });
+    if (conflict && conflict._id !== userId) {
+      throw new Error('EMAIL_TAKEN');
+    }
+    if (conflict && conflict._id === userId) {
+      throw new Error('ALREADY_LINKED');
+    }
+
+    const code = generateOtpCode();
+    const codeHash = await hashOtp(code, normalized);
+
+    await ctx.runMutation(internal.auth._saveLinkVerification, {
+      userId,
+      targetKind: 'email' as const,
+      targetValue: normalized,
+      codeHash,
+    });
+
+    return { email: normalized, code };
   },
 });

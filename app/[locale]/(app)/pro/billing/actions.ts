@@ -13,8 +13,13 @@ function redirectUnsafe(url: string): never {
 }
 import { getSession } from '@/lib/auth/session';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
-import { createSubscriptionCheckout, openCustomerPortal } from '@/lib/payments/drivers/stripe';
+import {
+  createSubscriptionCheckout,
+  createPaygCheckout,
+  openCustomerPortal,
+} from '@/lib/payments/drivers/stripe';
 import { isSubscriptionTier, type SubscriptionTier } from '@/lib/payments/subscriptions';
+import { routePayment } from '@/lib/payments/country';
 
 async function appOrigin(): Promise<string> {
   const explicit = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '');
@@ -50,6 +55,36 @@ export async function subscribeAction(formData: FormData): Promise<void> {
     customerEmail: user.email,
     stripeCustomerId: org.stripeCustomerId,
     successUrl: `${origin}/pro/billing?status=success`,
+    cancelUrl: `${origin}/pro/billing?status=cancel`,
+  });
+  redirectUnsafe(checkout.redirectUrl);
+}
+
+/**
+ * Achat Pay-as-you-go pro (one-shot 69 €). Crédite l'organisation de +1 event
+ * activable sans abonnement. Le webhook Stripe finalise la transaction et
+ * appelle `paygPurchases:markPurchase` côté Convex.
+ */
+export async function payAsYouGoAction(): Promise<void> {
+  const session = await getSession();
+  if (!session) redirectUnsafe('/login?next=/pro/billing');
+
+  const convex = getConvexServerClient();
+  const org = await convex.query(convexApi.myOrganization, { userId: session.userId });
+  if (!org) redirectUnsafe('/pro/onboarding');
+
+  const user = await convex.query(convexApi.getUserById, { userId: session.userId });
+  if (!user?.email) redirectUnsafe('/pro/billing?status=error&code=email_required');
+
+  const origin = await appOrigin();
+  const { currency } = routePayment(undefined);
+  const checkout = await createPaygCheckout({
+    organizationId: org._id,
+    requesterId: session.userId,
+    currency,
+    customerEmail: user.email,
+    stripeCustomerId: org.stripeCustomerId,
+    successUrl: `${origin}/pro/billing?status=success&kind=payg`,
     cancelUrl: `${origin}/pro/billing?status=cancel`,
   });
   redirectUnsafe(checkout.redirectUrl);

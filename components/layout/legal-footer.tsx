@@ -21,7 +21,7 @@ export function LegalFooter() {
         <Link href="/legal/cookies" className="hover:underline">
           {t('cookies')}
         </Link>
-        <Link href="/faq" className="hover:underline">
+        <Link href="/#faq" className="hover:underline">
           {t('faq')}
         </Link>
       </nav>

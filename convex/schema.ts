@@ -53,6 +53,12 @@ export default defineSchema({
       ),
     ),
     subscriptionPeriodEnd: v.optional(v.number()),
+    /**
+     * Crédits Pay-as-you-go non-consommés. Chaque achat PAYG (one-shot 69 €)
+     * crédite +1 ; chaque event créé sous mode PAYG décrémentera de 1 (gating
+     * à programmer dans un sprint dédié, cf. BACKLOG).
+     */
+    paygCredits: v.optional(v.number()),
     createdAt: v.number(),
     updatedAt: v.number(),
   })
@@ -60,6 +66,23 @@ export default defineSchema({
     .index('by_slug', ['slug'])
     .index('by_stripe_customer', ['stripeCustomerId'])
     .index('by_stripe_subscription', ['stripeSubscriptionId']),
+
+  /**
+   * Achats Pay-as-you-go pro. Une row par checkout Stripe completed. La
+   * mutation `paygPurchases:markPurchase` est idempotente via l'index
+   * `by_session` (un même `stripeSessionId` ne crédite qu'une fois, même si
+   * le webhook arrive plusieurs fois).
+   */
+  paygPurchases: defineTable({
+    organizationId: v.id('organizations'),
+    requesterId: v.id('users'),
+    stripeSessionId: v.string(),
+    amountMinor: v.number(),
+    currency: v.union(v.literal('EUR'), v.literal('XOF'), v.literal('MAD'), v.literal('TND')),
+    createdAt: v.number(),
+  })
+    .index('by_session', ['stripeSessionId'])
+    .index('by_organization', ['organizationId']),
 
   organizationMemberships: defineTable({
     organizationId: v.id('organizations'),
@@ -103,6 +126,18 @@ export default defineSchema({
       }),
     ),
     coverImageKey: v.optional(v.string()),
+    /**
+     * Identifiant de la Rekognition Face Collection AWS associée à l'event,
+     * de la forme `wb-event-{eventId}`. Set par le Lambda de modération à la
+     * première photo `approved` (premier IndexFaces réussi).
+     *
+     * Quand undefined : aucune photo n'a encore été indexée — le bouton
+     * "rechercher mes photos" doit afficher un état vide explicatif.
+     *
+     * Cleanup : à supprimer via Rekognition `DeleteCollection` quand
+     * l'event est définitivement archivé / supprimé (cf. BACKLOG).
+     */
+    faceCollectionId: v.optional(v.string()),
     theme: v.optional(
       v.object({
         primaryColor: v.string(),
@@ -118,6 +153,13 @@ export default defineSchema({
     ),
     // Set when the owner pays for one of the two B2C plans. Absent = unpaid draft.
     planTier: v.optional(v.union(v.literal('essential'), v.literal('premium'))),
+    /**
+     * Plan envisagé par le couple, devient `planTier` officiel après paiement
+     * Stripe. Persisté dès la création de l'event pour pré-remplir le checkout
+     * et permettre de payment-gater la publication. Reset quand le paiement
+     * succeeds (`planTier` prend le relais).
+     */
+    pendingPlanTier: v.optional(v.union(v.literal('essential'), v.literal('premium'))),
     paidAt: v.optional(v.number()),
     // Hard cap kept for anti-abuse (uniform across plans). Defaults to 5000 on create.
     maxGuests: v.number(),
@@ -125,6 +167,40 @@ export default defineSchema({
     // (Essential = J+30, Premium = J+180) on payment success. Post-event upsell
     // pushes this to J+5y.
     galleryExpiresAt: v.optional(v.number()),
+    /**
+     * Configuration du message d'invitation WhatsApp envoyé aux invités.
+     * Le couple choisit un style préfabriqué (Wedillybird-prefab MVP — cf.
+     * `lib/whatsapp/templates.ts`) et personnalise via un mot perso libre
+     * (max 60 chars) + un canal préféré.
+     *
+     * Tier supérieur (Premium) débloquera les templates 100% custom plus
+     * tard (cf. BACKLOG section "Templates WhatsApp Cloud API"). Pour
+     * cette phase, customTemplateId est réservé pour W3.
+     */
+    messagingConfig: v.optional(
+      v.object({
+        templateStyle: v.union(
+          v.literal('classic'),
+          v.literal('warm'),
+          v.literal('african'),
+          v.literal('minimal'),
+          v.literal('festive'),
+        ),
+        personalMessage: v.optional(v.string()),
+        preferredChannel: v.union(v.literal('whatsapp'), v.literal('email'), v.literal('both')),
+        // Référence vers un template custom soumis par le couple (cf. table
+        // `whatsappTemplates`). Utilisé en priorité sur `templateStyle` quand
+        // le template est `approved`. Tant que le template est `pending` ou
+        // `rejected`, on retombe sur le style préfabriqué.
+        customTemplateId: v.optional(v.id('whatsappTemplates')),
+        // Canal sur lequel le couple veut être notifié quand Meta valide ou
+        // rejette son template custom. Distinct de `preferredChannel` (qui
+        // concerne l'envoi des invitations aux invités).
+        templateNotifyChannel: v.optional(
+          v.union(v.literal('whatsapp'), v.literal('email'), v.literal('both')),
+        ),
+      }),
+    ),
     createdAt: v.number(),
     updatedAt: v.number(),
   })
@@ -221,15 +297,45 @@ export default defineSchema({
     height: v.optional(v.number()),
     sizeBytes: v.number(),
     contentType: v.string(),
+    /**
+     * Variantes WebP générées par le Lambda Sharp à l'upload : `thumb-256`,
+     * `medium-1024`, `large-2048`. Stockées sous `processed/{eventId}/{photoId}/{size}.webp`
+     * et exposées via CloudFront (même distribution que `s3Key`).
+     *
+     * - thumb (max 256px) : grid masonry galerie owner/guest, ~12 KB / image.
+     * - medium (max 1024px) : lightbox / face search hits, ~80 KB / image.
+     * - large (max 2048px) : download single + ZIP (full-resolution-ish).
+     *
+     * Si absent (Lambda pas tourné, échec, ancienne photo) : fallback sur
+     * `s3Key` original côté UI.
+     */
+    variants: v.optional(
+      v.object({
+        thumb: v.optional(v.string()),
+        medium: v.optional(v.string()),
+        large: v.optional(v.string()),
+      }),
+    ),
     moderatedAt: v.optional(v.number()),
     moderatedBy: v.optional(v.id('users')),
     moderation: v.optional(
       v.object({
         source: v.union(v.literal('rekognition'), v.literal('manual')),
-        decision: v.union(v.literal('approved'), v.literal('rejected')),
+        // `manual_review` = Rekognition n'a ni rejeté ni approuvé en confiance
+        // (image détectée comme illustration suspecte ou OCR ambigu) — la
+        // photo reste `status: 'pending'` jusqu'à intervention owner explicite.
+        decision: v.union(v.literal('approved'), v.literal('rejected'), v.literal('manual_review')),
         topLabel: v.optional(v.string()),
         topConfidence: v.optional(v.number()),
         labels: v.optional(v.array(v.object({ name: v.string(), confidence: v.number() }))),
+        /** Texte OCR brut extrait par Rekognition.DetectText (utile à l'audit). */
+        ocrText: v.optional(v.string()),
+        /** Mot-clé blacklist OCR qui a déclenché un `rejected` ou `manual_review`. */
+        ocrFlaggedKeyword: v.optional(v.string()),
+        /** Catégories haut-niveau détectées (Drawing, Illustration, Cartoon, etc.). */
+        contentLabels: v.optional(v.array(v.string())),
+        /** Raison lisible passée au owner pour expliquer un `manual_review`. */
+        reviewReason: v.optional(v.string()),
         decidedAt: v.number(),
       }),
     ),
@@ -239,6 +345,36 @@ export default defineSchema({
     .index('by_event_status', ['eventId', 'status'])
     .index('by_guest_token', ['uploadedByGuestToken'])
     .index('by_s3_key', ['s3Key']),
+
+  /**
+   * Visages extraits par Rekognition `IndexFaces` pour chaque photo
+   * `approved`. Une row par visage détecté (jusqu'à 5 par image), permet la
+   * recherche par selfie via `SearchFacesByImage` puis lookup `faceId →
+   * photoId` ici.
+   *
+   * Les valeurs `faceId` proviennent du Rekognition Face ID (UUID Rekognition,
+   * stable tant que la collection existe). Suppression d'une photo doit
+   * supprimer les `photoFaces` associés (cleanup côté `photos:remove`,
+   * non encore câblé — cf. BACKLOG section "Câblage métier").
+   */
+  photoFaces: defineTable({
+    photoId: v.id('photos'),
+    eventId: v.id('events'),
+    faceId: v.string(),
+    boundingBox: v.optional(
+      v.object({
+        width: v.number(),
+        height: v.number(),
+        left: v.number(),
+        top: v.number(),
+      }),
+    ),
+    confidence: v.optional(v.number()),
+    createdAt: v.number(),
+  })
+    .index('by_photo', ['photoId'])
+    .index('by_event', ['eventId'])
+    .index('by_face', ['faceId']),
 
   otpSessions: defineTable({
     phone: v.string(),
@@ -271,4 +407,136 @@ export default defineSchema({
     .index('by_email', ['email'])
     .index('by_email_expires', ['email', 'expiresAt'])
     .index('by_token_hash', ['tokenHash']),
+
+  /**
+   * Link verifications — codes OTP 6 chiffres pour ajouter un identifiant
+   * (phone OU email) à un user existant. Distinct de `otpSessions` /
+   * `magicLinkSessions` qui sont pour le login. Évite les doublons : un user
+   * peut activer sa 2e méthode de connexion sans créer un compte distinct.
+   *
+   * Pattern :
+   *  1. Sender : `auth.requestLink{Phone,Email}` génère un code 6 digits,
+   *     vérifie que le target n'appartient pas déjà à un autre user, envoie
+   *     via WhatsApp (phone) ou SES (email)
+   *  2. Verifier : `auth.verifyLink{Phone,Email}` vérifie le code, patche
+   *     `users.{phone|email}` (block si pris entre-temps : race condition)
+   */
+  linkVerifications: defineTable({
+    userId: v.id('users'),
+    targetKind: v.union(v.literal('phone'), v.literal('email')),
+    targetValue: v.string(),
+    codeHash: v.string(),
+    attempts: v.number(),
+    expiresAt: v.number(),
+    consumedAt: v.optional(v.number()),
+    createdAt: v.number(),
+    ipAddress: v.optional(v.string()),
+  })
+    .index('by_user', ['userId'])
+    .index('by_user_kind', ['userId', 'targetKind'])
+    .index('by_user_kind_expires', ['userId', 'targetKind', 'expiresAt']),
+
+  /**
+   * Newsletter subscribers — abonnés à la newsletter publique. MVP store-first :
+   * on capture l'email avant de brancher un service externe (Brevo, Mailchimp).
+   *
+   * Toggle status pour permettre désabonnement plus tard sans hard-delete (RGPD :
+   * un soft-delete avec timestamp permet la traçabilité, hard-delete sur demande
+   * explicite via `rights` privacy policy).
+   *
+   * Pas de double opt-in pour le moment — `confirmedAt` réservé pour quand on
+   * branchera le système de campagnes (lien de confirmation dans le mail
+   * de bienvenue).
+   */
+  /**
+   * Templates WhatsApp custom soumis par les couples (Premium tier).
+   *
+   * Le couple écrit son corps de message + libellé du bouton CTA, on génère
+   * un nom Meta unique (`couple_{eventId}_{nanoid}`) et on soumet à
+   * Meta Cloud API : `POST /{WABA_ID}/message_templates`. Meta valide en
+   * 24-48h via Business Manager.
+   *
+   * États :
+   *  - `draft` : créé localement, pas encore soumis à Meta
+   *  - `pending` : soumis, en attente de revue Meta (status PENDING)
+   *  - `approved` : Meta a validé (status APPROVED), utilisable pour broadcast
+   *  - `rejected` : Meta a refusé (status REJECTED), `rejectionReason` rempli
+   *  - `paused` : Meta a suspendu pour qualité (status PAUSED)
+   *  - `disabled` : Meta a définitivement désactivé (status DISABLED)
+   *
+   * Le webhook Meta `message_template_status_update` met à jour ces états et
+   * déclenche une notification au couple via `templateNotifyChannel`.
+   *
+   * Variables canoniques (alignement avec les 5 styles préfabriqués) :
+   *   {{1}} = prénom invité, {{2}} = noms du couple, {{3}} = date,
+   *   {{4}} = mot perso, {{5}} = optionnel (libre)
+   * Le bouton CTA URL utilise un placeholder dynamique pour le QR token de
+   * l'invité.
+   */
+  whatsappTemplates: defineTable({
+    ownerId: v.id('users'),
+    eventId: v.id('events'),
+    // Nom unique côté Meta (lowercase, alphanumérique + underscore, max 512).
+    name: v.string(),
+    language: v.literal('fr'),
+    category: v.literal('MARKETING'),
+    bodyText: v.string(),
+    ctaLabel: v.string(),
+    // URL pattern du bouton, ex: `https://wedillybird.com/i/{{1}}`. Le {{1}}
+    // sera remplacé par le qrCodeToken de l'invité au moment de l'envoi.
+    ctaUrlPattern: v.string(),
+    status: v.union(
+      v.literal('draft'),
+      v.literal('pending'),
+      v.literal('approved'),
+      v.literal('rejected'),
+      v.literal('paused'),
+      v.literal('disabled'),
+    ),
+    // ID Meta (assigné après soumission réussie). Utilisé par le webhook pour
+    // matcher les events `message_template_status_update`.
+    metaTemplateId: v.optional(v.string()),
+    rejectionReason: v.optional(v.string()),
+    submittedAt: v.optional(v.number()),
+    reviewedAt: v.optional(v.number()),
+    // Idempotence : si une notif a déjà été envoyée pour le passage à
+    // `approved`/`rejected`/`disabled`, on ne renotifie pas.
+    notifiedAt: v.optional(v.number()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index('by_event', ['eventId'])
+    .index('by_owner', ['ownerId'])
+    .index('by_meta_id', ['metaTemplateId'])
+    .index('by_status', ['status']),
+
+  newsletterSubscribers: defineTable({
+    email: v.string(),
+    status: v.union(v.literal('active'), v.literal('unsubscribed')),
+    source: v.optional(v.string()),
+    subscribedAt: v.number(),
+    unsubscribedAt: v.optional(v.number()),
+    confirmedAt: v.optional(v.number()),
+    ipAddress: v.optional(v.string()),
+  })
+    .index('by_email', ['email'])
+    .index('by_status_subscribedAt', ['status', 'subscribedAt']),
+
+  /**
+   * Buckets de rate-limit générique. Une row par couple (scope, key) — par ex.
+   * (`face_search`, `<userId>`) ou (`face_search`, `<guestToken>`). Le compteur
+   * se reset quand `windowStartedAt` est plus vieux que la fenêtre configurée
+   * côté caller (cf. `convex/lib/rateLimit.ts`).
+   *
+   * On utilise un bucket DB plutôt qu'un cache mémoire car les actions Convex
+   * sont stateless et peuvent tourner sur des workers différents — il faut un
+   * état partagé pour que le rate-limit soit fiable.
+   */
+  rateLimitBuckets: defineTable({
+    scope: v.string(),
+    key: v.string(),
+    count: v.number(),
+    windowStartedAt: v.number(),
+    updatedAt: v.number(),
+  }).index('by_scope_key', ['scope', 'key']),
 });

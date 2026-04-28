@@ -65,6 +65,64 @@ describe('templates rendering', () => {
       invoiceUrl: 'https://invoice.stripe.com/x',
     });
     expect(out.subject).toBe('Facture INV-001 — 79,00 €');
+    expect(out.html).toContain('79,00 €');
+    expect(out.html).toContain('Mai 2026');
+    expect(out.html).toContain('https://invoice.stripe.com/x');
+    expect(out.text).toContain('Facture INV-001 pour Studio Lumière.');
+  });
+
+  it('renders stripe invoice with optional pdf url', () => {
+    const out = renderStripeInvoice({
+      recipientName: 'Awa',
+      organizationName: 'Studio Lumière',
+      invoiceNumber: 'INV-002',
+      amountFormatted: '179,00 €',
+      periodLabel: 'Juin 2026',
+      invoiceUrl: 'https://invoice.stripe.com/y',
+      pdfUrl: 'https://invoice.stripe.com/y.pdf',
+    });
+    expect(out.html).toContain('https://invoice.stripe.com/y.pdf');
+    expect(out.text).toContain('https://invoice.stripe.com/y.pdf');
+  });
+
+  it('renders subscription-renewed pro notification with correct subject', () => {
+    const out = renderProNotification({
+      recipientName: 'Awa',
+      organizationName: 'Studio Lumière',
+      kind: 'subscription-renewed',
+      detail: 'Votre abonnement a été renouvelé.',
+    });
+    expect(out.subject).toBe('Abonnement renouvelé — Studio Lumière');
+    expect(out.html).toContain('Votre abonnement a été renouvelé.');
+  });
+
+  it('renders subscription-failed pro notification with correct subject', () => {
+    const out = renderProNotification({
+      recipientName: 'Awa',
+      organizationName: 'Studio Lumière',
+      kind: 'subscription-failed',
+      detail: 'Le paiement a échoué.',
+      ctaLabel: 'Mettre à jour',
+      ctaUrl: 'https://wedillybird.com/pro/billing',
+    });
+    expect(out.subject).toBe('Échec de paiement — Studio Lumière');
+    expect(out.html).toContain('https://wedillybird.com/pro/billing');
+  });
+
+  it('renders payg-credit-activated pro notification with correct subject and CTA', () => {
+    const out = renderProNotification({
+      recipientName: 'Awa',
+      organizationName: 'Studio Lumière',
+      kind: 'payg-credit-activated',
+      detail: 'Votre achat Pay-as-you-go de 69,00 € a été confirmé.',
+      ctaLabel: 'Voir mon solde',
+      ctaUrl: 'https://wedillybird.com/pro/billing',
+    });
+    expect(out.subject).toBe('Crédit Pay-as-you-go activé — Studio Lumière');
+    expect(out.html).toContain('69,00 €');
+    expect(out.html).toContain('Voir mon solde');
+    expect(out.html).toContain('https://wedillybird.com/pro/billing');
+    expect(out.text).toContain('69,00 €');
   });
 
   it('escapes HTML in user-provided values', () => {

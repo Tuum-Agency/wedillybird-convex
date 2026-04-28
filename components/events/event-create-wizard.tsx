@@ -2,13 +2,17 @@
 
 import { useMemo, useState, useTransition } from 'react';
 import { useTranslations } from 'next-intl';
+import { Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/cn';
 import { createEventAction } from '@/app/[locale]/(app)/events/actions';
+import { PLANS, formatAmount } from '@/lib/payments/plans';
 
-type StepIndex = 0 | 1 | 2 | 3;
+type StepIndex = 0 | 1 | 2 | 3 | 4;
+
+type PendingPlanTier = 'essential' | 'premium';
 
 interface FormState {
   title: string;
@@ -21,6 +25,7 @@ interface FormState {
   themePrimary: string;
   themeAccent: string;
   themeFont: string;
+  pendingPlanTier: PendingPlanTier | null;
 }
 
 const TIMEZONES: ReadonlyArray<{ id: string; label: string }> = [
@@ -56,9 +61,21 @@ function detectInitialTimezone(): string {
   return 'Europe/Paris';
 }
 
-export function EventCreateWizard() {
+interface Props {
+  /**
+   * Rôle de l'utilisateur courant. `couple` voit l'étape "Choisir le forfait"
+   * (Essentiel/Premium one-shot). `pro` saute cette étape — la facturation
+   * pro est gérée séparément via `/pro/billing` (subscription mensuelle).
+   */
+  userRole?: 'couple' | 'pro' | 'admin' | 'guest';
+}
+
+export function EventCreateWizard({ userRole = 'couple' }: Props) {
   const t = useTranslations('EventCreate');
   const tCommon = useTranslations('Common');
+  const tPlans = useTranslations('Plans');
+  const showPlanStep = userRole === 'couple';
+  const totalSteps = showPlanStep ? 5 : 4;
   const [step, setStep] = useState<StepIndex>(0);
   const [form, setForm] = useState<FormState>({
     title: '',
@@ -71,10 +88,14 @@ export function EventCreateWizard() {
     themePrimary: DEFAULT_THEME.primaryColor,
     themeAccent: DEFAULT_THEME.accentColor,
     themeFont: DEFAULT_THEME.fontFamily,
+    pendingPlanTier: null,
   });
   const [fieldErrors, setFieldErrors] = useState<Record<string, string | undefined>>({});
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+
+  const lastStepIndex = (totalSteps - 1) as StepIndex;
+  const isPlanStep = showPlanStep && step === lastStepIndex;
 
   const canProceed = useMemo(() => {
     if (step === 0) {
@@ -88,8 +109,11 @@ export function EventCreateWizard() {
       if (!form.eventDate || !form.timezone) return false;
       return !Number.isNaN(Date.parse(form.eventDate));
     }
+    if (showPlanStep && step === lastStepIndex) {
+      return form.pendingPlanTier !== null;
+    }
     return true;
-  }, [step, form]);
+  }, [step, form, showPlanStep, lastStepIndex]);
 
   function submit() {
     setError(null);
@@ -107,6 +131,9 @@ export function EventCreateWizard() {
       fd.set('themePrimary', form.themePrimary);
       fd.set('themeAccent', form.themeAccent);
       fd.set('themeFont', form.themeFont);
+    }
+    if (showPlanStep && form.pendingPlanTier) {
+      fd.set('pendingPlanTier', form.pendingPlanTier);
     }
 
     startTransition(async () => {
@@ -128,7 +155,7 @@ export function EventCreateWizard() {
 
   return (
     <div className="flex flex-col gap-6">
-      <Progress current={step} total={4} />
+      <Progress current={step} total={totalSteps} />
 
       <header className="flex flex-col gap-1.5">
         <h1 className="font-display text-3xl font-semibold tracking-tight">{t('title')}</h1>
@@ -264,6 +291,68 @@ export function EventCreateWizard() {
         </section>
       ) : null}
 
+      {isPlanStep ? (
+        <section className="flex flex-col gap-5">
+          <StepHeader title={t('stepPlan')} description={t('stepPlanDescription')} />
+
+          <div role="radiogroup" aria-label={t('stepPlan')} className="flex flex-col gap-3">
+            {(['essential', 'premium'] as const).map((tier) => {
+              const plan = PLANS[tier];
+              const selected = form.pendingPlanTier === tier;
+              return (
+                <button
+                  key={tier}
+                  type="button"
+                  role="radio"
+                  aria-checked={selected}
+                  data-testid={`plan-option-${tier}`}
+                  onClick={() => setForm({ ...form, pendingPlanTier: tier })}
+                  className={cn(
+                    'focus-ring flex flex-col gap-3 rounded-2xl border p-5 text-left transition-all duration-200',
+                    selected
+                      ? 'border-[color:var(--color-blush-400)] bg-[color:var(--color-blush-50)] shadow-[var(--shadow-blush)]'
+                      : 'border-[color:var(--color-border)] bg-white hover:border-[color:var(--color-blush-300)]',
+                  )}
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <span className="font-display text-xl font-semibold">
+                        {tPlans(`tiers.${tier}`)}
+                      </span>
+                      {selected ? (
+                        <span
+                          aria-hidden
+                          className="flex h-5 w-5 items-center justify-center rounded-full bg-[color:var(--color-blush-700)] text-white"
+                        >
+                          <Check className="h-3 w-3" strokeWidth={3} />
+                        </span>
+                      ) : null}
+                    </div>
+                    <span className="font-display text-lg font-semibold">
+                      {formatAmount(plan.prices.EUR, 'EUR')}
+                    </span>
+                  </div>
+                  <p className="text-xs text-[color:var(--color-muted)]">
+                    {tPlans(`retentionShort`, { days: plan.galleryRetentionDays })}
+                  </p>
+                  <ul className="flex flex-col gap-1.5 text-sm">
+                    {plan.featureKeys.map((key) => (
+                      <li key={key} className="flex items-start gap-1.5">
+                        <span aria-hidden className="mt-0.5 text-[color:var(--color-accent)]">
+                          ✓
+                        </span>
+                        <span>{tPlans(`features.${key}` as const)}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </button>
+              );
+            })}
+          </div>
+          <p className="text-xs text-[color:var(--color-muted)]">{t('stepPlanLegal')}</p>
+        </section>
+      ) : null}
+
       {error ? (
         <p role="alert" className="text-sm text-[color:var(--color-destructive)]">
           {error}
@@ -279,16 +368,16 @@ export function EventCreateWizard() {
         >
           {tCommon('back')}
         </Button>
-        {step < 3 ? (
+        {step < lastStepIndex ? (
           <Button
             size="lg"
-            onClick={() => setStep(Math.min(3, step + 1) as StepIndex)}
+            onClick={() => setStep(Math.min(lastStepIndex, step + 1) as StepIndex)}
             disabled={!canProceed}
           >
             {t('next')}
           </Button>
         ) : (
-          <Button size="lg" onClick={submit} disabled={pending}>
+          <Button size="lg" onClick={submit} disabled={pending || !canProceed}>
             {pending ? t('creating') : t('submit')}
           </Button>
         )}

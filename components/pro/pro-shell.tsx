@@ -86,18 +86,19 @@ export function ProShell({ children, nav, orgName, orgPrimaryColor, userName }: 
  * de ProShell. Active state via comparaison du pathname côté serveur.
  */
 export interface ProNavProps {
-  current: 'dashboard' | 'team' | 'billing';
+  current: 'dashboard' | 'team' | 'billing' | 'settings';
 }
 
 export function ProNav({ current }: ProNavProps) {
   const tabs: Array<{
     key: ProNavProps['current'];
-    href: '/pro/dashboard' | '/pro/team' | '/pro/billing';
+    href: '/pro/dashboard' | '/pro/team' | '/pro/billing' | '/pro/settings';
     label: string;
   }> = [
     { key: 'dashboard', href: '/pro/dashboard', label: 'Mariages' },
     { key: 'team', href: '/pro/team', label: 'Équipe' },
     { key: 'billing', href: '/pro/billing', label: 'Facturation' },
+    { key: 'settings', href: '/pro/settings', label: 'Réglages' },
   ];
   return (
     <nav aria-label="Navigation pro" className="hidden items-center gap-7 md:flex">

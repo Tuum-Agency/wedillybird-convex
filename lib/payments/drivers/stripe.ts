@@ -7,10 +7,11 @@ import type {
   VerifiedWebhookEvent,
 } from '../provider';
 import type { Currency } from '../plans';
-import { isCurrency } from '../plans';
+import { isCurrency, priceIdForPlan } from '../plans';
 import {
   priceIdForTier,
   tierForPriceId,
+  type SubscriptionBilling,
   type SubscriptionStatus,
   type SubscriptionTier,
 } from '../subscriptions';
@@ -26,18 +27,18 @@ function getStripe(): Stripe {
 }
 
 const PLAN_LABEL: Record<string, string> = {
-  essential: 'Wedillybird — Sérénité',
-  premium: 'Wedillybird — Prestige',
+  essential: 'Wedillybird — Essentiel',
+  premium: 'Wedillybird — Premium',
 };
 
-// Description shown on Stripe Checkout under the line item. The quota is
-// counted in invitations sent (un QR code par invité principal, accompagnants
-// illimités), pas en personnes physiques.
+// Description affichée sur Stripe Checkout. Les forfaits particuliers sont
+// désormais features-based (galerie 30j vs 6 mois + album PDF) — pas de quota
+// invitations.
 const PLAN_STRIPE_DESCRIPTION: Record<string, string> = {
   essential:
-    "Jusqu'à 150 invitations envoyées (1 QR code par invité principal, accompagnants illimités). Page d'invitation personnalisée, RSVP temps réel, check-in offline, galerie partagée, branding, export CSV, support prioritaire.",
+    'Invitations WhatsApp + RSVP temps réel + check-in offline + tableau de bord + galerie partagée 30 jours après le mariage.',
   premium:
-    "Jusqu'à 1000 invitations envoyées (1 QR code par invité principal, accompagnants illimités). Tout Sérénité + galerie illimitée, sans filigrane Wedillybird, support dédié 7j/7.",
+    "Tout l'Essentiel + galerie partagée 6 mois après le mariage + album PDF final imprimable.",
 };
 
 // Stripe expects ISO 4217 currency codes lowercase. We store XOF in centimes
@@ -57,11 +58,16 @@ export const stripeDriver: PaymentDriver = {
   name: 'stripe',
   async createCheckout(input: CheckoutInput): Promise<CheckoutSession> {
     const stripe = getStripe();
-    const session = await stripe.checkout.sessions.create({
-      mode: 'payment',
-      payment_method_types: ['card'],
-      line_items: [
-        {
+
+    // Préfère un Stripe Price stable (env var STRIPE_PRICE_<PLAN>_<CURRENCY>
+    // ou alias EUR `STRIPE_PRICE_<PLAN>`) — créé par scripts/sync-stripe-prices.ts.
+    // Si l'env var n'est pas configurée, tombe sur price_data inline pour ne
+    // pas bloquer le checkout en dev. Couvre EUR + MAD + TND. XOF passe par
+    // le driver CinetPay et n'arrive normalement jamais ici.
+    const stablePrice = priceIdForPlan(input.plan, input.currency);
+    const lineItem = stablePrice
+      ? { quantity: 1, price: stablePrice }
+      : {
           quantity: 1,
           price_data: {
             currency: input.currency.toLowerCase(),
@@ -71,12 +77,16 @@ export const stripeDriver: PaymentDriver = {
               description: PLAN_STRIPE_DESCRIPTION[input.plan],
               metadata: {
                 plan: input.plan,
-                quotaUnit: 'invitations',
+                wedillybird_plan_id: input.plan,
               },
             },
           },
-        },
-      ],
+        };
+
+    const session = await stripe.checkout.sessions.create({
+      mode: 'payment',
+      payment_method_types: ['card'],
+      line_items: [lineItem],
       success_url: appendSessionIdParam(input.successUrl),
       cancel_url: input.cancelUrl,
       metadata: {
@@ -158,6 +168,10 @@ export type SubscriptionCheckoutInput = {
   organizationId: string;
   requesterId: string;
   tier: SubscriptionTier;
+  /** Mensuel par défaut. Annuel = -20 % sur le total. */
+  billing?: SubscriptionBilling;
+  /** Devise de la subscription. Défaut EUR. XOF non supporté côté Stripe. */
+  currency?: Currency;
   customerEmail: string;
   /** Existing Stripe customer to attach the new subscription to (preferred). */
   stripeCustomerId?: string;
@@ -169,10 +183,12 @@ export async function createSubscriptionCheckout(
   input: SubscriptionCheckoutInput,
 ): Promise<CheckoutSession> {
   const stripe = getStripe();
+  const billing = input.billing ?? 'monthly';
+  const currency = input.currency ?? 'EUR';
   const session = await stripe.checkout.sessions.create({
     mode: 'subscription',
     payment_method_types: ['card'],
-    line_items: [{ quantity: 1, price: priceIdForTier(input.tier) }],
+    line_items: [{ quantity: 1, price: priceIdForTier(input.tier, billing, currency) }],
     success_url: appendSessionIdParam(input.successUrl),
     cancel_url: input.cancelUrl,
     customer: input.stripeCustomerId,
@@ -182,11 +198,13 @@ export async function createSubscriptionCheckout(
       organizationId: input.organizationId,
       requesterId: input.requesterId,
       tier: input.tier,
+      billing,
     },
     subscription_data: {
       metadata: {
         organizationId: input.organizationId,
         tier: input.tier,
+        billing,
       },
     },
     locale: 'fr',
@@ -209,6 +227,56 @@ export async function openCustomerPortal(
   return { url: session.url };
 }
 
+/* -------------------------------------------------------------------------- */
+/*  Pay-as-you-go pro (one-shot, 1 event)                                     */
+/* -------------------------------------------------------------------------- */
+
+export type PaygCheckoutInput = {
+  organizationId: string;
+  requesterId: string;
+  /** Devise de l'achat. Défaut EUR. XOF non supporté côté Stripe. */
+  currency?: Currency;
+  customerEmail: string;
+  stripeCustomerId?: string;
+  successUrl: string;
+  cancelUrl: string;
+};
+
+/**
+ * Crée un Stripe Checkout one-shot pour un achat Pay-as-you-go pro (69 €,
+ * crédite l'organisation de +1 event activable). Le `metadata.kind === 'payg'`
+ * est lu par `verifyAndParseSubscriptionWebhook` pour router vers la mutation
+ * Convex `paygPurchases:markPurchase`.
+ */
+export async function createPaygCheckout(input: PaygCheckoutInput): Promise<CheckoutSession> {
+  const stripe = getStripe();
+  const currency = input.currency ?? 'EUR';
+  if (currency === 'XOF') throw new Error('UNSUPPORTED_STRIPE_CURRENCY');
+  const envName = `STRIPE_PRICE_PAYG_EVENT_${currency}` as const;
+  const priceId = process.env[envName] ?? process.env.STRIPE_PRICE_PAYG_EVENT;
+  if (!priceId) throw new Error(`MISSING_${envName}`);
+
+  const session = await stripe.checkout.sessions.create({
+    mode: 'payment',
+    payment_method_types: ['card'],
+    line_items: [{ quantity: 1, price: priceId }],
+    success_url: appendSessionIdParam(input.successUrl),
+    cancel_url: input.cancelUrl,
+    customer: input.stripeCustomerId,
+    customer_email: input.stripeCustomerId ? undefined : input.customerEmail,
+    client_reference_id: input.organizationId,
+    metadata: {
+      kind: 'payg',
+      organizationId: input.organizationId,
+      requesterId: input.requesterId,
+    },
+    locale: 'fr',
+    allow_promotion_codes: true,
+  });
+  if (!session.url) throw new Error('STRIPE_NO_REDIRECT_URL');
+  return { providerSessionId: session.id, redirectUrl: session.url };
+}
+
 export type SubscriptionWebhookEvent =
   | {
       kind: 'subscription.upserted';
@@ -216,6 +284,7 @@ export type SubscriptionWebhookEvent =
       stripeCustomerId: string;
       stripeSubscriptionId: string;
       tier: SubscriptionTier;
+      billing: SubscriptionBilling;
       status: SubscriptionStatus;
       currentPeriodEnd: number;
     }
@@ -236,6 +305,14 @@ export type SubscriptionWebhookEvent =
       kind: 'invoice.payment_failed';
       stripeCustomerId: string;
       stripeSubscriptionId: string;
+    }
+  | {
+      kind: 'payg.purchased';
+      organizationId: string;
+      requesterId: string;
+      stripeSessionId: string;
+      amountMinor: number;
+      currency: Currency;
     };
 
 /**
@@ -266,8 +343,8 @@ export async function verifyAndParseSubscriptionWebhook(
     const sub = event.data.object as Stripe.Subscription;
     const item = sub.items.data[0];
     if (!item) return null;
-    const tier = tierForPriceId(item.price.id);
-    if (!tier) return null;
+    const tierMatch = tierForPriceId(item.price.id);
+    if (!tierMatch) return null;
     const orgId = (sub.metadata?.organizationId as string | undefined) ?? null;
     if (!orgId) return null;
     return {
@@ -275,7 +352,8 @@ export async function verifyAndParseSubscriptionWebhook(
       organizationId: orgId,
       stripeCustomerId: typeof sub.customer === 'string' ? sub.customer : sub.customer.id,
       stripeSubscriptionId: sub.id,
-      tier,
+      tier: tierMatch.tier,
+      billing: tierMatch.billing,
       status: sub.status as SubscriptionStatus,
       currentPeriodEnd: item.current_period_end * 1000,
     };
@@ -324,6 +402,29 @@ export async function verifyAndParseSubscriptionWebhook(
       stripeCustomerId:
         typeof invoice.customer === 'string' ? invoice.customer : (invoice.customer?.id ?? ''),
       stripeSubscriptionId: subId,
+    };
+  }
+
+  // Pay-as-you-go pro : checkout one-shot en mode `payment` avec
+  // `metadata.kind === 'payg'`. Distinct des paiements particuliers
+  // (essential/premium) qui passent par le driver one-shot standard.
+  if (event.type === 'checkout.session.completed') {
+    const session = event.data.object as Stripe.Checkout.Session;
+    if (session.metadata?.kind !== 'payg') return null;
+    const organizationId = session.metadata.organizationId;
+    const requesterId = session.metadata.requesterId;
+    if (!organizationId || !requesterId) return null;
+    const currencyRaw = (session.currency ?? '').toUpperCase();
+    if (!isCurrency(currencyRaw)) return null;
+    const stripeAmount = session.amount_total ?? 0;
+    const override = STRIPE_CURRENCY_DIVISOR_OVERRIDE[currencyRaw];
+    return {
+      kind: 'payg.purchased',
+      organizationId,
+      requesterId,
+      stripeSessionId: session.id,
+      amountMinor: override ? stripeAmount * override : stripeAmount,
+      currency: currencyRaw,
     };
   }
 

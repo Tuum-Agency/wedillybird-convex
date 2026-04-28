@@ -44,37 +44,55 @@ describe('verifyOtpSchema', () => {
 });
 
 describe('onboardingSchema', () => {
-  it('accepts minimal valid input', () => {
-    const r = onboardingSchema.safeParse({ fullName: 'Alice Martin', role: 'couple' });
-    expect(r.success).toBe(true);
-  });
-
-  it('accepts with email', () => {
+  it('accepts minimal valid input (with email — required since avril 2026)', () => {
     const r = onboardingSchema.safeParse({
       fullName: 'Alice Martin',
-      role: 'pro',
+      role: 'couple',
       email: 'alice@example.com',
     });
     expect(r.success).toBe(true);
+    if (r.success) expect(r.data.email).toBe('alice@example.com');
   });
 
-  it('treats empty email string as undefined', () => {
+  it('lowercases email', () => {
+    const r = onboardingSchema.safeParse({
+      fullName: 'Alice Martin',
+      role: 'pro',
+      email: 'Alice@Example.COM',
+    });
+    expect(r.success).toBe(true);
+    if (r.success) expect(r.data.email).toBe('alice@example.com');
+  });
+
+  it('rejects missing email', () => {
+    const r = onboardingSchema.safeParse({ fullName: 'Alice Martin', role: 'couple' });
+    expect(r.success).toBe(false);
+  });
+
+  it('rejects empty email', () => {
     const r = onboardingSchema.safeParse({
       fullName: 'Alice Martin',
       role: 'couple',
       email: '',
     });
-    expect(r.success).toBe(true);
-    if (r.success) expect(r.data.email).toBeUndefined();
+    expect(r.success).toBe(false);
   });
 
   it('rejects short name', () => {
-    const r = onboardingSchema.safeParse({ fullName: 'A', role: 'couple' });
+    const r = onboardingSchema.safeParse({
+      fullName: 'A',
+      role: 'couple',
+      email: 'alice@example.com',
+    });
     expect(r.success).toBe(false);
   });
 
   it('rejects invalid role', () => {
-    const r = onboardingSchema.safeParse({ fullName: 'Alice Martin', role: 'admin' });
+    const r = onboardingSchema.safeParse({
+      fullName: 'Alice Martin',
+      role: 'admin',
+      email: 'alice@example.com',
+    });
     expect(r.success).toBe(false);
   });
 

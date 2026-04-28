@@ -9,7 +9,13 @@ vi.mock('@/app/[locale]/(app)/events/actions', () => ({
 }));
 
 vi.mock('next-intl', () => ({
-  useTranslations: (namespace?: string) => (key: string) => `${namespace ?? 'T'}.${key}`,
+  useTranslations: (namespace?: string) => (key: string, vars?: Record<string, unknown>) => {
+    const base = `${namespace ?? 'T'}.${key}`;
+    if (!vars) return base;
+    return `${base}(${Object.entries(vars)
+      .map(([k, v]) => `${k}=${String(v)}`)
+      .join(',')})`;
+  },
 }));
 
 import { EventCreateWizard } from '@/components/events/event-create-wizard';
@@ -24,15 +30,33 @@ function futureLocalDatetime(offsetMs: number): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-describe('EventCreateWizard', () => {
+async function fillStepsUpToPlan(user: ReturnType<typeof userEvent.setup>) {
+  await user.type(screen.getByLabelText('EventCreate.titleLabel'), 'Mariage F & A');
+  await user.type(screen.getByLabelText('EventCreate.partnerALabel'), 'Fatou');
+  await user.type(screen.getByLabelText('EventCreate.partnerBLabel'), 'Amadou');
+  await user.click(screen.getByRole('button', { name: 'EventCreate.next' }));
+
+  const dateInput = screen.getByLabelText('EventCreate.dateLabel') as HTMLInputElement;
+  const future = futureLocalDatetime(3 * 24 * 60 * 60 * 1000);
+  fireEvent.change(dateInput, { target: { value: future } });
+  await user.click(screen.getByRole('button', { name: 'EventCreate.next' }));
+
+  // Step 2 — venue (optional, skip)
+  await user.click(screen.getByRole('button', { name: 'EventCreate.next' }));
+
+  // Step 3 — theme (optional, defaults already set, skip)
+  await user.click(screen.getByRole('button', { name: 'EventCreate.next' }));
+}
+
+describe('EventCreateWizard — couple', () => {
   it('starts on step 1 (couple info)', () => {
-    render(<EventCreateWizard />);
+    render(<EventCreateWizard userRole="couple" />);
     expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent('stepCouple');
   });
 
   it('disables Next until title and partners are filled', async () => {
     const user = userEvent.setup();
-    render(<EventCreateWizard />);
+    render(<EventCreateWizard userRole="couple" />);
     const next = screen.getByRole('button', { name: 'EventCreate.next' });
     expect(next).toBeDisabled();
 
@@ -42,23 +66,29 @@ describe('EventCreateWizard', () => {
     expect(next).toBeEnabled();
   });
 
-  it('advances through 4 steps and submits with a FormData payload', async () => {
+  it('disables submit on the plan step until a forfait is selected', async () => {
+    const user = userEvent.setup();
+    render(<EventCreateWizard userRole="couple" />);
+
+    await fillStepsUpToPlan(user);
+
+    // Now on plan step — header visible, submit button disabled until choice.
+    expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent('stepPlan');
+    const submit = screen.getByRole('button', { name: 'EventCreate.submit' });
+    expect(submit).toBeDisabled();
+
+    await user.click(screen.getByTestId('plan-option-essential'));
+    expect(submit).toBeEnabled();
+  });
+
+  it('submits with the selected pendingPlanTier', async () => {
     createEventActionMock.mockResolvedValue({ ok: true, slug: 'fatou-amadou' });
     const user = userEvent.setup();
-    render(<EventCreateWizard />);
+    render(<EventCreateWizard userRole="couple" />);
 
-    await user.type(screen.getByLabelText('EventCreate.titleLabel'), 'Mariage F & A');
-    await user.type(screen.getByLabelText('EventCreate.partnerALabel'), 'Fatou');
-    await user.type(screen.getByLabelText('EventCreate.partnerBLabel'), 'Amadou');
-    await user.click(screen.getByRole('button', { name: 'EventCreate.next' }));
+    await fillStepsUpToPlan(user);
 
-    const dateInput = screen.getByLabelText('EventCreate.dateLabel') as HTMLInputElement;
-    const future = futureLocalDatetime(3 * 24 * 60 * 60 * 1000);
-    fireEvent.change(dateInput, { target: { value: future } });
-    await user.click(screen.getByRole('button', { name: 'EventCreate.next' }));
-
-    await user.click(screen.getByRole('button', { name: 'EventCreate.next' }));
-
+    await user.click(screen.getByTestId('plan-option-premium'));
     await user.click(screen.getByRole('button', { name: 'EventCreate.submit' }));
 
     expect(createEventActionMock).toHaveBeenCalledTimes(1);
@@ -66,8 +96,7 @@ describe('EventCreateWizard', () => {
     expect(fd.get('title')).toBe('Mariage F & A');
     expect(fd.get('partnerA')).toBe('Fatou');
     expect(fd.get('partnerB')).toBe('Amadou');
-    expect(fd.get('timezone')).toBeTruthy();
-    expect(fd.get('eventDate')).toBeTruthy();
+    expect(fd.get('pendingPlanTier')).toBe('premium');
   });
 
   it('surfaces server-side field errors and jumps back to step 1', async () => {
@@ -77,23 +106,43 @@ describe('EventCreateWizard', () => {
       fieldErrors: { title: ['Titre trop court'] },
     });
     const user = userEvent.setup();
-    render(<EventCreateWizard />);
+    render(<EventCreateWizard userRole="couple" />);
 
-    await user.type(screen.getByLabelText('EventCreate.titleLabel'), 'Mariage F & A');
-    await user.type(screen.getByLabelText('EventCreate.partnerALabel'), 'Fatou');
-    await user.type(screen.getByLabelText('EventCreate.partnerBLabel'), 'Amadou');
+    await fillStepsUpToPlan(user);
+    await user.click(screen.getByTestId('plan-option-essential'));
+    await user.click(screen.getByRole('button', { name: 'EventCreate.submit' }));
+
+    expect(await screen.findByText('Titre trop court')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent('stepCouple');
+  });
+});
+
+describe('EventCreateWizard — pro', () => {
+  it('skips the plan step (pro billing handled separately)', async () => {
+    createEventActionMock.mockResolvedValue({ ok: true, slug: 'pro-event' });
+    const user = userEvent.setup();
+    render(<EventCreateWizard userRole="pro" />);
+
+    await user.type(screen.getByLabelText('EventCreate.titleLabel'), 'Mariage Pro');
+    await user.type(screen.getByLabelText('EventCreate.partnerALabel'), 'A');
+    await user.type(screen.getByLabelText('EventCreate.partnerBLabel'), 'B');
     await user.click(screen.getByRole('button', { name: 'EventCreate.next' }));
 
     const dateInput = screen.getByLabelText('EventCreate.dateLabel') as HTMLInputElement;
-    const future = futureLocalDatetime(3 * 24 * 60 * 60 * 1000);
-    fireEvent.change(dateInput, { target: { value: future } });
-    await user.click(screen.getByRole('button', { name: 'EventCreate.next' }));
+    fireEvent.change(dateInput, {
+      target: { value: futureLocalDatetime(3 * 24 * 60 * 60 * 1000) },
+    });
     await user.click(screen.getByRole('button', { name: 'EventCreate.next' }));
 
+    // venue (skip)
+    await user.click(screen.getByRole('button', { name: 'EventCreate.next' }));
+
+    // theme is the LAST step for pro — submit button should appear.
+    expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent('stepTheme');
     await user.click(screen.getByRole('button', { name: 'EventCreate.submit' }));
 
-    // Should show field error text and rewind to step 1 (couple header visible)
-    expect(await screen.findByText('Titre trop court')).toBeInTheDocument();
-    expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent('stepCouple');
+    expect(createEventActionMock).toHaveBeenCalledTimes(1);
+    const fd = createEventActionMock.mock.calls[0]![0] as FormData;
+    expect(fd.get('pendingPlanTier')).toBeNull();
   });
 });

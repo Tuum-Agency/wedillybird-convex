@@ -53,7 +53,7 @@ export const convexApi = {
   >('auth:currentUser'),
   completeOnboarding: makeFunctionReference<
     'mutation',
-    { userId: string; fullName: string; role: 'couple' | 'pro'; email?: string },
+    { userId: string; fullName: string; role: 'couple' | 'pro'; email: string },
     { ok: true }
   >('users:completeOnboarding'),
   userByPhone: makeFunctionReference<
@@ -79,6 +79,7 @@ export const convexApi = {
       timezone: string;
       venue?: { name: string; address: string };
       theme?: { primaryColor: string; accentColor: string; fontFamily: string };
+      pendingPlanTier?: 'essential' | 'premium';
     },
     { id: string; slug: string }
   >('events:create'),
@@ -104,11 +105,42 @@ export const convexApi = {
       timezone: string;
       status: 'draft' | 'active' | 'archived' | 'cancelled';
       planTier: 'essential' | 'premium' | undefined;
+      pendingPlanTier?: 'essential' | 'premium';
       maxGuests: number;
       venue?: { name: string; address: string; lat?: number; lng?: number };
       updatedAt: number;
     }>
   >('events:listByOwner'),
+  updateEventMessagingConfig: makeFunctionReference<
+    'mutation',
+    {
+      eventId: string;
+      requesterId: string;
+      templateStyle?: 'classic' | 'warm' | 'african' | 'minimal' | 'festive';
+      personalMessage?: string;
+      preferredChannel?: 'whatsapp' | 'email' | 'both';
+      customTemplateId?: string;
+      clearCustomTemplate?: boolean;
+      templateNotifyChannel?: 'whatsapp' | 'email' | 'both';
+    },
+    { ok: true }
+  >('events:updateMessagingConfig'),
+  updateEvent: makeFunctionReference<
+    'mutation',
+    {
+      eventId: string;
+      requesterId: string;
+      title?: string;
+      partnerA?: string;
+      partnerB?: string;
+      eventDate?: number;
+      timezone?: string;
+      venue?: { name: string; address: string };
+      clearVenue?: boolean;
+      theme?: { primaryColor: string; accentColor: string; fontFamily: string };
+    },
+    { ok: true }
+  >('events:update'),
   reconcileEventMaxGuests: makeFunctionReference<
     'mutation',
     { eventId: string; requesterId: string },
@@ -125,6 +157,7 @@ export const convexApi = {
     {
       _id: string;
       ownerId: string;
+      organizationId?: string;
       slug: string;
       title: string;
       coupleNames: { partnerA: string; partnerB: string };
@@ -134,7 +167,16 @@ export const convexApi = {
       theme?: { primaryColor: string; accentColor: string; fontFamily: string };
       status: 'draft' | 'active' | 'archived' | 'cancelled';
       planTier: 'essential' | 'premium' | undefined;
+      pendingPlanTier?: 'essential' | 'premium';
       maxGuests: number;
+      galleryExpiresAt?: number;
+      messagingConfig?: {
+        templateStyle: 'classic' | 'warm' | 'african' | 'minimal' | 'festive';
+        personalMessage?: string;
+        preferredChannel: 'whatsapp' | 'email' | 'both';
+        customTemplateId?: string;
+        templateNotifyChannel?: 'whatsapp' | 'email' | 'both';
+      };
       updatedAt: number;
     } | null
   >('events:getById'),
@@ -192,7 +234,15 @@ export const convexApi = {
   countGuestsByEvent: makeFunctionReference<
     'query',
     { eventId: string; requesterId: string },
-    { total: number; attending: number; declined: number; pending: number; maybe: number }
+    {
+      total: number;
+      attending: number;
+      declined: number;
+      pending: number;
+      maybe: number;
+      invited: number;
+      withPhone: number;
+    }
   >('guests:countByEvent'),
   getGuestByToken: makeFunctionReference<
     'query',
@@ -310,6 +360,7 @@ export const convexApi = {
     Array<{
       _id: string;
       url: string | null;
+      variants?: { thumb?: string; medium?: string; large?: string };
       status: 'pending' | 'approved' | 'rejected';
       uploaderName?: string;
       uploadedByGuestToken?: boolean;
@@ -318,6 +369,8 @@ export const convexApi = {
       sizeBytes: number;
       contentType: string;
       createdAt: number;
+      moderationReason?: string;
+      moderationDecision?: 'approved' | 'rejected' | 'manual_review';
     }>
   >('photos:listForOwner'),
   listApprovedPhotosForGuest: makeFunctionReference<
@@ -326,6 +379,7 @@ export const convexApi = {
     Array<{
       _id: string;
       url: string | null;
+      variants?: { thumb?: string; medium?: string; large?: string };
       uploaderName?: string;
       width?: number;
       height?: number;
@@ -342,6 +396,31 @@ export const convexApi = {
     { photoId: string; requesterId: string },
     { ok: true }
   >('photos:remove'),
+  searchPhotosByFace: makeFunctionReference<
+    'action',
+    {
+      eventId: string;
+      selfieBase64: string;
+      requesterId?: string;
+      guestToken?: string;
+    },
+    | { ok: true; photoIds: string[]; matchCount: number }
+    | {
+        ok: false;
+        error:
+          | 'NO_FACE_DETECTED'
+          | 'NO_COLLECTION_YET'
+          | 'FORBIDDEN'
+          | 'INVALID_TOKEN'
+          | 'RATE_LIMITED'
+          | 'UNKNOWN';
+      }
+  >('photos:searchPhotosByFace'),
+  archiveEvent: makeFunctionReference<
+    'mutation',
+    { eventId: string; requesterId: string },
+    { ok: true; alreadyArchived: boolean }
+  >('events:archive'),
   recordPaymentIntent: makeFunctionReference<
     'mutation',
     {
@@ -404,6 +483,30 @@ export const convexApi = {
       createdAt: number;
     }>
   >('payments:listByEvent'),
+  getPaymentForInvoice: makeFunctionReference<
+    'query',
+    { paymentId: string; requesterId: string },
+    {
+      payment: {
+        _id: string;
+        userId: string;
+        eventId: string;
+        plan: 'essential' | 'premium';
+        currency: 'EUR' | 'XOF' | 'MAD' | 'TND';
+        amountMinor: number;
+        provider: 'stripe' | 'cinetpay' | 'mock';
+        status: 'pending' | 'succeeded' | 'failed' | 'cancelled';
+        createdAt: number;
+        updatedAt: number;
+      };
+      event: { _id: string; title: string } | null;
+      customer: {
+        fullName?: string;
+        email?: string;
+        phone?: string;
+      } | null;
+    }
+  >('paymentsInvoice:getForInvoice'),
   createOrganization: makeFunctionReference<
     'mutation',
     {
@@ -431,6 +534,59 @@ export const convexApi = {
       myRole: 'owner' | 'admin' | 'planner' | 'viewer';
     } | null
   >('organizations:myOrganization'),
+  findOrgBySlug: makeFunctionReference<
+    'query',
+    { slug: string },
+    {
+      _id: string;
+      name: string;
+      slug: string;
+      primaryColor?: string;
+      accentColor?: string;
+      logoUrl: string | null;
+    } | null
+  >('organizations:findBySlug'),
+  findPublicEventBySlug: makeFunctionReference<
+    'query',
+    { orgSlug: string; eventSlug: string },
+    {
+      _id: string;
+      slug: string;
+      title: string;
+      coupleNames: { partnerA: string; partnerB: string };
+      eventDate: number;
+      timezone: string;
+      venue?: { name: string; address: string; lat?: number; lng?: number };
+      theme?: { primaryColor: string; accentColor: string; fontFamily: string };
+    } | null
+  >('events:findPublicEventBySlug'),
+  updateOrgBranding: makeFunctionReference<
+    'mutation',
+    {
+      organizationId: string;
+      requesterId: string;
+      name?: string;
+      primaryColor?: string;
+      accentColor?: string;
+      logoStorageId?: string;
+    },
+    { ok: true }
+  >('organizations:updateBranding'),
+  generateOrgLogoUploadUrl: makeFunctionReference<
+    'mutation',
+    { organizationId: string; requesterId: string },
+    { uploadUrl: string }
+  >('organizations:generateLogoUploadUrl'),
+  setOrgLogo: makeFunctionReference<
+    'mutation',
+    { organizationId: string; requesterId: string; logoStorageId: string },
+    { ok: true }
+  >('organizations:setLogo'),
+  clearOrgLogo: makeFunctionReference<
+    'mutation',
+    { organizationId: string; requesterId: string },
+    { ok: true; alreadyEmpty?: boolean }
+  >('organizations:clearLogo'),
   getOrganization: makeFunctionReference<
     'query',
     { organizationId: string; requesterId: string },
@@ -521,6 +677,33 @@ export const convexApi = {
       subscriptionStatus?: 'trialing' | 'active' | 'past_due' | 'canceled' | 'unpaid';
     } | null
   >('organizations:findByStripeSubscription'),
+  markPaygPurchase: makeFunctionReference<
+    'mutation',
+    {
+      organizationId: string;
+      requesterId: string;
+      stripeSessionId: string;
+      amountMinor: number;
+      currency: 'EUR' | 'XOF' | 'MAD' | 'TND';
+    },
+    { ok: true; alreadyApplied: boolean }
+  >('paygPurchases:markPurchase'),
+  getPaygCreditsByOrganization: makeFunctionReference<
+    'query',
+    { organizationId: string; requesterId: string },
+    { credits: number } | null
+  >('paygPurchases:getCreditsByOrganization'),
+  listPaygPurchasesByOrganization: makeFunctionReference<
+    'query',
+    { organizationId: string; requesterId: string },
+    Array<{
+      _id: string;
+      amountMinor: number;
+      currency: 'EUR' | 'XOF' | 'MAD' | 'TND';
+      stripeSessionId: string;
+      createdAt: number;
+    }>
+  >('paygPurchases:listByOrganization'),
   getUserById: makeFunctionReference<
     'query',
     { userId: string },
@@ -532,6 +715,96 @@ export const convexApi = {
       role: 'couple' | 'pro' | 'guest' | 'admin';
     } | null
   >('users:getById'),
+  newsletterSubscribe: makeFunctionReference<
+    'mutation',
+    { email: string; source?: string; ipAddress?: string },
+    { id: string; alreadyActive: boolean; reactivated: boolean }
+  >('newsletter:subscribe'),
+  broadcastInvitations: makeFunctionReference<
+    'action',
+    { eventId: string; requesterId: string },
+    { sent: number; failed: number; skipped: number; total: number; style: string; mock: boolean }
+  >('invitationActions:broadcast'),
+  requestLinkPhone: makeFunctionReference<
+    'action',
+    { userId: string; phone: string; ipAddress?: string },
+    { phone: string; channel: 'whatsapp'; provider: 'meta_cloud' | 'mock' }
+  >('auth:requestLinkPhone'),
+  verifyLinkPhone: makeFunctionReference<
+    'mutation',
+    { userId: string; phone: string; code: string },
+    { ok: true }
+  >('auth:verifyLinkPhone'),
+  requestLinkEmail: makeFunctionReference<
+    'action',
+    { userId: string; email: string; ipAddress?: string },
+    { email: string }
+  >('auth:requestLinkEmail'),
+  verifyLinkEmail: makeFunctionReference<
+    'mutation',
+    { userId: string; email: string; code: string },
+    { ok: true }
+  >('auth:verifyLinkEmail'),
+  // ---- WhatsApp custom templates ----
+  createWhatsappTemplate: makeFunctionReference<
+    'mutation',
+    {
+      eventId: string;
+      requesterId: string;
+      bodyText: string;
+      ctaLabel: string;
+      nameHint?: string;
+    },
+    { id: string; name: string }
+  >('whatsappTemplates:create'),
+  updateWhatsappTemplateDraft: makeFunctionReference<
+    'mutation',
+    {
+      templateId: string;
+      requesterId: string;
+      bodyText?: string;
+      ctaLabel?: string;
+    },
+    { ok: true }
+  >('whatsappTemplates:updateDraft'),
+  submitWhatsappTemplateToMeta: makeFunctionReference<
+    'action',
+    { templateId: string; requesterId: string },
+    { ok: boolean; mock?: boolean; metaTemplateId?: string; error?: string }
+  >('whatsappTemplates:submitToMeta'),
+  listWhatsappTemplatesByEvent: makeFunctionReference<
+    'query',
+    { eventId: string; requesterId: string },
+    Array<{
+      _id: string;
+      name: string;
+      bodyText: string;
+      ctaLabel: string;
+      ctaUrlPattern: string;
+      status: 'draft' | 'pending' | 'approved' | 'rejected' | 'paused' | 'disabled';
+      metaTemplateId?: string;
+      rejectionReason?: string;
+      submittedAt?: number;
+      reviewedAt?: number;
+      createdAt: number;
+      updatedAt: number;
+    }>
+  >('whatsappTemplates:listByEvent'),
+  applyWhatsappTemplateWebhook: makeFunctionReference<
+    'mutation',
+    {
+      metaTemplateId: string;
+      metaName?: string;
+      status: string;
+      reason?: string;
+    },
+    { ok: true; status: string; changed: boolean } | { ok: false; error: 'TEMPLATE_NOT_FOUND' }
+  >('whatsappTemplates:applyWebhookStatusUpdate'),
+  dispatchTemplateNotifications: makeFunctionReference<
+    'action',
+    Record<string, never>,
+    { dispatched: number; skipped: number }
+  >('whatsappTemplateNotifications:dispatchPendingNotifications'),
 } satisfies Record<
   string,
   FunctionReference<'query' | 'mutation' | 'action', 'public', Args, unknown>

@@ -51,3 +51,38 @@ export async function confirmGuestUploadAction(input: {
     return { ok: false, error: err instanceof Error ? err.message : 'UNKNOWN' };
   }
 }
+
+export type FaceSearchResult =
+  | { ok: true; photoIds: string[]; matchCount: number }
+  | { ok: false; error: string };
+
+export async function faceSearchGuestAction(
+  token: string,
+  selfieBase64: string,
+): Promise<FaceSearchResult> {
+  try {
+    const convex = getConvexServerClient();
+    // L'eventId est résolu côté Convex via le guestToken — on délègue
+    // l'authentification au token (l'invité n'a pas de session).
+    const data = await convex.query(convexApi.getGuestByToken, { token });
+    if (!data) return { ok: false, error: 'INVALID_TOKEN' };
+
+    const result = await convex.action(convexApi.searchPhotosByFace, {
+      eventId: data.event._id,
+      selfieBase64,
+      guestToken: token,
+    });
+    if (result.ok) {
+      return { ok: true, photoIds: result.photoIds, matchCount: result.matchCount };
+    }
+    return { ok: false, error: result.error };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'UNKNOWN';
+    if (message.includes('NO_FACE_DETECTED')) return { ok: false, error: 'NO_FACE_DETECTED' };
+    if (message.includes('NO_COLLECTION_YET')) return { ok: false, error: 'NO_COLLECTION_YET' };
+    if (message.includes('RATE_LIMITED')) return { ok: false, error: 'RATE_LIMITED' };
+    if (message.includes('INVALID_TOKEN')) return { ok: false, error: 'INVALID_TOKEN' };
+    if (message.includes('FORBIDDEN')) return { ok: false, error: 'FORBIDDEN' };
+    return { ok: false, error: 'UNKNOWN' };
+  }
+}

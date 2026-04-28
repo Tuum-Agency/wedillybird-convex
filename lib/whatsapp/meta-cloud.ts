@@ -1,8 +1,15 @@
-import type { WhatsAppClient, WhatsAppOtpParams, WhatsAppSendResult } from './types';
+import type {
+  WhatsAppClient,
+  WhatsAppInvitationParams,
+  WhatsAppOtpParams,
+  WhatsAppReminderParams,
+  WhatsAppSendResult,
+} from './types';
 
 export interface MetaCloudConfig {
   accessToken: string;
   phoneNumberId: string;
+  /** Nom du template OTP Meta (login + linking). */
   templateName: string;
   graphVersion?: string;
 }
@@ -18,8 +25,6 @@ export class WhatsAppMetaCloudClient implements WhatsAppClient {
   }
 
   async sendOtp({ to, code, locale = 'fr' }: WhatsAppOtpParams): Promise<WhatsAppSendResult> {
-    const url = `https://graph.facebook.com/${this.config.graphVersion}/${this.config.phoneNumberId}/messages`;
-
     const body = {
       messaging_product: 'whatsapp',
       recipient_type: 'individual',
@@ -42,7 +47,111 @@ export class WhatsAppMetaCloudClient implements WhatsAppClient {
         ],
       },
     };
+    return this.dispatch(body);
+  }
 
+  /**
+   * Envoie une invitation de mariage via template Meta. Les 5 variables sont
+   * passées en composants `body` ({{1}}…{{5}}) + URL dynamique du bouton CTA
+   * en `button` (le lien personnalisé /i/[token]).
+   */
+  async sendInvitation({
+    to,
+    templateName,
+    guestFirstName,
+    coupleNames,
+    eventDate,
+    invitationUrl,
+    personalMessage,
+    locale = 'fr',
+  }: WhatsAppInvitationParams): Promise<WhatsAppSendResult> {
+    // Pour le bouton CTA URL dynamique, Meta attend que le param soit la
+    // **dernière partie** de l'URL (le segment dynamique). On extrait le
+    // token en fin de path.
+    const urlSegment = invitationUrl.split('/').filter(Boolean).pop() ?? invitationUrl;
+
+    const body = {
+      messaging_product: 'whatsapp',
+      recipient_type: 'individual',
+      to: to.replace(/^\+/, ''),
+      type: 'template',
+      template: {
+        name: templateName,
+        language: { code: locale === 'fr' ? 'fr' : 'en_US' },
+        components: [
+          {
+            type: 'body',
+            parameters: [
+              { type: 'text', text: guestFirstName },
+              { type: 'text', text: coupleNames },
+              { type: 'text', text: eventDate },
+              { type: 'text', text: invitationUrl },
+              { type: 'text', text: personalMessage },
+            ],
+          },
+          {
+            type: 'button',
+            sub_type: 'url',
+            index: '0',
+            parameters: [{ type: 'text', text: urlSegment }],
+          },
+        ],
+      },
+    };
+    return this.dispatch(body);
+  }
+
+  /**
+   * Envoie un rappel J-7 / J-1 via un template Meta de catégorie `utility`.
+   * Le bouton URL dynamique reçoit `urlButtonParam` comme dernier segment du
+   * lien personnalisé (en général le `qrCodeToken` de l'invité).
+   *
+   * Templates Meta attendus côté env :
+   *   - WHATSAPP_REMINDER_D7_TEMPLATE
+   *   - WHATSAPP_REMINDER_D1_TEMPLATE
+   *
+   * Tant que ces templates ne sont pas validés côté Meta Business Manager,
+   * l'envoi tombera en erreur 132001 (template not found) — d'où le fallback
+   * email-only côté `convex/reminders.ts` quand l'env var est absente.
+   */
+  async sendReminder({
+    to,
+    templateName,
+    bodyParams,
+    urlButtonParam,
+    locale = 'fr',
+  }: WhatsAppReminderParams): Promise<WhatsAppSendResult> {
+    const body = {
+      messaging_product: 'whatsapp',
+      recipient_type: 'individual',
+      to: to.replace(/^\+/, ''),
+      type: 'template',
+      template: {
+        name: templateName,
+        language: { code: locale === 'fr' ? 'fr' : 'en_US' },
+        components: [
+          {
+            type: 'body',
+            parameters: bodyParams.map((text) => ({ type: 'text', text })),
+          },
+          {
+            type: 'button',
+            sub_type: 'url',
+            index: '0',
+            parameters: [{ type: 'text', text: urlButtonParam }],
+          },
+        ],
+      },
+    };
+    return this.dispatch(body);
+  }
+
+  /**
+   * Helper interne : POST le body au endpoint Cloud API + parse la réponse
+   * en `WhatsAppSendResult` standardisé.
+   */
+  private async dispatch(body: object): Promise<WhatsAppSendResult> {
+    const url = `https://graph.facebook.com/${this.config.graphVersion}/${this.config.phoneNumberId}/messages`;
     try {
       const res = await fetch(url, {
         method: 'POST',

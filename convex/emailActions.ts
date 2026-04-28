@@ -6,8 +6,10 @@ import { internal } from './_generated/api';
 import { internalAction } from './_generated/server';
 import {
   renderGuestReminder,
+  renderLinkCode,
   renderMagicLink,
   renderProNotification,
+  renderStripeInvoice,
   type ProNotificationKind,
 } from '../lib/email/templates';
 import type { EmailRendered } from '../lib/email/types';
@@ -35,7 +37,10 @@ type DispatchOutcome = { ok: true; messageId: string } | { ok: false; error: str
 async function dispatch(to: string, rendered: EmailRendered): Promise<DispatchOutcome> {
   const driver = process.env.EMAIL_DRIVER ?? 'ses';
 
-  if (driver === 'mock') {
+  // Mode E2E : force le mock même si SES est configuré côté env Convex. Idem
+  // que pour WhatsApp (cf. `auth:requestOtp`) — évite l'envoi réel pendant
+  // les tests Playwright.
+  if (process.env.E2E_MODE === '1' || driver === 'mock') {
     const messageId = `mock-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
     console.log(`[email:mock] → ${to} | ${rendered.subject} | id=${messageId}`);
     return { ok: true, messageId };
@@ -109,6 +114,26 @@ export const sendGuestReminder = internalAction({
 /*  Magic Link email (fallback auth)                                           */
 /* -------------------------------------------------------------------------- */
 
+export const sendLinkCodeEmail = internalAction({
+  args: {
+    to: v.string(),
+    code: v.string(),
+    ipAddress: v.optional(v.string()),
+  },
+  handler: async (_ctx, { to, code, ipAddress }) => {
+    const rendered = renderLinkCode({
+      code,
+      expiresInMinutes: 10,
+      requestIp: ipAddress,
+    });
+    const result = await dispatch(to, rendered);
+    if (!result.ok) {
+      console.error(`[email] failed to send link code to ${to}: ${result.error}`);
+    }
+    return result;
+  },
+});
+
 export const sendMagicLinkEmail = internalAction({
   args: {
     to: v.string(),
@@ -144,6 +169,7 @@ export const sendProNotification = internalAction({
       v.literal('payment-received'),
       v.literal('subscription-renewed'),
       v.literal('subscription-failed'),
+      v.literal('payg-credit-activated'),
     ),
     detail: v.string(),
     ctaLabel: v.optional(v.string()),
@@ -162,6 +188,41 @@ export const sendProNotification = internalAction({
     if (!result.ok) {
       console.error(
         `[email] failed to send pro notification ${args.kind} to ${args.to}: ${result.error}`,
+      );
+    }
+    return result;
+  },
+});
+
+/* -------------------------------------------------------------------------- */
+/*  Stripe invoice receipts                                                    */
+/* -------------------------------------------------------------------------- */
+
+export const sendStripeInvoice = internalAction({
+  args: {
+    to: v.string(),
+    recipientName: v.string(),
+    organizationName: v.string(),
+    invoiceNumber: v.string(),
+    amountFormatted: v.string(),
+    periodLabel: v.string(),
+    invoiceUrl: v.string(),
+    pdfUrl: v.optional(v.string()),
+  },
+  handler: async (_ctx, args) => {
+    const rendered = renderStripeInvoice({
+      recipientName: args.recipientName,
+      organizationName: args.organizationName,
+      invoiceNumber: args.invoiceNumber,
+      amountFormatted: args.amountFormatted,
+      periodLabel: args.periodLabel,
+      invoiceUrl: args.invoiceUrl,
+      pdfUrl: args.pdfUrl,
+    });
+    const result = await dispatch(args.to, rendered);
+    if (!result.ok) {
+      console.error(
+        `[email] failed to send stripe invoice ${args.invoiceNumber} to ${args.to}: ${result.error}`,
       );
     }
     return result;
