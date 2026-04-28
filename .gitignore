@@ -39,7 +39,7 @@ yarn-error.log*
 
 # convex
 .convex
-convex/_generated
+# convex/_generated is committed so CI can typecheck/build without CONVEX_DEPLOYMENT
 
 # tests
 /coverage
