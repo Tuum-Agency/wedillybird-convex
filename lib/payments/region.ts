@@ -64,13 +64,13 @@ const EUROPE_PRICE_OVERRIDE: Record<PlanTier, Record<Currency, number>> = {
     EUR: 3900, // 39 €
     XOF: 2560000,
     MAD: 43000,
-    TND: 13500,
+    TND: 132600, // 132,6 TND (= 39 € × 3,4)
   },
   premium: {
     EUR: 8900, // 89 €
     XOF: 5840000,
     MAD: 97000,
-    TND: 30900,
+    TND: 302600, // 302,6 TND (= 89 € × 3,4)
   },
 };
 
@@ -78,7 +78,7 @@ const EUROPE_UPSELL_OVERRIDE: Record<Currency, number> = {
   EUR: 5900, // +59 €
   XOF: 3870000,
   MAD: 64000,
-  TND: 20500,
+  TND: 200600, // 200,6 TND (= 59 € × 3,4)
 };
 
 import { PLANS, POST_EVENT_UPSELL } from './plans';

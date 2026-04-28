@@ -93,7 +93,7 @@ const PLANS_TO_SYNC: ReadonlyArray<PlanSpec> = [
     productName: 'Wedillybird — Essentiel',
     productDescription:
       'Forfait particulier 19 €. Invitations WhatsApp, RSVP temps réel, check-in offline, tableau de bord, galerie partagée 30 jours.',
-    amounts: { EUR: 1900, MAD: 21000, TND: 6500 },
+    amounts: { EUR: 1900, MAD: 21000, TND: 64600 },
     interval: undefined,
     envVarBase: 'STRIPE_PRICE_ESSENTIAL',
   },
@@ -102,7 +102,7 @@ const PLANS_TO_SYNC: ReadonlyArray<PlanSpec> = [
     productName: 'Wedillybird — Premium',
     productDescription:
       "Forfait particulier 49 €. Tout l'Essentiel + galerie 6 mois + album PDF final imprimable.",
-    amounts: { EUR: 4900, MAD: 53000, TND: 16500 },
+    amounts: { EUR: 4900, MAD: 53000, TND: 166600 },
     interval: undefined,
     envVarBase: 'STRIPE_PRICE_PREMIUM',
   },
@@ -111,7 +111,7 @@ const PLANS_TO_SYNC: ReadonlyArray<PlanSpec> = [
     productName: 'Wedillybird — Upsell post-mariage',
     productDescription:
       'Extension post-mariage +29 €. Galerie conservée 5 ans + livre photo HD imprimé + export ZIP haute définition.',
-    amounts: { EUR: 2900, MAD: 32000, TND: 10000 },
+    amounts: { EUR: 2900, MAD: 32000, TND: 98600 },
     interval: undefined,
     envVarBase: 'STRIPE_PRICE_POST_EVENT_UPSELL',
   },

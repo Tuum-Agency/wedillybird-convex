@@ -362,7 +362,12 @@
         "refund": "Remboursé sous 7 jours",
         "noSubscription": "Aucun abonnement",
         "freePostpone": "Report gratuit en cas d'annulation"
-      }
+      },
+      "prosTitle": "Vous êtes wedding planner ?",
+      "prosSubtitle": "Mensualisez votre stack : un abonnement, plusieurs mariages, votre marque.",
+      "prosCtaSeeAll": "Voir tous les forfaits pros",
+      "prosRecommended": "Le plus choisi",
+      "prosCheckCta": "Choisir ce plan"
     },
     "faq": {
       "chapter": "CHAPITRE 07 — VOS QUESTIONS",
@@ -857,7 +862,61 @@
       "pdfAlbumFinal": "Album PDF final imprimable de la galerie",
       "galleryRetention5y": "Galerie conservée 5 ans après le mariage",
       "photoBookHd": "Livre photo HD imprimé livré à domicile",
-      "exportHd": "Export ZIP haute définition de toutes les photos"
+      "exportHd": "Export ZIP haute définition de toutes les photos",
+      "whatsappInvite": "Invitations envoyées par WhatsApp avec votre date et lien unique",
+      "guestReminders": "Rappels automatiques aux non-répondants (J-7 et J-1)",
+      "multiCurrency": "Prix justes selon votre région (EUR, MAD, TND, XOF)",
+      "aiModeration": "Modération automatique des photos par IA (rejet auto + révision manuelle)",
+      "faceSearch": "Recherche par visage : chaque invité retrouve ses photos avec un selfie",
+      "cinematicInvitation": "Cinématique d'invitation : enveloppe qui s'ouvre, sceau qui se brise",
+      "photoVariants": "Photos optimisées en 3 résolutions WebP pour un affichage fluide même en 3G",
+      "galleryZipDownload": "Téléchargement de toute la galerie en ZIP en un clic"
+    },
+    "allEssentialIncluded": "Tout l'Essentiel inclus",
+    "pro": {
+      "tiers": {
+        "starter": "Starter",
+        "business": "Business",
+        "agency": "Agency",
+        "payg": "Pay-as-you-go"
+      },
+      "billing": {
+        "monthly": "Mensuel",
+        "annual": "Annuel",
+        "annualSavings": "économisez 20 %",
+        "perMonth": "/ mois",
+        "perEvent": "/ événement",
+        "annualBilledAs": "{amount} facturé annuellement"
+      },
+      "descriptions": {
+        "starter": "Pour démarrer une activité de wedding planner.",
+        "business": "Pour agences confirmées avec plusieurs mariages en parallèle.",
+        "agency": "Pour grandes agences multi-marques en marque blanche.",
+        "payg": "Un seul mariage à organiser ? Pas d'abonnement, paiement à l'usage."
+      },
+      "features": {
+        "events3": "Jusqu'à 3 événements actifs simultanés",
+        "events10": "Jusqu'à 10 événements actifs simultanés",
+        "eventsUnlimited": "Événements illimités",
+        "events1": "1 événement",
+        "whatsapp2k": "2 000 messages WhatsApp inclus / mois",
+        "whatsapp6k": "6 000 messages WhatsApp inclus / mois",
+        "whatsapp20k": "20 000 messages WhatsApp inclus / mois",
+        "whatsappOnDemand": "WhatsApp à la demande",
+        "brandingWedillybird": "Branding Wedillybird (logo et couleurs imposés)",
+        "brandingCustomLogo": "Logo et couleurs personnalisés",
+        "brandingWhiteLabel": "Marque blanche complète (logo + domaine + emails)",
+        "subdomainCustom": "Sous-domaine dédié <code>{slug}.wedillybird.com</code>",
+        "supportEmail48h": "Support email sous 48h",
+        "supportPriority24h": "Support prioritaire (réponse sous 24h)",
+        "accountManager": "Account manager dédié + SLA 99,9 %",
+        "proDashboard": "Pro dashboard complet",
+        "noCommitment": "Aucun engagement"
+      },
+      "overflow": {
+        "whatsapp": "Au-delà du quota : 0,06 € par message",
+        "storage": "Stockage galerie : 0,03 € par Go par mois au-delà"
+      }
     }
   },
   "Upgrade": {

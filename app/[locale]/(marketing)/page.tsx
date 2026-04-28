@@ -10,6 +10,7 @@ import { LandingFeaturesGrid } from '@/components/landing/features-grid';
 import { LandingCinematicInvitation } from '@/components/landing/cinematic-invitation';
 import { LandingTestimonials } from '@/components/landing/testimonials';
 import { LandingPricingCards } from '@/components/landing/pricing-cards';
+import { LandingPricingPros } from '@/components/landing/pricing-pros';
 import { LandingFaqAccordion } from '@/components/landing/faq-accordion';
 import { LandingCtaFinal } from '@/components/landing/cta-final';
 import { LandingFooterRich } from '@/components/landing/footer-rich';
@@ -33,6 +34,7 @@ import { cn } from '@/lib/cn';
  *  04. Cinématique invitation (texture papier + sceau fendu + cursor cire)
  *  05. Témoignages (3 voix avec photos Unsplash)
  *  06. Pricing (geoIP auto, sparkle gold Premium hover)
+ *  06b. Pricing Pros (toggle mensuel/annuel + 3 cards + PAYG aside)
  *  07. FAQ (8 questions accordion)
  *  Épilogue. CTA final + Footer riche
  *
@@ -129,6 +131,7 @@ function LandingShell({
         <LandingCinematicInvitation />
         <LandingTestimonials />
         <LandingPricingCards prices={prices} upsellPriceLabel={upsellPriceLabel} />
+        <LandingPricingPros />
         <LandingFaqAccordion />
         <LandingCtaFinal />
       </main>

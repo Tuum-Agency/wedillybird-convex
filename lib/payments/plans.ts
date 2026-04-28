@@ -39,32 +39,43 @@ const ESSENTIAL_FEATURES = [
   'rsvpRealtime',
   'checkinOffline',
   'basicDashboard',
+  'whatsappInvite',
+  'guestReminders',
+  'multiCurrency',
 ] as const;
 
-const PREMIUM_EXTRA_FEATURES = ['gallerySharedExtended', 'pdfAlbumFinal'] as const;
+const PREMIUM_EXTRA_FEATURES = [
+  'gallerySharedExtended',
+  'pdfAlbumFinal',
+  'aiModeration',
+  'faceSearch',
+  'cinematicInvitation',
+  'photoVariants',
+  'galleryZipDownload',
+] as const;
 
 export const PLANS: Record<PlanTier, PlanDefinition> = {
   essential: {
     tier: 'essential',
     featureKeys: ESSENTIAL_FEATURES,
     galleryRetentionDays: 30,
-    // 19 € EUR / ≈ 12 500 XOF / ≈ 21 000 MAD / ≈ 6 500 TND
-    prices: { EUR: 1900, XOF: 1250000, MAD: 21000, TND: 6500 },
+    // 19 € EUR / ≈ 12 500 XOF / ≈ 21 000 MAD / ≈ 64 600 TND
+    prices: { EUR: 1900, XOF: 1250000, MAD: 21000, TND: 64600 },
   },
   premium: {
     tier: 'premium',
     featureKeys: [...ESSENTIAL_FEATURES, ...PREMIUM_EXTRA_FEATURES],
     galleryRetentionDays: 180,
-    // 49 € EUR / ≈ 32 200 XOF / ≈ 53 000 MAD / ≈ 16 500 TND
-    prices: { EUR: 4900, XOF: 3220000, MAD: 53000, TND: 16500 },
+    // 49 € EUR / ≈ 32 200 XOF / ≈ 53 000 MAD / ≈ 166 600 TND
+    prices: { EUR: 4900, XOF: 3220000, MAD: 53000, TND: 166600 },
   },
 };
 
 export const POST_EVENT_UPSELL: PostEventUpsellDefinition = {
   featureKeys: ['galleryRetention5y', 'photoBookHd', 'exportHd'],
   galleryRetentionDays: 5 * 365, // 5 ans
-  // +29 € EUR / ≈ 19 000 XOF
-  prices: { EUR: 2900, XOF: 1900000, MAD: 32000, TND: 10000 },
+  // +29 € EUR / ≈ 19 000 XOF / ≈ 32 000 MAD / ≈ 98 600 TND
+  prices: { EUR: 2900, XOF: 1900000, MAD: 32000, TND: 98600 },
 };
 
 export const PAID_PLANS: PlanTier[] = ['essential', 'premium'];
