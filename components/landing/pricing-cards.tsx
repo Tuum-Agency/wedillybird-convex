@@ -9,6 +9,9 @@ import { PLANS } from '@/lib/payments/plans';
 import { cn } from '@/lib/cn';
 import { inViewOnce, scrollReveal, scrollRevealParent } from '@/lib/motion/presets';
 
+const ESSENTIAL_KEY_SET = new Set(PLANS.essential.featureKeys);
+const PREMIUM_ONLY_KEYS = PLANS.premium.featureKeys.filter((k) => !ESSENTIAL_KEY_SET.has(k));
+
 interface Props {
   /** Pre-formatted prices passed from the server component (already region-aware via geoIP). */
   prices: { essential: string; premium: string };
@@ -163,20 +166,50 @@ export function LandingPricingCards({ prices, upsellPriceLabel }: Props) {
                 </div>
 
                 <ul className="flex flex-col gap-2.5 text-sm">
-                  {plan.featureKeys.map((key) => (
-                    <li key={key} className="flex items-start gap-2.5">
-                      <span
-                        aria-hidden
-                        className="font-display mt-0.5 inline-block flex-shrink-0 text-[color:var(--color-gold-500)] italic"
-                        style={{ fontSize: '14px', lineHeight: 1, letterSpacing: 0 }}
-                      >
-                        ✦
-                      </span>
-                      <span className="leading-relaxed text-[color:var(--color-ink-700)]">
-                        {tPlans(`features.${key}` as const)}
-                      </span>
-                    </li>
-                  ))}
+                  {tier === 'premium' ? (
+                    <>
+                      <li className="-mx-1 rounded-lg border border-dashed border-[color:var(--color-gold-300)] bg-[color:var(--color-blush-50)] px-3 py-2">
+                        <span
+                          aria-hidden
+                          className="font-display mr-2 text-[color:var(--color-gold-700)] italic"
+                        >
+                          +
+                        </span>
+                        <span className="font-medium text-[color:var(--color-ink-900)]">
+                          {tPlans('allEssentialIncluded')}
+                        </span>
+                      </li>
+                      {PREMIUM_ONLY_KEYS.map((key) => (
+                        <li key={key} className="flex items-start gap-2.5">
+                          <span
+                            aria-hidden
+                            className="font-display mt-0.5 inline-block flex-shrink-0 text-[color:var(--color-gold-500)] italic"
+                            style={{ fontSize: '14px', lineHeight: 1, letterSpacing: 0 }}
+                          >
+                            ✦
+                          </span>
+                          <span className="leading-relaxed text-[color:var(--color-ink-700)]">
+                            {tPlans(`features.${key}` as const)}
+                          </span>
+                        </li>
+                      ))}
+                    </>
+                  ) : (
+                    plan.featureKeys.map((key) => (
+                      <li key={key} className="flex items-start gap-2.5">
+                        <span
+                          aria-hidden
+                          className="font-display mt-0.5 inline-block flex-shrink-0 text-[color:var(--color-gold-500)] italic"
+                          style={{ fontSize: '14px', lineHeight: 1, letterSpacing: 0 }}
+                        >
+                          ✦
+                        </span>
+                        <span className="leading-relaxed text-[color:var(--color-ink-700)]">
+                          {tPlans(`features.${key}` as const)}
+                        </span>
+                      </li>
+                    ))
+                  )}
                 </ul>
 
                 <Link

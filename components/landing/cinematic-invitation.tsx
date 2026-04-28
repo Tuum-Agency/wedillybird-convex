@@ -593,10 +593,6 @@ export function LandingCinematicInvitation() {
               {t('stepFlourish')}
             </span>
           </div>
-
-          <p className="mt-12 mb-12 text-center font-mono text-[10px] tracking-[0.28em] text-[color:var(--color-ink-300)] uppercase">
-            {t('caption')}
-          </p>
         </div>
       </section>
     </>
