@@ -366,11 +366,14 @@ export const markReminderSent = internalMutation({
   },
   handler: async (ctx, { guestId, tier }) => {
     const now = Date.now();
+    // On patche en plus `lastReminderSentAt` (anti-doublon court-terme tous
+    // canaux/tiers confondus, cf. `lib/reminders/window.ts`). Le marker par
+    // tier reste la source d'idempotence par tier.
     await ctx.db.patch(
       guestId,
       tier === 'd7'
-        ? { reminderD7SentAt: now, updatedAt: now }
-        : { reminderD1SentAt: now, updatedAt: now },
+        ? { reminderD7SentAt: now, lastReminderSentAt: now, updatedAt: now }
+        : { reminderD1SentAt: now, lastReminderSentAt: now, updatedAt: now },
     );
     return { ok: true as const };
   },

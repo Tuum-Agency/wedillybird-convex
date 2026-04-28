@@ -4,6 +4,7 @@ import { internalAction, internalQuery } from './_generated/server';
 import {
   appOrigin,
   formatEventDate,
+  isWithinDedupWindow,
   reminderWindow,
   shouldSendEmail,
   shouldSendWhatsapp,
@@ -59,6 +60,7 @@ export const dispatchDailyGuestReminders = internalAction({
           phone?: string;
           qrCodeToken: string;
           alreadySent: boolean;
+          lastReminderSentAt?: number;
         }> = await ctx.runQuery(internal.reminders.listAttendingGuestsForReminder, {
           eventId: event._id as never,
           tier,
@@ -90,6 +92,10 @@ export const dispatchDailyGuestReminders = internalAction({
 
         for (const guest of candidates) {
           if (guest.alreadySent) continue;
+          // Anti-doublon court-terme : si un autre rappel a déjà été envoyé
+          // dans les 12 dernières heures (autre tier, ou cron rejouée
+          // manuellement), on skip cet invité pour éviter de spammer.
+          if (isWithinDedupWindow(guest.lastReminderSentAt, now)) continue;
 
           const invitationUrl = `${appOrigin()}/i/${guest.qrCodeToken}`;
           const guestFirstName = guest.fullName.split(' ')[0] ?? guest.fullName;
@@ -179,6 +185,7 @@ export const listAttendingGuestsForReminder = internalQuery({
       phone: g.phone,
       qrCodeToken: g.qrCodeToken,
       alreadySent: tier === 'd7' ? Boolean(g.reminderD7SentAt) : Boolean(g.reminderD1SentAt),
+      lastReminderSentAt: g.lastReminderSentAt,
     }));
   },
 });

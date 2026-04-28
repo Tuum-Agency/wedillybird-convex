@@ -1063,7 +1063,12 @@
       "columnTransaction": "Transaction",
       "columnStatus": "Statut",
       "statusSucceeded": "Réglé"
-    }
+    },
+    "paygHistoryTitle": "Historique de vos achats à l'usage",
+    "paygHistoryEmpty": "Aucun achat enregistré.",
+    "paygHistoryDate": "Date",
+    "paygHistoryAmount": "Montant",
+    "paygHistoryReference": "Référence Stripe"
   },
   "WhatsApp": {
     "reminders": {
