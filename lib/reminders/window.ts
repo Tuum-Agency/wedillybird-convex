@@ -46,3 +46,32 @@ export function shouldSendWhatsapp(channel: ReminderChannel | undefined): boolea
   if (!channel) return false;
   return channel === 'whatsapp' || channel === 'both';
 }
+
+/* -------------------------------------------------------------------------- */
+/*  Anti-doublon court-terme (cron ré-exécutée manuellement, retry transient)  */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Fenêtre min entre deux rappels successifs pour le même invité, tous tiers
+ * confondus. 12 h offre une marge confortable : la cron tourne une fois par
+ * jour, donc à fréquence normale `lastReminderSentAt` sera toujours > 12 h
+ * quand on revisite. Si la cron est ré-exécutée à la main dans la même
+ * journée, on skip pour éviter de spammer l'invité.
+ */
+export const REMINDER_DEDUP_WINDOW_MS = 12 * 60 * 60 * 1000;
+
+/**
+ * Retourne `true` si on doit skip l'invité parce qu'il a déjà été notifié
+ * récemment (anti-doublon). `lastReminderSentAt` est un marker générique posé
+ * à chaque envoi réussi (cf. `convex/guests.ts:markReminderSent`) ; les
+ * markers par tier (`reminderD{7|1}SentAt`) restent la source de vérité pour
+ * l'idempotence par tier.
+ */
+export function isWithinDedupWindow(
+  lastReminderSentAt: number | undefined,
+  now: number,
+  windowMs: number = REMINDER_DEDUP_WINDOW_MS,
+): boolean {
+  if (!lastReminderSentAt) return false;
+  return now - lastReminderSentAt < windowMs;
+}

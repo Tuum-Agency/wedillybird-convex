@@ -26,6 +26,10 @@ vi.mock('next/navigation', () => ({
   redirect: (target: unknown) => redirectMock(target),
 }));
 
+vi.mock('next-intl/server', () => ({
+  getTranslations: async () => (key: string) => key,
+}));
+
 vi.mock('@/components/pro/pro-shell', () => ({
   ProShell: ({ children }: React.PropsWithChildren) => (
     <div data-testid="pro-shell">{children}</div>

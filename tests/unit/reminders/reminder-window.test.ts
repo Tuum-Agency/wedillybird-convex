@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { reminderWindow, shouldSendEmail, shouldSendWhatsapp } from '@/lib/reminders/window';
+import {
+  REMINDER_DEDUP_WINDOW_MS,
+  isWithinDedupWindow,
+  reminderWindow,
+  shouldSendEmail,
+  shouldSendWhatsapp,
+} from '@/lib/reminders/window';
 
 const MS_PER_DAY = 86_400_000;
 const MS_PER_HOUR = 3_600_000;
@@ -69,5 +75,37 @@ describe('reminder channel routing (shouldSendEmail / shouldSendWhatsapp)', () =
   it('canal "both" → email + WhatsApp', () => {
     expect(shouldSendEmail('both')).toBe(true);
     expect(shouldSendWhatsapp('both')).toBe(true);
+  });
+});
+
+describe('isWithinDedupWindow (anti-doublon court-terme)', () => {
+  it('skip si lastReminderSentAt < 12h', () => {
+    const now = Date.parse('2026-05-01T09:00:00Z');
+    const elevenHoursAgo = now - 11 * 3_600_000;
+    expect(isWithinDedupWindow(elevenHoursAgo, now)).toBe(true);
+  });
+
+  it('ne skip pas si lastReminderSentAt >= 12h', () => {
+    const now = Date.parse('2026-05-01T09:00:00Z');
+    const twelveHoursAgo = now - 12 * 3_600_000;
+    expect(isWithinDedupWindow(twelveHoursAgo, now)).toBe(false);
+    const thirteenHoursAgo = now - 13 * 3_600_000;
+    expect(isWithinDedupWindow(thirteenHoursAgo, now)).toBe(false);
+  });
+
+  it('ne skip jamais si lastReminderSentAt est undefined (premier rappel)', () => {
+    const now = Date.parse('2026-05-01T09:00:00Z');
+    expect(isWithinDedupWindow(undefined, now)).toBe(false);
+  });
+
+  it('utilise une fenêtre custom si fournie', () => {
+    const now = Date.parse('2026-05-01T09:00:00Z');
+    const oneHourAgo = now - 3_600_000;
+    expect(isWithinDedupWindow(oneHourAgo, now, 30 * 60 * 1000)).toBe(false);
+    expect(isWithinDedupWindow(oneHourAgo, now, 2 * 3_600_000)).toBe(true);
+  });
+
+  it('expose une constante REMINDER_DEDUP_WINDOW_MS de 12 h', () => {
+    expect(REMINDER_DEDUP_WINDOW_MS).toBe(12 * 60 * 60 * 1000);
   });
 });

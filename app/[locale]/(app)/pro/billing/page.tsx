@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation';
+import { getTranslations } from 'next-intl/server';
 import { Check, Sparkles, Zap } from 'lucide-react';
 import { getSession } from '@/lib/auth/session';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
@@ -90,6 +91,8 @@ export default async function ProBillingPage({
 }) {
   const session = await getSession();
   if (!session) redirect('/login?next=/pro/billing');
+
+  const tBilling = await getTranslations('Billing');
 
   const convex = getConvexServerClient();
   const org = await convex.query(convexApi.myOrganization, { userId: session.userId });
@@ -389,7 +392,7 @@ export default async function ProBillingPage({
                 color: 'var(--color-foreground)',
               }}
             >
-              Historique de vos achats
+              {tBilling('paygHistoryTitle')}
             </h3>
           </header>
 
@@ -398,8 +401,7 @@ export default async function ProBillingPage({
               className="text-sm text-[color:var(--color-muted-foreground)]"
               data-testid="payg-history-empty"
             >
-              Aucun achat Pay-as-you-go pour le moment. Vos transactions apparaîtront ici dès votre
-              premier crédit acheté.
+              {tBilling('paygHistoryEmpty')}
             </p>
           ) : (
             <div className="overflow-x-auto">
@@ -407,19 +409,13 @@ export default async function ProBillingPage({
                 <thead>
                   <tr className="border-b border-[color:var(--color-border)] text-left">
                     <th className="py-2 pr-4 font-mono text-[10px] tracking-[0.18em] text-[color:var(--color-muted-foreground)] uppercase">
-                      Date
+                      {tBilling('paygHistoryDate')}
                     </th>
                     <th className="py-2 pr-4 font-mono text-[10px] tracking-[0.18em] text-[color:var(--color-muted-foreground)] uppercase">
-                      Montant
-                    </th>
-                    <th className="py-2 pr-4 font-mono text-[10px] tracking-[0.18em] text-[color:var(--color-muted-foreground)] uppercase">
-                      Devise
-                    </th>
-                    <th className="py-2 pr-4 font-mono text-[10px] tracking-[0.18em] text-[color:var(--color-muted-foreground)] uppercase">
-                      Transaction
+                      {tBilling('paygHistoryAmount')}
                     </th>
                     <th className="py-2 font-mono text-[10px] tracking-[0.18em] text-[color:var(--color-muted-foreground)] uppercase">
-                      Statut
+                      {tBilling('paygHistoryReference')}
                     </th>
                   </tr>
                 </thead>
@@ -437,28 +433,15 @@ export default async function ProBillingPage({
                         {formatPaygAmount(purchase.amountMinor, purchase.currency)}
                       </td>
                       <td className="py-3 pr-4 font-mono text-xs text-[color:var(--color-muted-foreground)]">
-                        {purchase.currency}
-                      </td>
-                      <td className="py-3 pr-4 font-mono text-xs text-[color:var(--color-muted-foreground)]">
-                        <span title={purchase.stripeSessionId}>
-                          {truncateSessionId(purchase.stripeSessionId)}
-                        </span>
-                      </td>
-                      <td className="py-3">
-                        <span
-                          className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-mono text-[9px] tracking-[0.18em] uppercase"
-                          style={{
-                            background: 'oklch(26% 0.04 145)',
-                            color: 'oklch(82% 0.07 145)',
-                          }}
+                        <a
+                          href={`https://dashboard.stripe.com/payments/${purchase.stripeSessionId}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="underline-offset-2 hover:underline"
+                          title={purchase.stripeSessionId}
                         >
-                          <span
-                            aria-hidden
-                            className="inline-block h-1.5 w-1.5 rounded-full"
-                            style={{ background: 'oklch(72% 0.08 145)' }}
-                          />
-                          Réglé
-                        </span>
+                          {truncateSessionId(purchase.stripeSessionId)}
+                        </a>
                       </td>
                     </tr>
                   ))}

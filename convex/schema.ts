@@ -236,6 +236,15 @@ export default defineSchema({
     // Reminders sent (idempotence for the daily cron). Set when SES action succeeds.
     reminderD7SentAt: v.optional(v.number()),
     reminderD1SentAt: v.optional(v.number()),
+    /**
+     * Timestamp du dernier rappel (tous canaux/tiers confondus) envoyé à
+     * l'invité. Utilisé comme garde-fou anti-doublon court-terme : si une
+     * cron est ré-exécutée (manuellement ou suite à un retry transient) on
+     * skip tout invité réveillé < 12 h plus tôt, peu importe le tier (D7/D1).
+     * Distinct de `reminderD{7|1}SentAt` qui assurent l'idempotence par tier
+     * sur la durée de vie de l'event.
+     */
+    lastReminderSentAt: v.optional(v.number()),
     createdAt: v.number(),
     updatedAt: v.number(),
   })
