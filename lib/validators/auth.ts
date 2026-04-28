@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { isValidE164, normalizePhoneE164 } from '@/lib/phone';
+import { emailSchema } from '@/lib/validators/email';
 
 export const phoneSchema = z
   .string()
@@ -27,10 +28,10 @@ export const verifyOtpSchema = z.object({
 export const onboardingSchema = z.object({
   fullName: z.string().trim().min(2, 'Nom trop court').max(80, 'Nom trop long'),
   role: z.enum(['couple', 'pro']),
-  email: z.string().trim().toLowerCase().email('Email invalide'),
+  email: emailSchema,
 });
 
-export const emailSchema = z.string().trim().toLowerCase().email('Email invalide');
+export { emailSchema };
 
 export const requestMagicLinkSchema = z.object({
   email: emailSchema,

@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { OtpInput } from '@/components/auth/otp-input';
 import { cn } from '@/lib/cn';
 import { completeOnboardingAction } from '@/app/[locale]/(auth)/actions';
+import { isValidEmail } from '@/lib/validators/email';
 
 type Role = 'couple' | 'pro';
 type StepKey = 'profile' | 'secure' | 'role';
@@ -30,8 +31,6 @@ const ROLE_OPTIONS: ReadonlyArray<{
   { value: 'couple', titleKey: 'roleCouple', descriptionKey: 'roleCoupleDescription', Icon: Heart },
   { value: 'pro', titleKey: 'rolePro', descriptionKey: 'roleProDescription', Icon: Briefcase },
 ];
-
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const STEP_EYEBROW: Record<StepKey, string> = {
   profile: 'PROFIL',
@@ -94,7 +93,7 @@ export function OnboardingWizard({
   const currentStep = steps[stepIndex]!;
   const emailLocked = initialEmail.length > 0;
 
-  const canGoFromProfile = form.fullName.trim().length >= 2 && EMAIL_RE.test(form.email.trim());
+  const canGoFromProfile = form.fullName.trim().length >= 2 && isValidEmail(form.email.trim());
   const canSubmitRole = currentStep === 'role' && form.role !== null;
 
   function goNext() {
@@ -112,7 +111,7 @@ export function OnboardingWizard({
     const trimmedEmail = form.email.trim();
     const errors: Record<string, string | undefined> = {};
     if (trimmed.length < 2) errors.fullName = t('fullNameLabel');
-    if (!trimmedEmail || !EMAIL_RE.test(trimmedEmail)) {
+    if (!trimmedEmail || !isValidEmail(trimmedEmail)) {
       errors.email = t('emailInvalid');
     }
     setFieldErrors(errors);

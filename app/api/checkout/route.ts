@@ -2,14 +2,14 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getSession } from '@/lib/auth/session';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
-import { PLANS, isCurrency, isPaidPlan, type Currency, type PlanTier } from '@/lib/payments/plans';
+import { PLANS } from '@/lib/payments/plans';
 import { detectCountryFromHeaders, routePayment } from '@/lib/payments/country';
 import { getPaymentDriver } from '@/lib/payments';
 
 const bodySchema = z.object({
   eventId: z.string().min(1),
-  plan: z.string().refine(isPaidPlan, { message: 'invalid_plan' }),
-  currency: z.string().refine(isCurrency, { message: 'invalid_currency' }).optional(),
+  plan: z.enum(['essential', 'premium']),
+  currency: z.enum(['EUR', 'XOF', 'MAD', 'TND']).optional(),
 });
 
 export async function POST(req: Request): Promise<Response> {
@@ -25,10 +25,10 @@ export async function POST(req: Request): Promise<Response> {
     return NextResponse.json({ error: 'INVALID_INPUT' }, { status: 400 });
   }
 
-  const plan = parsed.plan as PlanTier;
+  const plan = parsed.plan;
   const country = detectCountryFromHeaders(req.headers);
   const routing = routePayment(country, {
-    currency: parsed.currency as Currency | undefined,
+    currency: parsed.currency,
   });
   const amountMinor = PLANS[plan].prices[routing.currency];
   if (amountMinor <= 0) {

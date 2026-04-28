@@ -2,8 +2,7 @@ import { v } from 'convex/values';
 import { internalQuery, mutation, query } from './_generated/server';
 import { internal } from './_generated/api';
 import type { Doc, Id } from './_generated/dataModel';
-
-const SLUG_MAX_ATTEMPTS = 10;
+import { pickUniqueSlug } from './lib/uniqueSlug';
 
 function toSlugBase(partnerA: string, partnerB: string): string {
   const raw = `${partnerA}-${partnerB}`
@@ -14,34 +13,6 @@ function toSlugBase(partnerA: string, partnerB: string): string {
     .replace(/^-+|-+$/g, '')
     .slice(0, 48);
   return raw || 'event';
-}
-
-function randomSuffix(): string {
-  return Math.random().toString(36).slice(2, 6);
-}
-
-async function pickUniqueSlug(
-  ctx: { db: { query: (table: 'events') => unknown } },
-  base: string,
-): Promise<string> {
-  for (let i = 0; i < SLUG_MAX_ATTEMPTS; i++) {
-    const candidate = i === 0 ? base : `${base}-${randomSuffix()}`;
-    const existing = await (
-      ctx.db as unknown as {
-        query: (t: 'events') => {
-          withIndex: (
-            i: 'by_slug',
-            fn: (q: { eq: (k: 'slug', v: string) => unknown }) => unknown,
-          ) => { first: () => Promise<Doc<'events'> | null> };
-        };
-      }
-    )
-      .query('events')
-      .withIndex('by_slug', (q) => q.eq('slug', candidate))
-      .first();
-    if (!existing) return candidate;
-  }
-  throw new Error('SLUG_GENERATION_FAILED');
 }
 
 // Anti-abuse cap, uniform across plans (B2C is now feature-based, not capacity-based).
@@ -253,7 +224,7 @@ export const create = mutation({
     }
 
     const base = toSlugBase(partnerA, partnerB);
-    const slug = await pickUniqueSlug(ctx, base);
+    const slug = await pickUniqueSlug(ctx, 'events', 'by_slug', 'slug', base);
 
     const now = Date.now();
     const id = await ctx.db.insert('events', {

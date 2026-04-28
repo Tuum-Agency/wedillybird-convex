@@ -6,42 +6,55 @@ import { resolve } from 'node:path';
  * Fix sécurité F-04 (audit avril 2026) — `convex/auth.ts` ne doit JAMAIS
  * logger un OTP en clair hors `E2E_MODE === '1'` strict.
  *
- * Avant le fix, le `console.info` se déclenchait aussi quand les credentials
- * Meta étaient absents (`!accessToken || !phoneNumberId`), ce qui exposait
- * les OTP dans les logs Convex en prod. Ce test fait un grep AST-light pour
- * vérifier la régression.
+ * Après refactor R2 (extraction `convex/lib/whatsappCloud.ts`), le check
+ * `E2E_MODE === '1'` vit dans le helper. `convex/auth.ts` log uniquement
+ * quand `result.mock === true`, et le helper ne pose `mock: true` que si
+ * `E2E_MODE === '1'`. Hors E2E, le helper retourne
+ * `{ ok: false, error: 'WHATSAPP_NOT_CONFIGURED' }` et `auth.ts` throw.
+ *
+ * Ce test garde la régression : aucun log mock ne doit être déclenché par
+ * `!accessToken || !phoneNumberId` dans le helper.
  */
 describe('convex/auth.ts — OTP logging gated by E2E_MODE (F-04)', () => {
   const authSrc = readFileSync(resolve(__dirname, '..', '..', '..', 'convex', 'auth.ts'), 'utf-8');
+  const helperSrc = readFileSync(
+    resolve(__dirname, '..', '..', '..', 'convex', 'lib', 'whatsappCloud.ts'),
+    'utf-8',
+  );
 
-  it('le `console.info("[whatsapp:mock] OTP …")` est précédé d\'un check E2E_MODE strict', () => {
-    // On veut vérifier qu'il n'y a plus de version qui inclut `!accessToken || !phoneNumberId`
-    // dans la condition autour du log mock.
+  it('le helper convex/lib/whatsappCloud.ts gate le mock UNIQUEMENT sur E2E_MODE === "1"', () => {
+    // Le mock fallback ne doit PAS dépendre de `!accessToken || !phoneNumberId`.
+    // Régression directe : pattern `E2E_MODE === '1' || !accessToken` interdit.
+    expect(helperSrc).not.toMatch(/E2E_MODE\s*===\s*['"]1['"]\s*\|\|\s*!accessToken/);
+    // Le helper doit avoir un check `E2E_MODE === '1'` strict.
+    expect(helperSrc).toMatch(/E2E_MODE\s*===\s*['"]1['"]/);
+    // En absence de credentials hors E2E, le helper retourne WHATSAPP_NOT_CONFIGURED.
+    expect(helperSrc).toContain("'WHATSAPP_NOT_CONFIGURED'");
+  });
+
+  it('le log mock OTP dans auth.ts est gardé par result.mock (helper-driven)', () => {
     const lines = authSrc.split('\n');
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i] ?? '';
-      if (line.includes('console.info(`[whatsapp:mock]')) {
-        // Cherche le `if` qui gate ce log dans les 4 lignes précédentes.
-        const context = lines.slice(Math.max(0, i - 4), i).join('\n');
-        expect(context).toMatch(/E2E_MODE\s*===\s*['"]1['"]/);
-        // Régression : pas de fallback `|| !accessToken` dans cette condition.
-        expect(context).not.toMatch(/E2E_MODE.*\|\|\s*!accessToken/);
+      if (line.includes('console.info(`[whatsapp:mock] OTP')) {
+        // Cherche `if (result.mock)` dans les 3 lignes précédentes.
+        const context = lines.slice(Math.max(0, i - 3), i).join('\n');
+        expect(context).toMatch(/result\.mock/);
       }
     }
   });
 
-  it('throw `WHATSAPP_NOT_CONFIGURED` quand credentials absents hors E2E', () => {
+  it('auth.ts throw `WHATSAPP_NOT_CONFIGURED` quand credentials absents hors E2E', () => {
     expect(authSrc).toContain('WHATSAPP_NOT_CONFIGURED');
   });
 
-  it('le log mock LINK est gated de la même façon', () => {
+  it('le log mock LINK est gardé par result.mock aussi', () => {
     const lines = authSrc.split('\n');
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i] ?? '';
       if (line.includes('console.info(`[whatsapp:mock] LINK')) {
-        const context = lines.slice(Math.max(0, i - 4), i).join('\n');
-        expect(context).toMatch(/E2E_MODE\s*===\s*['"]1['"]/);
-        expect(context).not.toMatch(/E2E_MODE.*\|\|\s*!accessToken/);
+        const context = lines.slice(Math.max(0, i - 3), i).join('\n');
+        expect(context).toMatch(/result\.mock/);
       }
     }
   });

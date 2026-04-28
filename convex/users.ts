@@ -1,5 +1,6 @@
 import { v } from 'convex/values';
 import { internalQuery, mutation, query } from './_generated/server';
+import { isValidEmail } from './lib/email';
 
 export const completeOnboarding = mutation({
   args: {
@@ -18,7 +19,7 @@ export const completeOnboarding = mutation({
     }
 
     const normalizedEmail = email.trim().toLowerCase();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+    if (!isValidEmail(normalizedEmail)) {
       throw new Error('INVALID_EMAIL');
     }
 

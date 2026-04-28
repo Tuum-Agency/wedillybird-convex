@@ -24,7 +24,6 @@ export default defineSchema({
       ),
     ),
     stripeCustomerId: v.optional(v.string()),
-    cinetpayCustomerId: v.optional(v.string()),
     createdAt: v.number(),
     lastSeenAt: v.optional(v.number()),
   })

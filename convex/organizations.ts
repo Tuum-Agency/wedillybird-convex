@@ -8,8 +8,8 @@ import {
 } from './_generated/server';
 import { internal } from './_generated/api';
 import type { Doc, Id } from './_generated/dataModel';
+import { pickUniqueSlug } from './lib/uniqueSlug';
 
-const SLUG_MAX_ATTEMPTS = 8;
 const ROLE = v.union(
   v.literal('owner'),
   v.literal('admin'),
@@ -29,19 +29,6 @@ function slugify(input: string): string {
 
 function randomSuffix(): string {
   return Math.random().toString(36).slice(2, 6);
-}
-
-async function uniqueSlug(ctx: MutationCtx, base: string): Promise<string> {
-  let candidate = base;
-  for (let i = 0; i < SLUG_MAX_ATTEMPTS; i++) {
-    const existing = await ctx.db
-      .query('organizations')
-      .withIndex('by_slug', (q) => q.eq('slug', candidate))
-      .first();
-    if (!existing) return candidate;
-    candidate = `${base}-${randomSuffix()}`;
-  }
-  throw new Error('SLUG_GENERATION_FAILED');
 }
 
 async function getMembership(
@@ -91,7 +78,7 @@ export const create = mutation({
     if (trimmed.length < 1 || trimmed.length > 120) throw new Error('INVALID_NAME');
 
     const baseSlug = slugify(trimmed) || `org-${randomSuffix()}`;
-    const slug = await uniqueSlug(ctx, baseSlug);
+    const slug = await pickUniqueSlug(ctx, 'organizations', 'by_slug', 'slug', baseSlug);
     const now = Date.now();
 
     const id = await ctx.db.insert('organizations', {
