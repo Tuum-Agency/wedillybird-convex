@@ -1,33 +1,17 @@
 'use client';
 
-import Image from 'next/image';
 import { motion } from 'motion/react';
 import { useTranslations } from 'next-intl';
 import { inViewOnce, scrollReveal, scrollRevealParent } from '@/lib/motion/presets';
 
-const TESTIMONIALS = [
-  {
-    key: 'couple-fr',
-    photo:
-      'https://images.unsplash.com/photo-1606800052052-a08af7148866?auto=format&fit=crop&w=400&q=80',
-  },
-  {
-    key: 'couple-sn',
-    photo:
-      'https://images.unsplash.com/photo-1583939411023-7c6cdb40b09f?auto=format&fit=crop&w=400&q=80',
-  },
-  {
-    key: 'planner-pro',
-    photo:
-      'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=400&q=80',
-  },
-] as const;
+const TESTIMONIALS = ['couple-fr', 'couple-sn', 'planner-pro'] as const;
 
 /**
  * Landing — Témoignages V3.
  *
  * 3 cards : France (Provence), Sénégal (Dakar), Wedding planner (Bordeaux).
- * Photos rondes Unsplash + quote longue Fraunces italic + nom + lieu+date.
+ * Avatars en cercle avec initiales (font-display italic) — pas d'image externe
+ * pour ne jamais dépendre d'un CDN tiers (Unsplash 404 vu en avril 2026).
  * Mosaïque géographique volontaire pour signaler l'inclusivité.
  */
 export function LandingTestimonials() {
@@ -72,7 +56,7 @@ export function LandingTestimonials() {
           variants={scrollRevealParent}
           className="grid gap-6 md:grid-cols-3"
         >
-          {TESTIMONIALS.map(({ key, photo }) => (
+          {TESTIMONIALS.map((key) => (
             <motion.figure
               key={key}
               variants={scrollReveal}
@@ -92,15 +76,12 @@ export function LandingTestimonials() {
                 {t(`items.${key}.quote`)}
               </blockquote>
               <figcaption className="mt-auto flex items-center gap-3 border-t border-[color:var(--color-border)] pt-5">
-                <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-full ring-1 ring-[color:var(--color-blush-200)]">
-                  <Image
-                    src={photo}
-                    alt={t(`items.${key}.alt`)}
-                    fill
-                    sizes="48px"
-                    className="object-cover"
-                  />
-                </div>
+                <span
+                  aria-hidden
+                  className="font-display flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-[color:var(--color-blush-100)] text-base text-[color:var(--color-blush-700)] italic ring-1 ring-[color:var(--color-blush-200)]"
+                >
+                  {t(`items.${key}.initials`)}
+                </span>
                 <div className="flex flex-col">
                   <span className="text-sm font-semibold text-[color:var(--color-ink-900)]">
                     {t(`items.${key}.name`)}
