@@ -66,7 +66,9 @@ export interface ZipStreamEntry {
  * yielded by the async iterable. Failures on a single entry abort the
  * archive — callers are expected to filter unreachable items beforehand.
  */
-export function createZipStream(entries: AsyncIterable<ZipStreamEntry>): ReadableStream<Uint8Array> {
+export function createZipStream(
+  entries: AsyncIterable<ZipStreamEntry>,
+): ReadableStream<Uint8Array> {
   return new ReadableStream<Uint8Array>({
     async start(controller) {
       try {

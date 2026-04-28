@@ -81,7 +81,9 @@ function statusVerb(status: TemplateStatusKind): string {
 
 function buildEventUrl(eventId: string): string {
   const base = (
-    process.env.APP_BASE_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? 'https://wedillybird.com'
+    process.env.APP_BASE_URL ??
+    process.env.NEXT_PUBLIC_APP_URL ??
+    'https://wedillybird.com'
   ).replace(/\/$/, '');
   return `${base}/fr/events/${eventId}/messaging`;
 }
@@ -300,4 +302,3 @@ export const dispatchPendingNotifications = action({
     return { dispatched, skipped };
   },
 });
-

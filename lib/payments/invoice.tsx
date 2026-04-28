@@ -284,12 +284,8 @@ export function InvoicePDF({ payment }: InvoicePDFProps) {
                 <Text style={styles.totalValue}>{formatAmount(ht, payment.currency)}</Text>
               </View>
               <View style={styles.totalRow}>
-                <Text style={styles.totalLabel}>
-                  TVA ({(vatRate * 100).toFixed(0)} %)
-                </Text>
-                <Text style={styles.totalValue}>
-                  {formatAmount(vatAmount, payment.currency)}
-                </Text>
+                <Text style={styles.totalLabel}>TVA ({(vatRate * 100).toFixed(0)} %)</Text>
+                <Text style={styles.totalValue}>{formatAmount(vatAmount, payment.currency)}</Text>
               </View>
             </>
           ) : (
@@ -309,8 +305,8 @@ export function InvoicePDF({ payment }: InvoicePDFProps) {
         <Text style={styles.footer}>
           Paiement réglé via {PROVIDER_LABEL[payment.provider]} le {formatDate(payment.paidAt)}.
           Cette facture est conservée 10 ans conformément au Code de commerce.{'\n'}
-          Pour toute question relative à cette facture, écrivez-nous à
-          billing@wedillybird.com en précisant le numéro de facture {payment.invoiceNumber}.
+          Pour toute question relative à cette facture, écrivez-nous à billing@wedillybird.com en
+          précisant le numéro de facture {payment.invoiceNumber}.
         </Text>
       </Page>
     </Document>

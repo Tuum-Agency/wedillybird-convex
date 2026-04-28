@@ -92,7 +92,7 @@ const PLANS_TO_SYNC: ReadonlyArray<PlanSpec> = [
     id: 'essential',
     productName: 'Wedillybird — Essentiel',
     productDescription:
-      "Forfait particulier 19 €. Invitations WhatsApp, RSVP temps réel, check-in offline, tableau de bord, galerie partagée 30 jours.",
+      'Forfait particulier 19 €. Invitations WhatsApp, RSVP temps réel, check-in offline, tableau de bord, galerie partagée 30 jours.',
     amounts: { EUR: 1900, MAD: 21000, TND: 6500 },
     interval: undefined,
     envVarBase: 'STRIPE_PRICE_ESSENTIAL',
@@ -110,7 +110,7 @@ const PLANS_TO_SYNC: ReadonlyArray<PlanSpec> = [
     id: 'post_event_upsell',
     productName: 'Wedillybird — Upsell post-mariage',
     productDescription:
-      "Extension post-mariage +29 €. Galerie conservée 5 ans + livre photo HD imprimé + export ZIP haute définition.",
+      'Extension post-mariage +29 €. Galerie conservée 5 ans + livre photo HD imprimé + export ZIP haute définition.',
     amounts: { EUR: 2900, MAD: 32000, TND: 10000 },
     interval: undefined,
     envVarBase: 'STRIPE_PRICE_POST_EVENT_UPSELL',
@@ -120,7 +120,7 @@ const PLANS_TO_SYNC: ReadonlyArray<PlanSpec> = [
     id: 'starter_monthly',
     productName: 'Wedillybird Pro — Starter',
     productDescription:
-      "89 €/mois. 3 événements actifs, 2 000 messages WhatsApp inclus, branding Wedillybird forcé.",
+      '89 €/mois. 3 événements actifs, 2 000 messages WhatsApp inclus, branding Wedillybird forcé.',
     amounts: { EUR: 8900, MAD: 95200, TND: 302600 },
     interval: 'month',
     envVarBase: 'STRIPE_PRICE_STARTER',
@@ -129,7 +129,7 @@ const PLANS_TO_SYNC: ReadonlyArray<PlanSpec> = [
     id: 'business_monthly',
     productName: 'Wedillybird Pro — Business',
     productDescription:
-      "179 €/mois. 10 événements actifs, 6 000 messages WhatsApp, logo personnalisé + sous-domaine dédié.",
+      '179 €/mois. 10 événements actifs, 6 000 messages WhatsApp, logo personnalisé + sous-domaine dédié.',
     amounts: { EUR: 17900, MAD: 191500, TND: 608600 },
     interval: 'month',
     envVarBase: 'STRIPE_PRICE_BUSINESS',
@@ -138,7 +138,7 @@ const PLANS_TO_SYNC: ReadonlyArray<PlanSpec> = [
     id: 'agency_monthly',
     productName: 'Wedillybird Pro — Agency',
     productDescription:
-      "349 €/mois. Événements illimités, 20 000 messages WhatsApp, marque blanche complète + SLA 99,9 %.",
+      '349 €/mois. Événements illimités, 20 000 messages WhatsApp, marque blanche complète + SLA 99,9 %.',
     amounts: { EUR: 34900, MAD: 373400, TND: 1186600 },
     interval: 'month',
     envVarBase: 'STRIPE_PRICE_AGENCY',
@@ -151,7 +151,7 @@ const PLANS_TO_SYNC: ReadonlyArray<PlanSpec> = [
     id: 'starter_annual',
     productName: 'Wedillybird Pro — Starter (annuel)',
     productDescription:
-      "855 €/an (équivalent 71,25 €/mois, économise 213 €/an vs mensuel). 3 événements actifs, 2 000 messages WhatsApp/mois.",
+      '855 €/an (équivalent 71,25 €/mois, économise 213 €/an vs mensuel). 3 événements actifs, 2 000 messages WhatsApp/mois.',
     amounts: { EUR: 85500, MAD: 914800, TND: 2907000 },
     interval: 'year',
     envVarBase: 'STRIPE_PRICE_STARTER_ANNUAL',
@@ -160,7 +160,7 @@ const PLANS_TO_SYNC: ReadonlyArray<PlanSpec> = [
     id: 'business_annual',
     productName: 'Wedillybird Pro — Business (annuel)',
     productDescription:
-      "1 719 €/an (équivalent 143,25 €/mois, économise 429 €/an vs mensuel). 10 événements actifs, 6 000 messages WhatsApp/mois.",
+      '1 719 €/an (équivalent 143,25 €/mois, économise 429 €/an vs mensuel). 10 événements actifs, 6 000 messages WhatsApp/mois.',
     amounts: { EUR: 171900, MAD: 1839300, TND: 5844600 },
     interval: 'year',
     envVarBase: 'STRIPE_PRICE_BUSINESS_ANNUAL',
@@ -169,7 +169,7 @@ const PLANS_TO_SYNC: ReadonlyArray<PlanSpec> = [
     id: 'agency_annual',
     productName: 'Wedillybird Pro — Agency (annuel)',
     productDescription:
-      "3 351 €/an (équivalent 279,25 €/mois, économise 837 €/an vs mensuel). Événements illimités, 20 000 messages WhatsApp/mois.",
+      '3 351 €/an (équivalent 279,25 €/mois, économise 837 €/an vs mensuel). Événements illimités, 20 000 messages WhatsApp/mois.',
     amounts: { EUR: 335100, MAD: 3585600, TND: 11393400 },
     interval: 'year',
     envVarBase: 'STRIPE_PRICE_AGENCY_ANNUAL',
@@ -179,14 +179,18 @@ const PLANS_TO_SYNC: ReadonlyArray<PlanSpec> = [
     id: 'payg_event',
     productName: 'Wedillybird Pro — Pay-as-you-go (1 événement)',
     productDescription:
-      "69 €/événement, sans abonnement. Idéal pour un mariage ponctuel. Messages WhatsApp facturés selon le volume.",
+      '69 €/événement, sans abonnement. Idéal pour un mariage ponctuel. Messages WhatsApp facturés selon le volume.',
     amounts: { EUR: 6900, MAD: 73800, TND: 234600 },
     interval: undefined,
     envVarBase: 'STRIPE_PRICE_PAYG_EVENT',
   },
 ];
 
-const LEGACY_PRICE_ENV_VARS = ['STRIPE_PRICE_STARTER', 'STRIPE_PRICE_BUSINESS', 'STRIPE_PRICE_AGENCY'];
+const LEGACY_PRICE_ENV_VARS = [
+  'STRIPE_PRICE_STARTER',
+  'STRIPE_PRICE_BUSINESS',
+  'STRIPE_PRICE_AGENCY',
+];
 
 /* -------------------------------------------------------------------------- */
 /*  Logique principale                                                         */
@@ -276,7 +280,9 @@ async function syncPlanCurrency(
       const stripeErr = err as { type?: string; raw?: { message?: string }; message?: string };
       if (
         stripeErr.type === 'StripeInvalidRequestError' &&
-        (stripeErr.raw?.message ?? stripeErr.message ?? '').toLowerCase().includes('invalid currency')
+        (stripeErr.raw?.message ?? stripeErr.message ?? '')
+          .toLowerCase()
+          .includes('invalid currency')
       ) {
         console.warn(
           `  ⚠  ${spec.id} [${currency}] non créé — devise non supportée par ce compte Stripe (${stripeErr.raw?.message ?? stripeErr.message})`,
@@ -345,9 +351,7 @@ async function deactivateLegacyPrices(): Promise<void> {
 /* -------------------------------------------------------------------------- */
 
 async function main(): Promise<void> {
-  console.log(
-    `${DRY_RUN ? '[DRY RUN] ' : ''}Sync Stripe Prices — grille canonique avril 2026`,
-  );
+  console.log(`${DRY_RUN ? '[DRY RUN] ' : ''}Sync Stripe Prices — grille canonique avril 2026`);
   console.log(`Stripe key: ${SECRET_KEY!.startsWith('sk_test_') ? 'TEST mode' : 'LIVE mode'}`);
   console.log(`Devises Stripe : ${SUPPORTED_STRIPE_CURRENCIES.join(', ')} (XOF → CinetPay)`);
 
@@ -367,9 +371,13 @@ async function main(): Promise<void> {
   await deactivateLegacyPrices();
 
   console.log('\n--- Bloc à coller dans `.env.local` ---');
-  console.log('# Stripe Prices — grille canonique multi-devises (cf. .context/redesign-direction.md)');
+  console.log(
+    '# Stripe Prices — grille canonique multi-devises (cf. .context/redesign-direction.md)',
+  );
   console.log('# EUR via Stripe, MAD/TND via Stripe, XOF via CinetPay (non listé ici).');
-  console.log('# Les variantes sans suffix devise (STRIPE_PRICE_ESSENTIAL=…) restent des alias EUR.');
+  console.log(
+    '# Les variantes sans suffix devise (STRIPE_PRICE_ESSENTIAL=…) restent des alias EUR.',
+  );
   for (const r of results) {
     console.log(`${r.envVarName}=${r.priceId}`);
   }

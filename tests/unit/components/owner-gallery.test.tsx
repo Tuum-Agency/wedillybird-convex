@@ -76,10 +76,7 @@ describe('OwnerGallery — download all', () => {
 
     const links = screen.getAllByTestId('download-one');
     expect(links).toHaveLength(1);
-    expect(links[0]).toHaveAttribute(
-      'href',
-      '/fr/events/evt_3/gallery/photos/photo_z/download',
-    );
+    expect(links[0]).toHaveAttribute('href', '/fr/events/evt_3/gallery/photos/photo_z/download');
     expect(links[0]).toHaveAttribute('download');
   });
 });

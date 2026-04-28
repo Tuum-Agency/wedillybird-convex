@@ -130,7 +130,10 @@ export const searchByImage = internalAction({
   },
   handler: async (_ctx, args): Promise<SearchByImageResult> => {
     const client = getRekognition();
-    return runSearchFacesByImage((cmd) => client.send(cmd) as Promise<{ FaceMatches?: FaceMatch[] }>, args);
+    return runSearchFacesByImage(
+      (cmd) => client.send(cmd) as Promise<{ FaceMatches?: FaceMatch[] }>,
+      args,
+    );
   },
 });
 

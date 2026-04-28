@@ -1,13 +1,6 @@
 'use client';
 
-import {
-  useCallback,
-  useEffect,
-  useId,
-  useRef,
-  useState,
-  type ChangeEvent,
-} from 'react';
+import { useCallback, useEffect, useId, useRef, useState, type ChangeEvent } from 'react';
 import { useTranslations } from 'next-intl';
 import { Camera, Loader2, Upload, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -333,14 +326,8 @@ function FaceSearchModalInner({ onClose, onResult, search }: FaceSearchModalProp
         ) : null}
 
         {stage === 'result_error' ? (
-          <div
-            className="flex flex-col gap-4"
-            role="alert"
-            data-testid="face-search-result-error"
-          >
-            <p className="text-base text-[color:var(--color-danger)]">
-              {errorLabel(errorMessage)}
-            </p>
+          <div className="flex flex-col gap-4" role="alert" data-testid="face-search-result-error">
+            <p className="text-base text-[color:var(--color-danger)]">{errorLabel(errorMessage)}</p>
             <Button
               type="button"
               size="lg"

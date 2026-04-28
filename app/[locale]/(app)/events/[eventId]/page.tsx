@@ -113,9 +113,9 @@ export default async function EventDetailPage({
         requesterId: session!.userId,
       })
       .catch(() => null);
-    const orgRole = (
-      await convex.query(convexApi.myOrganization, { userId: session!.userId }).catch(() => null)
-    );
+    const orgRole = await convex
+      .query(convexApi.myOrganization, { userId: session!.userId })
+      .catch(() => null);
     const hasActiveSub =
       orgRole?.subscriptionStatus === 'active' || orgRole?.subscriptionStatus === 'trialing';
     if (hasActiveSub) {
@@ -151,7 +151,8 @@ export default async function EventDetailPage({
   const hasUpsell =
     !!planTier &&
     typeof event.galleryExpiresAt === 'number' &&
-    event.galleryExpiresAt - event.eventDate > STANDARD_RETENTION_MS[planTier] + 24 * 60 * 60 * 1000;
+    event.galleryExpiresAt - event.eventDate >
+      STANDARD_RETENTION_MS[planTier] + 24 * 60 * 60 * 1000;
 
   const headerSection = (
     <div className="flex flex-col gap-5">

@@ -241,8 +241,8 @@ describe('payments/drivers/cinetpay — verifyAndParseWebhook', () => {
   it('throws NOT_CONFIGURED when API key is missing', async () => {
     delete process.env.CINETPAY_API_KEY;
     const { cinetpayDriver } = await import('@/lib/payments/drivers/cinetpay');
-    await expect(
-      cinetpayDriver.verifyAndParseWebhook('cpm_trans_id=x', 'anysig'),
-    ).rejects.toThrow('CINETPAY_DRIVER_NOT_CONFIGURED');
+    await expect(cinetpayDriver.verifyAndParseWebhook('cpm_trans_id=x', 'anysig')).rejects.toThrow(
+      'CINETPAY_DRIVER_NOT_CONFIGURED',
+    );
   });
 });

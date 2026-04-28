@@ -36,7 +36,7 @@ const PLAN_LABEL: Record<string, string> = {
 // invitations.
 const PLAN_STRIPE_DESCRIPTION: Record<string, string> = {
   essential:
-    "Invitations WhatsApp + RSVP temps réel + check-in offline + tableau de bord + galerie partagée 30 jours après le mariage.",
+    'Invitations WhatsApp + RSVP temps réel + check-in offline + tableau de bord + galerie partagée 30 jours après le mariage.',
   premium:
     "Tout l'Essentiel + galerie partagée 6 mois après le mariage + album PDF final imprimable.",
 };
@@ -248,9 +248,7 @@ export type PaygCheckoutInput = {
  * est lu par `verifyAndParseSubscriptionWebhook` pour router vers la mutation
  * Convex `paygPurchases:markPurchase`.
  */
-export async function createPaygCheckout(
-  input: PaygCheckoutInput,
-): Promise<CheckoutSession> {
+export async function createPaygCheckout(input: PaygCheckoutInput): Promise<CheckoutSession> {
   const stripe = getStripe();
   const currency = input.currency ?? 'EUR';
   if (currency === 'XOF') throw new Error('UNSUPPORTED_STRIPE_CURRENCY');

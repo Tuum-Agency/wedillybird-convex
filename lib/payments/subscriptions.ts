@@ -178,8 +178,7 @@ export function priceIdForTier(
 ): string {
   if (currency === 'XOF') throw new Error('UNSUPPORTED_STRIPE_CURRENCY');
   const billingSuffix = billing === 'annual' ? '_ANNUAL' : '';
-  const currencyEnvName =
-    `STRIPE_PRICE_${tier.toUpperCase()}${billingSuffix}_${currency}` as const;
+  const currencyEnvName = `STRIPE_PRICE_${tier.toUpperCase()}${billingSuffix}_${currency}` as const;
   const currencyValue = process.env[currencyEnvName];
   if (currencyValue) return currencyValue;
   // Fallback : l'env legacy `STRIPE_PRICE_STARTER` (sans suffix devise) reste

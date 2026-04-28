@@ -124,9 +124,7 @@ describe('priceIdForTier', () => {
     expect(() => priceIdForTier('starter', 'monthly', 'XOF')).toThrow(
       'UNSUPPORTED_STRIPE_CURRENCY',
     );
-    expect(() => priceIdForTier('agency', 'annual', 'XOF')).toThrow(
-      'UNSUPPORTED_STRIPE_CURRENCY',
-    );
+    expect(() => priceIdForTier('agency', 'annual', 'XOF')).toThrow('UNSUPPORTED_STRIPE_CURRENCY');
   });
 
   it('throws when the env var is missing (EUR uses legacy alias name)', () => {
@@ -248,7 +246,7 @@ describe('SUBSCRIPTION_TIER_PRICES — grille canonique avril 2026', () => {
   });
 });
 
-describe('SUBSCRIPTION_TIER_ANNUAL_PRICES — -20 % arrondi à l\'euro supérieur', () => {
+describe("SUBSCRIPTION_TIER_ANNUAL_PRICES — -20 % arrondi à l'euro supérieur", () => {
   it('starter annual = 855 € (89 × 12 × 0.80 = 854,40 → ceil 855)', () => {
     expect(SUBSCRIPTION_TIER_ANNUAL_PRICES.starter.amountMinor).toBe(85500);
   });

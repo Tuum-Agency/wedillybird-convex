@@ -63,10 +63,7 @@ export function renderWhatsappTemplateStatusEmail(
       )}</em></p>` +
       reasonBlock +
       (ctaUrl
-        ? button(
-            status === 'approved' ? 'Envoyer mes invitations' : 'Ajuster mon message',
-            ctaUrl,
-          )
+        ? button(status === 'approved' ? 'Envoyer mes invitations' : 'Ajuster mon message', ctaUrl)
         : ''),
     footer: 'Notification automatique liée à la validation Meta WhatsApp Business.',
   });

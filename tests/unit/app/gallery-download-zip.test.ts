@@ -17,8 +17,7 @@ vi.mock('@/lib/auth/convex-server', () => ({
 
 import { GET } from '@/app/[locale]/(app)/events/[eventId]/gallery/download-zip/route';
 
-const params = (eventId: string) =>
-  Promise.resolve({ eventId, locale: 'fr' });
+const params = (eventId: string) => Promise.resolve({ eventId, locale: 'fr' });
 
 beforeEach(() => {
   getSessionMock.mockReset();

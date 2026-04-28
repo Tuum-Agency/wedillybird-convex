@@ -328,7 +328,6 @@ function planDescription(plan: string): string {
 }
 
 function notifyUrl(): string {
-  const base =
-    process.env.NEXT_PUBLIC_APP_URL ?? process.env.APP_URL ?? 'https://wedillybird.com';
+  const base = process.env.NEXT_PUBLIC_APP_URL ?? process.env.APP_URL ?? 'https://wedillybird.com';
   return `${base.replace(/\/$/, '')}/api/webhooks/cinetpay`;
 }

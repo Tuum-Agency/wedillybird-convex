@@ -156,8 +156,9 @@ export function CustomTemplateForm({ eventId, defaultNotifyChannel = 'email' }: 
         <p className="text-xs text-[color:var(--color-ink-500)]">
           Variables disponibles : <span className="font-mono">{'{{1}}'}</span> prénom invité ·{' '}
           <span className="font-mono">{'{{2}}'}</span> noms du couple ·{' '}
-          <span className="font-mono">{'{{3}}'}</span> date · <span className="font-mono">{'{{4}}'}</span>{' '}
-          mot perso · <span className="font-mono">{'{{5}}'}</span> libre.
+          <span className="font-mono">{'{{3}}'}</span> date ·{' '}
+          <span className="font-mono">{'{{4}}'}</span> mot perso ·{' '}
+          <span className="font-mono">{'{{5}}'}</span> libre.
         </p>
       </div>
 

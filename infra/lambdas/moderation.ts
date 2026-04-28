@@ -103,19 +103,61 @@ const REJECT_THRESHOLD_LENIENT = 90;
 // "national". Couvre FR + EN + quelques expressions courantes.
 const OCR_BLACKLIST_KEYWORDS: ReadonlyArray<string> = [
   // FR — anatomie sexuelle explicite
-  'penis', 'vagin', 'vulve', 'clitoris', 'testicule', 'sperme',
-  'anus', 'erection', 'masturbation', 'fellation', 'cunnilingus',
+  'penis',
+  'vagin',
+  'vulve',
+  'clitoris',
+  'testicule',
+  'sperme',
+  'anus',
+  'erection',
+  'masturbation',
+  'fellation',
+  'cunnilingus',
   // FR — argot
-  'bite', 'queue', 'chatte', 'chibre', 'baise', 'baiser', 'sodomie',
-  'pute', 'putain', 'salope', 'enculer', 'enculee', 'enculé',
+  'bite',
+  'queue',
+  'chatte',
+  'chibre',
+  'baise',
+  'baiser',
+  'sodomie',
+  'pute',
+  'putain',
+  'salope',
+  'enculer',
+  'enculee',
+  'enculé',
   // EN — anatomie sexuelle / argot
-  'penis', 'vagina', 'vulva', 'clitoris', 'testicle', 'semen',
-  'cock', 'dick', 'pussy', 'cunt', 'tits', 'boobs', 'nipple',
-  'anal', 'fuck', 'fucking', 'whore', 'slut',
+  'penis',
+  'vagina',
+  'vulva',
+  'clitoris',
+  'testicle',
+  'semen',
+  'cock',
+  'dick',
+  'pussy',
+  'cunt',
+  'tits',
+  'boobs',
+  'nipple',
+  'anal',
+  'fuck',
+  'fucking',
+  'whore',
+  'slut',
   // Drogues / substances
-  'cocaine', 'cocaïne', 'heroin', 'heroine', 'cannabis', 'weed',
+  'cocaine',
+  'cocaïne',
+  'heroin',
+  'heroine',
+  'cannabis',
+  'weed',
   // Termes médicaux génériques (peuvent indiquer un schéma médical)
-  'urethral', 'urethre', 'urètre',
+  'urethral',
+  'urethre',
+  'urètre',
 ];
 // Labels DetectLabels qui suggèrent une illustration et NON une photo. Si
 // présents avec confiance >= 70 %, l'image n'est pas auto-approuvée.
@@ -156,10 +198,7 @@ function requireEnv(name: string): string {
 
 /** Normalise un texte OCR en minuscule sans accents, pour le matching blacklist. */
 function normalizeForMatching(text: string): string {
-  return text
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '');
+  return text.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
 }
 
 function findBlacklistMatch(ocrText: string): string | null {
@@ -197,9 +236,10 @@ function decideFromModerationLabels(
   return { rejected: false };
 }
 
-function topModerationLabel(
-  labels: readonly ModerationLabel[],
-): { name?: string; confidence?: number } {
+function topModerationLabel(labels: readonly ModerationLabel[]): {
+  name?: string;
+  confidence?: number;
+} {
   let topLabel: string | undefined;
   let topConfidence = 0;
   for (const label of labels) {

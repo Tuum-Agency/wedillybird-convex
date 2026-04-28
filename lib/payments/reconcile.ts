@@ -54,12 +54,9 @@ export interface ReconciliationPatch {
  *  - If `event.planTier` diverges from `payment.plan` (downgrade or upgrade
  *    that was never propagated), we trust the payment as the source of truth.
  */
-export function computeEventReconciliation(
-  input: ReconciliationInput,
-): ReconciliationPatch | null {
+export function computeEventReconciliation(input: ReconciliationInput): ReconciliationPatch | null {
   const { event, payment, now } = input;
-  const expectedExpiresAt =
-    event.eventDate + GALLERY_RETENTION_DAYS[payment.plan] * MS_PER_DAY;
+  const expectedExpiresAt = event.eventDate + GALLERY_RETENTION_DAYS[payment.plan] * MS_PER_DAY;
 
   const needsUpdate =
     event.planTier !== payment.plan ||

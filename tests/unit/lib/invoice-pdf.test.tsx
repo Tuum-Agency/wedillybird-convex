@@ -1,10 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { renderToBuffer } from '@react-pdf/renderer';
-import {
-  InvoicePDF,
-  buildInvoiceNumber,
-  type InvoicePayment,
-} from '@/lib/payments/invoice';
+import { InvoicePDF, buildInvoiceNumber, type InvoicePayment } from '@/lib/payments/invoice';
 
 const basePayment: InvoicePayment = {
   paymentId: 'p_abc12345',
@@ -36,9 +32,7 @@ describe('buildInvoiceNumber', () => {
 
   it('is idempotent (same paymentId → same number)', () => {
     const issuedAt = new Date('2026-01-01T00:00:00Z').getTime();
-    expect(buildInvoiceNumber('foobar99', issuedAt)).toBe(
-      buildInvoiceNumber('foobar99', issuedAt),
-    );
+    expect(buildInvoiceNumber('foobar99', issuedAt)).toBe(buildInvoiceNumber('foobar99', issuedAt));
   });
 
   it('upcases the suffix (case-insensitive paymentId support)', () => {
@@ -80,9 +74,7 @@ describe('InvoicePDF — rendering', () => {
   }, 30000);
 
   it('renders gracefully without customer info', async () => {
-    const buffer = await renderToBuffer(
-      <InvoicePDF payment={{ ...basePayment, customer: {} }} />,
-    );
+    const buffer = await renderToBuffer(<InvoicePDF payment={{ ...basePayment, customer: {} }} />);
     expect(buffer.length).toBeGreaterThan(0);
     expect(isPdfBuffer(buffer)).toBe(true);
   }, 30000);

@@ -111,11 +111,7 @@ describe('runSearchFacesByImage — Rekognition wrapper', () => {
 
   it('filters out face matches without FaceId', async () => {
     const send = vi.fn().mockResolvedValue({
-      FaceMatches: [
-        { Face: { FaceId: 'face-1' } },
-        { Face: {} },
-        { Face: { FaceId: 'face-2' } },
-      ],
+      FaceMatches: [{ Face: { FaceId: 'face-1' } }, { Face: {} }, { Face: { FaceId: 'face-2' } }],
     });
     const result = await runSearchFacesByImage(send, {
       collectionId: 'wb-event-foo',

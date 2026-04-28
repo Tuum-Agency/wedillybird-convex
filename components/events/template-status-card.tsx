@@ -69,7 +69,7 @@ export function TemplateStatusCard({ template, notifyChannel }: TemplateStatusCa
           <span className="font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-ink-500)] uppercase">
             Template Meta
           </span>
-          <span className="font-mono text-sm italic text-[color:var(--color-ink-900)] [overflow-wrap:anywhere]">
+          <span className="font-mono text-sm [overflow-wrap:anywhere] text-[color:var(--color-ink-900)] italic">
             {template.name}
           </span>
         </div>
