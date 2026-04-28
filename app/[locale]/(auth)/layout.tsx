@@ -2,7 +2,6 @@ import type { ReactNode } from 'react';
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
-import { WedillybirdMark } from '@/components/brand/wedillybird-mark';
 
 /**
  * Layout auth V4 — split éditorial mariage premium.
@@ -60,9 +59,12 @@ function AuthAside() {
       {/* Brand en haut-gauche */}
       <Link
         href="/"
-        className="font-display absolute top-8 left-8 inline-flex items-center gap-2.5 text-xl tracking-tight text-white italic"
+        className="font-display absolute top-8 left-8 inline-flex items-center gap-2 text-xl tracking-tight text-white italic"
       >
-        <WedillybirdMark className="h-6 w-6 text-white" />
+        <span
+          aria-hidden
+          className="inline-block h-2 w-2 rounded-full bg-[color:var(--color-gold-500)]"
+        />
         Wedillybird
       </Link>
 
@@ -99,9 +101,12 @@ function AuthHeader() {
     <header className="flex h-20 items-center justify-between px-6 lg:hidden">
       <Link
         href="/"
-        className="font-display inline-flex items-center gap-2.5 text-xl tracking-tight text-[color:var(--color-ink-900)] italic"
+        className="font-display inline-flex items-center gap-2 text-xl tracking-tight text-[color:var(--color-ink-900)] italic"
       >
-        <WedillybirdMark className="h-6 w-6 text-[color:var(--color-blush-500)]" />
+        <span
+          aria-hidden
+          className="inline-block h-2 w-2 rounded-full bg-[color:var(--color-gold-500)]"
+        />
         {tCommon('appName')}
       </Link>
       <Link

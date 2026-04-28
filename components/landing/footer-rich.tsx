@@ -1,7 +1,6 @@
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
-import { WedillybirdMark } from '@/components/brand/wedillybird-mark';
-import { NewsletterForm } from '@/components/landing/newsletter-form';
+import { Send } from 'lucide-react';
 
 /**
  * Landing — Footer V4.
@@ -13,7 +12,7 @@ import { NewsletterForm } from '@/components/landing/newsletter-form';
  * - "Tuum Agency · Paris & Dakar" leak → retiré (signature Wedillybird seule)
  *
  * Block tagline + newsletter + 4 colonnes (Produit, Pros, Ressources, Légal)
- * + régions + logos paiement (Stripe ; CinetPay désactivé tant que pas configuré) + copyright.
+ * + régions + logos paiement (Stripe + CinetPay) + copyright.
  */
 const PRODUCT_LINKS = [
   { key: 'features', href: '/#features' as const },
@@ -31,10 +30,9 @@ const PROS_LINKS = [
 
 const RESOURCES_LINKS = [
   { key: 'blog', href: '/' as const },
-  { key: 'guide', href: '/#faq' as const },
-  { key: 'faq', href: '/#faq' as const },
-  { key: 'support', href: '/#faq' as const },
-  { key: 'contact', href: '/contact' as const },
+  { key: 'guide', href: '/faq' as const },
+  { key: 'faq', href: '/faq' as const },
+  { key: 'support', href: '/faq' as const },
 ] as const;
 
 const LEGAL_LINKS = [
@@ -68,9 +66,12 @@ export function LandingFooterRich() {
           <div className="flex flex-col gap-5">
             <Link
               href="/"
-              className="font-display inline-flex items-center gap-3 text-2xl tracking-tight text-[color:var(--color-ink-900)] italic"
+              className="font-display inline-flex items-center gap-2 text-2xl tracking-tight text-[color:var(--color-ink-900)] italic"
             >
-              <WedillybirdMark className="h-8 w-8 text-[color:var(--color-blush-500)]" />
+              <span
+                aria-hidden
+                className="inline-block h-2 w-2 rounded-full bg-[color:var(--color-gold-500)]"
+              />
               {tCommon('appName')}
             </Link>
             <p className="max-w-md text-sm leading-relaxed text-[color:var(--color-ink-500)]">
@@ -86,7 +87,30 @@ export function LandingFooterRich() {
               {t('newsletterTitle')}
             </h3>
             <p className="text-sm text-[color:var(--color-ink-500)]">{t('newsletterSubtitle')}</p>
-            <NewsletterForm />
+            <form
+              className="flex flex-col gap-2 sm:flex-row"
+              action="/api/newsletter"
+              method="POST"
+            >
+              <label className="sr-only" htmlFor="footer-newsletter-email">
+                Email
+              </label>
+              <input
+                id="footer-newsletter-email"
+                type="email"
+                name="email"
+                required
+                placeholder={t('newsletterPlaceholder')}
+                className="focus-ring flex-1 rounded-full border border-[color:var(--color-border-strong)] bg-white px-5 py-3 text-sm text-[color:var(--color-ink-900)] placeholder:text-[color:var(--color-ink-300)]"
+              />
+              <button
+                type="submit"
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-[color:var(--color-blush-700)] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[color:var(--color-blush-800)]"
+              >
+                {t('newsletterCta')}
+                <Send className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />
+              </button>
+            </form>
           </div>
         </div>
 
@@ -150,13 +174,9 @@ export function LandingFooterRich() {
               <span className="rounded-md border border-[color:var(--color-border)] bg-white px-3 py-1.5 text-xs font-bold tracking-wide text-[#635bff]">
                 Stripe
               </span>
-              {/* Badge CinetPay désactivé tant que les credentials prod ne sont
-                  pas disponibles. Réactiver quand CINETPAY_API_KEY + CINETPAY_SITE_ID
-                  seront configurés sur Vercel.
               <span className="rounded-md border border-[color:var(--color-border)] bg-white px-3 py-1.5 text-xs font-bold tracking-wide text-[oklch(45%_0.13_152)]">
                 CinetPay
               </span>
-              */}
             </div>
           </div>
         </div>

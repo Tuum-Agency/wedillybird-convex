@@ -28,7 +28,7 @@ export function LandingFaqAccordion() {
   const [openKey, setOpenKey] = useState<(typeof FAQ_KEYS)[number] | null>('whyWhatsapp');
 
   return (
-    <section id="faq" className="container-page py-28">
+    <section className="container-page py-28">
       <motion.div
         initial="hidden"
         whileInView="visible"

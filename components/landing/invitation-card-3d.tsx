@@ -172,6 +172,7 @@ export function InvitationCard3D() {
                 filter="url(#seal-shadow)"
                 opacity="0.95"
               />
+              {/* Initiale W gravée */}
               <text
                 x="28"
                 y="34"

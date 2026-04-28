@@ -2,7 +2,6 @@ import type { ReactNode } from 'react';
 import { useTranslations } from 'next-intl';
 import { LogOut } from 'lucide-react';
 import { Link } from '@/i18n/navigation';
-import { WedillybirdMark } from '@/components/brand/wedillybird-mark';
 import { signOutAction } from '@/app/[locale]/(auth)/actions';
 
 /**
@@ -23,15 +22,11 @@ export interface AppShellProps {
    * entre le brand et le user menu. Server-renderable.
    */
   nav?: ReactNode;
-  /**
-   * Nom de l'utilisateur — gardé pour rétrocompatibilité d'API mais plus
-   * affiché : le grand titre "Bonjour {name}" du dashboard suffit, on évite
-   * la redondance dans le header.
-   */
+  /** Nom de l'utilisateur affiché en discret avant le bouton signOut. */
   userName?: string;
 }
 
-export function AppShell({ children, nav }: AppShellProps) {
+export function AppShell({ children, nav, userName }: AppShellProps) {
   const tCommon = useTranslations('Common');
 
   return (
@@ -41,15 +36,23 @@ export function AppShell({ children, nav }: AppShellProps) {
           <div className="flex items-center gap-8">
             <Link
               href="/dashboard"
-              className="font-display inline-flex items-center gap-2.5 text-xl tracking-tight text-[color:var(--color-ink-900)] italic"
+              className="font-display inline-flex items-center gap-2 text-xl tracking-tight text-[color:var(--color-ink-900)] italic"
             >
-              <WedillybirdMark className="h-6 w-6 text-[color:var(--color-blush-500)]" />
+              <span
+                aria-hidden
+                className="inline-block h-2 w-2 rounded-full bg-[color:var(--color-gold-500)]"
+              />
               {tCommon('appName')}
             </Link>
             {nav}
           </div>
 
           <div className="flex items-center gap-4">
+            {userName ? (
+              <span className="hidden font-mono text-[10px] tracking-[0.24em] text-[color:var(--color-ink-500)] uppercase sm:inline-block">
+                {userName}
+              </span>
+            ) : null}
             <form action={signOutAction}>
               <button
                 type="submit"
