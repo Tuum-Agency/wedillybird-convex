@@ -1121,5 +1121,35 @@
       "ctaLabel": "Consulter la facture",
       "footer": "Pour toute question concernant cette facture, contactez le support Wedillybird."
     }
+  },
+  "Metadata": {
+    "landing": {
+      "title": "Wedillybird — Invitations mariage par WhatsApp, RSVP, check-in",
+      "description": "Invitations WhatsApp, RSVP en temps réel, check-in QR offline et galerie partagée. Wedillybird simplifie l'organisation de votre mariage en France et en Afrique de l'Ouest."
+    },
+    "forfaitsPros": {
+      "title": "Forfaits pros wedding planners — Wedillybird",
+      "description": "Starter, Business, Agency ou Pay-as-you-go : la stack complète pour les wedding planners et agences. Branding agence, sous-domaine, multi-événements, -20 % en annuel."
+    },
+    "contact": {
+      "title": "Contact — Wedillybird",
+      "description": "Une question, un projet, un mot doux ? Toute notre équipe lit chaque message. Réponse humaine sous 24 h ouvrées, en français."
+    },
+    "faq": {
+      "title": "FAQ — Wedillybird",
+      "description": "Toutes les réponses aux questions fréquentes : WhatsApp, RSVP, check-in offline, galerie, tarifs, annulation, RGPD, branding pro."
+    },
+    "legalTerms": {
+      "title": "Conditions générales d'utilisation — Wedillybird",
+      "description": "Conditions générales d'utilisation du Service Wedillybird : compte, tarification, propriété intellectuelle, responsabilité, droit applicable."
+    },
+    "legalPrivacy": {
+      "title": "Politique de confidentialité — Wedillybird",
+      "description": "Politique de confidentialité Wedillybird : données collectées, finalités, bases légales RGPD, durée de conservation, sous-traitants, vos droits."
+    },
+    "legalCookies": {
+      "title": "Politique de cookies — Wedillybird",
+      "description": "Cookies essentiels au fonctionnement de Wedillybird : session HMAC, cache offline check-in. Aucun cookie publicitaire ni tracker tiers."
+    }
   }
 }

@@ -13,10 +13,24 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
-  const t = await getTranslations({ locale, namespace: 'Contact' });
+  const t = await getTranslations({ locale, namespace: 'Metadata.contact' });
   return {
     title: t('title'),
-    description: t('subtitle'),
+    description: t('description'),
+    alternates: { canonical: '/contact' },
+    openGraph: {
+      type: 'website',
+      title: t('title'),
+      description: t('description'),
+      url: '/contact',
+      siteName: 'Wedillybird',
+      locale: 'fr_FR',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: t('title'),
+      description: t('description'),
+    },
   };
 }
 

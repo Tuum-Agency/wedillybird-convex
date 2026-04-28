@@ -8,8 +8,20 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
-  const t = await getTranslations({ locale, namespace: 'Legal' });
-  return { title: t('privacy.title') };
+  const t = await getTranslations({ locale, namespace: 'Metadata.legalPrivacy' });
+  return {
+    title: t('title'),
+    description: t('description'),
+    alternates: { canonical: '/legal/privacy' },
+    openGraph: {
+      type: 'article',
+      title: t('title'),
+      description: t('description'),
+      url: '/legal/privacy',
+      siteName: 'Wedillybird',
+      locale: 'fr_FR',
+    },
+  };
 }
 
 export default async function PrivacyPage() {
