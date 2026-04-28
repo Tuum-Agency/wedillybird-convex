@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { optionalEmailSchema } from '@/lib/validators/email';
 
 const E164 = /^\+[1-9]\d{6,14}$/;
 
@@ -11,16 +12,7 @@ export const guestPhoneSchema = z
   .refine((v) => v === undefined || v === '' || E164.test(v), 'Numéro invalide (format E.164)')
   .transform((v) => (v && v.length > 0 ? v : undefined));
 
-export const guestEmailSchema = z
-  .string()
-  .trim()
-  .toLowerCase()
-  .optional()
-  .refine(
-    (v) => v === undefined || v === '' || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v),
-    'Email invalide',
-  )
-  .transform((v) => (v && v.length > 0 ? v : undefined));
+export const guestEmailSchema = optionalEmailSchema;
 
 export const guestCategorySchema = z
   .string()

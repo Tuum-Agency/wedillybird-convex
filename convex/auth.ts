@@ -20,14 +20,8 @@ import {
   verifyOtpHash,
 } from './lib/otp';
 import { isValidE164, normalizePhone } from './lib/phone';
-
-function normalizeEmail(email: string): string {
-  return email.trim().toLowerCase();
-}
-
-function isValidEmail(email: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-}
+import { sendWhatsAppCloudTemplate } from './lib/whatsappCloud';
+import { isValidEmail, normalizeEmail } from './lib/email';
 
 export const requestOtp = action({
   args: {
@@ -56,59 +50,37 @@ export const requestOtp = action({
       ipAddress,
     });
 
-    const accessToken = process.env.WHATSAPP_ACCESS_TOKEN;
-    const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
     const templateName = process.env.WHATSAPP_OTP_TEMPLATE ?? 'otp_code';
-    const graphVersion = process.env.WHATSAPP_GRAPH_VERSION ?? 'v23.0';
 
-    // Mode E2E strict (fix sécurité F-04, audit avril 2026) : court-circuit
-    // Meta et log de l'OTP en clair UNIQUEMENT si `E2E_MODE === '1'`.
-    // Avant le fix, le log se déclenchait aussi dès que les credentials Meta
-    // étaient absents — ce qui exposait les OTP dans les logs en prod si
-    // l'env n'était pas correctement configurée.
-    if (process.env.E2E_MODE === '1') {
+    // Refactor R2 : utilise le helper unifié sendWhatsAppCloudTemplate.
+    // Sécurité F-04 : le helper court-circuite Meta UNIQUEMENT si
+    // `E2E_MODE === '1'`. Hors E2E, en absence de credentials, il
+    // retourne `{ ok: false, error: 'WHATSAPP_NOT_CONFIGURED' }` —
+    // pas de log silencieux qui exposerait l'OTP en prod.
+    const result = await sendWhatsAppCloudTemplate({
+      to: normalized,
+      templateName,
+      components: [
+        { type: 'body', parameters: [{ type: 'text', text: code }] },
+        {
+          type: 'button',
+          sub_type: 'url',
+          index: '0',
+          parameters: [{ type: 'text', text: code }],
+        },
+      ],
+    });
+
+    if (!result.ok) {
+      if (result.error === 'WHATSAPP_NOT_CONFIGURED') {
+        throw new Error('WHATSAPP_NOT_CONFIGURED');
+      }
+      throw new Error('WHATSAPP_SEND_FAILED');
+    }
+    if (result.mock) {
       console.info(`[whatsapp:mock] OTP ${code} -> ${normalized}`);
       return { phone: normalized, channel: 'whatsapp' as const, provider: 'mock' as const };
     }
-
-    // Hors E2E : credentials Meta requis. Pas de fallback silencieux : on
-    // refuse plutôt que d'envoyer dans le vide / leak l'OTP.
-    if (!accessToken || !phoneNumberId) {
-      throw new Error('WHATSAPP_NOT_CONFIGURED');
-    }
-
-    const url = `https://graph.facebook.com/${graphVersion}/${phoneNumberId}/messages`;
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        messaging_product: 'whatsapp',
-        recipient_type: 'individual',
-        to: normalized.replace(/^\+/, ''),
-        type: 'template',
-        template: {
-          name: templateName,
-          language: { code: 'fr' },
-          components: [
-            { type: 'body', parameters: [{ type: 'text', text: code }] },
-            {
-              type: 'button',
-              sub_type: 'url',
-              index: '0',
-              parameters: [{ type: 'text', text: code }],
-            },
-          ],
-        },
-      }),
-    });
-
-    if (!res.ok) {
-      throw new Error('WHATSAPP_SEND_FAILED');
-    }
-
     return { phone: normalized, channel: 'whatsapp' as const, provider: 'meta_cloud' as const };
   },
 });
@@ -441,47 +413,33 @@ export const requestLinkPhone = action({
       ipAddress,
     });
 
-    const accessToken = process.env.WHATSAPP_ACCESS_TOKEN;
-    const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
     const templateName = process.env.WHATSAPP_OTP_TEMPLATE ?? 'otp_code';
-    const graphVersion = process.env.WHATSAPP_GRAPH_VERSION ?? 'v23.0';
 
-    // Mode E2E strict (fix sécurité F-04) : court-circuit + log clair
-    // UNIQUEMENT quand `E2E_MODE === '1'`.
-    if (process.env.E2E_MODE === '1') {
-      console.info(`[whatsapp:mock] LINK ${code} -> ${normalized}`);
-      return { phone: normalized, channel: 'whatsapp' as const, provider: 'mock' as const };
-    }
-    if (!accessToken || !phoneNumberId) {
-      throw new Error('WHATSAPP_NOT_CONFIGURED');
-    }
-
-    const url = `https://graph.facebook.com/${graphVersion}/${phoneNumberId}/messages`;
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        messaging_product: 'whatsapp',
-        recipient_type: 'individual',
-        to: normalized.replace(/^\+/, ''),
-        type: 'template',
-        template: {
-          name: templateName,
-          language: { code: 'fr' },
-          components: [
-            { type: 'body', parameters: [{ type: 'text', text: code }] },
-            {
-              type: 'button',
-              sub_type: 'url',
-              index: '0',
-              parameters: [{ type: 'text', text: code }],
-            },
-          ],
+    // Refactor R2 + sécurité F-04 : helper unifié, court-circuit STRICT
+    // sur E2E_MODE === '1', sinon throw si credentials absents.
+    const result = await sendWhatsAppCloudTemplate({
+      to: normalized,
+      templateName,
+      components: [
+        { type: 'body', parameters: [{ type: 'text', text: code }] },
+        {
+          type: 'button',
+          sub_type: 'url',
+          index: '0',
+          parameters: [{ type: 'text', text: code }],
         },
-      }),
+      ],
     });
-    if (!res.ok) throw new Error('WHATSAPP_SEND_FAILED');
 
+    if (!result.ok) {
+      if (result.error === 'WHATSAPP_NOT_CONFIGURED') {
+        throw new Error('WHATSAPP_NOT_CONFIGURED');
+      }
+      throw new Error('WHATSAPP_SEND_FAILED');
+    }
+    if (result.mock) {
+      console.info(`[whatsapp:mock] LINK ${code} -> ${normalized}`);
+    }
     return { phone: normalized, channel: 'whatsapp' as const, provider: 'meta_cloud' as const };
   },
 });

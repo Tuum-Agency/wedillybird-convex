@@ -7,6 +7,7 @@ import {
   type InvitationStyleId,
   getMetaTemplateName,
 } from '../lib/whatsapp/templates';
+import { sendWhatsAppCloudTemplate, isWhatsAppCloudConfigured } from './lib/whatsappCloud';
 
 interface BroadcastResult {
   sent: number;
@@ -64,11 +65,8 @@ export const broadcast = action({
       timeZone: event.timezone,
     }).format(new Date(event.eventDate));
 
-    const accessToken = process.env.WHATSAPP_ACCESS_TOKEN;
-    const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
-    const graphVersion = process.env.WHATSAPP_GRAPH_VERSION ?? 'v23.0';
     const templateName = getMetaTemplateName(styleId, process.env);
-    const isMock = !accessToken || !phoneNumberId;
+    const isMock = !isWhatsAppCloudConfigured();
 
     let sent = 0;
     let failed = 0;
@@ -76,80 +74,44 @@ export const broadcast = action({
     for (const guest of guests) {
       const guestFirstName = guest.fullName.split(' ')[0] ?? guest.fullName;
 
-      if (isMock) {
-        console.info(
-          `[whatsapp:mock] INVITATION (${templateName}) -> ${guest.phone} | ${guest.fullName}`,
-        );
-        await ctx.runMutation(internal.guests.markInvitationSent, {
-          guestId: guest._id,
-          channel: 'whatsapp' as const,
-        });
-        sent++;
+      const result = await sendWhatsAppCloudTemplate({
+        to: guest.phone,
+        templateName,
+        components: [
+          {
+            type: 'body',
+            parameters: [
+              { type: 'text', text: guestFirstName },
+              { type: 'text', text: coupleNames },
+              { type: 'text', text: eventDateFormatted },
+              { type: 'text', text: personalMessage },
+            ],
+          },
+          {
+            type: 'button',
+            sub_type: 'url',
+            index: '0',
+            parameters: [{ type: 'text', text: guest.qrCodeToken }],
+          },
+        ],
+      });
+
+      if (!result.ok) {
+        console.error(`[broadcast] failed for ${guest.phone}: ${result.error}`);
+        failed++;
         continue;
       }
 
-      try {
-        const res = await fetch(
-          `https://graph.facebook.com/${graphVersion}/${phoneNumberId}/messages`,
-          {
-            method: 'POST',
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              messaging_product: 'whatsapp',
-              recipient_type: 'individual',
-              to: guest.phone.replace(/^\+/, ''),
-              type: 'template',
-              template: {
-                name: templateName,
-                language: { code: 'fr' },
-                components: [
-                  {
-                    type: 'body',
-                    parameters: [
-                      { type: 'text', text: guestFirstName },
-                      { type: 'text', text: coupleNames },
-                      { type: 'text', text: eventDateFormatted },
-                      { type: 'text', text: personalMessage },
-                    ],
-                  },
-                  {
-                    type: 'button',
-                    sub_type: 'url',
-                    index: '0',
-                    parameters: [{ type: 'text', text: guest.qrCodeToken }],
-                  },
-                ],
-              },
-            }),
-          },
+      if (result.mock) {
+        console.info(
+          `[whatsapp:mock] INVITATION (${templateName}) -> ${guest.phone} | ${guest.fullName}`,
         );
-
-        if (!res.ok) {
-          const data = (await res.json().catch(() => ({}))) as {
-            error?: { message?: string };
-          };
-          console.error(
-            `[broadcast] failed for ${guest.phone}: ${data.error?.message ?? res.status}`,
-          );
-          failed++;
-          continue;
-        }
-
-        await ctx.runMutation(internal.guests.markInvitationSent, {
-          guestId: guest._id,
-          channel: 'whatsapp' as const,
-        });
-        sent++;
-      } catch (err) {
-        console.error(
-          `[broadcast] exception for ${guest.phone}:`,
-          err instanceof Error ? err.message : err,
-        );
-        failed++;
       }
+      await ctx.runMutation(internal.guests.markInvitationSent, {
+        guestId: guest._id,
+        channel: 'whatsapp' as const,
+      });
+      sent++;
     }
 
     return {

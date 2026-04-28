@@ -33,6 +33,7 @@ import { internal } from './_generated/api';
 import { renderWhatsappTemplateStatusEmail } from '../lib/email/templates';
 import type { TemplateStatusKind } from '../lib/email/templates';
 import type { Id } from './_generated/dataModel';
+import { sendWhatsAppCloudTemplate } from './lib/whatsappCloud';
 
 type NotifyChannel = 'whatsapp' | 'email' | 'both';
 
@@ -146,16 +147,8 @@ async function sendWhatsappNotification(
   status: TemplateStatusKind,
   rejectionReason: string | undefined,
 ): Promise<{ ok: boolean; error?: string }> {
-  const accessToken = process.env.WHATSAPP_ACCESS_TOKEN;
-  const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
-  const graphVersion = process.env.WHATSAPP_GRAPH_VERSION ?? 'v23.0';
   const notifyTemplateName =
     process.env.WHATSAPP_TEMPLATE_STATUS_TEMPLATE ?? 'template_status_update';
-
-  if (!accessToken || !phoneNumberId) {
-    console.info('[whatsappTemplateNotifications:mock] skip whatsapp send (no creds)');
-    return { ok: true };
-  }
 
   const reasonOrCta =
     status === 'approved'
@@ -164,58 +157,41 @@ async function sendWhatsappNotification(
         ? `Raison : ${rejectionReason}`
         : 'Vous pouvez ajuster votre template et le soumettre à nouveau.';
 
-  const url = `https://graph.facebook.com/${graphVersion}/${phoneNumberId}/messages`;
-  const payload = {
-    messaging_product: 'whatsapp',
-    recipient_type: 'individual',
-    to: toPhoneE164.replace(/^\+/, ''),
-    type: 'template',
-    template: {
-      name: notifyTemplateName,
-      language: { code: 'fr' },
-      components: [
-        {
-          type: 'body',
-          parameters: [
-            { type: 'text', text: recipientName },
-            { type: 'text', text: templateName },
-            { type: 'text', text: statusVerb(status) },
-            { type: 'text', text: reasonOrCta },
-          ],
-        },
-      ],
-    },
-  };
-
-  try {
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
+  const result = await sendWhatsAppCloudTemplate({
+    to: toPhoneE164,
+    templateName: notifyTemplateName,
+    components: [
+      {
+        type: 'body',
+        parameters: [
+          { type: 'text', text: recipientName },
+          { type: 'text', text: templateName },
+          { type: 'text', text: statusVerb(status) },
+          { type: 'text', text: reasonOrCta },
+        ],
       },
-      body: JSON.stringify(payload),
-    });
-    const data = (await res.json()) as {
-      error?: { code?: number; message?: string; error_subcode?: number };
-    };
-    if (!res.ok || data.error) {
-      // 132001 = template not registered/approved on this WABA. On ne fait
-      // pas remonter d'erreur dure — c'est attendu tant que Meta n'a pas
-      // validé `template_status_update`.
-      const code = data.error?.code ?? res.status;
-      if (code === 132001) {
-        console.warn(
-          '[whatsappTemplateNotifications] template_status_update not yet validated by Meta',
-        );
-        return { ok: true };
-      }
-      return { ok: false, error: data.error?.message ?? `HTTP ${res.status}` };
+    ],
+  });
+
+  if (result.ok) {
+    if (result.mock) {
+      console.info('[whatsappTemplateNotifications:mock] skip whatsapp send (no creds)');
     }
     return { ok: true };
-  } catch (err) {
-    return { ok: false, error: err instanceof Error ? err.message : 'unknown' };
   }
+
+  // 132001 = template not registered/approved on this WABA. On ne fait
+  // pas remonter d'erreur dure — c'est attendu tant que Meta n'a pas
+  // validé `template_status_update`. Le helper ne nous expose plus le
+  // code numérique, on matche sur le message — best effort.
+  const errorMessage = result.error ?? '';
+  if (errorMessage.includes('132001') || result.httpStatus === 132001) {
+    console.warn(
+      '[whatsappTemplateNotifications] template_status_update not yet validated by Meta',
+    );
+    return { ok: true };
+  }
+  return { ok: false, error: errorMessage || 'unknown' };
 }
 
 /**
