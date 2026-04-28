@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react';
+import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { Calendar, MapPin, Camera } from 'lucide-react';
@@ -9,6 +10,27 @@ import { WeddingCountdown } from '@/components/invitation/wedding-countdown';
 import { RsvpFormV4 } from '@/components/invitation/rsvp-form-v4';
 
 export const dynamic = 'force-dynamic';
+
+/**
+ * Metadata invitation personnelle — `noindex` strict.
+ *
+ * Une page invitation est nominative (token unique par invité) et ne doit
+ * jamais apparaître en SERP : robots `index: false, follow: false` + pas
+ * de canonical (la page n'a pas vocation à être la version "canonique" de
+ * quoi que ce soit).
+ */
+export const metadata: Metadata = {
+  robots: {
+    index: false,
+    follow: false,
+    nocache: true,
+    googleBot: {
+      index: false,
+      follow: false,
+      noimageindex: true,
+    },
+  },
+};
 
 /**
  * Page invitation publique V4 — l'épée signature de Wedillybird.

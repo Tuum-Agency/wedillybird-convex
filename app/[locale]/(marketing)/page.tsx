@@ -1,6 +1,7 @@
+import type { Metadata } from 'next';
 import { headers } from 'next/headers';
 import { useTranslations } from 'next-intl';
-import { setRequestLocale } from 'next-intl/server';
+import { setRequestLocale, getTranslations } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
 import { buttonVariants } from '@/components/ui/button';
 import { LenisProvider } from '@/components/landing/lenis-provider';
@@ -21,6 +22,46 @@ import {
 } from '@/lib/payments/region';
 import { cn } from '@/lib/cn';
 
+const FAQ_KEYS = [
+  'whyWhatsapp',
+  'olderGuests',
+  'guestLimit',
+  'cancellation',
+  'afterEvent',
+  'africa3g',
+  'branding',
+  'data',
+] as const;
+
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://wedillybird.com';
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: 'Metadata.landing' });
+  return {
+    title: t('title'),
+    description: t('description'),
+    alternates: { canonical: '/' },
+    openGraph: {
+      type: 'website',
+      url: BASE_URL,
+      siteName: 'Wedillybird',
+      title: t('title'),
+      description: t('description'),
+      locale: 'fr_FR',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: t('title'),
+      description: t('description'),
+    },
+  };
+}
+
 /**
  * Landing page V4 — direction "mariage éditorial Awwwards-grade".
  *
@@ -39,6 +80,8 @@ import { cn } from '@/lib/cn';
  *  Épilogue. CTA final + Footer riche
  *
  * Smooth scroll Lenis sur toute la landing (synced avec GSAP ScrollTrigger).
+ *
+ * SEO : JSON-LD FAQPage côté server (8 Q/R, mêmes clés que l'accordion client).
  */
 export default async function LandingPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
@@ -51,7 +94,29 @@ export default async function LandingPage({ params }: { params: Promise<{ locale
   };
   const upsellPriceLabel = formatRegionalUpsellPrice(region, 'EUR');
 
-  return <LandingShell prices={prices} upsellPriceLabel={upsellPriceLabel} />;
+  const tFaq = await getTranslations({ locale, namespace: 'Landing.faq.items' });
+  const faqJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: FAQ_KEYS.map((key) => ({
+      '@type': 'Question',
+      name: tFaq(`${key}.q`),
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: tFaq(`${key}.a`),
+      },
+    })),
+  };
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+      />
+      <LandingShell prices={prices} upsellPriceLabel={upsellPriceLabel} />
+    </>
+  );
 }
 
 function LandingShell({

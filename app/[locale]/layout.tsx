@@ -39,6 +39,8 @@ const bodoniModa = Bodoni_Moda({
   display: 'swap',
 });
 
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://wedillybird.com';
+
 export const metadata: Metadata = {
   title: {
     default: "Wedillybird — L'organisation de mariage simplifiée",
@@ -46,7 +48,7 @@ export const metadata: Metadata = {
   },
   description:
     "Invitations WhatsApp, RSVP en temps réel, check-in, galerie partagée. Wedillybird simplifie l'organisation de votre mariage.",
-  metadataBase: new URL('https://wedillybird.com'),
+  metadataBase: new URL(BASE_URL),
   appleWebApp: {
     title: 'Wedillybird',
     capable: true,
@@ -63,6 +65,21 @@ export const viewport = {
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
 }
+
+/**
+ * JSON-LD Organization injecté en `<body>` — schema.org pour permettre à
+ * Google de présenter Wedillybird comme entité (knowledge panel, sitelinks).
+ */
+const ORGANIZATION_JSON_LD = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'Wedillybird',
+  url: BASE_URL,
+  logo: `${BASE_URL}/wedillybird-mark.svg`,
+  description:
+    "Plateforme SaaS d'organisation de mariage WhatsApp-first : invitations, RSVP, check-in, galerie partagée. France et Afrique de l'Ouest francophone.",
+  sameAs: [],
+};
 
 export default async function LocaleLayout({
   children,
@@ -85,6 +102,10 @@ export default async function LocaleLayout({
       className={`${geistSans.variable} ${geistMono.variable} ${bodoniModa.variable} h-full antialiased`}
     >
       <body className="bg-background text-foreground flex min-h-full flex-col font-sans">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(ORGANIZATION_JSON_LD) }}
+        />
         <NextIntlClientProvider>
           <ConvexClientProvider convexUrl={process.env.NEXT_PUBLIC_CONVEX_URL}>
             <SkipLink />

@@ -1,10 +1,49 @@
 import type { CSSProperties } from 'react';
+import type { Metadata } from 'next';
 import { Calendar, MapPin } from 'lucide-react';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
 
 export const dynamic = 'force-dynamic';
+
+const APEX_HOST = (() => {
+  try {
+    return new URL(process.env.NEXT_PUBLIC_APP_URL ?? 'https://wedillybird.com').host;
+  } catch {
+    return 'wedillybird.com';
+  }
+})();
+
+/**
+ * Metadata multi-tenant — canonical pointe vers le sous-domaine pro
+ * (`<slug>.wedillybird.com/event/<eventSlug>`), pas vers le path interne
+ * `/orgs/<slug>/event/<eventSlug>` que Next sert via rewrite.
+ *
+ * Le proxy `proxy.ts` rewrite `<slug>.wedillybird.com/<path>` → `/orgs/<slug>/<path>`
+ * en gardant l'URL utilisateur côté navigateur. Pour Google et les autres
+ * crawlers, la version "officielle" est donc le sous-domaine.
+ */
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string; slug: string; eventSlug: string }>;
+}): Promise<Metadata> {
+  const { slug, eventSlug } = await params;
+  const canonical = `https://${slug}.${APEX_HOST}/event/${eventSlug}`;
+  return {
+    alternates: { canonical },
+    robots: {
+      index: false,
+      follow: false,
+      googleBot: {
+        index: false,
+        follow: false,
+        noimageindex: true,
+      },
+    },
+  };
+}
 
 /**
  * Page publique d'un événement servi sous le sous-domaine d'une

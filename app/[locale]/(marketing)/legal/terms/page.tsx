@@ -8,8 +8,20 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
-  const t = await getTranslations({ locale, namespace: 'Legal' });
-  return { title: t('terms.title') };
+  const t = await getTranslations({ locale, namespace: 'Metadata.legalTerms' });
+  return {
+    title: t('title'),
+    description: t('description'),
+    alternates: { canonical: '/legal/terms' },
+    openGraph: {
+      type: 'article',
+      title: t('title'),
+      description: t('description'),
+      url: '/legal/terms',
+      siteName: 'Wedillybird',
+      locale: 'fr_FR',
+    },
+  };
 }
 
 export default async function TermsPage() {

@@ -8,8 +8,20 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
-  const t = await getTranslations({ locale, namespace: 'Legal' });
-  return { title: t('cookies.title') };
+  const t = await getTranslations({ locale, namespace: 'Metadata.legalCookies' });
+  return {
+    title: t('title'),
+    description: t('description'),
+    alternates: { canonical: '/legal/cookies' },
+    openGraph: {
+      type: 'article',
+      title: t('title'),
+      description: t('description'),
+      url: '/legal/cookies',
+      siteName: 'Wedillybird',
+      locale: 'fr_FR',
+    },
+  };
 }
 
 export default async function CookiesPage() {
