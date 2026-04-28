@@ -107,6 +107,12 @@ function LandingShell({
               >
                 FAQ
               </Link>
+              <Link
+                href="/forfaits-pros"
+                className="font-mono text-[10px] tracking-[0.24em] text-[color:var(--color-ink-500)] uppercase transition-colors hover:text-[color:var(--color-ink-900)]"
+              >
+                Pros
+              </Link>
             </nav>
           </div>
 
