@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { setRequestLocale, getTranslations } from 'next-intl/server';
 import { useTranslations } from 'next-intl';
 import { ArrowLeft } from 'lucide-react';
+import { OG_DEFAULT_IMAGES, TWITTER_DEFAULT_IMAGES } from '@/lib/seo/og';
 import { Link } from '@/i18n/navigation';
 import { WedillybirdMark } from '@/components/brand/wedillybird-mark';
 import { LandingPricingPros } from '@/components/landing/pricing-pros';
@@ -25,11 +26,13 @@ export async function generateMetadata({
       url: '/forfaits-pros',
       siteName: 'Wedillybird',
       locale: 'fr_FR',
+      images: [...OG_DEFAULT_IMAGES],
     },
     twitter: {
       card: 'summary_large_image',
       title: t('title'),
       description: t('description'),
+      images: [...TWITTER_DEFAULT_IMAGES],
     },
   };
 }
