@@ -361,7 +361,7 @@ export function LandingPricingPros() {
 
               {/* Lien texte */}
               <Link
-                href="/pro/billing"
+                href="/forfaits-pros"
                 className="flex-shrink-0 text-sm font-medium text-[color:var(--color-primary)] underline-offset-4 hover:underline"
               >
                 Voir le détail

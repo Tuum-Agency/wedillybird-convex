@@ -369,6 +369,19 @@
       "prosRecommended": "Le plus choisi",
       "prosCheckCta": "Choisir ce plan"
     },
+    "forfaitsPros": {
+      "eyebrow": "FORFAITS PROFESSIONNELS",
+      "title": "Une stack complète pour les wedding planners.",
+      "subtitle": "Choisissez le forfait qui correspond à votre rythme. Bascule vers l'annuel pour économiser 20 %.",
+      "faq": {
+        "q1": "Puis-je changer de forfait ?",
+        "q1Body": "Oui, à tout moment. Le pro-rata est calculé automatiquement.",
+        "q2": "Que se passe-t-il si je dépasse mon quota WhatsApp ?",
+        "q2Body": "Au-delà du quota inclus, +0,06 € par message envoyé, facturé en fin de mois.",
+        "q3": "L'annuel est-il vraiment -20 % ?",
+        "q3Body": "Oui, le total annuel équivaut à 12 mois × 0,80. Pas de frais cachés."
+      }
+    },
     "faq": {
       "chapter": "CHAPITRE 07 — VOS QUESTIONS",
       "eyebrow": "Réponses honnêtes",

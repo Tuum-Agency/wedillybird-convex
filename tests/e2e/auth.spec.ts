@@ -54,7 +54,11 @@ test.describe('Auth — verify page', () => {
     const cells = page.getByRole('textbox');
     await cells.first().focus();
     await page.keyboard.insertText('1');
-    await expect(cells.nth(1)).toBeFocused();
+    // Vérifie d'abord que le caractère est enregistré (cross-browser fiable),
+    // puis le focus auto-advance avec timeout étendu (webkit plus lent que
+    // chromium sur les transitions de focus React).
+    await expect(cells.first()).toHaveValue('1');
+    await expect(cells.nth(1)).toBeFocused({ timeout: 10_000 });
   });
 });
 

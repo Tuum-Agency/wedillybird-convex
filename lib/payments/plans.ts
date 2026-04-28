@@ -140,17 +140,17 @@ export function formatAmount(minor: number, currency: Currency): string {
  *   STRIPE_PRICE_<PLAN>_<CURRENCY>   (ex. STRIPE_PRICE_ESSENTIAL_MAD)
  *   STRIPE_PRICE_<PLAN>              (alias EUR pour rétro-compat env)
  *
- * Devise XOF : non supportée par Stripe (Stripe rejette la création d'un Price
- * en XOF). Le routage CinetPay s'occupe de XOF — la fonction renvoie
- * `undefined` pour cette devise (le driver Stripe ne devrait jamais être
- * appelé avec XOF, mais on conserve un comportement défensif).
+ * Devises XOF et TND : non supportées par Stripe comme settlement currency.
+ * Le routage CinetPay s'occupe de XOF et TND — la fonction renvoie `undefined`
+ * pour ces devises (le driver Stripe ne devrait jamais être appelé avec XOF ou
+ * TND, mais on conserve un comportement défensif).
  *
  * Optionnel — si l'env var n'est pas définie, le driver Stripe peut tomber
  * sur `price_data` à la volée. Préférer toujours les Price IDs stables pour
  * pouvoir changer les tarifs sans déploiement (cf. scripts/sync-stripe-prices.ts).
  */
 export function priceIdForPlan(plan: PlanTier, currency: Currency = 'EUR'): string | undefined {
-  if (currency === 'XOF') return undefined;
+  if (currency === 'XOF' || currency === 'TND') return undefined;
   const planUpper = plan.toUpperCase();
   const currencyEnvName = `STRIPE_PRICE_${planUpper}_${currency}` as const;
   const currencyValue = process.env[currencyEnvName];
@@ -163,7 +163,7 @@ export function priceIdForPlan(plan: PlanTier, currency: Currency = 'EUR'): stri
 }
 
 export function priceIdForPostEventUpsell(currency: Currency = 'EUR'): string | undefined {
-  if (currency === 'XOF') return undefined;
+  if (currency === 'XOF' || currency === 'TND') return undefined;
   const currencyEnvName = `STRIPE_PRICE_POST_EVENT_UPSELL_${currency}` as const;
   const currencyValue = process.env[currencyEnvName];
   if (currencyValue) return currencyValue;
