@@ -251,12 +251,15 @@ export const listByEvent = query({
 
 /**
  * Post-event upsell: pushes gallery retention to J+5y for a one-shot fee.
- * Called from the upsell checkout success webhook (provider="stripe"|"cinetpay"|"mock"
- * with a payment row whose plan stays at the original tier — the upsell is
- * recorded as a separate `payments` row marked with providerSessionId distinct
- * from the original purchase).
+ *
+ * **Fix sécurité F-09 (audit avril 2026)** : passé en `internalMutation` —
+ * cette mutation ne doit être déclenchée que par le webhook après
+ * confirmation d'un paiement upsell `succeeded` (kind: 'post-event-upsell').
+ * La version publique précédente permettait à n'importe quel owner
+ * d'événement d'étendre la rétention à 5 ans sans payer. Les call sites
+ * légitimes passent par `ctx.scheduler.runAfter(0, internal.payments.extendRetentionPostEvent, ...)`.
  */
-export const extendRetentionPostEvent = mutation({
+export const extendRetentionPostEvent = internalMutation({
   args: { eventId: v.id('events'), requesterId: v.id('users') },
   handler: async (ctx, { eventId, requesterId }) => {
     const event = await ctx.db.get(eventId);

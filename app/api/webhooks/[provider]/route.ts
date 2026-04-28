@@ -41,8 +41,19 @@ export async function POST(
       try {
         const convex = getConvexServerClient();
 
+        // Secret partagé Vercel ⇄ Convex (fix sécurité F-01, audit avril
+        // 2026). La mutation `organizations:updateSubscription` est passée
+        // en internal — on ne peut plus la déclencher sans ce secret. Pas
+        // de fallback silencieux : si l'env n'est pas configurée, on
+        // refuse plutôt que de retomber dans l'IDOR.
+        const webhookSecret = process.env.CONVEX_WEBHOOK_SECRET;
+        if (!webhookSecret) {
+          return NextResponse.json({ error: 'WEBHOOK_SECRET_NOT_CONFIGURED' }, { status: 500 });
+        }
+
         if (subscriptionEvent.kind === 'subscription.upserted') {
-          await convex.mutation(convexApi.updateOrgSubscription, {
+          await convex.mutation(convexApi.updateOrgSubscriptionFromWebhook, {
+            webhookSecret,
             organizationId: subscriptionEvent.organizationId,
             stripeCustomerId: subscriptionEvent.stripeCustomerId,
             stripeSubscriptionId: subscriptionEvent.stripeSubscriptionId,
@@ -58,7 +69,8 @@ export async function POST(
             stripeSubscriptionId: subscriptionEvent.stripeSubscriptionId,
           });
           if (org) {
-            await convex.mutation(convexApi.updateOrgSubscription, {
+            await convex.mutation(convexApi.updateOrgSubscriptionFromWebhook, {
+              webhookSecret,
               organizationId: org._id,
               subscriptionStatus: 'canceled',
             });

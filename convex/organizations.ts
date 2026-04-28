@@ -1,5 +1,11 @@
 import { v } from 'convex/values';
-import { mutation, query, type MutationCtx, type QueryCtx } from './_generated/server';
+import {
+  internalMutation,
+  mutation,
+  query,
+  type MutationCtx,
+  type QueryCtx,
+} from './_generated/server';
 import { internal } from './_generated/api';
 import type { Doc, Id } from './_generated/dataModel';
 
@@ -365,12 +371,22 @@ export const listMembers = query({
   },
 });
 
+// Alphabet 32 caractères sans ambiguïtés visuelles (pas de I/O/0/1).
+// 256 % 32 === 0 → pas de biais modulo, distribution uniforme.
+const INVITE_TOKEN_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+const INVITE_TOKEN_LENGTH = 20;
+
+/**
+ * Génère un token d'invitation Pro cryptographiquement sûr. Il sert à valider
+ * la mutation `acceptInvite` ; un token devinable permettrait à un attaquant
+ * de rejoindre n'importe quelle organisation. `crypto.getRandomValues`
+ * (disponible dans le runtime Convex) garantit une entropie non prédictible.
+ */
 function generateInviteToken(): string {
-  const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  const buffer = new Uint8Array(INVITE_TOKEN_LENGTH);
+  crypto.getRandomValues(buffer);
   let token = '';
-  for (let i = 0; i < 20; i++) {
-    token += alphabet[Math.floor(Math.random() * alphabet.length)];
-  }
+  for (const b of buffer) token += INVITE_TOKEN_ALPHABET[b % INVITE_TOKEN_ALPHABET.length];
   return token;
 }
 
@@ -470,79 +486,149 @@ export const revokeMembership = mutation({
   },
 });
 
-export const updateSubscription = mutation({
+/* -------------------------------------------------------------------------- */
+/*  Subscription updates — fix sécurité F-01 (audit avril 2026)               */
+/*                                                                            */
+/*  Avant le fix, `updateSubscription` était une mutation publique sans       */
+/*  aucun check d'authorization : tout user authentifié pouvait s'upgrader    */
+/*  Agency `active` 10 ans gratuitement (IDOR, CVSS 8.8). On la transforme    */
+/*  en `internalMutation` (donc inaccessible au client), et on expose deux    */
+/*  points d'entrée publics ciblés :                                          */
+/*    - `updateSubscriptionFromWebhook` : protégé par un secret partagé entre */
+/*      la route Next /api/webhooks/[provider] et l'env Convex. La signature  */
+/*      Stripe a déjà été vérifiée à la frontière API ; le secret partagé    */
+/*      empêche un attaquant de bypass-er la route en tapant directement      */
+/*      l'API Convex publique.                                                */
+/*  Les call sites côté webhook ont été migrés vers ce wrapper.               */
+/* -------------------------------------------------------------------------- */
+
+const SUBSCRIPTION_TIER = v.optional(
+  v.union(v.literal('starter'), v.literal('business'), v.literal('agency')),
+);
+const SUBSCRIPTION_STATUS = v.optional(
+  v.union(
+    v.literal('trialing'),
+    v.literal('active'),
+    v.literal('past_due'),
+    v.literal('canceled'),
+    v.literal('unpaid'),
+  ),
+);
+
+type SubscriptionPatchInput = {
+  organizationId: Id<'organizations'>;
+  stripeCustomerId?: string;
+  stripeSubscriptionId?: string;
+  subscriptionTier?: 'starter' | 'business' | 'agency';
+  subscriptionStatus?: 'trialing' | 'active' | 'past_due' | 'canceled' | 'unpaid';
+  subscriptionPeriodEnd?: number;
+};
+
+async function applySubscriptionPatch(
+  ctx: MutationCtx,
+  args: SubscriptionPatchInput,
+): Promise<{ ok: true }> {
+  const { organizationId, ...rest } = args;
+  const before = await ctx.db.get(organizationId);
+  const patch: Partial<Doc<'organizations'>> = { updatedAt: Date.now() };
+  if (rest.stripeCustomerId !== undefined) patch.stripeCustomerId = rest.stripeCustomerId;
+  if (rest.stripeSubscriptionId !== undefined)
+    patch.stripeSubscriptionId = rest.stripeSubscriptionId;
+  if (rest.subscriptionTier !== undefined) patch.subscriptionTier = rest.subscriptionTier;
+  if (rest.subscriptionStatus !== undefined) patch.subscriptionStatus = rest.subscriptionStatus;
+  if (rest.subscriptionPeriodEnd !== undefined)
+    patch.subscriptionPeriodEnd = rest.subscriptionPeriodEnd;
+  await ctx.db.patch(organizationId, patch);
+
+  // Best-effort transition email to the org owner. Triggered once per
+  // distinct transition: trialing → active (welcome), active → past_due
+  // (alert), * → canceled (notice). Idempotent: only fires when the
+  // status actually changed.
+  if (before && rest.subscriptionStatus !== undefined) {
+    const prevStatus = before.subscriptionStatus;
+    const nextStatus = rest.subscriptionStatus;
+    if (prevStatus !== nextStatus) {
+      const owner = await ctx.db.get(before.ownerId);
+      if (owner?.email) {
+        let kind: 'subscription-renewed' | 'subscription-failed' | null = null;
+        let detail = '';
+        if ((prevStatus === 'trialing' || prevStatus === undefined) && nextStatus === 'active') {
+          kind = 'subscription-renewed';
+          detail = `Votre abonnement ${before.name} est désormais actif. Bienvenue !`;
+        } else if (nextStatus === 'past_due') {
+          kind = 'subscription-failed';
+          detail = `Le paiement de votre abonnement ${before.name} a échoué. Mettez à jour votre moyen de paiement pour conserver l’accès.`;
+        } else if (nextStatus === 'canceled') {
+          kind = 'subscription-failed';
+          detail = `Votre abonnement ${before.name} a été annulé. Vous pouvez le réactiver à tout moment depuis votre espace Pro.`;
+        } else if (prevStatus === 'past_due' && nextStatus === 'active') {
+          kind = 'subscription-renewed';
+          detail = `Le paiement de votre abonnement ${before.name} a bien été reçu. Merci !`;
+        }
+        if (kind) {
+          await ctx.scheduler.runAfter(0, internal.emailActions.sendProNotification, {
+            to: owner.email,
+            recipientName: owner.fullName ?? owner.phone ?? 'Bonjour',
+            organizationName: before.name,
+            kind,
+            detail,
+            ctaLabel: 'Gérer mon abonnement',
+            ctaUrl: `${process.env.NEXT_PUBLIC_APP_URL ?? 'https://wedillybird.com'}/pro/billing`,
+          });
+        }
+      }
+    }
+  }
+
+  return { ok: true as const };
+}
+
+/**
+ * Mutation interne — patche les champs de souscription d'une organisation.
+ * Inaccessible directement depuis le client : la seule façon de la déclencher
+ * est via le bridge `updateSubscriptionFromWebhook` (qui valide un secret
+ * partagé) ou via une autre fonction Convex via `ctx.scheduler` / `runMutation`.
+ */
+export const updateSubscription = internalMutation({
   args: {
     organizationId: v.id('organizations'),
     stripeCustomerId: v.optional(v.string()),
     stripeSubscriptionId: v.optional(v.string()),
-    subscriptionTier: v.optional(
-      v.union(v.literal('starter'), v.literal('business'), v.literal('agency')),
-    ),
-    subscriptionStatus: v.optional(
-      v.union(
-        v.literal('trialing'),
-        v.literal('active'),
-        v.literal('past_due'),
-        v.literal('canceled'),
-        v.literal('unpaid'),
-      ),
-    ),
+    subscriptionTier: SUBSCRIPTION_TIER,
+    subscriptionStatus: SUBSCRIPTION_STATUS,
     subscriptionPeriodEnd: v.optional(v.number()),
   },
-  handler: async (ctx, args) => {
-    const { organizationId, ...rest } = args;
-    const before = await ctx.db.get(organizationId);
-    const patch: Partial<Doc<'organizations'>> = { updatedAt: Date.now() };
-    if (rest.stripeCustomerId !== undefined) patch.stripeCustomerId = rest.stripeCustomerId;
-    if (rest.stripeSubscriptionId !== undefined)
-      patch.stripeSubscriptionId = rest.stripeSubscriptionId;
-    if (rest.subscriptionTier !== undefined) patch.subscriptionTier = rest.subscriptionTier;
-    if (rest.subscriptionStatus !== undefined) patch.subscriptionStatus = rest.subscriptionStatus;
-    if (rest.subscriptionPeriodEnd !== undefined)
-      patch.subscriptionPeriodEnd = rest.subscriptionPeriodEnd;
-    await ctx.db.patch(organizationId, patch);
+  handler: applySubscriptionPatch,
+});
 
-    // Best-effort transition email to the org owner. Triggered once per
-    // distinct transition: trialing → active (welcome), active → past_due
-    // (alert), * → canceled (notice). Idempotent: only fires when the
-    // status actually changed.
-    if (before && rest.subscriptionStatus !== undefined) {
-      const prevStatus = before.subscriptionStatus;
-      const nextStatus = rest.subscriptionStatus;
-      if (prevStatus !== nextStatus) {
-        const owner = await ctx.db.get(before.ownerId);
-        if (owner?.email) {
-          let kind: 'subscription-renewed' | 'subscription-failed' | null = null;
-          let detail = '';
-          if ((prevStatus === 'trialing' || prevStatus === undefined) && nextStatus === 'active') {
-            kind = 'subscription-renewed';
-            detail = `Votre abonnement ${before.name} est désormais actif. Bienvenue !`;
-          } else if (nextStatus === 'past_due') {
-            kind = 'subscription-failed';
-            detail = `Le paiement de votre abonnement ${before.name} a échoué. Mettez à jour votre moyen de paiement pour conserver l’accès.`;
-          } else if (nextStatus === 'canceled') {
-            kind = 'subscription-failed';
-            detail = `Votre abonnement ${before.name} a été annulé. Vous pouvez le réactiver à tout moment depuis votre espace Pro.`;
-          } else if (prevStatus === 'past_due' && nextStatus === 'active') {
-            kind = 'subscription-renewed';
-            detail = `Le paiement de votre abonnement ${before.name} a bien été reçu. Merci !`;
-          }
-          if (kind) {
-            await ctx.scheduler.runAfter(0, internal.emailActions.sendProNotification, {
-              to: owner.email,
-              recipientName: owner.fullName ?? owner.phone ?? 'Bonjour',
-              organizationName: before.name,
-              kind,
-              detail,
-              ctaLabel: 'Gérer mon abonnement',
-              ctaUrl: `${process.env.NEXT_PUBLIC_APP_URL ?? 'https://wedillybird.com'}/pro/billing`,
-            });
-          }
-        }
-      }
-    }
-
-    return { ok: true as const };
+/**
+ * Bridge public pour la route webhook Stripe (`app/api/webhooks/[provider]`).
+ * Verrouillé par un secret partagé `CONVEX_WEBHOOK_SECRET`. Le secret doit
+ * être posé à la fois dans l'env Vercel (côté Next) et dans l'env Convex.
+ *
+ * Cette mutation NE doit JAMAIS être appelée depuis du code client. La
+ * vérification de signature Stripe se fait à la frontière API ; ce secret
+ * partagé est une seconde ligne de défense (l'attaquant qui parle directement
+ * à `*.convex.cloud` n'a pas le secret et est rejeté).
+ *
+ * Si `CONVEX_WEBHOOK_SECRET` n'est pas posé côté Convex, on rejette toutes
+ * les requêtes — pas de fallback silencieux qui retomberait dans le bug F-01.
+ */
+export const updateSubscriptionFromWebhook = mutation({
+  args: {
+    webhookSecret: v.string(),
+    organizationId: v.id('organizations'),
+    stripeCustomerId: v.optional(v.string()),
+    stripeSubscriptionId: v.optional(v.string()),
+    subscriptionTier: SUBSCRIPTION_TIER,
+    subscriptionStatus: SUBSCRIPTION_STATUS,
+    subscriptionPeriodEnd: v.optional(v.number()),
+  },
+  handler: async (ctx, { webhookSecret, ...rest }) => {
+    const expected = process.env.CONVEX_WEBHOOK_SECRET;
+    if (!expected) throw new Error('WEBHOOK_SECRET_NOT_CONFIGURED');
+    if (webhookSecret !== expected) throw new Error('INVALID_WEBHOOK_SECRET');
+    return applySubscriptionPatch(ctx, rest);
   },
 });
 

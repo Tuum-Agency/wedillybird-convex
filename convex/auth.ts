@@ -61,12 +61,20 @@ export const requestOtp = action({
     const templateName = process.env.WHATSAPP_OTP_TEMPLATE ?? 'otp_code';
     const graphVersion = process.env.WHATSAPP_GRAPH_VERSION ?? 'v23.0';
 
-    // Mode E2E : on court-circuite Meta même si les credentials sont posés
-    // côté env Convex. Le code OTP est loggé pour récupération depuis les
-    // tests Playwright via la query interne `auth._lastOtpCodeForPhone`.
-    if (process.env.E2E_MODE === '1' || !accessToken || !phoneNumberId) {
+    // Mode E2E strict (fix sécurité F-04, audit avril 2026) : court-circuit
+    // Meta et log de l'OTP en clair UNIQUEMENT si `E2E_MODE === '1'`.
+    // Avant le fix, le log se déclenchait aussi dès que les credentials Meta
+    // étaient absents — ce qui exposait les OTP dans les logs en prod si
+    // l'env n'était pas correctement configurée.
+    if (process.env.E2E_MODE === '1') {
       console.info(`[whatsapp:mock] OTP ${code} -> ${normalized}`);
       return { phone: normalized, channel: 'whatsapp' as const, provider: 'mock' as const };
+    }
+
+    // Hors E2E : credentials Meta requis. Pas de fallback silencieux : on
+    // refuse plutôt que d'envoyer dans le vide / leak l'OTP.
+    if (!accessToken || !phoneNumberId) {
+      throw new Error('WHATSAPP_NOT_CONFIGURED');
     }
 
     const url = `https://graph.facebook.com/${graphVersion}/${phoneNumberId}/messages`;
@@ -438,10 +446,14 @@ export const requestLinkPhone = action({
     const templateName = process.env.WHATSAPP_OTP_TEMPLATE ?? 'otp_code';
     const graphVersion = process.env.WHATSAPP_GRAPH_VERSION ?? 'v23.0';
 
-    // Mode E2E : court-circuit identique à `requestOtp`.
-    if (process.env.E2E_MODE === '1' || !accessToken || !phoneNumberId) {
+    // Mode E2E strict (fix sécurité F-04) : court-circuit + log clair
+    // UNIQUEMENT quand `E2E_MODE === '1'`.
+    if (process.env.E2E_MODE === '1') {
       console.info(`[whatsapp:mock] LINK ${code} -> ${normalized}`);
       return { phone: normalized, channel: 'whatsapp' as const, provider: 'mock' as const };
+    }
+    if (!accessToken || !phoneNumberId) {
+      throw new Error('WHATSAPP_NOT_CONFIGURED');
     }
 
     const url = `https://graph.facebook.com/${graphVersion}/${phoneNumberId}/messages`;

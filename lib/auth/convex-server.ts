@@ -653,9 +653,14 @@ export const convexApi = {
     { membershipId: string; requesterId: string },
     { ok: true }
   >('organizations:revokeMembership'),
-  updateOrgSubscription: makeFunctionReference<
+  // Public webhook bridge (validates `CONVEX_WEBHOOK_SECRET`). La mutation
+  // sous-jacente `organizations:updateSubscription` est passée en
+  // `internalMutation` pour fix F-01 (audit avril 2026) — on ne peut plus
+  // l'appeler depuis le client.
+  updateOrgSubscriptionFromWebhook: makeFunctionReference<
     'mutation',
     {
+      webhookSecret: string;
       organizationId: string;
       stripeCustomerId?: string;
       stripeSubscriptionId?: string;
@@ -664,7 +669,7 @@ export const convexApi = {
       subscriptionPeriodEnd?: number;
     },
     { ok: true }
-  >('organizations:updateSubscription'),
+  >('organizations:updateSubscriptionFromWebhook'),
   findOrgByStripeSubscription: makeFunctionReference<
     'query',
     { stripeSubscriptionId: string },
