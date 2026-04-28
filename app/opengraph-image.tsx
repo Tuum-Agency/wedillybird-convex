@@ -8,7 +8,7 @@ import { ImageResponse } from 'next/og';
  * garder la génération robuste sur preview/prod (les fonts système suffisent
  * à servir l'esthétique visée).
  */
-export const runtime = 'edge';
+export const runtime = 'nodejs';
 
 export const alt = 'Wedillybird — Invitations mariage par WhatsApp, RSVP, check-in';
 export const size = { width: 1200, height: 630 };

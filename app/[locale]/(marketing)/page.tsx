@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { headers } from 'next/headers';
 import { useTranslations } from 'next-intl';
 import { setRequestLocale, getTranslations } from 'next-intl/server';
+import { OG_DEFAULT_IMAGES, TWITTER_DEFAULT_IMAGES } from '@/lib/seo/og';
 import { Link } from '@/i18n/navigation';
 import { buttonVariants } from '@/components/ui/button';
 import { LenisProvider } from '@/components/landing/lenis-provider';
@@ -53,11 +54,13 @@ export async function generateMetadata({
       title: t('title'),
       description: t('description'),
       locale: 'fr_FR',
+      images: [...OG_DEFAULT_IMAGES],
     },
     twitter: {
       card: 'summary_large_image',
       title: t('title'),
       description: t('description'),
+      images: [...TWITTER_DEFAULT_IMAGES],
     },
   };
 }

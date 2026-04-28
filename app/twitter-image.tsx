@@ -6,7 +6,7 @@ import { ImageResponse } from 'next/og';
  * dédié pour permettre une variation future si besoin (ex. logo plus large
  * sur Twitter qui crop différemment).
  */
-export const runtime = 'edge';
+export const runtime = 'nodejs';
 
 export const alt = 'Wedillybird — Invitations mariage par WhatsApp, RSVP, check-in';
 export const size = { width: 1200, height: 630 };
