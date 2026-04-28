@@ -3,7 +3,17 @@ import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
 
 // Auto-success endpoint used by the mock driver in dev/E2E. The real
 // drivers (stripe, cinetpay) redirect users to their own checkout pages.
+//
+// **Fix sécurité F-10 (audit avril 2026)** : refuse explicitement les
+// requêtes en `NODE_ENV === 'production'` — pattern miroir de
+// `/api/dev/login`. Avant le fix, cette route pouvait permettre à un
+// attaquant de marquer n'importe quel paiement `succeeded` en prod en
+// devinant un sessionId.
 export async function GET(req: Request): Promise<Response> {
+  if (process.env.NODE_ENV === 'production') {
+    return NextResponse.json({ error: 'DISABLED_IN_PRODUCTION' }, { status: 403 });
+  }
+
   const url = new URL(req.url);
   const sessionId = url.searchParams.get('session');
   const successUrl = url.searchParams.get('successUrl');
