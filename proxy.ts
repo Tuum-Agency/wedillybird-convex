@@ -78,5 +78,10 @@ export default function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!api|trpc|_next|_vercel|convex|.*\\..*).*)'],
+  // Exclut `opengraph-image` / `twitter-image` qui sont des routes Next.js
+  // file convention (next/og). Sans ça, le middleware next-intl les redirige
+  // vers /fr/opengraph-image qui n'existe pas → 404.
+  matcher: [
+    '/((?!api|trpc|_next|_vercel|convex|opengraph-image|twitter-image|sitemap\\.xml|robots\\.txt|.*\\..*).*)',
+  ],
 };
