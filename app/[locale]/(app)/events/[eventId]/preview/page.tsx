@@ -7,6 +7,7 @@ import { getSession } from '@/lib/auth/session';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
 import { InvitationShell } from '@/components/invitation/invitation-shell';
 import { WeddingCountdown } from '@/components/invitation/wedding-countdown';
+import { LandingFooterRich } from '@/components/landing/footer-rich';
 
 export const dynamic = 'force-dynamic';
 
@@ -240,16 +241,8 @@ export default async function EventPreviewPage({
                 →
               </span>
             </div>
-
-            <footer className="text-center">
-              <p className="font-mono text-[9px] tracking-[0.32em] text-[color:var(--color-ink-300)] uppercase">
-                Propulsé par ·{' '}
-                <span className="font-display normal-case italic" style={{ letterSpacing: 0 }}>
-                  Wedillybird
-                </span>
-              </p>
-            </footer>
           </article>
+          <LandingFooterRich />
         </InvitationShell>
       </div>
     </main>
