@@ -19,21 +19,20 @@ const PRODUCT_LINKS = [
   { key: 'features', href: '/#features' as const },
   { key: 'pricing', href: '/#pricing' as const },
   { key: 'demo', href: '/sign-up' as const },
-  { key: 'templates', href: '/sign-up' as const },
+  { key: 'templates', href: '/templates' as const },
 ] as const;
 
 const PROS_LINKS = [
-  { key: 'planners', href: '/sign-up' as const },
-  { key: 'venues', href: '/sign-up' as const },
-  { key: 'agencies', href: '/sign-up' as const },
-  { key: 'api', href: '/sign-up' as const },
+  { key: 'planners', href: '/forfaits-pros' as const },
+  { key: 'venues', href: '/forfaits-pros' as const },
+  { key: 'agencies', href: '/forfaits-pros' as const },
 ] as const;
 
 const RESOURCES_LINKS = [
-  { key: 'blog', href: '/' as const },
-  { key: 'guide', href: '/faq' as const },
+  { key: 'blog', href: '/blog' as const },
+  { key: 'guide', href: '/guide' as const },
   { key: 'faq', href: '/faq' as const },
-  { key: 'support', href: '/faq' as const },
+  { key: 'support', href: '/contact' as const },
 ] as const;
 
 const LEGAL_LINKS = [
