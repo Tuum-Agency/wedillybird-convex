@@ -27,6 +27,13 @@ const withNextIntl = createNextIntlPlugin('./i18n/request.ts');
  *     - CinetPay pour le checkout XOF
  *     - `data:` et `blob:` pour les uploads photo
  */
+// Turbopack/React dev mode reconstruit les callstacks via une primitive JS
+// que la CSP doit autoriser. En prod, React n'utilise jamais cette primitive,
+// donc on ne l'ajoute qu'en dev. Sources :
+// https://nextjs.org/docs/app/building-your-application/configuring/content-security-policy
+const isDev = process.env.NODE_ENV !== 'production';
+const devScriptDirectives = isDev ? " 'unsafe-eval'" : '';
+
 const securityHeaders = [
   {
     key: 'Strict-Transport-Security',
@@ -44,7 +51,7 @@ const securityHeaders = [
     value: [
       "default-src 'self'",
       "img-src 'self' https://*.cloudfront.net https://media.wedillybird.com https://images.unsplash.com https://plus.unsplash.com data: blob:",
-      "script-src 'self' 'unsafe-inline' https://js.stripe.com",
+      `script-src 'self' 'unsafe-inline'${devScriptDirectives} https://js.stripe.com`,
       "connect-src 'self' https://*.convex.cloud https://*.convex.site wss://*.convex.cloud https://api.stripe.com https://api-checkout.cinetpay.com",
       'frame-src https://js.stripe.com https://checkout.stripe.com',
       "style-src 'self' 'unsafe-inline'",

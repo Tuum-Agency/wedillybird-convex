@@ -4,7 +4,7 @@ import { useTranslations } from 'next-intl';
 import { ArrowLeft } from 'lucide-react';
 import { OG_DEFAULT_IMAGES, TWITTER_DEFAULT_IMAGES } from '@/lib/seo/og';
 import { Link } from '@/i18n/navigation';
-import { WedillybirdMark } from '@/components/brand/wedillybird-mark';
+import { WedillybirdLogo } from '@/components/brand/wedillybird-logo';
 import { LandingFaqAccordion } from '@/components/landing/faq-accordion';
 import { LandingFooterRich } from '@/components/landing/footer-rich';
 
@@ -95,10 +95,10 @@ function FaqShell() {
         <div className="container-page flex items-center justify-between gap-6 py-4">
           <Link
             href="/"
-            className="font-display inline-flex items-center gap-2.5 text-xl tracking-tight text-[color:var(--color-ink-900)] italic"
+            className="focus-ring inline-flex items-center"
+            aria-label={tCommon('appName')}
           >
-            <WedillybirdMark className="h-6 w-6 text-[color:var(--color-blush-500)]" />
-            {tCommon('appName')}
+            <WedillybirdLogo />
           </Link>
           <Link
             href="/"

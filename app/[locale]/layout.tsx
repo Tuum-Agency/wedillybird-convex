@@ -75,7 +75,7 @@ const ORGANIZATION_JSON_LD = {
   '@type': 'Organization',
   name: 'Wedillybird',
   url: BASE_URL,
-  logo: `${BASE_URL}/wedillybird-mark.svg`,
+  logo: `${BASE_URL}/wedillybird-logo.png`,
   description:
     "Plateforme SaaS d'organisation de mariage WhatsApp-first : invitations, RSVP, check-in, galerie partagée. France et Afrique de l'Ouest francophone.",
   sameAs: [],

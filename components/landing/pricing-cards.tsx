@@ -2,7 +2,7 @@
 
 import { motion } from 'motion/react';
 import { useTranslations } from 'next-intl';
-import { ShieldCheck, Calendar, Sparkles, Star } from 'lucide-react';
+import { Calendar, Check, ShieldCheck, Sparkles, Star } from 'lucide-react';
 import { Link } from '@/i18n/navigation';
 import { buttonVariants } from '@/components/ui/button';
 import { PLANS } from '@/lib/payments/plans';
@@ -181,13 +181,11 @@ export function LandingPricingCards({ prices, upsellPriceLabel }: Props) {
                       </li>
                       {PREMIUM_ONLY_KEYS.map((key) => (
                         <li key={key} className="flex items-start gap-2.5">
-                          <span
+                          <Check
                             aria-hidden
-                            className="font-display mt-0.5 inline-block flex-shrink-0 text-[color:var(--color-gold-500)] italic"
-                            style={{ fontSize: '14px', lineHeight: 1, letterSpacing: 0 }}
-                          >
-                            ✦
-                          </span>
+                            className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-[color:var(--color-gold-500)]"
+                            strokeWidth={2}
+                          />
                           <span className="leading-relaxed text-[color:var(--color-ink-700)]">
                             {tPlans(`features.${key}` as const)}
                           </span>
@@ -197,13 +195,11 @@ export function LandingPricingCards({ prices, upsellPriceLabel }: Props) {
                   ) : (
                     plan.featureKeys.map((key) => (
                       <li key={key} className="flex items-start gap-2.5">
-                        <span
+                        <Check
                           aria-hidden
-                          className="font-display mt-0.5 inline-block flex-shrink-0 text-[color:var(--color-gold-500)] italic"
-                          style={{ fontSize: '14px', lineHeight: 1, letterSpacing: 0 }}
-                        >
-                          ✦
-                        </span>
+                          className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-[color:var(--color-gold-500)]"
+                          strokeWidth={2}
+                        />
                         <span className="leading-relaxed text-[color:var(--color-ink-700)]">
                           {tPlans(`features.${key}` as const)}
                         </span>
