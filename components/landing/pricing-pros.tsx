@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
 import { useTranslations } from 'next-intl';
-import { Sparkles, Star } from 'lucide-react';
+import { Check, Sparkles, Star } from 'lucide-react';
 import { Link } from '@/i18n/navigation';
 import { buttonVariants } from '@/components/ui/button';
 import {
@@ -261,13 +261,11 @@ export function LandingPricingPros() {
               <ul className="flex flex-col gap-2.5 text-sm">
                 {PRO_FEATURE_KEYS[tier].map((key) => (
                   <li key={key} className="flex items-start gap-2.5">
-                    <span
+                    <Check
                       aria-hidden
-                      className="font-display mt-0.5 inline-block flex-shrink-0 text-[color:var(--color-gold-500)] italic"
-                      style={{ fontSize: '14px', lineHeight: 1, letterSpacing: 0 }}
-                    >
-                      ✦
-                    </span>
+                      className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-[color:var(--color-gold-500)]"
+                      strokeWidth={2}
+                    />
                     <span className="leading-relaxed text-[color:var(--color-ink-700)]">
                       {key === 'subdomainCustom'
                         ? tPlans.rich('pro.features.subdomainCustom', {

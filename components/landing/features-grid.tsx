@@ -2,6 +2,7 @@
 
 import { motion } from 'motion/react';
 import { useTranslations } from 'next-intl';
+import { Check } from 'lucide-react';
 import { inViewOnce, scrollReveal, scrollRevealParent } from '@/lib/motion/presets';
 import { VisualInvitations, VisualRSVP, VisualCheckin, VisualGallery } from './feature-visuals';
 
@@ -143,11 +144,16 @@ export function LandingFeaturesGrid() {
                   </span>
                 </div>
 
-                {/* Texte */}
+                {/* Texte — paddings explicites par axe (px/pt/pb) pour éviter
+                    la cascade Tailwind v4 entre shorthand `p-*` et longhand
+                    `pt-*`. Pour les cards non-wide (visuel en haut), pt
+                    augmenté pour aérer le boundary blush/blanc. */}
                 <div
                   className={[
-                    'flex flex-1 flex-col gap-4 p-7 sm:p-8',
-                    isWide ? 'lg:order-1 lg:p-10' : '',
+                    'flex flex-1 flex-col gap-4',
+                    isWide
+                      ? 'px-7 pt-7 pb-7 sm:px-8 sm:pt-8 sm:pb-8 lg:order-1 lg:px-10 lg:pt-10 lg:pb-10'
+                      : 'px-7 pt-12 pb-7 sm:px-8 sm:pt-14 sm:pb-8',
                   ].join(' ')}
                 >
                   <h3
@@ -166,13 +172,11 @@ export function LandingFeaturesGrid() {
                         key={i}
                         className="flex items-start gap-2.5 text-sm text-[color:var(--color-ink-700)]"
                       >
-                        <span
+                        <Check
                           aria-hidden
-                          className="font-display mt-0.5 inline-block flex-shrink-0 text-[color:var(--color-gold-500)] italic"
-                          style={{ fontSize: '14px', lineHeight: 1, letterSpacing: 0 }}
-                        >
-                          ✦
-                        </span>
+                          className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-[color:var(--color-gold-500)]"
+                          strokeWidth={2}
+                        />
                         {t(`${key}.highlights.${i}`)}
                       </li>
                     ))}

@@ -370,8 +370,10 @@ export function VisualCheckin() {
         </line>
       </g>
 
-      {/* Indicateur "offline" en haut-gauche */}
-      <g transform="translate(20 28)">
+      {/* Indicateur "offline" en haut-gauche — positionné au-dessus du
+          niveau du haut de la carte QR (y=22) pour éviter qu'il semble
+          collé à la carte sur la même ligne horizontale. */}
+      <g transform="translate(20 12)">
         <circle cx="0" cy="0" r="3" fill="oklch(50% 0.08 145)" />
         <text
           x="9"

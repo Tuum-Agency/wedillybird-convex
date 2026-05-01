@@ -16,6 +16,8 @@ import { LandingPricingPros } from '@/components/landing/pricing-pros';
 import { LandingFaqAccordion } from '@/components/landing/faq-accordion';
 import { LandingCtaFinal } from '@/components/landing/cta-final';
 import { LandingFooterRich } from '@/components/landing/footer-rich';
+import { SectionNav } from '@/components/landing/section-nav';
+import { WedillybirdLogo } from '@/components/brand/wedillybird-logo';
 import {
   detectPricingRegion,
   formatRegionalPlanPrice,
@@ -133,61 +135,48 @@ function LandingShell({
 
   return (
     <LenisProvider>
-      {/* Top nav — sticky, pattern Linear/Mercury : logo + nav-items groupés
-          à gauche, auth CTAs à droite. Évite le trou central que produisait
-          un justify-between avec logo seul gauche / 4 items collés à droite. */}
+      {/* Top nav — sticky, layout 3 colonnes : logo gauche, nav centrée,
+          CTA droite. Grid 3-cols pour que la nav soit vraiment centrée
+          dans le viewport indépendamment de la largeur du logo et du CTA
+          (un flex justify-between recentre faussement, biaisé par les
+          tailles asymétriques des blocs latéraux). */}
       <header className="sticky top-0 z-30 border-b border-[color:var(--color-border)] bg-[color:var(--color-ivory-50)]/85 backdrop-blur supports-[backdrop-filter]:bg-[color:var(--color-ivory-50)]/65">
-        <div className="container-page flex items-center justify-between gap-6 py-4">
-          {/* Bloc gauche : logo + nav éditoriale groupés */}
-          <div className="flex items-center gap-10">
+        <div className="container-page grid grid-cols-[1fr_auto_1fr] items-center gap-6 py-4">
+          {/* Colonne gauche : logo */}
+          <div className="flex items-center">
             <Link
               href="/"
-              className="font-display inline-flex items-center gap-2 text-xl tracking-tight text-[color:var(--color-ink-900)] italic"
+              className="focus-ring inline-flex items-center"
+              aria-label={tCommon('appName')}
             >
-              <span
-                aria-hidden
-                className="inline-block h-2 w-2 rounded-full bg-[color:var(--color-gold-500)]"
-              />
-              {tCommon('appName')}
+              <WedillybirdLogo priority />
             </Link>
-            <nav aria-label="Navigation principale" className="hidden items-center gap-7 md:flex">
-              <Link
-                href="/#features"
-                className="font-mono text-[10px] tracking-[0.24em] text-[color:var(--color-ink-500)] uppercase transition-colors hover:text-[color:var(--color-ink-900)]"
-              >
-                Piliers
-              </Link>
-              <Link
-                href="/#pricing"
-                className="font-mono text-[10px] tracking-[0.24em] text-[color:var(--color-ink-500)] uppercase transition-colors hover:text-[color:var(--color-ink-900)]"
-              >
-                Tarifs
-              </Link>
-              <Link
-                href="/#testimonials"
-                className="font-mono text-[10px] tracking-[0.24em] text-[color:var(--color-ink-500)] uppercase transition-colors hover:text-[color:var(--color-ink-900)]"
-              >
-                Témoignages
-              </Link>
-              <Link
-                href="/faq"
-                className="font-mono text-[10px] tracking-[0.24em] text-[color:var(--color-ink-500)] uppercase transition-colors hover:text-[color:var(--color-ink-900)]"
-              >
-                FAQ
-              </Link>
-              <Link
-                href="/forfaits-pros"
-                className="font-mono text-[10px] tracking-[0.24em] text-[color:var(--color-ink-500)] uppercase transition-colors hover:text-[color:var(--color-ink-900)]"
-              >
-                Pros
-              </Link>
-            </nav>
           </div>
 
-          {/* Bloc droite : un seul CTA primary. Le flow OTP WhatsApp est unifié
-              (sign-in/sign-up = même action), donc un seul bouton. Le lien
-              "déjà un compte ?" sera proposé sur la page sign-in elle-même. */}
-          <div className="flex items-center gap-3">
+          {/* Colonne centrale : navigation éditoriale */}
+          <nav
+            aria-label="Navigation principale"
+            className="hidden items-center justify-center gap-7 md:flex"
+          >
+            <SectionNav />
+            <Link
+              href="/faq"
+              className="font-mono text-[10px] tracking-[0.24em] text-[color:var(--color-ink-500)] uppercase transition-colors hover:text-[color:var(--color-ink-900)]"
+            >
+              FAQ
+            </Link>
+            <Link
+              href="/forfaits-pros"
+              className="font-mono text-[10px] tracking-[0.24em] text-[color:var(--color-ink-500)] uppercase transition-colors hover:text-[color:var(--color-ink-900)]"
+            >
+              Pros
+            </Link>
+          </nav>
+
+          {/* Colonne droite : CTA primary unique. Le flow OTP WhatsApp est
+              unifié (sign-in/sign-up = même action), donc un seul bouton.
+              Le lien "déjà un compte ?" sera proposé sur la page sign-in. */}
+          <div className="flex items-center justify-end gap-3">
             <Link
               href="/sign-up"
               className={cn(buttonVariants({ variant: 'primary', size: 'sm' }))}

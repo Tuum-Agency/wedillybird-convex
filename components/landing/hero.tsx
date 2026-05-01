@@ -143,7 +143,7 @@ export function LandingHero() {
           {/* Trust strip — mono caps */}
           <motion.div
             variants={itemVariants}
-            className="mt-16 flex flex-col gap-3 border-t border-[color:var(--color-border)] pt-6 font-mono text-[10px] tracking-[0.28em] text-[color:var(--color-ink-500)] uppercase sm:flex-row sm:items-center sm:gap-8 sm:pt-7"
+            className="mt-16 flex flex-col gap-3 border-t border-[color:var(--color-border)] pt-6 font-mono text-[10px] font-semibold tracking-[0.28em] text-[color:var(--color-ink-700)] uppercase sm:flex-row sm:items-center sm:gap-8 sm:pt-7"
           >
             <span className="inline-flex items-center gap-2">
               <span
