@@ -7,6 +7,7 @@ import { routing } from '@/i18n/routing';
 import { ConvexClientProvider } from '@/components/providers/convex-client-provider';
 import { SkipLink } from '@/components/layout/skip-link';
 import { Toaster } from '@/components/ui/toast';
+import { CookieConsent } from '@/components/layout/cookie-consent';
 import '../globals.css';
 
 // Body / UI — Geist Sans (Vercel, OFL). Successeur d'Inter recommandé en 2025+.
@@ -111,6 +112,7 @@ export default async function LocaleLayout({
             <SkipLink />
             {children}
             <Toaster />
+            <CookieConsent />
           </ConvexClientProvider>
         </NextIntlClientProvider>
       </body>
