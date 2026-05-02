@@ -41,7 +41,6 @@ const ESSENTIAL_FEATURES = [
   'basicDashboard',
   'whatsappInvite',
   'guestReminders',
-  'multiCurrency',
 ] as const;
 
 const PREMIUM_EXTRA_FEATURES = [
