@@ -9,24 +9,23 @@ type SectionItem = {
   label: string;
 };
 
-// Ordre = ordre d'apparition au scroll dans la page (features → testimonials
-// → pricing). Déroger à cet ordre fait sauter l'underline en arrière quand
-// l'utilisateur scrolle, ce qui casse la perception de progression.
+// Ordre = ordre d'apparition au scroll dans la page. Déroger à cet ordre fait
+// sauter l'underline en arrière quand l'utilisateur scrolle, ce qui casse la
+// perception de progression.
 const ITEMS: readonly SectionItem[] = [
   { id: 'features', label: 'Piliers' },
   { id: 'testimonials', label: 'Témoignages' },
   { id: 'pricing', label: 'Tarifs' },
+  { id: 'pricing-pros', label: 'Pros' },
+  { id: 'faq', label: 'FAQ' },
 ];
 
 /**
  * Liens d'ancres avec indicateur de section active.
  *
- * Observe les sections `#features`, `#pricing`, `#testimonials` via
- * IntersectionObserver et applique une classe `active` au lien
- * correspondant à la section la plus visible (ratio d'intersection le
- * plus élevé). Le rootMargin négatif côté top compense la hauteur du
- * header sticky pour que la transition se fasse quand la section
- * "remplace" la précédente sous la nav.
+ * Calcule la section active au scroll à partir d'un repère situé dans le
+ * premier quart du viewport. C'est plus stable qu'un ratio d'intersection pour
+ * les sections longues et pour la FAQ située près de la fin de page.
  */
 export function SectionNav() {
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -37,31 +36,40 @@ export function SectionNav() {
     );
     if (sections.length === 0) return;
 
-    const visibility = new Map<string, number>();
+    let frame = 0;
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          visibility.set(entry.target.id, entry.intersectionRatio);
-        }
-        let topId: string | null = null;
-        let topRatio = 0;
-        for (const [id, ratio] of visibility) {
-          if (ratio > topRatio) {
-            topRatio = ratio;
-            topId = id;
-          }
-        }
-        setActiveId(topRatio > 0.15 ? topId : null);
-      },
-      {
-        rootMargin: '-72px 0px -40% 0px',
-        threshold: [0, 0.15, 0.3, 0.5, 0.75, 1],
-      },
-    );
+    function updateActiveSection() {
+      frame = 0;
+      const marker = window.scrollY + 96 + window.innerHeight * 0.25;
+      let nextActiveId: string | null = null;
 
-    for (const section of sections) observer.observe(section);
-    return () => observer.disconnect();
+      for (const section of sections) {
+        if (section.offsetTop <= marker) {
+          nextActiveId = section.id;
+        } else {
+          break;
+        }
+      }
+
+      setActiveId(nextActiveId);
+    }
+
+    function requestUpdate() {
+      if (frame) return;
+      frame = window.requestAnimationFrame(updateActiveSection);
+    }
+
+    updateActiveSection();
+    window.addEventListener('scroll', requestUpdate, { passive: true });
+    window.addEventListener('resize', requestUpdate);
+    window.addEventListener('hashchange', requestUpdate);
+
+    return () => {
+      if (frame) window.cancelAnimationFrame(frame);
+      window.removeEventListener('scroll', requestUpdate);
+      window.removeEventListener('resize', requestUpdate);
+      window.removeEventListener('hashchange', requestUpdate);
+    };
   }, []);
 
   return (
