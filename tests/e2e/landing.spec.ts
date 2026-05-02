@@ -65,6 +65,30 @@ test.describe('Landing page', () => {
     await expect(header.getByRole('link', { name: /créer un compte/i })).toBeVisible();
   });
 
+  test('la navigation active suit les sections Pros puis FAQ', async ({ page }) => {
+    const viewport = page.viewportSize();
+    test.skip((viewport?.width ?? 0) < 768, 'La navigation de section est desktop-only.');
+
+    await page.goto('/');
+
+    const nav = page.getByRole('navigation', { name: /navigation principale/i });
+    const navLinks = nav.getByRole('link');
+
+    await expect(navLinks).toHaveText(['Piliers', 'Témoignages', 'Tarifs', 'Pros', 'FAQ']);
+    await expect(nav.getByRole('link', { name: 'Pros' })).toHaveAttribute('href', '/#pricing-pros');
+    await expect(nav.getByRole('link', { name: 'FAQ' })).toHaveAttribute('href', '/#faq');
+
+    await page.locator('#pricing-pros').evaluate((section) => {
+      window.scrollTo(0, section.getBoundingClientRect().top + window.scrollY - 120);
+    });
+    await expect(nav.getByRole('link', { name: 'Pros' })).toHaveAttribute('aria-current', 'true');
+
+    await page.locator('#faq').evaluate((section) => {
+      window.scrollTo(0, section.getBoundingClientRect().top + window.scrollY - 120);
+    });
+    await expect(nav.getByRole('link', { name: 'FAQ' })).toHaveAttribute('aria-current', 'true');
+  });
+
   test('lang html vaut fr', async ({ page }) => {
     await page.goto('/');
     const lang = await page.locator('html').getAttribute('lang');
