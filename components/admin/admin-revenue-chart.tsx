@@ -42,7 +42,7 @@ export function AdminRevenueChart({ data }: { data: Record<string, number> }) {
             color: 'var(--color-foreground)',
             fontSize: 12,
           }}
-          formatter={(value: number) => [`${value} €`, 'Revenu']}
+          formatter={(value) => [`${value} €`, 'Revenu']}
         />
         <Bar dataKey="revenue" fill="oklch(65% 0.15 22)" radius={[4, 4, 0, 0]} />
       </BarChart>

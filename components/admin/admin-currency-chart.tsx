@@ -38,7 +38,7 @@ export function AdminCurrencyChart({ data }: { data: Record<string, number> }) {
           paddingAngle={2}
           dataKey="value"
           nameKey="name"
-          label={({ name, percent }: { name: string; percent: number }) =>
+          label={({ name, percent }: { name?: string; percent?: number }) =>
             `${name ?? ''} ${((percent ?? 0) * 100).toFixed(0)}%`
           }
           labelLine={false}
@@ -55,7 +55,7 @@ export function AdminCurrencyChart({ data }: { data: Record<string, number> }) {
             color: 'var(--color-foreground)',
             fontSize: 12,
           }}
-          formatter={(value: number) => [`${value} €`, '']}
+          formatter={(value) => [`${value} €`, '']}
         />
         <Legend wrapperStyle={{ fontSize: 11 }} />
       </PieChart>

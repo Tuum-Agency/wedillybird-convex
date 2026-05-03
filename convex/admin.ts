@@ -1,9 +1,10 @@
 import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
+import type { Id } from './_generated/dataModel';
 
 async function assertAdmin(
-  ctx: { db: { get: (id: unknown) => Promise<{ role: string } | null> } },
-  adminId: string,
+  ctx: { db: { get: (id: Id<'users'>) => Promise<{ role: string } | null> } },
+  adminId: Id<'users'>,
 ) {
   const user = await ctx.db.get(adminId);
   if (!user || user.role !== 'admin') {
