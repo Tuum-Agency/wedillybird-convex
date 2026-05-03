@@ -810,6 +810,182 @@ export const convexApi = {
     Record<string, never>,
     { dispatched: number; skipped: number }
   >('whatsappTemplateNotifications:dispatchPendingNotifications'),
+
+  // ---- Admin dashboard ----
+  adminDashboardKpi: makeFunctionReference<
+    'query',
+    { adminId: string },
+    {
+      totalUsers: number;
+      usersByRole: { couple: number; pro: number; guest: number; admin: number };
+      totalEvents: number;
+      activeEvents: number;
+      paidEvents: number;
+      conversionRate: number;
+      totalRevenueMinor: number;
+      mrrMinor: number;
+      failedPaymentsCount: number;
+      failedPaymentsAmountMinor: number;
+      activeSubscriptions: number;
+      revenueByMonth: Record<string, number>;
+      usersByMonth: Record<string, { couple: number; pro: number; guest: number }>;
+      revenueByCurrency: Record<string, number>;
+      revenueByProvider: Record<string, number>;
+    }
+  >('admin:dashboardKpi'),
+  adminListUsers: makeFunctionReference<
+    'query',
+    { adminId: string },
+    Array<{
+      _id: string;
+      phone?: string;
+      email?: string;
+      fullName?: string;
+      role: 'couple' | 'pro' | 'guest' | 'admin';
+      planTier?: string;
+      createdAt: number;
+      lastSeenAt?: number;
+    }>
+  >('admin:listUsers'),
+  adminListAllEvents: makeFunctionReference<
+    'query',
+    { adminId: string },
+    Array<{
+      _id: string;
+      title: string;
+      coupleNames: { partnerA: string; partnerB: string };
+      eventDate: number;
+      timezone: string;
+      status: 'draft' | 'active' | 'archived' | 'cancelled';
+      planTier?: string;
+      maxGuests: number;
+      ownerName: string | null;
+      ownerEmail: string | null;
+      organizationId?: string;
+      createdAt: number;
+      updatedAt: number;
+    }>
+  >('admin:listAllEvents'),
+  adminListAllPayments: makeFunctionReference<
+    'query',
+    { adminId: string },
+    Array<{
+      _id: string;
+      plan: 'essential' | 'premium';
+      currency: 'EUR' | 'XOF' | 'MAD' | 'TND';
+      amountMinor: number;
+      provider: 'stripe' | 'cinetpay' | 'mock';
+      status: 'pending' | 'succeeded' | 'failed' | 'cancelled';
+      failureReason?: string;
+      userName: string | null;
+      userEmail: string | null;
+      eventId: string;
+      createdAt: number;
+      updatedAt: number;
+    }>
+  >('admin:listAllPayments'),
+  adminListAllOrganizations: makeFunctionReference<
+    'query',
+    { adminId: string },
+    Array<{
+      _id: string;
+      name: string;
+      slug: string;
+      subscriptionTier?: string;
+      subscriptionStatus?: string;
+      subscriptionPeriodEnd?: number;
+      paygCredits?: number;
+      ownerName: string | null;
+      ownerEmail: string | null;
+      createdAt: number;
+    }>
+  >('admin:listAllOrganizations'),
+  adminListPendingPhotos: makeFunctionReference<
+    'query',
+    { adminId: string },
+    Array<{
+      _id: string;
+      eventId: string;
+      s3Key?: string;
+      status: string;
+      sizeBytes: number;
+      contentType: string;
+      uploaderName?: string;
+      variants?: { thumb?: string; medium?: string; large?: string };
+      createdAt: number;
+    }>
+  >('admin:listPendingPhotos'),
+  adminListAllWhatsappTemplates: makeFunctionReference<
+    'query',
+    { adminId: string },
+    Array<{
+      _id: string;
+      eventId: string;
+      name: string;
+      bodyText: string;
+      ctaLabel: string;
+      status: string;
+      rejectionReason?: string;
+      submittedAt?: number;
+      reviewedAt?: number;
+      createdAt: number;
+    }>
+  >('admin:listAllWhatsappTemplates'),
+  adminListNewsletterSubscribers: makeFunctionReference<
+    'query',
+    { adminId: string },
+    Array<{
+      _id: string;
+      email: string;
+      status: 'active' | 'unsubscribed';
+      source?: string;
+      subscribedAt: number;
+      unsubscribedAt?: number;
+    }>
+  >('admin:listNewsletterSubscribers'),
+  adminListAuditLog: makeFunctionReference<
+    'query',
+    { adminId: string },
+    Array<{
+      _id: string;
+      adminName: string | null;
+      adminEmail: string | null;
+      action: string;
+      targetType: string;
+      targetId: string;
+      details?: string;
+      createdAt: number;
+    }>
+  >('admin:listAuditLog'),
+  adminSuspendUser: makeFunctionReference<
+    'mutation',
+    { adminId: string; targetUserId: string },
+    { ok: true }
+  >('admin:suspendUser'),
+  adminChangeUserRole: makeFunctionReference<
+    'mutation',
+    { adminId: string; targetUserId: string; newRole: 'couple' | 'pro' | 'guest' | 'admin' },
+    { ok: true }
+  >('admin:changeUserRole'),
+  adminUpdateEventStatus: makeFunctionReference<
+    'mutation',
+    {
+      adminId: string;
+      eventId: string;
+      newStatus: 'draft' | 'active' | 'archived' | 'cancelled';
+    },
+    { ok: true }
+  >('admin:updateEventStatus'),
+  adminModeratePhoto: makeFunctionReference<
+    'mutation',
+    { adminId: string; photoId: string; decision: 'approved' | 'rejected' },
+    { ok: true }
+  >('admin:adminModeratePhoto'),
+  adminDeleteEvent: makeFunctionReference<
+    'mutation',
+    { adminId: string; eventId: string },
+    { ok: true }
+  >('admin:deleteEvent'),
 } satisfies Record<
   string,
   FunctionReference<'query' | 'mutation' | 'action', 'public', Args, unknown>
