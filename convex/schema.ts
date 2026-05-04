@@ -547,4 +547,24 @@ export default defineSchema({
     windowStartedAt: v.number(),
     updatedAt: v.number(),
   }).index('by_scope_key', ['scope', 'key']),
+
+  adminAuditLog: defineTable({
+    adminId: v.id('users'),
+    action: v.string(),
+    targetType: v.union(
+      v.literal('user'),
+      v.literal('event'),
+      v.literal('payment'),
+      v.literal('organization'),
+      v.literal('photo'),
+      v.literal('template'),
+      v.literal('newsletter'),
+    ),
+    targetId: v.string(),
+    details: v.optional(v.string()),
+    createdAt: v.number(),
+  })
+    .index('by_admin', ['adminId'])
+    .index('by_target', ['targetType', 'targetId'])
+    .index('by_created', ['createdAt']),
 });

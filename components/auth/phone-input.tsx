@@ -64,6 +64,22 @@ export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(
     const sanitizedLocal = local.replace(/[^\d]/g, '').replace(/^0+/, '');
     const fullPhone = sanitizedLocal ? `+${country.dial}${sanitizedLocal}` : '';
 
+    function handleChange(value: string) {
+      const trimmed = value.trimStart();
+      if (trimmed.startsWith('+')) {
+        const digits = trimmed.slice(1).replace(/[^\d]/g, '');
+        const match = [...COUNTRIES]
+          .sort((a, b) => b.dial.length - a.dial.length)
+          .find((c) => digits.startsWith(c.dial));
+        if (match) {
+          setCountry(match);
+          setLocal(digits.slice(match.dial.length));
+          return;
+        }
+      }
+      setLocal(value);
+    }
+
     return (
       <div className="flex flex-col gap-1.5">
         <div
@@ -102,7 +118,7 @@ export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(
             aria-invalid={!!error}
             aria-describedby={describedBy}
             value={local}
-            onChange={(e) => setLocal(e.target.value)}
+            onChange={(e) => handleChange(e.target.value)}
             className={cn(
               'h-full w-full bg-transparent px-3 text-sm outline-none placeholder:text-[color:var(--color-muted)]',
               className,

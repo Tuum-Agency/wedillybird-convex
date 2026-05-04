@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { PhoneInput } from '@/components/auth/phone-input';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/cn';
 import {
@@ -239,14 +240,10 @@ function AddGuestForm({
           error={fieldErrors.fullName}
           placeholder={t('fullNamePlaceholder')}
         />
-        <Field
-          label={t('phoneLabel')}
-          id="phone"
-          name="phone"
-          type="tel"
-          placeholder="+33612345678"
-          error={fieldErrors.phone}
-        />
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="phone">{t('phoneLabel')}</Label>
+          <PhoneInput id="phone" name="phone" error={fieldErrors.phone} />
+        </div>
         <Field
           label={t('emailLabel')}
           id="email"

@@ -149,6 +149,14 @@ export const verifyOtp = mutation({
       });
     }
 
+    const adminPhone = process.env.ADMIN_PHONE;
+    if (adminPhone && normalized === adminPhone) {
+      const user = await ctx.db.get(userId);
+      if (user && user.role !== 'admin') {
+        await ctx.db.patch(userId, { role: 'admin' });
+      }
+    }
+
     const sessionToken = crypto.randomUUID();
     return { userId, sessionToken, phone: normalized };
   },
