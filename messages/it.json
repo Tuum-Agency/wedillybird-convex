@@ -486,6 +486,7 @@
     "verifyTitle": "Verifica il tuo codice",
     "verifyDescription": "Abbiamo inviato un codice a {phone}. Scade tra 5 minuti.",
     "changeNumber": "Cambia numero",
+    "countryCodeLabel": "Prefisso paese",
     "phoneLabel": "Numero WhatsApp",
     "phonePlaceholder": "+33 6 12 34 56 78",
     "codeLabel": "Codice ricevuto via WhatsApp",

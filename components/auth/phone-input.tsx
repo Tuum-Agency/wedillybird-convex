@@ -1,7 +1,7 @@
 'use client';
 
 import { forwardRef, useState, type InputHTMLAttributes } from 'react';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { cn } from '@/lib/cn';
 import type { Locale } from '@/i18n/routing';
 
@@ -72,6 +72,7 @@ interface PhoneInputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 't
 export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(
   ({ className, error, id = 'phone', name = 'phone', defaultCountry, ...props }, ref) => {
     const locale = useLocale() as Locale;
+    const t = useTranslations('Auth');
     const fallbackCode = defaultCountry ?? LOCALE_TO_COUNTRY[locale] ?? FR.code;
     const initial = COUNTRIES.find((c) => c.code === fallbackCode) ?? FR;
     const [country, setCountry] = useState<Country>(initial);
@@ -111,7 +112,7 @@ export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(
             </span>
             <span className="pr-2 text-sm text-[color:var(--color-muted)]">+{country.dial}</span>
             <select
-              aria-label="Indicatif pays"
+              aria-label={t('countryCodeLabel')}
               value={country.code}
               onChange={(e) => {
                 const next = COUNTRIES.find((c) => c.code === e.target.value);

@@ -486,6 +486,7 @@
     "verifyTitle": "Verifiziere deinen Code",
     "verifyDescription": "Wir haben einen Code an {phone} gesendet. Er läuft in 5 Minuten ab.",
     "changeNumber": "Nummer ändern",
+    "countryCodeLabel": "Ländervorwahl",
     "phoneLabel": "WhatsApp-Nummer",
     "phonePlaceholder": "+49 151 12345678",
     "codeLabel": "Per WhatsApp erhaltener Code",

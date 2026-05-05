@@ -482,6 +482,7 @@
     "verifyTitle": "تحقّق من رمزك",
     "verifyDescription": "أرسلنا رمزًا إلى {phone}. تنتهي صلاحيته خلال 5 دقائق.",
     "changeNumber": "تغيير الرقم",
+    "countryCodeLabel": "رمز البلد",
     "phoneLabel": "رقم WhatsApp",
     "phonePlaceholder": "+33 6 12 34 56 78",
     "codeLabel": "الرمز المُستلَم عبر WhatsApp",

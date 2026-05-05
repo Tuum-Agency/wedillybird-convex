@@ -482,6 +482,7 @@
     "verifyTitle": "Verify your code",
     "verifyDescription": "We sent a code to {phone}. It expires in 5 minutes.",
     "changeNumber": "Change number",
+    "countryCodeLabel": "Country code",
     "phoneLabel": "WhatsApp number",
     "phonePlaceholder": "+33 6 12 34 56 78",
     "codeLabel": "Code received via WhatsApp",
