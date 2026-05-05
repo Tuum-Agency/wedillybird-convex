@@ -566,7 +566,15 @@
       "tooManyAttempts": "Demasiados intentos. Inténtalo de nuevo en unos minutos.",
       "rateLimited": "Demasiadas solicitudes. Espera unos minutos.",
       "sendFailed": "Error al enviar el código. Inténtalo de nuevo.",
-      "network": "Error de red. Comprueba tu conexión."
+      "network": "Error de red. Comprueba tu conexión.",
+      "emailTaken": "Esta dirección ya está en uso por otra cuenta.",
+      "submit": "Algo salió mal. Inténtalo de nuevo."
+    },
+    "stepPrefix": "PASO",
+    "eyebrow": {
+      "profile": "PERFIL",
+      "secure": "SEGURIDAD",
+      "role": "RECORRIDO"
     }
   },
   "Dashboard": {

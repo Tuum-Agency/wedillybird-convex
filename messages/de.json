@@ -566,7 +566,15 @@
       "tooManyAttempts": "Zu viele Versuche. Versuche es in ein paar Minuten erneut.",
       "rateLimited": "Zu viele Anfragen. Warte ein paar Minuten.",
       "sendFailed": "Senden des Codes fehlgeschlagen. Versuch es erneut.",
-      "network": "Netzwerkfehler. Prüfe deine Verbindung."
+      "network": "Netzwerkfehler. Prüfe deine Verbindung.",
+      "emailTaken": "Diese Adresse wird bereits von einem anderen Konto verwendet.",
+      "submit": "Etwas ist schiefgelaufen. Versuche es erneut."
+    },
+    "stepPrefix": "SCHRITT",
+    "eyebrow": {
+      "profile": "PROFIL",
+      "secure": "SICHERHEIT",
+      "role": "WEG"
     }
   },
   "Dashboard": {

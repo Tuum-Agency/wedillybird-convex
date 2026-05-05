@@ -566,7 +566,15 @@
       "tooManyAttempts": "Trop de tentatives. Réessaie dans quelques minutes.",
       "rateLimited": "Trop de demandes. Patiente quelques minutes.",
       "sendFailed": "Échec de l'envoi du code. Réessaie.",
-      "network": "Erreur réseau. Vérifie ta connexion."
+      "network": "Erreur réseau. Vérifie ta connexion.",
+      "emailTaken": "Cette adresse est déjà utilisée par un autre compte.",
+      "submit": "Une erreur est survenue. Réessaie."
+    },
+    "stepPrefix": "ÉTAPE",
+    "eyebrow": {
+      "profile": "PROFIL",
+      "secure": "SÉCURITÉ",
+      "role": "PARCOURS"
     }
   },
   "Dashboard": {

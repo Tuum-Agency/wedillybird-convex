@@ -566,7 +566,15 @@
       "tooManyAttempts": "Troppi tentativi. Riprova tra qualche minuto.",
       "rateLimited": "Troppe richieste. Attendi qualche minuto.",
       "sendFailed": "Invio del codice fallito. Riprova.",
-      "network": "Errore di rete. Verifica la tua connessione."
+      "network": "Errore di rete. Verifica la tua connessione.",
+      "emailTaken": "Questo indirizzo è già utilizzato da un altro account.",
+      "submit": "Qualcosa è andato storto. Riprova."
+    },
+    "stepPrefix": "FASE",
+    "eyebrow": {
+      "profile": "PROFILO",
+      "secure": "SICUREZZA",
+      "role": "PERCORSO"
     }
   },
   "Dashboard": {

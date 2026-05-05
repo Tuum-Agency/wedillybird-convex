@@ -32,10 +32,10 @@ const ROLE_OPTIONS: ReadonlyArray<{
   { value: 'pro', titleKey: 'rolePro', descriptionKey: 'roleProDescription', Icon: Briefcase },
 ];
 
-const STEP_EYEBROW: Record<StepKey, string> = {
-  profile: 'PROFIL',
-  secure: 'SÉCURITÉ',
-  role: 'PARCOURS',
+const STEP_EYEBROW_KEYS: Record<StepKey, 'eyebrow.profile' | 'eyebrow.secure' | 'eyebrow.role'> = {
+  profile: 'eyebrow.profile',
+  secure: 'eyebrow.secure',
+  role: 'eyebrow.role',
 };
 
 /**
@@ -189,7 +189,10 @@ export function OnboardingWizard({
       if (result.fieldErrors) {
         const flat: Record<string, string | undefined> = {};
         for (const [k, v] of Object.entries(result.fieldErrors)) {
-          if (v && v.length > 0) flat[k] = v[0];
+          if (v && v.length > 0) {
+            const code = v[0];
+            flat[k] = code === 'EMAIL_TAKEN' ? t('errors.emailTaken') : code;
+          }
         }
         setFieldErrors(flat);
         if (flat.fullName || flat.email) {
@@ -198,7 +201,7 @@ export function OnboardingWizard({
         }
         return;
       }
-      setError('Une erreur est survenue. Réessayez.');
+      setError(t('errors.submit'));
     });
   }
 
@@ -213,7 +216,8 @@ export function OnboardingWizard({
       {/* Eyebrow + progress */}
       <div className="flex flex-col gap-4">
         <span className="font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-gold-700)] uppercase">
-          ÉTAPE {String(stepIndex + 1).padStart(2, '0')} — {STEP_EYEBROW[currentStep]}
+          {t('stepPrefix')} {String(stepIndex + 1).padStart(2, '0')} —{' '}
+          {t(STEP_EYEBROW_KEYS[currentStep])}
         </span>
         <Progress current={stepIndex} total={steps.length} />
       </div>

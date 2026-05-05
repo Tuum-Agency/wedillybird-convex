@@ -112,13 +112,14 @@ export async function completeOnboardingAction(formData: FormData): Promise<Acti
       return {
         ok: false,
         error: 'EMAIL_TAKEN',
-        fieldErrors: { email: ['Cette adresse email est déjà utilisée par un autre compte.'] },
+        fieldErrors: { email: ['EMAIL_TAKEN'] },
       };
     }
     return { ok: false, error: message };
   }
 
-  redirect({ href: '/dashboard', locale: 'fr' });
+  const locale = await getLocale();
+  redirect({ href: '/dashboard', locale });
   return { ok: true };
 }
 
@@ -168,5 +169,6 @@ export async function requestMagicLinkAction(formData: FormData): Promise<Action
 
 export async function signOutAction(): Promise<void> {
   await clearSessionCookie();
-  redirect({ href: '/', locale: 'fr' });
+  const locale = await getLocale();
+  redirect({ href: '/', locale });
 }
