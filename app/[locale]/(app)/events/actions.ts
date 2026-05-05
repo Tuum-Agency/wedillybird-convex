@@ -71,11 +71,14 @@ export async function createEventAction(formData: FormData): Promise<CreateEvent
   const normalized = normalizeCreateEvent(parsed.data);
   const convex = getConvexServerClient();
 
+  const org = await convex.query(convexApi.myOrganization, { userId: session.userId });
+
   let slug: string;
   try {
     const result = await convex.mutation(convexApi.createEvent, {
       ownerId: session.userId,
       ...normalized,
+      ...(org ? { organizationId: org._id } : {}),
     });
     slug = result.slug;
   } catch (err) {
@@ -83,7 +86,8 @@ export async function createEventAction(formData: FormData): Promise<CreateEvent
   }
 
   const locale = await getLocale();
-  redirect({ href: `/dashboard?created=${slug}`, locale });
+  const dashboardHref = org ? `/pro/dashboard?created=${slug}` : `/dashboard?created=${slug}`;
+  redirect({ href: dashboardHref as never, locale });
   return { ok: true, slug };
 }
 
