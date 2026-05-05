@@ -27,7 +27,7 @@ export const convexApi = {
   >('auth:verifyOtp'),
   requestMagicLink: makeFunctionReference<
     'action',
-    { email: string; ipAddress?: string },
+    { email: string; ipAddress?: string; locale?: string },
     { email: string }
   >('auth:requestMagicLink'),
   verifyMagicLink: makeFunctionReference<
@@ -504,6 +504,7 @@ export const convexApi = {
         fullName?: string;
         email?: string;
         phone?: string;
+        locale?: string;
       } | null;
     }
   >('paymentsInvoice:getForInvoice'),

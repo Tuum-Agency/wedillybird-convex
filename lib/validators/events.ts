@@ -3,30 +3,36 @@ import { z } from 'zod';
 const HEX_COLOR = /^#([0-9a-fA-F]{3}){1,2}$/;
 const MIN_FUTURE_BUFFER_MS = 60 * 60 * 1000;
 
+/**
+ * Les messages Zod ci-dessous sont des **codes i18n** (cf. `messages/*.json`
+ * namespace `Validation`). Le composant qui consomme les erreurs doit les
+ * traduire — voir `lib/validators/translate-zod.ts`.
+ */
+
 export const partnerNameSchema = z
   .string()
   .trim()
-  .min(1, 'Prénom requis')
-  .max(60, 'Prénom trop long');
+  .min(1, 'Validation.firstNameRequired')
+  .max(60, 'Validation.firstNameTooLong');
 
 export const eventTitleSchema = z
   .string()
   .trim()
-  .min(2, 'Titre trop court')
-  .max(120, 'Titre trop long');
+  .min(2, 'Validation.titleTooShort')
+  .max(120, 'Validation.titleTooLong');
 
 export const eventDateSchema = z
   .string()
   .trim()
-  .min(1, 'Date requise')
-  .refine((val) => !Number.isNaN(Date.parse(val)), 'Date invalide')
+  .min(1, 'Validation.dateRequired')
+  .refine((val) => !Number.isNaN(Date.parse(val)), 'Validation.dateInvalid')
   .transform((val) => new Date(val).getTime())
-  .refine((ts) => ts > Date.now() + MIN_FUTURE_BUFFER_MS, 'La date doit être dans le futur');
+  .refine((ts) => ts > Date.now() + MIN_FUTURE_BUFFER_MS, 'Validation.dateMustBeFuture');
 
 export const timezoneSchema = z
   .string()
   .trim()
-  .min(1, 'Fuseau horaire requis')
+  .min(1, 'Validation.timezoneRequired')
   .refine((tz) => {
     try {
       new Intl.DateTimeFormat('fr', { timeZone: tz }).format(Date.now());
@@ -34,20 +40,32 @@ export const timezoneSchema = z
     } catch {
       return false;
     }
-  }, 'Fuseau horaire invalide');
+  }, 'Validation.timezoneInvalid');
 
 export const venueSchema = z
   .object({
-    name: z.string().trim().min(2, 'Nom du lieu requis').max(120, 'Nom trop long'),
-    address: z.string().trim().min(3, 'Adresse requise').max(240, 'Adresse trop longue'),
+    name: z
+      .string()
+      .trim()
+      .min(2, 'Validation.venueNameRequired')
+      .max(120, 'Validation.venueNameTooLong'),
+    address: z
+      .string()
+      .trim()
+      .min(3, 'Validation.venueAddressRequired')
+      .max(240, 'Validation.venueAddressTooLong'),
   })
   .optional();
 
 export const themeSchema = z
   .object({
-    primaryColor: z.string().regex(HEX_COLOR, 'Couleur invalide'),
-    accentColor: z.string().regex(HEX_COLOR, 'Couleur invalide'),
-    fontFamily: z.string().trim().min(1, 'Police requise').max(80, 'Police trop longue'),
+    primaryColor: z.string().regex(HEX_COLOR, 'Validation.colorInvalid'),
+    accentColor: z.string().regex(HEX_COLOR, 'Validation.colorInvalid'),
+    fontFamily: z
+      .string()
+      .trim()
+      .min(1, 'Validation.fontRequired')
+      .max(80, 'Validation.fontTooLong'),
   })
   .optional();
 
@@ -61,8 +79,8 @@ export const createEventSchema = z.object({
   timezone: timezoneSchema,
   venueName: z.string().trim().max(120).optional(),
   venueAddress: z.string().trim().max(240).optional(),
-  themePrimary: z.string().regex(HEX_COLOR, 'Couleur invalide').optional(),
-  themeAccent: z.string().regex(HEX_COLOR, 'Couleur invalide').optional(),
+  themePrimary: z.string().regex(HEX_COLOR, 'Validation.colorInvalid').optional(),
+  themeAccent: z.string().regex(HEX_COLOR, 'Validation.colorInvalid').optional(),
   themeFont: z.string().trim().max(80).optional(),
   pendingPlanTier: planTierSchema.optional(),
 });
@@ -83,8 +101,8 @@ export const updateEventSchema = z.object({
   venueName: z.string().trim().max(120).optional(),
   venueAddress: z.string().trim().max(240).optional(),
   clearVenue: z.boolean().optional(),
-  themePrimary: z.string().regex(HEX_COLOR, 'Couleur invalide').optional(),
-  themeAccent: z.string().regex(HEX_COLOR, 'Couleur invalide').optional(),
+  themePrimary: z.string().regex(HEX_COLOR, 'Validation.colorInvalid').optional(),
+  themeAccent: z.string().regex(HEX_COLOR, 'Validation.colorInvalid').optional(),
   themeFont: z.string().trim().max(80).optional(),
 });
 

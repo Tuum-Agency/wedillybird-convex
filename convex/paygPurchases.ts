@@ -4,14 +4,6 @@ import { internal } from './_generated/api';
 
 const CURRENCY = v.union(v.literal('EUR'), v.literal('XOF'), v.literal('MAD'), v.literal('TND'));
 
-function formatPaygAmount(amountMinor: number, currency: string): string {
-  const amount = amountMinor / 100;
-  if (currency === 'EUR')
-    return `${amount.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} €`;
-  if (currency === 'XOF') return `${amount.toLocaleString('fr-FR')} FCFA`;
-  return `${amount.toLocaleString('fr-FR')} ${currency}`;
-}
-
 /**
  * Enregistre un achat Pay-as-you-go pro et crédite l'organisation.
  *
@@ -61,16 +53,17 @@ export const markPurchase = mutation({
     // owner has no email, we silently skip — the credit is still applied.
     const owner = await ctx.db.get(org.ownerId);
     if (owner?.email) {
-      const amountFormatted = formatPaygAmount(args.amountMinor, args.currency);
       const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://wedillybird.com';
       await ctx.scheduler.runAfter(0, internal.emailActions.sendProNotification, {
         to: owner.email,
-        recipientName: owner.fullName ?? owner.phone ?? 'Bonjour',
+        recipientName: owner.fullName ?? owner.phone ?? '',
         organizationName: org.name,
         kind: 'payg-credit-activated' as const,
-        detail: `Votre achat Pay-as-you-go de ${amountFormatted} a été confirmé. Vous avez désormais ${currentCredits + 1} crédit${currentCredits + 1 > 1 ? 's' : ''} disponible${currentCredits + 1 > 1 ? 's' : ''} pour activer un événement ponctuel.`,
-        ctaLabel: 'Voir mon solde',
+        detailKey: 'paygCreditDetail',
+        detailVars: { credits: currentCredits + 1 },
+        ctaLabelKey: 'paygCreditActivated',
         ctaUrl: `${baseUrl.replace(/\/$/, '')}/pro/billing`,
+        locale: owner.locale,
       });
     }
 

@@ -34,6 +34,7 @@ import { renderWhatsappTemplateStatusEmail } from '../lib/email/templates';
 import type { TemplateStatusKind } from '../lib/email/templates';
 import type { Id } from './_generated/dataModel';
 import { sendWhatsAppCloudTemplate } from './lib/whatsappCloud';
+import { getServerTranslator, resolveLocale } from '../lib/i18n/server-translator';
 
 type NotifyChannel = 'whatsapp' | 'email' | 'both';
 
@@ -47,6 +48,7 @@ interface NotifyRow {
   ownerFullName: string;
   ownerEmail?: string;
   ownerPhone?: string;
+  ownerLocale?: string;
   eventTitle: string;
   templateNotifyChannel: NotifyChannel;
 }
@@ -67,26 +69,23 @@ function sesClient(): SESv2Client {
   return cachedSes;
 }
 
-function statusVerb(status: TemplateStatusKind): string {
-  switch (status) {
-    case 'approved':
-      return 'validé';
-    case 'rejected':
-      return 'refusé';
-    case 'disabled':
-      return 'désactivé';
-    case 'paused':
-      return 'suspendu';
-  }
-}
+const STATUS_VERB_KEY: Record<
+  TemplateStatusKind,
+  'verbApproved' | 'verbRejected' | 'verbDisabled' | 'verbPaused'
+> = {
+  approved: 'verbApproved',
+  rejected: 'verbRejected',
+  disabled: 'verbDisabled',
+  paused: 'verbPaused',
+};
 
-function buildEventUrl(eventId: string): string {
+function buildEventUrl(eventId: string, locale: string): string {
   const base = (
     process.env.APP_BASE_URL ??
     process.env.NEXT_PUBLIC_APP_URL ??
     'https://wedillybird.com'
   ).replace(/\/$/, '');
-  return `${base}/fr/events/${eventId}/messaging`;
+  return `${base}/${locale}/events/${eventId}/messaging`;
 }
 
 async function sendEmailNotification(
@@ -97,14 +96,17 @@ async function sendEmailNotification(
   eventId: string,
   status: TemplateStatusKind,
   rejectionReason: string | undefined,
+  locale: string | undefined,
 ): Promise<{ ok: boolean; error?: string }> {
+  const resolvedLocale = resolveLocale(locale);
   const rendered = renderWhatsappTemplateStatusEmail({
     recipientName,
     templateName,
     eventTitle,
     status,
     rejectionReason,
-    ctaUrl: buildEventUrl(eventId),
+    ctaUrl: buildEventUrl(eventId, resolvedLocale),
+    locale: resolvedLocale,
   });
 
   const driver = process.env.EMAIL_DRIVER ?? 'ses';
@@ -146,16 +148,22 @@ async function sendWhatsappNotification(
   templateName: string,
   status: TemplateStatusKind,
   rejectionReason: string | undefined,
+  locale: string | undefined,
 ): Promise<{ ok: boolean; error?: string }> {
   const notifyTemplateName =
     process.env.WHATSAPP_TEMPLATE_STATUS_TEMPLATE ?? 'template_status_update';
 
+  const t = getServerTranslator(locale);
+  const verb = t(
+    `Emails.whatsappTemplateStatus.${STATUS_VERB_KEY[status]}` as 'Emails.whatsappTemplateStatus.verbApproved',
+  );
+
   const reasonOrCta =
     status === 'approved'
-      ? 'Vous pouvez maintenant utiliser ce template pour vos invitations.'
+      ? t('WhatsApp.templateStatus.approvedHint')
       : rejectionReason
-        ? `Raison : ${rejectionReason}`
-        : 'Vous pouvez ajuster votre template et le soumettre à nouveau.';
+        ? t('WhatsApp.templateStatus.rejectedReason', { reason: rejectionReason })
+        : t('WhatsApp.templateStatus.adjustHint');
 
   const result = await sendWhatsAppCloudTemplate({
     to: toPhoneE164,
@@ -166,7 +174,7 @@ async function sendWhatsappNotification(
         parameters: [
           { type: 'text', text: recipientName },
           { type: 'text', text: templateName },
-          { type: 'text', text: statusVerb(status) },
+          { type: 'text', text: verb },
           { type: 'text', text: reasonOrCta },
         ],
       },
@@ -238,6 +246,7 @@ export const dispatchPendingNotifications = action({
           row.eventId,
           status,
           row.rejectionReason,
+          row.ownerLocale,
         );
         if (!r.ok) {
           console.error(
@@ -254,6 +263,7 @@ export const dispatchPendingNotifications = action({
           row.name,
           status,
           row.rejectionReason,
+          row.ownerLocale,
         );
         if (!r.ok) {
           console.error(

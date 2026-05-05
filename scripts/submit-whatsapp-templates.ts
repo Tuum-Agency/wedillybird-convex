@@ -4,7 +4,7 @@
  *
  * Usage :
  *   WHATSAPP_ACCESS_TOKEN=EAAxxx WHATSAPP_WABA_ID=123456 \
- *     pnpm tsx scripts/submit-whatsapp-templates.ts [--dry-run] [--template <name>]
+ *     pnpm tsx scripts/submit-whatsapp-templates.ts [--dry-run] [--template <name>] [--language <code>]
  *
  * Variables d'environnement requises :
  *   - WHATSAPP_ACCESS_TOKEN : token avec scope `whatsapp_business_management`
@@ -15,17 +15,17 @@
  *   - APP_BASE_URL : default "https://wedillybird.com" (pour le bouton CTA URL)
  *
  * Flags :
- *   - --dry-run     : simule sans appeler Meta (affiche les payloads JSON)
- *   - --template X  : ne soumet QUE le template nommé X (utile pour test ciblé)
+ *   - --dry-run        : simule sans appeler Meta (affiche les payloads JSON)
+ *   - --template X     : ne soumet QUE le template nommé X (utile pour test ciblé)
+ *   - --language CODE  : ne soumet QUE pour la locale CODE (fr, en, es, it, pt, de, ar)
  *
  * Le script est idempotent : avant chaque soumission il interroge l'API
- * Meta pour vérifier si un template avec le même nom existe déjà (peu importe
- * son status). Si oui : skip silencieux. Sinon : POST /message_templates.
+ * Meta pour vérifier si un template avec le même couple (name, language)
+ * existe déjà. Si oui : skip silencieux. Sinon : POST /message_templates.
  *
- * Templates soumis :
+ * Templates soumis (× 7 langues = 70 soumissions au total) :
  *   - 5x wedding_invitation_<style> (catégorie MARKETING)
- *   - template_status_update (catégorie UTILITY) — notif au couple sur
- *     validation/refus d'un template custom
+ *   - template_status_update (UTILITY) — notif au couple sur validation/refus
  *   - team_invitation (UTILITY) — pro invite collaborateur
  *   - rsvp_reminder_d7 (UTILITY) — rappel J-7 invité
  *   - rsvp_reminder_d1 (UTILITY) — rappel J-1 invité
@@ -37,6 +37,17 @@
  */
 
 import { INVITATION_STYLES } from '../lib/whatsapp/templates';
+import {
+  INVITATION_TRANSLATIONS,
+  META_LANG_CODE,
+  RSVP_CONFIRMATION_TRANSLATIONS,
+  RSVP_REMINDER_D1_TRANSLATIONS,
+  RSVP_REMINDER_D7_TRANSLATIONS,
+  TEAM_INVITATION_TRANSLATIONS,
+  TEMPLATE_STATUS_UPDATE_TRANSLATIONS,
+  type NonFrLocale,
+} from '../lib/whatsapp/template-translations';
+import { routing, type Locale } from '../i18n/routing';
 
 const ACCESS_TOKEN = process.env.WHATSAPP_ACCESS_TOKEN;
 const WABA_ID = process.env.WHATSAPP_WABA_ID;
@@ -48,6 +59,16 @@ const args = process.argv.slice(2);
 const DRY_RUN = args.includes('--dry-run') || process.env.DRY_RUN === '1';
 const templateFlagIdx = args.indexOf('--template');
 const ONLY_TEMPLATE = templateFlagIdx >= 0 ? args[templateFlagIdx + 1] : undefined;
+const languageFlagIdx = args.indexOf('--language');
+const ONLY_LANGUAGE =
+  languageFlagIdx >= 0 ? (args[languageFlagIdx + 1] as Locale | undefined) : undefined;
+
+if (ONLY_LANGUAGE && !routing.locales.includes(ONLY_LANGUAGE)) {
+  console.error(
+    `❌ --language "${ONLY_LANGUAGE}" invalide. Valeurs acceptées : ${routing.locales.join(', ')}`,
+  );
+  process.exit(1);
+}
 
 if (!DRY_RUN) {
   if (!ACCESS_TOKEN) {
@@ -82,17 +103,59 @@ interface MetaTemplateBody {
   >;
 }
 
+/* -------------------------------------------------------------------------- */
+/*  Bodies FR canoniques pour les templates UTILITY                            */
+/*  (les bodies invitations FR sont dans INVITATION_STYLES)                    */
+/* -------------------------------------------------------------------------- */
+
+const FR_TEMPLATE_STATUS_UPDATE_BODY =
+  "Bonjour {{1}},\n\nVotre template WhatsApp « {{2}} » a été {{3}} par WhatsApp.\n\n{{4}}\n\nL'équipe Wedillybird.";
+
+const FR_TEAM_INVITATION_BODY =
+  "Bonjour {{1}},\n\n{{2}} vous invite à rejoindre l'équipe « {{3}} » sur Wedillybird.\n\nCliquez sur le bouton ci-dessous pour accepter l'invitation.";
+const FR_TEAM_INVITATION_CTA = "Rejoindre l'équipe";
+
+const FR_RSVP_REMINDER_D7_BODY =
+  "Bonjour {{1}},\n\nLe mariage de {{2}} approche : c'est dans 7 jours, le {{3}}.\n\nMerci de confirmer votre présence dès maintenant pour aider les mariés à finaliser le plan de table.";
+const FR_RSVP_REMINDER_D7_CTA = 'Confirmer ma présence';
+
+const FR_RSVP_REMINDER_D1_BODY =
+  "Bonjour {{1}},\n\nLe grand jour de {{2}} est demain ! Rendez-vous à {{3}}.\n\nRetrouvez les détails et l'horaire sur votre invitation personnalisée.";
+const FR_RSVP_REMINDER_D1_CTA = "Voir l'invitation";
+
+const FR_RSVP_CONFIRMATION_BODY =
+  'Bonjour {{1}},\n\nNous avons bien enregistré votre réponse : {{2}}. {{3}} en sont informé·e·s.\n\nMerci pour votre retour — à très vite !';
+
+/* -------------------------------------------------------------------------- */
+/*  Builders multi-langue                                                      */
+/* -------------------------------------------------------------------------- */
+
+function metaLang(locale: Locale): string {
+  return META_LANG_CODE[locale];
+}
+
 /**
- * Construit le payload Meta pour un template d'invitation.
- * Body avec 4 vars + 1 bouton URL dynamique vers `/i/{{1}}` (token).
+ * Body + CTA d'un template d'invitation pour une locale donnée.
+ * FR vient d'INVITATION_STYLES (source canonique), les autres de
+ * INVITATION_TRANSLATIONS.
  */
+function getInvitationContent(
+  styleId: keyof typeof INVITATION_STYLES,
+  locale: Locale,
+): { body: string; cta: string } {
+  if (locale === 'fr') {
+    const style = INVITATION_STYLES[styleId];
+    return { body: style.bodyText, cta: style.ctaLabel };
+  }
+  const translation = INVITATION_TRANSLATIONS[styleId][locale as NonFrLocale];
+  return { body: translation.body, cta: translation.cta ?? INVITATION_STYLES[styleId].ctaLabel };
+}
+
 function buildInvitationTemplate(
-  name: string,
-  bodyText: string,
-  ctaLabel: string,
+  styleId: keyof typeof INVITATION_STYLES,
+  locale: Locale,
 ): MetaTemplateBody {
-  // Exemples de valeurs réalistes que Meta utilise pour valider le template.
-  // Doivent matcher le nombre de placeholders dans le body : {{1}}…{{4}}.
+  const { body, cta } = getInvitationContent(styleId, locale);
   const sampleVars = [
     'Aminata',
     'Mamadou & Marie',
@@ -101,13 +164,13 @@ function buildInvitationTemplate(
   ];
 
   return {
-    name,
+    name: INVITATION_STYLES[styleId].metaTemplateName,
     category: 'MARKETING',
-    language: 'fr',
+    language: metaLang(locale),
     components: [
       {
         type: 'BODY',
-        text: bodyText,
+        text: body,
         example: { body_text: [sampleVars] },
       },
       {
@@ -115,7 +178,7 @@ function buildInvitationTemplate(
         buttons: [
           {
             type: 'URL',
-            text: ctaLabel,
+            text: cta,
             url: `${APP_BASE_URL}/i/{{1}}`,
             example: [`${APP_BASE_URL}/i/abc123`],
           },
@@ -125,20 +188,11 @@ function buildInvitationTemplate(
   };
 }
 
-/**
- * Template UTILITY `template_status_update` — notif au couple sur
- * validation/refus de leur template custom (cf.
- * convex/whatsappTemplateNotifications.ts).
- *
- * Variables :
- *   {{1}} = prénom du destinataire
- *   {{2}} = nom du template concerné
- *   {{3}} = verbe de status ("validé" / "refusé" / "désactivé" / "suspendu")
- *   {{4}} = call-to-action ou raison de refus (chaîne libre, 1-200 chars)
- */
-function buildTemplateStatusUpdate(): MetaTemplateBody {
-  const bodyText =
-    "Bonjour {{1}},\n\nVotre template WhatsApp « {{2}} » a été {{3}} par WhatsApp.\n\n{{4}}\n\nL'équipe Wedillybird.";
+function buildTemplateStatusUpdate(locale: Locale): MetaTemplateBody {
+  const body =
+    locale === 'fr'
+      ? FR_TEMPLATE_STATUS_UPDATE_BODY
+      : TEMPLATE_STATUS_UPDATE_TRANSLATIONS[locale as NonFrLocale].body;
 
   const sampleVars = [
     'Aminata',
@@ -150,39 +204,35 @@ function buildTemplateStatusUpdate(): MetaTemplateBody {
   return {
     name: 'template_status_update',
     category: 'UTILITY',
-    language: 'fr',
+    language: metaLang(locale),
     components: [
       {
         type: 'BODY',
-        text: bodyText,
+        text: body,
         example: { body_text: [sampleVars] },
       },
     ],
   };
 }
 
-/**
- * Template UTILITY `team_invitation` — un pro invite un collaborateur à
- * rejoindre son organisation.
- *
- * Variables :
- *   {{1}} = prénom du collaborateur invité
- *   {{2}} = nom de l'inviteur (ex: "Mamadou")
- *   {{3}} = nom de l'organisation
- * Bouton URL : `${APP_BASE_URL}/pro/invite/{{1}}` où {{1}} bouton = token.
- */
-function buildTeamInvitation(): MetaTemplateBody {
-  const bodyText =
-    "Bonjour {{1}},\n\n{{2}} vous invite à rejoindre l'équipe « {{3}} » sur Wedillybird.\n\nCliquez sur le bouton ci-dessous pour accepter l'invitation.";
+function buildTeamInvitation(locale: Locale): MetaTemplateBody {
+  const body =
+    locale === 'fr'
+      ? FR_TEAM_INVITATION_BODY
+      : TEAM_INVITATION_TRANSLATIONS[locale as NonFrLocale].body;
+  const cta =
+    locale === 'fr'
+      ? FR_TEAM_INVITATION_CTA
+      : (TEAM_INVITATION_TRANSLATIONS[locale as NonFrLocale].cta ?? FR_TEAM_INVITATION_CTA);
 
   return {
     name: 'team_invitation',
     category: 'UTILITY',
-    language: 'fr',
+    language: metaLang(locale),
     components: [
       {
         type: 'BODY',
-        text: bodyText,
+        text: body,
         example: {
           body_text: [['Aminata', 'Mamadou', 'Studio Wedillybird']],
         },
@@ -192,7 +242,7 @@ function buildTeamInvitation(): MetaTemplateBody {
         buttons: [
           {
             type: 'URL',
-            text: "Rejoindre l'équipe",
+            text: cta,
             url: `${APP_BASE_URL}/pro/invite/{{1}}`,
             example: [`${APP_BASE_URL}/pro/invite/team-token-abc123`],
           },
@@ -202,28 +252,24 @@ function buildTeamInvitation(): MetaTemplateBody {
   };
 }
 
-/**
- * Template UTILITY `rsvp_reminder_d7` — rappel J-7 envoyé aux invités qui
- * n'ont pas confirmé leur présence.
- *
- * Variables :
- *   {{1}} = prénom de l'invité
- *   {{2}} = prénoms du couple
- *   {{3}} = date du mariage formatée
- * Bouton URL : `${APP_BASE_URL}/i/{{1}}` (token de l'invité).
- */
-function buildRsvpReminderD7(): MetaTemplateBody {
-  const bodyText =
-    "Bonjour {{1}},\n\nLe mariage de {{2}} approche : c'est dans 7 jours, le {{3}}.\n\nMerci de confirmer votre présence dès maintenant pour aider les mariés à finaliser le plan de table.";
+function buildRsvpReminderD7(locale: Locale): MetaTemplateBody {
+  const body =
+    locale === 'fr'
+      ? FR_RSVP_REMINDER_D7_BODY
+      : RSVP_REMINDER_D7_TRANSLATIONS[locale as NonFrLocale].body;
+  const cta =
+    locale === 'fr'
+      ? FR_RSVP_REMINDER_D7_CTA
+      : (RSVP_REMINDER_D7_TRANSLATIONS[locale as NonFrLocale].cta ?? FR_RSVP_REMINDER_D7_CTA);
 
   return {
     name: 'rsvp_reminder_d7',
     category: 'UTILITY',
-    language: 'fr',
+    language: metaLang(locale),
     components: [
       {
         type: 'BODY',
-        text: bodyText,
+        text: body,
         example: {
           body_text: [['Aminata', 'Mamadou & Marie', '30 avril 2026']],
         },
@@ -233,7 +279,7 @@ function buildRsvpReminderD7(): MetaTemplateBody {
         buttons: [
           {
             type: 'URL',
-            text: 'Confirmer ma présence',
+            text: cta,
             url: `${APP_BASE_URL}/i/{{1}}`,
             example: [`${APP_BASE_URL}/i/abc123`],
           },
@@ -243,27 +289,24 @@ function buildRsvpReminderD7(): MetaTemplateBody {
   };
 }
 
-/**
- * Template UTILITY `rsvp_reminder_d1` — rappel J-1 (veille du mariage).
- *
- * Variables :
- *   {{1}} = prénom de l'invité
- *   {{2}} = prénoms du couple
- *   {{3}} = lieu du mariage
- * Bouton URL : `${APP_BASE_URL}/i/{{1}}`.
- */
-function buildRsvpReminderD1(): MetaTemplateBody {
-  const bodyText =
-    "Bonjour {{1}},\n\nLe grand jour de {{2}} est demain ! Rendez-vous à {{3}}.\n\nRetrouvez les détails et l'horaire sur votre invitation personnalisée.";
+function buildRsvpReminderD1(locale: Locale): MetaTemplateBody {
+  const body =
+    locale === 'fr'
+      ? FR_RSVP_REMINDER_D1_BODY
+      : RSVP_REMINDER_D1_TRANSLATIONS[locale as NonFrLocale].body;
+  const cta =
+    locale === 'fr'
+      ? FR_RSVP_REMINDER_D1_CTA
+      : (RSVP_REMINDER_D1_TRANSLATIONS[locale as NonFrLocale].cta ?? FR_RSVP_REMINDER_D1_CTA);
 
   return {
     name: 'rsvp_reminder_d1',
     category: 'UTILITY',
-    language: 'fr',
+    language: metaLang(locale),
     components: [
       {
         type: 'BODY',
-        text: bodyText,
+        text: body,
         example: {
           body_text: [['Aminata', 'Mamadou & Marie', 'Domaine des Roses, Versailles']],
         },
@@ -273,7 +316,7 @@ function buildRsvpReminderD1(): MetaTemplateBody {
         buttons: [
           {
             type: 'URL',
-            text: "Voir l'invitation",
+            text: cta,
             url: `${APP_BASE_URL}/i/{{1}}`,
             example: [`${APP_BASE_URL}/i/abc123`],
           },
@@ -283,27 +326,20 @@ function buildRsvpReminderD1(): MetaTemplateBody {
   };
 }
 
-/**
- * Template UTILITY `rsvp_confirmation` — accusé de réception envoyé après
- * que l'invité a répondu à son RSVP.
- *
- * Variables :
- *   {{1}} = prénom de l'invité
- *   {{2}} = statut RSVP (« présent·e », « absent·e », « peut-être »)
- *   {{3}} = prénoms du couple
- */
-function buildRsvpConfirmation(): MetaTemplateBody {
-  const bodyText =
-    'Bonjour {{1}},\n\nNous avons bien enregistré votre réponse : {{2}}. {{3}} en sont informé·e·s.\n\nMerci pour votre retour — à très vite !';
+function buildRsvpConfirmation(locale: Locale): MetaTemplateBody {
+  const body =
+    locale === 'fr'
+      ? FR_RSVP_CONFIRMATION_BODY
+      : RSVP_CONFIRMATION_TRANSLATIONS[locale as NonFrLocale].body;
 
   return {
     name: 'rsvp_confirmation',
     category: 'UTILITY',
-    language: 'fr',
+    language: metaLang(locale),
     components: [
       {
         type: 'BODY',
-        text: bodyText,
+        text: body,
         example: {
           body_text: [['Aminata', 'présent·e', 'Mamadou & Marie']],
         },
@@ -312,19 +348,23 @@ function buildRsvpConfirmation(): MetaTemplateBody {
   };
 }
 
+/* -------------------------------------------------------------------------- */
+/*  Soumission Meta                                                            */
+/* -------------------------------------------------------------------------- */
+
 /**
- * Vérifie si un template avec ce `name` existe déjà côté WABA (peu importe
- * son status : APPROVED / PENDING / REJECTED). Permet l'idempotence du
- * script. Renvoie `true` si un template existe (skip), `false` sinon.
+ * Vérifie si un template avec ce couple (name, language) existe déjà côté
+ * WABA. Permet l'idempotence du script. Renvoie `true` si un template existe
+ * (skip), `false` sinon.
  *
  * En mode --dry-run : skip silencieux du check (on ne tape pas l'API).
  */
-async function templateExists(name: string): Promise<boolean> {
+async function templateExists(name: string, language: string): Promise<boolean> {
   if (DRY_RUN) return false;
 
   const url = `https://graph.facebook.com/${GRAPH_VERSION}/${WABA_ID}/message_templates?name=${encodeURIComponent(
     name,
-  )}&fields=name,status&limit=10`;
+  )}&fields=name,status,language&limit=20`;
 
   const res = await fetch(url, {
     headers: {
@@ -333,19 +373,17 @@ async function templateExists(name: string): Promise<boolean> {
   });
 
   if (!res.ok) {
-    // Si l'API renvoie une erreur, on ne bloque pas — on tente la soumission
-    // et Meta refusera si conflit. C'est plus prudent que de skipper à tort.
     console.warn(
-      `   ⚠️  Lookup template "${name}" failed (HTTP ${res.status}) — proceeding with submit attempt.`,
+      `   ⚠️  Lookup template "${name}/${language}" failed (HTTP ${res.status}) — proceeding with submit attempt.`,
     );
     return false;
   }
 
   const data = (await res.json()) as {
-    data?: Array<{ name: string; status: string }>;
+    data?: Array<{ name: string; status: string; language: string }>;
   };
 
-  const match = data.data?.find((t) => t.name === name);
+  const match = data.data?.find((t) => t.name === name && t.language === language);
   if (match) {
     console.log(`   ⏭  Skipped — already exists (status=${match.status})`);
     return true;
@@ -354,7 +392,7 @@ async function templateExists(name: string): Promise<boolean> {
 }
 
 async function submitTemplate(payload: MetaTemplateBody): Promise<void> {
-  console.log(`\n📤 Submitting "${payload.name}" (${payload.category})...`);
+  console.log(`\n📤 Submitting "${payload.name}" [${payload.language}] (${payload.category})...`);
 
   if (DRY_RUN) {
     console.log('   [dry-run] Payload:');
@@ -367,7 +405,7 @@ async function submitTemplate(payload: MetaTemplateBody): Promise<void> {
     return;
   }
 
-  if (await templateExists(payload.name)) {
+  if (await templateExists(payload.name, payload.language)) {
     return;
   }
 
@@ -399,42 +437,57 @@ async function submitTemplate(payload: MetaTemplateBody): Promise<void> {
   console.log(`   ✅ Submitted — id=${data.id} status=${data.status ?? 'PENDING'}`);
 }
 
+function buildAllTemplatesForLocale(locale: Locale): MetaTemplateBody[] {
+  return [
+    ...(Object.keys(INVITATION_STYLES) as Array<keyof typeof INVITATION_STYLES>).map((styleId) =>
+      buildInvitationTemplate(styleId, locale),
+    ),
+    buildTemplateStatusUpdate(locale),
+    buildTeamInvitation(locale),
+    buildRsvpReminderD7(locale),
+    buildRsvpReminderD1(locale),
+    buildRsvpConfirmation(locale),
+  ];
+}
+
 async function main(): Promise<void> {
+  const localesToSubmit: ReadonlyArray<Locale> = ONLY_LANGUAGE ? [ONLY_LANGUAGE] : routing.locales;
+
   console.log('🚀 Soumission des templates WhatsApp à Meta Business Manager');
   console.log(`   Graph version: ${GRAPH_VERSION}`);
   console.log(`   WABA ID:       ${WABA_ID ?? '(dry-run)'}`);
   console.log(`   Base URL:      ${APP_BASE_URL}`);
+  console.log(`   Locales:       ${localesToSubmit.join(', ')}`);
   if (DRY_RUN) console.log('   ⚠️  DRY_RUN mode — aucun appel API Meta');
   if (ONLY_TEMPLATE) console.log(`   🎯  Filtre: template="${ONLY_TEMPLATE}" uniquement`);
 
-  const templates: MetaTemplateBody[] = [
-    ...Object.values(INVITATION_STYLES).map((style) =>
-      buildInvitationTemplate(style.metaTemplateName, style.bodyText, style.ctaLabel),
-    ),
-    buildTemplateStatusUpdate(),
-    buildTeamInvitation(),
-    buildRsvpReminderD7(),
-    buildRsvpReminderD1(),
-    buildRsvpConfirmation(),
-  ];
+  const allTemplates: MetaTemplateBody[] = [];
+  for (const locale of localesToSubmit) {
+    allTemplates.push(...buildAllTemplatesForLocale(locale));
+  }
 
-  const filtered = ONLY_TEMPLATE ? templates.filter((t) => t.name === ONLY_TEMPLATE) : templates;
+  const filtered = ONLY_TEMPLATE
+    ? allTemplates.filter((t) => t.name === ONLY_TEMPLATE)
+    : allTemplates;
 
   if (ONLY_TEMPLATE && filtered.length === 0) {
+    const uniqueNames = [...new Set(allTemplates.map((t) => t.name))].sort();
     console.error(
-      `\n❌ Aucun template nommé "${ONLY_TEMPLATE}". Templates disponibles :\n   - ${templates
-        .map((t) => t.name)
-        .join('\n   - ')}`,
+      `\n❌ Aucun template nommé "${ONLY_TEMPLATE}". Templates disponibles :\n   - ${uniqueNames.join(
+        '\n   - ',
+      )}`,
     );
     process.exit(1);
   }
+
+  console.log(`   Total à soumettre : ${filtered.length} payload(s)\n`);
 
   for (const template of filtered) {
     await submitTemplate(template);
   }
 
   console.log('\n✨ Terminé. Surveille la validation dans Business Manager → WhatsApp Manager.');
-  console.log('   (Validation typique : 24-48 h)');
+  console.log('   (Validation typique : 24-48 h par template par langue)');
 }
 
 main().catch((err) => {

@@ -1,58 +1,51 @@
+import type { Locale } from '../../../i18n/routing';
+import { getServerTranslator } from '../../i18n/server-translator';
 import type { EmailRendered } from '../types';
 import { button, htmlLayout, paragraph } from './_layout';
 
-/**
- * Email envoyé au propriétaire d'une organisation pro après un achat
- * Pay-as-you-go confirmé. Il succède au webhook `payg.purchased` côté Stripe
- * et l'incrément de `paygCredits` côté Convex (cf. `convex/paygPurchases.ts`
- * action `markPurchase`).
- *
- * Ton chaleureux mais pro : on rappelle le solde de crédits restant et on
- * dirige vers `/pro/billing` pour visualiser l'historique. Optionnellement,
- * on inclut le lien vers la facture Stripe hosted (si transmise par le
- * webhook).
- */
 export interface PaygCreditActivatedInput {
   recipientName: string;
   remainingCredits: number;
   invoiceUrl?: string;
+  locale?: Locale | string;
 }
 
 export function renderPaygCreditActivated(input: PaygCreditActivatedInput): EmailRendered {
-  const { recipientName, remainingCredits, invoiceUrl } = input;
+  const { recipientName, remainingCredits, invoiceUrl, locale } = input;
+  const t = getServerTranslator(locale);
 
-  const creditsLabel = `${remainingCredits} crédit${remainingCredits > 1 ? 's' : ''}`;
-  const availableLabel = `disponible${remainingCredits > 1 ? 's' : ''}`;
-
-  const subject = 'Votre crédit Pay-as-you-go est activé';
+  const isOne = remainingCredits === 1;
+  const subject = t('Emails.paygCreditActivated.subject');
+  const preheader = isOne
+    ? t('Emails.paygCreditActivated.preheaderOne', { credits: remainingCredits })
+    : t('Emails.paygCreditActivated.preheaderMany', { credits: remainingCredits });
+  const thanks = isOne
+    ? t('Emails.paygCreditActivated.thanksOne', { credits: remainingCredits })
+    : t('Emails.paygCreditActivated.thanksMany', { credits: remainingCredits });
 
   const html = htmlLayout({
-    preheader: `Vous avez ${creditsLabel} ${availableLabel} pour activer un événement.`,
+    preheader,
     body:
-      paragraph(`Bonjour ${recipientName},`) +
-      paragraph(
-        `Merci pour votre achat. Votre crédit Pay-as-you-go vient d'être activé : vous avez désormais ${creditsLabel} ${availableLabel} pour publier un événement ponctuel sur Wedillybird.`,
-      ) +
-      paragraph(
-        'Il vous suffit de créer (ou de finaliser) un événement depuis votre espace Pro et de cliquer sur Publier — un crédit sera consommé automatiquement.',
-      ) +
-      (invoiceUrl ? button('Voir ma facture Stripe', invoiceUrl) : '') +
-      paragraph('Merci de faire confiance à Wedillybird pour vos événements.'),
-    footer:
-      "Cet email confirme votre achat à l'usage. Pour toute question, contactez le support Wedillybird.",
+      paragraph(t('Emails.common.greeting', { name: recipientName })) +
+      paragraph(thanks) +
+      paragraph(t('Emails.paygCreditActivated.instructions')) +
+      (invoiceUrl ? button(t('Emails.paygCreditActivated.ctaLabel'), invoiceUrl) : '') +
+      paragraph(t('Emails.paygCreditActivated.thankYou')),
+    footer: t('Emails.paygCreditActivated.footer'),
+    locale,
   });
 
   const text = [
-    `Bonjour ${recipientName},`,
+    t('Emails.common.greeting', { name: recipientName }),
     '',
-    `Merci pour votre achat. Votre crédit Pay-as-you-go vient d'être activé : vous avez désormais ${creditsLabel} ${availableLabel} pour publier un événement ponctuel sur Wedillybird.`,
+    thanks,
     '',
-    'Il vous suffit de créer (ou de finaliser) un événement depuis votre espace Pro et de cliquer sur Publier — un crédit sera consommé automatiquement.',
-    ...(invoiceUrl ? ['', 'Facture Stripe :', invoiceUrl] : []),
+    t('Emails.paygCreditActivated.instructions'),
+    ...(invoiceUrl ? ['', t('Emails.paygCreditActivated.textInvoiceLabel'), invoiceUrl] : []),
     '',
-    'Merci de faire confiance à Wedillybird pour vos événements.',
+    t('Emails.paygCreditActivated.thankYou'),
     '',
-    '— Wedillybird',
+    t('Emails.common.signature'),
   ].join('\n');
 
   return { subject, html, text };

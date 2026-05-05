@@ -1,4 +1,6 @@
 import { Document, Page, StyleSheet, Text, View } from '@react-pdf/renderer';
+import type { Locale } from '../../i18n/routing';
+import { getServerTranslator, toIntlTag } from '../i18n/server-translator';
 import type { Currency, PlanTier } from './plans';
 import { formatAmount } from './plans';
 
@@ -24,21 +26,16 @@ export interface InvoicePayment {
   plan: PlanTier;
   amountMinor: number;
   currency: Currency;
-  /** Provider d'origine — utile pour la mention "réglé via Stripe / CinetPay". */
   provider: 'stripe' | 'cinetpay' | 'mock';
   customer: {
     fullName?: string;
     email?: string;
     phone?: string;
   };
-  /** Titre de l'événement à inscrire en référence. */
   eventTitle?: string;
+  /** Locale de rendu du PDF. Par défaut `fr`. */
+  locale?: Locale | string;
 }
-
-const PLAN_LABEL: Record<PlanTier, string> = {
-  essential: 'Wedillybird — Essentiel',
-  premium: 'Wedillybird — Premium',
-};
 
 const PROVIDER_LABEL: Record<'stripe' | 'cinetpay' | 'mock', string> = {
   stripe: 'Stripe',
@@ -46,7 +43,6 @@ const PROVIDER_LABEL: Record<'stripe' | 'cinetpay' | 'mock', string> = {
   mock: 'Test',
 };
 
-/** TVA applicable seulement en EUR (vendeur FR). */
 function vatBreakdown(payment: InvoicePayment): {
   ht: number;
   vatRate: number;
@@ -60,8 +56,8 @@ function vatBreakdown(payment: InvoicePayment): {
   return { ht: payment.amountMinor, vatRate: 0, vatAmount: 0 };
 }
 
-function formatDate(ms: number): string {
-  return new Intl.DateTimeFormat('fr-FR', {
+function formatDate(ms: number, locale: Locale | string | undefined): string {
+  return new Intl.DateTimeFormat(toIntlTag(locale), {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
@@ -210,8 +206,10 @@ export interface InvoicePDFProps {
 }
 
 export function InvoicePDF({ payment }: InvoicePDFProps) {
+  const t = getServerTranslator(payment.locale);
   const { ht, vatRate, vatAmount } = vatBreakdown(payment);
-  const planLabel = PLAN_LABEL[payment.plan];
+  const planLabel =
+    payment.plan === 'essential' ? t('Invoice.planEssentialFull') : t('Invoice.planPremiumFull');
   const customerLines = [
     payment.customer.fullName,
     payment.customer.email,
@@ -220,53 +218,62 @@ export function InvoicePDF({ payment }: InvoicePDFProps) {
 
   return (
     <Document
-      title={`Facture Wedillybird ${payment.invoiceNumber}`}
+      title={`${t('Invoice.title')} ${payment.invoiceNumber}`}
       author="Wedillybird"
-      subject={`Facture ${payment.invoiceNumber}`}
+      subject={`${t('Invoice.title')} ${payment.invoiceNumber}`}
     >
       <Page size="A4" style={styles.page}>
         <View style={styles.header}>
           <View>
             <Text style={styles.brand}>Wedillybird</Text>
-            <Text style={styles.brandTag}>Votre mariage, organisé sans stress</Text>
+            <Text style={styles.brandTag}>{t('Invoice.brandTagline')}</Text>
           </View>
           <View>
-            <Text style={styles.invoiceTitle}>Facture</Text>
-            <Text style={styles.invoiceMeta}>N° {payment.invoiceNumber}</Text>
-            <Text style={styles.invoiceMeta}>Émise le {formatDate(payment.issuedAt)}</Text>
-            <Text style={styles.invoiceMeta}>Réglée le {formatDate(payment.paidAt)}</Text>
+            <Text style={styles.invoiceTitle}>{t('Invoice.title')}</Text>
+            <Text style={styles.invoiceMeta}>
+              {t('Invoice.number', { value: payment.invoiceNumber })}
+            </Text>
+            <Text style={styles.invoiceMeta}>
+              {t('Invoice.issuedOn', { date: formatDate(payment.issuedAt, payment.locale) })}
+            </Text>
+            <Text style={styles.invoiceMeta}>
+              {t('Invoice.paidOn', { date: formatDate(payment.paidAt, payment.locale) })}
+            </Text>
           </View>
         </View>
 
         <View style={styles.twoColumns}>
           <View style={styles.column}>
-            <Text style={styles.blockTitle}>Émetteur</Text>
+            <Text style={styles.blockTitle}>{t('Invoice.issuerBlockTitle')}</Text>
             <Text style={styles.blockBody}>
-              Wedillybird (Tuum Agency){'\n'}
-              contact@wedillybird.com{'\n'}
-              SIRET — à compléter{'\n'}
-              TVA intracom. — à compléter
+              {t('Invoice.issuerName')}
+              {'\n'}
+              {t('Invoice.issuerEmail')}
+              {'\n'}
+              {t('Invoice.issuerSiret')}
+              {'\n'}
+              {t('Invoice.issuerVat')}
             </Text>
           </View>
           <View style={styles.column}>
-            <Text style={styles.blockTitle}>Client</Text>
+            <Text style={styles.blockTitle}>{t('Invoice.customerBlockTitle')}</Text>
             <Text style={styles.blockBody}>
-              {customerLines.length > 0 ? customerLines.join('\n') : 'Client particulier'}
+              {customerLines.length > 0 ? customerLines.join('\n') : t('Invoice.customerFallback')}
             </Text>
           </View>
         </View>
 
         <View style={styles.table}>
           <View style={styles.tableHeader}>
-            <Text style={[styles.th, styles.colDescription]}>Désignation</Text>
-            <Text style={[styles.th, styles.colAmount]}>Montant TTC</Text>
+            <Text style={[styles.th, styles.colDescription]}>{t('Invoice.columnDescription')}</Text>
+            <Text style={[styles.th, styles.colAmount]}>{t('Invoice.columnAmountTtc')}</Text>
           </View>
           <View style={styles.tableRow}>
             <View style={styles.colDescription}>
               <Text style={styles.td}>{planLabel}</Text>
               {payment.eventTitle ? (
                 <Text style={[styles.td, { color: '#888', marginTop: 2 }]}>
-                  Événement : {payment.eventTitle}
+                  {t('Invoice.eventReference', { title: payment.eventTitle })}
                 </Text>
               ) : null}
             </View>
@@ -280,22 +287,24 @@ export function InvoicePDF({ payment }: InvoicePDFProps) {
           {vatRate > 0 ? (
             <>
               <View style={styles.totalRow}>
-                <Text style={styles.totalLabel}>Total HT</Text>
+                <Text style={styles.totalLabel}>{t('Invoice.totalHt')}</Text>
                 <Text style={styles.totalValue}>{formatAmount(ht, payment.currency)}</Text>
               </View>
               <View style={styles.totalRow}>
-                <Text style={styles.totalLabel}>TVA ({(vatRate * 100).toFixed(0)} %)</Text>
+                <Text style={styles.totalLabel}>
+                  {t('Invoice.vatLabel', { rate: (vatRate * 100).toFixed(0) })}
+                </Text>
                 <Text style={styles.totalValue}>{formatAmount(vatAmount, payment.currency)}</Text>
               </View>
             </>
           ) : (
             <View style={styles.totalRow}>
-              <Text style={styles.totalLabel}>TVA non applicable, art. 293 B du CGI</Text>
+              <Text style={styles.totalLabel}>{t('Invoice.vatNotApplicable')}</Text>
               <Text style={styles.totalValue}>—</Text>
             </View>
           )}
           <View style={styles.totalRowGrand}>
-            <Text style={styles.totalLabelGrand}>Total TTC</Text>
+            <Text style={styles.totalLabelGrand}>{t('Invoice.totalTtc')}</Text>
             <Text style={styles.totalValueGrand}>
               {formatAmount(payment.amountMinor, payment.currency)}
             </Text>
@@ -303,10 +312,13 @@ export function InvoicePDF({ payment }: InvoicePDFProps) {
         </View>
 
         <Text style={styles.footer}>
-          Paiement réglé via {PROVIDER_LABEL[payment.provider]} le {formatDate(payment.paidAt)}.
-          Cette facture est conservée 10 ans conformément au Code de commerce.{'\n'}
-          Pour toute question relative à cette facture, écrivez-nous à billing@wedillybird.com en
-          précisant le numéro de facture {payment.invoiceNumber}.
+          {t('Invoice.footerSettledVia', {
+            provider: PROVIDER_LABEL[payment.provider],
+            date: formatDate(payment.paidAt, payment.locale),
+          })}{' '}
+          {t('Invoice.footerRetention')}
+          {'\n'}
+          {t('Invoice.footerSupport', { number: payment.invoiceNumber })}
         </Text>
       </Page>
     </Document>

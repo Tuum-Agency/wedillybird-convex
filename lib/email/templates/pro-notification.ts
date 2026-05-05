@@ -1,3 +1,5 @@
+import type { Locale } from '../../../i18n/routing';
+import { getServerTranslator } from '../../i18n/server-translator';
 import type { EmailRendered } from '../types';
 import { button, htmlLayout, paragraph } from './_layout';
 
@@ -15,36 +17,45 @@ export type ProNotificationInput = {
   detail: string;
   ctaLabel?: string;
   ctaUrl?: string;
+  locale?: Locale | string;
 };
 
-const SUBJECTS: Record<ProNotificationKind, (org: string) => string> = {
-  'team-member-added': (org) => `Nouveau membre dans ${org}`,
-  'payment-received': (org) => `Paiement reçu — ${org}`,
-  'subscription-renewed': (org) => `Abonnement renouvelé — ${org}`,
-  'subscription-failed': (org) => `Échec de paiement — ${org}`,
-  'payg-credit-activated': (org) => `Crédit Pay-as-you-go activé — ${org}`,
+const KIND_KEY: Record<ProNotificationKind, string> = {
+  'team-member-added': 'teamMemberAdded',
+  'payment-received': 'paymentReceived',
+  'subscription-renewed': 'subscriptionRenewed',
+  'subscription-failed': 'subscriptionFailed',
+  'payg-credit-activated': 'paygCreditActivated',
 };
 
 export function renderProNotification(input: ProNotificationInput): EmailRendered {
-  const { recipientName, organizationName, kind, detail, ctaLabel, ctaUrl } = input;
-  const subject = SUBJECTS[kind](organizationName);
+  const { recipientName, organizationName, kind, detail, ctaLabel, ctaUrl, locale } = input;
+  const t = getServerTranslator(locale);
+
+  const subject = t(
+    `Emails.proNotification.${KIND_KEY[kind]}.subject` as 'Emails.proNotification.teamMemberAdded.subject',
+    {
+      organizationName,
+    },
+  );
 
   const html = htmlLayout({
     preheader: detail,
     body:
-      paragraph(`Bonjour ${recipientName},`) +
+      paragraph(t('Emails.common.greeting', { name: recipientName })) +
       paragraph(detail) +
       (ctaLabel && ctaUrl ? button(ctaLabel, ctaUrl) : ''),
-    footer: `Notification envoyée pour l'organisation ${organizationName}.`,
+    footer: t('Emails.proNotification.footer', { organizationName }),
+    locale,
   });
 
   const text = [
-    `Bonjour ${recipientName},`,
+    t('Emails.common.greeting', { name: recipientName }),
     '',
     detail,
     ...(ctaLabel && ctaUrl ? ['', ctaLabel + ' :', ctaUrl] : []),
     '',
-    `— Wedillybird (${organizationName})`,
+    t('Emails.proNotification.signatureWithOrg', { organizationName }),
   ].join('\n');
 
   return { subject, html, text };

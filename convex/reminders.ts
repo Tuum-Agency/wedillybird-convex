@@ -45,6 +45,7 @@ export const dispatchDailyGuestReminders = internalAction({
         coupleNames: { partnerA: string; partnerB: string };
         venue?: { name: string; address: string };
         preferredChannel?: ReminderChannel;
+        ownerLocale?: string;
       }> = await ctx.runQuery(internal.reminders.listEventsInWindow, {
         start: window.start,
         end: window.end,
@@ -111,6 +112,7 @@ export const dispatchDailyGuestReminders = internalAction({
               invitationUrl,
               daysUntilEvent: days,
               tier,
+              locale: event.ownerLocale,
             });
             dispatched = true;
           }
@@ -155,16 +157,23 @@ export const listEventsInWindow = internalQuery({
       .query('events')
       .filter((q) => q.and(q.gte(q.field('eventDate'), start), q.lte(q.field('eventDate'), end)))
       .collect();
-    return events.map((e) => ({
-      _id: e._id,
-      title: e.title,
-      eventDate: e.eventDate,
-      timezone: e.timezone,
-      status: e.status,
-      coupleNames: e.coupleNames,
-      venue: e.venue,
-      preferredChannel: e.messagingConfig?.preferredChannel,
-    }));
+    const enriched = await Promise.all(
+      events.map(async (e) => {
+        const owner = await ctx.db.get(e.ownerId);
+        return {
+          _id: e._id,
+          title: e.title,
+          eventDate: e.eventDate,
+          timezone: e.timezone,
+          status: e.status,
+          coupleNames: e.coupleNames,
+          venue: e.venue,
+          preferredChannel: e.messagingConfig?.preferredChannel,
+          ownerLocale: owner?.locale,
+        };
+      }),
+    );
+    return enriched;
   },
 });
 

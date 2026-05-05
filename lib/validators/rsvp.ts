@@ -46,7 +46,7 @@ export const rsvpSubmitSchema = z
       ctx.addIssue({
         code: 'custom',
         path: ['plusOnesNames'],
-        message: 'Accompagnants autorisés uniquement si présence confirmée',
+        message: 'Validation.plusOnesOnlyAttending',
       });
     }
   });

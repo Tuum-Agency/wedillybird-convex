@@ -1,0 +1,1298 @@
+{
+  "Common": {
+    "appName": "Wedillybird",
+    "tagline": "Your wedding, organised stress-free",
+    "signIn": "Sign in",
+    "signUp": "Create an account",
+    "getStarted": "Get started",
+    "signOut": "Sign out",
+    "continue": "Continue",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "back": "Back",
+    "loading": "Loading…",
+    "error": "Something went wrong",
+    "retry": "Try again",
+    "skipToContent": "Skip to main content"
+  },
+  "Footer": {
+    "allRightsReserved": "All rights reserved",
+    "navLabel": "Legal links",
+    "terms": "Terms",
+    "privacy": "Privacy",
+    "cookies": "Cookies",
+    "faq": "FAQ",
+    "contact": "Contact"
+  },
+  "Legal": {
+    "terms": {
+      "title": "Terms of Service",
+      "lastUpdated": "Last updated: April 25, 2026",
+      "article1Title": "1. Purpose",
+      "article1Body": "Wedillybird (\"the Service\") provides a SaaS wedding-planning platform offering guest management, WhatsApp invitations, RSVP tracking, check-in and shared photo galleries. These Terms of Service govern the use of the Service by anyone accessing it (\"the User\").",
+      "article2Title": "2. Acceptance",
+      "article2Body": "Use of the Service implies full and unconditional acceptance of these Terms. The User acknowledges having read and accepted them without reservation when creating their account.",
+      "article3Title": "3. Account and access",
+      "article3Body": "Access to the Service requires creating an account by verifying a WhatsApp number. The User is responsible for the confidentiality of their number and for any action taken from their account. Any unauthorised use must be reported immediately.",
+      "article4Title": "4. Pricing and payment",
+      "article4Body": "The Service is offered with no free tier. For individuals planning a wedding, two one-shot plans are available: Essential (€19, core features + 30-day gallery) and Premium (€49, Essential + 6-month gallery + PDF album). A post-wedding upsell (+€29) extends the gallery to 5 years and adds the HD photo book. For professionals, monthly or annual subscriptions (Starter €89/month, Business €179/month, Agency €349/month, -20% annual) or pay-as-you-go (€69 per event). Payments are processed by Stripe (Europe) or CinetPay (West Africa). Full refund within 7 days if the event has not been sent. If the wedding is cancelled, free postponement to another date.",
+      "article5Title": "5. Intellectual property",
+      "article5Body": "The User retains ownership of the content they upload. They grant Wedillybird a non-exclusive licence to use this content solely for the operation of the Service. Wedillybird retains ownership of the platform, its code and brand.",
+      "article6Title": "6. Liability",
+      "article6Body": "The Service is provided \"as is\". Wedillybird strives to ensure maximum availability but does not guarantee uninterrupted service. Wedillybird's liability is limited to the amount paid by the User over the past 12 months.",
+      "article7Title": "7. Governing law and disputes",
+      "article7Body": "These Terms are governed by French law. Any dispute relating to their performance shall fall within the exclusive jurisdiction of the Paris courts, except for any contrary provision of public policy."
+    },
+    "privacy": {
+      "title": "Privacy Policy",
+      "lastUpdated": "Last updated: April 25, 2026",
+      "controllerTitle": "Data controller",
+      "controllerBody": "Wedillybird, a platform operated by Tuum Agency, is the controller for the data collected through the Service.",
+      "dataCollectedTitle": "Data collected",
+      "dataCollectedBody": "WhatsApp number (authentication), name and email (profile), information related to the weddings being organised (dates, venues, guest lists), photos shared in the gallery, technical logs (IP, user-agent).",
+      "purposesTitle": "Purposes",
+      "purposesBody": "Provide the Service, authenticate users, send invitations and notifications, process payments, prevent fraud, improve the platform.",
+      "legalBasisTitle": "Legal bases (GDPR)",
+      "legalBasisBody": "Performance of the contract (account, payments, features), legitimate interest (security, abuse prevention), consent (non-essential cookies, marketing communications).",
+      "retentionTitle": "Retention period",
+      "retentionBody": "Account data: duration of the subscription + 3 years. Payment data: legal duration (10 years for invoicing). Technical logs: 12 months maximum.",
+      "subprocessorsTitle": "Subprocessors",
+      "subprocessorsBody": "Convex (database, US), Vercel (hosting, US/EU), Stripe (payments, EU/US), Meta WhatsApp Cloud API (message delivery, EU/US), Amazon Rekognition Faces (temporary face indexing for photo search, EU). Data is minimised, never resold or shared with third parties for marketing. All bound by standard contractual clauses or equivalent mechanisms.",
+      "rightsTitle": "Your rights",
+      "rightsBody": "Access, rectification, erasure, objection, portability, restriction. To exercise a right, write to privacy@wedillybird.com. You can also file a complaint with the CNIL.",
+      "contactTitle": "Contact",
+      "contactBody": "Email: privacy@wedillybird.com. Reply within 30 days in line with the GDPR."
+    },
+    "cookies": {
+      "title": "Cookie Policy",
+      "lastUpdated": "Last updated: April 25, 2026",
+      "whatTitle": "What is a cookie?",
+      "whatBody": "A cookie is a small text file stored on your device by a website. Wedillybird uses cookies that are essential to the operation of the Service.",
+      "typesTitle": "Cookies used",
+      "typesBody": "Session cookie (authentication, HMAC-signed, expires after 30 days of inactivity). Local IndexedDB storage (offline cache for check-in). No advertising or third-party tracking cookies are placed.",
+      "controlTitle": "Control cookies",
+      "controlBody": "You can delete cookies through your browser settings. Disabling the session cookie will sign you out of the Service.",
+      "thirdPartiesTitle": "Third-party cookies",
+      "thirdPartiesBody": "Stripe sets its own cookies on its payment pages (outside the Wedillybird domain) for fraud prevention. See its privacy policy."
+    }
+  },
+  "Account": {
+    "link": {
+      "eyebrow": "ACTIVATE",
+      "phone": {
+        "title": "Enable WhatsApp sign-in",
+        "description": "Get a code on WhatsApp to sign in without a password. Faster than email.",
+        "cta": "Link my WhatsApp",
+        "drawer": {
+          "title": "Link your WhatsApp",
+          "step1Description": "Enter your WhatsApp number to receive a 6-digit code.",
+          "step2Description": "Enter the code sent to {value}.",
+          "successTitle": "WhatsApp linked to your account",
+          "successDescription": "You can now sign in with your number."
+        }
+      },
+      "email": {
+        "title": "Enable email sign-in",
+        "description": "Get a code by email to sign in without WhatsApp. Handy for older guests.",
+        "cta": "Link my email",
+        "drawer": {
+          "title": "Link your email address",
+          "step1Description": "Enter your email to receive a 6-digit code.",
+          "step2Description": "Enter the code sent to {value}.",
+          "successTitle": "Email linked to your account",
+          "successDescription": "You can now sign in with your email address."
+        }
+      },
+      "phoneLabel": "WhatsApp number",
+      "phonePlaceholder": "+33 6 12 34 56 78",
+      "emailLabel": "Email address",
+      "emailPlaceholder": "you@email.com",
+      "codeLabel": "6-digit code received",
+      "sendCode": "Send code",
+      "sending": "Sending…",
+      "verify": "Verify",
+      "verifying": "Verifying…",
+      "changeValue": "Change",
+      "done": "Done",
+      "errors": {
+        "invalidPhone": "Invalid phone number",
+        "invalidEmail": "Invalid email address",
+        "invalidCode": "Incorrect or incomplete code",
+        "phoneTaken": "This number is already used by another account. Sign in with this number to recover it.",
+        "emailTaken": "This address is already used by another account. Sign in with this address to recover it.",
+        "alreadyLinked": "This identifier is already linked to your account.",
+        "rateLimited": "Too many requests. Please wait a few minutes.",
+        "noActiveLink": "No pending code. Request a new one.",
+        "expired": "The code has expired. Request a new one.",
+        "tooManyAttempts": "Too many attempts. Request a new code.",
+        "sendFailed": "Could not send. Try again in a moment.",
+        "network": "Network unavailable. Check your connection.",
+        "unauthenticated": "Session expired. Sign in again.",
+        "unknown": "Something went wrong. Try again."
+      }
+    }
+  },
+  "Contact": {
+    "eyebrow": "WRITE TO US",
+    "title": "A question, a project, a kind word?",
+    "subtitle": "Our whole team reads every message. A human reply within 24 business hours, in English — simple promise.",
+    "infoTitle": "Other channels",
+    "infoEmail": "Direct email",
+    "infoEmailValue": "hello@wedillybird.com",
+    "infoSupport": "Technical support",
+    "infoSupportValue": "support@wedillybird.com",
+    "infoPrivacy": "Personal data",
+    "infoPrivacyValue": "privacy@wedillybird.com",
+    "infoHours": "Availability",
+    "infoHoursValue": "Monday to Friday, 9 AM – 7 PM (CET)",
+    "form": {
+      "nameLabel": "Your name",
+      "namePlaceholder": "Aminata Diallo",
+      "emailLabel": "Email address",
+      "emailPlaceholder": "you@email.com",
+      "subjectLabel": "Subject",
+      "subjectPlaceholder": "Wedding in June, I'd love to know more…",
+      "messageLabel": "Message",
+      "messagePlaceholder": "Tell us everything — planned date, guest count, your questions.",
+      "websiteLabel": "Leave blank (anti-spam)",
+      "submit": "Send message",
+      "sending": "Sending…",
+      "successEyebrow": "MESSAGE RECEIVED",
+      "successTitle": "Thank you, we'll get back to you very soon.",
+      "successDescription": "Your message just landed in our team's inbox. Personalised reply within 24 business hours.",
+      "successBack": "Send another message",
+      "errorGeneric": "Couldn't send the message. Try again in a moment.",
+      "errorNetwork": "Network unavailable. Check your connection and try again.",
+      "errorValidation": "A few fields need fixing before sending."
+    }
+  },
+  "Faq": {
+    "title": "Frequently asked questions",
+    "subtitle": "Everything you need to know about Wedillybird.",
+    "questions": {
+      "account": {
+        "q": "How do I create my account?",
+        "a": "Click \"Create an account\", enter your WhatsApp number and type the 6-digit code received on WhatsApp. No password needed."
+      },
+      "invitations": {
+        "q": "How do I send invitations to my guests?",
+        "a": "Add your guests from the \"Manage guests\" page, then send them the personalised link Wedillybird generates for each one. Every guest gets a unique QR code for check-in."
+      },
+      "rsvp": {
+        "q": "How does RSVP tracking work?",
+        "a": "Your guests reply directly from their personalised link. You see responses arrive in real time on your dashboard, with the count of confirmed, declined and pending."
+      },
+      "checkin": {
+        "q": "Does check-in work without internet?",
+        "a": "Yes. The check-in page caches the guest list locally. You can scan QR codes even without a connection; data syncs as soon as the connection comes back."
+      },
+      "gallery": {
+        "q": "Can my guests add photos to the gallery?",
+        "a": "Yes. From their invitation page, they can upload photos that go through your moderation before appearing in the shared gallery."
+      },
+      "pricing": {
+        "q": "What are the prices?",
+        "a": "Two one-shot plans per wedding: Essential (€19) for WhatsApp invitations, RSVP, QR check-in and dashboard; Premium (€49) which adds a 6-month shared photo gallery and the final PDF album. A post-wedding upsell at +€29 lets you keep your gallery for 5 years with an HD photo book and high-definition export."
+      },
+      "support": {
+        "q": "How do I contact support?",
+        "a": "Write to support@wedillybird.com. Reply within 24 business hours."
+      },
+      "guestVsInvitation": {
+        "q": "What's the difference between an invitation and a guest?",
+        "a": "An invitation = one entry in your list corresponding to a primary person (e.g. your cousin Aminata) to whom you send a personalised link with their QR code. That person can indicate in their reply that they will be coming with N additional people (for example their partner and children). The plan quota counts the number of invitations sent, not the total number of people attending. So with the Sérénité plan (150 invitations), you can welcome far more than 150 actual people on the day."
+      }
+    }
+  },
+  "Landing": {
+    "hero": {
+      "chapter": "CHAPTER 01 — THE INVITATION",
+      "title": "A wedding lives in the conversation.",
+      "titleAccent": "Make it happen there.",
+      "subtitle": "Your guests are already on WhatsApp. Wedillybird orchestrates everything there — the invitation, the RSVP, the day itself and the memories. Discreetly, until the next wedding.",
+      "ctaPrimary": "Plan my wedding",
+      "ctaSecondary": "See plans",
+      "trust": {
+        "stat": "1,240 weddings celebrated",
+        "rating": "4.9 / 5 couple satisfaction",
+        "regions": "Available worldwide"
+      },
+      "card": {
+        "label": "INVITATION · JUNE 8, 2026",
+        "couple": "Camille & Hugo",
+        "venue": "Domaine des Lilas",
+        "rsvpHint": "RSVP open on WhatsApp"
+      }
+    },
+    "manifesto": {
+      "chapter": "CHAPTER 02 — THE MANIFESTO",
+      "eyebrow": "Our conviction",
+      "title": "A wedding is no longer planned in a PDF.",
+      "lede": "You've probably received an invitation by email. You opened it once, maybe. Printed it? Never. Meanwhile, your guests are texting each other on WhatsApp to confirm they're coming, ask for the address, share their photos. That's where a wedding lives today — in the conversation. That's where it should be organised.",
+      "before": {
+        "label": "Yesterday",
+        "body": "An overflowing inbox, a shared spreadsheet that goes out of sync, WhatsApp follow-ups to 47 people that eat up an entire afternoon. The constant doubt: \"did Grandma actually get it?\""
+      },
+      "after": {
+        "label": "Today",
+        "body": "A single personalised link per guest, opened the moment it lands, RSVP confirmed in 30 seconds. You watch replies come in without chasing anyone. On the day itself, offline check-in keeps working even when the château's WiFi gives up."
+      },
+      "pullquote": "Six months after the wedding, your guests are still flipping through the photos. That's what Wedillybird gives you — not an app, a moment that lasts.",
+      "stats": {
+        "openRate": {
+          "value": 98,
+          "suffix": "%",
+          "label": "of invitations opened",
+          "context": "vs 22% by traditional email"
+        },
+        "rsvpSpeed": {
+          "value": 73,
+          "suffix": "%",
+          "label": "of RSVPs within 24 hours",
+          "context": "average across the first 30 invitations"
+        },
+        "memory": {
+          "value": 5,
+          "suffix": " years",
+          "label": "of memories preserved",
+          "context": "with the Premium + post-wedding upsell"
+        }
+      },
+      "source": "Measured across the first 1,240 weddings celebrated with Wedillybird, 2026."
+    },
+    "features": {
+      "chapter": "CHAPTER 03 — THE PILLARS",
+      "eyebrow": "All in one",
+      "title": "Four pillars, designed for a wedding that lives.",
+      "subtitle": "No modules to enable, no plug-ins. Everything works from the very first invitation sent.",
+      "invites": {
+        "title": "WhatsApp invitations",
+        "description": "A personalised link per guest, shared where it will actually be read. Invitation page in your wedding's colours, opened in two seconds — no app to install.",
+        "highlights": [
+          "Unique links per guest",
+          "Customisable page (colours, photo, text)",
+          "No app for guests to install"
+        ]
+      },
+      "rsvp": {
+        "title": "Real-time RSVP",
+        "description": "Your guests confirm in 30 seconds: attendance, plus-ones, dietary needs, message to the couple. You watch replies arrive on your dashboard, with no manual chasing.",
+        "highlights": [
+          "Live counter of confirmed / declined / pending",
+          "Dietary needs aggregated by category",
+          "CSV export for the caterer"
+        ]
+      },
+      "checkin": {
+        "title": "Offline QR check-in",
+        "description": "Scan QR codes at the entrance, even without signal. The guest list is cached locally on the witness's phone — everything syncs once the connection is back.",
+        "highlights": [
+          "Works without 4G or WiFi",
+          "Encrypted local IndexedDB cache",
+          "Personalised welcome toast"
+        ]
+      },
+      "gallery": {
+        "title": "Moderated shared gallery",
+        "description": "Guests and witnesses drop their photos from their link. Automatic moderation before publication, final PDF album and an optional HD photo book delivered to your door.",
+        "highlights": ["AI + manual moderation", "Printable PDF album", "Kept for up to 5 years"]
+      }
+    },
+    "cinematic": {
+      "chapter": "CHAPTER 04 — THE CINEMATIC",
+      "eyebrow": "Your invitations",
+      "title": "An envelope that opens, a card that comes alive.",
+      "subtitle": "When your guest opens their link, the envelope unfolds, the wax seal cracks, the card slides out, your names are written in calligraphy. Three seconds, and the emotion is set.",
+      "stepEnvelope": "Sealed envelope",
+      "stepCard": "The seal cracks",
+      "stepFlourish": "Your names appear"
+    },
+    "testimonials": {
+      "chapter": "CHAPTER 05 — THE VOICES",
+      "eyebrow": "They said yes",
+      "title": "Couples and planners who have gained peace of mind.",
+      "items": {
+        "couple-fr": {
+          "quote": "We invited 180 people in four taps. Offline check-in saved the entrance when the venue's WiFi gave up — nobody waited more than five seconds.",
+          "name": "Camille & Hugo",
+          "location": "Outdoor wedding · June 2026",
+          "initials": "CH",
+          "alt": "Portrait of a smiling Camille and Hugo"
+        },
+        "couple-sn": {
+          "quote": "We had over 600 guests across three days. Wedillybird held up where Excel and our WhatsApp groups were buckling. The shared gallery brought the memories back again three months later.",
+          "name": "Awa & Mamadou",
+          "location": "Wedding 600+ guests · November 2025",
+          "initials": "AM",
+          "alt": "Awa and Mamadou in traditional attire"
+        },
+        "planner-pro": {
+          "quote": "I'm running eight weddings this season with my own branding on every guest page. My couples see my agency, not a third-party tool — that's exactly what was missing in the market.",
+          "name": "Studio Lumière",
+          "location": "Wedding planner",
+          "initials": "SL",
+          "alt": "Wedding planner in front of an outdoor wedding"
+        }
+      }
+    },
+    "pricing": {
+      "chapter": "CHAPTER 06 — THE PLANS",
+      "eyebrow": "Fair pricing",
+      "title": "A fair price for the most beautiful day.",
+      "subtitle": "No subscription, no hidden fees. The price adjusts automatically to your region.",
+      "perEvent": "/ wedding",
+      "recommended": "Recommended",
+      "essential": {
+        "name": "Essential",
+        "description": "The minimum to take your wedding digital."
+      },
+      "premium": {
+        "name": "Premium",
+        "description": "Essential + 6-month gallery and final PDF album."
+      },
+      "upsellTitle": "And after the wedding?",
+      "upsellNote": "For {price}, we extend your gallery to 5 years, print an HD photo book and deliver a high-definition ZIP export.",
+      "trust": {
+        "refund": "Refund within 7 days",
+        "noSubscription": "No subscription",
+        "freePostpone": "Free postponement if cancelled"
+      },
+      "prosTitle": "Are you a wedding planner?",
+      "prosSubtitle": "Subscribe by the month: one plan, multiple weddings, your brand.",
+      "prosCtaSeeAll": "See all pro plans",
+      "prosRecommended": "Most popular",
+      "prosCheckCta": "Choose this plan"
+    },
+    "forfaitsPros": {
+      "eyebrow": "PRO PLANS",
+      "title": "A complete stack for wedding planners.",
+      "subtitle": "Pick the plan that matches your rhythm. Switch to annual to save 20%.",
+      "faq": {
+        "q1": "Can I switch plans?",
+        "q1Body": "Yes, at any time. Pro-rata is calculated automatically.",
+        "q2": "What happens if I exceed my WhatsApp quota?",
+        "q2Body": "Beyond the included quota, +€0.06 per message sent, billed at the end of the month.",
+        "q3": "Is annual really -20%?",
+        "q3Body": "Yes, the annual total is equivalent to 12 months × 0.80. No hidden fees."
+      }
+    },
+    "faq": {
+      "chapter": "CHAPTER 07 — YOUR QUESTIONS",
+      "eyebrow": "Honest answers",
+      "title": "Everything you want to know.",
+      "items": {
+        "whyWhatsapp": {
+          "q": "Why WhatsApp instead of an email or a dedicated app?",
+          "a": "Because your guests are already there. WhatsApp shows a 98% open rate vs 22% for email, and requires no installation. It's the most universal channel internationally."
+        },
+        "olderGuests": {
+          "q": "Will my older or less tech-savvy guests manage?",
+          "a": "Yes. The invitation page opens in the WhatsApp browser in one tap — no app, no account to create. RSVP takes 3 buttons. More than 92% of grandparents tested confirmed without help."
+        },
+        "guestLimit": {
+          "q": "What's the maximum number of guests?",
+          "a": "No technical limit. The Essential and Premium plans include up to 500 invitations per wedding. Beyond that (weddings of 600+ guests), reach out — we'll adapt."
+        },
+        "cancellation": {
+          "q": "What if we have to cancel or postpone the wedding?",
+          "a": "Free cancellation within 7 days of purchase. Beyond that, in case of cancellation, postponement of your event is free (up to 24 months). We've seen 2020 — your peace of mind comes first."
+        },
+        "afterEvent": {
+          "q": "What do we keep after the wedding?",
+          "a": "With Premium: moderated gallery for 6 months + final PDF album. With the post-wedding upsell at €29: we extend the gallery to 5 years, print an HD photo book and deliver a high-definition ZIP of every photo."
+        },
+        "africa3g": {
+          "q": "How does it work without stable 4G?",
+          "a": "Day-of check-in works 100% offline (encrypted local IndexedDB cache). The gallery compresses photos before upload. The invitation page weighs less than 80 KB — tested on 3G with a 2-second load."
+        },
+        "branding": {
+          "q": "Can the invitation design be customised?",
+          "a": "Yes. Primary and accent colours, cover photo, typefaces, intro text. For pro wedding planners, agency branding (logo, colours, subdomain) is included in the Business plan."
+        },
+        "data": {
+          "q": "What do you do with my guests' data?",
+          "a": "Stored in Europe (Convex Frankfurt, Vercel Paris), encrypted at rest. No sharing with third parties, no advertising. Full deletion on request, in line with the GDPR. Details in our privacy policy."
+        }
+      }
+    },
+    "ctaFinal": {
+      "eyebrow": "EPILOGUE",
+      "title": "The big day deserves better than a PDF.",
+      "subtitle": "Create your first invitation in three minutes. No card needed to explore, full refund within 7 days if you change your mind.",
+      "cta": "Plan my wedding",
+      "trust": "1,240 weddings celebrated · 4.9 / 5 couple satisfaction"
+    },
+    "footer": {
+      "tagline": "WhatsApp-first wedding concierge. Designed for weddings around the world.",
+      "newsletterTitle": "Get our free invitation templates",
+      "newsletterSubtitle": "Once a month, templates signed by renowned wedding designers, and zero spam.",
+      "newsletterPlaceholder": "you@email.com",
+      "newsletterCta": "Subscribe",
+      "newsletterSuccess": "Subscribed. See you in your inbox soon.",
+      "newsletterError": "Subscription failed. Try again in a moment.",
+      "newsletterAriaLabel": "Newsletter sign-up",
+      "columns": {
+        "product": {
+          "title": "Product",
+          "links": {
+            "features": "Features",
+            "pricing": "Pricing",
+            "demo": "Live demo",
+            "templates": "Invitation templates"
+          }
+        },
+        "pros": {
+          "title": "For pros",
+          "links": {
+            "planners": "Wedding planners",
+            "venues": "Venues",
+            "agencies": "Agencies",
+            "api": "API & integrations"
+          }
+        },
+        "resources": {
+          "title": "Resources",
+          "links": {
+            "blog": "Wedding journal",
+            "guide": "Wedding guide",
+            "faq": "FAQ",
+            "support": "Support",
+            "contact": "Contact"
+          }
+        },
+        "legal": {
+          "title": "Trust",
+          "links": {
+            "terms": "Terms",
+            "privacy": "Privacy",
+            "cookies": "Cookies",
+            "rgpd": "Your GDPR rights"
+          }
+        }
+      },
+      "payments": "Secure payments via",
+      "rights": "All rights reserved"
+    }
+  },
+  "Auth": {
+    "signInTitle": "Welcome to Wedillybird",
+    "signInDescription": "Whether you already have an account or not — enter your WhatsApp number or email, we'll handle the rest.",
+    "verifyTitle": "Verify your code",
+    "verifyDescription": "We sent a code to {phone}. It expires in 5 minutes.",
+    "changeNumber": "Change number",
+    "phoneLabel": "WhatsApp number",
+    "phonePlaceholder": "+33 6 12 34 56 78",
+    "codeLabel": "Code received via WhatsApp",
+    "codePlaceholder": "6 digits",
+    "sendCode": "Send code",
+    "sending": "Sending…",
+    "verifyCode": "Verify",
+    "verifying": "Verifying…",
+    "resendCode": "Resend code",
+    "resendIn": "Resend in {seconds}s",
+    "noPhone": "No number was provided. Start again from sign-in.",
+    "privacy": "By continuing, you agree to our privacy policy.",
+    "methodSwitcherLabel": "Sign-in method",
+    "methodWhatsapp": "WhatsApp",
+    "methodEmail": "Email",
+    "emailLabel": "Email address",
+    "emailPlaceholder": "you@email.com",
+    "magicLinkSendCta": "Send my link",
+    "magicLinkSending": "Sending…",
+    "magicLinkSentEyebrow": "LINK SENT",
+    "magicLinkSentTitle": "Check your inbox.",
+    "magicLinkSentDescription": "We just sent a link to {email}. It's valid for 15 minutes and can only be used once. Check your spam folder just in case.",
+    "magicLinkChangeEmail": "Use another address",
+    "errorBanner": {
+      "expired": "The link has expired. Request a new one.",
+      "invalid_link": "The link is invalid. Check the link received by email.",
+      "invalid_token": "The link is invalid or has already been used.",
+      "no_active_link": "No pending link for this address.",
+      "unknown": "Something went wrong. Try again."
+    },
+    "errors": {
+      "invalidPhone": "Invalid phone number",
+      "invalidEmail": "Invalid email address",
+      "invalidCode": "Incorrect or expired code",
+      "tooManyAttempts": "Too many attempts, try again in a few minutes",
+      "rateLimited": "Too many requests. Please wait a few minutes.",
+      "expired": "Code expired, request a new one.",
+      "unknown": "Something went wrong. Try again."
+    }
+  },
+  "Onboarding": {
+    "stepProfile": "Your profile",
+    "stepProfileDescription": "Tell us how to introduce you to your guests.",
+    "stepRole": "You are…",
+    "stepRoleDescription": "Choose your role to personalise your experience.",
+    "stepSecure": "Secure your account",
+    "stepSecureDescription": "Add your WhatsApp number so you can sign in even without access to your email. It's also a recovery path if you lose your inbox.",
+    "fullNameLabel": "First and last name",
+    "fullNamePlaceholder": "Amadou Diallo",
+    "emailLabel": "Email",
+    "emailPlaceholder": "you@example.com",
+    "emailInvalid": "Invalid email address",
+    "emailRequiredHint": "Needed to sign in with a magic link and to receive your invoices.",
+    "emailLockedHint": "This is the address you signed in with. To change it, contact support.",
+    "phoneLabel": "WhatsApp number",
+    "phonePlaceholder": "+33 6 12 34 56 78",
+    "phoneRequiredHint": "International format (E.164) with country code.",
+    "sendCode": "Send code",
+    "sending": "Sending…",
+    "verifyCode": "Verify",
+    "verifying": "Verifying…",
+    "changeNumber": "Change number",
+    "codeSentTo": "Code sent to {phone}",
+    "roleCouple": "A couple getting married",
+    "roleCoupleDescription": "To plan your own wedding.",
+    "rolePro": "A professional",
+    "roleProDescription": "Wedding planner, photographer, venue…",
+    "next": "Next",
+    "previous": "Previous",
+    "finish": "Finish",
+    "errors": {
+      "phoneTaken": "This number already belongs to another account. Sign in with your WhatsApp number to recover that account.",
+      "alreadyLinked": "This number is already linked to your account.",
+      "invalidPhone": "Invalid phone number.",
+      "invalidCode": "6-digit code required.",
+      "expiredCode": "Code expired, request a new one.",
+      "tooManyAttempts": "Too many attempts. Try again in a few minutes.",
+      "rateLimited": "Too many requests. Please wait a few minutes.",
+      "sendFailed": "Failed to send code. Try again.",
+      "network": "Network error. Check your connection."
+    }
+  },
+  "Dashboard": {
+    "greeting": "Hello {name}",
+    "noEvents": "You don't have a wedding yet",
+    "createEvent": "Create an event",
+    "upcomingEvent": "Next event",
+    "eventsTitle": "Your weddings",
+    "draftBadge": "Draft",
+    "activeBadge": "Published",
+    "archivedBadge": "Archived",
+    "cancelledBadge": "Cancelled",
+    "guests": "{count, plural, =0 {no guests} =1 {1 guest} other {# guests}}",
+    "rsvpAttending": "{count, plural, =0 {no one confirmed} =1 {1 person confirmed} other {# people confirmed}}",
+    "singleEventNotice": "Your plan includes a single wedding."
+  },
+  "EventDetail": {
+    "backToDashboard": "Back to dashboard",
+    "dateSection": "Date",
+    "venueSection": "Venue",
+    "noVenue": "No venue set yet.",
+    "guestsTitle": "Guests",
+    "guestsSummary": "{total, plural, =0 {No invitations sent} =1 {1 invitation} other {# invitations}} · {attending, plural, =0 {no confirmation} =1 {1 confirmed} other {# confirmed}} · limit {max} invitations",
+    "manageGuests": "Manage guests",
+    "openCheckIn": "Check-in",
+    "openGallery": "Gallery",
+    "publish": "Publish",
+    "unpublish": "Move back to draft",
+    "draftHint": "This event is in draft. Publish it to enable invitations and the gallery.",
+    "planLabel": "Plan",
+    "planEssential": "Essential",
+    "planPremium": "Premium",
+    "planEssentialPending": "Essential · to activate",
+    "planPremiumPending": "Premium · to activate",
+    "planNone": "No plan",
+    "planUpsellSuffix": "· 5-year retention",
+    "activatePlan": "Activate a plan",
+    "publishLockedHint": "Activate your plan to publish your invitation and send RSVPs. One-shot payment, no subscription.",
+    "publishLockedHintPayg": "You have no Pay-as-you-go credit left. Buy one on /pro/billing or activate a subscription."
+  },
+  "Guests": {
+    "title": "Invitation list",
+    "listTitle": "All invitations",
+    "summary": "{total, plural, =0 {No invitations} =1 {1 invitation} other {# invitations}} of {max} allowed",
+    "summaryHint": "An invitation = one entry/QR code sent to a primary guest who can bring N plus-ones. The plan quota counts entries, not actual people.",
+    "backToEvent": "Back to event",
+    "empty": "No invitations sent yet. Add your first guest to get started.",
+    "addGuest": "Add an invitation",
+    "adding": "Adding…",
+    "fullNameLabel": "Full name",
+    "fullNamePlaceholder": "Aminata Diallo",
+    "phoneLabel": "Phone (WhatsApp)",
+    "emailLabel": "Email",
+    "emailPlaceholder": "aminata@example.com",
+    "categoryLabel": "Category",
+    "categoryPlaceholder": "Family, colleagues…",
+    "plusOnesLabel": "Plus-ones allowed",
+    "notesLabel": "Notes",
+    "notesPlaceholder": "Dietary needs, child seat…",
+    "rsvpPending": "Pending",
+    "rsvpAttending": "Confirmed",
+    "rsvpDeclined": "Declined",
+    "rsvpMaybe": "Maybe",
+    "errors": {
+      "submit": "Couldn't add the invitation. Try again.",
+      "limitReached": "Invitation quota reached for this plan. Upgrade to add more."
+    }
+  },
+  "Invitation": {
+    "youreInvited": "You're invited",
+    "addressing": "Dear {name}, we'd be delighted to have you with us.",
+    "willYouAttend": "Will you join us?",
+    "status": {
+      "attending": "I'll be there",
+      "declined": "I can't make it",
+      "maybe": "Maybe"
+    },
+    "plusOnesLegend": "Your plus-ones ({count})",
+    "plusOnePlaceholder": "Plus-one {index}",
+    "dietaryLabel": "Dietary needs (optional)",
+    "dietaryPlaceholder": "Vegetarian, gluten-free, allergies…",
+    "notesLabel": "A note for the couple (optional)",
+    "notesPlaceholder": "Congratulations, anecdote, question…",
+    "submit": "Send my reply",
+    "thanks": "Thank you, your reply is saved",
+    "thanksAttending": "See you very soon to celebrate!",
+    "thanksDeclined": "We're sorry you can't be with us.",
+    "thanksMaybe": "We'll get back to you to confirm.",
+    "changeAnswer": "Change my reply",
+    "openGallery": "View shared gallery",
+    "poweredBy": "Powered by",
+    "errors": {
+      "pickStatus": "Please pick an option",
+      "notFound": "Invitation not found or expired",
+      "eventClosed": "This event no longer accepts replies",
+      "plusOnesExceeded": "Too many plus-ones listed",
+      "unknown": "Something went wrong. Try again."
+    }
+  },
+  "OrgPublic": {
+    "poweredBy": "Powered by",
+    "eventEyebrow": "Wedding",
+    "dateLabel": "Date & time",
+    "venueLabel": "Venue",
+    "eventCta": "Did you receive an invitation? Open it from the personal link sent by the couple.",
+    "notFoundTitle": "Organisation not found",
+    "notFoundDescription": "The requested subdomain does not match any active Wedillybird organisation."
+  },
+  "EventStats": {
+    "liveTitle": "Real-time RSVP",
+    "pending": "Pending",
+    "attending": "Confirmed",
+    "declined": "Declined",
+    "maybe": "Maybe",
+    "export": "Export CSV"
+  },
+  "Gallery": {
+    "title": "Shared gallery",
+    "subtitleOwner": "Upload your photos and moderate the ones from your guests.",
+    "backToEvent": "Back to event",
+    "backToInvitation": "Back to invitation",
+    "guestHeader": "Photos shared by guests",
+    "guestIntro": "Add your photos so they appear here after moderation.",
+    "upload": "Add photos",
+    "uploading": "Uploading {current}/{total}…",
+    "empty": "No photos yet.",
+    "emptyGuest": "No approved photos yet.",
+    "approve": "Approve",
+    "reject": "Reject",
+    "remove": "Remove",
+    "downloadAll": "Download all as ZIP",
+    "downloadOne": "Download",
+    "downloading": "Preparing the ZIP…",
+    "downloadEmpty": "No photos to download",
+    "filters": {
+      "all": "All",
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    },
+    "status": {
+      "pending": "Verification in progress",
+      "approved": "Approved",
+      "rejected": "Rejected — inappropriate content"
+    },
+    "moderationNotice": "All photos are checked automatically (adult content, violence, shocking content). The check takes a few seconds. You can manually force approval if a photo was wrongly rejected.",
+    "errors": {
+      "size": "Image too large",
+      "type": "Unsupported format",
+      "network": "Upload failed, check your connection",
+      "generic": "Something went wrong"
+    },
+    "lockedTitle": "Gallery locked",
+    "lockedHint": "Activate an Essential or Premium plan to open the photo gallery and moderation.",
+    "lockedCta": "See plans",
+    "expiredTitle": "Gallery expired",
+    "expiredHint": "Your plan's retention period is over. Extend access to 5 years with the post-wedding upsell.",
+    "expiredCta": "Extend via upsell",
+    "faceSearch": {
+      "trigger": "Find me in the photos",
+      "triggerGuest": "Find my photos",
+      "title": "Face search",
+      "close": "Close",
+      "consentTitle": "Before we begin",
+      "consentBody": "Your photo is analysed by Amazon Rekognition to identify the photos you appear in. It is not stored or linked to your profile. The result stays local to this session.",
+      "consentAccept": "I accept, continue",
+      "captureTitle": "Choose your photo",
+      "uploadCta": "Choose a photo",
+      "cameraCta": "Take a selfie",
+      "cameraUnavailable": "Camera unavailable on this device — use upload",
+      "searching": "Analysing…",
+      "resultFound": "{count, plural, =1 {1 photo found} other {# photos found}}",
+      "viewMatches": "View my photos",
+      "resultEmpty": "No photos found. Try with another photo of you.",
+      "retry": "Try again",
+      "showAll": "Show all photos",
+      "errors": {
+        "noFace": "No face detected in your photo. Try with a clearer photo.",
+        "notIndexed": "Face indexing isn't finished yet. Try again in a few minutes.",
+        "forbidden": "You don't have access to this gallery.",
+        "rateLimited": "Too many recent searches. Please wait a moment before trying again.",
+        "unknown": "Something went wrong. Try again."
+      }
+    }
+  },
+  "Checkin": {
+    "title": "Guest check-in",
+    "subtitle": "Scan QR codes to confirm arrivals",
+    "backToEvent": "Back to event",
+    "online": "Online",
+    "offline": "Offline",
+    "lastSync": "Sync {time}",
+    "neverSynced": "Never synced",
+    "guestsCached": "{count, plural, =0 {no guests cached} =1 {1 guest cached} other {# guests cached}}",
+    "manualPlaceholder": "Enter a code manually",
+    "manualSubmit": "Confirm",
+    "toastSuccess": "Welcome",
+    "toastAlready": "Already checked in",
+    "toastError": "Could not confirm",
+    "toastOffline": "Saved locally (offline)",
+    "unknownGuest": "Unknown QR code",
+    "unknownGuestOffline": "Unknown offline QR code",
+    "errorGeneric": "Error",
+    "undo": "Undo",
+    "pendingQueue": "{count, plural, =1 {1 check-in pending sync} other {# check-ins pending sync}}",
+    "pendingQueueSyncNow": "Sync now",
+    "pendingQueueSynced": "{count, plural, =1 {1 check-in synced} other {# check-ins synced}}"
+  },
+  "Pro": {
+    "onboardingTitle": "Create your organisation",
+    "onboardingSubtitle": "As a professional, group your weddings within a single organisation.",
+    "orgNameLabel": "Organisation name",
+    "orgNamePlaceholder": "Studio Lumière Wedding Planner",
+    "primaryColorLabel": "Primary colour",
+    "accentColorLabel": "Accent colour",
+    "createOrg": "Create my organisation",
+    "orgBadge": "Organisation",
+    "memberRole": "Your role",
+    "manageTeam": "Manage team",
+    "createEvent": "New wedding",
+    "orgEventsTitle": "Organisation weddings",
+    "emptyEvents": "No weddings yet. Create the first one to get started.",
+    "teamTitle": "Team",
+    "teamSubtitle": "Invite your collaborators and manage their access.",
+    "backToDashboard": "Back to pro dashboard",
+    "inviteTitle": "Invite a collaborator",
+    "phoneLabel": "WhatsApp phone",
+    "phonePlaceholder": "+44 7700 900123",
+    "emailLabel": "Email",
+    "emailPlaceholder": "you@example.com",
+    "roleLabel": "Role",
+    "roles": {
+      "owner": "Owner",
+      "admin": "Administrator",
+      "planner": "Planner",
+      "viewer": "Viewer"
+    },
+    "statuses": {
+      "pending": "Pending",
+      "active": "Active",
+      "revoked": "Revoked"
+    },
+    "inviteSubmit": "Send invitation",
+    "inviteSuccess": "Invitation created. Token to share:",
+    "revoke": "Revoke",
+    "acceptTitle": "Join the organisation",
+    "acceptSubtitle": "Accept the invitation to collaborate on the team's weddings.",
+    "acceptInvite": "Accept invitation",
+    "declineInvite": "Decline and return to dashboard",
+    "errors": {
+      "unauthorized": "Sign in to continue",
+      "forbidden": "You don't have the required permissions",
+      "not_pro": "Reserved for professional accounts",
+      "invalid_name": "Invalid name (1-120 characters)",
+      "invalid_phone": "Invalid number (E.164 format)",
+      "no_contact": "Provide a phone number or an email",
+      "already_member": "This person is already part of the organisation",
+      "cannot_assign_owner": "The owner role cannot be assigned",
+      "invite_not_found": "Invitation not found",
+      "invite_already_used": "This invitation has already been used",
+      "unknown": "Something went wrong. Try again."
+    }
+  },
+  "Branding": {
+    "title": "Visual identity",
+    "eyebrow": "Settings",
+    "subtitle": "Logo, colours: your brand on the public pages of your weddings.",
+    "navLabel": "Settings",
+    "logoSectionTitle": "Agency logo",
+    "logoSectionDescription": "PNG, JPG or WebP. Max 2 MB. Square ratio recommended for best results.",
+    "logoUploadCta": "Choose a logo",
+    "logoReplaceCta": "Change logo",
+    "logoRemoveCta": "Remove logo",
+    "logoEmpty": "No logo. The Wedillybird mark will be shown by default.",
+    "logoPreviewAlt": "Agency logo preview",
+    "colorsSectionTitle": "Brand colours",
+    "colorsSectionDescription": "Primary and accent colours applied to public pages (invitations, shared gallery).",
+    "primaryColorLabel": "Primary colour",
+    "accentColorLabel": "Accent colour",
+    "saveCta": "Save",
+    "saving": "Saving…",
+    "saveSuccess": "Identity saved.",
+    "publicPagesNote": "Public pages will display this branding once the wildcard subdomain rollout is complete.",
+    "errors": {
+      "unauthorized": "Sign in to edit the visual identity.",
+      "forbidden": "Only organisation administrators can edit the identity.",
+      "no_org": "No organisation linked to this account.",
+      "invalid_color": "Invalid colour. Use a hex code (#RRGGBB).",
+      "invalid_logo_type": "Unsupported format. Choose a PNG, JPG or WebP.",
+      "invalid_logo_size": "Image too large (2 MB maximum).",
+      "upload_failed": "Upload failed. Try again.",
+      "unknown": "Something went wrong. Try again."
+    }
+  },
+  "Plans": {
+    "tiers": {
+      "essential": "Essential",
+      "premium": "Premium"
+    },
+    "retentionShort": "Gallery {days, plural, =1 {# day} other {# days}} after the wedding",
+    "features": {
+      "invitationPage": "Personalised public invitation page",
+      "qrCodes": "Unique QR code for every guest",
+      "rsvpRealtime": "Real-time RSVP tracking",
+      "checkinOffline": "Offline check-in on the day",
+      "basicDashboard": "Couple dashboard (reply tracking, statistics)",
+      "gallerySharedExtended": "Shared gallery (active for up to 6 months after the wedding)",
+      "pdfAlbumFinal": "Printable final PDF album of the gallery",
+      "galleryRetention5y": "Gallery kept for 5 years after the wedding",
+      "photoBookHd": "HD photo book printed and delivered to your home",
+      "exportHd": "High-definition ZIP export of every photo",
+      "whatsappInvite": "Invitations sent via WhatsApp with your date and unique link",
+      "guestReminders": "Automatic reminders to non-responders (D-7 and D-1)",
+      "multiCurrency": "Fair pricing based on your region",
+      "aiModeration": "Automatic AI photo moderation (auto-reject + manual review)",
+      "faceSearch": "Face search: every guest finds their photos with a selfie",
+      "cinematicInvitation": "Invitation cinematic: envelope opening, seal cracking",
+      "photoVariants": "Photos optimised in 3 WebP resolutions for smooth display even on 3G",
+      "galleryZipDownload": "Download the entire gallery as a ZIP in one click"
+    },
+    "allEssentialIncluded": "Everything in Essential included",
+    "pro": {
+      "tiers": {
+        "starter": "Starter",
+        "business": "Business",
+        "agency": "Agency",
+        "payg": "Pay-as-you-go"
+      },
+      "billing": {
+        "monthly": "Monthly",
+        "annual": "Annual",
+        "annualSavings": "save 20%",
+        "perMonth": "/ month",
+        "perEvent": "/ event",
+        "annualBilledAs": "{amount} billed annually",
+        "frequencyAriaLabel": "Billing frequency"
+      },
+      "descriptions": {
+        "starter": "To launch a wedding-planner business.",
+        "business": "For established agencies running several weddings in parallel.",
+        "agency": "For large multi-brand agencies in white-label.",
+        "payg": "Just one wedding to run? No subscription, pay as you go."
+      },
+      "features": {
+        "events3": "Up to 3 active events at once",
+        "events10": "Up to 10 active events at once",
+        "eventsUnlimited": "Unlimited events",
+        "events1": "1 event",
+        "whatsapp2k": "2,000 WhatsApp messages included / month",
+        "whatsapp6k": "6,000 WhatsApp messages included / month",
+        "whatsapp20k": "20,000 WhatsApp messages included / month",
+        "whatsappOnDemand": "WhatsApp on demand",
+        "brandingWedillybird": "Wedillybird branding (set logo and colours)",
+        "brandingCustomLogo": "Custom logo and colours",
+        "brandingWhiteLabel": "Full white-label (logo + domain + emails)",
+        "subdomainCustom": "Dedicated subdomain <code>{slug}.wedillybird.com</code>",
+        "supportEmail48h": "Email support within 48h",
+        "supportPriority24h": "Priority support (reply within 24h)",
+        "accountManager": "Dedicated account manager + 99.9% SLA",
+        "proDashboard": "Full pro dashboard",
+        "noCommitment": "No commitment"
+      },
+      "overflow": {
+        "whatsapp": "Beyond the quota: €0.06 per message",
+        "storage": "Gallery storage: €0.03 per GB per month above the included amount"
+      }
+    }
+  },
+  "Upgrade": {
+    "title": "Activate your plan",
+    "subtitle": "One-shot payment, no subscription. You can extend the gallery to 5 years after the wedding.",
+    "selectPlan": "Choose this plan",
+    "redirecting": "Redirecting…",
+    "alreadyPremium": "You're already on the most complete plan.",
+    "galleryRetention": "Gallery active {days, plural, =1 {# day} other {# days}} after the wedding",
+    "plans": {
+      "essential": "Essential — €19",
+      "premium": "Premium — €49"
+    },
+    "successTitle": "Payment confirmed",
+    "successBody": "Your event is now on the {plan} plan. Gallery active until D+{days}.",
+    "processingTitle": "Payment being processed",
+    "processingBody": "We're finalising your payment. Refresh this page in a few seconds to see your new plan.",
+    "cancelledTitle": "Payment cancelled",
+    "cancelledBody": "No amount was charged. You can try again at any time.",
+    "backToEvent": "Back to event",
+    "activatePending": "Activate my plan",
+    "pendingHint": "Plan chosen: {plan}. Activate it to publish your invitation and send RSVPs.",
+    "errors": {
+      "invalid_input": "Invalid data",
+      "invalid_plan_price": "Plan unavailable for this currency",
+      "forbidden": "You don't have permissions on this event",
+      "payment_record_failed": "Couldn't record the transaction",
+      "stripe_driver_not_configured": "Stripe not configured on this environment",
+      "cinetpay_driver_not_configured": "CinetPay not configured on this environment",
+      "reconciliation": "The Stripe webhook is delayed. The payment was received but the upgrade will apply in a few moments. Refresh the page.",
+      "network": "Network error, try again",
+      "unknown": "Something went wrong. Try again."
+    }
+  },
+  "Invoice": {
+    "title": "Invoice",
+    "brandTagline": "Your wedding, organised without stress",
+    "planEssentialFull": "Wedillybird — Essential",
+    "planPremiumFull": "Wedillybird — Premium",
+    "number": "No. {value}",
+    "issuedOn": "Issued on {date}",
+    "paidOn": "Paid on {date}",
+    "issuerBlockTitle": "Issuer",
+    "issuerName": "Wedillybird (Tuum Agency)",
+    "issuerEmail": "contact@wedillybird.com",
+    "issuerSiret": "SIRET — to be completed",
+    "issuerVat": "Intra-EU VAT — to be completed",
+    "customerBlockTitle": "Customer",
+    "customerFallback": "Individual customer",
+    "columnDescription": "Description",
+    "columnAmountTtc": "Amount incl. tax",
+    "eventReference": "Event: {title}",
+    "totalHt": "Total excl. tax",
+    "totalTtc": "Total incl. tax",
+    "vatLabel": "VAT ({rate}%)",
+    "vatNotApplicable": "VAT not applicable, art. 293 B of the French Tax Code",
+    "footerSettledVia": "Payment settled via {provider} on {date}.",
+    "footerRetention": "This invoice is kept for 10 years in accordance with the French Commercial Code.",
+    "footerSupport": "For any question regarding this invoice, write to billing@wedillybird.com mentioning invoice number {number}.",
+    "downloadCta": "Download invoice",
+    "filenamePrefix": "wedillybird-invoice",
+    "errors": {
+      "unauthorized": "Sign in to download your invoice.",
+      "forbidden": "You don't have access to this invoice.",
+      "notFound": "Invoice not found.",
+      "notPaid": "The invoice will be available once the payment is confirmed.",
+      "unknown": "Couldn't generate the invoice right now."
+    }
+  },
+  "InvoicePage": {
+    "eyebrow": "Accounting",
+    "title": "Your invoices",
+    "subtitle": "All confirmed payments for {eventTitle}. Download the PDF invoice for each transaction.",
+    "backToEvent": "Back to event",
+    "empty": "No invoices yet. Invoices appear here as soon as a payment is confirmed.",
+    "columnDate": "Date",
+    "columnPlan": "Plan",
+    "columnAmount": "Amount",
+    "columnStatus": "Status",
+    "columnActions": "Action",
+    "downloadCta": "Download (PDF)",
+    "statusSucceeded": "Paid",
+    "statusPending": "Pending",
+    "statusFailed": "Failed",
+    "statusCancelled": "Cancelled",
+    "planEssential": "Essential",
+    "planPremium": "Premium"
+  },
+  "EventCreate": {
+    "title": "Create your wedding",
+    "description": "Set up the essentials. You'll be able to edit everything later.",
+    "stepCouple": "The couple",
+    "stepCoupleDescription": "The names that will appear on the invitations.",
+    "stepDate": "Date and time zone",
+    "stepDateDescription": "When does your event take place?",
+    "stepVenue": "The venue (optional)",
+    "stepVenueDescription": "Where your guests will meet you.",
+    "stepTheme": "Visual theme (optional)",
+    "stepThemeDescription": "Customise the colours of your invitation.",
+    "stepPlan": "Choose your plan",
+    "stepPlanDescription": "One-shot payment, no subscription. You'll activate your plan right after to publish your invitation.",
+    "stepPlanLegal": "The payment is not charged until you activate the plan. Full refund within 7 days if you change your mind before invitations are sent.",
+    "titleLabel": "Event title",
+    "titlePlaceholder": "Wedding of Fatou & Amadou",
+    "partnerALabel": "Partner 1",
+    "partnerBLabel": "Partner 2",
+    "dateLabel": "Date and time",
+    "timezoneLabel": "Time zone",
+    "venueNameLabel": "Venue name",
+    "venueNamePlaceholder": "Domaine des Lilas",
+    "venueAddressLabel": "Address",
+    "venueAddressPlaceholder": "12 avenue de la République, Dakar",
+    "primaryColorLabel": "Primary colour",
+    "accentColorLabel": "Accent colour",
+    "fontFamilyLabel": "Typeface",
+    "skip": "Skip",
+    "next": "Next",
+    "previous": "Previous",
+    "submit": "Create event",
+    "creating": "Creating…",
+    "errors": {
+      "submit": "Couldn't create the event. Try again.",
+      "invalidDate": "The date must be in the future."
+    }
+  },
+  "Billing": {
+    "paygHistory": {
+      "title": "Your purchase history",
+      "eyebrow": "Pay-as-you-go",
+      "empty": "No Pay-as-you-go purchases yet. Your transactions will appear here as soon as you buy your first credit.",
+      "columnDate": "Date",
+      "columnAmount": "Amount",
+      "columnCurrency": "Currency",
+      "columnTransaction": "Transaction",
+      "columnStatus": "Status",
+      "statusSucceeded": "Paid"
+    },
+    "paygHistoryTitle": "Your pay-as-you-go purchase history",
+    "paygHistoryEmpty": "No purchases recorded.",
+    "paygHistoryDate": "Date",
+    "paygHistoryAmount": "Amount",
+    "paygHistoryReference": "Stripe reference"
+  },
+  "Validation": {
+    "phoneTooShort": "Phone number too short",
+    "phoneInvalid": "Invalid phone number",
+    "otpFormat": "The code must contain 6 digits",
+    "nameTooShort": "Name too short",
+    "nameTooLong": "Name too long",
+    "subjectTooShort": "Subject too short",
+    "subjectTooLong": "Subject too long",
+    "messageTooShort": "Message too short",
+    "messageTooLong": "Message too long",
+    "tokenInvalid": "Invalid token",
+    "emailInvalid": "Invalid email",
+    "firstNameRequired": "First name required",
+    "firstNameTooLong": "First name too long",
+    "titleTooShort": "Title too short",
+    "titleTooLong": "Title too long",
+    "dateRequired": "Date required",
+    "dateInvalid": "Invalid date",
+    "dateMustBeFuture": "The date must be in the future",
+    "timezoneRequired": "Time zone required",
+    "timezoneInvalid": "Invalid time zone",
+    "venueNameRequired": "Venue name required",
+    "venueNameTooLong": "Name too long",
+    "venueAddressRequired": "Address required",
+    "venueAddressTooLong": "Address too long",
+    "colorInvalid": "Invalid colour",
+    "fontRequired": "Font required",
+    "fontTooLong": "Font name too long",
+    "guestNameRequired": "Name required",
+    "guestNameTooLong": "Name too long",
+    "phoneE164Invalid": "Invalid number (E.164 format)",
+    "categoryTooLong": "Category too long",
+    "notesTooLong": "Notes too long",
+    "plusOnesRange": "0 to 10 plus-ones",
+    "plusOnesOnlyAttending": "Plus-ones only allowed if attending"
+  },
+  "WhatsApp": {
+    "templateStatus": {
+      "approvedHint": "You can now use this template for your invitations.",
+      "adjustHint": "You can adjust your template and resubmit it.",
+      "rejectedReason": "Reason: {reason}"
+    },
+    "reminders": {
+      "d7Description": "Reminder sent one week before the event to confirmed guests.",
+      "d1Description": "Reminder sent the day before the event to confirmed guests.",
+      "templateMissing": "Meta template unavailable — WhatsApp delivery is paused, email remains active."
+    }
+  },
+  "Emails": {
+    "common": {
+      "greeting": "Hello {name},",
+      "greetingSimple": "Hello,",
+      "signature": "— Wedillybird",
+      "tagline": "Wedillybird — wedding organisation made simple.",
+      "supportFooter": "For any question, contact Wedillybird support.",
+      "fallbackLink": "If the button doesn't work, copy and paste this link in your browser:",
+      "ignoreNotice": "If you didn't make this request, please ignore this message.",
+      "requestFromIp": "Request sent from address {ip}.",
+      "requestSentNoIp": "Request sent."
+    },
+    "magicLink": {
+      "subject": "Your Wedillybird sign-in link",
+      "preheader": "Click to sign in — valid for {minutes} minutes.",
+      "intro": "You requested to sign in to Wedillybird by email. Click the button below to verify your identity. The link expires in {minutes} minutes and can be used only once.",
+      "ctaLabel": "Verify my email",
+      "ignoreNotice": "If you didn't make this request, please ignore this message — no account will be created or modified.",
+      "textInstructions": "Click this link to sign in (valid {minutes} minutes, single use):"
+    },
+    "linkCode": {
+      "subject": "Your Wedillybird verification code: {code}",
+      "preheader": "Code to enter in the app to confirm this address — valid {minutes} minutes.",
+      "intro": "You requested to link this email address to your Wedillybird account. Enter the code below in the verification window:",
+      "expiry": "The code expires in {minutes} minutes and can be used only once.",
+      "ignoreNotice": "If you didn't make this request, please ignore this message — no address will be added to your account.",
+      "textTitle": "Your Wedillybird verification code",
+      "textCode": "Code: {code}",
+      "textValidity": "Valid for {minutes} minutes, single use.",
+      "textInstructions": "Enter this code in the app's verification window."
+    },
+    "contactMessage": {
+      "subjectPrefix": "[Contact] {subject}",
+      "fromLabel": "From",
+      "subjectLabel": "Subject",
+      "footerSent": "Message sent via the /contact form{ipPart}.",
+      "footerIpPart": " from IP {ip}",
+      "footerReply": "Reply to this email to contact {name} directly."
+    },
+    "newsletterSignup": {
+      "subject": "[Newsletter] New signup — {email}",
+      "preheader": "New newsletter signup: {email}",
+      "intro": "New signup to the Wedillybird newsletter.",
+      "emailLabel": "Email",
+      "sourceLabel": "Source",
+      "ipLabel": "IP",
+      "addReminder": "Remember to add this email to your newsletter service (Brevo, Mailchimp, etc.) if you have one.",
+      "footer": "Automated notification — Wedillybird newsletter form.",
+      "textTitle": "New Wedillybird newsletter signup",
+      "textAddReminder": "Remember to add this email to your newsletter service."
+    },
+    "guestReminder": {
+      "subjectDayBefore": "It's tomorrow: {eventTitle}",
+      "subjectDaysBefore": "D-{days} before {eventTitle}",
+      "preheader": "{eventTitle} is approaching — confirm your attendance",
+      "bodyDayBefore": "Just 1 day until {eventTitle} on {eventDate}.",
+      "bodyDaysBefore": "Just {days} days until {eventTitle} on {eventDate}.",
+      "callToAction": "Confirm your attendance and access your invitation:",
+      "closing": "See you very soon!",
+      "ctaLabel": "View my invitation",
+      "textConfirmHere": "Confirm your attendance here:",
+      "footer": "This email is sent to you by your event hosts via Wedillybird."
+    },
+    "paygCreditActivated": {
+      "subject": "Your Pay-as-you-go credit is activated",
+      "preheaderOne": "You have {credits} credit available to activate an event.",
+      "preheaderMany": "You have {credits} credits available to activate an event.",
+      "thanksOne": "Thank you for your purchase. Your Pay-as-you-go credit has just been activated: you now have {credits} credit available to publish a one-shot event on Wedillybird.",
+      "thanksMany": "Thank you for your purchase. Your Pay-as-you-go credit has just been activated: you now have {credits} credits available to publish a one-shot event on Wedillybird.",
+      "instructions": "Just create (or finalise) an event from your Pro space and click Publish — one credit will be used automatically.",
+      "ctaLabel": "View my Stripe invoice",
+      "textInvoiceLabel": "Stripe invoice:",
+      "thankYou": "Thank you for trusting Wedillybird with your events.",
+      "footer": "This email confirms your usage-based purchase. For any question, contact Wedillybird support."
+    },
+    "proNotification": {
+      "footer": "Notification sent for the {organizationName} organisation.",
+      "signatureWithOrg": "— Wedillybird ({organizationName})",
+      "teamInviteDetail": "{inviterLabel} is inviting you to join {organizationName} on Wedillybird.",
+      "teamInviteFallbackInviter": "a member",
+      "teamInviteFallbackInvitee": "colleague",
+      "subscriptionWelcome": "Your {organizationName} subscription is now active. Welcome!",
+      "subscriptionPastDue": "The payment for your {organizationName} subscription failed. Update your payment method to keep access.",
+      "subscriptionCanceled": "Your {organizationName} subscription has been cancelled. You can reactivate it at any time from your Pro space.",
+      "subscriptionRenewedDetail": "The payment for your {organizationName} subscription has been received. Thank you!",
+      "paymentReceivedDetail": "Payment for {eventTitle} has been received. The event can now be published.",
+      "paygCreditDetail": "Your Pay-as-you-go credit has been activated. Current balance: {credits}.",
+      "fallbackRecipientName": "Hello",
+      "teamMemberAdded": {
+        "subject": "New member in {organizationName}",
+        "ctaLabel": "Accept invitation"
+      },
+      "paymentReceived": {
+        "subject": "Payment received — {organizationName}",
+        "ctaLabel": "View event"
+      },
+      "subscriptionRenewed": {
+        "subject": "Subscription renewed — {organizationName}",
+        "ctaLabel": "Manage my subscription"
+      },
+      "subscriptionFailed": {
+        "subject": "Payment failed — {organizationName}",
+        "ctaLabel": "Update my payment"
+      },
+      "paygCreditActivated": {
+        "subject": "Pay-as-you-go credit activated — {organizationName}",
+        "ctaLabel": "View my balance"
+      }
+    },
+    "stripeInvoice": {
+      "subject": "Invoice {invoiceNumber} — {amountFormatted}",
+      "preheader": "Your invoice for {periodLabel} is available",
+      "title": "Wedillybird invoice",
+      "amountLabel": "Amount",
+      "periodLabel": "Period",
+      "intro": "Your invoice {invoiceNumber} for {organizationName} is available.",
+      "amountAndPeriod": "Amount: {amountFormatted} — Period: {periodLabel}",
+      "ctaLabel": "View invoice",
+      "textInvoiceFor": "Invoice {invoiceNumber} for {organizationName}.",
+      "textPdfLabel": "PDF:",
+      "textConsultOnline": "View online:",
+      "footer": "For any question regarding this invoice, contact Wedillybird support."
+    },
+    "whatsappTemplateStatus": {
+      "subjectApproved": "Your WhatsApp template is approved",
+      "subjectRejected": "Your WhatsApp template was rejected",
+      "subjectDisabled": "Your WhatsApp template was disabled",
+      "subjectPaused": "Your WhatsApp template is paused",
+      "verbApproved": "approved",
+      "verbRejected": "rejected",
+      "verbDisabled": "disabled",
+      "verbPaused": "paused",
+      "preheader": "{templateName} — {verb} by WhatsApp",
+      "leadApproved": "Good news — WhatsApp has just approved your invitation template for {eventTitle}. It is now ready to send your invitations.",
+      "leadRejected": "WhatsApp didn't approve your invitation template for {eventTitle}. You can adjust the text and resubmit, or pick a prebuilt style in the meantime.",
+      "leadDisabled": "WhatsApp has permanently disabled your invitation template for {eventTitle}. You'll need to create a new template or use a prebuilt style.",
+      "leadPaused": "WhatsApp has temporarily paused your invitation template for {eventTitle} due to quality signals. You'll be able to reuse it once WhatsApp re-checks it.",
+      "templateLabel": "Template:",
+      "reasonLabel": "Reason given by WhatsApp:",
+      "ctaApproved": "Send my invitations",
+      "ctaAdjust": "Adjust my message",
+      "footer": "Automated notification linked to Meta WhatsApp Business validation.",
+      "textTemplate": "Template: {templateName}",
+      "textReason": "Reason: {reason}"
+    }
+  },
+  "Metadata": {
+    "landing": {
+      "title": "Wedillybird — Wedding invitations via WhatsApp, RSVP, check-in",
+      "description": "WhatsApp invitations, real-time RSVP, offline QR check-in and shared gallery. Wedillybird simplifies your wedding planning, anywhere in the world."
+    },
+    "forfaitsPros": {
+      "title": "Pro plans for wedding planners — Wedillybird",
+      "description": "Starter, Business, Agency or Pay-as-you-go: the complete stack for wedding planners and agencies. Agency branding, subdomain, multi-event, -20% annual."
+    },
+    "contact": {
+      "title": "Contact — Wedillybird",
+      "description": "A question, a project, a kind word? Our whole team reads every message. Human reply within 24 business hours, in English."
+    },
+    "faq": {
+      "title": "FAQ — Wedillybird",
+      "description": "All the answers to frequently asked questions: WhatsApp, RSVP, offline check-in, gallery, pricing, cancellation, GDPR, pro branding."
+    },
+    "legalTerms": {
+      "title": "Terms of Service — Wedillybird",
+      "description": "Wedillybird Service Terms of Service: account, pricing, intellectual property, liability, governing law."
+    },
+    "legalPrivacy": {
+      "title": "Privacy Policy — Wedillybird",
+      "description": "Wedillybird privacy policy: data collected, purposes, GDPR legal bases, retention, subprocessors, your rights."
+    },
+    "legalCookies": {
+      "title": "Cookie Policy — Wedillybird",
+      "description": "Cookies essential to Wedillybird's operation: HMAC session, offline check-in cache. No advertising cookies or third-party trackers."
+    }
+  }
+}

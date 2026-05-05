@@ -423,16 +423,24 @@ export const invite = mutation({
       const org = await ctx.db.get(args.organizationId);
       const inviter = await ctx.db.get(args.requesterId);
       if (org && inviter) {
-        const inviteeName = args.email.split('@')[0] ?? 'collègue';
-        const inviterLabel = inviter.fullName ?? inviter.phone ?? 'un membre';
+        const inviteeName = args.email.split('@')[0];
+        const inviterLabel = inviter.fullName ?? inviter.phone;
+        // Le destinataire est le futur membre — pas encore en base, donc pas
+        // de locale connue. On retombe sur la locale de l'inviter (préf
+        // raisonnable : un planner FR invite un collègue qui parle FR).
         await ctx.scheduler.runAfter(0, internal.emailActions.sendProNotification, {
           to: args.email,
-          recipientName: inviteeName,
+          recipientName: inviteeName ?? '',
           organizationName: org.name,
           kind: 'team-member-added' as const,
-          detail: `${inviterLabel} vous invite à rejoindre ${org.name} sur Wedillybird.`,
-          ctaLabel: 'Accepter l’invitation',
+          detailKey: 'teamInviteDetail',
+          detailVars: {
+            inviterLabel: inviterLabel ?? '',
+            organizationName: org.name,
+          },
+          ctaLabelKey: 'teamMemberAdded',
           ctaUrl: `${process.env.NEXT_PUBLIC_APP_URL ?? 'https://wedillybird.com'}/pro/invite/${token}`,
+          locale: inviter.locale,
         });
       }
     }
@@ -538,29 +546,36 @@ async function applySubscriptionPatch(
       const owner = await ctx.db.get(before.ownerId);
       if (owner?.email) {
         let kind: 'subscription-renewed' | 'subscription-failed' | null = null;
-        let detail = '';
+        let detailKey:
+          | 'subscriptionWelcome'
+          | 'subscriptionPastDue'
+          | 'subscriptionCanceled'
+          | 'subscriptionRenewedDetail'
+          | null = null;
         if ((prevStatus === 'trialing' || prevStatus === undefined) && nextStatus === 'active') {
           kind = 'subscription-renewed';
-          detail = `Votre abonnement ${before.name} est désormais actif. Bienvenue !`;
+          detailKey = 'subscriptionWelcome';
         } else if (nextStatus === 'past_due') {
           kind = 'subscription-failed';
-          detail = `Le paiement de votre abonnement ${before.name} a échoué. Mettez à jour votre moyen de paiement pour conserver l’accès.`;
+          detailKey = 'subscriptionPastDue';
         } else if (nextStatus === 'canceled') {
           kind = 'subscription-failed';
-          detail = `Votre abonnement ${before.name} a été annulé. Vous pouvez le réactiver à tout moment depuis votre espace Pro.`;
+          detailKey = 'subscriptionCanceled';
         } else if (prevStatus === 'past_due' && nextStatus === 'active') {
           kind = 'subscription-renewed';
-          detail = `Le paiement de votre abonnement ${before.name} a bien été reçu. Merci !`;
+          detailKey = 'subscriptionRenewedDetail';
         }
-        if (kind) {
+        if (kind && detailKey) {
           await ctx.scheduler.runAfter(0, internal.emailActions.sendProNotification, {
             to: owner.email,
-            recipientName: owner.fullName ?? owner.phone ?? 'Bonjour',
+            recipientName: owner.fullName ?? owner.phone ?? '',
             organizationName: before.name,
             kind,
-            detail,
-            ctaLabel: 'Gérer mon abonnement',
+            detailKey,
+            detailVars: { organizationName: before.name },
+            ctaLabelKey: 'subscriptionRenewed',
             ctaUrl: `${process.env.NEXT_PUBLIC_APP_URL ?? 'https://wedillybird.com'}/pro/billing`,
+            locale: owner.locale,
           });
         }
       }

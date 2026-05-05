@@ -576,6 +576,7 @@ export const _listToNotify = internalQuery({
       ownerFullName: string;
       ownerEmail?: string;
       ownerPhone?: string;
+      ownerLocale?: string;
       eventTitle: string;
       templateNotifyChannel: 'whatsapp' | 'email' | 'both';
     }> = [];
@@ -598,9 +599,10 @@ export const _listToNotify = internalQuery({
         name: t.name,
         status: t.status,
         rejectionReason: t.rejectionReason,
-        ownerFullName: owner.fullName ?? 'Bonjour',
+        ownerFullName: owner.fullName ?? '',
         ownerEmail: owner.email,
         ownerPhone: owner.phone,
+        ownerLocale: owner.locale,
         eventTitle: event.title,
         templateNotifyChannel: event.messagingConfig?.templateNotifyChannel ?? 'email',
       });

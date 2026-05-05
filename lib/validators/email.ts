@@ -37,7 +37,12 @@ export const emailSchema = z
   .string()
   .trim()
   .toLowerCase()
-  .refine(isValidEmail, { message: 'Email invalide' });
+  .refine(isValidEmail, { message: 'Validation.emailInvalid' });
+
+/**
+ * Les messages Zod ci-dessus sont des **codes i18n**. À traduire côté client
+ * via `useTranslations()`.
+ */
 
 /**
  * Schema optionnel + transform vers `undefined` quand vide. Utile pour les
@@ -48,5 +53,5 @@ export const optionalEmailSchema = z
   .trim()
   .toLowerCase()
   .optional()
-  .refine((v) => v === undefined || v === '' || isValidEmail(v), 'Email invalide')
+  .refine((v) => v === undefined || v === '' || isValidEmail(v), 'Validation.emailInvalid')
   .transform((v) => (v && v.length > 0 ? v : undefined));

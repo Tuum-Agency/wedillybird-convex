@@ -7,6 +7,7 @@ import { Mail, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { translateZodMessage } from '@/lib/validators/translate-zod';
 
 type FieldErrors = Partial<Record<'name' | 'email' | 'subject' | 'message', string[]>>;
 
@@ -24,6 +25,7 @@ type SubmitState =
  */
 export function ContactForm() {
   const t = useTranslations('Contact.form');
+  const tRoot = useTranslations();
   const [pending, startTransition] = useTransition();
   const [state, setState] = useState<SubmitState>({ kind: 'idle' });
 
@@ -117,10 +119,11 @@ export function ContactForm() {
   }
 
   const fieldErrors = state.kind === 'error' ? state.fieldErrors : undefined;
-  const nameError = fieldErrors?.name?.[0];
-  const emailError = fieldErrors?.email?.[0];
-  const subjectError = fieldErrors?.subject?.[0];
-  const messageError = fieldErrors?.message?.[0];
+  const tr = (k: string) => tRoot(k as never);
+  const nameError = translateZodMessage(fieldErrors?.name?.[0], tr);
+  const emailError = translateZodMessage(fieldErrors?.email?.[0], tr);
+  const subjectError = translateZodMessage(fieldErrors?.subject?.[0], tr);
+  const messageError = translateZodMessage(fieldErrors?.message?.[0], tr);
   const generalError = state.kind === 'error' ? state.message : null;
 
   return (

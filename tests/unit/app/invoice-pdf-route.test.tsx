@@ -14,6 +14,10 @@ vi.mock('@/lib/auth/convex-server', () => ({
   },
 }));
 
+vi.mock('next-intl/server', () => ({
+  getLocale: async () => 'fr',
+}));
+
 import { GET } from '@/app/api/payments/[paymentId]/invoice.pdf/route';
 
 const params = (paymentId: string) => Promise.resolve({ paymentId });

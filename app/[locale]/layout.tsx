@@ -1,9 +1,10 @@
 import type { Metadata } from 'next';
 import { Bodoni_Moda, Geist, Geist_Mono } from 'next/font/google';
 import { NextIntlClientProvider, hasLocale } from 'next-intl';
-import { setRequestLocale } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
-import { routing } from '@/i18n/routing';
+import { isRtlLocale, routing, type Locale } from '@/i18n/routing';
+import { toOgLocale } from '@/lib/i18n/locale-tags';
 import { ConvexClientProvider } from '@/components/providers/convex-client-provider';
 import { SkipLink } from '@/components/layout/skip-link';
 import { Toaster } from '@/components/ui/toast';
@@ -42,20 +43,37 @@ const bodoniModa = Bodoni_Moda({
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://wedillybird.com';
 
-export const metadata: Metadata = {
-  title: {
-    default: "Wedillybird — L'organisation de mariage simplifiée",
-    template: '%s · Wedillybird',
-  },
-  description:
-    "Invitations WhatsApp, RSVP en temps réel, check-in, galerie partagée. Wedillybird simplifie l'organisation de votre mariage.",
-  metadataBase: new URL(BASE_URL),
-  appleWebApp: {
-    title: 'Wedillybird',
-    capable: true,
-    statusBarStyle: 'default',
-  },
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: 'Metadata.landing' });
+  return {
+    title: {
+      default: t('title'),
+      template: '%s · Wedillybird',
+    },
+    description: t('description'),
+    metadataBase: new URL(BASE_URL),
+    openGraph: {
+      locale: toOgLocale(locale),
+      type: 'website',
+      siteName: 'Wedillybird',
+    },
+    appleWebApp: {
+      title: 'Wedillybird',
+      capable: true,
+      statusBarStyle: 'default',
+    },
+    alternates: {
+      languages: Object.fromEntries(
+        routing.locales.map((l) => [l, l === routing.defaultLocale ? '/' : `/${l}`]),
+      ),
+    },
+  };
+}
 
 export const viewport = {
   // Ivoire chaud (token --color-ivory-50). Cohérent avec la palette mariage
@@ -97,9 +115,12 @@ export default async function LocaleLayout({
 
   setRequestLocale(locale);
 
+  const dir = isRtlLocale(locale as Locale) ? 'rtl' : 'ltr';
+
   return (
     <html
       lang={locale}
+      dir={dir}
       className={`${geistSans.variable} ${geistMono.variable} ${bodoniModa.variable} h-full antialiased`}
     >
       <body className="bg-background text-foreground flex min-h-full flex-col font-sans">

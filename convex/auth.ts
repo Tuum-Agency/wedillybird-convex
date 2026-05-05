@@ -212,8 +212,14 @@ export const requestMagicLink = action({
   args: {
     email: v.string(),
     ipAddress: v.optional(v.string()),
+    /**
+     * Locale du visiteur (récupérée depuis la route Next.js qui invoque cette
+     * action). Utilisée pour rendre l'email dans la bonne langue. Si l'user
+     * existe déjà avec une locale persistée, on la priorise.
+     */
+    locale: v.optional(v.string()),
   },
-  handler: async (ctx, { email, ipAddress }) => {
+  handler: async (ctx, { email, ipAddress, locale }) => {
     const normalized = normalizeEmail(email);
     if (!isValidEmail(normalized)) {
       throw new Error('INVALID_EMAIL');
@@ -235,12 +241,17 @@ export const requestMagicLink = action({
       ipAddress,
     });
 
+    const existingUser = await ctx.runQuery(internal.auth._userByEmail, {
+      email: normalized,
+    });
+
     // Envoi via SES (driver mock en dev). On délègue à emailActions pour
     // que le SES client soit instancié dans un node action.
     await ctx.runAction(internal.emailActions.sendMagicLinkEmail, {
       to: normalized,
       token,
       ipAddress,
+      locale: existingUser?.locale ?? locale,
     });
 
     return { email: normalized };
@@ -540,10 +551,15 @@ export const requestLinkEmail = action({
       ipAddress,
     });
 
+    // L'user existe déjà (puisqu'on lie un email à un compte) — on récupère
+    // sa locale pour le rendu de l'email.
+    const requester = await ctx.runQuery(internal.auth._userById, { userId });
+
     await ctx.runAction(internal.emailActions.sendLinkCodeEmail, {
       to: normalized,
       code,
       ipAddress,
+      locale: requester?.locale,
     });
 
     return { email: normalized };
@@ -594,6 +610,13 @@ export const verifyLinkEmail = mutation({
     await ctx.db.patch(verification._id, { consumedAt: now });
     await ctx.db.patch(userId, { email: normalized, lastSeenAt: now });
     return { ok: true as const };
+  },
+});
+
+export const _userById = internalQuery({
+  args: { userId: v.id('users') },
+  handler: async (ctx, { userId }) => {
+    return ctx.db.get(userId);
   },
 });
 

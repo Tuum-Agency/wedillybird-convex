@@ -55,6 +55,7 @@ export const getForInvoice = query({
             fullName: customer.fullName,
             email: customer.email,
             phone: customer.phone,
+            locale: customer.locale,
           }
         : null,
     };

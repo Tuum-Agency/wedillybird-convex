@@ -1,3 +1,5 @@
+import type { Locale } from '../../../i18n/routing';
+import { getServerTranslator } from '../../i18n/server-translator';
 import type { EmailRendered } from '../types';
 import { button, htmlLayout, paragraph } from './_layout';
 
@@ -9,6 +11,7 @@ export type StripeInvoiceInput = {
   periodLabel: string;
   invoiceUrl: string;
   pdfUrl?: string;
+  locale?: Locale | string;
 };
 
 export function renderStripeInvoice(input: StripeInvoiceInput): EmailRendered {
@@ -20,33 +23,36 @@ export function renderStripeInvoice(input: StripeInvoiceInput): EmailRendered {
     periodLabel,
     invoiceUrl,
     pdfUrl,
+    locale,
   } = input;
+  const t = getServerTranslator(locale);
 
-  const subject = `Facture ${invoiceNumber} — ${amountFormatted}`;
+  const subject = t('Emails.stripeInvoice.subject', { invoiceNumber, amountFormatted });
 
   const html = htmlLayout({
-    preheader: `Votre facture pour ${periodLabel} est disponible`,
+    preheader: t('Emails.stripeInvoice.preheader', { periodLabel }),
     body:
-      paragraph(`Bonjour ${recipientName},`) +
-      paragraph(`Votre facture ${invoiceNumber} pour ${organizationName} est disponible.`) +
-      paragraph(`Montant : ${amountFormatted} — Période : ${periodLabel}`) +
-      button('Consulter la facture', invoiceUrl) +
-      (pdfUrl ? paragraph(`PDF : ${pdfUrl}`) : ''),
-    footer: 'Pour toute question concernant cette facture, contactez le support Wedillybird.',
+      paragraph(t('Emails.common.greeting', { name: recipientName })) +
+      paragraph(t('Emails.stripeInvoice.intro', { invoiceNumber, organizationName })) +
+      paragraph(t('Emails.stripeInvoice.amountAndPeriod', { amountFormatted, periodLabel })) +
+      button(t('Emails.stripeInvoice.ctaLabel'), invoiceUrl) +
+      (pdfUrl ? paragraph(`${t('Emails.stripeInvoice.textPdfLabel')} ${pdfUrl}`) : ''),
+    footer: t('Emails.stripeInvoice.footer'),
+    locale,
   });
 
   const text = [
-    `Bonjour ${recipientName},`,
+    t('Emails.common.greeting', { name: recipientName }),
     '',
-    `Facture ${invoiceNumber} pour ${organizationName}.`,
-    `Montant : ${amountFormatted}`,
-    `Période : ${periodLabel}`,
+    t('Emails.stripeInvoice.textInvoiceFor', { invoiceNumber, organizationName }),
+    `${t('Emails.stripeInvoice.amountLabel')}: ${amountFormatted}`,
+    `${t('Emails.stripeInvoice.periodLabel')}: ${periodLabel}`,
     '',
-    'Consulter en ligne :',
+    t('Emails.stripeInvoice.textConsultOnline'),
     invoiceUrl,
-    ...(pdfUrl ? ['', 'PDF :', pdfUrl] : []),
+    ...(pdfUrl ? ['', t('Emails.stripeInvoice.textPdfLabel'), pdfUrl] : []),
     '',
-    '— Wedillybird',
+    t('Emails.common.signature'),
   ].join('\n');
 
   return { subject, html, text };

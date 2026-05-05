@@ -2,19 +2,26 @@ import { z } from 'zod';
 import { isValidE164, normalizePhoneE164 } from '@/lib/phone';
 import { emailSchema } from '@/lib/validators/email';
 
+/**
+ * Les messages Zod ci-dessous sont des **codes i18n** (chemin pointé dans
+ * `messages/*.json`), pas des textes affichables. Le composant qui consomme
+ * ces erreurs doit les passer à `useTranslations()` (ou helper équivalent)
+ * avant l'affichage. Cf. `lib/validators/translate-zod.ts`.
+ */
+
 export const phoneSchema = z
   .string()
   .trim()
-  .min(8, 'Numéro trop court')
+  .min(8, 'Validation.phoneTooShort')
   .transform((val) => normalizePhoneE164(val))
   .refine((val): val is string => val !== null && isValidE164(val), {
-    message: 'Numéro de téléphone invalide',
+    message: 'Validation.phoneInvalid',
   });
 
 export const otpCodeSchema = z
   .string()
   .trim()
-  .regex(/^\d{6}$/, 'Le code doit contenir 6 chiffres');
+  .regex(/^\d{6}$/, 'Validation.otpFormat');
 
 export const requestOtpSchema = z.object({
   phone: phoneSchema,
@@ -26,7 +33,7 @@ export const verifyOtpSchema = z.object({
 });
 
 export const onboardingSchema = z.object({
-  fullName: z.string().trim().min(2, 'Nom trop court').max(80, 'Nom trop long'),
+  fullName: z.string().trim().min(2, 'Validation.nameTooShort').max(80, 'Validation.nameTooLong'),
   role: z.enum(['couple', 'pro']),
   email: emailSchema,
 });
@@ -42,7 +49,7 @@ export const verifyMagicLinkSchema = z.object({
   token: z
     .string()
     .trim()
-    .regex(/^[a-f0-9]{64}$/, 'Token invalide'),
+    .regex(/^[a-f0-9]{64}$/, 'Validation.tokenInvalid'),
 });
 
 export type RequestOtpInput = z.infer<typeof requestOtpSchema>;

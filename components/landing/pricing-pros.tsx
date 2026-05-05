@@ -120,7 +120,7 @@ export function LandingPricingPros() {
         >
           <div
             role="radiogroup"
-            aria-label="Fréquence de facturation"
+            aria-label={tPlans('pro.billing.frequencyAriaLabel')}
             className="inline-flex rounded-full border border-[color:var(--color-border)] bg-white p-1 shadow-[var(--shadow-soft)]"
           >
             <button

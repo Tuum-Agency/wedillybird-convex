@@ -3,6 +3,7 @@ import { useTranslations } from 'next-intl';
 import { LogOut } from 'lucide-react';
 import { Link } from '@/i18n/navigation';
 import { signOutAction } from '@/app/[locale]/(auth)/actions';
+import { LocaleSwitcher } from '@/components/layout/locale-switcher';
 
 /**
  * AppShell V4 — header sticky réutilisable pour toutes les pages app
@@ -47,12 +48,14 @@ export function AppShell({ children, nav, userName }: AppShellProps) {
             {nav}
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             {userName ? (
               <span className="hidden font-mono text-[10px] tracking-[0.24em] text-[color:var(--color-ink-500)] uppercase sm:inline-block">
                 {userName}
               </span>
             ) : null}
+            <LocaleSwitcher />
+            <span aria-hidden className="hidden h-5 w-px bg-[color:var(--color-border)] sm:block" />
             <form action={signOutAction}>
               <button
                 type="submit"
