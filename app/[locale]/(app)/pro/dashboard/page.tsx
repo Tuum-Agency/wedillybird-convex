@@ -117,7 +117,7 @@ export default async function ProDashboardPage({
               {t('orgEventsTitle')}
             </h2>
             <span className="font-mono text-[10px] tracking-[0.24em] text-[color:var(--color-muted-foreground)] uppercase">
-              {events.length} {events.length > 1 ? 'mariages' : 'mariage'}
+              {t('eventCount', { count: events.length })}
             </span>
           </div>
 
@@ -137,7 +137,7 @@ export default async function ProDashboardPage({
             <ul className="grid grid-cols-1 gap-4 lg:grid-cols-2">
               {events.map((ev) => {
                 const cfg = STATUS_CONFIG[ev.status];
-                const dateFormatted = new Intl.DateTimeFormat('fr', {
+                const dateFormatted = new Intl.DateTimeFormat(locale, {
                   dateStyle: 'long',
                   timeZone: ev.timezone,
                 }).format(new Date(ev.eventDate));
