@@ -27,7 +27,8 @@ vi.mock('next/navigation', () => ({
 }));
 
 vi.mock('next-intl/server', () => ({
-  getTranslations: async () => (key: string) => key,
+  getTranslations: async () => Object.assign((key: string) => key, { rich: (key: string) => key }),
+  getLocale: async () => 'en',
 }));
 
 vi.mock('@/components/pro/pro-shell', () => ({
@@ -118,8 +119,8 @@ describe('ProBillingPage — PAYG history', () => {
     const rows = screen.getAllByTestId('payg-history-row');
     expect(rows).toHaveLength(2);
 
-    // Le montant est formaté en FR avec devise EUR.
-    expect(screen.getAllByText(/69,00\s?€/).length).toBeGreaterThan(0);
+    // Amount is locale-formatted with EUR currency.
+    expect(screen.getAllByText(/69[,.]00\s?€/).length).toBeGreaterThan(0);
     // L'ID transaction longue est tronqué + le tooltip (title) garde la valeur full.
     const longId = screen.getByTitle('cs_test_a1b2c3d4e5f6g7h8i9j0');
     expect(longId.textContent).toContain('…');

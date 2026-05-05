@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, useTransition } from 'react';
 import dynamic from 'next/dynamic';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -53,6 +53,7 @@ const COOLDOWN_MS = 2_000;
 
 export function CheckInManager({ eventId, initialGuests }: Props) {
   const t = useTranslations('Checkin');
+  const locale = useLocale();
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [paused, setPaused] = useState(false);
   const [isOnline, setIsOnline] = useState(true);
@@ -238,7 +239,7 @@ export function CheckInManager({ eventId, initialGuests }: Props) {
           {isOnline ? t('online') : t('offline')} ·{' '}
           {lastSyncedAt
             ? t('lastSync', {
-                time: new Intl.DateTimeFormat('fr', { timeStyle: 'short' }).format(
+                time: new Intl.DateTimeFormat(locale, { timeStyle: 'short' }).format(
                   new Date(lastSyncedAt),
                 ),
               })

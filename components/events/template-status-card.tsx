@@ -16,6 +16,7 @@ interface TemplateStatusCardProps {
     reviewedAt?: number;
   };
   notifyChannel: 'whatsapp' | 'email' | 'both';
+  locale: string;
 }
 
 const STATUS_LABEL: Record<TemplateStatusCardProps['template']['status'], string> = {
@@ -51,16 +52,16 @@ function channelLabel(c: 'whatsapp' | 'email' | 'both'): string {
   return 'WhatsApp et email';
 }
 
-function fmt(ts: number | undefined): string | null {
+function fmt(ts: number | undefined, locale: string): string | null {
   if (!ts) return null;
-  return new Intl.DateTimeFormat('fr', { dateStyle: 'long', timeStyle: 'short' }).format(
+  return new Intl.DateTimeFormat(locale, { dateStyle: 'long', timeStyle: 'short' }).format(
     new Date(ts),
   );
 }
 
-export function TemplateStatusCard({ template, notifyChannel }: TemplateStatusCardProps) {
-  const submitted = fmt(template.submittedAt);
-  const reviewed = fmt(template.reviewedAt);
+export function TemplateStatusCard({ template, notifyChannel, locale }: TemplateStatusCardProps) {
+  const submitted = fmt(template.submittedAt, locale);
+  const reviewed = fmt(template.reviewedAt, locale);
 
   return (
     <div className="flex flex-col gap-4 rounded-2xl border border-[color:var(--color-border)] bg-white p-5 shadow-[var(--shadow-soft)]">

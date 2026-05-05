@@ -36,8 +36,10 @@ export interface SubscriptionTierDefinition {
   amountMinor: number;
   currency: 'EUR';
   label: string;
-  description: string;
-  features: readonly string[];
+  /** i18n key under Plans.pro.descriptions.{tier} */
+  descriptionKey: string;
+  /** i18n keys under Plans.pro.features.{key} */
+  featureKeys: readonly string[];
   /** Quota d'events actifs simultanés. `null` = illimité. */
   activeEventsQuota: number | null;
   /** Quota mensuel de messages WhatsApp inclus. */
@@ -56,13 +58,8 @@ export const SUBSCRIPTION_TIER_PRICES: Record<SubscriptionTier, SubscriptionTier
     amountMinor: 8900,
     currency: 'EUR',
     label: 'Starter',
-    description: 'Pour démarrer une activité de wedding planner.',
-    features: [
-      "Jusqu'à 3 événements actifs",
-      '2 000 messages WhatsApp inclus / mois',
-      'Branding Wedillybird (logo et couleurs imposés)',
-      'Support email sous 48h',
-    ],
+    descriptionKey: 'starter',
+    featureKeys: ['events3', 'whatsapp2k', 'brandingWedillybird', 'supportEmail48h'],
     activeEventsQuota: 3,
     whatsappMessagesIncluded: 2000,
     // 89 € / ≈ 952 MAD / ≈ 302,6 TND
@@ -72,13 +69,8 @@ export const SUBSCRIPTION_TIER_PRICES: Record<SubscriptionTier, SubscriptionTier
     amountMinor: 17900,
     currency: 'EUR',
     label: 'Business',
-    description: 'Pour agences confirmées avec plusieurs mariages en parallèle.',
-    features: [
-      "Jusqu'à 10 événements actifs",
-      '6 000 messages WhatsApp inclus / mois',
-      'Logo personnalisé et sous-domaine dédié',
-      'Support prioritaire',
-    ],
+    descriptionKey: 'business',
+    featureKeys: ['events10', 'whatsapp6k', 'brandingLogoSubdomain', 'supportPriority24h'],
     activeEventsQuota: 10,
     whatsappMessagesIncluded: 6000,
     // 179 € / ≈ 1 915 MAD / ≈ 608,6 TND
@@ -88,13 +80,8 @@ export const SUBSCRIPTION_TIER_PRICES: Record<SubscriptionTier, SubscriptionTier
     amountMinor: 34900,
     currency: 'EUR',
     label: 'Agency',
-    description: 'Pour grandes agences multi-marques en marque blanche.',
-    features: [
-      'Événements illimités',
-      '20 000 messages WhatsApp inclus / mois',
-      'Marque blanche complète (logo, domaine, emails)',
-      'Account manager dédié + SLA 99,9 %',
-    ],
+    descriptionKey: 'agency',
+    featureKeys: ['eventsUnlimited', 'whatsapp20k', 'brandingWhiteLabel', 'accountManager'],
     activeEventsQuota: null,
     whatsappMessagesIncluded: 20000,
     // 349 € / ≈ 3 734 MAD / ≈ 1 186,6 TND

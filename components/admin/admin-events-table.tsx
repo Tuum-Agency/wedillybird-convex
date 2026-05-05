@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useLocale } from 'next-intl';
 import { Badge } from '@/components/ui/badge';
 import { useServerAction } from '@/components/admin/use-admin-action';
 import {
@@ -105,6 +106,7 @@ function Th({ children }: { children: React.ReactNode }) {
 }
 
 function EventRow({ event }: { event: Event }) {
+  const locale = useLocale();
   const { execute: updateStatus, loading: updating } = useServerAction(
     adminUpdateEventStatusAction,
   );
@@ -117,7 +119,7 @@ function EventRow({ event }: { event: Event }) {
       </td>
       <td className="px-4 py-3 text-[color:var(--color-muted-foreground)]">{event.title}</td>
       <td className="px-4 py-3 text-[color:var(--color-muted-foreground)]">
-        {new Intl.DateTimeFormat('fr', { dateStyle: 'medium' }).format(new Date(event.eventDate))}
+        {new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(new Date(event.eventDate))}
       </td>
       <td className="px-4 py-3">
         <Badge variant={STATUS_VARIANT[event.status] ?? 'neutral'}>{event.status}</Badge>

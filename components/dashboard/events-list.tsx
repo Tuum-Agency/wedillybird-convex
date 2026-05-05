@@ -1,7 +1,7 @@
 'use client';
 
 import { motion, useReducedMotion } from 'motion/react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { Calendar, MapPin, Users, ArrowUpRight } from 'lucide-react';
 import { Link } from '@/i18n/navigation';
 
@@ -34,6 +34,7 @@ interface Event {
  */
 export function DashboardEventsList({ events }: { events: ReadonlyArray<Event> }) {
   const t = useTranslations('Dashboard');
+  const locale = useLocale();
   const reduced = useReducedMotion();
 
   const containerVariants = {
@@ -54,7 +55,7 @@ export function DashboardEventsList({ events }: { events: ReadonlyArray<Event> }
       className="grid grid-cols-1 gap-4 md:grid-cols-2"
     >
       {events.map((ev) => {
-        const dateFormatted = new Intl.DateTimeFormat('fr', {
+        const dateFormatted = new Intl.DateTimeFormat(locale, {
           dateStyle: 'long',
           timeStyle: 'short',
           timeZone: ev.timezone,

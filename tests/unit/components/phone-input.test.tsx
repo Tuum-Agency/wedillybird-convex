@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 
 vi.mock('next-intl', () => ({
   useLocale: () => 'fr',
+  useTranslations: () => (key: string) => key,
 }));
 
 import { PhoneInput } from '@/components/auth/phone-input';
@@ -62,7 +63,7 @@ describe('PhoneInput', () => {
     const { container } = render(<PhoneInput name="phone" />);
     const input = screen.getByRole('textbox') as HTMLInputElement;
     await user.type(input, '612345678');
-    const select = screen.getByLabelText('Indicatif pays') as HTMLSelectElement;
+    const select = screen.getByLabelText('countryCodeLabel') as HTMLSelectElement;
     await user.selectOptions(select, 'SN');
     const hidden = container.querySelector(
       'input[type="hidden"][name="phone"]',

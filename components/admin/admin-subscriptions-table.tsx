@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useLocale } from 'next-intl';
 import { Badge } from '@/components/ui/badge';
 
 type Org = {
@@ -25,6 +26,7 @@ const STATUS_VARIANT: Record<string, 'neutral' | 'success' | 'warning' | 'destru
 };
 
 export function AdminSubscriptionsTable({ organizations }: { organizations: Org[] }) {
+  const locale = useLocale();
   const [search, setSearch] = useState('');
 
   const filtered = organizations.filter((o) => {
@@ -100,14 +102,14 @@ export function AdminSubscriptionsTable({ organizations }: { organizations: Org[
                 </td>
                 <td className="px-4 py-3 text-[color:var(--color-muted-foreground)]">
                   {o.subscriptionPeriodEnd
-                    ? new Intl.DateTimeFormat('fr', { dateStyle: 'medium' }).format(
+                    ? new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(
                         new Date(o.subscriptionPeriodEnd),
                       )
                     : '—'}
                 </td>
                 <td className="px-4 py-3 font-mono">{o.paygCredits ?? 0}</td>
                 <td className="px-4 py-3 text-[color:var(--color-muted-foreground)]">
-                  {new Intl.DateTimeFormat('fr', { dateStyle: 'medium' }).format(
+                  {new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(
                     new Date(o.createdAt),
                   )}
                 </td>

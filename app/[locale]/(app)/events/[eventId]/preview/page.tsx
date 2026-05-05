@@ -46,13 +46,13 @@ export default async function EventPreviewPage({
 
   const accentColor = event.theme?.primaryColor ?? 'oklch(72% 0.09 20)';
 
-  const eventDateFormatted = new Intl.DateTimeFormat('fr', {
+  const eventDateFormatted = new Intl.DateTimeFormat(locale, {
     dateStyle: 'full',
     timeStyle: 'short',
     timeZone: event.timezone,
   }).format(new Date(event.eventDate));
 
-  const eventDateCompact = new Intl.DateTimeFormat('fr', {
+  const eventDateCompact = new Intl.DateTimeFormat(locale, {
     day: 'numeric',
     month: 'long',
     year: 'numeric',

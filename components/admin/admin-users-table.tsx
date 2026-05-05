@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useLocale } from 'next-intl';
 import { Badge } from '@/components/ui/badge';
 import { useServerAction } from '@/components/admin/use-admin-action';
 import {
@@ -98,6 +99,7 @@ function Th({ children }: { children: React.ReactNode }) {
 }
 
 function UserRow({ user }: { user: User }) {
+  const locale = useLocale();
   const { execute: suspend, loading: suspending } = useServerAction(adminSuspendUserAction);
   const { execute: changeRole, loading: changing } = useServerAction(adminChangeUserRoleAction);
 
@@ -117,7 +119,7 @@ function UserRow({ user }: { user: User }) {
         {user.planTier ?? '—'}
       </td>
       <td className="px-4 py-3 text-[color:var(--color-muted-foreground)]">
-        {new Intl.DateTimeFormat('fr', { dateStyle: 'medium' }).format(new Date(user.createdAt))}
+        {new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(new Date(user.createdAt))}
       </td>
       <td className="px-4 py-3">
         <div className="flex items-center gap-2">

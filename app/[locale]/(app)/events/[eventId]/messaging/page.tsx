@@ -39,7 +39,7 @@ export default async function MessagingPage({
     requesterId: session!.userId,
   });
 
-  const eventDateFormatted = new Intl.DateTimeFormat('fr', {
+  const eventDateFormatted = new Intl.DateTimeFormat(locale, {
     day: 'numeric',
     month: 'long',
     year: 'numeric',

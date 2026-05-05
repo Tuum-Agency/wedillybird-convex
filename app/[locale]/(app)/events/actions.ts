@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { redirect } from '@/i18n/navigation';
+import { getLocale } from 'next-intl/server';
 import {
   createEventSchema,
   normalizeCreateEvent,
@@ -70,18 +71,23 @@ export async function createEventAction(formData: FormData): Promise<CreateEvent
   const normalized = normalizeCreateEvent(parsed.data);
   const convex = getConvexServerClient();
 
+  const org = await convex.query(convexApi.myOrganization, { userId: session.userId });
+
   let slug: string;
   try {
     const result = await convex.mutation(convexApi.createEvent, {
       ownerId: session.userId,
       ...normalized,
+      ...(org ? { organizationId: org._id } : {}),
     });
     slug = result.slug;
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : 'UNKNOWN' };
   }
 
-  redirect({ href: `/dashboard?created=${slug}`, locale: 'fr' });
+  const locale = await getLocale();
+  const dashboardHref = org ? `/pro/dashboard?created=${slug}` : `/dashboard?created=${slug}`;
+  redirect({ href: dashboardHref as never, locale });
   return { ok: true, slug };
 }
 

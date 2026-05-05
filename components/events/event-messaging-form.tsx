@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react';
 import { motion } from 'motion/react';
 import { Save, Sparkles } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useLocale } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/cn';
@@ -89,6 +90,7 @@ export function EventMessagingForm({
   customTemplates = [],
 }: Props) {
   const router = useRouter();
+  const locale = useLocale();
   // Le custom est sélectionné par défaut si l'event y est rattaché ET qu'il
   // existe au moins un template (peu importe son state).
   const hasActiveCustom =
@@ -244,6 +246,7 @@ export function EventMessagingForm({
                     reviewedAt: latestCustom.reviewedAt,
                   }}
                   notifyChannel={notifyChannel}
+                  locale={locale}
                 />
               ) : null}
               {!latestCustom ||

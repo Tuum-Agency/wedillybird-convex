@@ -1,5 +1,6 @@
 'use client';
 
+import { useLocale } from 'next-intl';
 import { Badge } from '@/components/ui/badge';
 
 type AuditEntry = {
@@ -32,6 +33,7 @@ const TARGET_VARIANT: Record<string, 'neutral' | 'primary' | 'accent' | 'warning
 };
 
 export function AdminAuditLogTable({ logs }: { logs: AuditEntry[] }) {
+  const locale = useLocale();
   return (
     <div className="overflow-x-auto rounded-xl border border-[color:var(--color-border)]">
       <table className="w-full text-sm">
@@ -61,7 +63,7 @@ export function AdminAuditLogTable({ logs }: { logs: AuditEntry[] }) {
               className="border-b border-[color:var(--color-border)] last:border-0 hover:bg-[color:var(--color-surface-elevated)]/50"
             >
               <td className="px-4 py-3 text-[color:var(--color-muted-foreground)]">
-                {new Intl.DateTimeFormat('fr', {
+                {new Intl.DateTimeFormat(locale, {
                   dateStyle: 'medium',
                   timeStyle: 'short',
                 }).format(new Date(l.createdAt))}

@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { Check, Sparkles, Zap } from 'lucide-react';
 import { getSession } from '@/lib/auth/session';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
@@ -13,14 +13,6 @@ import { ProShell, ProNav } from '@/components/pro/pro-shell';
 import { subscribeAction, openBillingPortalAction, payAsYouGoAction } from './actions';
 
 const TIER_ORDER: readonly SubscriptionTier[] = ['starter', 'business', 'agency'];
-
-const STATUS_LABEL: Record<string, string> = {
-  trialing: "Période d'essai",
-  active: 'Actif',
-  past_due: 'Paiement en retard',
-  canceled: 'Annulé',
-  unpaid: 'Impayé',
-};
 
 const STATUS_COLOR: Record<string, { bg: string; fg: string; dot: string }> = {
   trialing: {
@@ -50,20 +42,19 @@ const STATUS_COLOR: Record<string, { bg: string; fg: string; dot: string }> = {
   },
 };
 
-function formatPrice(amountMinor: number): string {
-  return `${(amountMinor / 100).toLocaleString('fr-FR', { minimumFractionDigits: 0 })} €`;
+function formatPrice(amountMinor: number, locale: string): string {
+  return `${(amountMinor / 100).toLocaleString(locale, { minimumFractionDigits: 0 })} €`;
 }
 
-function formatPaygAmount(amountMinor: number, currency: string): string {
+function formatPaygAmount(amountMinor: number, currency: string, locale: string): string {
   const amount = amountMinor / 100;
-  if (currency === 'EUR')
-    return `${amount.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} €`;
-  if (currency === 'XOF') return `${amount.toLocaleString('fr-FR')} FCFA`;
-  return `${amount.toLocaleString('fr-FR')} ${currency}`;
+  if (currency === 'EUR') return `${amount.toLocaleString(locale, { minimumFractionDigits: 2 })} €`;
+  if (currency === 'XOF') return `${amount.toLocaleString(locale)} FCFA`;
+  return `${amount.toLocaleString(locale)} ${currency}`;
 }
 
-function formatPaygDate(timestamp: number): string {
-  return new Date(timestamp).toLocaleDateString('fr-FR', {
+function formatPaygDate(timestamp: number, locale: string): string {
+  return new Date(timestamp).toLocaleDateString(locale, {
     day: 'numeric',
     month: 'short',
     year: 'numeric',
@@ -75,9 +66,9 @@ function truncateSessionId(value: string): string {
   return `${value.slice(0, 8)}…${value.slice(-6)}`;
 }
 
-function formatPeriodEnd(timestamp: number | undefined): string | null {
+function formatPeriodEnd(timestamp: number | undefined, locale: string): string | null {
   if (!timestamp) return null;
-  return new Date(timestamp).toLocaleDateString('fr-FR', {
+  return new Date(timestamp).toLocaleDateString(locale, {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
@@ -92,7 +83,9 @@ export default async function ProBillingPage({
   const session = await getSession();
   if (!session) redirect('/login?next=/pro/billing');
 
+  const locale = await getLocale();
   const tBilling = await getTranslations('Billing');
+  const tPlans = await getTranslations('Plans');
 
   const convex = getConvexServerClient();
   const org = await convex.query(convexApi.myOrganization, { userId: session.userId });
@@ -102,17 +95,11 @@ export default async function ProBillingPage({
   const params = await searchParams;
   const banner =
     params.status === 'success' && params.kind === 'payg'
-      ? {
-          kind: 'success' as const,
-          text: 'Achat Pay-as-you-go confirmé. Vous avez +1 crédit événement.',
-        }
+      ? { kind: 'success' as const, text: tBilling('paygSuccessBanner') }
       : params.status === 'success'
-        ? { kind: 'success' as const, text: 'Abonnement activé. Bienvenue !' }
+        ? { kind: 'success' as const, text: tBilling('subscribeSuccessBanner') }
         : params.status === 'cancel'
-          ? {
-              kind: 'info' as const,
-              text: 'Souscription annulée. Vous pouvez réessayer à tout moment.',
-            }
+          ? { kind: 'info' as const, text: tBilling('cancelledBanner') }
           : null;
 
   const paygCredits = (await convex.query(convexApi.getPaygCreditsByOrganization, {
@@ -127,7 +114,7 @@ export default async function ProBillingPage({
 
   const currentTier = org.subscriptionTier;
   const isCurrentTier = (tier: SubscriptionTier) => currentTier === tier;
-  const periodEndLabel = formatPeriodEnd(org.subscriptionPeriodEnd);
+  const periodEndLabel = formatPeriodEnd(org.subscriptionPeriodEnd, locale);
   const hasActive =
     org.subscriptionStatus === 'active' ||
     org.subscriptionStatus === 'trialing' ||
@@ -144,7 +131,7 @@ export default async function ProBillingPage({
       <div className="container-page mx-auto flex max-w-5xl flex-col gap-10 py-12 sm:py-16">
         <header className="flex flex-col gap-3">
           <span className="font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-muted-foreground)] uppercase">
-            Facturation
+            {tBilling('eyebrow')}
           </span>
           <h1
             className="font-display text-balance italic"
@@ -155,11 +142,13 @@ export default async function ProBillingPage({
               color: 'var(--color-foreground)',
             }}
           >
-            Abonnement
+            {tBilling('title')}
           </h1>
           <p className="text-base leading-relaxed text-[color:var(--color-muted-foreground)] sm:text-lg">
-            Choisissez le plan adapté à <strong>{org.name}</strong>. Vous pouvez changer ou annuler
-            à tout moment depuis le portail client.
+            {tBilling.rich('subtitle', {
+              name: org.name,
+              strong: (chunks) => <strong>{chunks}</strong>,
+            })}
           </p>
         </header>
 
@@ -181,7 +170,7 @@ export default async function ProBillingPage({
           <div className="flex flex-wrap items-center justify-between gap-5">
             <div className="flex flex-col gap-2">
               <span className="font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-muted-foreground)] uppercase">
-                Statut actuel
+                {tBilling('currentStatusLabel')}
               </span>
               {currentTier && org.subscriptionStatus ? (
                 <div className="flex flex-wrap items-center gap-3">
@@ -205,7 +194,9 @@ export default async function ProBillingPage({
                         className="inline-block h-1.5 w-1.5 rounded-full"
                         style={{ background: statusCfg.dot }}
                       />
-                      {STATUS_LABEL[org.subscriptionStatus] ?? org.subscriptionStatus}
+                      {tBilling(
+                        `status.${org.subscriptionStatus}` as Parameters<typeof tBilling>[0],
+                      ) ?? org.subscriptionStatus}
                     </span>
                   ) : null}
                 </div>
@@ -217,19 +208,19 @@ export default async function ProBillingPage({
                     color: 'var(--color-foreground)',
                   }}
                 >
-                  Aucun abonnement
+                  {tBilling('noSubscription')}
                 </span>
               )}
               {periodEndLabel && hasActive ? (
                 <span className="text-sm text-[color:var(--color-muted-foreground)]">
-                  Renouvellement le {periodEndLabel}
+                  {tBilling('renewalDate', { date: periodEndLabel })}
                 </span>
               ) : null}
             </div>
             {org.stripeCustomerId ? (
               <form action={openBillingPortalAction}>
                 <Button type="submit" variant="outline" size="md" data-testid="open-portal">
-                  Gérer mon abonnement
+                  {tBilling('manageSubscription')}
                 </Button>
               </form>
             ) : null}
@@ -258,12 +249,12 @@ export default async function ProBillingPage({
                 {isCurrent ? (
                   <span className="absolute top-5 right-5 inline-flex items-center gap-1.5 rounded-full bg-[color:var(--color-blush-400)] px-2.5 py-1 font-mono text-[9px] tracking-[0.18em] text-[oklch(15%_0.012_28)] uppercase">
                     <Sparkles className="h-3 w-3" strokeWidth={2.5} aria-hidden />
-                    Plan actuel
+                    {tBilling('currentPlanBadge')}
                   </span>
                 ) : isMid ? (
                   <span className="absolute top-5 right-5 inline-flex items-center gap-1.5 rounded-full bg-[oklch(28%_0.05_80)] px-2.5 py-1 font-mono text-[9px] tracking-[0.18em] text-[oklch(85%_0.05_80)] uppercase">
                     <Sparkles className="h-3 w-3" strokeWidth={2.5} aria-hidden />
-                    Recommandé
+                    {tBilling('recommendedBadge')}
                   </span>
                 ) : null}
 
@@ -279,7 +270,9 @@ export default async function ProBillingPage({
                     {price.label}
                   </h2>
                   <p className="text-sm text-[color:var(--color-muted-foreground)]">
-                    {price.description}
+                    {tPlans(
+                      `pro.descriptions.${price.descriptionKey}` as Parameters<typeof tPlans>[0],
+                    )}
                   </p>
                 </header>
 
@@ -295,15 +288,17 @@ export default async function ProBillingPage({
                       color: 'var(--color-foreground)',
                     }}
                   >
-                    {formatPrice(price.amountMinor)}
+                    {formatPrice(price.amountMinor, locale)}
                   </span>
-                  <span className="text-sm text-[color:var(--color-muted-foreground)]">/ mois</span>
+                  <span className="text-sm text-[color:var(--color-muted-foreground)]">
+                    {tBilling('perMonth')}
+                  </span>
                 </p>
 
                 <ul className="flex flex-col gap-2 text-sm">
-                  {price.features.map((f) => (
+                  {price.featureKeys.map((key) => (
                     <li
-                      key={f}
+                      key={key}
                       className="flex items-start gap-2.5 text-[color:var(--color-ink-700)]"
                     >
                       <span
@@ -312,7 +307,9 @@ export default async function ProBillingPage({
                       >
                         <Check className="h-2.5 w-2.5" strokeWidth={3} />
                       </span>
-                      <span className="leading-relaxed">{f}</span>
+                      <span className="leading-relaxed">
+                        {tPlans(`pro.features.${key}` as Parameters<typeof tPlans>[0])}
+                      </span>
                     </li>
                   ))}
                 </ul>
@@ -328,10 +325,10 @@ export default async function ProBillingPage({
                     data-testid={`subscribe-${tier}`}
                   >
                     {isCurrent && hasActive
-                      ? 'Plan actuel'
+                      ? tBilling('currentPlanButton')
                       : currentTier
-                        ? 'Changer pour ce plan'
-                        : 'Souscrire'}
+                        ? tBilling('changePlan')
+                        : tBilling('subscribe')}
                   </Button>
                 </form>
               </article>
@@ -359,18 +356,19 @@ export default async function ProBillingPage({
                   className="rounded-full bg-[color:var(--color-gold-100)] px-2 py-0.5 font-mono text-[10px] tracking-[0.18em] text-[color:var(--color-gold-700)] uppercase"
                   data-testid="payg-credits-badge"
                 >
-                  {paygCredits.credits} crédit{paygCredits.credits > 1 ? 's' : ''} dispo
+                  {tBilling('paygCreditsAvailable', { count: paygCredits.credits })}
                 </span>
               ) : null}
             </div>
             <p className="text-sm leading-relaxed text-[color:var(--color-muted-foreground)]">
-              {formatPrice(PAYG_PRO_PRICE.amountMinor)} pour activer un événement ponctuel sans
-              abonnement. Idéal pour un test ou un mariage isolé.
+              {tBilling('paygDescription', {
+                price: formatPrice(PAYG_PRO_PRICE.amountMinor, locale),
+              })}
             </p>
           </div>
           <form action={payAsYouGoAction}>
             <Button type="submit" variant="outline" size="md" data-testid="buy-payg">
-              Acheter un crédit
+              {tBilling('buyCredit')}
             </Button>
           </form>
         </section>
@@ -427,10 +425,10 @@ export default async function ProBillingPage({
                       data-testid="payg-history-row"
                     >
                       <td className="py-3 pr-4 text-[color:var(--color-foreground)]">
-                        {formatPaygDate(purchase.createdAt)}
+                        {formatPaygDate(purchase.createdAt, locale)}
                       </td>
                       <td className="py-3 pr-4 text-[color:var(--color-foreground)] tabular-nums">
-                        {formatPaygAmount(purchase.amountMinor, purchase.currency)}
+                        {formatPaygAmount(purchase.amountMinor, purchase.currency, locale)}
                       </td>
                       <td className="py-3 pr-4 font-mono text-xs text-[color:var(--color-muted-foreground)]">
                         <a
@@ -452,7 +450,7 @@ export default async function ProBillingPage({
         </section>
 
         <footer className="text-center font-mono text-[10px] tracking-[0.24em] text-[color:var(--color-muted-foreground)] uppercase">
-          Paiements sécurisés via Stripe · Annulation depuis le portail à tout moment
+          {tBilling('securePaymentFooter')}
         </footer>
       </div>
     </ProShell>

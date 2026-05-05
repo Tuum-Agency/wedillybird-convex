@@ -30,21 +30,21 @@ interface FormState {
 
 const TIMEZONES: ReadonlyArray<{ id: string; label: string }> = [
   { id: 'Europe/Paris', label: 'Europe/Paris (UTC+1/+2)' },
-  { id: 'Africa/Dakar', label: 'Afrique/Dakar (UTC+0)' },
-  { id: 'Africa/Abidjan', label: 'Afrique/Abidjan (UTC+0)' },
-  { id: 'Africa/Casablanca', label: 'Afrique/Casablanca (UTC+1)' },
-  { id: 'Africa/Algiers', label: 'Afrique/Alger (UTC+1)' },
-  { id: 'Africa/Tunis', label: 'Afrique/Tunis (UTC+1)' },
-  { id: 'Africa/Douala', label: 'Afrique/Douala (UTC+1)' },
-  { id: 'Indian/Antananarivo', label: 'Océan Indien/Antananarivo (UTC+3)' },
-  { id: 'Indian/Mauritius', label: 'Océan Indien/Maurice (UTC+4)' },
+  { id: 'Africa/Dakar', label: 'Africa/Dakar (UTC+0)' },
+  { id: 'Africa/Abidjan', label: 'Africa/Abidjan (UTC+0)' },
+  { id: 'Africa/Casablanca', label: 'Africa/Casablanca (UTC+1)' },
+  { id: 'Africa/Algiers', label: 'Africa/Algiers (UTC+1)' },
+  { id: 'Africa/Tunis', label: 'Africa/Tunis (UTC+1)' },
+  { id: 'Africa/Douala', label: 'Africa/Douala (UTC+1)' },
+  { id: 'Indian/Antananarivo', label: 'Indian/Antananarivo (UTC+3)' },
+  { id: 'Indian/Mauritius', label: 'Indian/Mauritius (UTC+4)' },
 ];
 
 const FONT_OPTIONS: ReadonlyArray<{ id: string; label: string }> = [
-  { id: 'Playfair Display', label: 'Playfair Display (élégant)' },
-  { id: 'Cormorant Garamond', label: 'Cormorant Garamond (classique)' },
-  { id: 'Inter', label: 'Inter (moderne)' },
-  { id: 'Manrope', label: 'Manrope (sans serif)' },
+  { id: 'Playfair Display', label: 'Playfair Display' },
+  { id: 'Cormorant Garamond', label: 'Cormorant Garamond' },
+  { id: 'Inter', label: 'Inter' },
+  { id: 'Manrope', label: 'Manrope' },
 ];
 
 const DEFAULT_THEME = {

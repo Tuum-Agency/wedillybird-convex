@@ -486,6 +486,7 @@
     "verifyTitle": "Verifica il tuo codice",
     "verifyDescription": "Abbiamo inviato un codice a {phone}. Scade tra 5 minuti.",
     "changeNumber": "Cambia numero",
+    "countryCodeLabel": "Prefisso paese",
     "phoneLabel": "Numero WhatsApp",
     "phonePlaceholder": "+33 6 12 34 56 78",
     "codeLabel": "Codice ricevuto via WhatsApp",
@@ -565,7 +566,15 @@
       "tooManyAttempts": "Troppi tentativi. Riprova tra qualche minuto.",
       "rateLimited": "Troppe richieste. Attendi qualche minuto.",
       "sendFailed": "Invio del codice fallito. Riprova.",
-      "network": "Errore di rete. Verifica la tua connessione."
+      "network": "Errore di rete. Verifica la tua connessione.",
+      "emailTaken": "Questo indirizzo è già utilizzato da un altro account.",
+      "submit": "Qualcosa è andato storto. Riprova."
+    },
+    "stepPrefix": "FASE",
+    "eyebrow": {
+      "profile": "PROFILO",
+      "secure": "SICUREZZA",
+      "role": "PERCORSO"
     }
   },
   "Dashboard": {
@@ -788,6 +797,7 @@
     "createEvent": "Nuovo matrimonio",
     "orgEventsTitle": "Matrimoni dell'organizzazione",
     "emptyEvents": "Nessun matrimonio ancora. Crea il primo per iniziare.",
+    "eventCount": "{count, plural, =0 {0 matrimoni} =1 {1 matrimonio} other {# matrimoni}}",
     "teamTitle": "Team",
     "teamSubtitle": "Invita i tuoi collaboratori e gestisci i loro accessi.",
     "backToDashboard": "Torna alla dashboard pro",
@@ -815,6 +825,12 @@
     "acceptSubtitle": "Accetta l'invito per collaborare ai matrimoni del team.",
     "acceptInvite": "Accetta l'invito",
     "declineInvite": "Rifiuta e torna alla dashboard",
+    "nav": {
+      "dashboard": "Matrimoni",
+      "team": "Team",
+      "billing": "Fatturazione",
+      "settings": "Impostazioni"
+    },
     "errors": {
       "unauthorized": "Accedi per continuare",
       "forbidden": "Non hai i permessi richiesti",
@@ -920,6 +936,7 @@
         "whatsappOnDemand": "WhatsApp a richiesta",
         "brandingWedillybird": "Branding Wedillybird (logo e colori imposti)",
         "brandingCustomLogo": "Logo e colori personalizzati",
+        "brandingLogoSubdomain": "Logo personalizzato e sottodominio dedicato",
         "brandingWhiteLabel": "Marca bianca completa (logo + dominio + email)",
         "subdomainCustom": "Sottodominio dedicato <code>{slug}.wedillybird.com</code>",
         "supportEmail48h": "Supporto email entro 48h",
@@ -1051,6 +1068,7 @@
     "next": "Avanti",
     "previous": "Indietro",
     "submit": "Crea l'evento",
+    "backToDashboard": "Torna alla dashboard",
     "creating": "Creazione…",
     "errors": {
       "submit": "Impossibile creare l'evento. Riprova.",
@@ -1073,7 +1091,34 @@
     "paygHistoryEmpty": "Nessun acquisto registrato.",
     "paygHistoryDate": "Data",
     "paygHistoryAmount": "Importo",
-    "paygHistoryReference": "Riferimento Stripe"
+    "paygHistoryReference": "Riferimento Stripe",
+    "eyebrow": "Fatturazione",
+    "title": "Abbonamento",
+    "subtitle": "Scegli il piano adatto a {name}. Cambia o annulla in qualsiasi momento dal portale clienti.",
+    "currentStatusLabel": "Stato attuale",
+    "noSubscription": "Nessun abbonamento",
+    "renewalDate": "Rinnovo il {date}",
+    "manageSubscription": "Gestisci il mio abbonamento",
+    "currentPlanBadge": "Piano attuale",
+    "recommendedBadge": "Consigliato",
+    "perMonth": "/ mese",
+    "currentPlanButton": "Piano attuale",
+    "changePlan": "Passa a questo piano",
+    "subscribe": "Abbonati",
+    "paygCreditsAvailable": "{count, plural, =1 {1 credito disponibile} other {# crediti disponibili}}",
+    "paygDescription": "{price} per attivare un evento occasionale senza abbonamento. Ideale per un test o un matrimonio isolato.",
+    "buyCredit": "Acquista un credito",
+    "paygSuccessBanner": "Acquisto Pay-as-you-go confermato. Hai +1 credito evento.",
+    "subscribeSuccessBanner": "Abbonamento attivato. Benvenuto!",
+    "cancelledBanner": "Abbonamento annullato. Puoi riprovare in qualsiasi momento.",
+    "securePaymentFooter": "Pagamenti sicuri via Stripe · Cancella dal portale in qualsiasi momento",
+    "status": {
+      "trialing": "Periodo di prova",
+      "active": "Attivo",
+      "past_due": "Pagamento in ritardo",
+      "canceled": "Annullato",
+      "unpaid": "Non pagato"
+    }
   },
   "Validation": {
     "phoneTooShort": "Numero troppo corto",

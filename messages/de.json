@@ -486,6 +486,7 @@
     "verifyTitle": "Verifiziere deinen Code",
     "verifyDescription": "Wir haben einen Code an {phone} gesendet. Er läuft in 5 Minuten ab.",
     "changeNumber": "Nummer ändern",
+    "countryCodeLabel": "Ländervorwahl",
     "phoneLabel": "WhatsApp-Nummer",
     "phonePlaceholder": "+49 151 12345678",
     "codeLabel": "Per WhatsApp erhaltener Code",
@@ -565,7 +566,15 @@
       "tooManyAttempts": "Zu viele Versuche. Versuche es in ein paar Minuten erneut.",
       "rateLimited": "Zu viele Anfragen. Warte ein paar Minuten.",
       "sendFailed": "Senden des Codes fehlgeschlagen. Versuch es erneut.",
-      "network": "Netzwerkfehler. Prüfe deine Verbindung."
+      "network": "Netzwerkfehler. Prüfe deine Verbindung.",
+      "emailTaken": "Diese Adresse wird bereits von einem anderen Konto verwendet.",
+      "submit": "Etwas ist schiefgelaufen. Versuche es erneut."
+    },
+    "stepPrefix": "SCHRITT",
+    "eyebrow": {
+      "profile": "PROFIL",
+      "secure": "SICHERHEIT",
+      "role": "WEG"
     }
   },
   "Dashboard": {
@@ -788,6 +797,7 @@
     "createEvent": "Neue Hochzeit",
     "orgEventsTitle": "Hochzeiten der Organisation",
     "emptyEvents": "Noch keine Hochzeit. Erstelle die erste, um zu starten.",
+    "eventCount": "{count, plural, =0 {0 Hochzeiten} =1 {1 Hochzeit} other {# Hochzeiten}}",
     "teamTitle": "Team",
     "teamSubtitle": "Lade deine Mitarbeiter ein und verwalte ihre Zugänge.",
     "backToDashboard": "Zurück zum Profi-Dashboard",
@@ -815,6 +825,12 @@
     "acceptSubtitle": "Akzeptiere die Einladung, um an den Hochzeiten des Teams mitzuwirken.",
     "acceptInvite": "Einladung annehmen",
     "declineInvite": "Ablehnen und zum Dashboard zurückkehren",
+    "nav": {
+      "dashboard": "Hochzeiten",
+      "team": "Team",
+      "billing": "Abrechnung",
+      "settings": "Einstellungen"
+    },
     "errors": {
       "unauthorized": "Melde dich an, um fortzufahren",
       "forbidden": "Du hast nicht die erforderlichen Rechte",
@@ -920,6 +936,7 @@
         "whatsappOnDemand": "WhatsApp auf Abruf",
         "brandingWedillybird": "Wedillybird-Branding (Logo und Farben fest)",
         "brandingCustomLogo": "Eigenes Logo und eigene Farben",
+        "brandingLogoSubdomain": "Eigenes Logo und dedizierte Subdomain",
         "brandingWhiteLabel": "Vollständiges White Label (Logo + Domain + E-Mails)",
         "subdomainCustom": "Dedizierte Subdomain <code>{slug}.wedillybird.com</code>",
         "supportEmail48h": "E-Mail-Support innerhalb von 48 h",
@@ -1051,6 +1068,7 @@
     "next": "Weiter",
     "previous": "Zurück",
     "submit": "Event erstellen",
+    "backToDashboard": "Zurück zum Dashboard",
     "creating": "Wird erstellt…",
     "errors": {
       "submit": "Event konnte nicht erstellt werden. Bitte erneut versuchen.",
@@ -1073,7 +1091,34 @@
     "paygHistoryEmpty": "Keine Käufe verzeichnet.",
     "paygHistoryDate": "Datum",
     "paygHistoryAmount": "Betrag",
-    "paygHistoryReference": "Stripe-Referenz"
+    "paygHistoryReference": "Stripe-Referenz",
+    "eyebrow": "Abrechnung",
+    "title": "Abonnement",
+    "subtitle": "Wähle den richtigen Plan für {name}. Jederzeit im Kundenportal ändern oder kündigen.",
+    "currentStatusLabel": "Aktueller Status",
+    "noSubscription": "Kein Abonnement",
+    "renewalDate": "Verlängerung am {date}",
+    "manageSubscription": "Mein Abonnement verwalten",
+    "currentPlanBadge": "Aktueller Plan",
+    "recommendedBadge": "Empfohlen",
+    "perMonth": "/ Monat",
+    "currentPlanButton": "Aktueller Plan",
+    "changePlan": "Zu diesem Plan wechseln",
+    "subscribe": "Abonnieren",
+    "paygCreditsAvailable": "{count, plural, =1 {1 Guthaben verfügbar} other {# Guthaben verfügbar}}",
+    "paygDescription": "{price} um ein einmaliges Event ohne Abonnement zu aktivieren. Ideal für einen Test oder eine einzelne Hochzeit.",
+    "buyCredit": "Guthaben kaufen",
+    "paygSuccessBanner": "Pay-as-you-go-Kauf bestätigt. Du hast jetzt +1 Event-Guthaben.",
+    "subscribeSuccessBanner": "Abonnement aktiviert. Willkommen!",
+    "cancelledBanner": "Abonnement gekündigt. Du kannst es jederzeit erneut versuchen.",
+    "securePaymentFooter": "Sichere Zahlungen via Stripe · Jederzeit über das Portal kündigen",
+    "status": {
+      "trialing": "Probezeit",
+      "active": "Aktiv",
+      "past_due": "Zahlung überfällig",
+      "canceled": "Gekündigt",
+      "unpaid": "Unbezahlt"
+    }
   },
   "Validation": {
     "phoneTooShort": "Nummer zu kurz",

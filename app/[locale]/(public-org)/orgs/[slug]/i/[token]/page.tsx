@@ -38,12 +38,12 @@ export default async function PublicOrgInvitationPage({
 
   const accentColor = event.theme?.primaryColor ?? 'var(--brand-primary, oklch(72% 0.09 20))';
 
-  const eventDateFormatted = new Intl.DateTimeFormat('fr', {
+  const eventDateFormatted = new Intl.DateTimeFormat(locale, {
     dateStyle: 'full',
     timeStyle: 'short',
     timeZone: event.timezone,
   }).format(new Date(event.eventDate));
-  const eventDateCompact = new Intl.DateTimeFormat('fr', {
+  const eventDateCompact = new Intl.DateTimeFormat(locale, {
     day: 'numeric',
     month: 'long',
     year: 'numeric',

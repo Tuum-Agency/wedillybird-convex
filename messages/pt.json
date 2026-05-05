@@ -486,6 +486,7 @@
     "verifyTitle": "Verifica o teu código",
     "verifyDescription": "Enviámos um código para {phone}. Expira em 5 minutos.",
     "changeNumber": "Mudar de número",
+    "countryCodeLabel": "Código de país",
     "phoneLabel": "Número WhatsApp",
     "phonePlaceholder": "+351 91 234 56 78",
     "codeLabel": "Código recebido por WhatsApp",
@@ -565,7 +566,15 @@
       "tooManyAttempts": "Demasiadas tentativas. Tenta de novo daqui a alguns minutos.",
       "rateLimited": "Demasiados pedidos. Aguarda alguns minutos.",
       "sendFailed": "Falha no envio do código. Tenta de novo.",
-      "network": "Erro de rede. Verifica a tua ligação."
+      "network": "Erro de rede. Verifica a tua ligação.",
+      "emailTaken": "Este endereço já está em uso por outra conta.",
+      "submit": "Algo correu mal. Tenta de novo."
+    },
+    "stepPrefix": "PASSO",
+    "eyebrow": {
+      "profile": "PERFIL",
+      "secure": "SEGURANÇA",
+      "role": "PERCURSO"
     }
   },
   "Dashboard": {
@@ -788,6 +797,7 @@
     "createEvent": "Novo casamento",
     "orgEventsTitle": "Casamentos da organização",
     "emptyEvents": "Ainda não há casamentos. Cria o primeiro para arrancar.",
+    "eventCount": "{count, plural, =0 {0 casamentos} =1 {1 casamento} other {# casamentos}}",
     "teamTitle": "Equipa",
     "teamSubtitle": "Convida os teus colaboradores e gere os respetivos acessos.",
     "backToDashboard": "Voltar ao painel pro",
@@ -815,6 +825,12 @@
     "acceptSubtitle": "Aceita o convite para colaborar nos casamentos da equipa.",
     "acceptInvite": "Aceitar o convite",
     "declineInvite": "Recusar e voltar ao painel",
+    "nav": {
+      "dashboard": "Casamentos",
+      "team": "Equipa",
+      "billing": "Faturação",
+      "settings": "Definições"
+    },
     "errors": {
       "unauthorized": "Inicia sessão para continuar",
       "forbidden": "Não tens as permissões necessárias",
@@ -920,6 +936,7 @@
         "whatsappOnDemand": "WhatsApp a pedido",
         "brandingWedillybird": "Branding Wedillybird (logótipo e cores impostos)",
         "brandingCustomLogo": "Logótipo e cores personalizados",
+        "brandingLogoSubdomain": "Logótipo personalizado e subdomínio dedicado",
         "brandingWhiteLabel": "White-label completo (logótipo + domínio + emails)",
         "subdomainCustom": "Subdomínio dedicado <code>{slug}.wedillybird.com</code>",
         "supportEmail48h": "Apoio por email em 48h",
@@ -1051,6 +1068,7 @@
     "next": "Seguinte",
     "previous": "Anterior",
     "submit": "Criar o evento",
+    "backToDashboard": "Voltar ao painel",
     "creating": "A criar…",
     "errors": {
       "submit": "Não foi possível criar o evento. Tenta de novo.",
@@ -1073,7 +1091,34 @@
     "paygHistoryEmpty": "Nenhuma compra registada.",
     "paygHistoryDate": "Data",
     "paygHistoryAmount": "Montante",
-    "paygHistoryReference": "Referência Stripe"
+    "paygHistoryReference": "Referência Stripe",
+    "eyebrow": "Faturação",
+    "title": "Subscrição",
+    "subtitle": "Escolha o plano certo para {name}. Altere ou cancele quando quiser no portal do cliente.",
+    "currentStatusLabel": "Estado atual",
+    "noSubscription": "Sem subscrição",
+    "renewalDate": "Renova em {date}",
+    "manageSubscription": "Gerir a minha subscrição",
+    "currentPlanBadge": "Plano atual",
+    "recommendedBadge": "Recomendado",
+    "perMonth": "/ mês",
+    "currentPlanButton": "Plano atual",
+    "changePlan": "Mudar para este plano",
+    "subscribe": "Subscrever",
+    "paygCreditsAvailable": "{count, plural, =1 {1 crédito disponível} other {# créditos disponíveis}}",
+    "paygDescription": "{price} para ativar um evento pontual sem subscrição. Ideal para um teste ou um casamento isolado.",
+    "buyCredit": "Comprar um crédito",
+    "paygSuccessBanner": "Compra Pay-as-you-go confirmada. Tem +1 crédito de evento.",
+    "subscribeSuccessBanner": "Subscrição ativada. Bem-vindo!",
+    "cancelledBanner": "Subscrição cancelada. Pode tentar novamente a qualquer momento.",
+    "securePaymentFooter": "Pagamentos seguros via Stripe · Cancele no portal a qualquer momento",
+    "status": {
+      "trialing": "Período de avaliação",
+      "active": "Ativo",
+      "past_due": "Pagamento em atraso",
+      "canceled": "Cancelado",
+      "unpaid": "Não pago"
+    }
   },
   "Validation": {
     "phoneTooShort": "Número demasiado curto",

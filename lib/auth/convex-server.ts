@@ -80,6 +80,7 @@ export const convexApi = {
       venue?: { name: string; address: string };
       theme?: { primaryColor: string; accentColor: string; fontFamily: string };
       pendingPlanTier?: 'essential' | 'premium';
+      organizationId?: string;
     },
     { id: string; slug: string }
   >('events:create'),

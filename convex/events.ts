@@ -208,6 +208,7 @@ export const create = mutation({
      * réussi via Stripe Checkout.
      */
     pendingPlanTier: v.optional(v.union(v.literal('essential'), v.literal('premium'))),
+    organizationId: v.optional(v.id('organizations')),
   },
   handler: async (ctx, args) => {
     const owner = await ctx.db.get(args.ownerId);
@@ -241,6 +242,7 @@ export const create = mutation({
       status: 'draft' as const,
       // planTier left undefined until the owner pays (Essentiel or Premium).
       ...(args.pendingPlanTier ? { pendingPlanTier: args.pendingPlanTier } : {}),
+      ...(args.organizationId ? { organizationId: args.organizationId } : {}),
       maxGuests: ANTI_ABUSE_GUEST_CAP,
       createdAt: now,
       updatedAt: now,
