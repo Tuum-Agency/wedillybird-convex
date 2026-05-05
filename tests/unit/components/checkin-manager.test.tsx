@@ -21,6 +21,7 @@ vi.mock('next-intl', () => ({
     }
     return `${namespace ?? 'T'}.${key}`;
   },
+  useLocale: () => 'fr',
 }));
 
 vi.mock('next/dynamic', () => ({

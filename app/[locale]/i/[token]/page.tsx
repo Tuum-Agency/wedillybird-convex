@@ -69,14 +69,14 @@ export default async function InvitationPage({
   const accentColor = event.theme?.primaryColor ?? 'oklch(72% 0.09 20)';
 
   // Formatage date complet (long) pour le header invitation.
-  const eventDateFormatted = new Intl.DateTimeFormat('fr', {
+  const eventDateFormatted = new Intl.DateTimeFormat(locale, {
     dateStyle: 'full',
     timeStyle: 'short',
     timeZone: event.timezone,
   }).format(new Date(event.eventDate));
 
   // Formatage compact pour la cinématique (DD MMM YYYY en mono caps).
-  const eventDateCompact = new Intl.DateTimeFormat('fr', {
+  const eventDateCompact = new Intl.DateTimeFormat(locale, {
     day: 'numeric',
     month: 'long',
     year: 'numeric',

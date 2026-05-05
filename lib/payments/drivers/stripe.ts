@@ -115,7 +115,7 @@ export const stripeDriver: PaymentDriver = {
         plan: input.plan,
       },
       client_reference_id: `${input.userId}:${input.eventId}`,
-      locale: 'fr',
+      locale: 'auto',
       ...testCardCustomText(),
     });
 

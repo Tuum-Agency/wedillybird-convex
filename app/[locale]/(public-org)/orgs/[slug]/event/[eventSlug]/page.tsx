@@ -78,7 +78,7 @@ export default async function PublicOrgEventPage({
   const accentColor = event.theme?.primaryColor ?? 'var(--brand-primary, var(--color-primary))';
   const themeStyle = { '--invitation-accent': accentColor } as CSSProperties;
 
-  const eventDateFormatted = new Intl.DateTimeFormat('fr', {
+  const eventDateFormatted = new Intl.DateTimeFormat(locale, {
     dateStyle: 'full',
     timeStyle: 'short',
     timeZone: event.timezone,

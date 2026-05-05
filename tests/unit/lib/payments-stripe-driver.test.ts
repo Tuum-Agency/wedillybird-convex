@@ -72,7 +72,7 @@ describe('payments/drivers/stripe — createCheckout', () => {
     expect(args.line_items[0].price_data.currency).toBe('eur');
     expect(args.line_items[0].price_data.unit_amount).toBe(4900);
     expect(args.metadata).toEqual({ eventId: 'evt_1', userId: 'usr_1', plan: 'essential' });
-    expect(args.locale).toBe('fr');
+    expect(args.locale).toBe('auto');
     expect(args.success_url).toContain('session_id={CHECKOUT_SESSION_ID}');
     expect(args.custom_text.submit.message).toContain('4242 4242 4242 4242');
   });

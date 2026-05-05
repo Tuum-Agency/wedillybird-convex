@@ -87,7 +87,7 @@ export default async function EventDetailPage({
   const tDash = await getTranslations('Dashboard');
   const statusCfg = STATUS_CONFIG[event.status];
 
-  const dateFormatted = new Intl.DateTimeFormat('fr', {
+  const dateFormatted = new Intl.DateTimeFormat(locale, {
     dateStyle: 'long',
     timeStyle: 'short',
     timeZone: event.timezone,
