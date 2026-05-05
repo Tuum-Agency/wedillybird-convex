@@ -41,9 +41,6 @@ const PLAN_STRIPE_DESCRIPTION: Record<string, string> = {
     "Tout l'Essentiel + galerie partagée 6 mois après le mariage + album PDF final imprimable.",
 };
 
-const STRIPE_TEST_CARD_HINT =
-  'Mode test Stripe : carte OK 4242 4242 4242 4242, expiration 12/34, CVC 123. Carte refusée : 4000 0000 0000 9995.';
-
 // Stripe expects ISO 4217 currency codes lowercase. We store XOF in centimes
 // internally (divisor 100), but Stripe represents XOF as zero-decimal. Ditto
 // TND uses millimes (divisor 1000), which Stripe handles natively for TND.
@@ -55,23 +52,6 @@ const STRIPE_CURRENCY_DIVISOR_OVERRIDE: Partial<Record<Currency, number>> = {
 function toStripeAmount(minor: number, currency: Currency): number {
   const override = STRIPE_CURRENCY_DIVISOR_OVERRIDE[currency];
   return override ? Math.round(minor / override) : minor;
-}
-
-function shouldShowStripeTestCards(): boolean {
-  if (process.env.STRIPE_SHOW_TEST_CARDS === '1') return true;
-  if (process.env.STRIPE_SHOW_TEST_CARDS === '0') return false;
-  return process.env.STRIPE_SECRET_KEY?.startsWith('sk_test_') ?? false;
-}
-
-function testCardCustomText(): Pick<Stripe.Checkout.SessionCreateParams, 'custom_text'> {
-  if (!shouldShowStripeTestCards()) return {};
-  return {
-    custom_text: {
-      submit: {
-        message: STRIPE_TEST_CARD_HINT,
-      },
-    },
-  };
 }
 
 export const stripeDriver: PaymentDriver = {
@@ -116,7 +96,6 @@ export const stripeDriver: PaymentDriver = {
       },
       client_reference_id: `${input.userId}:${input.eventId}`,
       locale: 'auto',
-      ...testCardCustomText(),
     });
 
     if (!session.url) throw new Error('STRIPE_NO_REDIRECT_URL');
@@ -228,9 +207,8 @@ export async function createSubscriptionCheckout(
         billing,
       },
     },
-    locale: 'fr',
+    locale: 'auto',
     allow_promotion_codes: true,
-    ...testCardCustomText(),
   });
   if (!session.url) throw new Error('STRIPE_NO_REDIRECT_URL');
   return { providerSessionId: session.id, redirectUrl: session.url };
@@ -244,7 +222,7 @@ export async function openCustomerPortal(
   const session = await stripe.billingPortal.sessions.create({
     customer: customerId,
     return_url: returnUrl,
-    locale: 'fr',
+    locale: 'auto',
   });
   return { url: session.url };
 }
@@ -292,9 +270,8 @@ export async function createPaygCheckout(input: PaygCheckoutInput): Promise<Chec
       organizationId: input.organizationId,
       requesterId: input.requesterId,
     },
-    locale: 'fr',
+    locale: 'auto',
     allow_promotion_codes: true,
-    ...testCardCustomText(),
   });
   if (!session.url) throw new Error('STRIPE_NO_REDIRECT_URL');
   return { providerSessionId: session.id, redirectUrl: session.url };

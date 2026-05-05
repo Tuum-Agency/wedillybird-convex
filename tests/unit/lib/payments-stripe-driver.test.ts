@@ -20,12 +20,10 @@ vi.mock('stripe', () => ({
 
 const ORIGINAL_KEY = process.env.STRIPE_SECRET_KEY;
 const ORIGINAL_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
-const ORIGINAL_SHOW_TEST_CARDS = process.env.STRIPE_SHOW_TEST_CARDS;
 
 beforeEach(() => {
   process.env.STRIPE_SECRET_KEY = 'sk_test_dummy';
   process.env.STRIPE_WEBHOOK_SECRET = 'whsec_dummy';
-  delete process.env.STRIPE_SHOW_TEST_CARDS;
   stripeMock.checkout.sessions.create.mockReset();
   stripeMock.checkout.sessions.retrieve.mockReset();
   stripeMock.webhooks.constructEvent.mockReset();
@@ -37,8 +35,6 @@ afterEach(() => {
   else process.env.STRIPE_SECRET_KEY = ORIGINAL_KEY;
   if (ORIGINAL_SECRET === undefined) delete process.env.STRIPE_WEBHOOK_SECRET;
   else process.env.STRIPE_WEBHOOK_SECRET = ORIGINAL_SECRET;
-  if (ORIGINAL_SHOW_TEST_CARDS === undefined) delete process.env.STRIPE_SHOW_TEST_CARDS;
-  else process.env.STRIPE_SHOW_TEST_CARDS = ORIGINAL_SHOW_TEST_CARDS;
 });
 
 const checkoutInput = {
@@ -74,7 +70,7 @@ describe('payments/drivers/stripe — createCheckout', () => {
     expect(args.metadata).toEqual({ eventId: 'evt_1', userId: 'usr_1', plan: 'essential' });
     expect(args.locale).toBe('auto');
     expect(args.success_url).toContain('session_id={CHECKOUT_SESSION_ID}');
-    expect(args.custom_text.submit.message).toContain('4242 4242 4242 4242');
+    expect(args.custom_text).toBeUndefined();
   });
 
   it('converts XOF centimes to whole units before passing to Stripe', async () => {
@@ -111,65 +107,6 @@ describe('payments/drivers/stripe — createCheckout', () => {
     await expect(stripeDriver.createCheckout(checkoutInput)).rejects.toThrow(
       'STRIPE_DRIVER_NOT_CONFIGURED',
     );
-  });
-
-  it('does not expose test card hints when using a live Stripe key', async () => {
-    process.env.STRIPE_SECRET_KEY = 'sk_live_dummy';
-    stripeMock.checkout.sessions.create.mockResolvedValue({
-      id: 'cs_live',
-      url: 'https://checkout.stripe.com/cs_live',
-    });
-    const { stripeDriver } = await import('@/lib/payments/drivers/stripe');
-
-    await stripeDriver.createCheckout(checkoutInput);
-
-    const args = stripeMock.checkout.sessions.create.mock.calls[0]![0];
-    expect(args.custom_text).toBeUndefined();
-  });
-});
-
-describe('payments/drivers/stripe — test card hints', () => {
-  it('adds test card hints to pro subscription Checkout sessions', async () => {
-    process.env.STRIPE_PRICE_STARTER = 'price_starter_TEST';
-    stripeMock.checkout.sessions.create.mockResolvedValue({
-      id: 'cs_sub',
-      url: 'https://checkout.stripe.com/cs_sub',
-    });
-    const { createSubscriptionCheckout } = await import('@/lib/payments/drivers/stripe');
-
-    await createSubscriptionCheckout({
-      organizationId: 'org_1',
-      requesterId: 'usr_1',
-      tier: 'starter',
-      customerEmail: 'pro@example.test',
-      successUrl: 'https://app.test/pro/billing?status=success',
-      cancelUrl: 'https://app.test/pro/billing?status=cancelled',
-    });
-
-    const args = stripeMock.checkout.sessions.create.mock.calls[0]![0];
-    expect(args.mode).toBe('subscription');
-    expect(args.custom_text.submit.message).toContain('4242 4242 4242 4242');
-  });
-
-  it('adds test card hints to pro pay-as-you-go Checkout sessions', async () => {
-    process.env.STRIPE_PRICE_PAYG_EVENT = 'price_payg_TEST';
-    stripeMock.checkout.sessions.create.mockResolvedValue({
-      id: 'cs_payg',
-      url: 'https://checkout.stripe.com/cs_payg',
-    });
-    const { createPaygCheckout } = await import('@/lib/payments/drivers/stripe');
-
-    await createPaygCheckout({
-      organizationId: 'org_1',
-      requesterId: 'usr_1',
-      customerEmail: 'pro@example.test',
-      successUrl: 'https://app.test/pro/billing?status=success',
-      cancelUrl: 'https://app.test/pro/billing?status=cancelled',
-    });
-
-    const args = stripeMock.checkout.sessions.create.mock.calls[0]![0];
-    expect(args.mode).toBe('payment');
-    expect(args.custom_text.submit.message).toContain('4000 0000 0000 9995');
   });
 });
 
