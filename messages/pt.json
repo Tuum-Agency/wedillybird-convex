@@ -815,6 +815,12 @@
     "acceptSubtitle": "Aceita o convite para colaborar nos casamentos da equipa.",
     "acceptInvite": "Aceitar o convite",
     "declineInvite": "Recusar e voltar ao painel",
+    "nav": {
+      "dashboard": "Casamentos",
+      "team": "Equipa",
+      "billing": "Faturação",
+      "settings": "Definições"
+    },
     "errors": {
       "unauthorized": "Inicia sessão para continuar",
       "forbidden": "Não tens as permissões necessárias",

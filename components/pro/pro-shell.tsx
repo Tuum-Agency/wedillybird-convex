@@ -93,15 +93,16 @@ export interface ProNavProps {
 }
 
 export function ProNav({ current }: ProNavProps) {
+  const t = useTranslations('Pro');
   const tabs: Array<{
     key: ProNavProps['current'];
     href: '/pro/dashboard' | '/pro/team' | '/pro/billing' | '/pro/settings';
     label: string;
   }> = [
-    { key: 'dashboard', href: '/pro/dashboard', label: 'Mariages' },
-    { key: 'team', href: '/pro/team', label: 'Équipe' },
-    { key: 'billing', href: '/pro/billing', label: 'Facturation' },
-    { key: 'settings', href: '/pro/settings', label: 'Réglages' },
+    { key: 'dashboard', href: '/pro/dashboard', label: t('nav.dashboard') },
+    { key: 'team', href: '/pro/team', label: t('nav.team') },
+    { key: 'billing', href: '/pro/billing', label: t('nav.billing') },
+    { key: 'settings', href: '/pro/settings', label: t('nav.settings') },
   ];
   return (
     <nav aria-label="Navigation pro" className="hidden items-center gap-7 md:flex">

@@ -815,6 +815,12 @@
     "acceptSubtitle": "Akzeptiere die Einladung, um an den Hochzeiten des Teams mitzuwirken.",
     "acceptInvite": "Einladung annehmen",
     "declineInvite": "Ablehnen und zum Dashboard zurückkehren",
+    "nav": {
+      "dashboard": "Hochzeiten",
+      "team": "Team",
+      "billing": "Abrechnung",
+      "settings": "Einstellungen"
+    },
     "errors": {
       "unauthorized": "Melde dich an, um fortzufahren",
       "forbidden": "Du hast nicht die erforderlichen Rechte",

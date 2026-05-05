@@ -815,6 +815,12 @@
     "acceptSubtitle": "Accetta l'invito per collaborare ai matrimoni del team.",
     "acceptInvite": "Accetta l'invito",
     "declineInvite": "Rifiuta e torna alla dashboard",
+    "nav": {
+      "dashboard": "Matrimoni",
+      "team": "Team",
+      "billing": "Fatturazione",
+      "settings": "Impostazioni"
+    },
     "errors": {
       "unauthorized": "Accedi per continuare",
       "forbidden": "Non hai i permessi richiesti",

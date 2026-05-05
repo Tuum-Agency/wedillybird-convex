@@ -811,6 +811,12 @@
     "acceptSubtitle": "Accept the invitation to collaborate on the team's weddings.",
     "acceptInvite": "Accept invitation",
     "declineInvite": "Decline and return to dashboard",
+    "nav": {
+      "dashboard": "Weddings",
+      "team": "Team",
+      "billing": "Billing",
+      "settings": "Settings"
+    },
     "errors": {
       "unauthorized": "Sign in to continue",
       "forbidden": "You don't have the required permissions",

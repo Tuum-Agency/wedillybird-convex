@@ -815,6 +815,12 @@
     "acceptSubtitle": "Acepta la invitación para colaborar en las bodas del equipo.",
     "acceptInvite": "Aceptar la invitación",
     "declineInvite": "Rechazar y volver al panel",
+    "nav": {
+      "dashboard": "Bodas",
+      "team": "Equipo",
+      "billing": "Facturación",
+      "settings": "Ajustes"
+    },
     "errors": {
       "unauthorized": "Conéctate para continuar",
       "forbidden": "No tienes los permisos necesarios",
