@@ -43,7 +43,7 @@ export default async function NewEventPage({ params }: { params: Promise<{ local
             className="inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-ink-500)] uppercase transition-colors hover:text-[color:var(--color-ink-900)]"
           >
             <ArrowLeft className="h-3 w-3" strokeWidth={2} aria-hidden />
-            Retour au tableau de bord
+            {t('backToDashboard')}
           </Link>
           <h1
             className="font-display text-balance italic"

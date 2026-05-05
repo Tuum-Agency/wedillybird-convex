@@ -1059,6 +1059,7 @@
     "next": "Suivant",
     "previous": "Précédent",
     "submit": "Créer l'événement",
+    "backToDashboard": "Retour au tableau de bord",
     "creating": "Création…",
     "errors": {
       "submit": "Impossible de créer l'événement. Réessayez.",

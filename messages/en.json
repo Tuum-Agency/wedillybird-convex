@@ -1055,6 +1055,7 @@
     "next": "Next",
     "previous": "Previous",
     "submit": "Create event",
+    "backToDashboard": "Back to dashboard",
     "creating": "Creating…",
     "errors": {
       "submit": "Couldn't create the event. Try again.",

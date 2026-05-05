@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { redirect } from '@/i18n/navigation';
+import { getLocale } from 'next-intl/server';
 import {
   createEventSchema,
   normalizeCreateEvent,
@@ -81,7 +82,8 @@ export async function createEventAction(formData: FormData): Promise<CreateEvent
     return { ok: false, error: err instanceof Error ? err.message : 'UNKNOWN' };
   }
 
-  redirect({ href: `/dashboard?created=${slug}`, locale: 'fr' });
+  const locale = await getLocale();
+  redirect({ href: `/dashboard?created=${slug}`, locale });
   return { ok: true, slug };
 }
 

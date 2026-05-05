@@ -1059,6 +1059,7 @@
     "next": "Weiter",
     "previous": "Zurück",
     "submit": "Event erstellen",
+    "backToDashboard": "Zurück zum Dashboard",
     "creating": "Wird erstellt…",
     "errors": {
       "submit": "Event konnte nicht erstellt werden. Bitte erneut versuchen.",

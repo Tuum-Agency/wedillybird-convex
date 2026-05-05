@@ -1059,6 +1059,7 @@
     "next": "Siguiente",
     "previous": "Anterior",
     "submit": "Crear el evento",
+    "backToDashboard": "Volver al panel",
     "creating": "Creando…",
     "errors": {
       "submit": "No se ha podido crear el evento. Inténtalo de nuevo.",

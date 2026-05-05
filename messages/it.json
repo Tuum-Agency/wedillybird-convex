@@ -1059,6 +1059,7 @@
     "next": "Avanti",
     "previous": "Indietro",
     "submit": "Crea l'evento",
+    "backToDashboard": "Torna alla dashboard",
     "creating": "Creazione…",
     "errors": {
       "submit": "Impossibile creare l'evento. Riprova.",
