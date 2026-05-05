@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useLocale } from 'next-intl';
 import { Badge } from '@/components/ui/badge';
 
 type Subscriber = {
@@ -13,6 +14,7 @@ type Subscriber = {
 };
 
 export function AdminNewsletterTable({ subscribers }: { subscribers: Subscriber[] }) {
+  const locale = useLocale();
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [search, setSearch] = useState('');
 
@@ -73,13 +75,13 @@ export function AdminNewsletterTable({ subscribers }: { subscribers: Subscriber[
                   {s.source ?? '—'}
                 </td>
                 <td className="px-4 py-3 text-[color:var(--color-muted-foreground)]">
-                  {new Intl.DateTimeFormat('fr', { dateStyle: 'medium' }).format(
+                  {new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(
                     new Date(s.subscribedAt),
                   )}
                 </td>
                 <td className="px-4 py-3 text-[color:var(--color-muted-foreground)]">
                   {s.unsubscribedAt
-                    ? new Intl.DateTimeFormat('fr', { dateStyle: 'medium' }).format(
+                    ? new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(
                         new Date(s.unsubscribedAt),
                       )
                     : '—'}

@@ -1,5 +1,6 @@
 'use client';
 
+import { useLocale } from 'next-intl';
 import { Badge } from '@/components/ui/badge';
 import { useServerAction } from '@/components/admin/use-admin-action';
 import { adminModeratePhotoAction } from '@/app/[locale]/(app)/admin/actions';
@@ -45,6 +46,7 @@ export function AdminModerationPanel({
   photos: Photo[];
   templates: Template[];
 }) {
+  const locale = useLocale();
   return (
     <div className="flex flex-col gap-8">
       {/* Photos section */}
@@ -100,7 +102,7 @@ export function AdminModerationPanel({
                   </td>
                   <td className="px-4 py-3 text-[color:var(--color-muted-foreground)]">
                     {t.submittedAt
-                      ? new Intl.DateTimeFormat('fr', { dateStyle: 'medium' }).format(
+                      ? new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(
                           new Date(t.submittedAt),
                         )
                       : '—'}

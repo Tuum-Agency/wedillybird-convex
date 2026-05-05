@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useLocale } from 'next-intl';
 import { Badge } from '@/components/ui/badge';
 
 type Payment = {
@@ -43,6 +44,7 @@ function formatAmount(amountMinor: number, currency: string): string {
 }
 
 export function AdminPaymentsTable({ payments }: { payments: Payment[] }) {
+  const locale = useLocale();
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [currencyFilter, setCurrencyFilter] = useState<string>('all');
 
@@ -112,7 +114,7 @@ export function AdminPaymentsTable({ payments }: { payments: Payment[] }) {
                   <Badge variant={STATUS_VARIANT[p.status] ?? 'neutral'}>{p.status}</Badge>
                 </td>
                 <td className="px-4 py-3 text-[color:var(--color-muted-foreground)]">
-                  {new Intl.DateTimeFormat('fr', {
+                  {new Intl.DateTimeFormat(locale, {
                     dateStyle: 'medium',
                     timeStyle: 'short',
                   }).format(new Date(p.createdAt))}
