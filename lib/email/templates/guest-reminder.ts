@@ -1,3 +1,5 @@
+import type { Locale } from '../../../i18n/routing';
+import { getServerTranslator } from '../../i18n/server-translator';
 import type { EmailRendered } from '../types';
 import { button, htmlLayout, paragraph } from './_layout';
 
@@ -7,39 +9,46 @@ export type GuestReminderInput = {
   eventDate: string;
   invitationUrl: string;
   daysUntilEvent: number;
+  locale?: Locale | string;
 };
 
 export function renderGuestReminder(input: GuestReminderInput): EmailRendered {
-  const { guestName, eventTitle, eventDate, invitationUrl, daysUntilEvent } = input;
+  const { guestName, eventTitle, eventDate, invitationUrl, daysUntilEvent, locale } = input;
+  const t = getServerTranslator(locale);
+
   const subject =
     daysUntilEvent <= 1
-      ? `C'est demain : ${eventTitle}`
-      : `J-${daysUntilEvent} avant ${eventTitle}`;
+      ? t('Emails.guestReminder.subjectDayBefore', { eventTitle })
+      : t('Emails.guestReminder.subjectDaysBefore', { days: daysUntilEvent, eventTitle });
+
+  const bodyLine =
+    daysUntilEvent <= 1
+      ? t('Emails.guestReminder.bodyDayBefore', { eventTitle, eventDate })
+      : t('Emails.guestReminder.bodyDaysBefore', { days: daysUntilEvent, eventTitle, eventDate });
 
   const html = htmlLayout({
-    preheader: `${eventTitle} approche — confirmez votre présence`,
+    preheader: t('Emails.guestReminder.preheader', { eventTitle }),
     body:
-      paragraph(`Bonjour ${guestName},`) +
-      paragraph(
-        `Plus que ${daysUntilEvent} jour${daysUntilEvent > 1 ? 's' : ''} avant ${eventTitle} le ${eventDate}.`,
-      ) +
-      paragraph('Confirmez votre présence et accédez à votre invitation :') +
-      button('Voir mon invitation', invitationUrl) +
-      paragraph('À très vite !'),
-    footer: 'Cet email vous est envoyé par les hôtes de votre événement via Wedillybird.',
+      paragraph(t('Emails.common.greeting', { name: guestName })) +
+      paragraph(bodyLine) +
+      paragraph(t('Emails.guestReminder.callToAction')) +
+      button(t('Emails.guestReminder.ctaLabel'), invitationUrl) +
+      paragraph(t('Emails.guestReminder.closing')),
+    footer: t('Emails.guestReminder.footer'),
+    locale,
   });
 
   const text = [
-    `Bonjour ${guestName},`,
+    t('Emails.common.greeting', { name: guestName }),
     '',
-    `Plus que ${daysUntilEvent} jour${daysUntilEvent > 1 ? 's' : ''} avant ${eventTitle} le ${eventDate}.`,
+    bodyLine,
     '',
-    'Confirmez votre présence ici :',
+    t('Emails.guestReminder.textConfirmHere'),
     invitationUrl,
     '',
-    'À très vite !',
+    t('Emails.guestReminder.closing'),
     '',
-    '— Wedillybird',
+    t('Emails.common.signature'),
   ].join('\n');
 
   return { subject, html, text };

@@ -1,6 +1,11 @@
 import { v } from 'convex/values';
 import { internalMutation, mutation, query } from './_generated/server';
 import { internal } from './_generated/api';
+import { toIntlTag } from '../lib/i18n/locale-tags';
+
+function ownerLocaleToIntlTag(locale: string | undefined): string {
+  return toIntlTag(locale);
+}
 
 const PROVIDER = v.union(v.literal('stripe'), v.literal('cinetpay'), v.literal('mock'));
 const CURRENCY = v.union(v.literal('EUR'), v.literal('XOF'), v.literal('MAD'), v.literal('TND'));
@@ -158,15 +163,17 @@ export const markSucceeded = mutation({
     const owner = await ctx.db.get(payment.userId);
     if (owner?.email) {
       const amountFormatted = formatAmount(payment.amountMinor, payment.currency);
-      const eventTitle = event?.title ?? 'votre événement';
+      const eventTitle = event?.title ?? '';
       await ctx.scheduler.runAfter(0, internal.emailActions.sendProNotification, {
         to: owner.email,
-        recipientName: owner.fullName ?? owner.phone ?? 'Bonjour',
+        recipientName: owner.fullName ?? owner.phone ?? '',
         organizationName: eventTitle,
         kind: 'payment-received' as const,
-        detail: `Votre paiement de ${amountFormatted} pour le plan ${payment.plan} a été reçu.`,
-        ctaLabel: 'Voir l’événement',
+        detailKey: 'paymentReceivedDetail',
+        detailVars: { eventTitle },
+        ctaLabelKey: 'paymentReceived',
         ctaUrl: `${process.env.NEXT_PUBLIC_APP_URL ?? 'https://wedillybird.com'}/events/${payment.eventId}`,
+        locale: owner.locale,
       });
 
       // Facture associée — envoyée juste après la confirmation. Le numéro de
@@ -174,7 +181,8 @@ export const markSucceeded = mutation({
       // suffisant tant qu'on n'a pas une vraie séquence comptable. Si un PDF
       // est généré côté `lib/payments/invoice.ts`, on lui passera l'URL.
       const invoiceNumber = `INV-${providerSessionId.slice(-8).toUpperCase()}`;
-      const periodLabel = new Date(now).toLocaleDateString('fr-FR', {
+      const ownerLocaleTag = ownerLocaleToIntlTag(owner.locale);
+      const periodLabel = new Date(now).toLocaleDateString(ownerLocaleTag, {
         day: 'numeric',
         month: 'long',
         year: 'numeric',
@@ -182,12 +190,13 @@ export const markSucceeded = mutation({
       const invoiceUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? 'https://wedillybird.com'}/events/${payment.eventId}/invoice?session=${providerSessionId}`;
       await ctx.scheduler.runAfter(0, internal.emailActions.sendStripeInvoice, {
         to: owner.email,
-        recipientName: owner.fullName ?? owner.phone ?? 'Bonjour',
+        recipientName: owner.fullName ?? owner.phone ?? '',
         organizationName: eventTitle,
         invoiceNumber,
         amountFormatted,
         periodLabel,
         invoiceUrl,
+        locale: owner.locale,
       });
     }
 

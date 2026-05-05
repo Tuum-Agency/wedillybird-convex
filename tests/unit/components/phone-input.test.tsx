@@ -1,6 +1,11 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+
+vi.mock('next-intl', () => ({
+  useLocale: () => 'fr',
+}));
+
 import { PhoneInput } from '@/components/auth/phone-input';
 
 describe('PhoneInput', () => {

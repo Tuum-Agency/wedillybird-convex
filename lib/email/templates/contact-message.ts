@@ -1,33 +1,31 @@
+import type { Locale } from '../../../i18n/routing';
+import { getServerTranslator } from '../../i18n/server-translator';
 import type { EmailRendered } from '../types';
 import { escapeHtml, htmlLayout, paragraph } from './_layout';
 
 export interface ContactMessageInput {
-  /** Nom de la personne qui contacte. */
   fromName: string;
-  /** Email de la personne (servira de Reply-To côté SES). */
   fromEmail: string;
-  /** Sujet saisi dans le formulaire. */
   subject: string;
-  /** Corps du message (texte brut). */
   message: string;
-  /** Adresse IP qui a soumis (pour transparence/anti-abuse). */
   requestIp?: string;
+  /**
+   * Locale du destinataire (= notre boîte support, donc en pratique `fr`).
+   * Exposée pour cohérence avec les autres templates et tests futurs.
+   */
+  locale?: Locale | string;
 }
 
-/**
- * Email reçu par hello@wedillybird.com depuis le formulaire de contact public.
- *
- * Le sujet préfixe `[Contact]` pour le tri inbox. Le Reply-To est l'email
- * du contacter pour pouvoir répondre directement.
- */
 export function renderContactMessage({
   fromName,
   fromEmail,
   subject,
   message,
   requestIp,
+  locale,
 }: ContactMessageInput): EmailRendered {
-  const emailSubject = `[Contact] ${subject}`;
+  const t = getServerTranslator(locale);
+  const emailSubject = t('Emails.contactMessage.subjectPrefix', { subject });
   const preheader = `${fromName} <${fromEmail}> — ${truncate(subject, 80)}`;
 
   const messageHtml = message
@@ -35,36 +33,42 @@ export function renderContactMessage({
     .map((para) => paragraph(para.replace(/\n/g, ' ')))
     .join('');
 
+  const fromLabel = t('Emails.contactMessage.fromLabel');
+  const subjectLabel = t('Emails.contactMessage.subjectLabel');
+
   const body = [
     `<table cellpadding="0" cellspacing="0" style="margin:0 0 20px 0;font-size:13px;color:#7a6b50;">
-      <tr><td style="padding:4px 12px 4px 0;"><strong style="color:#2E250F;">De&nbsp;:</strong></td><td>${escapeHtml(fromName)} &lt;${escapeHtml(fromEmail)}&gt;</td></tr>
-      <tr><td style="padding:4px 12px 4px 0;"><strong style="color:#2E250F;">Sujet&nbsp;:</strong></td><td>${escapeHtml(subject)}</td></tr>
+      <tr><td style="padding:4px 12px 4px 0;"><strong style="color:#2E250F;">${escapeHtml(fromLabel)}&nbsp;:</strong></td><td>${escapeHtml(fromName)} &lt;${escapeHtml(fromEmail)}&gt;</td></tr>
+      <tr><td style="padding:4px 12px 4px 0;"><strong style="color:#2E250F;">${escapeHtml(subjectLabel)}&nbsp;:</strong></td><td>${escapeHtml(subject)}</td></tr>
     </table>`,
     `<hr style="border:0;border-top:1px solid #efe6d8;margin:0 0 20px 0;"/>`,
     messageHtml,
   ].join('');
 
+  const ipPart = requestIp ? t('Emails.contactMessage.footerIpPart', { ip: requestIp }) : '';
   const footerLines = [
-    `Message envoyé via le formulaire /contact${requestIp ? ` depuis l'IP ${escapeHtml(requestIp)}` : ''}.`,
-    `Répondez à cet email pour contacter ${escapeHtml(fromName)} directement.`,
+    t('Emails.contactMessage.footerSent', { ipPart }),
+    t('Emails.contactMessage.footerReply', { name: fromName }),
   ];
-  const footer = footerLines.map((l) => `<p style="margin:0 0 4px 0;">${l}</p>`).join('');
+  const footer = footerLines
+    .map((l) => `<p style="margin:0 0 4px 0;">${escapeHtml(l)}</p>`)
+    .join('');
 
-  const html = htmlLayout({ preheader, body, footer });
+  const html = htmlLayout({ preheader, body, footer, locale });
 
   const text = [
-    `[Contact] ${subject}`,
+    emailSubject,
     '',
-    `De : ${fromName} <${fromEmail}>`,
-    `Sujet : ${subject}`,
+    `${fromLabel} : ${fromName} <${fromEmail}>`,
+    `${subjectLabel} : ${subject}`,
     '',
     '---',
     '',
     message,
     '',
     '---',
-    `Message envoyé via le formulaire /contact${requestIp ? ` depuis l'IP ${requestIp}` : ''}.`,
-    `Répondez à cet email pour contacter ${fromName} directement.`,
+    t('Emails.contactMessage.footerSent', { ipPart }),
+    t('Emails.contactMessage.footerReply', { name: fromName }),
   ].join('\n');
 
   return { subject: emailSubject, html, text };

@@ -13,6 +13,7 @@ import {
   type ProNotificationKind,
 } from '../lib/email/templates';
 import type { EmailRendered } from '../lib/email/types';
+import { getServerTranslator } from '../lib/i18n/server-translator';
 
 function requireEnv(name: string): string {
   const value = process.env[name];
@@ -82,6 +83,7 @@ export const sendGuestReminder = internalAction({
     invitationUrl: v.string(),
     daysUntilEvent: v.number(),
     tier: v.union(v.literal('d7'), v.literal('d1')),
+    locale: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const rendered = renderGuestReminder({
@@ -90,6 +92,7 @@ export const sendGuestReminder = internalAction({
       eventDate: args.eventDate,
       invitationUrl: args.invitationUrl,
       daysUntilEvent: args.daysUntilEvent,
+      locale: args.locale,
     });
     const result = await dispatch(args.to, rendered);
     if (result.ok) {
@@ -119,12 +122,14 @@ export const sendLinkCodeEmail = internalAction({
     to: v.string(),
     code: v.string(),
     ipAddress: v.optional(v.string()),
+    locale: v.optional(v.string()),
   },
-  handler: async (_ctx, { to, code, ipAddress }) => {
+  handler: async (_ctx, { to, code, ipAddress, locale }) => {
     const rendered = renderLinkCode({
       code,
       expiresInMinutes: 10,
       requestIp: ipAddress,
+      locale,
     });
     const result = await dispatch(to, rendered);
     if (!result.ok) {
@@ -139,8 +144,9 @@ export const sendMagicLinkEmail = internalAction({
     to: v.string(),
     token: v.string(),
     ipAddress: v.optional(v.string()),
+    locale: v.optional(v.string()),
   },
-  handler: async (_ctx, { to, token, ipAddress }) => {
+  handler: async (_ctx, { to, token, ipAddress, locale }) => {
     const baseUrl = process.env.APP_BASE_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? '';
     const verifyUrl = `${baseUrl.replace(/\/$/, '')}/api/auth/magic-link/verify?email=${encodeURIComponent(
       to,
@@ -150,6 +156,7 @@ export const sendMagicLinkEmail = internalAction({
       verifyUrl,
       expiresInMinutes: 15,
       requestIp: ipAddress,
+      locale,
     });
     const result = await dispatch(to, rendered);
     if (!result.ok) {
@@ -158,6 +165,39 @@ export const sendMagicLinkEmail = internalAction({
     return result;
   },
 });
+
+/**
+ * Clé i18n pour bâtir le `detail` de la notification dynamiquement, en
+ * respectant la locale du destinataire. Le mutation ne peut pas charger les
+ * messages (Convex V8 isolate, pas d'import JSON), donc on passe la clé +
+ * paramètres via les args et on traduit dans l'action Node.
+ */
+type ProDetailKey =
+  | 'teamInviteDetail'
+  | 'subscriptionWelcome'
+  | 'subscriptionPastDue'
+  | 'subscriptionCanceled'
+  | 'subscriptionRenewedDetail'
+  | 'paymentReceivedDetail'
+  | 'paygCreditDetail';
+
+const PRO_DETAIL_KEYS: readonly ProDetailKey[] = [
+  'teamInviteDetail',
+  'subscriptionWelcome',
+  'subscriptionPastDue',
+  'subscriptionCanceled',
+  'subscriptionRenewedDetail',
+  'paymentReceivedDetail',
+  'paygCreditDetail',
+];
+
+const PRO_CTA_LABEL_KEYS = [
+  'teamMemberAdded',
+  'paymentReceived',
+  'subscriptionRenewed',
+  'subscriptionFailed',
+  'paygCreditActivated',
+] as const;
 
 export const sendProNotification = internalAction({
   args: {
@@ -171,18 +211,48 @@ export const sendProNotification = internalAction({
       v.literal('subscription-failed'),
       v.literal('payg-credit-activated'),
     ),
-    detail: v.string(),
+    /**
+     * Détail pré-formaté. Optionnel — si absent, l'action utilise
+     * `detailKey` + `detailVars` pour générer le détail traduit côté serveur.
+     */
+    detail: v.optional(v.string()),
+    detailKey: v.optional(v.string()),
+    detailVars: v.optional(v.any()),
     ctaLabel: v.optional(v.string()),
+    /** Si fourni, override `ctaLabel` par la traduction de la clé Pro. */
+    ctaLabelKey: v.optional(v.string()),
     ctaUrl: v.optional(v.string()),
+    locale: v.optional(v.string()),
   },
   handler: async (_ctx, args) => {
+    const t = getServerTranslator(args.locale);
+    let detail = args.detail ?? '';
+    if (!detail && args.detailKey) {
+      const key = args.detailKey as ProDetailKey;
+      if (!PRO_DETAIL_KEYS.includes(key)) {
+        throw new Error(`UNKNOWN_PRO_DETAIL_KEY:${key}`);
+      }
+      const vars = (args.detailVars ?? {}) as Record<string, string | number>;
+      detail = t(`Emails.proNotification.${key}` as `Emails.proNotification.${ProDetailKey}`, vars);
+    }
+    let ctaLabel = args.ctaLabel;
+    if (!ctaLabel && args.ctaLabelKey) {
+      const labelKey = args.ctaLabelKey as (typeof PRO_CTA_LABEL_KEYS)[number];
+      if (!(PRO_CTA_LABEL_KEYS as readonly string[]).includes(labelKey)) {
+        throw new Error(`UNKNOWN_PRO_CTA_KEY:${labelKey}`);
+      }
+      ctaLabel = t(
+        `Emails.proNotification.${labelKey}.ctaLabel` as 'Emails.proNotification.teamMemberAdded.ctaLabel',
+      );
+    }
     const rendered = renderProNotification({
       recipientName: args.recipientName,
       organizationName: args.organizationName,
       kind: args.kind as ProNotificationKind,
-      detail: args.detail,
-      ctaLabel: args.ctaLabel,
+      detail,
+      ctaLabel,
       ctaUrl: args.ctaUrl,
+      locale: args.locale,
     });
     const result = await dispatch(args.to, rendered);
     if (!result.ok) {
@@ -208,6 +278,7 @@ export const sendStripeInvoice = internalAction({
     periodLabel: v.string(),
     invoiceUrl: v.string(),
     pdfUrl: v.optional(v.string()),
+    locale: v.optional(v.string()),
   },
   handler: async (_ctx, args) => {
     const rendered = renderStripeInvoice({
@@ -218,6 +289,7 @@ export const sendStripeInvoice = internalAction({
       periodLabel: args.periodLabel,
       invoiceUrl: args.invoiceUrl,
       pdfUrl: args.pdfUrl,
+      locale: args.locale,
     });
     const result = await dispatch(args.to, rendered);
     if (!result.ok) {

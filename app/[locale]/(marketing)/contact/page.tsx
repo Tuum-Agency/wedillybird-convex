@@ -3,6 +3,7 @@ import { setRequestLocale, getTranslations } from 'next-intl/server';
 import { useTranslations } from 'next-intl';
 import { ArrowLeft, Clock, Mail } from 'lucide-react';
 import { OG_DEFAULT_IMAGES, TWITTER_DEFAULT_IMAGES } from '@/lib/seo/og';
+import { toOgLocale } from '@/lib/i18n/locale-tags';
 import { Link } from '@/i18n/navigation';
 import { WedillybirdLogo } from '@/components/brand/wedillybird-logo';
 import { ContactForm } from '@/components/marketing/contact-form';
@@ -25,7 +26,7 @@ export async function generateMetadata({
       description: t('description'),
       url: '/contact',
       siteName: 'Wedillybird',
-      locale: 'fr_FR',
+      locale: toOgLocale(locale),
       images: [...OG_DEFAULT_IMAGES],
     },
     twitter: {

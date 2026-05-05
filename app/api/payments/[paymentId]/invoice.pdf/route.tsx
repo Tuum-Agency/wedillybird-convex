@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { renderToBuffer } from '@react-pdf/renderer';
+import { getLocale } from 'next-intl/server';
 import { getSession } from '@/lib/auth/session';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
 import { buildInvoiceNumber, InvoicePDF, type InvoicePayment } from '@/lib/payments/invoice';
@@ -47,6 +48,11 @@ export async function GET(
     return NextResponse.json({ error: message }, { status: 500 });
   }
 
+  // Locale = celle persistée sur l'user (préférée), sinon locale courante
+  // de la requête (récupérée via next-intl). Permet à un user qui consulte
+  // son PDF depuis un autre domaine localisé d'avoir le bon rendu.
+  const locale = result.customer?.locale ?? (await getLocale());
+
   const invoicePayment: InvoicePayment = {
     paymentId: result.payment._id,
     invoiceNumber: buildInvoiceNumber(result.payment._id, result.payment.createdAt),
@@ -58,6 +64,7 @@ export async function GET(
     provider: result.payment.provider,
     customer: result.customer ?? {},
     eventTitle: result.event?.title,
+    locale,
   };
 
   const buffer = await renderToBuffer(<InvoicePDF payment={invoicePayment} />);

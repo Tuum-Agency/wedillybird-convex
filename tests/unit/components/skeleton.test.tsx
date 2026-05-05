@@ -3,11 +3,15 @@ import { render } from '@testing-library/react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 describe('Skeleton', () => {
-  it("expose role=status + aria-busy + aria-label pour les lecteurs d'écran", () => {
+  it("expose role=status + aria-busy pour les lecteurs d'écran", () => {
     const { getByRole } = render(<Skeleton className="h-8 w-32" />);
     const el = getByRole('status');
     expect(el).toHaveAttribute('aria-busy', 'true');
-    expect(el).toHaveAttribute('aria-label', 'Chargement…');
+  });
+
+  it('accepte un aria-label custom passé par le caller', () => {
+    const { getByRole } = render(<Skeleton aria-label="Loading photos" />);
+    expect(getByRole('status')).toHaveAttribute('aria-label', 'Loading photos');
   });
 
   it('applique la classe shimmer brand par défaut', () => {

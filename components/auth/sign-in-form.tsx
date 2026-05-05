@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { PhoneInput } from '@/components/auth/phone-input';
 import { requestOtpAction } from '@/app/[locale]/(auth)/actions';
+import { translateZodMessage } from '@/lib/validators/translate-zod';
 
 function mapError(code: string, t: (k: string) => string): string {
   switch (code) {
@@ -21,6 +22,7 @@ function mapError(code: string, t: (k: string) => string): string {
 
 export function SignInForm() {
   const t = useTranslations('Auth');
+  const tRoot = useTranslations();
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -44,7 +46,7 @@ export function SignInForm() {
     });
   }
 
-  const phoneError = fieldErrors.phone?.[0];
+  const phoneError = translateZodMessage(fieldErrors.phone?.[0], (k) => tRoot(k as never));
 
   return (
     <form action={handleSubmit} className="flex flex-col gap-5" noValidate>

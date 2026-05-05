@@ -2,19 +2,8 @@ import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { Send } from 'lucide-react';
 import { WedillybirdLogo } from '@/components/brand/wedillybird-logo';
+import { LocaleSwitcher } from '@/components/layout/locale-switcher';
 
-/**
- * Landing — Footer V4.
- *
- * Fix audit verdicts :
- * - Drapeaux emoji unicode → libellés texte séparés par middots (rendu
- *   homogène cross-OS, plus élégant)
- * - <span> non-cliquables → <Link> ou anchors fonctionnels
- * - "Tuum Agency · Paris & Dakar" leak → retiré (signature Wedillybird seule)
- *
- * Block tagline + newsletter + 4 colonnes (Produit, Pros, Ressources, Légal)
- * + régions + logos paiement (Stripe + CinetPay) + copyright.
- */
 const PRODUCT_LINKS = [
   { key: 'features', href: '/#features' as const },
   { key: 'pricing', href: '/#pricing' as const },
@@ -40,17 +29,6 @@ const LEGAL_LINKS = [
   { key: 'privacy', href: '/legal/privacy' as const },
   { key: 'cookies', href: '/legal/cookies' as const },
   { key: 'rgpd', href: '/legal/privacy' as const },
-] as const;
-
-const REGIONS = [
-  'France',
-  'Sénégal',
-  'Côte d’Ivoire',
-  'Mali',
-  'Burkina Faso',
-  'Togo',
-  'Bénin',
-  'Cameroun',
 ] as const;
 
 export function LandingFooterRich() {
@@ -143,26 +121,9 @@ export function LandingFooterRich() {
           />
         </div>
 
-        {/* Block regions + paiements */}
+        {/* Block langue + paiements */}
         <div className="flex flex-col gap-6 border-t border-[color:var(--color-border)] pt-10 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex flex-col gap-2">
-            <span className="font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-ink-500)] uppercase">
-              {t('regions')}
-            </span>
-            <p className="text-sm text-[color:var(--color-ink-700)]">
-              {REGIONS.map((r, i) => (
-                <span key={r}>
-                  {r}
-                  {i < REGIONS.length - 1 && (
-                    <span className="mx-2 text-[color:var(--color-ink-300)]" aria-hidden>
-                      ·
-                    </span>
-                  )}
-                </span>
-              ))}
-            </p>
-          </div>
-
+          <LocaleSwitcher />
           <div className="flex flex-col gap-2 lg:items-end">
             <span className="font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-ink-500)] uppercase">
               {t('payments')}

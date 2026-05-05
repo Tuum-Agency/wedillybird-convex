@@ -1,3 +1,5 @@
+import type { Locale } from '../../../i18n/routing';
+import { getServerTranslator } from '../../i18n/server-translator';
 import type { EmailRendered } from '../types';
 import { htmlLayout, paragraph } from './_layout';
 
@@ -8,57 +10,50 @@ export interface LinkCodeInput {
   expiresInMinutes?: number;
   /** Adresse IP qui a déclenché la demande (optionnel, pour transparence). */
   requestIp?: string;
+  /** Locale du destinataire. */
+  locale?: Locale | string;
 }
 
-/**
- * Email "code de liaison" — envoyé quand un user déjà connecté souhaite
- * ajouter cet email à son compte (flux Account.link.email).
- *
- * Pattern OTP-style : un code 6 chiffres à recopier dans l'app, pas un lien
- * cliquable. Plus simple à implémenter dans un drawer + plus sûr (pas de
- * lien à cliquer depuis un autre device non connecté).
- */
 export function renderLinkCode({
   code,
   expiresInMinutes = 10,
   requestIp,
+  locale,
 }: LinkCodeInput): EmailRendered {
-  const subject = `Votre code de vérification Wedillybird : ${code}`;
-  const preheader = `Code à recopier dans l'app pour confirmer cette adresse — valable ${expiresInMinutes} minutes.`;
+  const t = getServerTranslator(locale);
+
+  const subject = t('Emails.linkCode.subject', { code });
+  const preheader = t('Emails.linkCode.preheader', { minutes: expiresInMinutes });
 
   const body = [
-    paragraph('Bonjour,'),
-    paragraph(
-      `Vous avez demandé à associer cette adresse email à votre compte Wedillybird. Recopiez le code ci-dessous dans la fenêtre de vérification :`,
-    ),
+    paragraph(t('Emails.common.greetingSimple')),
+    paragraph(t('Emails.linkCode.intro')),
     `<div style="margin:24px 0;text-align:center;font-family:'Courier New',monospace;font-size:32px;letter-spacing:8px;color:#2E250F;background:#FBF6EE;padding:18px;border:1px solid #efe6d8;border-radius:8px;font-weight:bold;">${code}</div>`,
-    paragraph(
-      `Le code expire dans ${expiresInMinutes} minutes et n'est utilisable qu'une seule fois.`,
-    ),
-    paragraph(
-      `Si vous n'êtes pas à l'origine de cette demande, ignorez ce message — aucune adresse ne sera ajoutée à votre compte.`,
-    ),
+    paragraph(t('Emails.linkCode.expiry', { minutes: expiresInMinutes })),
+    paragraph(t('Emails.linkCode.ignoreNotice')),
   ].join('');
 
   const footerLines = [
-    `Demande envoyée${requestIp ? ` depuis l'adresse ${requestIp}` : ''}.`,
-    `Wedillybird — l'organisation de mariage simplifiée.`,
+    requestIp
+      ? t('Emails.common.requestFromIp', { ip: requestIp })
+      : t('Emails.common.requestSentNoIp'),
+    t('Emails.common.tagline'),
   ];
   const footer = footerLines.map((l) => `<p style="margin:0 0 4px 0;">${l}</p>`).join('');
 
-  const html = htmlLayout({ preheader, body, footer });
+  const html = htmlLayout({ preheader, body, footer, locale });
 
   const text = [
-    'Votre code de vérification Wedillybird',
+    t('Emails.linkCode.textTitle'),
     '',
-    `Code : ${code}`,
-    `Valable ${expiresInMinutes} minutes, usage unique.`,
+    t('Emails.linkCode.textCode', { code }),
+    t('Emails.linkCode.textValidity', { minutes: expiresInMinutes }),
     '',
-    `Recopiez ce code dans la fenêtre de vérification de l'app.`,
+    t('Emails.linkCode.textInstructions'),
     '',
-    "Si vous n'êtes pas à l'origine de cette demande, ignorez ce message.",
+    t('Emails.linkCode.ignoreNotice'),
     '',
-    '— Wedillybird',
+    t('Emails.common.signature'),
   ].join('\n');
 
   return { subject, html, text };

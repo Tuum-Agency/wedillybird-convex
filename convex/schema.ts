@@ -9,7 +9,15 @@ export default defineSchema({
     email: v.optional(v.string()),
     fullName: v.optional(v.string()),
     avatarUrl: v.optional(v.string()),
-    locale: v.union(v.literal('fr')),
+    locale: v.union(
+      v.literal('fr'),
+      v.literal('en'),
+      v.literal('es'),
+      v.literal('it'),
+      v.literal('pt'),
+      v.literal('de'),
+      v.literal('ar'),
+    ),
     role: v.union(v.literal('couple'), v.literal('pro'), v.literal('guest'), v.literal('admin')),
     // For couples: 'essential' | 'premium' (per-event, set on payment).
     // For pros: 'starter' | 'business' | 'agency' (subscription).

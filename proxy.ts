@@ -9,7 +9,8 @@ import { extractOrgSlug } from './lib/subdomain/extract-org-slug';
  *  1. Rewrite multi-tenant : `<slug>.wedillybird.com/<path>` →
  *     `/orgs/<slug>/<path>` (transparent pour l'utilisateur, l'URL
  *     affichée reste le sous-domaine).
- *  2. Routing next-intl (locale `fr` only, prefix `as-needed`).
+ *  2. Routing next-intl (locales fr/en/es/it/pt/de/ar, prefix `as-needed` —
+ *     `fr` est servi sans préfixe, les autres sous `/<locale>/...`).
  *
  * En dev local (où on n'a pas de DNS wildcard), le param de querystring
  * `?orgPreview=<slug>` simule le sous-domaine — utile pour Playwright et

@@ -1,6 +1,7 @@
 'use server';
 
 import { headers } from 'next/headers';
+import { getLocale } from 'next-intl/server';
 import { redirect } from '@/i18n/navigation';
 import {
   requestMagicLinkSchema,
@@ -152,10 +153,12 @@ export async function requestMagicLinkAction(formData: FormData): Promise<Action
     headersList.get('x-real-ip') ??
     undefined;
 
+  const locale = await getLocale();
   try {
     await convex.action(convexApi.requestMagicLink, {
       email: parsed.data.email,
       ...(ipAddress ? { ipAddress } : {}),
+      locale,
     });
     return { ok: true, email: parsed.data.email };
   } catch (err) {

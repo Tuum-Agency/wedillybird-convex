@@ -3,6 +3,7 @@ import { headers } from 'next/headers';
 import { useTranslations } from 'next-intl';
 import { setRequestLocale, getTranslations } from 'next-intl/server';
 import { OG_DEFAULT_IMAGES, TWITTER_DEFAULT_IMAGES } from '@/lib/seo/og';
+import { toOgLocale } from '@/lib/i18n/locale-tags';
 import { Link } from '@/i18n/navigation';
 import { buttonVariants } from '@/components/ui/button';
 import { LenisProvider } from '@/components/landing/lenis-provider';
@@ -18,6 +19,7 @@ import { LandingCtaFinal } from '@/components/landing/cta-final';
 import { LandingFooterRich } from '@/components/landing/footer-rich';
 import { SectionNav } from '@/components/landing/section-nav';
 import { WedillybirdLogo } from '@/components/brand/wedillybird-logo';
+import { LocaleSwitcher } from '@/components/layout/locale-switcher';
 import {
   detectPricingRegion,
   formatRegionalPlanPrice,
@@ -55,7 +57,7 @@ export async function generateMetadata({
       siteName: 'Wedillybird',
       title: t('title'),
       description: t('description'),
-      locale: 'fr_FR',
+      locale: toOgLocale(locale),
       images: [...OG_DEFAULT_IMAGES],
     },
     twitter: {
@@ -161,10 +163,12 @@ function LandingShell({
             <SectionNav />
           </nav>
 
-          {/* Colonne droite : CTA primary unique. Le flow OTP WhatsApp est
-              unifié (sign-in/sign-up = même action), donc un seul bouton.
-              Le lien "déjà un compte ?" sera proposé sur la page sign-in. */}
+          {/* Colonne droite : sélecteur de langue + CTA primary. Le flow OTP
+              WhatsApp est unifié (sign-in/sign-up = même action), donc un seul
+              bouton. */}
           <div className="flex items-center justify-end gap-3">
+            <LocaleSwitcher />
+            <span aria-hidden className="hidden h-5 w-px bg-[color:var(--color-border)] sm:block" />
             <Link
               href="/sign-up"
               className={cn(buttonVariants({ variant: 'primary', size: 'sm' }))}

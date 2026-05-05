@@ -20,7 +20,8 @@
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "ci": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build",
+    "i18n:validate": "tsx scripts/validate-i18n-parity.ts",
+    "ci": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm i18n:validate && pnpm test && pnpm build",
     "convex:dev": "convex dev",
     "convex:deploy": "convex deploy",
     "prepare": "husky"

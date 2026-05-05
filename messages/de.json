@@ -1,0 +1,1302 @@
+{
+  "Common": {
+    "appName": "Wedillybird",
+    "tagline": "Deine Hochzeit, stressfrei organisiert",
+    "signIn": "Anmelden",
+    "signUp": "Konto erstellen",
+    "getStarted": "Loslegen",
+    "signOut": "Abmelden",
+    "continue": "Weiter",
+    "cancel": "Abbrechen",
+    "save": "Speichern",
+    "delete": "Löschen",
+    "edit": "Bearbeiten",
+    "back": "Zurück",
+    "loading": "Lädt…",
+    "error": "Ein Fehler ist aufgetreten",
+    "retry": "Erneut versuchen",
+    "skipToContent": "Zum Hauptinhalt springen"
+  },
+  "Footer": {
+    "allRightsReserved": "Alle Rechte vorbehalten",
+    "navLabel": "Rechtliche Links",
+    "terms": "AGB",
+    "privacy": "Datenschutz",
+    "cookies": "Cookies",
+    "faq": "FAQ",
+    "contact": "Kontakt"
+  },
+  "Legal": {
+    "terms": {
+      "title": "Allgemeine Geschäftsbedingungen",
+      "lastUpdated": "Letzte Aktualisierung: 25. April 2026",
+      "article1Title": "1. Gegenstand",
+      "article1Body": "Wedillybird („der Dienst\") bietet eine SaaS-Plattform zur Hochzeitsorganisation, die die Verwaltung von Gästen, den Versand von WhatsApp-Einladungen, die RSVP-Verfolgung, den Check-in und das Teilen einer Fotogalerie ermöglicht. Diese AGB regeln die Nutzung des Dienstes durch jede Person, die darauf zugreift („der Nutzer\").",
+      "article2Title": "2. Annahme",
+      "article2Body": "Die Nutzung des Dienstes setzt die vollständige und vorbehaltlose Annahme dieser AGB voraus. Der Nutzer bestätigt mit der Erstellung seines Kontos, diese zur Kenntnis genommen und uneingeschränkt akzeptiert zu haben.",
+      "article3Title": "3. Konto und Zugang",
+      "article3Body": "Der Zugang zum Dienst erfordert die Erstellung eines Kontos durch Verifizierung einer WhatsApp-Nummer. Der Nutzer ist für die Vertraulichkeit seiner Nummer und für jede Handlung verantwortlich, die über sein Konto erfolgt. Jede unbefugte Nutzung ist unverzüglich zu melden.",
+      "article4Title": "4. Preise und Zahlung",
+      "article4Body": "Der Dienst wird ohne kostenlose Variante angeboten. Für Privatpersonen, die eine Hochzeit organisieren, gibt es zwei Einmalzahlungs-Pakete: Essentiel (19 €, Grundfunktionen + Galerie 30 Tage) und Premium (49 €, Essentiel + Galerie 6 Monate + PDF-Album). Ein Upsell nach der Hochzeit (+29 €) verlängert die Galerie auf 5 Jahre und fügt das HD-Fotobuch hinzu. Für Profis: monatliches oder jährliches Abonnement (Starter 89 €/Monat, Business 179 €/Monat, Agency 349 €/Monat, -20 % bei jährlicher Zahlung) oder Bezahlung pro Event (69 €). Zahlungen werden über Stripe (Europa) oder CinetPay (Westafrika) abgewickelt. Vollständige Rückerstattung innerhalb von 7 Tagen, sofern das Event noch nicht versendet wurde. Bei Absage der Hochzeit ist eine kostenlose Verschiebung auf einen anderen Termin möglich.",
+      "article5Title": "5. Geistiges Eigentum",
+      "article5Body": "Der Nutzer behält das Eigentum an den von ihm hochgeladenen Inhalten. Er räumt Wedillybird eine nicht-exklusive Lizenz zur Nutzung dieser Inhalte ausschließlich zum Zweck des Betriebs des Dienstes ein. Wedillybird behält das Eigentum an der Plattform, dem Code und der Marke.",
+      "article6Title": "6. Haftung",
+      "article6Body": "Der Dienst wird „wie besehen\" bereitgestellt. Wedillybird bemüht sich um eine größtmögliche Verfügbarkeit, garantiert jedoch keine unterbrechungsfreie Nutzung. Die Haftung von Wedillybird ist auf den Betrag begrenzt, den der Nutzer in den letzten 12 Monaten gezahlt hat.",
+      "article7Title": "7. Anwendbares Recht und Streitigkeiten",
+      "article7Body": "Diese AGB unterliegen dem französischen Recht. Für sämtliche Streitigkeiten im Zusammenhang mit ihrer Ausführung sind ausschließlich die Gerichte von Paris zuständig, sofern keine zwingenden gegenteiligen Bestimmungen entgegenstehen."
+    },
+    "privacy": {
+      "title": "Datenschutzerklärung",
+      "lastUpdated": "Letzte Aktualisierung: 25. April 2026",
+      "controllerTitle": "Verantwortlicher für die Datenverarbeitung",
+      "controllerBody": "Wedillybird, eine Plattform betrieben von Tuum Agency, ist verantwortlich für die Verarbeitung der über den Dienst erhobenen Daten.",
+      "dataCollectedTitle": "Erhobene Daten",
+      "dataCollectedBody": "WhatsApp-Nummer (Authentifizierung), Name und E-Mail (Profil), Informationen zu organisierten Hochzeiten (Termine, Orte, Gästelisten), in der Galerie geteilte Fotos, technische Logs (IP, User-Agent).",
+      "purposesTitle": "Zwecke",
+      "purposesBody": "Bereitstellung des Dienstes, Authentifizierung der Nutzer, Versand von Einladungen und Benachrichtigungen, Zahlungsabwicklung, Betrugsprävention, Verbesserung der Plattform.",
+      "legalBasisTitle": "Rechtsgrundlagen (DSGVO)",
+      "legalBasisBody": "Vertragserfüllung (Konto, Zahlungen, Funktionen), berechtigtes Interesse (Sicherheit, Missbrauchsprävention), Einwilligung (nicht essenzielle Cookies, Marketing-Kommunikation).",
+      "retentionTitle": "Aufbewahrungsdauer",
+      "retentionBody": "Kontodaten: Dauer des Abonnements + 3 Jahre. Zahlungsdaten: gesetzliche Frist (10 Jahre für die Rechnungsstellung). Technische Logs: maximal 12 Monate.",
+      "subprocessorsTitle": "Auftragsverarbeiter",
+      "subprocessorsBody": "Convex (Datenbank, USA), Vercel (Hosting, USA/EU), Stripe (Zahlung, EU/USA), Meta WhatsApp Cloud API (Nachrichtenversand, EU/USA), Amazon Rekognition Faces (temporäre Indexierung von Gesichtern für die Fotosuche, EU). Datenminimierung, kein Weiterverkauf, kein Marketing-Sharing mit Dritten. Alle gebunden durch Standardvertragsklauseln oder gleichwertige Mechanismen.",
+      "rightsTitle": "Ihre Rechte",
+      "rightsBody": "Auskunft, Berichtigung, Löschung, Widerspruch, Datenübertragbarkeit, Einschränkung. Zur Ausübung eines Rechts schreiben Sie an privacy@wedillybird.com. Sie können sich auch an die CNIL wenden.",
+      "contactTitle": "Kontakt",
+      "contactBody": "E-Mail: privacy@wedillybird.com. Antwort innerhalb von 30 Tagen gemäß DSGVO."
+    },
+    "cookies": {
+      "title": "Cookie-Richtlinie",
+      "lastUpdated": "Letzte Aktualisierung: 25. April 2026",
+      "whatTitle": "Was ist ein Cookie?",
+      "whatBody": "Ein Cookie ist eine kleine Textdatei, die von einer Website auf Ihrem Gerät gespeichert wird. Wedillybird verwendet ausschließlich für den Betrieb des Dienstes notwendige Cookies.",
+      "typesTitle": "Verwendete Cookies",
+      "typesBody": "Session-Cookie (Authentifizierung, HMAC-signiert, läuft nach 30 Tagen Inaktivität ab). Lokaler IndexedDB-Speicher (Offline-Cache für den Check-in). Es werden keine Werbe- oder Tracking-Cookies von Drittanbietern gesetzt.",
+      "controlTitle": "Cookies kontrollieren",
+      "controlBody": "Sie können Cookies über die Einstellungen Ihres Browsers löschen. Die Deaktivierung des Session-Cookies meldet Sie vom Dienst ab.",
+      "thirdPartiesTitle": "Drittanbieter-Cookies",
+      "thirdPartiesBody": "Stripe setzt eigene Cookies auf seinen Zahlungsseiten (außerhalb der Wedillybird-Domain), um Betrug zu verhindern. Konsultieren Sie deren Datenschutzerklärung."
+    }
+  },
+  "Account": {
+    "link": {
+      "eyebrow": "AKTIVIEREN",
+      "phone": {
+        "title": "Aktiviere die WhatsApp-Anmeldung",
+        "description": "Erhalte einen Code per WhatsApp, um dich ohne Passwort anzumelden. Schneller als per E-Mail.",
+        "cta": "WhatsApp verknüpfen",
+        "drawer": {
+          "title": "WhatsApp verknüpfen",
+          "step1Description": "Gib deine WhatsApp-Nummer ein, um einen 6-stelligen Code zu erhalten.",
+          "step2Description": "Gib den an {value} gesendeten Code ein.",
+          "successTitle": "WhatsApp mit deinem Konto verknüpft",
+          "successDescription": "Du kannst dich jetzt mit deiner Nummer anmelden."
+        }
+      },
+      "email": {
+        "title": "Aktiviere die E-Mail-Anmeldung",
+        "description": "Erhalte einen Code per E-Mail, um dich ohne WhatsApp anzumelden. Praktisch für deine älteren Gäste.",
+        "cta": "E-Mail verknüpfen",
+        "drawer": {
+          "title": "Deine E-Mail-Adresse verknüpfen",
+          "step1Description": "Gib deine E-Mail ein, um einen 6-stelligen Code zu erhalten.",
+          "step2Description": "Gib den an {value} gesendeten Code ein.",
+          "successTitle": "E-Mail mit deinem Konto verknüpft",
+          "successDescription": "Du kannst dich jetzt mit deiner E-Mail-Adresse anmelden."
+        }
+      },
+      "phoneLabel": "WhatsApp-Nummer",
+      "phonePlaceholder": "+49 151 12345678",
+      "emailLabel": "E-Mail-Adresse",
+      "emailPlaceholder": "du@email.com",
+      "codeLabel": "Erhaltener 6-stelliger Code",
+      "sendCode": "Code senden",
+      "sending": "Senden…",
+      "verify": "Verifizieren",
+      "verifying": "Wird verifiziert…",
+      "changeValue": "Ändern",
+      "done": "Fertig",
+      "errors": {
+        "invalidPhone": "Ungültige Telefonnummer",
+        "invalidEmail": "Ungültige E-Mail-Adresse",
+        "invalidCode": "Code falsch oder unvollständig",
+        "phoneTaken": "Diese Nummer wird bereits von einem anderen Konto verwendet. Melde dich mit dieser Nummer an, um es wiederherzustellen.",
+        "emailTaken": "Diese Adresse wird bereits von einem anderen Konto verwendet. Melde dich mit dieser Adresse an, um es wiederherzustellen.",
+        "alreadyLinked": "Diese Kennung ist bereits mit deinem Konto verknüpft.",
+        "rateLimited": "Zu viele Anfragen. Bitte warte einige Minuten.",
+        "noActiveLink": "Kein Code ausstehend. Fordere einen neuen an.",
+        "expired": "Der Code ist abgelaufen. Fordere einen neuen an.",
+        "tooManyAttempts": "Zu viele Versuche. Fordere einen neuen Code an.",
+        "sendFailed": "Senden nicht möglich. Versuche es gleich noch einmal.",
+        "network": "Netzwerk nicht verfügbar. Prüfe deine Verbindung.",
+        "unauthenticated": "Sitzung abgelaufen. Bitte erneut anmelden.",
+        "unknown": "Ein Fehler ist aufgetreten. Bitte erneut versuchen."
+      }
+    }
+  },
+  "Contact": {
+    "eyebrow": "SCHREIB UNS",
+    "title": "Eine Frage, ein Projekt, ein nettes Wort?",
+    "subtitle": "Unser gesamtes Team liest jede Nachricht. Eine menschliche Antwort innerhalb von 24 Werkstunden, auf Französisch — schlichtes Versprechen.",
+    "infoTitle": "Andere Kanäle",
+    "infoEmail": "Direkte E-Mail",
+    "infoEmailValue": "hello@wedillybird.com",
+    "infoSupport": "Technischer Support",
+    "infoSupportValue": "support@wedillybird.com",
+    "infoPrivacy": "Personenbezogene Daten",
+    "infoPrivacyValue": "privacy@wedillybird.com",
+    "infoHours": "Erreichbarkeit",
+    "infoHoursValue": "Montag bis Freitag, 9 – 19 Uhr (MEZ)",
+    "form": {
+      "nameLabel": "Dein Name",
+      "namePlaceholder": "Aminata Diallo",
+      "emailLabel": "E-Mail-Adresse",
+      "emailPlaceholder": "du@email.com",
+      "subjectLabel": "Betreff",
+      "subjectPlaceholder": "Hochzeit im Juni, ich möchte mehr erfahren…",
+      "messageLabel": "Nachricht",
+      "messagePlaceholder": "Erzähl uns alles — geplantes Datum, Anzahl der Gäste, deine Fragen.",
+      "websiteLabel": "Leer lassen (Anti-Spam)",
+      "submit": "Nachricht senden",
+      "sending": "Wird gesendet…",
+      "successEyebrow": "NACHRICHT ERHALTEN",
+      "successTitle": "Danke, wir melden uns sehr bald.",
+      "successDescription": "Deine Nachricht ist gerade im Postfach unseres Teams angekommen. Persönliche Antwort innerhalb von 24 Werkstunden.",
+      "successBack": "Eine weitere Nachricht senden",
+      "errorGeneric": "Nachricht konnte nicht gesendet werden. Versuche es gleich noch einmal.",
+      "errorNetwork": "Netzwerk nicht verfügbar. Prüfe deine Verbindung und versuche es erneut.",
+      "errorValidation": "Einige Felder müssen vor dem Senden korrigiert werden."
+    }
+  },
+  "Faq": {
+    "title": "Häufig gestellte Fragen",
+    "subtitle": "Alles, was du über Wedillybird wissen musst.",
+    "questions": {
+      "account": {
+        "q": "Wie erstelle ich mein Konto?",
+        "a": "Klicke auf „Konto erstellen\", gib deine WhatsApp-Nummer ein und gib den 6-stelligen Code ein, den du per WhatsApp erhalten hast. Es ist kein Passwort erforderlich."
+      },
+      "invitations": {
+        "q": "Wie verschicke ich die Einladungen an meine Gäste?",
+        "a": "Füge deine Gäste über die Seite „Gäste verwalten\" hinzu und sende ihnen dann den personalisierten Link, den Wedillybird für jeden Gast erstellt. Jeder Gast hat einen einzigartigen QR-Code für den Check-in."
+      },
+      "rsvp": {
+        "q": "Wie funktioniert die RSVP-Verfolgung?",
+        "a": "Deine Gäste antworten direkt über ihren personalisierten Link. Du siehst die Antworten in Echtzeit auf deinem Dashboard mit der Anzahl der Zusagen, Absagen und ausstehenden Antworten."
+      },
+      "checkin": {
+        "q": "Funktioniert der Check-in ohne Internet?",
+        "a": "Ja. Die Check-in-Seite speichert die Gästeliste lokal. Du kannst die QR-Codes auch ohne Verbindung scannen; die Daten werden synchronisiert, sobald die Verbindung wiederhergestellt ist."
+      },
+      "gallery": {
+        "q": "Können meine Gäste Fotos zur Galerie hinzufügen?",
+        "a": "Ja. Über ihre Einladungsseite können sie Fotos hochladen, die vor dem Erscheinen in der gemeinsamen Galerie deiner Moderation unterliegen."
+      },
+      "pricing": {
+        "q": "Was kostet es?",
+        "a": "Zwei Einmalzahlungspakete pro Hochzeit: Essentiel (19 €) für WhatsApp-Einladungen, RSVP, QR-Check-in und Dashboard; Premium (49 €) ergänzt die geteilte Fotogalerie für 6 Monate und das finale PDF-Album. Ein Upsell nach der Hochzeit für +29 € erlaubt es, deine Galerie 5 Jahre lang zu behalten, mit HD-Fotobuch und HD-Export."
+      },
+      "support": {
+        "q": "Wie erreiche ich den Support?",
+        "a": "Schreib an support@wedillybird.com. Antwort innerhalb von 24 Werkstunden."
+      },
+      "guestVsInvitation": {
+        "q": "Was ist der Unterschied zwischen einer Einladung und einem Gast?",
+        "a": "Eine Einladung = ein Eintrag in deiner Liste, der einer Hauptperson entspricht (z. B. deiner Cousine Aminata), der du einen personalisierten Link mit ihrem QR-Code sendest. Diese Person kann in ihrer Antwort angeben, dass sie mit N weiteren Personen kommt (z. B. ihrem Partner und ihren Kindern). Das Kontingent des Plans zählt die Anzahl der gesendeten Einladungen, nicht die Gesamtzahl der Personen, die kommen. Mit dem Sérénité-Paket (150 Einladungen) kannst du also weit mehr als 150 Menschen am großen Tag empfangen."
+      }
+    }
+  },
+  "Landing": {
+    "hero": {
+      "chapter": "KAPITEL 01 — DIE EINLADUNG",
+      "title": "Eine Hochzeit lebt vom Gespräch.",
+      "titleAccent": "Lass sie genau dort entstehen.",
+      "subtitle": "Deine Gäste sind schon auf WhatsApp. Wedillybird orchestriert dort alles — die Einladung, das RSVP, den großen Tag und die Erinnerungen. Diskret, bis zur nächsten Hochzeit.",
+      "ctaPrimary": "Meine Hochzeit vorbereiten",
+      "ctaSecondary": "Pakete ansehen",
+      "trust": {
+        "stat": "1.240 gefeierte Hochzeiten",
+        "rating": "4,9 / 5 Zufriedenheit der Paare",
+        "regions": "Weltweit verfügbar"
+      },
+      "card": {
+        "label": "EINLADUNG · 8. JUNI 2026",
+        "couple": "Camille & Hugo",
+        "venue": "Domaine des Lilas",
+        "rsvpHint": "RSVP offen auf WhatsApp"
+      }
+    },
+    "manifesto": {
+      "chapter": "KAPITEL 02 — DAS MANIFEST",
+      "eyebrow": "Unsere Überzeugung",
+      "title": "Eine Hochzeit plant man nicht mehr in einer PDF.",
+      "lede": "Du hast sicher schon einmal eine Einladung per E-Mail bekommen. Du hast sie einmal geöffnet, vielleicht. Ausgedruckt? Nie. In der Zwischenzeit schreiben sich deine Gäste auf WhatsApp, um zuzusagen, nach der Adresse zu fragen, ihre Fotos zu teilen. Genau dort, im Gespräch, lebt heute eine Hochzeit. Genau dort muss sie organisiert werden.",
+      "before": {
+        "label": "Gestern",
+        "body": "Ein überfülltes Postfach, ein geteiltes Excel, das aus dem Takt gerät, WhatsApp-Erinnerungen an 47 Personen, die einen ganzen Nachmittag kosten. Der ständige Zweifel: „Hat Oma die Einladung auch wirklich bekommen?\""
+      },
+      "after": {
+        "label": "Heute",
+        "body": "Ein einziger personalisierter Link pro Gast, sofort beim Empfang geöffnet, RSVP in 30 Sekunden bestätigt. Du siehst die Antworten eintreffen, ohne nachhaken zu müssen. Am großen Tag funktioniert der Offline-Check-in selbst dann, wenn das WLAN im Schloss versagt."
+      },
+      "pullquote": "Sechs Monate nach der Hochzeit schauen sich deine Gäste die Fotos noch immer an. Genau das gibt dir Wedillybird — keine App, sondern einen Moment, der bleibt.",
+      "stats": {
+        "openRate": {
+          "value": 98,
+          "suffix": "%",
+          "label": "der Einladungen geöffnet",
+          "context": "vs. 22 % bei klassischer E-Mail"
+        },
+        "rsvpSpeed": {
+          "value": 73,
+          "suffix": "%",
+          "label": "RSVP innerhalb von 24 Stunden",
+          "context": "Durchschnitt der ersten 30 Einladungen"
+        },
+        "memory": {
+          "value": 5,
+          "suffix": " Jahre",
+          "label": "Erinnerungen aufbewahrt",
+          "context": "mit der Option Premium + Upsell nach der Hochzeit"
+        }
+      },
+      "source": "Gemessen an den ersten 1.240 mit Wedillybird gefeierten Hochzeiten, 2026."
+    },
+    "features": {
+      "chapter": "KAPITEL 03 — DIE SÄULEN",
+      "eyebrow": "Alles in einem",
+      "title": "Vier Säulen für eine Hochzeit, die wirklich gelebt wird.",
+      "subtitle": "Keine Module zum Aktivieren, keine Plug-ins. Alles funktioniert ab der ersten gesendeten Einladung.",
+      "invites": {
+        "title": "WhatsApp-Einladungen",
+        "description": "Ein personalisierter Link pro Gast, geteilt dort, wo er auch wirklich gelesen wird. Einladungsseite in den Farben deiner Hochzeit, in zwei Sekunden geöffnet — ohne App-Installation.",
+        "highlights": [
+          "Eindeutige Links pro Gast",
+          "Anpassbare Seite (Farben, Foto, Text)",
+          "Keine App-Installation für Gäste"
+        ]
+      },
+      "rsvp": {
+        "title": "RSVP in Echtzeit",
+        "description": "Deine Gäste bestätigen in 30 Sekunden: Anwesenheit, Begleitung, Ernährungsweise, Nachricht ans Brautpaar. Du siehst die Antworten direkt im Dashboard eintreffen, ohne manuelles Nachhaken.",
+        "highlights": [
+          "Live-Zähler für Zusagen / Absagen / ausstehend",
+          "Ernährungsweisen aggregiert nach Kategorie",
+          "CSV-Export für den Caterer"
+        ]
+      },
+      "checkin": {
+        "title": "Offline-QR-Check-in",
+        "description": "Scanne die QR-Codes am Eingang, auch ohne Netz. Deine Gästeliste ist lokal auf dem Telefon des Trauzeugen gespeichert — alles synchronisiert sich, sobald die Verbindung zurück ist.",
+        "highlights": [
+          "Funktioniert ohne 4G und WLAN",
+          "Verschlüsselter lokaler IndexedDB-Cache",
+          "Personalisierter Willkommens-Toast"
+        ]
+      },
+      "gallery": {
+        "title": "Moderierte Galerie",
+        "description": "Gäste und Trauzeugen laden ihre Fotos über ihren Link hoch. Automatische Moderation vor der Veröffentlichung, finales PDF-Album und HD-Fotobuch optional bis zu dir nach Hause.",
+        "highlights": [
+          "KI- und manuelle Moderation",
+          "Druckbares PDF-Album",
+          "Aufbewahrung bis zu 5 Jahren"
+        ]
+      }
+    },
+    "cinematic": {
+      "chapter": "KAPITEL 04 — DIE INSZENIERUNG",
+      "eyebrow": "Deine Einladungen",
+      "title": "Ein Umschlag, der sich öffnet, eine Karte, die zum Leben erwacht.",
+      "subtitle": "Wenn dein Gast den Link öffnet, entfaltet sich der Umschlag, das Wachssiegel zerbricht, die Karte tritt hervor, eure Vornamen erscheinen in Kalligraphie. Drei Sekunden, und die Emotion ist gesetzt.",
+      "stepEnvelope": "Versiegelter Umschlag",
+      "stepCard": "Das Siegel zerbricht",
+      "stepFlourish": "Eure Vornamen erscheinen"
+    },
+    "testimonials": {
+      "chapter": "KAPITEL 05 — DIE STIMMEN",
+      "eyebrow": "Sie haben Ja gesagt",
+      "title": "Paare und Planner, die Gelassenheit gewonnen haben.",
+      "items": {
+        "couple-fr": {
+          "quote": "Wir haben 180 Personen mit vier Klicks eingeladen. Der Offline-Check-in hat den Eingang gerettet, als das WLAN im Anwesen versagte — niemand hat länger als fünf Sekunden gewartet.",
+          "name": "Camille & Hugo",
+          "location": "Hochzeit unter freiem Himmel · Juni 2026",
+          "initials": "CH",
+          "alt": "Porträt von Camille und Hugo, lächelnd"
+        },
+        "couple-sn": {
+          "quote": "Wir waren über 600 Gäste an drei Tagen. Wedillybird hat dort durchgehalten, wo Excel und unsere WhatsApp-Gruppen versagten. Die geteilte Galerie hat die Erinnerungen drei Monate später noch einmal zurückgebracht.",
+          "name": "Awa & Mamadou",
+          "location": "Hochzeit mit 600+ Gästen · November 2025",
+          "initials": "AM",
+          "alt": "Awa und Mamadou in traditioneller Kleidung"
+        },
+        "planner-pro": {
+          "quote": "Ich betreue diese Saison acht Hochzeiten mit meinem Branding auf jeder Gästeseite. Meine Paare sehen meine Agentur, kein Drittanbieter-Tool — genau das hat auf dem Markt gefehlt.",
+          "name": "Studio Lumière",
+          "location": "Hochzeitsplanerin",
+          "initials": "SL",
+          "alt": "Hochzeitsplanerin vor einer Outdoor-Hochzeit"
+        }
+      }
+    },
+    "pricing": {
+      "chapter": "KAPITEL 06 — DIE PAKETE",
+      "eyebrow": "Faire Preise",
+      "title": "Ein fairer Preis für den schönsten Tag.",
+      "subtitle": "Kein Abo, keine versteckten Kosten. Der Preis passt sich automatisch deiner Region an.",
+      "perEvent": "/ Hochzeit",
+      "recommended": "Empfohlen",
+      "essential": {
+        "name": "Essentiel",
+        "description": "Das Minimum, um deine Hochzeit zu digitalisieren."
+      },
+      "premium": {
+        "name": "Premium",
+        "description": "Das Essentiel + Galerie 6 Monate und finales PDF-Album."
+      },
+      "upsellTitle": "Und nach der Hochzeit?",
+      "upsellNote": "Für {price} verlängern wir deine Galerie auf 5 Jahre, drucken ein HD-Fotobuch und liefern dir einen ZIP-Export in hoher Auflösung.",
+      "trust": {
+        "refund": "Rückerstattung innerhalb von 7 Tagen",
+        "noSubscription": "Kein Abonnement",
+        "freePostpone": "Kostenlose Verschiebung bei Absage"
+      },
+      "prosTitle": "Du bist Hochzeitsplaner?",
+      "prosSubtitle": "Mach deinen Stack monatlich: ein Abo, mehrere Hochzeiten, deine Marke.",
+      "prosCtaSeeAll": "Alle Profi-Pakete ansehen",
+      "prosRecommended": "Am häufigsten gewählt",
+      "prosCheckCta": "Diesen Plan wählen"
+    },
+    "forfaitsPros": {
+      "eyebrow": "PROFI-PAKETE",
+      "title": "Ein vollständiger Stack für Hochzeitsplaner.",
+      "subtitle": "Wähle das Paket, das zu deinem Tempo passt. Wechsle auf jährlich und spare 20 %.",
+      "faq": {
+        "q1": "Kann ich das Paket wechseln?",
+        "q1Body": "Ja, jederzeit. Die anteilige Berechnung erfolgt automatisch.",
+        "q2": "Was passiert, wenn ich mein WhatsApp-Kontingent überschreite?",
+        "q2Body": "Über das enthaltene Kontingent hinaus +0,06 € pro gesendete Nachricht, abgerechnet zum Monatsende.",
+        "q3": "Sind es bei jährlicher Zahlung wirklich -20 %?",
+        "q3Body": "Ja, der Jahresbetrag entspricht 12 Monaten × 0,80. Keine versteckten Kosten."
+      }
+    },
+    "faq": {
+      "chapter": "KAPITEL 07 — DEINE FRAGEN",
+      "eyebrow": "Ehrliche Antworten",
+      "title": "Alles, was du wissen willst.",
+      "items": {
+        "whyWhatsapp": {
+          "q": "Warum WhatsApp und nicht eine E-Mail oder eine eigene App?",
+          "a": "Weil deine Gäste schon dort sind. WhatsApp hat eine Öffnungsrate von 98 % gegenüber 22 % bei E-Mail und erfordert keine Installation. Es ist der universellste Kanal weltweit."
+        },
+        "olderGuests": {
+          "q": "Kommen meine älteren oder weniger digital-affinen Gäste damit zurecht?",
+          "a": "Ja. Die Einladungsseite öffnet sich mit einem Tipp im WhatsApp-Browser — keine App, kein Konto nötig. Das RSVP läuft über 3 Buttons. Über 92 % der getesteten Großeltern haben ohne Hilfe zugesagt."
+        },
+        "guestLimit": {
+          "q": "Wie viele Gäste maximal?",
+          "a": "Keine technische Begrenzung. Die Pakete Essentiel und Premium beinhalten bis zu 500 Einladungen pro Hochzeit. Darüber hinaus (Hochzeiten mit 600+ Gästen) kontaktiere uns, wir passen es an."
+        },
+        "cancellation": {
+          "q": "Was, wenn wir die Hochzeit absagen oder verschieben müssen?",
+          "a": "Kostenlose Stornierung innerhalb von 7 Tagen nach dem Kauf. Danach ist die Verschiebung deines Events bei Absage kostenlos (bis zu 24 Monate). Wir haben 2020 erlebt — deine Sicherheit hat Vorrang."
+        },
+        "afterEvent": {
+          "q": "Was bleibt nach der Hochzeit?",
+          "a": "Mit Premium: moderierte Galerie für 6 Monate + finales PDF-Album. Mit dem Upsell nach der Hochzeit für 29 €: wir verlängern die Galerie auf 5 Jahre, drucken ein HD-Fotobuch und liefern dir ein hochauflösendes ZIP aller Fotos."
+        },
+        "africa3g": {
+          "q": "Wie funktioniert es ohne stabiles 4G?",
+          "a": "Der Check-in am großen Tag funktioniert zu 100 % offline (verschlüsselter lokaler IndexedDB-Cache). Die Galerie komprimiert die Fotos vor dem Upload. Die Einladungsseite ist unter 80 KB groß — getestet im 3G mit 2 Sekunden Ladezeit."
+        },
+        "branding": {
+          "q": "Kann das Design der Einladungen angepasst werden?",
+          "a": "Ja. Haupt- und Akzentfarbe, Titelbild, Schriftarten, Einleitungstext. Für professionelle Hochzeitsplaner ist das Agentur-Branding (Logo, Farben, Subdomain) im Business-Paket inbegriffen."
+        },
+        "data": {
+          "q": "Was macht ihr mit den Daten meiner Gäste?",
+          "a": "In Europa gespeichert (Convex Frankfurt, Vercel Paris), im Ruhezustand verschlüsselt. Keine Weitergabe an Dritte, keine Werbung. Vollständige Löschung auf Anfrage, gemäß DSGVO. Details in unserer Datenschutzerklärung."
+        }
+      }
+    },
+    "ctaFinal": {
+      "eyebrow": "EPILOG",
+      "title": "Der große Tag verdient mehr als eine PDF.",
+      "subtitle": "Erstelle deine erste Einladung in drei Minuten. Ohne Kreditkarte zum Erkunden, Rückerstattung innerhalb von 7 Tagen, falls du es dir anders überlegst.",
+      "cta": "Meine Hochzeit vorbereiten",
+      "trust": "1.240 gefeierte Hochzeiten · 4,9 / 5 Zufriedenheit der Paare"
+    },
+    "footer": {
+      "tagline": "WhatsApp-first Hochzeits-Concierge. Gedacht für Hochzeiten weltweit.",
+      "newsletterTitle": "Erhalte unsere kostenlosen Einladungsvorlagen",
+      "newsletterSubtitle": "Einmal im Monat Vorlagen von renommierten Hochzeitsdesignern, ohne Spam.",
+      "newsletterPlaceholder": "du@email.com",
+      "newsletterCta": "Erhalten",
+      "newsletterSuccess": "Eingetragen. Bis bald in deinem Postfach.",
+      "newsletterError": "Anmeldung nicht möglich. Versuche es gleich noch einmal.",
+      "newsletterAriaLabel": "Newsletter-Anmeldung",
+      "columns": {
+        "product": {
+          "title": "Produkt",
+          "links": {
+            "features": "Funktionen",
+            "pricing": "Preise",
+            "demo": "Live-Demo",
+            "templates": "Einladungsvorlagen"
+          }
+        },
+        "pros": {
+          "title": "Für Profis",
+          "links": {
+            "planners": "Hochzeitsplaner",
+            "venues": "Veranstaltungsorte",
+            "agencies": "Agenturen",
+            "api": "API & Integrationen"
+          }
+        },
+        "resources": {
+          "title": "Ressourcen",
+          "links": {
+            "blog": "Hochzeitsjournal",
+            "guide": "Hochzeitsratgeber",
+            "faq": "FAQ",
+            "support": "Support",
+            "contact": "Kontakt"
+          }
+        },
+        "legal": {
+          "title": "Vertrauen",
+          "links": {
+            "terms": "AGB",
+            "privacy": "Datenschutz",
+            "cookies": "Cookies",
+            "rgpd": "Deine DSGVO-Rechte"
+          }
+        }
+      },
+      "payments": "Sichere Zahlungen über",
+      "rights": "Alle Rechte vorbehalten"
+    }
+  },
+  "Auth": {
+    "signInTitle": "Willkommen bei Wedillybird",
+    "signInDescription": "Egal, ob du schon ein Konto hast oder nicht — gib deine WhatsApp-Nummer oder E-Mail ein, wir kümmern uns um den Rest.",
+    "verifyTitle": "Verifiziere deinen Code",
+    "verifyDescription": "Wir haben einen Code an {phone} gesendet. Er läuft in 5 Minuten ab.",
+    "changeNumber": "Nummer ändern",
+    "phoneLabel": "WhatsApp-Nummer",
+    "phonePlaceholder": "+49 151 12345678",
+    "codeLabel": "Per WhatsApp erhaltener Code",
+    "codePlaceholder": "6 Ziffern",
+    "sendCode": "Code senden",
+    "sending": "Senden…",
+    "verifyCode": "Verifizieren",
+    "verifying": "Wird verifiziert…",
+    "resendCode": "Code erneut senden",
+    "resendIn": "Erneut senden in {seconds}s",
+    "noPhone": "Es wurde keine Nummer angegeben. Beginne erneut bei der Anmeldung.",
+    "privacy": "Mit der Fortsetzung akzeptierst du unsere Datenschutzerklärung.",
+    "methodSwitcherLabel": "Anmeldemethode",
+    "methodWhatsapp": "WhatsApp",
+    "methodEmail": "E-Mail",
+    "emailLabel": "E-Mail-Adresse",
+    "emailPlaceholder": "du@email.com",
+    "magicLinkSendCta": "Meinen Link erhalten",
+    "magicLinkSending": "Senden…",
+    "magicLinkSentEyebrow": "LINK GESENDET",
+    "magicLinkSentTitle": "Prüfe dein Postfach.",
+    "magicLinkSentDescription": "Wir haben gerade einen Link an {email} gesendet. Er ist 15 Minuten gültig und nur einmal verwendbar. Bitte prüfe auch deinen Spam-Ordner.",
+    "magicLinkChangeEmail": "Andere Adresse verwenden",
+    "errorBanner": {
+      "expired": "Der Link ist abgelaufen. Fordere einen neuen an.",
+      "invalid_link": "Der Link ist ungültig. Prüfe den per E-Mail erhaltenen Link.",
+      "invalid_token": "Der Link ist ungültig oder bereits verwendet.",
+      "no_active_link": "Kein ausstehender Link für diese Adresse.",
+      "unknown": "Ein Fehler ist aufgetreten. Bitte erneut versuchen."
+    },
+    "errors": {
+      "invalidPhone": "Ungültige Telefonnummer",
+      "invalidEmail": "Ungültige E-Mail-Adresse",
+      "invalidCode": "Code falsch oder abgelaufen",
+      "tooManyAttempts": "Zu viele Versuche, in einigen Minuten erneut versuchen",
+      "rateLimited": "Zu viele Anfragen. Bitte warte einige Minuten.",
+      "expired": "Code abgelaufen, fordere einen neuen an.",
+      "unknown": "Ein Fehler ist aufgetreten. Bitte erneut versuchen."
+    }
+  },
+  "Onboarding": {
+    "stepProfile": "Dein Profil",
+    "stepProfileDescription": "Sag uns, wie du dich deinen Gästen vorstellen möchtest.",
+    "stepRole": "Du bist…",
+    "stepRoleDescription": "Wähle deine Rolle, um dein Erlebnis anzupassen.",
+    "stepSecure": "Sichere dein Konto",
+    "stepSecureDescription": "Füge deine WhatsApp-Nummer hinzu, um dich auch ohne Zugriff auf deine E-Mails anmelden zu können. Sie dient zudem als Wiederherstellungsweg, falls du dein Postfach verlierst.",
+    "fullNameLabel": "Vor- und Nachname",
+    "fullNamePlaceholder": "Amadou Diallo",
+    "emailLabel": "E-Mail",
+    "emailPlaceholder": "du@beispiel.com",
+    "emailInvalid": "Ungültige E-Mail-Adresse",
+    "emailRequiredHint": "Erforderlich für die Anmeldung per Magic Link und für deine Rechnungen.",
+    "emailLockedHint": "Das ist die Adresse, mit der du dich angemeldet hast. Um sie zu ändern, kontaktiere den Support.",
+    "phoneLabel": "WhatsApp-Nummer",
+    "phonePlaceholder": "+49 151 12345678",
+    "phoneRequiredHint": "Internationales Format (E.164) mit Ländervorwahl.",
+    "sendCode": "Code senden",
+    "sending": "Senden…",
+    "verifyCode": "Verifizieren",
+    "verifying": "Wird verifiziert…",
+    "changeNumber": "Nummer ändern",
+    "codeSentTo": "Code gesendet an {phone}",
+    "roleCouple": "Ein Paar, das heiratet",
+    "roleCoupleDescription": "Um deine eigene Hochzeit zu organisieren.",
+    "rolePro": "Ein Profi",
+    "roleProDescription": "Hochzeitsplaner, Fotograf, Veranstaltungsort…",
+    "next": "Weiter",
+    "previous": "Zurück",
+    "finish": "Abschließen",
+    "errors": {
+      "phoneTaken": "Diese Nummer gehört bereits zu einem anderen Konto. Melde dich mit deiner WhatsApp-Nummer an, um dieses Konto wiederherzustellen.",
+      "alreadyLinked": "Diese Nummer ist bereits mit deinem Konto verknüpft.",
+      "invalidPhone": "Ungültige Telefonnummer.",
+      "invalidCode": "6-stelliger Code erforderlich.",
+      "expiredCode": "Code abgelaufen, fordere einen neuen an.",
+      "tooManyAttempts": "Zu viele Versuche. Versuche es in ein paar Minuten erneut.",
+      "rateLimited": "Zu viele Anfragen. Warte ein paar Minuten.",
+      "sendFailed": "Senden des Codes fehlgeschlagen. Versuch es erneut.",
+      "network": "Netzwerkfehler. Prüfe deine Verbindung."
+    }
+  },
+  "Dashboard": {
+    "greeting": "Hallo {name}",
+    "noEvents": "Du hast noch keine Hochzeit",
+    "createEvent": "Event erstellen",
+    "upcomingEvent": "Nächstes Event",
+    "eventsTitle": "Deine Hochzeiten",
+    "draftBadge": "Entwurf",
+    "activeBadge": "Veröffentlicht",
+    "archivedBadge": "Archiviert",
+    "cancelledBadge": "Abgesagt",
+    "guests": "{count, plural, =0 {keine Gäste} =1 {1 Gast} other {# Gäste}}",
+    "rsvpAttending": "{count, plural, =0 {niemand bestätigt} =1 {1 Person bestätigt} other {# Personen bestätigt}}",
+    "singleEventNotice": "Dein Paket beinhaltet eine einzige Hochzeit."
+  },
+  "EventDetail": {
+    "backToDashboard": "Zurück zum Dashboard",
+    "dateSection": "Datum",
+    "venueSection": "Ort",
+    "noVenue": "Noch kein Ort festgelegt.",
+    "guestsTitle": "Gäste",
+    "guestsSummary": "{total, plural, =0 {Keine Einladung gesendet} =1 {1 Einladung} other {# Einladungen}} · {attending, plural, =0 {keine Bestätigung} =1 {1 bestätigt} other {# bestätigt}} · Limit {max} Einladungen",
+    "manageGuests": "Gäste verwalten",
+    "openCheckIn": "Check-in",
+    "openGallery": "Galerie",
+    "publish": "Veröffentlichen",
+    "unpublish": "Zurück zum Entwurf",
+    "draftHint": "Dieses Event ist im Entwurfsstatus. Veröffentliche es, um die Einladungen und die Galerie zu aktivieren.",
+    "planLabel": "Paket",
+    "planEssential": "Essentiel",
+    "planPremium": "Premium",
+    "planEssentialPending": "Essentiel · zu aktivieren",
+    "planPremiumPending": "Premium · zu aktivieren",
+    "planNone": "Kein Paket",
+    "planUpsellSuffix": "· 5 Jahre Aufbewahrung",
+    "activatePlan": "Paket aktivieren",
+    "publishLockedHint": "Aktiviere dein Paket, um deine Einladung zu veröffentlichen und RSVPs zu versenden. Einmalzahlung, kein Abo.",
+    "publishLockedHintPayg": "Du hast kein Pay-as-you-go-Guthaben mehr. Kaufe eines unter /pro/billing oder aktiviere ein Abonnement."
+  },
+  "Guests": {
+    "title": "Einladungsliste",
+    "listTitle": "Alle Einladungen",
+    "summary": "{total, plural, =0 {Keine Einladung} =1 {1 Einladung} other {# Einladungen}} von {max} erlaubten",
+    "summaryHint": "Eine Einladung = ein Eintrag/QR-Code, der an einen Hauptgast gesendet wird, der N Begleiter mitbringen kann. Das Paket-Kontingent zählt die Einträge, nicht die einzelnen Personen.",
+    "backToEvent": "Zurück zum Event",
+    "empty": "Keine Einladung gesendet. Füge deinen ersten Gast hinzu, um zu starten.",
+    "addGuest": "Einladung hinzufügen",
+    "adding": "Hinzufügen…",
+    "fullNameLabel": "Vollständiger Name",
+    "fullNamePlaceholder": "Aminata Diallo",
+    "phoneLabel": "Telefon (WhatsApp)",
+    "emailLabel": "E-Mail",
+    "emailPlaceholder": "aminata@beispiel.com",
+    "categoryLabel": "Kategorie",
+    "categoryPlaceholder": "Familie, Kollegen…",
+    "plusOnesLabel": "Erlaubte Begleiter",
+    "notesLabel": "Notizen",
+    "notesPlaceholder": "Ernährungsweise, Kindersitz…",
+    "rsvpPending": "Ausstehend",
+    "rsvpAttending": "Bestätigt",
+    "rsvpDeclined": "Abgesagt",
+    "rsvpMaybe": "Vielleicht",
+    "errors": {
+      "submit": "Einladung konnte nicht hinzugefügt werden. Bitte erneut versuchen.",
+      "limitReached": "Einladungs-Kontingent für dieses Paket erreicht. Wechsle zu einem höheren Paket, um weitere hinzuzufügen."
+    }
+  },
+  "Invitation": {
+    "youreInvited": "Du bist eingeladen",
+    "addressing": "Liebe·r {name}, wir würden uns über deine Anwesenheit freuen.",
+    "willYouAttend": "Bist du dabei?",
+    "status": {
+      "attending": "Ich sage zu",
+      "declined": "Ich kann leider nicht",
+      "maybe": "Vielleicht"
+    },
+    "plusOnesLegend": "Deine Begleiter ({count})",
+    "plusOnePlaceholder": "Begleiter {index}",
+    "dietaryLabel": "Ernährungsweise (optional)",
+    "dietaryPlaceholder": "Vegetarisch, glutenfrei, Allergien…",
+    "notesLabel": "Ein Wort an das Brautpaar (optional)",
+    "notesPlaceholder": "Glückwünsche, Anekdote, Frage…",
+    "submit": "Antwort senden",
+    "thanks": "Danke, deine Antwort ist gespeichert",
+    "thanksAttending": "Bis bald zum Feiern!",
+    "thanksDeclined": "Schade, dass du nicht dabei sein kannst.",
+    "thanksMaybe": "Wir melden uns nochmal zur Bestätigung.",
+    "changeAnswer": "Antwort ändern",
+    "openGallery": "Geteilte Galerie ansehen",
+    "poweredBy": "Bereitgestellt von",
+    "errors": {
+      "pickStatus": "Bitte wähle eine Option",
+      "notFound": "Einladung nicht gefunden oder abgelaufen",
+      "eventClosed": "Dieses Event nimmt keine Antworten mehr an",
+      "plusOnesExceeded": "Zu viele Begleiter angegeben",
+      "unknown": "Ein Fehler ist aufgetreten. Bitte erneut versuchen."
+    }
+  },
+  "OrgPublic": {
+    "poweredBy": "Bereitgestellt von",
+    "eventEyebrow": "Hochzeit",
+    "dateLabel": "Datum & Uhrzeit",
+    "venueLabel": "Ort",
+    "eventCta": "Du hast eine Einladung erhalten? Öffne sie über den persönlichen Link, den dir das Brautpaar geschickt hat.",
+    "notFoundTitle": "Organisation nicht gefunden",
+    "notFoundDescription": "Die angefragte Subdomain entspricht keiner aktiven Wedillybird-Organisation."
+  },
+  "EventStats": {
+    "liveTitle": "RSVP in Echtzeit",
+    "pending": "Ausstehend",
+    "attending": "Bestätigt",
+    "declined": "Abgesagt",
+    "maybe": "Vielleicht",
+    "export": "CSV exportieren"
+  },
+  "Gallery": {
+    "title": "Geteilte Galerie",
+    "subtitleOwner": "Lade deine Fotos hoch und moderiere die Fotos deiner Gäste.",
+    "backToEvent": "Zurück zum Event",
+    "backToInvitation": "Zurück zur Einladung",
+    "guestHeader": "Von Gästen geteilte Fotos",
+    "guestIntro": "Füge deine Fotos hinzu, damit sie nach Moderation hier erscheinen.",
+    "upload": "Fotos hinzufügen",
+    "uploading": "Sende {current}/{total}…",
+    "empty": "Noch keine Fotos vorhanden.",
+    "emptyGuest": "Noch keine genehmigten Fotos.",
+    "approve": "Genehmigen",
+    "reject": "Ablehnen",
+    "remove": "Entfernen",
+    "downloadAll": "Alles als ZIP herunterladen",
+    "downloadOne": "Herunterladen",
+    "downloading": "ZIP wird vorbereitet…",
+    "downloadEmpty": "Keine Fotos zum Herunterladen",
+    "filters": {
+      "all": "Alle",
+      "pending": "Ausstehend",
+      "approved": "Genehmigt",
+      "rejected": "Abgelehnt"
+    },
+    "status": {
+      "pending": "Wird überprüft",
+      "approved": "Genehmigt",
+      "rejected": "Abgelehnt — unangemessener Inhalt"
+    },
+    "moderationNotice": "Alle Fotos werden automatisch geprüft (Inhalte für Erwachsene, Gewalt, schockierende Inhalte). Die Prüfung dauert wenige Sekunden. Du kannst die Genehmigung manuell erzwingen, falls ein Foto zu Unrecht abgelehnt wurde.",
+    "errors": {
+      "size": "Bild zu groß",
+      "type": "Format nicht unterstützt",
+      "network": "Senden fehlgeschlagen, prüfe deine Verbindung",
+      "generic": "Ein Fehler ist aufgetreten"
+    },
+    "lockedTitle": "Galerie gesperrt",
+    "lockedHint": "Aktiviere ein Essentiel- oder Premium-Paket, um die Fotogalerie und die Moderation freizuschalten.",
+    "lockedCta": "Pakete ansehen",
+    "expiredTitle": "Galerie abgelaufen",
+    "expiredHint": "Die Aufbewahrungsdauer deines Pakets ist beendet. Verlängere den Zugriff mit dem Upsell nach der Hochzeit auf 5 Jahre.",
+    "expiredCta": "Per Upsell verlängern",
+    "faceSearch": {
+      "trigger": "Mich auf den Fotos finden",
+      "triggerGuest": "Meine Fotos finden",
+      "title": "Suche per Gesicht",
+      "close": "Schließen",
+      "consentTitle": "Bevor du startest",
+      "consentBody": "Dein Foto wird von Amazon Rekognition analysiert, um Fotos zu identifizieren, auf denen du erscheinst. Es wird weder gespeichert noch mit deinem Profil verknüpft. Das Ergebnis bleibt lokal in dieser Sitzung.",
+      "consentAccept": "Ich stimme zu, weiter",
+      "captureTitle": "Wähle dein Foto",
+      "uploadCta": "Foto auswählen",
+      "cameraCta": "Selfie aufnehmen",
+      "cameraUnavailable": "Kamera auf diesem Gerät nicht verfügbar — nutze den Upload",
+      "searching": "Analyse läuft…",
+      "resultFound": "{count, plural, =1 {1 Foto gefunden} other {# Fotos gefunden}}",
+      "viewMatches": "Meine Fotos ansehen",
+      "resultEmpty": "Kein Foto gefunden. Versuche es mit einem anderen Foto von dir.",
+      "retry": "Erneut versuchen",
+      "showAll": "Alle Fotos anzeigen",
+      "errors": {
+        "noFace": "Kein Gesicht in deinem Foto erkannt. Versuche ein klareres Foto.",
+        "notIndexed": "Die Gesichtsindexierung ist noch nicht abgeschlossen. Versuche es in ein paar Minuten erneut.",
+        "forbidden": "Du hast keinen Zugriff auf diese Galerie.",
+        "rateLimited": "Zu viele Suchen in kurzer Zeit. Warte einen Moment, bevor du es erneut versuchst.",
+        "unknown": "Ein Fehler ist aufgetreten. Bitte erneut versuchen."
+      }
+    }
+  },
+  "Checkin": {
+    "title": "Gäste-Check-in",
+    "subtitle": "Scanne die QR-Codes, um Ankünfte zu bestätigen",
+    "backToEvent": "Zurück zum Event",
+    "online": "Online",
+    "offline": "Offline",
+    "lastSync": "Sync {time}",
+    "neverSynced": "Nie synchronisiert",
+    "guestsCached": "{count, plural, =0 {keine Gäste im Cache} =1 {1 Gast im Cache} other {# Gäste im Cache}}",
+    "manualPlaceholder": "Code manuell eingeben",
+    "manualSubmit": "Bestätigen",
+    "toastSuccess": "Willkommen",
+    "toastAlready": "Bereits registriert",
+    "toastError": "Konnte nicht bestätigt werden",
+    "toastOffline": "Lokal gespeichert (offline)",
+    "unknownGuest": "Unbekannter QR-Code",
+    "unknownGuestOffline": "Unbekannter Offline-QR-Code",
+    "errorGeneric": "Fehler",
+    "undo": "Rückgängig",
+    "pendingQueue": "{count, plural, =1 {1 Check-in wartet auf Synchronisierung} other {# Check-ins warten auf Synchronisierung}}",
+    "pendingQueueSyncNow": "Jetzt synchronisieren",
+    "pendingQueueSynced": "{count, plural, =1 {1 Check-in synchronisiert} other {# Check-ins synchronisiert}}"
+  },
+  "Pro": {
+    "onboardingTitle": "Erstelle deine Organisation",
+    "onboardingSubtitle": "Als Profi bündelst du deine Hochzeiten in einer einzigen Organisation.",
+    "orgNameLabel": "Name der Organisation",
+    "orgNamePlaceholder": "Studio Lumière Wedding Planner",
+    "primaryColorLabel": "Hauptfarbe",
+    "accentColorLabel": "Akzentfarbe",
+    "createOrg": "Meine Organisation erstellen",
+    "orgBadge": "Organisation",
+    "memberRole": "Deine Rolle",
+    "manageTeam": "Team verwalten",
+    "createEvent": "Neue Hochzeit",
+    "orgEventsTitle": "Hochzeiten der Organisation",
+    "emptyEvents": "Noch keine Hochzeit. Erstelle die erste, um zu starten.",
+    "teamTitle": "Team",
+    "teamSubtitle": "Lade deine Mitarbeiter ein und verwalte ihre Zugänge.",
+    "backToDashboard": "Zurück zum Profi-Dashboard",
+    "inviteTitle": "Mitarbeiter einladen",
+    "phoneLabel": "WhatsApp-Telefon",
+    "phonePlaceholder": "+49 1512 3456789",
+    "emailLabel": "E-Mail",
+    "emailPlaceholder": "du@beispiel.com",
+    "roleLabel": "Rolle",
+    "roles": {
+      "owner": "Inhaber",
+      "admin": "Administrator",
+      "planner": "Planer",
+      "viewer": "Leser"
+    },
+    "statuses": {
+      "pending": "Ausstehend",
+      "active": "Aktiv",
+      "revoked": "Widerrufen"
+    },
+    "inviteSubmit": "Einladung senden",
+    "inviteSuccess": "Einladung erstellt. Token zum Teilen:",
+    "revoke": "Widerrufen",
+    "acceptTitle": "Der Organisation beitreten",
+    "acceptSubtitle": "Akzeptiere die Einladung, um an den Hochzeiten des Teams mitzuwirken.",
+    "acceptInvite": "Einladung annehmen",
+    "declineInvite": "Ablehnen und zum Dashboard zurückkehren",
+    "errors": {
+      "unauthorized": "Melde dich an, um fortzufahren",
+      "forbidden": "Du hast nicht die erforderlichen Rechte",
+      "not_pro": "Nur für Profi-Konten",
+      "invalid_name": "Ungültiger Name (1-120 Zeichen)",
+      "invalid_phone": "Ungültige Nummer (E.164-Format)",
+      "no_contact": "Gib eine Telefonnummer oder E-Mail an",
+      "already_member": "Diese Person ist bereits Teil der Organisation",
+      "cannot_assign_owner": "Die Inhaberrolle kann nicht zugewiesen werden",
+      "invite_not_found": "Einladung nicht gefunden",
+      "invite_already_used": "Diese Einladung wurde bereits verwendet",
+      "unknown": "Ein Fehler ist aufgetreten. Bitte erneut versuchen."
+    }
+  },
+  "Branding": {
+    "title": "Visuelle Identität",
+    "eyebrow": "Einstellungen",
+    "subtitle": "Logo, Farben: deine Marke auf den öffentlichen Seiten deiner Hochzeiten.",
+    "navLabel": "Einstellungen",
+    "logoSectionTitle": "Agentur-Logo",
+    "logoSectionDescription": "PNG, JPG oder WebP. Max 2 MB. Quadratisches Verhältnis für die beste Darstellung empfohlen.",
+    "logoUploadCta": "Logo auswählen",
+    "logoReplaceCta": "Logo ändern",
+    "logoRemoveCta": "Logo entfernen",
+    "logoEmpty": "Kein Logo. Standardmäßig wird das Wedillybird-Mark angezeigt.",
+    "logoPreviewAlt": "Vorschau des Agentur-Logos",
+    "colorsSectionTitle": "Markenfarben",
+    "colorsSectionDescription": "Haupt- und Akzentfarbe, angewendet auf öffentliche Seiten (Einladungen, geteilte Galerie).",
+    "primaryColorLabel": "Hauptfarbe",
+    "accentColorLabel": "Akzentfarbe",
+    "saveCta": "Speichern",
+    "saving": "Speichern…",
+    "saveSuccess": "Identität gespeichert.",
+    "publicPagesNote": "Die öffentlichen Seiten zeigen dieses Branding, sobald die Einrichtung der Wildcard-Subdomains abgeschlossen ist.",
+    "errors": {
+      "unauthorized": "Melde dich an, um die visuelle Identität zu ändern.",
+      "forbidden": "Nur Administratoren der Organisation können die Identität bearbeiten.",
+      "no_org": "Keine Organisation mit diesem Konto verknüpft.",
+      "invalid_color": "Ungültige Farbe. Verwende einen Hex-Code (#RRGGBB).",
+      "invalid_logo_type": "Format nicht unterstützt. Wähle PNG, JPG oder WebP.",
+      "invalid_logo_size": "Bild zu groß (maximal 2 MB).",
+      "upload_failed": "Upload fehlgeschlagen. Bitte erneut versuchen.",
+      "unknown": "Ein Fehler ist aufgetreten. Bitte erneut versuchen."
+    }
+  },
+  "Plans": {
+    "tiers": {
+      "essential": "Essentiel",
+      "premium": "Premium"
+    },
+    "retentionShort": "Galerie {days, plural, =1 {# Tag} other {# Tage}} nach der Hochzeit",
+    "features": {
+      "invitationPage": "Personalisierte öffentliche Einladungsseite",
+      "qrCodes": "Eindeutiger QR-Code für jeden Gast",
+      "rsvpRealtime": "RSVP-Verfolgung in Echtzeit",
+      "checkinOffline": "Offline-Check-in am großen Tag",
+      "basicDashboard": "Paar-Dashboard (Antwortverfolgung, Statistiken)",
+      "gallerySharedExtended": "Geteilte Galerie (aktiv bis 6 Monate nach der Hochzeit)",
+      "pdfAlbumFinal": "Druckbares finales PDF-Album der Galerie",
+      "galleryRetention5y": "Galerie 5 Jahre nach der Hochzeit aufbewahrt",
+      "photoBookHd": "Gedrucktes HD-Fotobuch nach Hause geliefert",
+      "exportHd": "ZIP-Export aller Fotos in hoher Auflösung",
+      "whatsappInvite": "Einladungen per WhatsApp mit deinem Datum und einzigartigen Link",
+      "guestReminders": "Automatische Erinnerungen an Nicht-Antwortende (J-7 und J-1)",
+      "multiCurrency": "Faire Preise je nach Region",
+      "aiModeration": "Automatische KI-Fotomoderation (automatische Ablehnung + manuelle Überprüfung)",
+      "faceSearch": "Suche per Gesicht: jeder Gast findet seine Fotos mit einem Selfie",
+      "cinematicInvitation": "Einladungsinszenierung: Umschlag öffnet sich, Siegel zerbricht",
+      "photoVariants": "Fotos in 3 WebP-Auflösungen optimiert für flüssige Anzeige selbst in 3G",
+      "galleryZipDownload": "Download der gesamten Galerie als ZIP mit einem Klick"
+    },
+    "allEssentialIncluded": "Alles aus Essentiel inbegriffen",
+    "pro": {
+      "tiers": {
+        "starter": "Starter",
+        "business": "Business",
+        "agency": "Agency",
+        "payg": "Pay-as-you-go"
+      },
+      "billing": {
+        "monthly": "Monatlich",
+        "annual": "Jährlich",
+        "annualSavings": "spare 20 %",
+        "perMonth": "/ Monat",
+        "perEvent": "/ Event",
+        "annualBilledAs": "{amount} jährlich abgerechnet",
+        "frequencyAriaLabel": "Abrechnungsfrequenz"
+      },
+      "descriptions": {
+        "starter": "Um eine Hochzeitsplaner-Tätigkeit zu starten.",
+        "business": "Für etablierte Agenturen mit mehreren parallelen Hochzeiten.",
+        "agency": "Für große Multi-Marken-Agenturen mit White Label.",
+        "payg": "Nur eine Hochzeit zu organisieren? Kein Abo, Bezahlung pro Nutzung."
+      },
+      "features": {
+        "events3": "Bis zu 3 gleichzeitig aktive Events",
+        "events10": "Bis zu 10 gleichzeitig aktive Events",
+        "eventsUnlimited": "Unbegrenzte Events",
+        "events1": "1 Event",
+        "whatsapp2k": "2.000 WhatsApp-Nachrichten / Monat inbegriffen",
+        "whatsapp6k": "6.000 WhatsApp-Nachrichten / Monat inbegriffen",
+        "whatsapp20k": "20.000 WhatsApp-Nachrichten / Monat inbegriffen",
+        "whatsappOnDemand": "WhatsApp auf Abruf",
+        "brandingWedillybird": "Wedillybird-Branding (Logo und Farben fest)",
+        "brandingCustomLogo": "Eigenes Logo und eigene Farben",
+        "brandingWhiteLabel": "Vollständiges White Label (Logo + Domain + E-Mails)",
+        "subdomainCustom": "Dedizierte Subdomain <code>{slug}.wedillybird.com</code>",
+        "supportEmail48h": "E-Mail-Support innerhalb von 48 h",
+        "supportPriority24h": "Priority-Support (Antwort innerhalb von 24 h)",
+        "accountManager": "Dedizierter Account Manager + SLA 99,9 %",
+        "proDashboard": "Vollständiges Profi-Dashboard",
+        "noCommitment": "Keine Verpflichtung"
+      },
+      "overflow": {
+        "whatsapp": "Über das Kontingent hinaus: 0,06 € pro Nachricht",
+        "storage": "Galerie-Speicher: 0,03 € pro GB pro Monat über das Kontingent hinaus"
+      }
+    }
+  },
+  "Upgrade": {
+    "title": "Dein Paket aktivieren",
+    "subtitle": "Einmalzahlung, kein Abo. Du kannst die Galerie nach der Hochzeit auf 5 Jahre verlängern.",
+    "selectPlan": "Dieses Paket wählen",
+    "redirecting": "Weiterleitung…",
+    "alreadyPremium": "Du bist bereits im umfassendsten Paket.",
+    "galleryRetention": "Galerie {days, plural, =1 {# Tag} other {# Tage}} nach der Hochzeit aktiv",
+    "plans": {
+      "essential": "Essentiel — 19 €",
+      "premium": "Premium — 49 €"
+    },
+    "successTitle": "Zahlung bestätigt",
+    "successBody": "Dein Event ist jetzt im {plan}-Paket. Galerie aktiv bis J+{days}.",
+    "processingTitle": "Zahlung wird bearbeitet",
+    "processingBody": "Wir schließen deine Zahlung ab. Aktualisiere die Seite in wenigen Sekunden, um dein neues Paket zu sehen.",
+    "cancelledTitle": "Zahlung abgebrochen",
+    "cancelledBody": "Es wurde kein Betrag abgebucht. Du kannst es jederzeit erneut versuchen.",
+    "backToEvent": "Zurück zum Event",
+    "activatePending": "Mein Paket aktivieren",
+    "pendingHint": "Gewähltes Paket: {plan}. Aktiviere es, um deine Einladung zu veröffentlichen und RSVPs zu versenden.",
+    "errors": {
+      "invalid_input": "Ungültige Daten",
+      "invalid_plan_price": "Paket in dieser Währung nicht verfügbar",
+      "forbidden": "Du hast keine Rechte für dieses Event",
+      "payment_record_failed": "Transaktion konnte nicht erfasst werden",
+      "stripe_driver_not_configured": "Stripe in dieser Umgebung nicht konfiguriert",
+      "cinetpay_driver_not_configured": "CinetPay in dieser Umgebung nicht konfiguriert",
+      "reconciliation": "Der Stripe-Webhook ist verzögert. Die Zahlung wurde empfangen, das Upgrade wird gleich angewendet. Aktualisiere die Seite.",
+      "network": "Netzwerkfehler, erneut versuchen",
+      "unknown": "Ein Fehler ist aufgetreten. Bitte erneut versuchen."
+    }
+  },
+  "Invoice": {
+    "title": "Rechnung",
+    "brandTagline": "Deine Hochzeit, stressfrei organisiert",
+    "planEssentialFull": "Wedillybird — Essential",
+    "planPremiumFull": "Wedillybird — Premium",
+    "number": "Nr. {value}",
+    "issuedOn": "Ausgestellt am {date}",
+    "paidOn": "Bezahlt am {date}",
+    "issuerBlockTitle": "Aussteller",
+    "issuerName": "Wedillybird (Tuum Agency)",
+    "issuerEmail": "contact@wedillybird.com",
+    "issuerSiret": "SIRET — zu vervollständigen",
+    "issuerVat": "USt-IdNr. — zu vervollständigen",
+    "customerBlockTitle": "Kunde",
+    "customerFallback": "Privatkunde",
+    "columnDescription": "Bezeichnung",
+    "columnAmountTtc": "Betrag inkl. MwSt.",
+    "eventReference": "Event: {title}",
+    "totalHt": "Nettosumme",
+    "totalTtc": "Bruttosumme",
+    "vatLabel": "MwSt. ({rate} %)",
+    "vatNotApplicable": "MwSt. nicht anwendbar, Art. 293 B des CGI",
+    "footerSettledVia": "Zahlung beglichen über {provider} am {date}.",
+    "footerRetention": "Diese Rechnung wird gemäß französischem Handelsgesetzbuch 10 Jahre aufbewahrt.",
+    "footerSupport": "Bei Fragen zu dieser Rechnung schreibe uns an billing@wedillybird.com unter Angabe der Rechnungsnummer {number}.",
+    "downloadCta": "Rechnung herunterladen",
+    "filenamePrefix": "rechnung-wedillybird",
+    "errors": {
+      "unauthorized": "Melde dich an, um deine Rechnung herunterzuladen.",
+      "forbidden": "Du hast keinen Zugriff auf diese Rechnung.",
+      "notFound": "Rechnung nicht gefunden.",
+      "notPaid": "Die Rechnung ist verfügbar, sobald die Zahlung bestätigt ist.",
+      "unknown": "Rechnung kann derzeit nicht erstellt werden."
+    }
+  },
+  "InvoicePage": {
+    "eyebrow": "Buchhaltung",
+    "title": "Deine Rechnungen",
+    "subtitle": "Alle bestätigten Zahlungen für {eventTitle}. Lade die zugehörige PDF-Rechnung jeder Transaktion herunter.",
+    "backToEvent": "Zurück zum Event",
+    "empty": "Noch keine Rechnung. Rechnungen erscheinen hier, sobald eine Zahlung bestätigt wurde.",
+    "columnDate": "Datum",
+    "columnPlan": "Paket",
+    "columnAmount": "Betrag",
+    "columnStatus": "Status",
+    "columnActions": "Aktion",
+    "downloadCta": "Herunterladen (PDF)",
+    "statusSucceeded": "Bezahlt",
+    "statusPending": "Ausstehend",
+    "statusFailed": "Fehlgeschlagen",
+    "statusCancelled": "Abgebrochen",
+    "planEssential": "Essentiel",
+    "planPremium": "Premium"
+  },
+  "EventCreate": {
+    "title": "Erstelle deine Hochzeit",
+    "description": "Konfiguriere das Wesentliche. Du kannst alles später ändern.",
+    "stepCouple": "Das Paar",
+    "stepCoupleDescription": "Die Vornamen, die auf den Einladungen erscheinen.",
+    "stepDate": "Datum und Zeitzone",
+    "stepDateDescription": "Wann findet dein Event statt?",
+    "stepVenue": "Der Ort (optional)",
+    "stepVenueDescription": "Wo deine Gäste euch treffen.",
+    "stepTheme": "Visuelles Thema (optional)",
+    "stepThemeDescription": "Passe die Farben deiner Einladung an.",
+    "stepPlan": "Wähle dein Paket",
+    "stepPlanDescription": "Einmalzahlung ohne Abo. Du aktivierst dein Paket gleich danach, um deine Einladung zu veröffentlichen.",
+    "stepPlanLegal": "Die Zahlung wird erst eingezogen, wenn du das Paket aktivierst. Vollständige Rückerstattung innerhalb von 7 Tagen, wenn du es dir vor dem Versand der Einladungen anders überlegst.",
+    "titleLabel": "Titel des Events",
+    "titlePlaceholder": "Hochzeit von Fatou & Amadou",
+    "partnerALabel": "Partner 1",
+    "partnerBLabel": "Partner 2",
+    "dateLabel": "Datum und Uhrzeit",
+    "timezoneLabel": "Zeitzone",
+    "venueNameLabel": "Name des Ortes",
+    "venueNamePlaceholder": "Domaine des Lilas",
+    "venueAddressLabel": "Adresse",
+    "venueAddressPlaceholder": "12 avenue de la République, Dakar",
+    "primaryColorLabel": "Hauptfarbe",
+    "accentColorLabel": "Akzentfarbe",
+    "fontFamilyLabel": "Schriftart",
+    "skip": "Überspringen",
+    "next": "Weiter",
+    "previous": "Zurück",
+    "submit": "Event erstellen",
+    "creating": "Wird erstellt…",
+    "errors": {
+      "submit": "Event konnte nicht erstellt werden. Bitte erneut versuchen.",
+      "invalidDate": "Das Datum muss in der Zukunft liegen."
+    }
+  },
+  "Billing": {
+    "paygHistory": {
+      "title": "Verlauf deiner Käufe",
+      "eyebrow": "Pay-as-you-go",
+      "empty": "Noch keine Pay-as-you-go-Käufe. Deine Transaktionen erscheinen hier, sobald du dein erstes Guthaben gekauft hast.",
+      "columnDate": "Datum",
+      "columnAmount": "Betrag",
+      "columnCurrency": "Währung",
+      "columnTransaction": "Transaktion",
+      "columnStatus": "Status",
+      "statusSucceeded": "Bezahlt"
+    },
+    "paygHistoryTitle": "Verlauf deiner Pay-as-you-go-Käufe",
+    "paygHistoryEmpty": "Keine Käufe verzeichnet.",
+    "paygHistoryDate": "Datum",
+    "paygHistoryAmount": "Betrag",
+    "paygHistoryReference": "Stripe-Referenz"
+  },
+  "Validation": {
+    "phoneTooShort": "Nummer zu kurz",
+    "phoneInvalid": "Ungültige Telefonnummer",
+    "otpFormat": "Der Code muss 6 Ziffern enthalten",
+    "nameTooShort": "Name zu kurz",
+    "nameTooLong": "Name zu lang",
+    "subjectTooShort": "Betreff zu kurz",
+    "subjectTooLong": "Betreff zu lang",
+    "messageTooShort": "Nachricht zu kurz",
+    "messageTooLong": "Nachricht zu lang",
+    "tokenInvalid": "Ungültiges Token",
+    "emailInvalid": "Ungültige E-Mail",
+    "firstNameRequired": "Vorname erforderlich",
+    "firstNameTooLong": "Vorname zu lang",
+    "titleTooShort": "Titel zu kurz",
+    "titleTooLong": "Titel zu lang",
+    "dateRequired": "Datum erforderlich",
+    "dateInvalid": "Ungültiges Datum",
+    "dateMustBeFuture": "Das Datum muss in der Zukunft liegen",
+    "timezoneRequired": "Zeitzone erforderlich",
+    "timezoneInvalid": "Ungültige Zeitzone",
+    "venueNameRequired": "Veranstaltungsort erforderlich",
+    "venueNameTooLong": "Name zu lang",
+    "venueAddressRequired": "Adresse erforderlich",
+    "venueAddressTooLong": "Adresse zu lang",
+    "colorInvalid": "Ungültige Farbe",
+    "fontRequired": "Schriftart erforderlich",
+    "fontTooLong": "Name der Schriftart zu lang",
+    "guestNameRequired": "Name erforderlich",
+    "guestNameTooLong": "Name zu lang",
+    "phoneE164Invalid": "Ungültige Nummer (E.164-Format)",
+    "categoryTooLong": "Kategorie zu lang",
+    "notesTooLong": "Notizen zu lang",
+    "plusOnesRange": "0 bis 10 Begleitpersonen",
+    "plusOnesOnlyAttending": "Begleitpersonen nur erlaubt bei bestätigter Teilnahme"
+  },
+  "WhatsApp": {
+    "templateStatus": {
+      "approvedHint": "Du kannst dieses Template jetzt für deine Einladungen verwenden.",
+      "adjustHint": "Du kannst dein Template anpassen und erneut einreichen.",
+      "rejectedReason": "Grund: {reason}"
+    },
+    "reminders": {
+      "d7Description": "Erinnerung, die eine Woche vor dem Event an bestätigte Gäste gesendet wird.",
+      "d1Description": "Erinnerung, die am Vortag des Events an bestätigte Gäste gesendet wird.",
+      "templateMissing": "Meta-Template nicht verfügbar — der WhatsApp-Versand ist ausgesetzt, die E-Mail bleibt aktiv."
+    }
+  },
+  "Emails": {
+    "common": {
+      "greeting": "Hallo {name},",
+      "greetingSimple": "Hallo,",
+      "signature": "— Wedillybird",
+      "tagline": "Wedillybird — Hochzeitsorganisation, einfach gemacht.",
+      "supportFooter": "Bei Fragen kontaktiere den Wedillybird-Support.",
+      "fallbackLink": "Wenn der Button nicht funktioniert, kopiere diesen Link in deinen Browser:",
+      "ignoreNotice": "Wenn du diese Anfrage nicht gestellt hast, ignoriere diese Nachricht.",
+      "requestFromIp": "Anfrage gesendet von Adresse {ip}.",
+      "requestSentNoIp": "Anfrage gesendet."
+    },
+    "magicLink": {
+      "subject": "Dein Wedillybird-Anmeldelink",
+      "preheader": "Klicken zum Anmelden — gültig für {minutes} Minuten.",
+      "intro": "Du hast eine Anmeldung bei Wedillybird per E-Mail angefordert. Klicke auf den Button unten, um deine Identität zu bestätigen. Der Link läuft in {minutes} Minuten ab und ist nur einmal verwendbar.",
+      "ctaLabel": "Meine E-Mail bestätigen",
+      "ignoreNotice": "Wenn du diese Anfrage nicht gestellt hast, ignoriere diese Nachricht — es wird kein Konto erstellt oder geändert.",
+      "textInstructions": "Klicke auf diesen Link zum Anmelden (gültig {minutes} Minuten, einmalige Verwendung):"
+    },
+    "linkCode": {
+      "subject": "Dein Wedillybird-Verifizierungscode: {code}",
+      "preheader": "Code, den du in der App eingibst, um diese Adresse zu bestätigen — gültig {minutes} Minuten.",
+      "intro": "Du hast angefordert, diese E-Mail-Adresse mit deinem Wedillybird-Konto zu verbinden. Gib den unten stehenden Code im Verifizierungsfenster ein:",
+      "expiry": "Der Code läuft in {minutes} Minuten ab und ist nur einmal verwendbar.",
+      "ignoreNotice": "Wenn du diese Anfrage nicht gestellt hast, ignoriere diese Nachricht — es wird keine Adresse zu deinem Konto hinzugefügt.",
+      "textTitle": "Dein Wedillybird-Verifizierungscode",
+      "textCode": "Code: {code}",
+      "textValidity": "Gültig für {minutes} Minuten, einmalige Verwendung.",
+      "textInstructions": "Gib diesen Code im Verifizierungsfenster der App ein."
+    },
+    "contactMessage": {
+      "subjectPrefix": "[Kontakt] {subject}",
+      "fromLabel": "Von",
+      "subjectLabel": "Betreff",
+      "footerSent": "Nachricht über das /contact-Formular gesendet{ipPart}.",
+      "footerIpPart": " von IP {ip}",
+      "footerReply": "Antworte auf diese E-Mail, um {name} direkt zu kontaktieren."
+    },
+    "newsletterSignup": {
+      "subject": "[Newsletter] Neue Anmeldung — {email}",
+      "preheader": "Neue Newsletter-Anmeldung: {email}",
+      "intro": "Neue Anmeldung zum Wedillybird-Newsletter.",
+      "emailLabel": "E-Mail",
+      "sourceLabel": "Quelle",
+      "ipLabel": "IP",
+      "addReminder": "Denke daran, diese E-Mail zu deinem Newsletter-Dienst (Brevo, Mailchimp usw.) hinzuzufügen, falls du einen hast.",
+      "footer": "Automatische Benachrichtigung — Wedillybird-Newsletter-Formular.",
+      "textTitle": "Neue Wedillybird-Newsletter-Anmeldung",
+      "textAddReminder": "Denke daran, diese E-Mail zu deinem Newsletter-Dienst hinzuzufügen."
+    },
+    "guestReminder": {
+      "subjectDayBefore": "Es ist morgen: {eventTitle}",
+      "subjectDaysBefore": "J-{days} vor {eventTitle}",
+      "preheader": "{eventTitle} rückt näher — bestätige deine Anwesenheit",
+      "bodyDayBefore": "Nur noch 1 Tag bis {eventTitle} am {eventDate}.",
+      "bodyDaysBefore": "Nur noch {days} Tage bis {eventTitle} am {eventDate}.",
+      "callToAction": "Bestätige deine Teilnahme und öffne deine Einladung:",
+      "closing": "Bis ganz bald!",
+      "ctaLabel": "Meine Einladung ansehen",
+      "textConfirmHere": "Bestätige deine Teilnahme hier:",
+      "footer": "Diese E-Mail wird dir von den Gastgebern deines Events über Wedillybird gesendet."
+    },
+    "paygCreditActivated": {
+      "subject": "Dein Pay-as-you-go-Guthaben ist aktiviert",
+      "preheaderOne": "Du hast {credits} Guthaben verfügbar, um ein Event zu aktivieren.",
+      "preheaderMany": "Du hast {credits} Guthaben verfügbar, um ein Event zu aktivieren.",
+      "thanksOne": "Danke für deinen Kauf. Dein Pay-as-you-go-Guthaben wurde gerade aktiviert: du hast jetzt {credits} Guthaben verfügbar, um ein einmaliges Event auf Wedillybird zu veröffentlichen.",
+      "thanksMany": "Danke für deinen Kauf. Dein Pay-as-you-go-Guthaben wurde gerade aktiviert: du hast jetzt {credits} Guthaben verfügbar, um ein einmaliges Event auf Wedillybird zu veröffentlichen.",
+      "instructions": "Du musst nur ein Event aus deinem Pro-Bereich erstellen (oder fertigstellen) und auf Veröffentlichen klicken — ein Guthaben wird automatisch verbraucht.",
+      "ctaLabel": "Meine Stripe-Rechnung ansehen",
+      "textInvoiceLabel": "Stripe-Rechnung:",
+      "thankYou": "Danke, dass du Wedillybird für deine Events vertraust.",
+      "footer": "Diese E-Mail bestätigt deinen nutzungsbasierten Kauf. Bei Fragen kontaktiere den Wedillybird-Support."
+    },
+    "proNotification": {
+      "footer": "Benachrichtigung für die Organisation {organizationName} gesendet.",
+      "signatureWithOrg": "— Wedillybird ({organizationName})",
+      "teamInviteDetail": "{inviterLabel} lädt dich ein, {organizationName} auf Wedillybird beizutreten.",
+      "teamInviteFallbackInviter": "ein Mitglied",
+      "teamInviteFallbackInvitee": "Kollege",
+      "subscriptionWelcome": "Dein {organizationName}-Abonnement ist jetzt aktiv. Willkommen!",
+      "subscriptionPastDue": "Die Zahlung für dein {organizationName}-Abonnement ist fehlgeschlagen. Aktualisiere deine Zahlungsmethode, um den Zugriff zu behalten.",
+      "subscriptionCanceled": "Dein {organizationName}-Abonnement wurde gekündigt. Du kannst es jederzeit über deinen Pro-Bereich reaktivieren.",
+      "subscriptionRenewedDetail": "Die Zahlung für dein {organizationName}-Abonnement wurde empfangen. Danke!",
+      "paymentReceivedDetail": "Die Zahlung für {eventTitle} wurde empfangen. Das Event kann jetzt veröffentlicht werden.",
+      "paygCreditDetail": "Dein Pay-as-you-go-Guthaben wurde aktiviert. Aktueller Saldo: {credits}.",
+      "fallbackRecipientName": "Hallo",
+      "teamMemberAdded": {
+        "subject": "Neues Mitglied in {organizationName}",
+        "ctaLabel": "Einladung annehmen"
+      },
+      "paymentReceived": {
+        "subject": "Zahlung erhalten — {organizationName}",
+        "ctaLabel": "Event ansehen"
+      },
+      "subscriptionRenewed": {
+        "subject": "Abonnement verlängert — {organizationName}",
+        "ctaLabel": "Mein Abonnement verwalten"
+      },
+      "subscriptionFailed": {
+        "subject": "Zahlung fehlgeschlagen — {organizationName}",
+        "ctaLabel": "Meine Zahlung aktualisieren"
+      },
+      "paygCreditActivated": {
+        "subject": "Pay-as-you-go-Guthaben aktiviert — {organizationName}",
+        "ctaLabel": "Meinen Saldo ansehen"
+      }
+    },
+    "stripeInvoice": {
+      "subject": "Rechnung {invoiceNumber} — {amountFormatted}",
+      "preheader": "Deine Rechnung für {periodLabel} ist verfügbar",
+      "title": "Wedillybird-Rechnung",
+      "amountLabel": "Betrag",
+      "periodLabel": "Zeitraum",
+      "intro": "Deine Rechnung {invoiceNumber} für {organizationName} ist verfügbar.",
+      "amountAndPeriod": "Betrag: {amountFormatted} — Zeitraum: {periodLabel}",
+      "ctaLabel": "Rechnung ansehen",
+      "textInvoiceFor": "Rechnung {invoiceNumber} für {organizationName}.",
+      "textPdfLabel": "PDF:",
+      "textConsultOnline": "Online ansehen:",
+      "footer": "Bei Fragen zu dieser Rechnung kontaktiere den Wedillybird-Support."
+    },
+    "whatsappTemplateStatus": {
+      "subjectApproved": "Dein WhatsApp-Template ist genehmigt",
+      "subjectRejected": "Dein WhatsApp-Template wurde abgelehnt",
+      "subjectDisabled": "Dein WhatsApp-Template wurde deaktiviert",
+      "subjectPaused": "Dein WhatsApp-Template ist pausiert",
+      "verbApproved": "genehmigt",
+      "verbRejected": "abgelehnt",
+      "verbDisabled": "deaktiviert",
+      "verbPaused": "pausiert",
+      "preheader": "{templateName} — von WhatsApp {verb}",
+      "leadApproved": "Gute Nachrichten — WhatsApp hat soeben dein Einladungs-Template für {eventTitle} genehmigt. Es ist jetzt bereit, um deine Einladungen zu versenden.",
+      "leadRejected": "WhatsApp hat dein Einladungs-Template für {eventTitle} nicht genehmigt. Du kannst den Text anpassen und erneut einreichen oder zwischenzeitlich einen vorgefertigten Stil wählen.",
+      "leadDisabled": "WhatsApp hat dein Einladungs-Template für {eventTitle} dauerhaft deaktiviert. Du musst ein neues Template erstellen oder einen vorgefertigten Stil verwenden.",
+      "leadPaused": "WhatsApp hat dein Einladungs-Template für {eventTitle} aufgrund von Qualitätssignalen vorübergehend pausiert. Du kannst es nach einer Überprüfung durch WhatsApp wieder verwenden.",
+      "templateLabel": "Template:",
+      "reasonLabel": "Von WhatsApp angegebener Grund:",
+      "ctaApproved": "Meine Einladungen senden",
+      "ctaAdjust": "Meine Nachricht anpassen",
+      "footer": "Automatische Benachrichtigung im Zusammenhang mit der Meta WhatsApp Business-Validierung.",
+      "textTemplate": "Template: {templateName}",
+      "textReason": "Grund: {reason}"
+    }
+  },
+  "Metadata": {
+    "landing": {
+      "title": "Wedillybird — Hochzeitseinladungen per WhatsApp, RSVP, Check-in",
+      "description": "WhatsApp-Einladungen, RSVP in Echtzeit, Offline-QR-Check-in und geteilte Galerie. Wedillybird vereinfacht die Organisation deiner Hochzeit, weltweit."
+    },
+    "forfaitsPros": {
+      "title": "Profi-Pakete für Hochzeitsplaner — Wedillybird",
+      "description": "Starter, Business, Agency oder Pay-as-you-go: der vollständige Stack für Hochzeitsplaner und Agenturen. Agentur-Branding, Subdomain, Multi-Event, -20 % bei jährlicher Zahlung."
+    },
+    "contact": {
+      "title": "Kontakt — Wedillybird",
+      "description": "Eine Frage, ein Projekt, ein nettes Wort? Unser gesamtes Team liest jede Nachricht. Menschliche Antwort innerhalb von 24 Werkstunden, auf Französisch."
+    },
+    "faq": {
+      "title": "FAQ — Wedillybird",
+      "description": "Alle Antworten auf häufige Fragen: WhatsApp, RSVP, Offline-Check-in, Galerie, Preise, Stornierung, DSGVO, Profi-Branding."
+    },
+    "legalTerms": {
+      "title": "Allgemeine Geschäftsbedingungen — Wedillybird",
+      "description": "Allgemeine Geschäftsbedingungen für den Wedillybird-Dienst: Konto, Preise, geistiges Eigentum, Haftung, anwendbares Recht."
+    },
+    "legalPrivacy": {
+      "title": "Datenschutzerklärung — Wedillybird",
+      "description": "Wedillybird-Datenschutzerklärung: erhobene Daten, Zwecke, DSGVO-Rechtsgrundlagen, Aufbewahrungsdauer, Auftragsverarbeiter, Ihre Rechte."
+    },
+    "legalCookies": {
+      "title": "Cookie-Richtlinie — Wedillybird",
+      "description": "Für den Betrieb von Wedillybird notwendige Cookies: HMAC-Session, Offline-Cache für Check-in. Keine Werbe-Cookies, keine Drittanbieter-Tracker."
+    }
+  }
+}

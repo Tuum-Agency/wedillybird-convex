@@ -217,12 +217,12 @@
       "trust": {
         "stat": "1 240 mariages célébrés",
         "rating": "4,9 / 5 satisfaction couples",
-        "regions": "Sénégal · Côte d'Ivoire · Mali"
+        "regions": "Disponible à l'international"
       },
       "card": {
         "label": "INVITATION · 8 JUIN 2026",
         "couple": "Camille & Hugo",
-        "venue": "Domaine des Lilas · Provence",
+        "venue": "Domaine des Lilas",
         "rsvpHint": "RSVP ouvert sur WhatsApp"
       }
     },
@@ -260,7 +260,7 @@
           "context": "avec l'option Premium + Upsell post-mariage"
         }
       },
-      "source": "Mesuré sur les 1 240 premiers mariages célébrés avec Wedillybird, FR + Afrique de l'Ouest, 2026."
+      "source": "Mesuré sur les 1 240 premiers mariages célébrés avec Wedillybird, 2026."
     },
     "features": {
       "chapter": "CHAPITRE 03 — LES PILIERS",
@@ -319,25 +319,25 @@
       "title": "Des couples et des planners qui ont gagné en sérénité.",
       "items": {
         "couple-fr": {
-          "quote": "On a invité 180 personnes en quatre tapotements. Le check-in offline a sauvé l'entrée quand le WiFi du château a lâché — personne n'a attendu plus de cinq secondes.",
+          "quote": "On a invité 180 personnes en quatre tapotements. Le check-in offline a sauvé l'entrée quand le WiFi du domaine a lâché — personne n'a attendu plus de cinq secondes.",
           "name": "Camille & Hugo",
-          "location": "Mariage en Provence · juin 2026",
+          "location": "Mariage en plein air · juin 2026",
           "initials": "CH",
           "alt": "Portrait de Camille et Hugo souriants"
         },
         "couple-sn": {
-          "quote": "On était plus de 600 invités sur trois jours, à Dakar. Wedillybird a tenu là où Excel et nos groupes WhatsApp craquaient. La galerie partagée a fait revenir les souvenirs encore une fois trois mois après.",
+          "quote": "On était plus de 600 invités sur trois jours. Wedillybird a tenu là où Excel et nos groupes WhatsApp craquaient. La galerie partagée a fait revenir les souvenirs encore une fois trois mois après.",
           "name": "Awa & Mamadou",
-          "location": "Mariage à Dakar · novembre 2025",
+          "location": "Mariage 600+ invités · novembre 2025",
           "initials": "AM",
-          "alt": "Awa et Mamadou en tenue traditionnelle sénégalaise"
+          "alt": "Awa et Mamadou en tenue traditionnelle"
         },
         "planner-pro": {
-          "quote": "Je gère huit mariages cette saison avec mon branding sur chaque page invité. Mes couples voient mon agence, pas un outil tiers — c'est exactement ce qu'il manquait au marché francophone.",
+          "quote": "Je gère huit mariages cette saison avec mon branding sur chaque page invité. Mes couples voient mon agence, pas un outil tiers — c'est exactement ce qu'il manquait sur le marché.",
           "name": "Studio Lumière",
-          "location": "Wedding planner · Bordeaux",
+          "location": "Wedding planner",
           "initials": "SL",
-          "alt": "Wedding planner française devant un mariage en extérieur"
+          "alt": "Wedding planner devant un mariage en extérieur"
         }
       }
     },
@@ -389,7 +389,7 @@
       "items": {
         "whyWhatsapp": {
           "q": "Pourquoi WhatsApp et pas un mail ou une appli dédiée ?",
-          "a": "Parce que vos invités sont déjà là. WhatsApp affiche un taux d'ouverture de 98 % vs 22 % pour un email, et ne demande aucune installation. C'est le canal le plus universel en France et en Afrique francophone."
+          "a": "Parce que vos invités sont déjà là. WhatsApp affiche un taux d'ouverture de 98 % vs 22 % pour un email, et ne demande aucune installation. C'est le canal le plus universel à l'international."
         },
         "olderGuests": {
           "q": "Mes invités âgés ou peu à l'aise avec le numérique vont-ils s'en sortir ?",
@@ -397,7 +397,7 @@
         },
         "guestLimit": {
           "q": "Combien d'invités maximum ?",
-          "a": "Aucune limite technique. Le forfait Essentiel et Premium incluent jusqu'à 500 invitations par mariage. Au-delà, on adapte (cas des mariages 600+ invités fréquents en Afrique de l'Ouest, contactez-nous)."
+          "a": "Aucune limite technique. Le forfait Essentiel et Premium incluent jusqu'à 500 invitations par mariage. Au-delà (mariages 600+ invités), contactez-nous, on adapte."
         },
         "cancellation": {
           "q": "Et si on doit annuler ou reporter le mariage ?",
@@ -408,8 +408,8 @@
           "a": "Avec Premium : galerie modérée pendant 6 mois + album PDF final. Avec l'upsell post-mariage à 29 € : on prolonge la galerie 5 ans, on imprime un livre photo HD et on vous livre un ZIP haute définition de toutes les photos."
         },
         "africa3g": {
-          "q": "Comment ça marche en Afrique sans 4G stable ?",
-          "a": "Le check-in jour J fonctionne 100 % offline (cache local IndexedDB chiffré). La galerie compresse les photos avant upload. La page invitation pèse moins de 80 ko — testée en 3G Sénégal et Côte d'Ivoire à 2 secondes de chargement."
+          "q": "Comment ça marche sans 4G stable ?",
+          "a": "Le check-in jour J fonctionne 100 % offline (cache local IndexedDB chiffré). La galerie compresse les photos avant upload. La page invitation pèse moins de 80 ko — testée en 3G à 2 secondes de chargement."
         },
         "branding": {
           "q": "Peut-on personnaliser le design des invitations ?",
@@ -429,7 +429,7 @@
       "trust": "1 240 mariages célébrés · 4,9 / 5 satisfaction couples"
     },
     "footer": {
-      "tagline": "WhatsApp-first wedding concierge. Conçu en France, pensé pour les diasporas francophones.",
+      "tagline": "WhatsApp-first wedding concierge. Pensé pour les mariages du monde entier.",
       "newsletterTitle": "Recevez nos templates d'invitation gratuits",
       "newsletterSubtitle": "Une fois par mois, des modèles signés par des wedding designers reconnus, et zéro spam.",
       "newsletterPlaceholder": "vous@email.com",
@@ -476,7 +476,6 @@
           }
         }
       },
-      "regions": "Disponible en :",
       "payments": "Paiements sécurisés via",
       "rights": "Tous droits réservés"
     }
@@ -794,7 +793,9 @@
     "backToDashboard": "Retour au tableau de bord pro",
     "inviteTitle": "Inviter un collaborateur",
     "phoneLabel": "Téléphone WhatsApp",
+    "phonePlaceholder": "+33 6 12 34 56 78",
     "emailLabel": "Email",
+    "emailPlaceholder": "vous@exemple.com",
     "roleLabel": "Rôle",
     "roles": {
       "owner": "Propriétaire",
@@ -878,7 +879,7 @@
       "exportHd": "Export ZIP haute définition de toutes les photos",
       "whatsappInvite": "Invitations envoyées par WhatsApp avec votre date et lien unique",
       "guestReminders": "Rappels automatiques aux non-répondants (J-7 et J-1)",
-      "multiCurrency": "Prix justes selon votre région (EUR, MAD, TND, XOF)",
+      "multiCurrency": "Prix justes selon votre région",
       "aiModeration": "Modération automatique des photos par IA (rejet auto + révision manuelle)",
       "faceSearch": "Recherche par visage : chaque invité retrouve ses photos avec un selfie",
       "cinematicInvitation": "Cinématique d'invitation : enveloppe qui s'ouvre, sceau qui se brise",
@@ -899,7 +900,8 @@
         "annualSavings": "économisez 20 %",
         "perMonth": "/ mois",
         "perEvent": "/ événement",
-        "annualBilledAs": "{amount} facturé annuellement"
+        "annualBilledAs": "{amount} facturé annuellement",
+        "frequencyAriaLabel": "Fréquence de facturation"
       },
       "descriptions": {
         "starter": "Pour démarrer une activité de wedding planner.",
@@ -966,6 +968,9 @@
   },
   "Invoice": {
     "title": "Facture",
+    "brandTagline": "Votre mariage, organisé sans stress",
+    "planEssentialFull": "Wedillybird — Essentiel",
+    "planPremiumFull": "Wedillybird — Premium",
     "number": "N° {value}",
     "issuedOn": "Émise le {date}",
     "paidOn": "Réglée le {date}",
@@ -1070,27 +1075,142 @@
     "paygHistoryAmount": "Montant",
     "paygHistoryReference": "Référence Stripe"
   },
+  "Validation": {
+    "phoneTooShort": "Numéro trop court",
+    "phoneInvalid": "Numéro de téléphone invalide",
+    "otpFormat": "Le code doit contenir 6 chiffres",
+    "nameTooShort": "Nom trop court",
+    "nameTooLong": "Nom trop long",
+    "subjectTooShort": "Sujet trop court",
+    "subjectTooLong": "Sujet trop long",
+    "messageTooShort": "Message trop court",
+    "messageTooLong": "Message trop long",
+    "tokenInvalid": "Token invalide",
+    "emailInvalid": "Email invalide",
+    "firstNameRequired": "Prénom requis",
+    "firstNameTooLong": "Prénom trop long",
+    "titleTooShort": "Titre trop court",
+    "titleTooLong": "Titre trop long",
+    "dateRequired": "Date requise",
+    "dateInvalid": "Date invalide",
+    "dateMustBeFuture": "La date doit être dans le futur",
+    "timezoneRequired": "Fuseau horaire requis",
+    "timezoneInvalid": "Fuseau horaire invalide",
+    "venueNameRequired": "Nom du lieu requis",
+    "venueNameTooLong": "Nom trop long",
+    "venueAddressRequired": "Adresse requise",
+    "venueAddressTooLong": "Adresse trop longue",
+    "colorInvalid": "Couleur invalide",
+    "fontRequired": "Police requise",
+    "fontTooLong": "Police trop longue",
+    "guestNameRequired": "Nom requis",
+    "guestNameTooLong": "Nom trop long",
+    "phoneE164Invalid": "Numéro invalide (format E.164)",
+    "categoryTooLong": "Catégorie trop longue",
+    "notesTooLong": "Notes trop longues",
+    "plusOnesRange": "0 à 10 accompagnants",
+    "plusOnesOnlyAttending": "Accompagnants autorisés uniquement si présence confirmée"
+  },
   "WhatsApp": {
     "reminders": {
       "d7Description": "Rappel envoyé une semaine avant l'événement aux invités confirmés.",
       "d1Description": "Rappel envoyé la veille de l'événement aux invités confirmés.",
       "templateMissing": "Template Meta indisponible — l'envoi WhatsApp est suspendu, l'email reste actif."
+    },
+    "templateStatus": {
+      "approvedHint": "Vous pouvez maintenant utiliser ce template pour vos invitations.",
+      "adjustHint": "Vous pouvez ajuster votre template et le soumettre à nouveau.",
+      "rejectedReason": "Raison : {reason}"
     }
   },
   "Emails": {
     "common": {
       "greeting": "Bonjour {name},",
+      "greetingSimple": "Bonjour,",
       "signature": "— Wedillybird",
-      "supportFooter": "Pour toute question, contactez le support Wedillybird."
+      "tagline": "Wedillybird — l'organisation de mariage simplifiée.",
+      "supportFooter": "Pour toute question, contactez le support Wedillybird.",
+      "fallbackLink": "Si le bouton ne fonctionne pas, copiez-collez ce lien dans votre navigateur :",
+      "ignoreNotice": "Si vous n'êtes pas à l'origine de cette demande, ignorez ce message.",
+      "requestFromIp": "Demande envoyée depuis l'adresse {ip}.",
+      "requestSentNoIp": "Demande envoyée."
+    },
+    "magicLink": {
+      "subject": "Votre lien de connexion Wedillybird",
+      "preheader": "Cliquez pour vous connecter — valable {minutes} minutes.",
+      "intro": "Vous avez demandé à vous connecter à Wedillybird par email. Cliquez sur le bouton ci-dessous pour valider votre identité. Le lien expire dans {minutes} minutes et n'est utilisable qu'une seule fois.",
+      "ctaLabel": "Vérifier mon email",
+      "ignoreNotice": "Si vous n'êtes pas à l'origine de cette demande, ignorez ce message — aucun compte ne sera créé ni modifié.",
+      "textInstructions": "Cliquez sur ce lien pour vous connecter (valable {minutes} minutes, usage unique) :"
+    },
+    "linkCode": {
+      "subject": "Votre code de vérification Wedillybird : {code}",
+      "preheader": "Code à recopier dans l'app pour confirmer cette adresse — valable {minutes} minutes.",
+      "intro": "Vous avez demandé à associer cette adresse email à votre compte Wedillybird. Recopiez le code ci-dessous dans la fenêtre de vérification :",
+      "expiry": "Le code expire dans {minutes} minutes et n'est utilisable qu'une seule fois.",
+      "ignoreNotice": "Si vous n'êtes pas à l'origine de cette demande, ignorez ce message — aucune adresse ne sera ajoutée à votre compte.",
+      "textTitle": "Votre code de vérification Wedillybird",
+      "textCode": "Code : {code}",
+      "textValidity": "Valable {minutes} minutes, usage unique.",
+      "textInstructions": "Recopiez ce code dans la fenêtre de vérification de l'app."
+    },
+    "contactMessage": {
+      "subjectPrefix": "[Contact] {subject}",
+      "fromLabel": "De",
+      "subjectLabel": "Sujet",
+      "footerSent": "Message envoyé via le formulaire /contact{ipPart}.",
+      "footerIpPart": " depuis l'IP {ip}",
+      "footerReply": "Répondez à cet email pour contacter {name} directement."
+    },
+    "newsletterSignup": {
+      "subject": "[Newsletter] Nouvelle inscription — {email}",
+      "preheader": "Nouvelle inscription newsletter : {email}",
+      "intro": "Nouvelle inscription à la newsletter Wedillybird.",
+      "emailLabel": "Email",
+      "sourceLabel": "Source",
+      "ipLabel": "IP",
+      "addReminder": "Pensez à ajouter cet email à votre service de newsletter (Brevo, Mailchimp, etc.) si vous en avez un.",
+      "footer": "Notification automatique — formulaire newsletter Wedillybird.",
+      "textTitle": "Nouvelle inscription newsletter Wedillybird",
+      "textAddReminder": "Pensez à ajouter cet email à votre service de newsletter."
     },
     "guestReminder": {
       "subjectDayBefore": "C'est demain : {eventTitle}",
       "subjectDaysBefore": "J-{days} avant {eventTitle}",
       "preheader": "{eventTitle} approche — confirmez votre présence",
+      "bodyDayBefore": "Plus que 1 jour avant {eventTitle} le {eventDate}.",
+      "bodyDaysBefore": "Plus que {days} jours avant {eventTitle} le {eventDate}.",
+      "callToAction": "Confirmez votre présence et accédez à votre invitation :",
+      "closing": "À très vite !",
       "ctaLabel": "Voir mon invitation",
+      "textConfirmHere": "Confirmez votre présence ici :",
       "footer": "Cet email vous est envoyé par les hôtes de votre événement via Wedillybird."
     },
+    "paygCreditActivated": {
+      "subject": "Votre crédit Pay-as-you-go est activé",
+      "preheaderOne": "Vous avez {credits} crédit disponible pour activer un événement.",
+      "preheaderMany": "Vous avez {credits} crédits disponibles pour activer un événement.",
+      "thanksOne": "Merci pour votre achat. Votre crédit Pay-as-you-go vient d'être activé : vous avez désormais {credits} crédit disponible pour publier un événement ponctuel sur Wedillybird.",
+      "thanksMany": "Merci pour votre achat. Votre crédit Pay-as-you-go vient d'être activé : vous avez désormais {credits} crédits disponibles pour publier un événement ponctuel sur Wedillybird.",
+      "instructions": "Il vous suffit de créer (ou de finaliser) un événement depuis votre espace Pro et de cliquer sur Publier — un crédit sera consommé automatiquement.",
+      "ctaLabel": "Voir ma facture Stripe",
+      "textInvoiceLabel": "Facture Stripe :",
+      "thankYou": "Merci de faire confiance à Wedillybird pour vos événements.",
+      "footer": "Cet email confirme votre achat à l'usage. Pour toute question, contactez le support Wedillybird."
+    },
     "proNotification": {
+      "footer": "Notification envoyée pour l'organisation {organizationName}.",
+      "signatureWithOrg": "— Wedillybird ({organizationName})",
+      "teamInviteDetail": "{inviterLabel} vous invite à rejoindre {organizationName} sur Wedillybird.",
+      "teamInviteFallbackInviter": "un membre",
+      "teamInviteFallbackInvitee": "collègue",
+      "subscriptionWelcome": "Votre abonnement {organizationName} est désormais actif. Bienvenue !",
+      "subscriptionPastDue": "Le paiement de votre abonnement {organizationName} a échoué. Mettez à jour votre moyen de paiement pour conserver l'accès.",
+      "subscriptionCanceled": "Votre abonnement {organizationName} a été annulé. Vous pouvez le réactiver à tout moment depuis votre espace Pro.",
+      "subscriptionRenewedDetail": "Le paiement de votre abonnement {organizationName} a bien été reçu. Merci !",
+      "paymentReceivedDetail": "Le paiement pour {eventTitle} a été reçu. L'événement peut maintenant être publié.",
+      "paygCreditDetail": "Votre crédit Pay-as-you-go a été activé. Solde actuel : {credits}.",
+      "fallbackRecipientName": "Bonjour",
       "teamMemberAdded": {
         "subject": "Nouveau membre dans {organizationName}",
         "ctaLabel": "Accepter l'invitation"
@@ -1118,14 +1238,41 @@
       "title": "Facture Wedillybird",
       "amountLabel": "Montant",
       "periodLabel": "Période",
+      "intro": "Votre facture {invoiceNumber} pour {organizationName} est disponible.",
+      "amountAndPeriod": "Montant : {amountFormatted} — Période : {periodLabel}",
       "ctaLabel": "Consulter la facture",
+      "textInvoiceFor": "Facture {invoiceNumber} pour {organizationName}.",
+      "textPdfLabel": "PDF :",
+      "textConsultOnline": "Consulter en ligne :",
       "footer": "Pour toute question concernant cette facture, contactez le support Wedillybird."
+    },
+    "whatsappTemplateStatus": {
+      "subjectApproved": "Votre template WhatsApp est validé",
+      "subjectRejected": "Votre template WhatsApp a été refusé",
+      "subjectDisabled": "Votre template WhatsApp a été désactivé",
+      "subjectPaused": "Votre template WhatsApp est suspendu",
+      "verbApproved": "validé",
+      "verbRejected": "refusé",
+      "verbDisabled": "désactivé",
+      "verbPaused": "suspendu",
+      "preheader": "{templateName} — {verb} par WhatsApp",
+      "leadApproved": "Bonne nouvelle — WhatsApp vient de valider votre template d'invitation pour {eventTitle}. Il est maintenant prêt à être utilisé pour envoyer vos invitations.",
+      "leadRejected": "WhatsApp n'a pas validé votre template d'invitation pour {eventTitle}. Vous pouvez ajuster le texte et le soumettre à nouveau, ou choisir un style préfabriqué en attendant.",
+      "leadDisabled": "WhatsApp a définitivement désactivé votre template d'invitation pour {eventTitle}. Il faudra créer un nouveau template ou utiliser un style préfabriqué.",
+      "leadPaused": "WhatsApp a temporairement suspendu votre template d'invitation pour {eventTitle} suite à des signaux qualité. Vous pourrez le réutiliser après vérification par WhatsApp.",
+      "templateLabel": "Template concerné :",
+      "reasonLabel": "Raison communiquée par WhatsApp :",
+      "ctaApproved": "Envoyer mes invitations",
+      "ctaAdjust": "Ajuster mon message",
+      "footer": "Notification automatique liée à la validation Meta WhatsApp Business.",
+      "textTemplate": "Template : {templateName}",
+      "textReason": "Raison : {reason}"
     }
   },
   "Metadata": {
     "landing": {
       "title": "Wedillybird — Invitations mariage par WhatsApp, RSVP, check-in",
-      "description": "Invitations WhatsApp, RSVP en temps réel, check-in QR offline et galerie partagée. Wedillybird simplifie l'organisation de votre mariage en France et en Afrique de l'Ouest."
+      "description": "Invitations WhatsApp, RSVP en temps réel, check-in QR offline et galerie partagée. Wedillybird simplifie l'organisation de votre mariage, partout dans le monde."
     },
     "forfaitsPros": {
       "title": "Forfaits pros wedding planners — Wedillybird",

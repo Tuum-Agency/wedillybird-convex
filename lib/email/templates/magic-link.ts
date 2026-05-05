@@ -1,3 +1,5 @@
+import type { Locale } from '../../../i18n/routing';
+import { getServerTranslator } from '../../i18n/server-translator';
 import type { EmailRendered } from '../types';
 import { button, htmlLayout, paragraph } from './_layout';
 
@@ -8,52 +10,50 @@ export interface MagicLinkInput {
   expiresInMinutes?: number;
   /** Adresse IP qui a déclenché la demande (optionnel, pour transparence). */
   requestIp?: string;
+  /** Locale du destinataire. Par défaut `fr`. */
+  locale?: Locale | string;
 }
 
-/**
- * Email Magic Link — fallback auth pour les utilisateurs sans WhatsApp.
- *
- * Sobre et rassurant. Le bouton est l'action principale ; le lien texte en
- * dessous sert pour les clients mail qui n'autorisent pas le HTML.
- */
 export function renderMagicLink({
   verifyUrl,
   expiresInMinutes = 15,
   requestIp,
+  locale,
 }: MagicLinkInput): EmailRendered {
-  const subject = 'Votre lien de connexion Wedillybird';
-  const preheader = `Cliquez pour vous connecter — valable ${expiresInMinutes} minutes.`;
+  const t = getServerTranslator(locale);
+  const tCommon = (key: Parameters<typeof t>[0]) => t(key);
+
+  const subject = t('Emails.magicLink.subject');
+  const preheader = t('Emails.magicLink.preheader', { minutes: expiresInMinutes });
 
   const body = [
-    paragraph('Bonjour,'),
-    paragraph(
-      `Vous avez demandé à vous connecter à Wedillybird par email. Cliquez sur le bouton ci-dessous pour valider votre identité. Le lien expire dans ${expiresInMinutes} minutes et n'est utilisable qu'une seule fois.`,
-    ),
-    button('Vérifier mon email', verifyUrl),
-    paragraph(`Si le bouton ne fonctionne pas, copiez-collez ce lien dans votre navigateur :`),
+    paragraph(tCommon('Emails.common.greetingSimple')),
+    paragraph(t('Emails.magicLink.intro', { minutes: expiresInMinutes })),
+    button(t('Emails.magicLink.ctaLabel'), verifyUrl),
+    paragraph(tCommon('Emails.common.fallbackLink')),
     `<p style="margin:0 0 16px 0;word-break:break-all;font-size:13px;color:#666;">${escapeAttr(verifyUrl)}</p>`,
-    paragraph(
-      `Si vous n'êtes pas à l'origine de cette demande, ignorez ce message — aucun compte ne sera créé ni modifié.`,
-    ),
+    paragraph(t('Emails.magicLink.ignoreNotice')),
   ].join('');
 
   const footerLines = [
-    `Demande envoyée${requestIp ? ` depuis l'adresse ${escapeAttr(requestIp)}` : ''}.`,
-    `Wedillybird — l'organisation de mariage simplifiée.`,
+    requestIp
+      ? t('Emails.common.requestFromIp', { ip: escapeAttr(requestIp) })
+      : t('Emails.common.requestSentNoIp'),
+    tCommon('Emails.common.tagline'),
   ];
   const footer = footerLines.map((l) => `<p style="margin:0 0 4px 0;">${l}</p>`).join('');
 
-  const html = htmlLayout({ preheader, body, footer });
+  const html = htmlLayout({ preheader, body, footer, locale });
 
   const text = [
-    'Votre lien de connexion Wedillybird',
+    subject,
     '',
-    `Cliquez sur ce lien pour vous connecter (valable ${expiresInMinutes} minutes, usage unique) :`,
+    t('Emails.magicLink.textInstructions', { minutes: expiresInMinutes }),
     verifyUrl,
     '',
-    "Si vous n'êtes pas à l'origine de cette demande, ignorez ce message.",
+    t('Emails.magicLink.ignoreNotice'),
     '',
-    '— Wedillybird',
+    tCommon('Emails.common.signature'),
   ].join('\n');
 
   return { subject, html, text };

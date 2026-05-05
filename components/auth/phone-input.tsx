@@ -1,7 +1,9 @@
 'use client';
 
 import { forwardRef, useState, type InputHTMLAttributes } from 'react';
+import { useLocale } from 'next-intl';
 import { cn } from '@/lib/cn';
+import type { Locale } from '@/i18n/routing';
 
 interface Country {
   code: string;
@@ -10,14 +12,27 @@ interface Country {
   flag: string;
 }
 
-const DEFAULT_COUNTRY: Country = { code: 'FR', dial: '33', name: 'France', flag: '🇫🇷' };
+const FR: Country = { code: 'FR', dial: '33', name: 'France', flag: '🇫🇷' };
 
 const COUNTRIES: ReadonlyArray<Country> = [
-  DEFAULT_COUNTRY,
+  FR,
   { code: 'BE', dial: '32', name: 'Belgique', flag: '🇧🇪' },
   { code: 'CH', dial: '41', name: 'Suisse', flag: '🇨🇭' },
   { code: 'LU', dial: '352', name: 'Luxembourg', flag: '🇱🇺' },
+  { code: 'GB', dial: '44', name: 'United Kingdom', flag: '🇬🇧' },
+  { code: 'US', dial: '1', name: 'United States', flag: '🇺🇸' },
   { code: 'CA', dial: '1', name: 'Canada', flag: '🇨🇦' },
+  { code: 'IE', dial: '353', name: 'Ireland', flag: '🇮🇪' },
+  { code: 'ES', dial: '34', name: 'España', flag: '🇪🇸' },
+  { code: 'PT', dial: '351', name: 'Portugal', flag: '🇵🇹' },
+  { code: 'BR', dial: '55', name: 'Brasil', flag: '🇧🇷' },
+  { code: 'IT', dial: '39', name: 'Italia', flag: '🇮🇹' },
+  { code: 'DE', dial: '49', name: 'Deutschland', flag: '🇩🇪' },
+  { code: 'AT', dial: '43', name: 'Österreich', flag: '🇦🇹' },
+  { code: 'NL', dial: '31', name: 'Nederland', flag: '🇳🇱' },
+  { code: 'SA', dial: '966', name: 'المملكة العربية السعودية', flag: '🇸🇦' },
+  { code: 'AE', dial: '971', name: 'الإمارات', flag: '🇦🇪' },
+  { code: 'EG', dial: '20', name: 'مصر', flag: '🇪🇬' },
   { code: 'SN', dial: '221', name: 'Sénégal', flag: '🇸🇳' },
   { code: 'CI', dial: '225', name: "Côte d'Ivoire", flag: '🇨🇮' },
   { code: 'MA', dial: '212', name: 'Maroc', flag: '🇲🇦' },
@@ -38,6 +53,16 @@ const COUNTRIES: ReadonlyArray<Country> = [
   { code: 'HT', dial: '509', name: 'Haïti', flag: '🇭🇹' },
 ];
 
+const LOCALE_TO_COUNTRY: Record<Locale, string> = {
+  fr: 'FR',
+  en: 'GB',
+  es: 'ES',
+  it: 'IT',
+  pt: 'PT',
+  de: 'DE',
+  ar: 'SA',
+};
+
 interface PhoneInputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'type' | 'name'> {
   name?: string;
   error?: string;
@@ -45,18 +70,10 @@ interface PhoneInputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 't
 }
 
 export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(
-  (
-    {
-      className,
-      error,
-      id = 'phone',
-      name = 'phone',
-      defaultCountry = DEFAULT_COUNTRY.code,
-      ...props
-    },
-    ref,
-  ) => {
-    const initial = COUNTRIES.find((c) => c.code === defaultCountry) ?? DEFAULT_COUNTRY;
+  ({ className, error, id = 'phone', name = 'phone', defaultCountry, ...props }, ref) => {
+    const locale = useLocale() as Locale;
+    const fallbackCode = defaultCountry ?? LOCALE_TO_COUNTRY[locale] ?? FR.code;
+    const initial = COUNTRIES.find((c) => c.code === fallbackCode) ?? FR;
     const [country, setCountry] = useState<Country>(initial);
     const [local, setLocal] = useState('');
 

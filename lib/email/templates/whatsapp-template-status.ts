@@ -1,3 +1,5 @@
+import type { Locale } from '../../../i18n/routing';
+import { getServerTranslator } from '../../i18n/server-translator';
 import type { EmailRendered } from '../types';
 import { button, escapeHtml, htmlLayout, paragraph } from './_layout';
 
@@ -9,75 +11,85 @@ export interface WhatsappTemplateStatusInput {
   eventTitle: string;
   status: TemplateStatusKind;
   rejectionReason?: string;
-  /** URL de retour vers la page messaging de l'événement (CTA bouton). */
   ctaUrl?: string;
+  locale?: Locale | string;
 }
 
-const SUBJECT: Record<TemplateStatusKind, string> = {
-  approved: 'Votre template WhatsApp est validé',
-  rejected: 'Votre template WhatsApp a été refusé',
-  disabled: 'Votre template WhatsApp a été désactivé',
-  paused: 'Votre template WhatsApp est suspendu',
+const SUBJECT_KEY: Record<TemplateStatusKind, string> = {
+  approved: 'subjectApproved',
+  rejected: 'subjectRejected',
+  disabled: 'subjectDisabled',
+  paused: 'subjectPaused',
 };
 
-const STATUS_VERB: Record<TemplateStatusKind, string> = {
-  approved: 'validé',
-  rejected: 'refusé',
-  disabled: 'désactivé',
-  paused: 'suspendu',
+const VERB_KEY: Record<TemplateStatusKind, string> = {
+  approved: 'verbApproved',
+  rejected: 'verbRejected',
+  disabled: 'verbDisabled',
+  paused: 'verbPaused',
 };
 
-const STATUS_BODY_LEAD: Record<TemplateStatusKind, (eventTitle: string) => string> = {
-  approved: (eventTitle) =>
-    `Bonne nouvelle — WhatsApp vient de valider votre template d'invitation pour ${eventTitle}. Il est maintenant prêt à être utilisé pour envoyer vos invitations.`,
-  rejected: (eventTitle) =>
-    `WhatsApp n'a pas validé votre template d'invitation pour ${eventTitle}. Vous pouvez ajuster le texte et le soumettre à nouveau, ou choisir un style préfabriqué en attendant.`,
-  disabled: (eventTitle) =>
-    `WhatsApp a définitivement désactivé votre template d'invitation pour ${eventTitle}. Il faudra créer un nouveau template ou utiliser un style préfabriqué.`,
-  paused: (eventTitle) =>
-    `WhatsApp a temporairement suspendu votre template d'invitation pour ${eventTitle} suite à des signaux qualité. Vous pourrez le réutiliser après vérification par WhatsApp.`,
+const LEAD_KEY: Record<TemplateStatusKind, string> = {
+  approved: 'leadApproved',
+  rejected: 'leadRejected',
+  disabled: 'leadDisabled',
+  paused: 'leadPaused',
 };
 
 export function renderWhatsappTemplateStatusEmail(
   input: WhatsappTemplateStatusInput,
 ): EmailRendered {
-  const { recipientName, templateName, eventTitle, status, rejectionReason, ctaUrl } = input;
-  const subject = SUBJECT[status];
-  const verb = STATUS_VERB[status];
-  const lead = STATUS_BODY_LEAD[status](eventTitle);
+  const { recipientName, templateName, eventTitle, status, rejectionReason, ctaUrl, locale } =
+    input;
+  const t = getServerTranslator(locale);
+
+  const subject = t(
+    `Emails.whatsappTemplateStatus.${SUBJECT_KEY[status]}` as 'Emails.whatsappTemplateStatus.subjectApproved',
+  );
+  const verb = t(
+    `Emails.whatsappTemplateStatus.${VERB_KEY[status]}` as 'Emails.whatsappTemplateStatus.verbApproved',
+  );
+  const lead = t(
+    `Emails.whatsappTemplateStatus.${LEAD_KEY[status]}` as 'Emails.whatsappTemplateStatus.leadApproved',
+    {
+      eventTitle,
+    },
+  );
 
   const reasonBlock =
     (status === 'rejected' || status === 'disabled' || status === 'paused') && rejectionReason
-      ? `<div style="margin:16px 0;padding:14px 16px;background:#fdf3ee;border-left:3px solid #c68567;border-radius:6px;font-size:14px;line-height:1.5;color:#533a26;"><strong>Raison communiquée par WhatsApp :</strong><br/>${escapeHtml(
-          rejectionReason,
-        )}</div>`
+      ? `<div style="margin:16px 0;padding:14px 16px;background:#fdf3ee;border-left:3px solid #c68567;border-radius:6px;font-size:14px;line-height:1.5;color:#533a26;"><strong>${escapeHtml(t('Emails.whatsappTemplateStatus.reasonLabel'))}</strong><br/>${escapeHtml(rejectionReason)}</div>`
       : '';
 
+  const ctaLabel =
+    status === 'approved'
+      ? t('Emails.whatsappTemplateStatus.ctaApproved')
+      : t('Emails.whatsappTemplateStatus.ctaAdjust');
+
   const html = htmlLayout({
-    preheader: `${templateName} — ${verb} par WhatsApp`,
+    preheader: t('Emails.whatsappTemplateStatus.preheader', { templateName, verb }),
     body:
-      paragraph(`Bonjour ${recipientName},`) +
+      paragraph(t('Emails.common.greeting', { name: recipientName })) +
       paragraph(lead) +
-      `<p style="margin:0 0 16px 0;">Template concerné : <em style="font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:14px;">${escapeHtml(
-        templateName,
-      )}</em></p>` +
+      `<p style="margin:0 0 16px 0;">${escapeHtml(t('Emails.whatsappTemplateStatus.templateLabel'))} <em style="font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:14px;">${escapeHtml(templateName)}</em></p>` +
       reasonBlock +
-      (ctaUrl
-        ? button(status === 'approved' ? 'Envoyer mes invitations' : 'Ajuster mon message', ctaUrl)
-        : ''),
-    footer: 'Notification automatique liée à la validation Meta WhatsApp Business.',
+      (ctaUrl ? button(ctaLabel, ctaUrl) : ''),
+    footer: t('Emails.whatsappTemplateStatus.footer'),
+    locale,
   });
 
   const text = [
-    `Bonjour ${recipientName},`,
+    t('Emails.common.greeting', { name: recipientName }),
     '',
     lead,
     '',
-    `Template : ${templateName}`,
-    ...(reasonBlock && rejectionReason ? ['', `Raison : ${rejectionReason}`] : []),
+    t('Emails.whatsappTemplateStatus.textTemplate', { templateName }),
+    ...(reasonBlock && rejectionReason
+      ? ['', t('Emails.whatsappTemplateStatus.textReason', { reason: rejectionReason })]
+      : []),
     ...(ctaUrl ? ['', ctaUrl] : []),
     '',
-    '— Wedillybird',
+    t('Emails.common.signature'),
   ].join('\n');
 
   return { subject, html, text };

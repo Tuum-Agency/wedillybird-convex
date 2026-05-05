@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { requestMagicLinkAction } from '@/app/[locale]/(auth)/actions';
+import { translateZodMessage } from '@/lib/validators/translate-zod';
 
 function mapError(code: string, t: (k: string) => string): string {
   switch (code) {
@@ -31,6 +32,7 @@ function mapError(code: string, t: (k: string) => string): string {
  */
 export function MagicLinkForm() {
   const t = useTranslations('Auth');
+  const tRoot = useTranslations();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[] | undefined>>({});
@@ -99,7 +101,7 @@ export function MagicLinkForm() {
     );
   }
 
-  const emailError = fieldErrors.email?.[0];
+  const emailError = translateZodMessage(fieldErrors.email?.[0], (k) => tRoot(k as never));
 
   return (
     <form action={handleSubmit} className="flex flex-col gap-5" noValidate>

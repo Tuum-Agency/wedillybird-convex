@@ -14,6 +14,7 @@ vi.mock('@/app/[locale]/(app)/events/[eventId]/guests/actions', () => ({
 
 vi.mock('next-intl', () => ({
   useTranslations: (namespace?: string) => (key: string) => `${namespace ?? 'T'}.${key}`,
+  useLocale: () => 'fr',
 }));
 
 import { GuestsManager } from '@/components/guests/guests-manager';

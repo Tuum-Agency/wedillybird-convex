@@ -70,11 +70,11 @@ export function TeamManager({ organizationId, canManage, initialMembers }: Props
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             <div className="flex flex-col gap-2">
               <Label htmlFor="phone">{t('phoneLabel')}</Label>
-              <Input id="phone" name="phone" type="tel" placeholder="+33612345678" />
+              <Input id="phone" name="phone" type="tel" placeholder={t('phonePlaceholder')} />
             </div>
             <div className="flex flex-col gap-2">
               <Label htmlFor="email">{t('emailLabel')}</Label>
-              <Input id="email" name="email" type="email" placeholder="vous@exemple.com" />
+              <Input id="email" name="email" type="email" placeholder={t('emailPlaceholder')} />
             </div>
             <div className="flex flex-col gap-2">
               <Label htmlFor="role">{t('roleLabel')}</Label>
