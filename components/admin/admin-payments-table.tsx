@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 type Payment = {
   _id: string;
   plan: 'essential' | 'premium';
-  currency: 'EUR' | 'XOF' | 'MAD' | 'TND';
+  currency: 'EUR' | 'USD' | 'XOF' | 'MAD' | 'TND';
   amountMinor: number;
   provider: 'stripe' | 'cinetpay' | 'mock';
   status: 'pending' | 'succeeded' | 'failed' | 'cancelled';
@@ -28,6 +28,7 @@ const STATUS_VARIANT: Record<string, 'neutral' | 'success' | 'warning' | 'destru
 
 const CURRENCY_DIVISOR: Record<string, number> = {
   EUR: 100,
+  USD: 100,
   XOF: 1,
   MAD: 100,
   TND: 1000,
@@ -75,6 +76,7 @@ export function AdminPaymentsTable({ payments }: { payments: Payment[] }) {
         >
           <option value="all">Toutes les devises</option>
           <option value="EUR">EUR</option>
+          <option value="USD">USD</option>
           <option value="XOF">XOF</option>
           <option value="MAD">MAD</option>
           <option value="TND">TND</option>

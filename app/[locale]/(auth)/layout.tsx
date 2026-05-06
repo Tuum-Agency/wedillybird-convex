@@ -33,6 +33,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
 
 function AuthAside() {
   const t = useTranslations('Landing.hero');
+  const tAuth = useTranslations('Auth');
   return (
     <aside className="relative hidden overflow-hidden lg:block" aria-hidden>
       <Image
@@ -71,7 +72,7 @@ function AuthAside() {
       {/* Tagline éditorial en bas-gauche */}
       <div className="absolute right-8 bottom-12 left-8 flex flex-col gap-4">
         <span className="font-mono text-[10px] tracking-[0.32em] text-white/80 uppercase">
-          Préparez votre grand jour
+          {tAuth('tagline')}
         </span>
         <p
           className="font-display text-balance text-white italic"
@@ -113,7 +114,7 @@ function AuthHeader() {
         href="/"
         className="font-mono text-[10px] tracking-[0.24em] text-[color:var(--color-ink-500)] uppercase transition-colors hover:text-[color:var(--color-ink-900)]"
       >
-        ← Accueil
+        ← {tCommon('home')}
       </Link>
     </header>
   );

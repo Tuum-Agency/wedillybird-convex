@@ -22,6 +22,21 @@ describe('payments/country — routePayment', () => {
     expect(routePayment('FR')).toEqual({ provider: 'stripe', currency: 'EUR' });
   });
 
+  it('routes US to Stripe + USD', () => {
+    expect(routePayment('US')).toEqual({ provider: 'stripe', currency: 'USD' });
+  });
+
+  it('routes CA to Stripe + USD (USD-billed bloc)', () => {
+    expect(routePayment('CA')).toEqual({ provider: 'stripe', currency: 'USD' });
+  });
+
+  it('honours preferred currency override for US (e.g. EU customer travelling)', () => {
+    expect(routePayment('US', { currency: 'EUR' })).toEqual({
+      provider: 'stripe',
+      currency: 'EUR',
+    });
+  });
+
   it('routes African countries to Stripe + EUR when CINETPAY_ENABLED is not set', () => {
     expect(routePayment('SN')).toEqual({ provider: 'stripe', currency: 'EUR' });
     expect(routePayment('CI')).toEqual({ provider: 'stripe', currency: 'EUR' });

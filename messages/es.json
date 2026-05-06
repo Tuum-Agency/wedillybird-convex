@@ -15,7 +15,8 @@
     "loading": "Cargando…",
     "error": "Se ha producido un error",
     "retry": "Reintentar",
-    "skipToContent": "Ir al contenido principal"
+    "skipToContent": "Ir al contenido principal",
+    "home": "Inicio"
   },
   "Footer": {
     "allRightsReserved": "Todos los derechos reservados",
@@ -525,7 +526,10 @@
       "rateLimited": "Demasiadas solicitudes. Espera unos minutos.",
       "expired": "Código expirado, solicita uno nuevo.",
       "unknown": "Se ha producido un error. Inténtalo de nuevo."
-    }
+    },
+    "tagline": "Prepare su gran día",
+    "stepOneEyebrow": "PASO 01 — IDENTIDAD",
+    "stepTwoEyebrow": "PASO 02 — VERIFICACIÓN"
   },
   "Onboarding": {
     "stepProfile": "Tu perfil",

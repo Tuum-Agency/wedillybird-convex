@@ -85,7 +85,13 @@ export default defineSchema({
     requesterId: v.id('users'),
     stripeSessionId: v.string(),
     amountMinor: v.number(),
-    currency: v.union(v.literal('EUR'), v.literal('XOF'), v.literal('MAD'), v.literal('TND')),
+    currency: v.union(
+      v.literal('EUR'),
+      v.literal('USD'),
+      v.literal('XOF'),
+      v.literal('MAD'),
+      v.literal('TND'),
+    ),
     createdAt: v.number(),
   })
     .index('by_session', ['stripeSessionId'])
@@ -281,7 +287,13 @@ export default defineSchema({
     userId: v.id('users'),
     eventId: v.id('events'),
     plan: v.union(v.literal('essential'), v.literal('premium')),
-    currency: v.union(v.literal('EUR'), v.literal('XOF'), v.literal('MAD'), v.literal('TND')),
+    currency: v.union(
+      v.literal('EUR'),
+      v.literal('USD'),
+      v.literal('XOF'),
+      v.literal('MAD'),
+      v.literal('TND'),
+    ),
     amountMinor: v.number(),
     provider: v.union(v.literal('stripe'), v.literal('cinetpay'), v.literal('mock')),
     providerSessionId: v.string(),

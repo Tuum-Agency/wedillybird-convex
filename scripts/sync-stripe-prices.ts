@@ -12,7 +12,7 @@
  *
  * Comportement :
  *  1. Pour chaque plan canonique (cf. `PLANS_TO_SYNC` ci-dessous) ET chaque
- *     devise supportée par Stripe (EUR, MAD, TND) :
+ *     devise supportée par Stripe (EUR, USD, MAD, TND) :
  *      a. Cherche un Product Stripe avec `metadata.wedillybird_plan_id` = id
  *      b. Crée le Product s'il n'existe pas (un Product partagé entre devises)
  *      c. Cherche un Price actif sur ce Product matchant amount + currency +
@@ -35,9 +35,15 @@
  * 100 unités mineures les plus proches. Source : `lib/payments/plans.ts:PLANS`
  * et `lib/payments/subscriptions.ts:SUBSCRIPTION_TIER_PRICES`.
  *
- * ⚠ Pay-as-you-go pro est créé côté Stripe mais PAS branché côté code (pas
- * de tier `payg` en schema/UI). Le Price ID sera utilisable plus tard quand
- * le sprint dédié arrivera (cf. BACKLOG).
+ * ✓ Pay-as-you-go pro : entièrement câblé côté code (Stripe checkout +
+ * webhook + Convex `paygPurchases:markPurchase` + publish gate qui consomme
+ * le crédit, cf. `convex/events.ts:decidePublishGate`). Ce script crée juste
+ * les Stripe Prices manquants côté Stripe.
+ *
+ * ⚠ USD = grille région `americas` (US/CA) — parité psychologique 1:1 avec
+ * la grille europe sauf Premium B2C qui passe à $99 (au lieu de $89) pour
+ * matcher le positionnement marché US wedding tech (The Knot premium $99-149).
+ * Cf. `lib/payments/region.ts:AMERICAS_PRICE_OVERRIDE`.
  */
 
 import { readFileSync } from 'node:fs';
@@ -65,9 +71,10 @@ const stripe = new Stripe(SECRET_KEY);
 /* -------------------------------------------------------------------------- */
 
 // Devises gérées par Stripe pour notre grille. XOF est volontairement absente
-// (non supportée par Stripe — le flux XOF passe par CinetPay).
-type StripeCurrency = 'EUR' | 'MAD' | 'TND';
-const SUPPORTED_STRIPE_CURRENCIES: ReadonlyArray<StripeCurrency> = ['EUR', 'MAD', 'TND'];
+// (non supportée par Stripe — le flux XOF passe par CinetPay). USD couvre
+// la région americas (US + CA).
+type StripeCurrency = 'EUR' | 'USD' | 'MAD' | 'TND';
+const SUPPORTED_STRIPE_CURRENCIES: ReadonlyArray<StripeCurrency> = ['EUR', 'USD', 'MAD', 'TND'];
 
 /* -------------------------------------------------------------------------- */
 /*  Plans canoniques à synchroniser                                            */
@@ -88,12 +95,14 @@ interface PlanSpec {
 
 const PLANS_TO_SYNC: ReadonlyArray<PlanSpec> = [
   // Particuliers — one-shot
+  // USD = americas overlay : Essentiel $39, Premium $99 (capture +11 % vs EU),
+  // Upsell +$59. Cf. `lib/payments/region.ts`.
   {
     id: 'essential',
     productName: 'Wedillybird — Essentiel',
     productDescription:
       'Forfait particulier 19 €. Invitations WhatsApp, RSVP temps réel, check-in offline, tableau de bord, galerie partagée 30 jours.',
-    amounts: { EUR: 1900, MAD: 21000, TND: 64600 },
+    amounts: { EUR: 1900, USD: 3900, MAD: 21000, TND: 64600 },
     interval: undefined,
     envVarBase: 'STRIPE_PRICE_ESSENTIAL',
   },
@@ -102,7 +111,7 @@ const PLANS_TO_SYNC: ReadonlyArray<PlanSpec> = [
     productName: 'Wedillybird — Premium',
     productDescription:
       "Forfait particulier 49 €. Tout l'Essentiel + galerie 6 mois + album PDF final imprimable.",
-    amounts: { EUR: 4900, MAD: 53000, TND: 166600 },
+    amounts: { EUR: 4900, USD: 9900, MAD: 53000, TND: 166600 },
     interval: undefined,
     envVarBase: 'STRIPE_PRICE_PREMIUM',
   },
@@ -111,17 +120,17 @@ const PLANS_TO_SYNC: ReadonlyArray<PlanSpec> = [
     productName: 'Wedillybird — Upsell post-mariage',
     productDescription:
       'Extension post-mariage +29 €. Galerie conservée 5 ans + livre photo HD imprimé + export ZIP haute définition.',
-    amounts: { EUR: 2900, MAD: 32000, TND: 98600 },
+    amounts: { EUR: 2900, USD: 5900, MAD: 32000, TND: 98600 },
     interval: undefined,
     envVarBase: 'STRIPE_PRICE_POST_EVENT_UPSELL',
   },
-  // Pros — mensuel
+  // Pros — mensuel (parité 1:1 USD vs EUR pour les pros)
   {
     id: 'starter_monthly',
     productName: 'Wedillybird Pro — Starter',
     productDescription:
       '89 €/mois. 3 événements actifs, 2 000 messages WhatsApp inclus, branding Wedillybird forcé.',
-    amounts: { EUR: 8900, MAD: 95200, TND: 302600 },
+    amounts: { EUR: 8900, USD: 8900, MAD: 95200, TND: 302600 },
     interval: 'month',
     envVarBase: 'STRIPE_PRICE_STARTER',
   },
@@ -130,7 +139,7 @@ const PLANS_TO_SYNC: ReadonlyArray<PlanSpec> = [
     productName: 'Wedillybird Pro — Business',
     productDescription:
       '179 €/mois. 10 événements actifs, 6 000 messages WhatsApp, logo personnalisé + sous-domaine dédié.',
-    amounts: { EUR: 17900, MAD: 191500, TND: 608600 },
+    amounts: { EUR: 17900, USD: 17900, MAD: 191500, TND: 608600 },
     interval: 'month',
     envVarBase: 'STRIPE_PRICE_BUSINESS',
   },
@@ -139,7 +148,7 @@ const PLANS_TO_SYNC: ReadonlyArray<PlanSpec> = [
     productName: 'Wedillybird Pro — Agency',
     productDescription:
       '349 €/mois. Événements illimités, 20 000 messages WhatsApp, marque blanche complète + SLA 99,9 %.',
-    amounts: { EUR: 34900, MAD: 373400, TND: 1186600 },
+    amounts: { EUR: 34900, USD: 34900, MAD: 373400, TND: 1186600 },
     interval: 'month',
     envVarBase: 'STRIPE_PRICE_AGENCY',
   },
@@ -152,7 +161,7 @@ const PLANS_TO_SYNC: ReadonlyArray<PlanSpec> = [
     productName: 'Wedillybird Pro — Starter (annuel)',
     productDescription:
       '855 €/an (équivalent 71,25 €/mois, économise 213 €/an vs mensuel). 3 événements actifs, 2 000 messages WhatsApp/mois.',
-    amounts: { EUR: 85500, MAD: 914800, TND: 2907000 },
+    amounts: { EUR: 85500, USD: 85500, MAD: 914800, TND: 2907000 },
     interval: 'year',
     envVarBase: 'STRIPE_PRICE_STARTER_ANNUAL',
   },
@@ -161,7 +170,7 @@ const PLANS_TO_SYNC: ReadonlyArray<PlanSpec> = [
     productName: 'Wedillybird Pro — Business (annuel)',
     productDescription:
       '1 719 €/an (équivalent 143,25 €/mois, économise 429 €/an vs mensuel). 10 événements actifs, 6 000 messages WhatsApp/mois.',
-    amounts: { EUR: 171900, MAD: 1839300, TND: 5844600 },
+    amounts: { EUR: 171900, USD: 171900, MAD: 1839300, TND: 5844600 },
     interval: 'year',
     envVarBase: 'STRIPE_PRICE_BUSINESS_ANNUAL',
   },
@@ -170,7 +179,7 @@ const PLANS_TO_SYNC: ReadonlyArray<PlanSpec> = [
     productName: 'Wedillybird Pro — Agency (annuel)',
     productDescription:
       '3 351 €/an (équivalent 279,25 €/mois, économise 837 €/an vs mensuel). Événements illimités, 20 000 messages WhatsApp/mois.',
-    amounts: { EUR: 335100, MAD: 3585600, TND: 11393400 },
+    amounts: { EUR: 335100, USD: 335100, MAD: 3585600, TND: 11393400 },
     interval: 'year',
     envVarBase: 'STRIPE_PRICE_AGENCY_ANNUAL',
   },
@@ -180,7 +189,7 @@ const PLANS_TO_SYNC: ReadonlyArray<PlanSpec> = [
     productName: 'Wedillybird Pro — Pay-as-you-go (1 événement)',
     productDescription:
       '69 €/événement, sans abonnement. Idéal pour un mariage ponctuel. Messages WhatsApp facturés selon le volume.',
-    amounts: { EUR: 6900, MAD: 73800, TND: 234600 },
+    amounts: { EUR: 6900, USD: 6900, MAD: 73800, TND: 234600 },
     interval: undefined,
     envVarBase: 'STRIPE_PRICE_PAYG_EVENT',
   },

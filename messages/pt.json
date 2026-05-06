@@ -15,7 +15,8 @@
     "loading": "A carregar…",
     "error": "Ocorreu um erro",
     "retry": "Tentar novamente",
-    "skipToContent": "Ir para o conteúdo principal"
+    "skipToContent": "Ir para o conteúdo principal",
+    "home": "Início"
   },
   "Footer": {
     "allRightsReserved": "Todos os direitos reservados",
@@ -525,7 +526,10 @@
       "rateLimited": "Demasiados pedidos. Aguarda alguns minutos.",
       "expired": "Código expirado, pede um novo.",
       "unknown": "Ocorreu um erro. Tenta de novo."
-    }
+    },
+    "tagline": "Prepare seu grande dia",
+    "stepOneEyebrow": "PASSO 01 — IDENTIDADE",
+    "stepTwoEyebrow": "PASSO 02 — VERIFICAÇÃO"
   },
   "Onboarding": {
     "stepProfile": "O teu perfil",

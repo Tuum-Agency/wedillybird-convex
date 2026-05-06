@@ -7,14 +7,17 @@
  * Pas de tier gratuit. Pas de quota d'invitations particuliers (capacity-based
  * → features-based, cf. spec).
  *
- * Multi-devises : EUR via Stripe, XOF via CinetPay, MAD/TND via Stripe.
+ * Multi-devises : EUR + USD via Stripe, XOF via CinetPay, MAD/TND via Stripe.
  * Les Stripe Prices stables sont nommés `STRIPE_PRICE_<PLAN>_<CURRENCY>` (ex.
- * STRIPE_PRICE_ESSENTIAL_MAD). Le suffix sans devise (`STRIPE_PRICE_ESSENTIAL`)
- * reste un alias EUR pour rétro-compat env.
+ * STRIPE_PRICE_ESSENTIAL_MAD, STRIPE_PRICE_PREMIUM_USD). Le suffix sans devise
+ * (`STRIPE_PRICE_ESSENTIAL`) reste un alias EUR pour rétro-compat env.
+ *
+ * USD est utilisé pour la région `americas` (US + CA) avec parité
+ * psychologique 1:1 vs la grille europe (cf. `region.ts` overlay americas).
  */
 
 export type PlanTier = 'essential' | 'premium';
-export type Currency = 'EUR' | 'XOF' | 'MAD' | 'TND';
+export type Currency = 'EUR' | 'USD' | 'XOF' | 'MAD' | 'TND';
 
 export interface PlanDefinition {
   tier: PlanTier;
@@ -58,23 +61,27 @@ export const PLANS: Record<PlanTier, PlanDefinition> = {
     tier: 'essential',
     featureKeys: ESSENTIAL_FEATURES,
     galleryRetentionDays: 30,
-    // 19 € EUR / ≈ 12 500 XOF / ≈ 21 000 MAD / ≈ 64 600 TND
-    prices: { EUR: 1900, XOF: 1250000, MAD: 21000, TND: 64600 },
+    // Africa anchor 19 € EUR / ≈ 12 500 XOF / ≈ 21 000 MAD / ≈ 64 600 TND.
+    // USD = parité 1:1 avec la grille europe ($39) appliquée via region overlay.
+    // La valeur USD ici sert de fallback hors overlay (ne pas s'y fier).
+    prices: { EUR: 1900, USD: 1900, XOF: 1250000, MAD: 21000, TND: 64600 },
   },
   premium: {
     tier: 'premium',
     featureKeys: [...ESSENTIAL_FEATURES, ...PREMIUM_EXTRA_FEATURES],
     galleryRetentionDays: 180,
-    // 49 € EUR / ≈ 32 200 XOF / ≈ 53 000 MAD / ≈ 166 600 TND
-    prices: { EUR: 4900, XOF: 3220000, MAD: 53000, TND: 166600 },
+    // Africa anchor 49 € EUR / ≈ 32 200 XOF / ≈ 53 000 MAD / ≈ 166 600 TND.
+    // USD = fallback ; la grille americas surcharge à $99 (cf. region.ts).
+    prices: { EUR: 4900, USD: 4900, XOF: 3220000, MAD: 53000, TND: 166600 },
   },
 };
 
 export const POST_EVENT_UPSELL: PostEventUpsellDefinition = {
   featureKeys: ['galleryRetention5y', 'photoBookHd', 'exportHd'],
   galleryRetentionDays: 5 * 365, // 5 ans
-  // +29 € EUR / ≈ 19 000 XOF / ≈ 32 000 MAD / ≈ 98 600 TND
-  prices: { EUR: 2900, XOF: 1900000, MAD: 32000, TND: 98600 },
+  // +29 € EUR (anchor africa) / ≈ 19 000 XOF / ≈ 32 000 MAD / ≈ 98 600 TND.
+  // USD overlay = +$59 (region americas).
+  prices: { EUR: 2900, USD: 2900, XOF: 1900000, MAD: 32000, TND: 98600 },
 };
 
 export const PAID_PLANS: PlanTier[] = ['essential', 'premium'];
@@ -84,7 +91,9 @@ export function isPaidPlan(value: string): value is PlanTier {
 }
 
 export function isCurrency(value: string): value is Currency {
-  return value === 'EUR' || value === 'XOF' || value === 'MAD' || value === 'TND';
+  return (
+    value === 'EUR' || value === 'USD' || value === 'XOF' || value === 'MAD' || value === 'TND'
+  );
 }
 
 export function getPlanPrice(plan: PlanTier, currency: Currency): number {
@@ -115,6 +124,7 @@ export function computeGalleryExpiresAtAfterUpsell(eventDateMs: number): number 
 
 const FORMATTER_BY_CURRENCY: Record<Currency, Intl.NumberFormat> = {
   EUR: new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }),
+  USD: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }),
   XOF: new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF' }),
   MAD: new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'MAD' }),
   TND: new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'TND' }),
@@ -122,6 +132,7 @@ const FORMATTER_BY_CURRENCY: Record<Currency, Intl.NumberFormat> = {
 
 const MINOR_UNIT_DIVISOR: Record<Currency, number> = {
   EUR: 100,
+  USD: 100, // cents
   XOF: 100, // we store XOF in centimes for consistency even though XOF is normally not subdivided
   MAD: 100,
   TND: 1000, // millimes
@@ -149,6 +160,8 @@ export function formatAmount(minor: number, currency: Currency): string {
  * pouvoir changer les tarifs sans déploiement (cf. scripts/sync-stripe-prices.ts).
  */
 export function priceIdForPlan(plan: PlanTier, currency: Currency = 'EUR'): string | undefined {
+  // XOF/TND ne sont pas des settlement currencies Stripe (XOF/TND particuliers
+  // passent par CinetPay). USD est natif Stripe — pas d'exception.
   if (currency === 'XOF' || currency === 'TND') return undefined;
   const planUpper = plan.toUpperCase();
   const currencyEnvName = `STRIPE_PRICE_${planUpper}_${currency}` as const;

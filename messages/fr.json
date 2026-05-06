@@ -15,7 +15,8 @@
     "loading": "Chargement…",
     "error": "Une erreur est survenue",
     "retry": "Réessayer",
-    "skipToContent": "Aller au contenu principal"
+    "skipToContent": "Aller au contenu principal",
+    "home": "Accueil"
   },
   "Footer": {
     "allRightsReserved": "Tous droits réservés",
@@ -525,7 +526,10 @@
       "rateLimited": "Trop de demandes. Patientez quelques minutes.",
       "expired": "Code expiré, demandez-en un nouveau.",
       "unknown": "Une erreur est survenue. Réessayez."
-    }
+    },
+    "tagline": "Préparez votre grand jour",
+    "stepOneEyebrow": "ÉTAPE 01 — IDENTITÉ",
+    "stepTwoEyebrow": "ÉTAPE 02 — VÉRIFICATION"
   },
   "Onboarding": {
     "stepProfile": "Votre profil",

@@ -18,10 +18,14 @@
  * Stripe Price est créé pour pouvoir basculer plus tard sans déploiement.
  * Cf. BACKLOG "Pay-as-you-go pro code-side".
  *
- * Multi-devises : EUR via Stripe, XOF via CinetPay, MAD/TND via Stripe.
+ * Multi-devises : EUR + USD via Stripe, XOF via CinetPay, MAD/TND via Stripe.
  * Les Stripe Prices stables sont nommés `STRIPE_PRICE_<TIER>[_ANNUAL]_<CURRENCY>`
- * (ex. STRIPE_PRICE_STARTER_MAD, STRIPE_PRICE_AGENCY_ANNUAL_TND). Le suffix sans
+ * (ex. STRIPE_PRICE_STARTER_MAD, STRIPE_PRICE_AGENCY_ANNUAL_USD). Le suffix sans
  * devise (`STRIPE_PRICE_STARTER`) reste un alias EUR pour rétro-compat env.
+ *
+ * USD couvre la région americas (US + CA) avec parité 1:1 sur la grille EUR
+ * ($89 / $179 / $349 mensuel, $69 PAYG). Cf. `region.ts` pour l'overlay
+ * regional côté pricing display.
  */
 
 import type { Currency } from './plans';
@@ -62,8 +66,8 @@ export const SUBSCRIPTION_TIER_PRICES: Record<SubscriptionTier, SubscriptionTier
     featureKeys: ['events3', 'whatsapp2k', 'brandingWedillybird', 'supportEmail48h'],
     activeEventsQuota: 3,
     whatsappMessagesIncluded: 2000,
-    // 89 € / ≈ 952 MAD / ≈ 302,6 TND
-    prices: { EUR: 8900, XOF: 5840000, MAD: 95200, TND: 302600 },
+    // 89 € / $89 / ≈ 952 MAD / ≈ 302,6 TND
+    prices: { EUR: 8900, USD: 8900, XOF: 5840000, MAD: 95200, TND: 302600 },
   },
   business: {
     amountMinor: 17900,
@@ -73,8 +77,8 @@ export const SUBSCRIPTION_TIER_PRICES: Record<SubscriptionTier, SubscriptionTier
     featureKeys: ['events10', 'whatsapp6k', 'brandingLogoSubdomain', 'supportPriority24h'],
     activeEventsQuota: 10,
     whatsappMessagesIncluded: 6000,
-    // 179 € / ≈ 1 915 MAD / ≈ 608,6 TND
-    prices: { EUR: 17900, XOF: 11744000, MAD: 191500, TND: 608600 },
+    // 179 € / $179 / ≈ 1 915 MAD / ≈ 608,6 TND
+    prices: { EUR: 17900, USD: 17900, XOF: 11744000, MAD: 191500, TND: 608600 },
   },
   agency: {
     amountMinor: 34900,
@@ -84,8 +88,8 @@ export const SUBSCRIPTION_TIER_PRICES: Record<SubscriptionTier, SubscriptionTier
     featureKeys: ['eventsUnlimited', 'whatsapp20k', 'brandingWhiteLabel', 'accountManager'],
     activeEventsQuota: null,
     whatsappMessagesIncluded: 20000,
-    // 349 € / ≈ 3 734 MAD / ≈ 1 186,6 TND
-    prices: { EUR: 34900, XOF: 22894000, MAD: 373400, TND: 1186600 },
+    // 349 € / $349 / ≈ 3 734 MAD / ≈ 1 186,6 TND
+    prices: { EUR: 34900, USD: 34900, XOF: 22894000, MAD: 373400, TND: 1186600 },
   },
 };
 
@@ -100,20 +104,20 @@ export const SUBSCRIPTION_TIER_ANNUAL_PRICES: Record<
   SubscriptionTier,
   { amountMinor: number; prices: Record<Currency, number> }
 > = {
-  // 855 € / ≈ 9 148 MAD / ≈ 2 907 TND
+  // 855 € / $855 / ≈ 9 148 MAD / ≈ 2 907 TND
   starter: {
     amountMinor: 85500,
-    prices: { EUR: 85500, XOF: 56088000, MAD: 914800, TND: 2907000 },
+    prices: { EUR: 85500, USD: 85500, XOF: 56088000, MAD: 914800, TND: 2907000 },
   },
-  // 1719 € / ≈ 18 393 MAD / ≈ 5 844,6 TND
+  // 1719 € / $1719 / ≈ 18 393 MAD / ≈ 5 844,6 TND
   business: {
     amountMinor: 171900,
-    prices: { EUR: 171900, XOF: 112766000, MAD: 1839300, TND: 5844600 },
+    prices: { EUR: 171900, USD: 171900, XOF: 112766000, MAD: 1839300, TND: 5844600 },
   },
-  // 3351 € / ≈ 35 856 MAD / ≈ 11 393,4 TND
+  // 3351 € / $3351 / ≈ 35 856 MAD / ≈ 11 393,4 TND
   agency: {
     amountMinor: 335100,
-    prices: { EUR: 335100, XOF: 219826000, MAD: 3585600, TND: 11393400 },
+    prices: { EUR: 335100, USD: 335100, XOF: 219826000, MAD: 3585600, TND: 11393400 },
   },
 };
 
@@ -133,7 +137,8 @@ export const PAYG_PRO_PRICE: {
   amountMinor: 6900,
   currency: 'EUR',
   label: 'Pay-as-you-go',
-  prices: { EUR: 6900, XOF: 4528000, MAD: 73800, TND: 234600 },
+  // 69 € / $69 / ≈ 738 MAD / ≈ 234,6 TND
+  prices: { EUR: 6900, USD: 6900, XOF: 4528000, MAD: 73800, TND: 234600 },
 };
 
 export function isSubscriptionTier(value: unknown): value is SubscriptionTier {
@@ -192,7 +197,7 @@ const TIER_VARIANTS: ReadonlyArray<{
   { tier: 'agency', billing: 'annual', envBase: 'STRIPE_PRICE_AGENCY_ANNUAL' },
 ];
 
-const STRIPE_TIER_CURRENCIES: ReadonlyArray<Currency> = ['EUR', 'MAD', 'TND'];
+const STRIPE_TIER_CURRENCIES: ReadonlyArray<Currency> = ['EUR', 'USD', 'MAD', 'TND'];
 
 export function tierForPriceId(
   priceId: string,

@@ -6,13 +6,13 @@ import { useTranslations } from 'next-intl';
 import { Check, Sparkles, Star } from 'lucide-react';
 import { Link } from '@/i18n/navigation';
 import { buttonVariants } from '@/components/ui/button';
+import { type SubscriptionTier } from '@/lib/payments/subscriptions';
+import { formatAmount, type Currency } from '@/lib/payments/plans';
 import {
-  SUBSCRIPTION_TIER_PRICES,
-  SUBSCRIPTION_TIER_ANNUAL_PRICES,
-  PAYG_PRO_PRICE,
-  type SubscriptionTier,
-} from '@/lib/payments/subscriptions';
-import { formatAmount } from '@/lib/payments/plans';
+  getRegionalPaygPrice,
+  getRegionalSubscriptionPrice,
+  type PricingRegion,
+} from '@/lib/payments/region';
 import { cn } from '@/lib/cn';
 import { inViewOnce, scrollReveal, scrollRevealParent } from '@/lib/motion/presets';
 
@@ -32,14 +32,27 @@ const PAYG_FEATURE_KEYS = ['events1', 'whatsappOnDemand', 'proDashboard', 'noCom
 
 type Billing = 'monthly' | 'annual';
 
+type LandingPricingProsProps = {
+  /** Région détectée côté server (defaults to europe). */
+  region?: PricingRegion;
+  /** Devise canonique pour la région (defaults to EUR). */
+  currency?: Currency;
+};
+
 /**
  * Landing — Pricing Pros section V3.
  *
  * Toggle Mensuel / Annuel (radio-style, pattern Linear).
  * 3 cards Starter / Business / Agency en grille md:grid-cols-3.
  * Card PAYG en aside séparé en dessous.
+ *
+ * Les prix passent par `getRegionalSubscriptionPrice` pour appliquer l'overlay
+ * regional (africa réduit, americas USD, europe canonique).
  */
-export function LandingPricingPros() {
+export function LandingPricingPros({
+  region = 'europe',
+  currency = 'EUR',
+}: LandingPricingProsProps = {}) {
   const t = useTranslations('Landing');
   const tPlans = useTranslations('Plans');
 
@@ -57,17 +70,21 @@ export function LandingPricingPros() {
 
   function getMonthlyEquivalentLabel(tier: SubscriptionTier): string {
     if (billing === 'monthly') {
-      return formatAmount(SUBSCRIPTION_TIER_PRICES[tier].amountMinor, 'EUR');
+      return formatAmount(
+        getRegionalSubscriptionPrice(tier, region, 'monthly', currency),
+        currency,
+      );
     }
-    // Affiche le montant mensuel équivalent : annuel / 12
-    const annualMinor = SUBSCRIPTION_TIER_ANNUAL_PRICES[tier].amountMinor;
+    const annualMinor = getRegionalSubscriptionPrice(tier, region, 'annual', currency);
     const monthlyEquivMinor = Math.round(annualMinor / 12);
-    return formatAmount(monthlyEquivMinor, 'EUR');
+    return formatAmount(monthlyEquivMinor, currency);
   }
 
   function getAnnualBilledLabel(tier: SubscriptionTier): string {
-    return formatAmount(SUBSCRIPTION_TIER_ANNUAL_PRICES[tier].amountMinor, 'EUR');
+    return formatAmount(getRegionalSubscriptionPrice(tier, region, 'annual', currency), currency);
   }
+
+  const paygLabel = formatAmount(getRegionalPaygPrice(region, currency), currency);
 
   return (
     <section
@@ -333,7 +350,7 @@ export function LandingPricingPros() {
                     {tPlans('pro.tiers.payg')}
                   </p>
                   <span className="font-display text-lg text-[color:var(--color-ink-900)] italic">
-                    {formatAmount(PAYG_PRO_PRICE.amountMinor, 'EUR')}
+                    {paygLabel}
                     <span className="ml-1 text-sm font-normal text-[color:var(--color-ink-500)] not-italic">
                       {tPlans('pro.billing.perEvent')}
                     </span>

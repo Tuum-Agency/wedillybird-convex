@@ -20,6 +20,11 @@ const STRIPE_COUNTRIES = new Set([
   'US',
 ]);
 
+// Pays facturés en USD par défaut (region "americas"). Doit rester en sync
+// avec `AMERICAS_COUNTRIES` dans `region.ts` — les deux Sets décrivent la
+// même région marché.
+const USD_COUNTRIES = new Set(['US', 'CA']);
+
 // Routing CinetPay pour Afrique de l'Ouest + Maghreb (XOF, MAD, TND).
 // Activé via le feature flag CINETPAY_ENABLED=true. Sans ce flag (ou si défini
 // à une valeur autre que "true"), tous les pays tombent sur Stripe + EUR.
@@ -66,7 +71,8 @@ export function routePayment(
 
   const code = (countryCode ?? '').toUpperCase();
   if (STRIPE_COUNTRIES.has(code)) {
-    return { provider: 'stripe', currency: preferred?.currency ?? 'EUR' };
+    const defaultCurrency: Currency = USD_COUNTRIES.has(code) ? 'USD' : 'EUR';
+    return { provider: 'stripe', currency: preferred?.currency ?? defaultCurrency };
   }
   if (process.env.CINETPAY_ENABLED === 'true' && code in CINETPAY_BY_CURRENCY) {
     return {

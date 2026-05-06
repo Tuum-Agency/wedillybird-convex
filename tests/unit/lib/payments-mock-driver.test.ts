@@ -93,8 +93,10 @@ describe('payments/drivers/mock — verifyAndParseWebhook', () => {
   });
 
   it('rejects unsupported currencies', async () => {
+    // GBP n'est jamais une devise supportée par Wedillybird (USD est désormais
+    // valide pour la région americas).
     await expect(
-      mockDriver.verifyAndParseWebhook(makePayload({ currency: 'USD' }), 'mock-signature'),
+      mockDriver.verifyAndParseWebhook(makePayload({ currency: 'GBP' }), 'mock-signature'),
     ).rejects.toThrow('INVALID_CURRENCY');
   });
 

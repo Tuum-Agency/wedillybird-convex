@@ -15,7 +15,8 @@
     "loading": "Loading…",
     "error": "Something went wrong",
     "retry": "Try again",
-    "skipToContent": "Skip to main content"
+    "skipToContent": "Skip to main content",
+    "home": "Home"
   },
   "Footer": {
     "allRightsReserved": "All rights reserved",
@@ -521,7 +522,10 @@
       "rateLimited": "Too many requests. Please wait a few minutes.",
       "expired": "Code expired, request a new one.",
       "unknown": "Something went wrong. Try again."
-    }
+    },
+    "tagline": "Prepare your big day",
+    "stepOneEyebrow": "STEP 01 — IDENTITY",
+    "stepTwoEyebrow": "STEP 02 — VERIFICATION"
   },
   "Onboarding": {
     "stepProfile": "Your profile",

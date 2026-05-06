@@ -8,7 +8,13 @@ function ownerLocaleToIntlTag(locale: string | undefined): string {
 }
 
 const PROVIDER = v.union(v.literal('stripe'), v.literal('cinetpay'), v.literal('mock'));
-const CURRENCY = v.union(v.literal('EUR'), v.literal('XOF'), v.literal('MAD'), v.literal('TND'));
+const CURRENCY = v.union(
+  v.literal('EUR'),
+  v.literal('USD'),
+  v.literal('XOF'),
+  v.literal('MAD'),
+  v.literal('TND'),
+);
 const PLAN = v.union(v.literal('essential'), v.literal('premium'));
 
 // Gallery retention is feature-based now: Essentiel = J+30, Premium = J+180.
@@ -208,6 +214,7 @@ function formatAmount(amountMinor: number, currency: string): string {
   const amount = amountMinor / 100;
   if (currency === 'EUR')
     return `${amount.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} €`;
+  if (currency === 'USD') return `$${amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
   if (currency === 'XOF') return `${amount.toLocaleString('fr-FR')} FCFA`;
   return `${amount.toLocaleString('fr-FR')} ${currency}`;
 }

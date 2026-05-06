@@ -9,6 +9,7 @@ import { ConvexClientProvider } from '@/components/providers/convex-client-provi
 import { SkipLink } from '@/components/layout/skip-link';
 import { Toaster } from '@/components/ui/toast';
 import { CookieConsent } from '@/components/layout/cookie-consent';
+import { LocaleSuggestionBanner } from '@/components/layout/locale-suggestion-banner';
 import '../globals.css';
 
 // Body / UI — Geist Sans (Vercel, OFL). Successeur d'Inter recommandé en 2025+.
@@ -131,6 +132,7 @@ export default async function LocaleLayout({
         <NextIntlClientProvider>
           <ConvexClientProvider convexUrl={process.env.NEXT_PUBLIC_CONVEX_URL}>
             <SkipLink />
+            <LocaleSuggestionBanner currentLocale={locale as Locale} />
             {children}
             <Toaster />
             <CookieConsent />

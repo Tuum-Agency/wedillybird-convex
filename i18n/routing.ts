@@ -4,6 +4,10 @@ export const routing = defineRouting({
   locales: ['fr', 'en', 'es', 'it', 'pt', 'de', 'ar'],
   defaultLocale: 'fr',
   localePrefix: 'as-needed',
+  // Pas de redirection forcée en fonction de Accept-Language. À la place, une
+  // bannière soft (`<LocaleSuggestionBanner />` dans `app/[locale]/layout.tsx`)
+  // suggère la langue préférée sans casser les liens partagés.
+  localeDetection: false,
 });
 
 export type Locale = (typeof routing.locales)[number];

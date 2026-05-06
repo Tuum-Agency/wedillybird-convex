@@ -29,7 +29,7 @@ export default async function SignInPage({ params }: { params: Promise<{ locale:
 
   return (
     <AuthCard
-      eyebrow="ÉTAPE 01 — IDENTITÉ"
+      eyebrow={t('stepOneEyebrow')}
       title={t('signInTitle')}
       description={t('signInDescription')}
       footer={

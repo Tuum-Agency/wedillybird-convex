@@ -21,6 +21,8 @@ interface Props {
   variant?: 'primary' | 'outline';
   size?: 'lg' | 'xl';
   className?: string;
+  /** Classes appliquées au wrapper de positionnement (utile pour `w-full` mobile). */
+  wrapperClassName?: string;
   children: ReactNode;
   withConfetti?: boolean;
 }
@@ -30,6 +32,7 @@ export function MagneticCta({
   variant = 'primary',
   size = 'xl',
   className,
+  wrapperClassName,
   children,
   withConfetti = false,
 }: Props) {
@@ -101,7 +104,7 @@ export function MagneticCta({
   }, [x, y, withConfetti]);
 
   return (
-    <motion.div style={{ x: sx, y: sy }} className="inline-block">
+    <motion.div style={{ x: sx, y: sy }} className={cn('inline-block', wrapperClassName)}>
       <Link
         ref={ref}
         href={href}

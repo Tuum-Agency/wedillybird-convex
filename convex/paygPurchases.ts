@@ -2,7 +2,13 @@ import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
 import { internal } from './_generated/api';
 
-const CURRENCY = v.union(v.literal('EUR'), v.literal('XOF'), v.literal('MAD'), v.literal('TND'));
+const CURRENCY = v.union(
+  v.literal('EUR'),
+  v.literal('USD'),
+  v.literal('XOF'),
+  v.literal('MAD'),
+  v.literal('TND'),
+);
 
 /**
  * Enregistre un achat Pay-as-you-go pro et crédite l'organisation.

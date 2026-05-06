@@ -32,7 +32,7 @@ describe('payments/plans — canonical grid v2', () => {
   });
 
   it('essential is cheaper than premium across all currencies', () => {
-    for (const currency of ['EUR', 'XOF', 'MAD', 'TND'] as const) {
+    for (const currency of ['EUR', 'USD', 'XOF', 'MAD', 'TND'] as const) {
       expect(PLANS.essential.prices[currency]).toBeLessThan(PLANS.premium.prices[currency]);
     }
   });
@@ -46,8 +46,11 @@ describe('payments/plans — canonical grid v2', () => {
 
   it('isCurrency only accepts supported currencies', () => {
     expect(isCurrency('EUR')).toBe(true);
+    expect(isCurrency('USD')).toBe(true);
     expect(isCurrency('XOF')).toBe(true);
-    expect(isCurrency('USD')).toBe(false);
+    expect(isCurrency('MAD')).toBe(true);
+    expect(isCurrency('TND')).toBe(true);
+    expect(isCurrency('GBP')).toBe(false);
     expect(isCurrency('')).toBe(false);
   });
 

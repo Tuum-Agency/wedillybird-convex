@@ -14,6 +14,7 @@ import { LandingCinematicInvitation } from '@/components/landing/cinematic-invit
 import { LandingTestimonials } from '@/components/landing/testimonials';
 import { LandingPricingCards } from '@/components/landing/pricing-cards';
 import { LandingPricingPros } from '@/components/landing/pricing-pros';
+import { MobileMenu } from '@/components/landing/mobile-menu';
 import { LandingFaqAccordion } from '@/components/landing/faq-accordion';
 import { LandingCtaFinal } from '@/components/landing/cta-final';
 import { LandingFooterRich } from '@/components/landing/footer-rich';
@@ -21,6 +22,7 @@ import { SectionNav } from '@/components/landing/section-nav';
 import { WedillybirdLogo } from '@/components/brand/wedillybird-logo';
 import { LocaleSwitcher } from '@/components/layout/locale-switcher';
 import {
+  defaultCurrencyForRegion,
   detectPricingRegion,
   formatRegionalPlanPrice,
   formatRegionalUpsellPrice,
@@ -94,12 +96,13 @@ export default async function LandingPage({ params }: { params: Promise<{ locale
   const { locale } = await params;
   setRequestLocale(locale);
   const region = detectPricingRegion(await headers());
+  const currency = defaultCurrencyForRegion(region);
 
   const prices = {
-    essential: formatRegionalPlanPrice('essential', region, 'EUR'),
-    premium: formatRegionalPlanPrice('premium', region, 'EUR'),
+    essential: formatRegionalPlanPrice('essential', region, currency),
+    premium: formatRegionalPlanPrice('premium', region, currency),
   };
-  const upsellPriceLabel = formatRegionalUpsellPrice(region, 'EUR');
+  const upsellPriceLabel = formatRegionalUpsellPrice(region, currency);
 
   const tFaq = await getTranslations({ locale, namespace: 'Landing.faq.items' });
   const faqJsonLd = {
@@ -121,7 +124,12 @@ export default async function LandingPage({ params }: { params: Promise<{ locale
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
       />
-      <LandingShell prices={prices} upsellPriceLabel={upsellPriceLabel} />
+      <LandingShell
+        prices={prices}
+        upsellPriceLabel={upsellPriceLabel}
+        region={region}
+        currency={currency}
+      />
     </>
   );
 }
@@ -129,9 +137,13 @@ export default async function LandingPage({ params }: { params: Promise<{ locale
 function LandingShell({
   prices,
   upsellPriceLabel,
+  region,
+  currency,
 }: {
   prices: { essential: string; premium: string };
   upsellPriceLabel: string;
+  region: ReturnType<typeof detectPricingRegion>;
+  currency: ReturnType<typeof defaultCurrencyForRegion>;
 }) {
   const tCommon = useTranslations('Common');
 
@@ -143,7 +155,7 @@ function LandingShell({
           (un flex justify-between recentre faussement, biaisé par les
           tailles asymétriques des blocs latéraux). */}
       <header className="sticky top-0 z-30 border-b border-[color:var(--color-border)] bg-[color:var(--color-ivory-50)]/85 backdrop-blur supports-[backdrop-filter]:bg-[color:var(--color-ivory-50)]/65">
-        <div className="container-page grid grid-cols-[1fr_auto_1fr] items-center gap-6 py-4">
+        <div className="container-page flex items-center justify-between gap-4 py-4 md:grid md:grid-cols-[1fr_auto_1fr] md:gap-6">
           {/* Colonne gauche : logo */}
           <div className="flex items-center">
             <Link
@@ -163,18 +175,22 @@ function LandingShell({
             <SectionNav />
           </nav>
 
-          {/* Colonne droite : sélecteur de langue + CTA primary. Le flow OTP
-              WhatsApp est unifié (sign-in/sign-up = même action), donc un seul
-              bouton. */}
-          <div className="flex items-center justify-end gap-3">
-            <LocaleSwitcher />
-            <span aria-hidden className="hidden h-5 w-px bg-[color:var(--color-border)] sm:block" />
+          {/* Colonne droite — desktop : sélecteur de langue + CTA primary
+              (un seul bouton car le flow OTP WhatsApp unifie sign-in/sign-up).
+              Mobile : CTA sign-up reste visible à côté du hamburger qui héberge
+              nav + locale dans un bottom-sheet Vaul. */}
+          <div className="flex items-center justify-end gap-2 md:gap-3">
+            <LocaleSwitcher className="hidden md:inline-flex" />
+            <span aria-hidden className="hidden h-5 w-px bg-[color:var(--color-border)] md:block" />
             <Link
               href="/sign-up"
               className={cn(buttonVariants({ variant: 'primary', size: 'sm' }))}
             >
               {tCommon('signUp')}
             </Link>
+            <div className="md:hidden">
+              <MobileMenu />
+            </div>
           </div>
         </div>
       </header>
@@ -186,7 +202,7 @@ function LandingShell({
         <LandingCinematicInvitation />
         <LandingTestimonials />
         <LandingPricingCards prices={prices} upsellPriceLabel={upsellPriceLabel} />
-        <LandingPricingPros />
+        <LandingPricingPros region={region} currency={currency} />
         <LandingFaqAccordion />
         <LandingCtaFinal />
       </main>
