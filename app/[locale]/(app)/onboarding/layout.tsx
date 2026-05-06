@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
+import { WedillybirdLogo } from '@/components/brand/wedillybird-logo';
 
 /**
  * Onboarding layout V4 — split éditorial dédié, identique en grammaire au
@@ -46,15 +47,13 @@ function OnboardingAside() {
       />
       <div className="paper-grain pointer-events-none absolute inset-0" />
 
+      {/* Brand top-left — logo blanc via filtre invert (PNG natif sombre). */}
       <Link
         href="/"
-        className="font-display absolute top-8 left-8 inline-flex items-center gap-2 text-xl tracking-tight text-white italic"
+        className="absolute top-8 left-8 inline-flex items-center [filter:brightness(0)_invert(1)]"
+        aria-label="Wedillybird"
       >
-        <span
-          aria-hidden
-          className="inline-block h-2 w-2 rounded-full bg-[color:var(--color-gold-500)]"
-        />
-        Wedillybird
+        <WedillybirdLogo />
       </Link>
 
       <div className="absolute right-8 bottom-12 left-8 flex flex-col gap-4">
@@ -88,13 +87,10 @@ function OnboardingHeader() {
     <header className="flex h-20 items-center px-6 lg:hidden">
       <Link
         href="/"
-        className="font-display inline-flex items-center gap-2 text-xl tracking-tight text-[color:var(--color-ink-900)] italic"
+        className="focus-ring inline-flex items-center"
+        aria-label={tCommon('appName')}
       >
-        <span
-          aria-hidden
-          className="inline-block h-2 w-2 rounded-full bg-[color:var(--color-gold-500)]"
-        />
-        {tCommon('appName')}
+        <WedillybirdLogo priority />
       </Link>
     </header>
   );

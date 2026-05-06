@@ -4,6 +4,7 @@ import { LogOut } from 'lucide-react';
 import { Link } from '@/i18n/navigation';
 import { signOutAction } from '@/app/[locale]/(auth)/actions';
 import { LocaleSwitcher } from '@/components/layout/locale-switcher';
+import { WedillybirdLogo } from '@/components/brand/wedillybird-logo';
 
 /**
  * ProShell V4 — header sticky dark Linear-grade pour la zone pro.
@@ -41,17 +42,27 @@ export function ProShell({ children, nav, orgName, orgPrimaryColor, userName }: 
       <header className="sticky top-0 z-30 border-b border-[color:var(--color-border)] bg-[color:var(--color-background)]/85 backdrop-blur supports-[backdrop-filter]:bg-[color:var(--color-background)]/65">
         <div className="container-page flex items-center justify-between gap-6 py-4">
           <div className="flex items-center gap-8">
-            <Link
-              href="/pro/dashboard"
-              className="font-display inline-flex items-center gap-2 text-xl tracking-tight text-[color:var(--color-foreground)] italic"
-            >
-              <span
-                aria-hidden
-                className="inline-block h-2 w-2 rounded-full"
-                style={{ background: dotColor }}
-              />
-              {orgName ?? tCommon('appName')}
-            </Link>
+            {orgName ? (
+              <Link
+                href="/pro/dashboard"
+                className="font-display inline-flex items-center gap-2 text-xl tracking-tight text-[color:var(--color-foreground)] italic"
+              >
+                <span
+                  aria-hidden
+                  className="inline-block h-2 w-2 rounded-full"
+                  style={{ background: dotColor }}
+                />
+                {orgName}
+              </Link>
+            ) : (
+              <Link
+                href="/pro/dashboard"
+                className="focus-ring inline-flex items-center [filter:brightness(0)_invert(1)]"
+                aria-label={tCommon('appName')}
+              >
+                <WedillybirdLogo />
+              </Link>
+            )}
             {nav}
           </div>
 
