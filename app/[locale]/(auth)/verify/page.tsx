@@ -42,7 +42,7 @@ export default async function VerifyPage({
 
   return (
     <AuthCard
-      eyebrow="ÉTAPE 02 — VÉRIFICATION"
+      eyebrow={t('stepTwoEyebrow')}
       title={t('verifyTitle')}
       description={t('verifyDescription', { phone: maskPhone(phone!) })}
       footer={

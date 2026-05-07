@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
+import { WedillybirdLogo } from '@/components/brand/wedillybird-logo';
 
 /**
  * Layout auth V4 — split éditorial mariage premium.
@@ -33,6 +34,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
 
 function AuthAside() {
   const t = useTranslations('Landing.hero');
+  const tAuth = useTranslations('Auth');
   return (
     <aside className="relative hidden overflow-hidden lg:block" aria-hidden>
       <Image
@@ -56,22 +58,20 @@ function AuthAside() {
       {/* Texture grain papier */}
       <div className="paper-grain pointer-events-none absolute inset-0" />
 
-      {/* Brand en haut-gauche */}
+      {/* Brand en haut-gauche — logo PNG en blanc via filtre invert
+          (logo natif est sombre sur ivoire ; sur fond photo on le retourne). */}
       <Link
         href="/"
-        className="font-display absolute top-8 left-8 inline-flex items-center gap-2 text-xl tracking-tight text-white italic"
+        className="absolute top-8 left-8 inline-flex items-center [filter:brightness(0)_invert(1)]"
+        aria-label="Wedillybird"
       >
-        <span
-          aria-hidden
-          className="inline-block h-2 w-2 rounded-full bg-[color:var(--color-gold-500)]"
-        />
-        Wedillybird
+        <WedillybirdLogo />
       </Link>
 
       {/* Tagline éditorial en bas-gauche */}
       <div className="absolute right-8 bottom-12 left-8 flex flex-col gap-4">
         <span className="font-mono text-[10px] tracking-[0.32em] text-white/80 uppercase">
-          Préparez votre grand jour
+          {tAuth('tagline')}
         </span>
         <p
           className="font-display text-balance text-white italic"
@@ -101,19 +101,16 @@ function AuthHeader() {
     <header className="flex h-20 items-center justify-between px-6 lg:hidden">
       <Link
         href="/"
-        className="font-display inline-flex items-center gap-2 text-xl tracking-tight text-[color:var(--color-ink-900)] italic"
+        className="focus-ring inline-flex items-center"
+        aria-label={tCommon('appName')}
       >
-        <span
-          aria-hidden
-          className="inline-block h-2 w-2 rounded-full bg-[color:var(--color-gold-500)]"
-        />
-        {tCommon('appName')}
+        <WedillybirdLogo priority />
       </Link>
       <Link
         href="/"
         className="font-mono text-[10px] tracking-[0.24em] text-[color:var(--color-ink-500)] uppercase transition-colors hover:text-[color:var(--color-ink-900)]"
       >
-        ← Accueil
+        ← {tCommon('home')}
       </Link>
     </header>
   );

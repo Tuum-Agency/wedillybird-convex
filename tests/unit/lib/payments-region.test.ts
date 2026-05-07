@@ -28,15 +28,30 @@ describe('detectPricingRegion', () => {
     }
   });
 
-  it('returns europe for FR, BE, CH, US, CA (default uplift)', () => {
-    for (const country of ['FR', 'BE', 'CH', 'LU', 'US', 'CA', 'GB', 'DE', 'ES']) {
+  it('returns europe for FR, BE, CH, GB, DE, ES (default uplift)', () => {
+    for (const country of ['FR', 'BE', 'CH', 'LU', 'GB', 'DE', 'ES']) {
       const region = detectPricingRegion(makeHeaders({ 'x-vercel-ip-country': country }));
       expect(region, `country=${country}`).toBe('europe');
     }
   });
 
+  it('returns americas for US and CA (USD-billed bloc)', () => {
+    for (const country of ['US', 'CA']) {
+      const region = detectPricingRegion(makeHeaders({ 'x-vercel-ip-country': country }));
+      expect(region, `country=${country}`).toBe('americas');
+    }
+  });
+
   it('returns europe by default when geoIP is missing', () => {
     expect(detectPricingRegion(makeHeaders())).toBe('europe');
+  });
+
+  it('respects the wbb_region cookie value americas', () => {
+    const h = makeHeaders({
+      'x-vercel-ip-country': 'FR',
+      cookie: 'wbb_region=americas',
+    });
+    expect(detectPricingRegion(h)).toBe('americas');
   });
 
   it('respects the wbb_region cookie override over geoIP', () => {
@@ -73,12 +88,24 @@ describe('getRegionalPlanPrice', () => {
 
   it('Europe price > Africa price for every plan and currency', () => {
     for (const plan of ['essential', 'premium'] as const) {
-      for (const currency of ['EUR', 'XOF', 'MAD', 'TND'] as const) {
+      for (const currency of ['EUR', 'USD', 'XOF', 'MAD', 'TND'] as const) {
         const africa = getRegionalPlanPrice(plan, 'africa', currency);
         const europe = getRegionalPlanPrice(plan, 'europe', currency);
         expect(europe, `${plan}/${currency}`).toBeGreaterThan(africa);
       }
     }
+  });
+
+  it('americas Essential is $39 USD', () => {
+    expect(getRegionalPlanPrice('essential', 'americas', 'USD')).toBe(3900);
+  });
+
+  it('americas Premium is $99 USD (capture +11 % marge vs europe $89)', () => {
+    expect(getRegionalPlanPrice('premium', 'americas', 'USD')).toBe(9900);
+    // L'overlay americas est strictement supérieur à l'overlay europe en USD.
+    expect(getRegionalPlanPrice('premium', 'americas', 'USD')).toBeGreaterThan(
+      getRegionalPlanPrice('premium', 'europe', 'USD'),
+    );
   });
 });
 
@@ -89,6 +116,10 @@ describe('getRegionalUpsellPrice', () => {
 
   it('Europe upsell is 59 € EUR (uplift)', () => {
     expect(getRegionalUpsellPrice('europe', 'EUR')).toBe(5900);
+  });
+
+  it('Americas upsell is +$59 USD', () => {
+    expect(getRegionalUpsellPrice('americas', 'USD')).toBe(5900);
   });
 });
 

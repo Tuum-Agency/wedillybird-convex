@@ -4,6 +4,7 @@ import { LogOut } from 'lucide-react';
 import { Link } from '@/i18n/navigation';
 import { signOutAction } from '@/app/[locale]/(auth)/actions';
 import { LocaleSwitcher } from '@/components/layout/locale-switcher';
+import { WedillybirdLogo } from '@/components/brand/wedillybird-logo';
 
 /**
  * AppShell V4 — header sticky réutilisable pour toutes les pages app
@@ -37,13 +38,10 @@ export function AppShell({ children, nav, userName }: AppShellProps) {
           <div className="flex items-center gap-8">
             <Link
               href="/dashboard"
-              className="font-display inline-flex items-center gap-2 text-xl tracking-tight text-[color:var(--color-ink-900)] italic"
+              className="focus-ring inline-flex items-center"
+              aria-label={tCommon('appName')}
             >
-              <span
-                aria-hidden
-                className="inline-block h-2 w-2 rounded-full bg-[color:var(--color-gold-500)]"
-              />
-              {tCommon('appName')}
+              <WedillybirdLogo />
             </Link>
             {nav}
           </div>

@@ -428,7 +428,7 @@ export const convexApi = {
       userId: string;
       eventId: string;
       plan: 'essential' | 'premium';
-      currency: 'EUR' | 'XOF' | 'MAD' | 'TND';
+      currency: 'EUR' | 'USD' | 'XOF' | 'MAD' | 'TND';
       amountMinor: number;
       provider: 'stripe' | 'cinetpay' | 'mock';
       providerSessionId: string;
@@ -443,7 +443,7 @@ export const convexApi = {
       userId: string;
       eventId: string;
       plan: 'essential' | 'premium';
-      currency: 'EUR' | 'XOF' | 'MAD' | 'TND';
+      currency: 'EUR' | 'USD' | 'XOF' | 'MAD' | 'TND';
       amountMinor: number;
       provider: 'stripe' | 'cinetpay' | 'mock';
       providerSessionId: string;
@@ -477,7 +477,7 @@ export const convexApi = {
     Array<{
       _id: string;
       plan: 'essential' | 'premium';
-      currency: 'EUR' | 'XOF' | 'MAD' | 'TND';
+      currency: 'EUR' | 'USD' | 'XOF' | 'MAD' | 'TND';
       amountMinor: number;
       provider: 'stripe' | 'cinetpay' | 'mock';
       status: 'pending' | 'succeeded' | 'failed' | 'cancelled';
@@ -493,7 +493,7 @@ export const convexApi = {
         userId: string;
         eventId: string;
         plan: 'essential' | 'premium';
-        currency: 'EUR' | 'XOF' | 'MAD' | 'TND';
+        currency: 'EUR' | 'USD' | 'XOF' | 'MAD' | 'TND';
         amountMinor: number;
         provider: 'stripe' | 'cinetpay' | 'mock';
         status: 'pending' | 'succeeded' | 'failed' | 'cancelled';
@@ -691,7 +691,7 @@ export const convexApi = {
       requesterId: string;
       stripeSessionId: string;
       amountMinor: number;
-      currency: 'EUR' | 'XOF' | 'MAD' | 'TND';
+      currency: 'EUR' | 'USD' | 'XOF' | 'MAD' | 'TND';
     },
     { ok: true; alreadyApplied: boolean }
   >('paygPurchases:markPurchase'),
@@ -706,7 +706,7 @@ export const convexApi = {
     Array<{
       _id: string;
       amountMinor: number;
-      currency: 'EUR' | 'XOF' | 'MAD' | 'TND';
+      currency: 'EUR' | 'USD' | 'XOF' | 'MAD' | 'TND';
       stripeSessionId: string;
       createdAt: number;
     }>
@@ -874,7 +874,7 @@ export const convexApi = {
     Array<{
       _id: string;
       plan: 'essential' | 'premium';
-      currency: 'EUR' | 'XOF' | 'MAD' | 'TND';
+      currency: 'EUR' | 'USD' | 'XOF' | 'MAD' | 'TND';
       amountMinor: number;
       provider: 'stripe' | 'cinetpay' | 'mock';
       status: 'pending' | 'succeeded' | 'failed' | 'cancelled';

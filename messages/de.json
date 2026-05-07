@@ -15,7 +15,8 @@
     "loading": "Lädt…",
     "error": "Ein Fehler ist aufgetreten",
     "retry": "Erneut versuchen",
-    "skipToContent": "Zum Hauptinhalt springen"
+    "skipToContent": "Zum Hauptinhalt springen",
+    "home": "Startseite"
   },
   "Footer": {
     "allRightsReserved": "Alle Rechte vorbehalten",
@@ -525,7 +526,10 @@
       "rateLimited": "Zu viele Anfragen. Bitte warte einige Minuten.",
       "expired": "Code abgelaufen, fordere einen neuen an.",
       "unknown": "Ein Fehler ist aufgetreten. Bitte erneut versuchen."
-    }
+    },
+    "tagline": "Bereiten Sie Ihren großen Tag vor",
+    "stepOneEyebrow": "SCHRITT 01 — IDENTITÄT",
+    "stepTwoEyebrow": "SCHRITT 02 — VERIFIZIERUNG"
   },
   "Onboarding": {
     "stepProfile": "Dein Profil",

@@ -1,0 +1,132 @@
+'use client';
+
+import { useState, useTransition } from 'react';
+import { useLocale } from 'next-intl';
+import { Check, Menu, X } from 'lucide-react';
+import { Link, usePathname, useRouter } from '@/i18n/navigation';
+import { Drawer, DrawerContent, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer';
+import { LOCALE_NATIVE_NAMES, routing, type Locale } from '@/i18n/routing';
+import { cn } from '@/lib/cn';
+
+const SECTION_ITEMS: ReadonlyArray<{ id: string; label: string }> = [
+  { id: 'features', label: 'Piliers' },
+  { id: 'testimonials', label: 'Témoignages' },
+  { id: 'pricing', label: 'Tarifs' },
+  { id: 'pricing-pros', label: 'Pros' },
+  { id: 'faq', label: 'FAQ' },
+];
+
+const LOCALE_FLAGS: Record<Locale, string> = {
+  fr: '🇫🇷',
+  en: '🇬🇧',
+  es: '🇪🇸',
+  it: '🇮🇹',
+  pt: '🇵🇹',
+  de: '🇩🇪',
+  ar: '🇸🇦',
+};
+
+/**
+ * Mobile menu — déclenché par hamburger sur header mobile.
+ * Bottom-sheet (Vaul) qui héberge la section nav + le sélecteur de langue
+ * (rendu en grille de pills tactiles, pas en dropdown). Le CTA sign-up reste
+ * visible dans le header (à côté du hamburger). Sur md+ ce composant est
+ * rendu invisible.
+ */
+export function MobileMenu() {
+  const [open, setOpen] = useState(false);
+  const currentLocale = useLocale() as Locale;
+  const pathname = usePathname();
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+
+  function onLocaleSelect(next: Locale) {
+    if (next === currentLocale) {
+      setOpen(false);
+      return;
+    }
+    startTransition(() => {
+      router.replace(pathname, { locale: next });
+      setOpen(false);
+    });
+  }
+
+  return (
+    <Drawer open={open} onOpenChange={setOpen}>
+      <DrawerTrigger
+        className="focus-ring -mr-2 inline-flex h-11 w-11 items-center justify-center rounded-full text-[color:var(--color-ink-900)] [@media(hover:hover)]:hover:bg-[color:var(--color-ivory-200)]"
+        aria-label="Ouvrir le menu"
+      >
+        <Menu className="h-6 w-6" strokeWidth={1.5} aria-hidden />
+      </DrawerTrigger>
+      <DrawerContent>
+        <div className="flex items-center justify-between pb-2">
+          <DrawerTitle className="font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-ink-500)] uppercase not-italic">
+            Menu
+          </DrawerTitle>
+          <button
+            type="button"
+            onClick={() => setOpen(false)}
+            className="focus-ring inline-flex h-9 w-9 items-center justify-center rounded-full text-[color:var(--color-ink-900)] [@media(hover:hover)]:hover:bg-[color:var(--color-ivory-200)]"
+            aria-label="Fermer le menu"
+          >
+            <X className="h-5 w-5" strokeWidth={1.5} aria-hidden />
+          </button>
+        </div>
+
+        <nav aria-label="Navigation principale" className="flex flex-col gap-1 pt-2 pb-2">
+          {SECTION_ITEMS.map((item) => (
+            <Link
+              key={item.id}
+              href={`/#${item.id}` as never}
+              onClick={() => setOpen(false)}
+              className="focus-ring font-display rounded-2xl px-4 py-4 text-2xl text-[color:var(--color-ink-900)] italic [@media(hover:hover)]:hover:bg-[color:var(--color-ivory-200)]"
+            >
+              {item.label}
+            </Link>
+          ))}
+        </nav>
+
+        <div className="mt-4 border-t border-[color:var(--color-border)] pt-5 pb-2">
+          <span className="mb-3 inline-block font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-ink-500)] uppercase">
+            Langue
+          </span>
+          <ul role="listbox" aria-label="Choisir la langue" className="grid grid-cols-2 gap-2">
+            {routing.locales.map((loc) => {
+              const isCurrent = loc === currentLocale;
+              return (
+                <li key={loc}>
+                  <button
+                    type="button"
+                    role="option"
+                    aria-selected={isCurrent}
+                    disabled={isPending}
+                    onClick={() => onLocaleSelect(loc)}
+                    className={cn(
+                      'focus-ring flex w-full items-center gap-3 rounded-2xl border px-4 py-3 text-left text-base transition-colors disabled:opacity-60',
+                      isCurrent
+                        ? 'border-[color:var(--color-primary)] bg-[color:var(--color-primary)]/5 font-medium text-[color:var(--color-ink-900)]'
+                        : 'border-[color:var(--color-border)] text-[color:var(--color-ink-700)] [@media(hover:hover)]:hover:border-[color:var(--color-border-strong)] [@media(hover:hover)]:hover:bg-[color:var(--color-ivory-200)]',
+                    )}
+                  >
+                    <span aria-hidden className="text-xl leading-none">
+                      {LOCALE_FLAGS[loc]}
+                    </span>
+                    <span className="flex-1">{LOCALE_NATIVE_NAMES[loc]}</span>
+                    {isCurrent ? (
+                      <Check
+                        className="h-4 w-4 text-[color:var(--color-primary)]"
+                        strokeWidth={2.5}
+                        aria-hidden
+                      />
+                    ) : null}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      </DrawerContent>
+    </Drawer>
+  );
+}

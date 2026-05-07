@@ -120,13 +120,14 @@ export function LandingHero() {
 
           <motion.div
             variants={itemVariants}
-            className="mt-12 flex flex-col items-start gap-3 sm:flex-row sm:flex-wrap sm:items-center"
+            className="mt-12 flex flex-col items-stretch gap-3 sm:flex-row sm:flex-wrap sm:items-center"
           >
             <MagneticCta
               href="/sign-up"
               variant="primary"
               size="xl"
-              className="min-w-60"
+              className="w-full justify-center sm:w-auto sm:min-w-60"
+              wrapperClassName="block w-full sm:inline-block sm:w-auto"
               withConfetti
             >
               {t('ctaPrimary')}
@@ -135,7 +136,13 @@ export function LandingHero() {
                 aria-hidden
               />
             </MagneticCta>
-            <MagneticCta href="/#pricing" variant="outline" size="xl" className="min-w-52">
+            <MagneticCta
+              href="/#pricing"
+              variant="outline"
+              size="xl"
+              className="w-full justify-center sm:w-auto sm:min-w-52"
+              wrapperClassName="block w-full sm:inline-block sm:w-auto"
+            >
               {t('ctaSecondary')}
             </MagneticCta>
           </motion.div>

@@ -14,8 +14,8 @@ export function WedillybirdLogo({ className, priority = false }: WedillybirdLogo
       width={2001}
       height={551}
       priority={priority}
-      sizes="(max-width: 640px) 136px, 176px"
-      className={cn('h-auto w-36 sm:w-44', className)}
+      sizes="(max-width: 640px) 208px, 224px"
+      className={cn('h-auto w-52 sm:w-56', className)}
     />
   );
 }

@@ -25,24 +25,34 @@ const CINETPAY_PAYMENT_ENDPOINT = 'https://api-checkout.cinetpay.com/v2/payment'
 const CINETPAY_CHECK_ENDPOINT = 'https://api-checkout.cinetpay.com/v2/payment/check';
 
 /**
+ * Devises supportées par CinetPay (zone Afrique de l'Ouest + Maghreb + EUR).
+ * USD n'est PAS supporté — il passe par Stripe (zone americas).
+ */
+type CinetpayCurrency = Exclude<Currency, 'USD'>;
+
+function isCinetpayCurrency(currency: Currency): currency is CinetpayCurrency {
+  return currency !== 'USD';
+}
+
+/**
  * CinetPay attend les montants en unités majeures (XOF entiers, EUR cents
  * convertis en euros entiers — pas de décimales acceptées par l'API mobile).
  * Pour XOF on stocke en centimes en interne (divisor 100) → on divise.
  * Pour EUR on stocke aussi en centimes mais l'API CinetPay (mobile money)
  * exige des entiers — on convertit en unités majeures arrondies.
  */
-const CINETPAY_DIVISOR: Record<Currency, number> = {
+const CINETPAY_DIVISOR: Record<CinetpayCurrency, number> = {
   EUR: 100,
   XOF: 100,
   MAD: 100,
   TND: 1000,
 };
 
-function toCinetpayAmount(minor: number, currency: Currency): number {
+function toCinetpayAmount(minor: number, currency: CinetpayCurrency): number {
   return Math.round(minor / CINETPAY_DIVISOR[currency]);
 }
 
-function fromCinetpayAmount(major: number | string, currency: Currency): number {
+function fromCinetpayAmount(major: number | string, currency: CinetpayCurrency): number {
   const value = typeof major === 'string' ? Number(major) : major;
   if (!Number.isFinite(value)) return 0;
   return Math.round(value * CINETPAY_DIVISOR[currency]);
@@ -205,6 +215,11 @@ export const cinetpayDriver: PaymentDriver = {
   async createCheckout(input: CheckoutInput): Promise<CheckoutSession> {
     const creds = readCredentials();
 
+    if (!isCinetpayCurrency(input.currency)) {
+      throw new Error('UNSUPPORTED_CINETPAY_CURRENCY');
+    }
+    const currency: CinetpayCurrency = input.currency;
+
     const transactionId = (
       typeof crypto.randomUUID === 'function'
         ? crypto.randomUUID()
@@ -215,8 +230,8 @@ export const cinetpayDriver: PaymentDriver = {
       apikey: creds.apiKey,
       site_id: creds.siteId,
       transaction_id: transactionId,
-      amount: toCinetpayAmount(input.amountMinor, input.currency),
-      currency: input.currency,
+      amount: toCinetpayAmount(input.amountMinor, currency),
+      currency,
       description: planDescription(input.plan),
       notify_url: notifyUrl(),
       return_url: input.successUrl,
@@ -271,7 +286,7 @@ export const cinetpayDriver: PaymentDriver = {
     }
 
     const currency = payload.cpm_currency.toUpperCase();
-    if (!isCurrency(currency)) throw new Error('INVALID_CURRENCY');
+    if (!isCurrency(currency) || !isCinetpayCurrency(currency)) throw new Error('INVALID_CURRENCY');
 
     const amountMinor = fromCinetpayAmount(payload.cpm_amount, currency);
     const status = mapResultToStatus(payload.cpm_result);
@@ -308,7 +323,8 @@ export const cinetpayDriver: PaymentDriver = {
     const cpmResult = json.data?.cpm_result ?? '';
     const paid = cpmResult === '00' || json.code === '00';
     const currencyRaw = (json.data?.currency ?? 'XOF').toUpperCase();
-    if (!isCurrency(currencyRaw)) throw new Error('INVALID_CURRENCY');
+    if (!isCurrency(currencyRaw) || !isCinetpayCurrency(currencyRaw))
+      throw new Error('INVALID_CURRENCY');
     const amountMinor = fromCinetpayAmount(json.data?.amount ?? 0, currencyRaw);
 
     return {

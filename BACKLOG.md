@@ -28,6 +28,12 @@ Reproduire `.env.local` sur Vercel → Project Settings → Environment Variable
 6. **Boîte `hello@wedillybird.com`** — vérifier MX configuré sur le domaine, sinon les emails de contact bouncent silencieusement.
 7. **Pricing alignment** — code aligné sur la grille canonique ✅ (cf. section "Pricing alignment Stripe Prices" plus bas). Reste à lancer `scripts/sync-stripe-prices.ts` côté Stripe live et mettre à jour les env vars Vercel.
 8. **Rotation clé AWS** `AKIAXCZRV3YXAVVRYIWU` — clé déjà exposée en dev, à rotater avant ouverture trafic prod (cf. "Rotation de l'access key initiale").
+9. **Ouverture commerciale US (USD)** — code prêt (region `americas`, currency `USD`, pricing $39 / $99 / +$59 B2C ; $89 / $179 / $349 pros), `scripts/sync-stripe-prices.ts` étendu pour USD ✅. Bloqueurs **externes uniquement** :
+   - **Stripe Tax** activation côté compte + monitoring nexus par état (Wayfair : seuil typique $100k OU 200 transactions par état → obligation de collecter sales tax). Tant que le launch US n'est pas effectif on peut shipper le code, mais on n'envoie pas de trafic acquisition US sans ça.
+   - **Stripe Cross-currency settlement** — vérifier que le compte Stripe a l'option activée, sinon tous les paiements USD sont convertis en EUR au taux du jour avec frais 2 %.
+   - **Stripe Prices USD à créer** — lancer `pnpx tsx scripts/sync-stripe-prices.ts` côté Stripe live (idempotent, le script crée 1 Price par devise par plan). Récupérer les `STRIPE_PRICE_*_USD` imprimés sur stdout et les coller dans les env vars Vercel Production + Preview.
+   - **Migration de devise pour subscriptions existantes** : statu quo = pas de migration auto. Un Pro EUR qui voyage aux US continue de payer en EUR. La page pricing affiche la grille USD aux nouveaux prospects uniquement. Toute migration de devise = action support manuelle (cancel + recreate).
+10. **Stratégie pricing LATAM** (v2) — la région `americas` v1 couvre US + CA seulement. MX / BR / AR / CL paient aujourd'hui le tarif `europe` en EUR. À ouvrir dans une v2 dédiée avec devises locales (BRL, MXN) et grille adaptée pouvoir d'achat — ne pas étendre `americas` à USD pour la zone LATAM (mauvais signal).
 
 ### Pré-déploiement checklist
 - [ ] CI verte sur `main` (format, lint, typecheck, unit, build, e2e)
