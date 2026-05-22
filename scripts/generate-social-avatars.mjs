@@ -19,9 +19,9 @@ const markOffset = Math.round((SIZE - innerSize) / 2);
 
 const variants = [
   { name: 'terracotta', bg: '#C2613E', mark: '#FFF5EB' },
-  { name: 'ivory',      bg: '#FAF3E8', mark: '#1F1410' },
+  { name: 'ivory', bg: '#FAF3E8', mark: '#1F1410' },
   { name: 'cream-on-dark', bg: '#1F1410', mark: '#FAF3E8' },
-  { name: 'white',      bg: '#FFFFFF', mark: '#1F1410' },
+  { name: 'white', bg: '#FFFFFF', mark: '#1F1410' },
 ];
 
 for (const v of variants) {

@@ -4,9 +4,7 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const require = createRequire(import.meta.url);
-const sharp = require(
-  '/Users/rrr/conductor/workspaces/wedillybird-convex/nicosia/node_modules/.pnpm/sharp@0.34.5/node_modules/sharp',
-);
+const sharp = require('/Users/rrr/conductor/workspaces/wedillybird-convex/nicosia/node_modules/.pnpm/sharp@0.34.5/node_modules/sharp');
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = resolve(__dirname, '..');
@@ -42,7 +40,11 @@ function escapeXml(s) {
 
 function hexToRgb(hex) {
   const m = hex.replace('#', '');
-  return { r: parseInt(m.slice(0, 2), 16), g: parseInt(m.slice(2, 4), 16), b: parseInt(m.slice(4, 6), 16) };
+  return {
+    r: parseInt(m.slice(0, 2), 16),
+    g: parseInt(m.slice(2, 4), 16),
+    b: parseInt(m.slice(4, 6), 16),
+  };
 }
 
 // --- End card 1080×1920 (terracotta) -----------------------------------------
@@ -79,8 +81,20 @@ async function buildEndCard({ bg, mark, ink, accent, outFile }) {
   console.log(`✓ ${outFile}`);
 }
 
-await buildEndCard({ bg: TERRACOTTA, mark: IVORY, ink: IVORY, accent: '#FFE2CC', outFile: 'endcard-terracotta-1080x1920.png' });
-await buildEndCard({ bg: IVORY, mark: TERRACOTTA, ink: INK, accent: TERRACOTTA, outFile: 'endcard-ivory-1080x1920.png' });
+await buildEndCard({
+  bg: TERRACOTTA,
+  mark: IVORY,
+  ink: IVORY,
+  accent: '#FFE2CC',
+  outFile: 'endcard-terracotta-1080x1920.png',
+});
+await buildEndCard({
+  bg: IVORY,
+  mark: TERRACOTTA,
+  ink: INK,
+  accent: TERRACOTTA,
+  outFile: 'endcard-ivory-1080x1920.png',
+});
 
 // --- Watermark 240×240 transparent (bottom-right corner of every scene) ------
 async function buildWatermark(color, file) {
@@ -98,12 +112,42 @@ await buildWatermark(INK, 'watermark-ink-240.png');
 
 // --- Text overlays 1080×1920 with mark watermark bottom-right ----------------
 const titleCards = [
-  { file: 'overlay-01-pov.png',    eyebrow: 'SCENE 01 · 0:00 → 0:02', title: 'POV: your best friend\nis getting married →', serifItalic: false },
-  { file: 'overlay-02-reveal.png', eyebrow: 'SCENE 02 · 0:02 → 0:06', title: 'and the invitation is…\n🤯', serifItalic: false },
-  { file: 'overlay-03-rsvp.png',   eyebrow: 'SCENE 03 · 0:06 → 0:10', title: 'RSVP in 3 taps.\nNo login. No download.', serifItalic: false },
-  { file: 'overlay-04-depth.png',  eyebrow: 'SCENE 04 · 0:10 → 0:16', title: 'Gallery · Face search\nCheck-in · All your photos', serifItalic: false },
-  { file: 'overlay-05-payoff.png', eyebrow: 'SCENE 05 · 0:16 → 0:20', title: 'All the wedding.\nNone of the stress.', serifItalic: true },
-  { file: 'overlay-06-cta.png',    eyebrow: 'SCENE 06 · 0:20 → 0:22', title: 'Plan yours in 2 minutes ↗\nwedillybird.com', serifItalic: false },
+  {
+    file: 'overlay-01-pov.png',
+    eyebrow: 'SCENE 01 · 0:00 → 0:02',
+    title: 'POV: your best friend\nis getting married →',
+    serifItalic: false,
+  },
+  {
+    file: 'overlay-02-reveal.png',
+    eyebrow: 'SCENE 02 · 0:02 → 0:06',
+    title: 'and the invitation is…\n🤯',
+    serifItalic: false,
+  },
+  {
+    file: 'overlay-03-rsvp.png',
+    eyebrow: 'SCENE 03 · 0:06 → 0:10',
+    title: 'RSVP in 3 taps.\nNo login. No download.',
+    serifItalic: false,
+  },
+  {
+    file: 'overlay-04-depth.png',
+    eyebrow: 'SCENE 04 · 0:10 → 0:16',
+    title: 'Gallery · Face search\nCheck-in · All your photos',
+    serifItalic: false,
+  },
+  {
+    file: 'overlay-05-payoff.png',
+    eyebrow: 'SCENE 05 · 0:16 → 0:20',
+    title: 'All the wedding.\nNone of the stress.',
+    serifItalic: true,
+  },
+  {
+    file: 'overlay-06-cta.png',
+    eyebrow: 'SCENE 06 · 0:20 → 0:22',
+    title: 'Plan yours in 2 minutes ↗\nwedillybird.com',
+    serifItalic: false,
+  },
 ];
 
 const watermarkSmall = await renderMarkPng(IVORY, 100);
@@ -119,7 +163,9 @@ for (const card of titleCards) {
   const startY = H / 2 - ((lines.length - 1) * lineHeight) / 2;
 
   const tspans = lines
-    .map((line, i) => `<tspan x="${W / 2}" y="${startY + i * lineHeight}">${escapeXml(line)}</tspan>`)
+    .map(
+      (line, i) => `<tspan x="${W / 2}" y="${startY + i * lineHeight}">${escapeXml(line)}</tspan>`,
+    )
     .join('');
 
   const svg = `

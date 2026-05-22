@@ -93,8 +93,7 @@ const translations = {
       bodyBefore:
         'Utilizziamo cookie strettamente necessari per il funzionamento e la sicurezza del sito. In conformità con la normativa (GDPR), e come dettagliato nella nostra ',
       policyLink: 'politica',
-      bodyAfter:
-        ', nessun cookie di tracciamento di terze parti viene utilizzato a tua insaputa.',
+      bodyAfter: ', nessun cookie di tracciamento di terze parti viene utilizzato a tua insaputa.',
       accept: 'Accetta',
       decline: 'Continua senza accettare',
     },
@@ -117,8 +116,7 @@ const translations = {
       bodyBefore:
         'Utilizamos cookies estritamente necessários para o funcionamento e a segurança do site. Em conformidade com o regulamento (RGPD), e conforme detalhado em nossa ',
       policyLink: 'política',
-      bodyAfter:
-        ', nenhum cookie de rastreamento de terceiros é utilizado sem o seu conhecimento.',
+      bodyAfter: ', nenhum cookie de rastreamento de terceiros é utilizado sem o seu conhecimento.',
       accept: 'Aceitar',
       decline: 'Continuar sem aceitar',
     },
@@ -141,7 +139,8 @@ const translations = {
       bodyBefore:
         'Wir verwenden ausschliesslich technisch notwendige Cookies für Funktion und Sicherheit der Website. Gemäss DSGVO und wie in unserer ',
       policyLink: 'Richtlinie',
-      bodyAfter: ' erläutert, werden keine Drittanbieter-Tracking-Cookies ohne Ihr Wissen verwendet.',
+      bodyAfter:
+        ' erläutert, werden keine Drittanbieter-Tracking-Cookies ohne Ihr Wissen verwendet.',
       accept: 'Akzeptieren',
       decline: 'Ohne Akzeptieren fortfahren',
     },
