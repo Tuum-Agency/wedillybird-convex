@@ -676,7 +676,17 @@
       "eventClosed": "Questo evento non accetta più risposte",
       "plusOnesExceeded": "Troppi accompagnatori indicati",
       "unknown": "Si è verificato un errore. Riprova."
-    }
+    },
+    "countdownLabel": "Conto alla rovescia",
+    "countdownDays": "Giorni",
+    "countdownHours": "Ore",
+    "countdownMinutes": "Minuti",
+    "countdownLoadingAria": "Conto alla rovescia in caricamento",
+    "countdownAria": "{days} giorni, {hours} ore, {minutes} minuti prima del matrimonio",
+    "dateAndTime": "Data e ora",
+    "venue": "Luogo",
+    "yourReply": "La tua risposta",
+    "weddingDayArrived": "Il grande giorno è arrivato."
   },
   "OrgPublic": {
     "poweredBy": "Powered by",
@@ -1347,5 +1357,13 @@
       "title": "Informativa sui cookie — Wedillybird",
       "description": "Cookie essenziali al funzionamento di Wedillybird: sessione HMAC, cache offline check-in. Nessun cookie pubblicitario né tracker di terze parti."
     }
+  },
+  "CookieConsent": {
+    "title": "Rispetto della tua privacy",
+    "bodyBefore": "Utilizziamo cookie strettamente necessari per il funzionamento e la sicurezza del sito. In conformità con la normativa (GDPR), e come dettagliato nella nostra ",
+    "policyLink": "politica",
+    "bodyAfter": ", nessun cookie di tracciamento di terze parti viene utilizzato a tua insaputa.",
+    "accept": "Accetta",
+    "decline": "Continua senza accettare"
   }
 }

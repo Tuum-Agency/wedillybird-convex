@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Link } from '@/i18n/navigation';
@@ -12,6 +13,7 @@ import { Link } from '@/i18n/navigation';
  * - Lien vers la politique de confidentialité / cookies.
  */
 export function CookieConsent() {
+  const t = useTranslations('CookieConsent');
   const [show, setShow] = useState(false);
 
   useEffect(() => {
@@ -40,26 +42,23 @@ export function CookieConsent() {
   return (
     <div className="animate-in slide-in-from-bottom-5 fade-in fixed right-0 bottom-0 left-0 z-[100] p-4 duration-500 sm:p-6 md:right-auto md:bottom-6 md:left-6 md:w-[420px]">
       <div className="rounded-2xl border border-[color:var(--color-border)] bg-white p-6 shadow-2xl">
-        <h3 className="text-lg font-semibold text-[color:var(--color-ink-900)]">
-          Respect de votre vie privée
-        </h3>
+        <h3 className="text-lg font-semibold text-[color:var(--color-ink-900)]">{t('title')}</h3>
         <p className="mt-2 text-sm leading-relaxed text-[color:var(--color-ink-500)]">
-          Nous utilisons des cookies strictement nécessaires pour le fonctionnement et la sécurité
-          du site. Conformément à la réglementation (RGPD), et comme détaillé dans notre{' '}
+          {t('bodyBefore')}
           <Link
             href="/legal/cookies"
             className="font-medium text-[color:var(--color-ink-700)] underline transition-colors hover:text-[color:var(--color-blush-700)]"
           >
-            politique
+            {t('policyLink')}
           </Link>
-          , aucun cookie de pistage tiers n&apos;est utilisé à votre insu.
+          {t('bodyAfter')}
         </p>
         <div className="mt-6 flex flex-col gap-3 sm:flex-row-reverse sm:items-center">
           <Button onClick={handleAccept} className="w-full sm:w-auto" variant="primary" size="sm">
-            Accepter
+            {t('accept')}
           </Button>
           <Button onClick={handleDecline} variant="outline" size="sm" className="w-full sm:w-auto">
-            Continuer sans accepter
+            {t('decline')}
           </Button>
         </div>
       </div>

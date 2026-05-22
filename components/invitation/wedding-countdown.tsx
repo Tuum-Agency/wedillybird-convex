@@ -1,6 +1,7 @@
 'use client';
 
 import { motion, useReducedMotion } from 'motion/react';
+import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 
 /**
@@ -22,8 +23,12 @@ export interface WeddingCountdownProps {
 
 export function WeddingCountdown({ eventDate, accentColor }: WeddingCountdownProps) {
   const reduced = useReducedMotion();
+  const t = useTranslations('Invitation');
   const [now, setNow] = useState<number | null>(null);
   const accent = accentColor ?? 'oklch(58% 0.075 80)';
+  const daysLabel = t('countdownDays').toUpperCase();
+  const hoursLabel = t('countdownHours').toUpperCase();
+  const minutesLabel = t('countdownMinutes').toUpperCase();
 
   useEffect(() => {
     // Initial set différé en raf pour éviter le cascading render au mount
@@ -40,13 +45,10 @@ export function WeddingCountdown({ eventDate, accentColor }: WeddingCountdownPro
   // mismatch et pour que l'écran ne saute pas quand le countdown apparaît.
   if (now === null) {
     return (
-      <div
-        className="grid grid-cols-3 gap-3 sm:gap-6"
-        aria-label="Compte à rebours en cours de chargement"
-      >
-        <CountdownCell value="—" label="JOURS" accent={accent} />
-        <CountdownCell value="—" label="HEURES" accent={accent} />
-        <CountdownCell value="—" label="MINUTES" accent={accent} />
+      <div className="grid grid-cols-3 gap-3 sm:gap-6" aria-label={t('countdownLoadingAria')}>
+        <CountdownCell value="—" label={daysLabel} accent={accent} />
+        <CountdownCell value="—" label={hoursLabel} accent={accent} />
+        <CountdownCell value="—" label={minutesLabel} accent={accent} />
       </div>
     );
   }
@@ -63,7 +65,7 @@ export function WeddingCountdown({ eventDate, accentColor }: WeddingCountdownPro
           letterSpacing: '-0.018em',
         }}
       >
-        Le grand jour est arrivé.
+        {t('weddingDayArrived')}
       </p>
     );
   }
@@ -83,11 +85,15 @@ export function WeddingCountdown({ eventDate, accentColor }: WeddingCountdownPro
       transition={{ duration: 0.5, ease: 'easeOut' }}
       className="grid grid-cols-3 gap-3 sm:gap-6"
       role="timer"
-      aria-label={`${days} jours, ${hours} heures, ${minutes} minutes avant le mariage`}
+      aria-label={t('countdownAria', { days, hours, minutes })}
     >
-      <CountdownCell value={String(days)} label="JOURS" accent={accent} />
-      <CountdownCell value={String(hours).padStart(2, '0')} label="HEURES" accent={accent} />
-      <CountdownCell value={String(minutes).padStart(2, '0')} label="MINUTES" accent={accent} />
+      <CountdownCell value={String(days)} label={daysLabel} accent={accent} />
+      <CountdownCell value={String(hours).padStart(2, '0')} label={hoursLabel} accent={accent} />
+      <CountdownCell
+        value={String(minutes).padStart(2, '0')}
+        label={minutesLabel}
+        accent={accent}
+      />
     </motion.div>
   );
 }
