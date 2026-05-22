@@ -672,7 +672,17 @@
       "eventClosed": "هذا الحدث لم يَعُد يقبل ردودًا",
       "plusOnesExceeded": "عدد المرافقين أكثر من المسموح",
       "unknown": "حدث خطأ ما. حاول مجددًا."
-    }
+    },
+    "countdownLabel": "العد التنازلي",
+    "countdownDays": "أيام",
+    "countdownHours": "ساعات",
+    "countdownMinutes": "دقائق",
+    "countdownLoadingAria": "جاري تحميل العد التنازلي",
+    "countdownAria": "{days} يوم، {hours} ساعة، {minutes} دقيقة قبل حفل الزفاف",
+    "dateAndTime": "التاريخ والوقت",
+    "venue": "المكان",
+    "yourReply": "ردك",
+    "weddingDayArrived": "وصل اليوم الكبير."
   },
   "OrgPublic": {
     "poweredBy": "مُقدَّم من",
@@ -1343,5 +1353,13 @@
       "title": "سياسة ملفات تعريف الارتباط — Wedillybird",
       "description": "ملفات تعريف ارتباط أساسية لتشغيل Wedillybird: جلسة HMAC، ذاكرة دون اتصال لتسجيل الحضور. لا ملفات تعريف ارتباط إعلانية ولا متتبعات أطراف ثالثة."
     }
+  },
+  "CookieConsent": {
+    "title": "احترام خصوصيتك",
+    "bodyBefore": "نستخدم ملفات تعريف ارتباط ضرورية فقط لتشغيل الموقع وأمانه. وفقًا للوائح (GDPR)، وكما هو مفصل في ",
+    "policyLink": "سياستنا",
+    "bodyAfter": "، لا يتم استخدام أي ملفات تعريف ارتباط لتتبع جهات خارجية دون علمك.",
+    "accept": "قبول",
+    "decline": "المتابعة دون القبول"
   }
 }

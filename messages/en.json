@@ -672,7 +672,17 @@
       "eventClosed": "This event no longer accepts replies",
       "plusOnesExceeded": "Too many plus-ones listed",
       "unknown": "Something went wrong. Try again."
-    }
+    },
+    "countdownLabel": "Countdown",
+    "countdownDays": "Days",
+    "countdownHours": "Hours",
+    "countdownMinutes": "Minutes",
+    "countdownLoadingAria": "Countdown loading",
+    "countdownAria": "{days} days, {hours} hours, {minutes} minutes before the wedding",
+    "dateAndTime": "Date & time",
+    "venue": "Venue",
+    "yourReply": "Your reply",
+    "weddingDayArrived": "The big day is here."
   },
   "OrgPublic": {
     "poweredBy": "Powered by",
@@ -1343,5 +1353,13 @@
       "title": "Cookie Policy — Wedillybird",
       "description": "Cookies essential to Wedillybird's operation: HMAC session, offline check-in cache. No advertising cookies or third-party trackers."
     }
+  },
+  "CookieConsent": {
+    "title": "Your privacy matters",
+    "bodyBefore": "We use strictly necessary cookies for site functionality and security. In compliance with privacy regulations (GDPR), and as detailed in our ",
+    "policyLink": "policy",
+    "bodyAfter": ", no third-party tracking cookies are used without your knowledge.",
+    "accept": "Accept",
+    "decline": "Continue without accepting"
   }
 }

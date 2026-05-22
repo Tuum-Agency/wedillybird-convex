@@ -149,7 +149,7 @@ export default async function InvitationPage({
           {/* Countdown live */}
           <section className="flex flex-col items-center gap-5">
             <span className="font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-ink-500)] uppercase">
-              Compte à rebours
+              {t('countdownLabel')}
             </span>
             <WeddingCountdown eventDate={event.eventDate} accentColor={accentColor} />
           </section>
@@ -166,7 +166,7 @@ export default async function InvitationPage({
               </span>
               <div className="flex flex-col gap-1">
                 <span className="font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-ink-500)] uppercase">
-                  Date &amp; heure
+                  {t('dateAndTime')}
                 </span>
                 <p className="text-base text-[color:var(--color-ink-900)] sm:text-lg">
                   {eventDateFormatted}
@@ -185,7 +185,7 @@ export default async function InvitationPage({
                 </span>
                 <div className="flex flex-col gap-1">
                   <span className="font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-ink-500)] uppercase">
-                    Lieu
+                    {t('venue')}
                   </span>
                   <p className="text-base font-medium text-[color:var(--color-ink-900)] sm:text-lg">
                     {event.venue.name}
@@ -200,7 +200,7 @@ export default async function InvitationPage({
           <section className="flex flex-col gap-5">
             <header className="flex flex-col items-center gap-3 text-center">
               <span className="font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-ink-500)] uppercase">
-                Votre réponse
+                {t('yourReply')}
               </span>
             </header>
             <RsvpFormV4
