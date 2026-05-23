@@ -2,6 +2,7 @@
 import 'source-map-support/register';
 import * as cdk from 'aws-cdk-lib';
 import { WedillybirdMediaStack } from '../lib/media-stack';
+import { resolveProdConvexSiteUrl } from '../lib/convex-url';
 
 const app = new cdk.App();
 
@@ -32,7 +33,10 @@ new WedillybirdMediaStack(app, 'WedillybirdMediaStack', {
     .split(',')
     .map((s) => s.trim())
     .filter(Boolean),
-  convexSiteUrl: process.env.NEXT_PUBLIC_CONVEX_SITE_URL ?? process.env.CONVEX_SITE_URL,
+  convexSiteUrl: resolveProdConvexSiteUrl({
+    nextPublic: process.env.NEXT_PUBLIC_CONVEX_SITE_URL,
+    raw: process.env.CONVEX_SITE_URL,
+  }),
   lambdaCallbackSecret: process.env.LAMBDA_CALLBACK_SECRET,
   openaiApiKey: process.env.OPENAI_API_KEY,
   description: 'Wedillybird media S3 bucket + CloudFront + Rekognition + OpenAI moderation',
