@@ -121,7 +121,6 @@ export const reprocessStuckPending = internalAction({
         if (name === 'NoSuchKey' || name === 'NotFound') {
           result.s3Missing += 1;
         } else {
-           
           console.error(`reprocess failed for ${photo.s3Key}: ${String(err)}`);
           result.errors += 1;
         }
