@@ -23,7 +23,7 @@ Le code livré dans les sprints 1-11 (notamment Sprint 9.2 sur les subscriptions
 
 - **Commits Conventional Commits** stricts. Jamais de mention Claude/AI dans les commits, PRs, ou code.
 - **FR uniquement** pour les strings UI (next-intl, locale unique).
-- **Convex en dev** : `unset CONVEX_DEPLOYMENT CONVEX_URL CONVEX_SITE_URL && export CONVEX_DEPLOYMENT="dev:capable-crocodile-720" && pnpx convex dev --once`. Ne jamais `pnpx convex deploy` (= prod).
+- **Convex en dev** : `unset CONVEX_DEPLOYMENT CONVEX_URL CONVEX_SITE_URL && export CONVEX_DEPLOYMENT="dev:capable-crocodile-720" && pnpx convex dev --once`. Pour la **prod** (`prod:fearless-poodle-133`), `pnpx convex deploy` et `pnpx convex run … --prod` sont autorisés **uniquement avec confirmation explicite de l'utilisateur** au cas par cas (jamais automatique, jamais sans demander).
 - **Tests vitest** dans `tests/unit/...`. Tout commit doit garder la suite verte.
 - **typedRoutes Next 16** actif : pour redirect vers URL externe utiliser `redirect(url as never)` ou wrapper.
 - **Pas de Context React** : Zustand pour state global.
