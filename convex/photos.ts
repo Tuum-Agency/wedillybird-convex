@@ -132,6 +132,29 @@ export const assertGuestCanUpload = internalQuery({
   },
 });
 
+/**
+ * Liste les photos en `status: pending` pour le script de reprocess
+ * one-shot post-bug du 2026-05-23 (cf. `photosReprocess.ts`). Full scan
+ * filtré — pas d'index `by_status` dans le schema car ce cas est sensé
+ * être rare et transient. Si on rencontre régulièrement le besoin de
+ * scanner tous les pending, ajouter l'index.
+ */
+export const listAllPendingForReprocess = internalQuery({
+  args: { limit: v.number() },
+  handler: async (ctx, { limit }) => {
+    const rows = await ctx.db
+      .query('photos')
+      .filter((q) => q.eq(q.field('status'), 'pending'))
+      .take(limit);
+    return rows.map((p) => ({
+      _id: p._id,
+      eventId: p.eventId,
+      s3Key: p.s3Key,
+      createdAt: p.createdAt,
+    }));
+  },
+});
+
 /* -------------------------------------------------------------------------- */
 /*  Confirm upload (called after PUT to S3 succeeded)                         */
 /* -------------------------------------------------------------------------- */

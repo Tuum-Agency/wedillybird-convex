@@ -32,6 +32,7 @@ import type * as paymentsInvoice from "../paymentsInvoice.js";
 import type * as photos from "../photos.js";
 import type * as photosActions from "../photosActions.js";
 import type * as photosFaceSearch from "../photosFaceSearch.js";
+import type * as photosReprocess from "../photosReprocess.js";
 import type * as reminderActions from "../reminderActions.js";
 import type * as reminders from "../reminders.js";
 import type * as rsvps from "../rsvps.js";
@@ -71,6 +72,7 @@ declare const fullApi: ApiFromModules<{
   photos: typeof photos;
   photosActions: typeof photosActions;
   photosFaceSearch: typeof photosFaceSearch;
+  photosReprocess: typeof photosReprocess;
   reminderActions: typeof reminderActions;
   reminders: typeof reminders;
   rsvps: typeof rsvps;
