@@ -381,6 +381,7 @@ export const convexApi = {
       _id: string;
       url: string | null;
       variants?: { thumb?: string; medium?: string; large?: string };
+      status?: 'pending' | 'approved' | 'rejected';
       uploaderName?: string;
       width?: number;
       height?: number;

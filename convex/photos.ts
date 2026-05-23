@@ -250,17 +250,31 @@ export const listApprovedForGuest = query({
   args: { token: v.string() },
   handler: async (ctx, { token }) => {
     const event = await resolveEventForToken(ctx, token);
-    const rows = await ctx.db
+    const approved = await ctx.db
       .query('photos')
       .withIndex('by_event_status', (q) => q.eq('eventId', event._id).eq('status', 'approved'))
       .order('desc')
       .collect();
+
+    // Inclut aussi les photos `pending` uploadées par CET invité spécifique.
+    // Sans cela, après upload l'invité ne voit rien tant que Rekognition n'a
+    // pas approuvé (2-5s en moyenne, ou jamais si la Lambda est down). On
+    // filtre strictement sur `uploadedByGuestToken === token` pour ne pas
+    // leak de contenu non-modéré aux autres invités.
+    const ownPending = await ctx.db
+      .query('photos')
+      .withIndex('by_guest_token', (q) => q.eq('uploadedByGuestToken', token))
+      .filter((q) => q.eq(q.field('status'), 'pending'))
+      .collect();
+
+    const rows = [...ownPending, ...approved].sort((a, b) => b.createdAt - a.createdAt);
 
     return Promise.all(
       rows.map(async (p) => ({
         _id: p._id,
         url: await resolvePhotoUrl(ctx, p),
         variants: resolveVariantUrls(p),
+        status: p.status,
         uploaderName: p.uploaderName,
         width: p.width,
         height: p.height,
