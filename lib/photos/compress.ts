@@ -24,6 +24,10 @@ export async function compressForUpload(file: File): Promise<{
     maxWidthOrHeight: 2000,
     useWebWorker: true,
     initialQuality: 0.85,
+    // Self-host the worker lib (CSP F-03) — défaut = cdn.jsdelivr.net,
+    // bloqué par `script-src 'self'`. Le fichier statique vit dans
+    // `public/scripts/browser-image-compression.js`, copié au build.
+    libURL: '/scripts/browser-image-compression.js',
   });
 
   const dimensions = await getImageDimensions(compressed).catch(() => undefined);
