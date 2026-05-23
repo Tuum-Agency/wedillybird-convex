@@ -22,6 +22,10 @@ export async function createGuestUploadUrlAction(
     });
     return { ok: true, uploadUrl, s3Key };
   } catch (err) {
+    // Log côté serveur (visible dans les logs Vercel) — sinon l'erreur est
+    // mappée en `UNKNOWN` → "Une erreur est survenue" générique côté UI et
+    // on perd toute trace (cas du fix CSP mai 2026, debuggué via DevTools).
+    console.error('[gallery] createGuestUploadUrlAction failed', err);
     const message = err instanceof Error ? err.message : 'UNKNOWN';
     if (message.includes('INVITATION_NOT_FOUND'))
       return { ok: false, error: 'INVITATION_NOT_FOUND' };
@@ -48,6 +52,7 @@ export async function confirmGuestUploadAction(input: {
     revalidatePath(`/i/${input.token}/gallery`);
     return { ok: true, id };
   } catch (err) {
+    console.error('[gallery] confirmGuestUploadAction failed', err);
     return { ok: false, error: err instanceof Error ? err.message : 'UNKNOWN' };
   }
 }

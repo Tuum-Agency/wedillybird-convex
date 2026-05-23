@@ -24,6 +24,7 @@ export async function createOwnerUploadUrlAction(
     });
     return { ok: true, uploadUrl, s3Key };
   } catch (err) {
+    console.error('[gallery] createOwnerUploadUrlAction failed', err);
     const message = err instanceof Error ? err.message : 'UNKNOWN';
     if (message.includes('FORBIDDEN')) return { ok: false, error: 'FORBIDDEN' };
     if (message.includes('EVENT_NOT_FOUND')) return { ok: false, error: 'NOT_FOUND' };
@@ -59,6 +60,7 @@ export async function confirmOwnerUploadAction(input: {
     revalidatePath(`/events/${input.eventId}/gallery`);
     return { ok: true, id };
   } catch (err) {
+    console.error('[gallery] confirmOwnerUploadAction failed', err);
     return { ok: false, error: err instanceof Error ? err.message : 'UNKNOWN' };
   }
 }

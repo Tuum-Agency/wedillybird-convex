@@ -59,6 +59,19 @@ describe('next.config.ts — security headers (F-03)', () => {
     expect(configSrc).toMatch(/\*\.cloudfront\.net/);
   });
 
+  it('CSP autorise les PUT presignés vers S3 (galerie upload)', () => {
+    // Sans ce host dans `connect-src`, le PUT vers
+    // `<bucket>.s3.eu-west-3.amazonaws.com` est bloqué et l'upload galerie
+    // échoue silencieusement avec "Une erreur est survenue" (régression mai 2026).
+    expect(configSrc).toMatch(/connect-src[^"]*\*\.s3\.eu-west-3\.amazonaws\.com/);
+  });
+
+  it('CSP autorise les Web Workers en blob: (browser-image-compression)', () => {
+    // `browser-image-compression` crée un worker depuis un `blob:` URL — sans
+    // `worker-src 'self' blob:` le compress échoue et l'upload aussi.
+    expect(configSrc).toMatch(/worker-src[^"]*blob:/);
+  });
+
   it('Referrer-Policy = strict-origin-when-cross-origin', () => {
     expect(configSrc).toMatch(/strict-origin-when-cross-origin/);
   });
