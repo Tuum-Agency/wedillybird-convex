@@ -166,8 +166,8 @@ export function CinematicOpening({
       {/* Stage SVG — l'enveloppe et la carte vivent ici. viewBox compact pour
           éviter qu'on doive jongler avec des coordonnées négatives complexes. */}
       <svg
-        viewBox="-220 -300 440 600"
-        className="h-[70vh] max-h-[600px] w-full max-w-[480px]"
+        viewBox="-220 -380 440 680"
+        className="h-[80vh] max-h-[680px] w-full max-w-[480px]"
         aria-hidden
       >
         <defs>
