@@ -686,7 +686,9 @@
     "dateAndTime": "Data e hora",
     "venue": "Local",
     "yourReply": "Sua resposta",
-    "weddingDayArrived": "O grande dia chegou."
+    "weddingDayArrived": "O grande dia chegou.",
+    "cinematicSkip": "Pular",
+    "cinematicSkipAria": "Pular cinemática"
   },
   "OrgPublic": {
     "poweredBy": "Com tecnologia",
@@ -714,6 +716,8 @@
     "guestIntro": "Adiciona as tuas fotografias para que apareçam aqui após moderação.",
     "upload": "Adicionar fotografias",
     "uploading": "A enviar {current}/{total}…",
+    "dropzoneTitle": "Solta as tuas fotos aqui",
+    "dropzoneHint": "ou clica para procurar · JPG, PNG, WebP",
     "empty": "Ainda não há fotografias.",
     "emptyGuest": "Ainda não há fotografias aprovadas.",
     "approve": "Aprovar",

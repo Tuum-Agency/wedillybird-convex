@@ -682,7 +682,9 @@
     "dateAndTime": "Date & time",
     "venue": "Venue",
     "yourReply": "Your reply",
-    "weddingDayArrived": "The big day is here."
+    "weddingDayArrived": "The big day is here.",
+    "cinematicSkip": "Skip",
+    "cinematicSkipAria": "Skip cinematic"
   },
   "OrgPublic": {
     "poweredBy": "Powered by",
@@ -710,6 +712,8 @@
     "guestIntro": "Add your photos so they appear here after moderation.",
     "upload": "Add photos",
     "uploading": "Uploading {current}/{total}…",
+    "dropzoneTitle": "Drop your photos here",
+    "dropzoneHint": "or click to browse · JPG, PNG, WebP",
     "empty": "No photos yet.",
     "emptyGuest": "No approved photos yet.",
     "approve": "Approve",
