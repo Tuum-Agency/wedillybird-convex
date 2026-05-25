@@ -47,8 +47,18 @@ export function InvitationShell({
   // Replay-skip : si l'invité a déjà vu la cinématique dans cette session
   // (navigation /gallery → retour), on saute direct au contenu.
   // ?replay=1 force le rejeu (utile pour les captures vidéo marketing).
+  // Un rechargement explicite de la page rejoue toujours la cinématique :
+  // on détecte le type "reload" via la Navigation Timing API et on purge
+  // la clé sessionStorage avant la lecture.
   useEffect(() => {
     if (new URLSearchParams(window.location.search).get('replay') === '1') {
+      sessionStorage.removeItem(storageKey);
+      return;
+    }
+    const navEntry = performance.getEntriesByType('navigation')[0] as
+      | PerformanceNavigationTiming
+      | undefined;
+    if (navEntry?.type === 'reload') {
       sessionStorage.removeItem(storageKey);
       return;
     }
