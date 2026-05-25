@@ -682,7 +682,9 @@
     "dateAndTime": "التاريخ والوقت",
     "venue": "المكان",
     "yourReply": "ردك",
-    "weddingDayArrived": "وصل اليوم الكبير."
+    "weddingDayArrived": "وصل اليوم الكبير.",
+    "cinematicSkip": "تخطي",
+    "cinematicSkipAria": "تخطي السينمائية"
   },
   "OrgPublic": {
     "poweredBy": "مُقدَّم من",
@@ -710,6 +712,8 @@
     "guestIntro": "أضف صورك لتظهر هنا بعد المراجعة.",
     "upload": "إضافة صور",
     "uploading": "جارٍ الإرسال {current}/{total}…",
+    "dropzoneTitle": "أسقط صورك هنا",
+    "dropzoneHint": "أو انقر للتصفح · JPG, PNG, WebP",
     "empty": "لا توجد صور بعد.",
     "emptyGuest": "لا توجد صور مُعتمَدة بعد.",
     "approve": "اعتماد",

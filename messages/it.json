@@ -686,7 +686,9 @@
     "dateAndTime": "Data e ora",
     "venue": "Luogo",
     "yourReply": "La tua risposta",
-    "weddingDayArrived": "Il grande giorno è arrivato."
+    "weddingDayArrived": "Il grande giorno è arrivato.",
+    "cinematicSkip": "Salta",
+    "cinematicSkipAria": "Salta cinematica"
   },
   "OrgPublic": {
     "poweredBy": "Powered by",
@@ -714,6 +716,8 @@
     "guestIntro": "Aggiungi le tue foto perché appaiano qui dopo la moderazione.",
     "upload": "Aggiungi foto",
     "uploading": "Invio {current}/{total}…",
+    "dropzoneTitle": "Trascina qui le tue foto",
+    "dropzoneHint": "o clicca per sfogliare · JPG, PNG, WebP",
     "empty": "Nessuna foto al momento.",
     "emptyGuest": "Nessuna foto approvata al momento.",
     "approve": "Approva",

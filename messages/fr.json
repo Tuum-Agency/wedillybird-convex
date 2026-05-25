@@ -686,7 +686,9 @@
     "dateAndTime": "Date & heure",
     "venue": "Lieu",
     "yourReply": "Votre réponse",
-    "weddingDayArrived": "Le grand jour est arrivé."
+    "weddingDayArrived": "Le grand jour est arrivé.",
+    "cinematicSkip": "Passer",
+    "cinematicSkipAria": "Passer la cinématique"
   },
   "OrgPublic": {
     "poweredBy": "Propulsé par",
@@ -714,6 +716,8 @@
     "guestIntro": "Ajoutez vos photos pour qu'elles apparaissent ici après modération.",
     "upload": "Ajouter des photos",
     "uploading": "Envoi {current}/{total}…",
+    "dropzoneTitle": "Glissez vos photos ici",
+    "dropzoneHint": "ou cliquez pour parcourir · JPG, PNG, WebP",
     "empty": "Aucune photo pour le moment.",
     "emptyGuest": "Aucune photo approuvée pour le moment.",
     "approve": "Approuver",

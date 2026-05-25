@@ -1,6 +1,7 @@
 'use client';
 
 import { motion, useReducedMotion } from 'motion/react';
+import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 
 /**
@@ -64,6 +65,7 @@ export function CinematicOpening({
   accentColor,
   onComplete,
 }: CinematicOpeningProps) {
+  const t = useTranslations('Invitation');
   const reduced = useReducedMotion();
   const [phase, setPhase] = useState<Phase>('envelope');
   const [skipped, setSkipped] = useState(false);
@@ -158,9 +160,9 @@ export function CinematicOpening({
         type="button"
         onClick={handleSkip}
         className="focus-ring absolute top-6 right-6 z-10 font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-ink-500)] uppercase transition-colors hover:text-[color:var(--color-ink-900)]"
-        aria-label="Passer la cinématique"
+        aria-label={t('cinematicSkipAria')}
       >
-        Passer →
+        {t('cinematicSkip')} →
       </button>
 
       {/* Stage SVG — l'enveloppe et la carte vivent ici. viewBox compact pour
@@ -278,7 +280,7 @@ export function CinematicOpening({
               fill="oklch(45% 0.022 28)"
               letterSpacing="2"
             >
-              VOUS ÊTES INVITÉS
+              {t('youreInvited').toUpperCase()}
             </text>
             <motion.text
               x="0"
