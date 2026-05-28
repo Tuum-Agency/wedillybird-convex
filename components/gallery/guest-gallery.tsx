@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { ScanFace } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { PhotoUploader } from './photo-uploader';
 import { FaceSearchModal } from './face-search-modal';
@@ -21,6 +22,13 @@ export interface GuestPhotoItem {
    * mobile invité. Fallback sur `url` si absentes.
    */
   variants?: { thumb?: string; medium?: string; large?: string };
+  /**
+   * `pending` n'apparaît que pour les photos uploadées par CET invité — la
+   * query Convex filtre `uploadedByGuestToken === token` côté serveur pour
+   * que les autres invités ne voient que les `approved`. Absent → ancien
+   * format de réponse (avant déploiement Convex), on suppose `approved`.
+   */
+  status?: 'pending' | 'approved' | 'rejected';
   uploaderName?: string;
   width?: number;
   height?: number;
@@ -152,11 +160,20 @@ export function GuestGallery({ token, inviteeName, initialPhotos }: Props) {
                   }}
                 />
               )}
-              {p.uploaderName ? (
-                <p className="truncate px-2 pb-2 text-xs text-[color:var(--color-muted)]">
-                  {p.uploaderName}
-                </p>
-              ) : null}
+              <div className="flex items-center justify-between gap-2 px-2 pb-2">
+                {p.uploaderName ? (
+                  <span className="truncate text-xs text-[color:var(--color-muted)]">
+                    {p.uploaderName}
+                  </span>
+                ) : (
+                  <span />
+                )}
+                {p.status === 'pending' ? (
+                  <Badge variant="primary" data-testid="guest-photo-pending">
+                    {t('status.pending')}
+                  </Badge>
+                ) : null}
+              </div>
             </li>
           ))}
         </ul>

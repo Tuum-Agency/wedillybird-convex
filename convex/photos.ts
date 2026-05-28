@@ -132,6 +132,29 @@ export const assertGuestCanUpload = internalQuery({
   },
 });
 
+/**
+ * Liste les photos en `status: pending` pour le script de reprocess
+ * one-shot post-bug du 2026-05-23 (cf. `photosReprocess.ts`). Full scan
+ * filtré — pas d'index `by_status` dans le schema car ce cas est sensé
+ * être rare et transient. Si on rencontre régulièrement le besoin de
+ * scanner tous les pending, ajouter l'index.
+ */
+export const listAllPendingForReprocess = internalQuery({
+  args: { limit: v.number() },
+  handler: async (ctx, { limit }) => {
+    const rows = await ctx.db
+      .query('photos')
+      .filter((q) => q.eq(q.field('status'), 'pending'))
+      .take(limit);
+    return rows.map((p) => ({
+      _id: p._id,
+      eventId: p.eventId,
+      s3Key: p.s3Key,
+      createdAt: p.createdAt,
+    }));
+  },
+});
+
 /* -------------------------------------------------------------------------- */
 /*  Confirm upload (called after PUT to S3 succeeded)                         */
 /* -------------------------------------------------------------------------- */
@@ -250,17 +273,31 @@ export const listApprovedForGuest = query({
   args: { token: v.string() },
   handler: async (ctx, { token }) => {
     const event = await resolveEventForToken(ctx, token);
-    const rows = await ctx.db
+    const approved = await ctx.db
       .query('photos')
       .withIndex('by_event_status', (q) => q.eq('eventId', event._id).eq('status', 'approved'))
       .order('desc')
       .collect();
+
+    // Inclut aussi les photos `pending` uploadées par CET invité spécifique.
+    // Sans cela, après upload l'invité ne voit rien tant que Rekognition n'a
+    // pas approuvé (2-5s en moyenne, ou jamais si la Lambda est down). On
+    // filtre strictement sur `uploadedByGuestToken === token` pour ne pas
+    // leak de contenu non-modéré aux autres invités.
+    const ownPending = await ctx.db
+      .query('photos')
+      .withIndex('by_guest_token', (q) => q.eq('uploadedByGuestToken', token))
+      .filter((q) => q.eq(q.field('status'), 'pending'))
+      .collect();
+
+    const rows = [...ownPending, ...approved].sort((a, b) => b.createdAt - a.createdAt);
 
     return Promise.all(
       rows.map(async (p) => ({
         _id: p._id,
         url: await resolvePhotoUrl(ctx, p),
         variants: resolveVariantUrls(p),
+        status: p.status,
         uploaderName: p.uploaderName,
         width: p.width,
         height: p.height,

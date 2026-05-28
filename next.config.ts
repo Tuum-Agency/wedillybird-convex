@@ -25,7 +25,11 @@ const withNextIntl = createNextIntlPlugin('./i18n/request.ts');
  *     - CloudFront (`*.cloudfront.net`) + domaine media custom
  *     - Unsplash pour le hero landing
  *     - CinetPay pour le checkout XOF
- *     - `data:` et `blob:` pour les uploads photo
+ *     - `data:` et `blob:` pour les previews photo (img-src)
+ *     - S3 `*.s3.eu-west-3.amazonaws.com` dans `connect-src` pour les PUT
+ *       presignés de la galerie (compress côté browser puis PUT direct)
+ *     - `worker-src 'self' blob:` pour le Web Worker de
+ *       `browser-image-compression` (créé en `blob:`)
  */
 // Turbopack/React dev mode reconstruit les callstacks via une primitive JS
 // que la CSP doit autoriser. En prod, React n'utilise jamais cette primitive,
@@ -52,7 +56,8 @@ const securityHeaders = [
       "default-src 'self'",
       "img-src 'self' https://*.cloudfront.net https://media.wedillybird.com https://images.unsplash.com https://plus.unsplash.com data: blob:",
       `script-src 'self' 'unsafe-inline'${devScriptDirectives} https://js.stripe.com`,
-      "connect-src 'self' https://*.convex.cloud https://*.convex.site wss://*.convex.cloud https://api.stripe.com https://api-checkout.cinetpay.com",
+      "worker-src 'self' blob:",
+      "connect-src 'self' https://*.convex.cloud https://*.convex.site wss://*.convex.cloud https://api.stripe.com https://api-checkout.cinetpay.com https://*.s3.eu-west-3.amazonaws.com",
       'frame-src https://js.stripe.com https://checkout.stripe.com',
       "style-src 'self' 'unsafe-inline'",
       "font-src 'self' data:",
