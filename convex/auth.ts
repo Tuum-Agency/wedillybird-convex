@@ -41,6 +41,26 @@ export const requestOtp = action({
       throw new Error('RATE_LIMITED');
     }
 
+    // Demo bypass — uniquement actif si DEMO_BYPASS_PHONE et DEMO_BYPASS_CODE
+    // sont tous deux définis côté Convex ET que le téléphone matche exactement.
+    // Permet à un designer / contractor externe de filmer la démo sans recevoir
+    // d'OTP WhatsApp réel. Ne JAMAIS définir ces env vars sur le déploiement prod.
+    const demoPhone = process.env.DEMO_BYPASS_PHONE;
+    const demoCode = process.env.DEMO_BYPASS_CODE;
+    if (demoPhone && demoCode && normalized === demoPhone) {
+      if (!/^\d{6}$/.test(demoCode)) {
+        throw new Error('INVALID_DEMO_CODE');
+      }
+      const codeHash = await hashOtp(demoCode, normalized);
+      await ctx.runMutation(internal.auth._saveOtpSession, {
+        phone: normalized,
+        codeHash,
+        ipAddress,
+      });
+      console.info(`[auth:demo-bypass] OTP session issued for ${normalized}`);
+      return { phone: normalized, channel: 'whatsapp' as const, provider: 'demo_bypass' as const };
+    }
+
     const code = generateOtpCode();
     const codeHash = await hashOtp(code, normalized);
 

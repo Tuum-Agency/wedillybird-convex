@@ -20,6 +20,7 @@ Reproduire `.env.local` sur Vercel → Project Settings → Environment Variable
 - **Contact inbox** (optionnel, sinon default codé) : `CONTACT_INBOX_EMAIL=hello@wedillybird.com`
 
 ### Bloqueurs prod externes
+0. **Demo bypass OTP à retirer post-tournage** — env vars `DEMO_BYPASS_PHONE` + `DEMO_BYPASS_CODE` posées sur le déploiement Convex **dev** (`capable-crocodile-720`) pour le tournage de la vidéo de lancement (compte `+33600000001` / event `sarah-marc-launch-demo`). Bypass actif uniquement si les **deux** env vars sont set ET que le téléphone matche exactement. Une fois la vidéo livrée : `pnpx convex env unset DEMO_BYPASS_PHONE && pnpx convex env unset DEMO_BYPASS_CODE`. Ces env vars NE DOIVENT JAMAIS être posées sur le déploiement prod `fearless-poodle-133`.
 1. **SES sortie de sandbox** — cf. section "AWS — opérations & sécurité". Sans ça, magic link / contact / newsletter / rappels invités n'arrivent qu'à des adresses vérifiées.
 2. **Stripe Customer Portal** — à configurer dans Stripe Dashboard (Settings → Customer Portal) avant ouverture des subscriptions pro.
 3. **CinetPay creds prod** — à récupérer sur dashboard CinetPay (apiKey + siteId).
