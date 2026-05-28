@@ -5,7 +5,13 @@ import { useTranslations } from 'next-intl';
 import { Calendar, Check, ShieldCheck, Sparkles, Star } from 'lucide-react';
 import { Link } from '@/i18n/navigation';
 import { buttonVariants } from '@/components/ui/button';
-import { PLANS, POST_EVENT_UPSELL, formatEurAs, type Currency } from '@/lib/payments/plans';
+import {
+  PLANS,
+  POST_EVENT_UPSELL,
+  formatEurAs,
+  priceFontSizeClamp,
+  type Currency,
+} from '@/lib/payments/plans';
 import { useEffectiveCurrency } from '@/stores/currency-store';
 import { cn } from '@/lib/cn';
 import { inViewOnce, scrollReveal, scrollRevealParent } from '@/lib/motion/presets';
@@ -155,12 +161,12 @@ export function LandingPricingCards({ defaultCurrency }: Props) {
                   </p>
                 </div>
 
-                <div className="flex items-baseline gap-2">
+                <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-1">
                   <span
                     data-testid={`price-${tier}`}
                     className="font-display tabular-nums"
                     style={{
-                      fontSize: 'clamp(2.75rem, 5vw, 3.75rem)',
+                      fontSize: priceFontSizeClamp(price, 'card'),
                       fontStyle: 'italic',
                       fontWeight: 300,
                       letterSpacing: '-0.025em',
