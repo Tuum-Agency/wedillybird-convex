@@ -3,6 +3,7 @@ import { Link } from '@/i18n/navigation';
 import { Send } from 'lucide-react';
 import { WedillybirdLogo } from '@/components/brand/wedillybird-logo';
 import { LocaleSwitcher } from '@/components/layout/locale-switcher';
+import { CurrencySwitcher } from '@/components/layout/currency-switcher';
 
 const PRODUCT_LINKS = [
   { key: 'features', href: '/#features' as const },
@@ -121,9 +122,13 @@ export function LandingFooterRich() {
           />
         </div>
 
-        {/* Block langue + paiements */}
+        {/* Block langue + devise + paiements */}
         <div className="flex flex-col gap-6 border-t border-[color:var(--color-border)] pt-10 lg:flex-row lg:items-center lg:justify-between">
-          <LocaleSwitcher />
+          <div className="flex flex-wrap items-center gap-3">
+            <LocaleSwitcher />
+            <span aria-hidden className="h-5 w-px bg-[color:var(--color-border)]" />
+            <CurrencySwitcher />
+          </div>
           <div className="flex flex-col gap-2 lg:items-end">
             <span className="font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-ink-500)] uppercase">
               {t('payments')}

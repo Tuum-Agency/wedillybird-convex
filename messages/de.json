@@ -686,7 +686,9 @@
     "dateAndTime": "Datum & Uhrzeit",
     "venue": "Ort",
     "yourReply": "Ihre Antwort",
-    "weddingDayArrived": "Der grosse Tag ist da."
+    "weddingDayArrived": "Der grosse Tag ist da.",
+    "cinematicSkip": "Überspringen",
+    "cinematicSkipAria": "Cinematic überspringen"
   },
   "OrgPublic": {
     "poweredBy": "Bereitgestellt von",
@@ -714,6 +716,8 @@
     "guestIntro": "Füge deine Fotos hinzu, damit sie nach Moderation hier erscheinen.",
     "upload": "Fotos hinzufügen",
     "uploading": "Sende {current}/{total}…",
+    "dropzoneTitle": "Fotos hier ablegen",
+    "dropzoneHint": "oder klicken zum Auswählen · JPG, PNG, WebP",
     "empty": "Noch keine Fotos vorhanden.",
     "emptyGuest": "Noch keine genehmigten Fotos.",
     "approve": "Genehmigen",
@@ -1365,5 +1369,16 @@
     "bodyAfter": " erläutert, werden keine Drittanbieter-Tracking-Cookies ohne Ihr Wissen verwendet.",
     "accept": "Akzeptieren",
     "decline": "Ohne Akzeptieren fortfahren"
+  },
+  "CurrencySwitcher": {
+    "label": "Währung: {currency}",
+    "chooseLabel": "Währung wählen",
+    "names": {
+      "EUR": "Euro",
+      "USD": "US-Dollar",
+      "XOF": "CFA-Franc",
+      "MAD": "Marokkanischer Dirham",
+      "TND": "Tunesischer Dinar"
+    }
   }
 }

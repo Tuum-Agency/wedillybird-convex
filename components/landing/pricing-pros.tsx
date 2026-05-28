@@ -6,13 +6,15 @@ import { useTranslations } from 'next-intl';
 import { Check, Sparkles, Star } from 'lucide-react';
 import { Link } from '@/i18n/navigation';
 import { buttonVariants } from '@/components/ui/button';
-import { type SubscriptionTier } from '@/lib/payments/subscriptions';
-import { formatAmount, type Currency } from '@/lib/payments/plans';
 import {
-  getRegionalPaygPrice,
-  getRegionalSubscriptionPrice,
-  type PricingRegion,
-} from '@/lib/payments/region';
+  PAYG_PRO_PRICE,
+  SUBSCRIPTION_TIER_ANNUAL_PRICES,
+  SUBSCRIPTION_TIER_PRICES,
+  type SubscriptionTier,
+} from '@/lib/payments/subscriptions';
+import { formatAmount, type Currency } from '@/lib/payments/plans';
+import { convertFromEur } from '@/lib/payments/currency';
+import { useEffectiveCurrency } from '@/stores/currency-store';
 import { cn } from '@/lib/cn';
 import { inViewOnce, scrollReveal, scrollRevealParent } from '@/lib/motion/presets';
 
@@ -33,10 +35,12 @@ const PAYG_FEATURE_KEYS = ['events1', 'whatsappOnDemand', 'proDashboard', 'noCom
 type Billing = 'monthly' | 'annual';
 
 type LandingPricingProsProps = {
-  /** Région détectée côté server (defaults to europe). */
-  region?: PricingRegion;
-  /** Devise canonique pour la région (defaults to EUR). */
-  currency?: Currency;
+  /**
+   * Devise par défaut (dérivée de la locale côté server). Le composant lit
+   * ensuite le store pour appliquer l'override utilisateur s'il en a choisi
+   * un via le sélecteur footer.
+   */
+  defaultCurrency?: Currency;
 };
 
 /**
@@ -46,15 +50,14 @@ type LandingPricingProsProps = {
  * 3 cards Starter / Business / Agency en grille md:grid-cols-3.
  * Card PAYG en aside séparé en dessous.
  *
- * Les prix passent par `getRegionalSubscriptionPrice` pour appliquer l'overlay
- * regional (africa réduit, americas USD, europe canonique).
+ * EUR est la source de vérité. Les montants sont convertis dans la devise
+ * effective (override utilisateur via le store, sinon devise par défaut de la
+ * locale).
  */
-export function LandingPricingPros({
-  region = 'europe',
-  currency = 'EUR',
-}: LandingPricingProsProps = {}) {
+export function LandingPricingPros({ defaultCurrency = 'EUR' }: LandingPricingProsProps = {}) {
   const t = useTranslations('Landing');
   const tPlans = useTranslations('Plans');
+  const currency = useEffectiveCurrency(defaultCurrency);
 
   const [billing, setBilling] = useState<Billing>('monthly');
 
@@ -70,21 +73,20 @@ export function LandingPricingPros({
 
   function getMonthlyEquivalentLabel(tier: SubscriptionTier): string {
     if (billing === 'monthly') {
-      return formatAmount(
-        getRegionalSubscriptionPrice(tier, region, 'monthly', currency),
-        currency,
-      );
+      const minor = convertFromEur(SUBSCRIPTION_TIER_PRICES[tier].amountMinor, currency);
+      return formatAmount(minor, currency);
     }
-    const annualMinor = getRegionalSubscriptionPrice(tier, region, 'annual', currency);
+    const annualMinor = convertFromEur(SUBSCRIPTION_TIER_ANNUAL_PRICES[tier].amountMinor, currency);
     const monthlyEquivMinor = Math.round(annualMinor / 12);
     return formatAmount(monthlyEquivMinor, currency);
   }
 
   function getAnnualBilledLabel(tier: SubscriptionTier): string {
-    return formatAmount(getRegionalSubscriptionPrice(tier, region, 'annual', currency), currency);
+    const minor = convertFromEur(SUBSCRIPTION_TIER_ANNUAL_PRICES[tier].amountMinor, currency);
+    return formatAmount(minor, currency);
   }
 
-  const paygLabel = formatAmount(getRegionalPaygPrice(region, currency), currency);
+  const paygLabel = formatAmount(convertFromEur(PAYG_PRO_PRICE.amountMinor, currency), currency);
 
   return (
     <section

@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import { headers } from 'next/headers';
 import { useTranslations } from 'next-intl';
 import { setRequestLocale, getTranslations } from 'next-intl/server';
 import { OG_DEFAULT_IMAGES, TWITTER_DEFAULT_IMAGES } from '@/lib/seo/og';
@@ -21,12 +20,8 @@ import { LandingFooterRich } from '@/components/landing/footer-rich';
 import { SectionNav } from '@/components/landing/section-nav';
 import { WedillybirdLogo } from '@/components/brand/wedillybird-logo';
 import { LocaleSwitcher } from '@/components/layout/locale-switcher';
-import {
-  defaultCurrencyForRegion,
-  detectPricingRegion,
-  formatRegionalPlanPrice,
-  formatRegionalUpsellPrice,
-} from '@/lib/payments/region';
+import { defaultCurrencyForLocale } from '@/lib/payments/currency';
+import type { Locale } from '@/i18n/routing';
 import { cn } from '@/lib/cn';
 
 const FAQ_KEYS = [
@@ -95,14 +90,7 @@ export async function generateMetadata({
 export default async function LandingPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const region = detectPricingRegion(await headers());
-  const currency = defaultCurrencyForRegion(region);
-
-  const prices = {
-    essential: formatRegionalPlanPrice('essential', region, currency),
-    premium: formatRegionalPlanPrice('premium', region, currency),
-  };
-  const upsellPriceLabel = formatRegionalUpsellPrice(region, currency);
+  const defaultCurrency = defaultCurrencyForLocale(locale as Locale);
 
   const tFaq = await getTranslations({ locale, namespace: 'Landing.faq.items' });
   const faqJsonLd = {
@@ -124,26 +112,15 @@ export default async function LandingPage({ params }: { params: Promise<{ locale
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
       />
-      <LandingShell
-        prices={prices}
-        upsellPriceLabel={upsellPriceLabel}
-        region={region}
-        currency={currency}
-      />
+      <LandingShell defaultCurrency={defaultCurrency} />
     </>
   );
 }
 
 function LandingShell({
-  prices,
-  upsellPriceLabel,
-  region,
-  currency,
+  defaultCurrency,
 }: {
-  prices: { essential: string; premium: string };
-  upsellPriceLabel: string;
-  region: ReturnType<typeof detectPricingRegion>;
-  currency: ReturnType<typeof defaultCurrencyForRegion>;
+  defaultCurrency: ReturnType<typeof defaultCurrencyForLocale>;
 }) {
   const tCommon = useTranslations('Common');
 
@@ -184,7 +161,10 @@ function LandingShell({
             <span aria-hidden className="hidden h-5 w-px bg-[color:var(--color-border)] md:block" />
             <Link
               href="/sign-up"
-              className={cn(buttonVariants({ variant: 'primary', size: 'sm' }))}
+              className={cn(
+                buttonVariants({ variant: 'primary', size: 'sm' }),
+                'whitespace-nowrap',
+              )}
             >
               {tCommon('signUp')}
             </Link>
@@ -201,8 +181,8 @@ function LandingShell({
         <LandingFeaturesGrid />
         <LandingCinematicInvitation />
         <LandingTestimonials />
-        <LandingPricingCards prices={prices} upsellPriceLabel={upsellPriceLabel} />
-        <LandingPricingPros region={region} currency={currency} />
+        <LandingPricingCards defaultCurrency={defaultCurrency} />
+        <LandingPricingPros defaultCurrency={defaultCurrency} />
         <LandingFaqAccordion />
         <LandingCtaFinal />
       </main>

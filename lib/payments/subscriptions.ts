@@ -1,7 +1,8 @@
 /**
  * Pro subscriptions — grille canonique avril 2026.
  *
- * Source de vérité : `.context/redesign-direction.md` section "Pricing figé".
+ * Source de vérité : `.context/redesign-direction.md` section "Pricing figé"
+ * et CLAUDE.md.
  *
  * Tarifs mensuels :
  *   Starter 89 € / Business 179 € / Agency 349 €
@@ -18,17 +19,18 @@
  * Stripe Price est créé pour pouvoir basculer plus tard sans déploiement.
  * Cf. BACKLOG "Pay-as-you-go pro code-side".
  *
+ * **EUR est la source unique** — USD/MAD/TND/XOF sont dérivés via
+ * `convertFromEur` (cf. `lib/payments/currency.ts`). Pas d'overlay régional :
+ * un Starter à 89 € reste 89 € converti pour tout le monde.
+ *
  * Multi-devises : EUR + USD via Stripe, XOF via CinetPay, MAD/TND via Stripe.
  * Les Stripe Prices stables sont nommés `STRIPE_PRICE_<TIER>[_ANNUAL]_<CURRENCY>`
  * (ex. STRIPE_PRICE_STARTER_MAD, STRIPE_PRICE_AGENCY_ANNUAL_USD). Le suffix sans
  * devise (`STRIPE_PRICE_STARTER`) reste un alias EUR pour rétro-compat env.
- *
- * USD couvre la région americas (US + CA) avec parité 1:1 sur la grille EUR
- * ($89 / $179 / $349 mensuel, $69 PAYG). Cf. `region.ts` pour l'overlay
- * regional côté pricing display.
  */
 
 import type { Currency } from './plans';
+import { pricesFromEur } from './currency';
 
 export type SubscriptionTier = 'starter' | 'business' | 'agency';
 
@@ -49,96 +51,85 @@ export interface SubscriptionTierDefinition {
   /** Quota mensuel de messages WhatsApp inclus. */
   whatsappMessagesIncluded: number;
   /**
-   * Montants équivalents par devise alternative (en unités mineures).
-   * EUR = `amountMinor`. XOF non supporté par Stripe (CinetPay prend le relais
-   * pour ce flux). Conversion : EUR × 10,7 (MAD) / × 3,4 (TND), arrondi à
-   * 100 unités mineures les plus proches.
+   * Montants équivalents par devise alternative (en unités mineures). Dérivés
+   * d'`amountMinor` via `pricesFromEur`. EUR = `amountMinor`. XOF non supporté
+   * par Stripe (CinetPay prend le relais).
    */
   prices: Record<Currency, number>;
 }
 
+const STARTER_EUR = 8900; // 89 €
+const BUSINESS_EUR = 17900; // 179 €
+const AGENCY_EUR = 34900; // 349 €
+
 export const SUBSCRIPTION_TIER_PRICES: Record<SubscriptionTier, SubscriptionTierDefinition> = {
   starter: {
-    amountMinor: 8900,
+    amountMinor: STARTER_EUR,
     currency: 'EUR',
     label: 'Starter',
     descriptionKey: 'starter',
     featureKeys: ['events3', 'whatsapp2k', 'brandingWedillybird', 'supportEmail48h'],
     activeEventsQuota: 3,
     whatsappMessagesIncluded: 2000,
-    // 89 € / $89 / ≈ 952 MAD / ≈ 302,6 TND
-    prices: { EUR: 8900, USD: 8900, XOF: 5840000, MAD: 95200, TND: 302600 },
+    prices: pricesFromEur(STARTER_EUR),
   },
   business: {
-    amountMinor: 17900,
+    amountMinor: BUSINESS_EUR,
     currency: 'EUR',
     label: 'Business',
     descriptionKey: 'business',
     featureKeys: ['events10', 'whatsapp6k', 'brandingLogoSubdomain', 'supportPriority24h'],
     activeEventsQuota: 10,
     whatsappMessagesIncluded: 6000,
-    // 179 € / $179 / ≈ 1 915 MAD / ≈ 608,6 TND
-    prices: { EUR: 17900, USD: 17900, XOF: 11744000, MAD: 191500, TND: 608600 },
+    prices: pricesFromEur(BUSINESS_EUR),
   },
   agency: {
-    amountMinor: 34900,
+    amountMinor: AGENCY_EUR,
     currency: 'EUR',
     label: 'Agency',
     descriptionKey: 'agency',
     featureKeys: ['eventsUnlimited', 'whatsapp20k', 'brandingWhiteLabel', 'accountManager'],
     activeEventsQuota: null,
     whatsappMessagesIncluded: 20000,
-    // 349 € / $349 / ≈ 3 734 MAD / ≈ 1 186,6 TND
-    prices: { EUR: 34900, USD: 34900, XOF: 22894000, MAD: 373400, TND: 1186600 },
+    prices: pricesFromEur(AGENCY_EUR),
   },
 };
 
 /**
  * Variantes annuelles : -20 % sur le total annuel, arrondi à l'euro supérieur.
- * Permet d'afficher l'économie réalisée vs mensuel (12× le tarif mensuel).
- *
- * Conversion vers MAD/TND/XOF identique au mensuel (parité × 10,7 / × 3,4 /
- * × 656, arrondi à 100 unités mineures les plus proches).
+ * Les prix non-EUR sont dérivés des `amountMinor` annuels (mêmes taux que le
+ * mensuel).
  */
+const STARTER_ANNUAL_EUR = 85500; // 855 €
+const BUSINESS_ANNUAL_EUR = 171900; // 1 719 €
+const AGENCY_ANNUAL_EUR = 335100; // 3 351 €
+
 export const SUBSCRIPTION_TIER_ANNUAL_PRICES: Record<
   SubscriptionTier,
   { amountMinor: number; prices: Record<Currency, number> }
 > = {
-  // 855 € / $855 / ≈ 9 148 MAD / ≈ 2 907 TND
-  starter: {
-    amountMinor: 85500,
-    prices: { EUR: 85500, USD: 85500, XOF: 56088000, MAD: 914800, TND: 2907000 },
-  },
-  // 1719 € / $1719 / ≈ 18 393 MAD / ≈ 5 844,6 TND
-  business: {
-    amountMinor: 171900,
-    prices: { EUR: 171900, USD: 171900, XOF: 112766000, MAD: 1839300, TND: 5844600 },
-  },
-  // 3351 € / $3351 / ≈ 35 856 MAD / ≈ 11 393,4 TND
-  agency: {
-    amountMinor: 335100,
-    prices: { EUR: 335100, USD: 335100, XOF: 219826000, MAD: 3585600, TND: 11393400 },
-  },
+  starter: { amountMinor: STARTER_ANNUAL_EUR, prices: pricesFromEur(STARTER_ANNUAL_EUR) },
+  business: { amountMinor: BUSINESS_ANNUAL_EUR, prices: pricesFromEur(BUSINESS_ANNUAL_EUR) },
+  agency: { amountMinor: AGENCY_ANNUAL_EUR, prices: pricesFromEur(AGENCY_ANNUAL_EUR) },
 };
 
 /**
  * Pay-as-you-go pro — one-shot 69 € pour 1 événement, sans abonnement.
  * Stripe Price créé pour pouvoir activer le checkout plus tard. Pas de tier
  * `payg` côté schema/code aujourd'hui (cf. BACKLOG).
- *
- * Conversion : 69 € → ≈ 738 MAD / ≈ 234,6 TND.
  */
+const PAYG_EUR = 6900; // 69 €
+
 export const PAYG_PRO_PRICE: {
   amountMinor: number;
   currency: 'EUR';
   label: string;
   prices: Record<Currency, number>;
 } = {
-  amountMinor: 6900,
+  amountMinor: PAYG_EUR,
   currency: 'EUR',
   label: 'Pay-as-you-go',
-  // 69 € / $69 / ≈ 738 MAD / ≈ 234,6 TND
-  prices: { EUR: 6900, USD: 6900, XOF: 4528000, MAD: 73800, TND: 234600 },
+  prices: pricesFromEur(PAYG_EUR),
 };
 
 export function isSubscriptionTier(value: unknown): value is SubscriptionTier {
