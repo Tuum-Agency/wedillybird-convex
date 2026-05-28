@@ -1369,5 +1369,16 @@
     "bodyAfter": ", aucun cookie de pistage tiers n'est utilisé à votre insu.",
     "accept": "Accepter",
     "decline": "Continuer sans accepter"
+  },
+  "CurrencySwitcher": {
+    "label": "Devise : {currency}",
+    "chooseLabel": "Choisir une devise",
+    "names": {
+      "EUR": "Euro",
+      "USD": "Dollar US",
+      "XOF": "Franc CFA",
+      "MAD": "Dirham marocain",
+      "TND": "Dinar tunisien"
+    }
   }
 }

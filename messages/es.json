@@ -1369,5 +1369,16 @@
     "bodyAfter": ", no se utiliza ninguna cookie de seguimiento de terceros sin su conocimiento.",
     "accept": "Aceptar",
     "decline": "Continuar sin aceptar"
+  },
+  "CurrencySwitcher": {
+    "label": "Moneda: {currency}",
+    "chooseLabel": "Elegir moneda",
+    "names": {
+      "EUR": "Euro",
+      "USD": "Dólar estadounidense",
+      "XOF": "Franco CFA",
+      "MAD": "Dírham marroquí",
+      "TND": "Dinar tunecino"
+    }
   }
 }

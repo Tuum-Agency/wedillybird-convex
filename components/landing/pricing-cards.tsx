@@ -5,7 +5,8 @@ import { useTranslations } from 'next-intl';
 import { Calendar, Check, ShieldCheck, Sparkles, Star } from 'lucide-react';
 import { Link } from '@/i18n/navigation';
 import { buttonVariants } from '@/components/ui/button';
-import { PLANS } from '@/lib/payments/plans';
+import { PLANS, POST_EVENT_UPSELL, formatEurAs, type Currency } from '@/lib/payments/plans';
+import { useEffectiveCurrency } from '@/stores/currency-store';
 import { cn } from '@/lib/cn';
 import { inViewOnce, scrollReveal, scrollRevealParent } from '@/lib/motion/presets';
 
@@ -13,19 +14,28 @@ const ESSENTIAL_KEY_SET = new Set(PLANS.essential.featureKeys);
 const PREMIUM_ONLY_KEYS = PLANS.premium.featureKeys.filter((k) => !ESSENTIAL_KEY_SET.has(k));
 
 interface Props {
-  /** Pre-formatted prices passed from the server component (already region-aware via geoIP). */
-  prices: { essential: string; premium: string };
-  upsellPriceLabel: string;
+  /**
+   * Devise par défaut à utiliser tant que l'utilisateur n'a pas overridé
+   * via le sélecteur footer (dérivée de la locale côté server).
+   */
+  defaultCurrency: Currency;
 }
 
 /**
  * Landing — Pricing 2 cards V3.
  *
- * Détection régionale auto (côté server.tsx via geoIP). Pas de toggle manuel.
- * Card Premium ringed blush + scale-up desktop. Trust line en bas. Glass
- * card upsell post-mariage en dessous.
+ * EUR est la source de vérité. Le composant affiche les montants convertis
+ * dans la devise effective (override utilisateur via le store, sinon devise
+ * par défaut de la locale).
  */
-export function LandingPricingCards({ prices, upsellPriceLabel }: Props) {
+export function LandingPricingCards({ defaultCurrency }: Props) {
+  const currency = useEffectiveCurrency(defaultCurrency);
+  const prices = {
+    essential: formatEurAs(PLANS.essential.eurMinor, currency),
+    premium: formatEurAs(PLANS.premium.eurMinor, currency),
+  };
+  const upsellPriceLabel = formatEurAs(POST_EVENT_UPSELL.eurMinor, currency);
+
   const t = useTranslations('Landing');
   const tPlans = useTranslations('Plans');
   const tCommon = useTranslations('Common');

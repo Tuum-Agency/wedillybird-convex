@@ -8,6 +8,9 @@ import { Link } from '@/i18n/navigation';
 import { WedillybirdLogo } from '@/components/brand/wedillybird-logo';
 import { LandingPricingPros } from '@/components/landing/pricing-pros';
 import { LandingFooterRich } from '@/components/landing/footer-rich';
+import { defaultCurrencyForLocale } from '@/lib/payments/currency';
+import type { Locale } from '@/i18n/routing';
+import type { Currency } from '@/lib/payments/plans';
 
 export async function generateMetadata({
   params,
@@ -45,10 +48,11 @@ export default async function ForfaitsProsPage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  return <ForfaitsProsShell />;
+  const defaultCurrency = defaultCurrencyForLocale(locale as Locale);
+  return <ForfaitsProsShell defaultCurrency={defaultCurrency} />;
 }
 
-function ForfaitsProsShell() {
+function ForfaitsProsShell({ defaultCurrency }: { defaultCurrency: Currency }) {
   const t = useTranslations('Landing.forfaitsPros');
   const tCommon = useTranslations('Common');
 
@@ -99,7 +103,7 @@ function ForfaitsProsShell() {
         </section>
 
         {/* Pricing Pros section (toggle + 3 cards + PAYG aside) */}
-        <LandingPricingPros />
+        <LandingPricingPros defaultCurrency={defaultCurrency} />
 
         {/* FAQ rapide */}
         <section className="bg-[color:var(--color-surface)] py-20">

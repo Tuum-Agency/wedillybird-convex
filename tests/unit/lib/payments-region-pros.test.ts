@@ -11,70 +11,50 @@ import {
 } from '@/lib/payments/subscriptions';
 
 /**
- * Region overlay pros : africa applique une grille réduite (39/79/149 €
- * équivalent) pour matcher le pouvoir d'achat local. Europe + americas
- * gardent la grille canonique 89/179/349.
+ * L'overlay africa réduit (39/79/149 €) a été retiré : la grille s'aligne
+ * sur EUR 89/179/349 partout, avec conversion automatique pour les autres
+ * devises. Cf. CLAUDE.md "Pricing — source de vérité".
  */
-describe('getRegionalSubscriptionPrice', () => {
-  it('africa uses the reduced grid 39 / 79 / 149 € monthly', () => {
-    expect(getRegionalSubscriptionPrice('starter', 'africa', 'monthly', 'EUR')).toBe(3900);
-    expect(getRegionalSubscriptionPrice('business', 'africa', 'monthly', 'EUR')).toBe(7900);
-    expect(getRegionalSubscriptionPrice('agency', 'africa', 'monthly', 'EUR')).toBe(14900);
-  });
-
-  it('africa annual is 375 / 759 / 1431 € (-20 % du mensuel × 12, ceil)', () => {
-    expect(getRegionalSubscriptionPrice('starter', 'africa', 'annual', 'EUR')).toBe(37500);
-    expect(getRegionalSubscriptionPrice('business', 'africa', 'annual', 'EUR')).toBe(75900);
-    expect(getRegionalSubscriptionPrice('agency', 'africa', 'annual', 'EUR')).toBe(143100);
-  });
-
-  it('africa < europe for every tier and billing', () => {
-    for (const tier of ['starter', 'business', 'agency'] as const) {
-      for (const billing of ['monthly', 'annual'] as const) {
-        const africa = getRegionalSubscriptionPrice(tier, 'africa', billing, 'EUR');
-        const europe = getRegionalSubscriptionPrice(tier, 'europe', billing, 'EUR');
-        expect(africa, `${tier}/${billing}`).toBeLessThan(europe);
-      }
+describe("getRegionalSubscriptionPrice — pas d'overlay", () => {
+  it('returns the canonical EUR monthly price for every region', () => {
+    for (const region of ['africa', 'europe', 'americas'] as const) {
+      expect(getRegionalSubscriptionPrice('starter', region, 'monthly', 'EUR')).toBe(
+        SUBSCRIPTION_TIER_PRICES.starter.amountMinor,
+      );
+      expect(getRegionalSubscriptionPrice('business', region, 'monthly', 'EUR')).toBe(
+        SUBSCRIPTION_TIER_PRICES.business.amountMinor,
+      );
+      expect(getRegionalSubscriptionPrice('agency', region, 'monthly', 'EUR')).toBe(
+        SUBSCRIPTION_TIER_PRICES.agency.amountMinor,
+      );
     }
   });
 
-  it('europe matches the canonical grid (no overlay)', () => {
-    expect(getRegionalSubscriptionPrice('starter', 'europe', 'monthly', 'EUR')).toBe(
-      SUBSCRIPTION_TIER_PRICES.starter.amountMinor,
-    );
-    expect(getRegionalSubscriptionPrice('agency', 'europe', 'annual', 'EUR')).toBe(
-      SUBSCRIPTION_TIER_ANNUAL_PRICES.agency.amountMinor,
-    );
-  });
-
-  it('americas resolves to USD pricing 1:1 with the canonical grid', () => {
-    expect(getRegionalSubscriptionPrice('starter', 'americas', 'monthly', 'USD')).toBe(8900);
-    expect(getRegionalSubscriptionPrice('business', 'americas', 'monthly', 'USD')).toBe(17900);
-    expect(getRegionalSubscriptionPrice('agency', 'americas', 'monthly', 'USD')).toBe(34900);
-  });
-
-  it('annual is strictly cheaper than 12 × monthly across all regions', () => {
+  it('returns the canonical EUR annual price for every region', () => {
     for (const region of ['africa', 'europe', 'americas'] as const) {
-      for (const tier of ['starter', 'business', 'agency'] as const) {
-        const monthly12 = getRegionalSubscriptionPrice(tier, region, 'monthly', 'EUR') * 12;
-        const annual = getRegionalSubscriptionPrice(tier, region, 'annual', 'EUR');
-        expect(annual, `${region}/${tier}`).toBeLessThan(monthly12);
-      }
+      expect(getRegionalSubscriptionPrice('starter', region, 'annual', 'EUR')).toBe(
+        SUBSCRIPTION_TIER_ANNUAL_PRICES.starter.amountMinor,
+      );
+      expect(getRegionalSubscriptionPrice('agency', region, 'annual', 'EUR')).toBe(
+        SUBSCRIPTION_TIER_ANNUAL_PRICES.agency.amountMinor,
+      );
+    }
+  });
+
+  it('annual is strictly cheaper than 12 × monthly for every tier', () => {
+    for (const tier of ['starter', 'business', 'agency'] as const) {
+      const monthly12 = getRegionalSubscriptionPrice(tier, 'europe', 'monthly', 'EUR') * 12;
+      const annual = getRegionalSubscriptionPrice(tier, 'europe', 'annual', 'EUR');
+      expect(annual, tier).toBeLessThan(monthly12);
     }
   });
 });
 
-describe('getRegionalPaygPrice', () => {
-  it('africa PAYG is 29 €', () => {
-    expect(getRegionalPaygPrice('africa', 'EUR')).toBe(2900);
-  });
-
-  it('europe PAYG matches the canonical 69 €', () => {
-    expect(getRegionalPaygPrice('europe', 'EUR')).toBe(PAYG_PRO_PRICE.prices.EUR);
-  });
-
-  it('americas PAYG is $69', () => {
-    expect(getRegionalPaygPrice('americas', 'USD')).toBe(6900);
+describe("getRegionalPaygPrice — pas d'overlay", () => {
+  it('returns 69 € for every region', () => {
+    for (const region of ['africa', 'europe', 'americas'] as const) {
+      expect(getRegionalPaygPrice(region, 'EUR')).toBe(PAYG_PRO_PRICE.prices.EUR);
+    }
   });
 });
 
