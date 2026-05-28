@@ -12,7 +12,7 @@ import {
   SUBSCRIPTION_TIER_PRICES,
   type SubscriptionTier,
 } from '@/lib/payments/subscriptions';
-import { formatAmount, type Currency } from '@/lib/payments/plans';
+import { formatAmount, priceFontSizeClamp, type Currency } from '@/lib/payments/plans';
 import { convertFromEur } from '@/lib/payments/currency';
 import { useEffectiveCurrency } from '@/stores/currency-store';
 import { cn } from '@/lib/cn';
@@ -251,11 +251,11 @@ export function LandingPricingPros({ defaultCurrency = 'EUR' }: LandingPricingPr
 
               {/* Prix */}
               <div className="flex flex-col gap-0.5">
-                <div className="flex items-baseline gap-2">
+                <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-1">
                   <span
                     className="font-display tabular-nums"
                     style={{
-                      fontSize: 'clamp(2.5rem, 4vw, 3.25rem)',
+                      fontSize: priceFontSizeClamp(getMonthlyEquivalentLabel(tier), 'card-compact'),
                       fontStyle: 'italic',
                       fontWeight: 300,
                       letterSpacing: '-0.025em',

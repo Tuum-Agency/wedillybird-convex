@@ -161,6 +161,35 @@ export function formatEurAs(eurMinor: number, currency: Currency): string {
 }
 
 /**
+ * Renvoie une valeur CSS `font-size` (via `clamp`) adaptée à la longueur de la
+ * chaîne de prix formatée. EUR/USD restent grands ; XOF/MAD/TND produisent
+ * des nombres beaucoup plus longs (« 228 929 F CFA ») et doivent être réduits
+ * pour ne pas déborder de la carte.
+ *
+ * Les chaînes formatées par `Intl.NumberFormat` contiennent des espaces
+ * insécables (U+00A0, U+202F) qui empêchent le retour à la ligne mid-amount —
+ * on ne peut donc pas compter sur `flex-wrap` pour absorber le débordement, il
+ * faut rétrécir la police elle-même.
+ *
+ * Deux échelles : `card` (cards particuliers, md:grid-cols-2, plus large) et
+ * `card-compact` (cards pros, md:grid-cols-3, plus serrée).
+ */
+export function priceFontSizeClamp(
+  formatted: string,
+  scale: 'card' | 'card-compact' = 'card',
+): string {
+  const len = formatted.length;
+  if (scale === 'card') {
+    if (len <= 8) return 'clamp(2.75rem, 5vw, 3.75rem)';
+    if (len <= 11) return 'clamp(2rem, 3.6vw, 2.75rem)';
+    return 'clamp(1.5rem, 2.8vw, 2rem)';
+  }
+  if (len <= 8) return 'clamp(2.5rem, 4vw, 3.25rem)';
+  if (len <= 11) return 'clamp(1.85rem, 3vw, 2.5rem)';
+  return 'clamp(1.4rem, 2.4vw, 1.85rem)';
+}
+
+/**
  * Stripe Price IDs des plans particuliers (one-shot), résolus par devise.
  *
  * Convention env vars :
