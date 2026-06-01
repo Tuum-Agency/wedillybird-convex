@@ -94,6 +94,12 @@ export const convexApi = {
     { eventId: string; requesterId: string },
     { ok: true; status: 'draft' | 'active' | 'archived' | 'cancelled' }
   >('events:unpublish'),
+  orgPublishQuotaStatus: makeFunctionReference<
+    'query',
+    { eventId: string; requesterId: string },
+    | { applicable: false }
+    | { applicable: true; quota: number; activeEventCount: number; atQuota: boolean }
+  >('events:orgPublishQuotaStatus'),
   listEventsByOwner: makeFunctionReference<
     'query',
     { ownerId: string },

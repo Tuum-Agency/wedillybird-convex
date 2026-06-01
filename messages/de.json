@@ -634,7 +634,8 @@
     "planUpsellSuffix": "· 5 Jahre Aufbewahrung",
     "activatePlan": "Paket aktivieren",
     "publishLockedHint": "Aktiviere dein Paket, um deine Einladung zu veröffentlichen und RSVPs zu versenden. Einmalzahlung, kein Abo.",
-    "publishLockedHintPayg": "Du hast kein Pay-as-you-go-Guthaben mehr. Kaufe eines unter /pro/billing oder aktiviere ein Abonnement."
+    "publishLockedHintPayg": "Du hast kein Pay-as-you-go-Guthaben mehr. Kaufe eines unter /pro/billing oder aktiviere ein Abonnement.",
+    "publishLockedHintQuota": "Kontingent aktiver Events erreicht ({quota} gleichzeitig in Ihrem Tarif). Archivieren Sie ein abgeschlossenes Event oder upgraden Sie, um ein neues zu veröffentlichen."
   },
   "Guests": {
     "title": "Einladungsliste",
@@ -791,6 +792,7 @@
         "notIndexed": "Die Gesichtsindexierung ist noch nicht abgeschlossen. Versuche es in ein paar Minuten erneut.",
         "forbidden": "Du hast keinen Zugriff auf diese Galerie.",
         "rateLimited": "Zu viele Suchen in kurzer Zeit. Warte einen Moment, bevor du es erneut versuchst.",
+        "notInPlan": "Nur im Premium-Tarif. Wechseln Sie zu Premium, um die Gesichtssuche zu nutzen.",
         "unknown": "Ein Fehler ist aufgetreten. Bitte erneut versuchen."
       }
     }

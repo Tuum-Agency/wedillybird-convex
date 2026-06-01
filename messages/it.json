@@ -634,7 +634,8 @@
     "planUpsellSuffix": "· Conservazione 5 anni",
     "activatePlan": "Attiva un piano",
     "publishLockedHint": "Attiva il tuo piano per pubblicare il tuo invito e inviare gli RSVP. Il pagamento è unico, nessun abbonamento.",
-    "publishLockedHintPayg": "Non hai più credito Pay-as-you-go. Acquistane uno su /pro/billing o attiva un abbonamento."
+    "publishLockedHintPayg": "Non hai più credito Pay-as-you-go. Acquistane uno su /pro/billing o attiva un abbonamento.",
+    "publishLockedHintQuota": "Quota di eventi attivi raggiunta ({quota} simultanei nel tuo piano). Archivia un evento concluso o passa a un piano superiore per pubblicarne uno nuovo."
   },
   "Guests": {
     "title": "Lista inviti",
@@ -791,6 +792,7 @@
         "notIndexed": "L'indicizzazione dei volti non è ancora terminata. Riprova tra qualche minuto.",
         "forbidden": "Non hai accesso a questa galleria.",
         "rateLimited": "Troppe ricerche recenti. Attendi qualche istante prima di riprovare.",
+        "notInPlan": "Solo con il piano Premium. Passa a Premium per usare la ricerca per volto.",
         "unknown": "Si è verificato un errore. Riprova."
       }
     }

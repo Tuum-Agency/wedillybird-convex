@@ -631,7 +631,8 @@
     "planUpsellSuffix": "· 5-year retention",
     "activatePlan": "Activate a plan",
     "publishLockedHint": "Activate your plan to publish your invitation and send RSVPs. One-shot payment, no subscription.",
-    "publishLockedHintPayg": "You have no Pay-as-you-go credit left. Buy one on /pro/billing or activate a subscription."
+    "publishLockedHintPayg": "You have no Pay-as-you-go credit left. Buy one on /pro/billing or activate a subscription.",
+    "publishLockedHintQuota": "Active event quota reached ({quota} simultaneous on your plan). Archive a finished event or upgrade to publish a new one."
   },
   "Guests": {
     "title": "Invitation list",
@@ -788,6 +789,7 @@
         "notIndexed": "Face indexing isn't finished yet. Try again in a few minutes.",
         "forbidden": "You don't have access to this gallery.",
         "rateLimited": "Too many recent searches. Please wait a moment before trying again.",
+        "notInPlan": "Premium plan only. Upgrade to Premium to use face search.",
         "unknown": "Something went wrong. Try again."
       }
     }

@@ -634,7 +634,8 @@
     "planUpsellSuffix": "· Retenção 5 anos",
     "activatePlan": "Ativar um plano",
     "publishLockedHint": "Ativa o teu plano para publicares o convite e enviares os RSVP. O pagamento é único, sem subscrição.",
-    "publishLockedHintPayg": "Já não tens crédito Pay-as-you-go. Compra um em /pro/billing ou ativa uma subscrição."
+    "publishLockedHintPayg": "Já não tens crédito Pay-as-you-go. Compra um em /pro/billing ou ativa uma subscrição.",
+    "publishLockedHintQuota": "Cota de eventos ativos atingida ({quota} simultâneos no seu plano). Arquive um evento concluído ou faça upgrade para publicar um novo."
   },
   "Guests": {
     "title": "Lista de convites",
@@ -791,6 +792,7 @@
         "notIndexed": "A indexação dos rostos ainda não terminou. Tenta de novo daqui a alguns minutos.",
         "forbidden": "Não tens acesso a esta galeria.",
         "rateLimited": "Demasiadas pesquisas recentes. Aguarda alguns instantes antes de tentares de novo.",
+        "notInPlan": "Apenas no plano Premium. Mude para Premium para usar a busca facial.",
         "unknown": "Ocorreu um erro. Tenta de novo."
       }
     }

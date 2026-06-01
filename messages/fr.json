@@ -635,7 +635,8 @@
     "planUpsellSuffix": "· Rétention 5 ans",
     "activatePlan": "Activer un forfait",
     "publishLockedHint": "Activez votre forfait pour publier votre invitation et envoyer les RSVP. Le paiement est unique, pas d'abonnement.",
-    "publishLockedHintPayg": "Vous n'avez plus de crédit Pay-as-you-go. Achetez-en un sur /pro/billing ou activez un abonnement."
+    "publishLockedHintPayg": "Vous n'avez plus de crédit Pay-as-you-go. Achetez-en un sur /pro/billing ou activez un abonnement.",
+    "publishLockedHintQuota": "Quota d'événements actifs atteint ({quota} simultanés sur votre formule). Archivez un événement terminé ou passez à une formule supérieure pour en publier un nouveau."
   },
   "Guests": {
     "title": "Liste d'invitations",
@@ -792,6 +793,7 @@
         "notIndexed": "L'indexation des visages n'est pas encore terminée. Réessayez dans quelques minutes.",
         "forbidden": "Vous n'avez pas accès à cette galerie.",
         "rateLimited": "Trop de recherches récentes. Patientez quelques instants avant de réessayer.",
+        "notInPlan": "Réservé à la formule Premium. Passez en Premium pour activer la recherche par visage.",
         "unknown": "Une erreur est survenue. Réessayez."
       }
     }

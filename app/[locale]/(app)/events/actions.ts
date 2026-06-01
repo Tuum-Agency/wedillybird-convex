@@ -307,6 +307,9 @@ export async function togglePublishActionWithResult(
     if (message.includes('PLAN_REQUIRED')) {
       return { ok: false, error: 'PLAN_REQUIRED' };
     }
+    if (message.includes('EVENT_QUOTA_EXCEEDED')) {
+      return { ok: false, error: 'EVENT_QUOTA_EXCEEDED' };
+    }
     if (message.includes('FORBIDDEN')) {
       return { ok: false, error: 'FORBIDDEN' };
     }

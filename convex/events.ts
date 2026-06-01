@@ -435,6 +435,55 @@ export const publish = mutation({
 });
 
 /**
+ * Renseigne l'UI sur l'état du quota d'events actifs simultanés d'une orga Pro,
+ * pour pré-désactiver le bouton « Publier » et afficher un hint clair plutôt
+ * que de laisser la mutation `publishEvent` throw EVENT_QUOTA_EXCEEDED en
+ * silence (le form action ne remonte pas l'erreur).
+ *
+ * `applicable: false` quand le quota ne s'applique pas (event non-pro, orga
+ * sans sub active — le PAYG paie à l'event, pas de quota — ou tier sans cap).
+ * Le compte exclut l'event courant (celui qu'on s'apprête à publier).
+ */
+export const orgPublishQuotaStatus = query({
+  args: { eventId: v.id('events'), requesterId: v.id('users') },
+  handler: async (ctx, { eventId, requesterId }) => {
+    const event = await ctx.db.get(eventId);
+    if (!event || !event.organizationId) return { applicable: false as const };
+    const orgId = event.organizationId;
+
+    const membership = await ctx.db
+      .query('organizationMemberships')
+      .withIndex('by_org_user', (q) => q.eq('organizationId', orgId).eq('userId', requesterId))
+      .first();
+    if (!membership || membership.status !== 'active') return { applicable: false as const };
+
+    const org = await ctx.db.get(orgId);
+    if (!org) return { applicable: false as const };
+    const hasActiveSub =
+      org.subscriptionStatus === 'active' || org.subscriptionStatus === 'trialing';
+    if (!hasActiveSub) return { applicable: false as const };
+
+    const quota = eventQuotaForTier(org.subscriptionTier);
+    if (quota == null) return { applicable: false as const };
+
+    const orgEvents = await ctx.db
+      .query('events')
+      .withIndex('by_organization', (q) => q.eq('organizationId', orgId))
+      .collect();
+    const activeEventCount = orgEvents.filter(
+      (e) => e.status === 'active' && e._id !== eventId,
+    ).length;
+
+    return {
+      applicable: true as const,
+      quota,
+      activeEventCount,
+      atQuota: activeEventCount >= quota,
+    };
+  },
+});
+
+/**
  * Archive un event (soft delete). Owner-only. Bascule le status à `archived`
  * et déclenche le cleanup AWS associé (Face Collection Rekognition + rows
  * `photoFaces` côté DB). Pas de hard-delete des `events` ni des `photos` :

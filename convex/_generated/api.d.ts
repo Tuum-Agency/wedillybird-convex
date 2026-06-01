@@ -18,6 +18,7 @@ import type * as http from "../http.js";
 import type * as invitationActions from "../invitationActions.js";
 import type * as lib_channelRouting from "../lib/channelRouting.js";
 import type * as lib_email from "../lib/email.js";
+import type * as lib_entitlements from "../lib/entitlements.js";
 import type * as lib_magicLink from "../lib/magicLink.js";
 import type * as lib_otp from "../lib/otp.js";
 import type * as lib_phone from "../lib/phone.js";
@@ -60,6 +61,7 @@ declare const fullApi: ApiFromModules<{
   invitationActions: typeof invitationActions;
   "lib/channelRouting": typeof lib_channelRouting;
   "lib/email": typeof lib_email;
+  "lib/entitlements": typeof lib_entitlements;
   "lib/magicLink": typeof lib_magicLink;
   "lib/otp": typeof lib_otp;
   "lib/phone": typeof lib_phone;
