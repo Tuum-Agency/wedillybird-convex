@@ -18,8 +18,8 @@ describe('lib/payments/plans — prix TND particuliers (millimes)', () => {
     expect(getPlanPrice('essential', 'TND')).toBe(64600);
   });
 
-  it('premium : 49 € → 166 600 millimes (= 166,6 TND)', () => {
-    expect(getPlanPrice('premium', 'TND')).toBe(166600);
+  it('premium : 59 € → 200 600 millimes (= 200,6 TND)', () => {
+    expect(getPlanPrice('premium', 'TND')).toBe(200600);
   });
 
   it('post-event upsell : +29 € → 98 600 millimes (= 98,6 TND)', () => {
@@ -39,9 +39,9 @@ describe('lib/payments/plans — prix TND particuliers (millimes)', () => {
     }
   });
 
-  it('garde la parité existante des pros (subscriptions.ts) — starter = 302 600 millimes', () => {
+  it('garde la parité existante des pros (subscriptions.ts) — starter = 336 600 millimes', () => {
     // Garde-fou : si le code Pro régresse sur la même classe de bug, ce test
     // tombe en même temps que la grille particuliers.
-    expect(SUBSCRIPTION_TIER_PRICES.starter.prices.TND).toBe(302600);
+    expect(SUBSCRIPTION_TIER_PRICES.starter.prices.TND).toBe(336600);
   });
 });

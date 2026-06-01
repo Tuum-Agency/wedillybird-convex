@@ -112,15 +112,15 @@ describe('TND pricing sanity (anti-regression)', () => {
     expect(PLANS.essential.prices.TND).toBe(64600);
   });
 
-  it('PLANS.premium.prices.TND === 166600', () => {
-    expect(PLANS.premium.prices.TND).toBe(166600);
+  it('PLANS.premium.prices.TND === 200600', () => {
+    expect(PLANS.premium.prices.TND).toBe(200600);
   });
 
   it('POST_EVENT_UPSELL.prices.TND === 98600', () => {
     expect(POST_EVENT_UPSELL.prices.TND).toBe(98600);
   });
 
-  it('SUBSCRIPTION_TIER_PRICES.starter.prices.TND === 302600', () => {
-    expect(SUBSCRIPTION_TIER_PRICES.starter.prices.TND).toBe(302600);
+  it('SUBSCRIPTION_TIER_PRICES.starter.prices.TND === 336600', () => {
+    expect(SUBSCRIPTION_TIER_PRICES.starter.prices.TND).toBe(336600);
   });
 });

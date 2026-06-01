@@ -73,7 +73,7 @@ const PREMIUM_EXTRA_FEATURES = [
 ] as const;
 
 const ESSENTIAL_EUR = 1900; // 19 €
-const PREMIUM_EUR = 4900; // 49 €
+const PREMIUM_EUR = 5900; // 59 € (grille v2 — absorbe le coût SMS US)
 const UPSELL_EUR = 2900; // +29 €
 
 export const PLANS: Record<PlanTier, PlanDefinition> = {

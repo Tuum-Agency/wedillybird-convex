@@ -58,9 +58,9 @@ export interface SubscriptionTierDefinition {
   prices: Record<Currency, number>;
 }
 
-const STARTER_EUR = 8900; // 89 €
-const BUSINESS_EUR = 17900; // 179 €
-const AGENCY_EUR = 34900; // 349 €
+const STARTER_EUR = 9900; // 99 € (grille v2)
+const BUSINESS_EUR = 21900; // 219 € (grille v2)
+const AGENCY_EUR = 44900; // 449 € (grille v2)
 
 export const SUBSCRIPTION_TIER_PRICES: Record<SubscriptionTier, SubscriptionTierDefinition> = {
   starter: {
@@ -69,7 +69,7 @@ export const SUBSCRIPTION_TIER_PRICES: Record<SubscriptionTier, SubscriptionTier
     label: 'Starter',
     descriptionKey: 'starter',
     featureKeys: ['events3', 'whatsapp2k', 'brandingWedillybird', 'supportEmail48h'],
-    activeEventsQuota: 3,
+    activeEventsQuota: 5,
     whatsappMessagesIncluded: 2000,
     prices: pricesFromEur(STARTER_EUR),
   },
@@ -79,7 +79,7 @@ export const SUBSCRIPTION_TIER_PRICES: Record<SubscriptionTier, SubscriptionTier
     label: 'Business',
     descriptionKey: 'business',
     featureKeys: ['events10', 'whatsapp6k', 'brandingLogoSubdomain', 'supportPriority24h'],
-    activeEventsQuota: 10,
+    activeEventsQuota: 20,
     whatsappMessagesIncluded: 6000,
     prices: pricesFromEur(BUSINESS_EUR),
   },
@@ -89,7 +89,7 @@ export const SUBSCRIPTION_TIER_PRICES: Record<SubscriptionTier, SubscriptionTier
     label: 'Agency',
     descriptionKey: 'agency',
     featureKeys: ['eventsUnlimited', 'whatsapp20k', 'brandingWhiteLabel', 'accountManager'],
-    activeEventsQuota: null,
+    activeEventsQuota: 50,
     whatsappMessagesIncluded: 20000,
     prices: pricesFromEur(AGENCY_EUR),
   },
@@ -100,9 +100,9 @@ export const SUBSCRIPTION_TIER_PRICES: Record<SubscriptionTier, SubscriptionTier
  * Les prix non-EUR sont dérivés des `amountMinor` annuels (mêmes taux que le
  * mensuel).
  */
-const STARTER_ANNUAL_EUR = 85500; // 855 €
-const BUSINESS_ANNUAL_EUR = 171900; // 1 719 €
-const AGENCY_ANNUAL_EUR = 335100; // 3 351 €
+const STARTER_ANNUAL_EUR = 95100; // 951 € (99 × 12 × 0,80 = 950,40 → ceil 951)
+const BUSINESS_ANNUAL_EUR = 210300; // 2 103 € (219 × 12 × 0,80 = 2102,40 → ceil 2103)
+const AGENCY_ANNUAL_EUR = 431100; // 4 311 € (449 × 12 × 0,80 = 4310,40 → ceil 4311)
 
 export const SUBSCRIPTION_TIER_ANNUAL_PRICES: Record<
   SubscriptionTier,
@@ -118,7 +118,7 @@ export const SUBSCRIPTION_TIER_ANNUAL_PRICES: Record<
  * Stripe Price créé pour pouvoir activer le checkout plus tard. Pas de tier
  * `payg` côté schema/code aujourd'hui (cf. BACKLOG).
  */
-const PAYG_EUR = 6900; // 69 €
+const PAYG_EUR = 7900; // 79 € (grille v2)
 
 export const PAYG_PRO_PRICE: {
   amountMinor: number;

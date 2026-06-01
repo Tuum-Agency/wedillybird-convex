@@ -945,9 +945,9 @@
         "payg": "Un seul mariage à organiser ? Pas d'abonnement, paiement à l'usage."
       },
       "features": {
-        "events3": "Jusqu'à 3 événements actifs simultanés",
-        "events10": "Jusqu'à 10 événements actifs simultanés",
-        "eventsUnlimited": "Événements illimités",
+        "events3": "Jusqu'à 5 événements actifs simultanés",
+        "events10": "Jusqu'à 20 événements actifs simultanés",
+        "eventsUnlimited": "Jusqu'à 50 événements actifs simultanés",
         "events1": "1 événement",
         "whatsapp2k": "2 000 messages WhatsApp inclus / mois",
         "whatsapp6k": "6 000 messages WhatsApp inclus / mois",

@@ -941,9 +941,9 @@
         "payg": "Just one wedding to run? No subscription, pay as you go."
       },
       "features": {
-        "events3": "Up to 3 active events at once",
-        "events10": "Up to 10 active events at once",
-        "eventsUnlimited": "Unlimited events",
+        "events3": "Up to 5 active events at once",
+        "events10": "Up to 20 active events at once",
+        "eventsUnlimited": "Up to 50 active events at once",
         "events1": "1 event",
         "whatsapp2k": "2,000 WhatsApp messages included / month",
         "whatsapp6k": "6,000 WhatsApp messages included / month",

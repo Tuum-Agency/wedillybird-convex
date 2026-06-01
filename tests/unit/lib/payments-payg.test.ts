@@ -14,13 +14,13 @@ afterEach(() => {
 });
 
 describe('PAYG_PRO_PRICE constant', () => {
-  it('matches the canonical pricing grid (69 € for one event)', () => {
-    expect(PAYG_PRO_PRICE.amountMinor).toBe(6900);
+  it('matches the canonical pricing grid (79 € for one event)', () => {
+    expect(PAYG_PRO_PRICE.amountMinor).toBe(7900);
     expect(PAYG_PRO_PRICE.currency).toBe('EUR');
   });
 
   it('exposes prices for all four supported currencies', () => {
-    expect(PAYG_PRO_PRICE.prices.EUR).toBe(6900);
+    expect(PAYG_PRO_PRICE.prices.EUR).toBe(7900);
     expect(PAYG_PRO_PRICE.prices.XOF).toBeGreaterThan(0);
     expect(PAYG_PRO_PRICE.prices.MAD).toBeGreaterThan(0);
     expect(PAYG_PRO_PRICE.prices.TND).toBeGreaterThan(0);

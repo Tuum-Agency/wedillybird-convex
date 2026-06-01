@@ -205,10 +205,10 @@ describe('tierForPriceId (round-trip)', () => {
 });
 
 describe('SUBSCRIPTION_TIER_PRICES — grille canonique avril 2026', () => {
-  it('matches 89 / 179 / 349 EUR/mo', () => {
-    expect(SUBSCRIPTION_TIER_PRICES.starter.amountMinor).toBe(8900);
-    expect(SUBSCRIPTION_TIER_PRICES.business.amountMinor).toBe(17900);
-    expect(SUBSCRIPTION_TIER_PRICES.agency.amountMinor).toBe(34900);
+  it('matches 99 / 219 / 449 EUR/mo', () => {
+    expect(SUBSCRIPTION_TIER_PRICES.starter.amountMinor).toBe(9900);
+    expect(SUBSCRIPTION_TIER_PRICES.business.amountMinor).toBe(21900);
+    expect(SUBSCRIPTION_TIER_PRICES.agency.amountMinor).toBe(44900);
   });
 
   it('all monthly tiers are billed in EUR (canonical reference currency)', () => {
@@ -237,26 +237,26 @@ describe('SUBSCRIPTION_TIER_PRICES — grille canonique avril 2026', () => {
   });
 
   it('exposes active events quota and WhatsApp inclusion', () => {
-    expect(SUBSCRIPTION_TIER_PRICES.starter.activeEventsQuota).toBe(3);
+    expect(SUBSCRIPTION_TIER_PRICES.starter.activeEventsQuota).toBe(5);
     expect(SUBSCRIPTION_TIER_PRICES.starter.whatsappMessagesIncluded).toBe(2000);
-    expect(SUBSCRIPTION_TIER_PRICES.business.activeEventsQuota).toBe(10);
+    expect(SUBSCRIPTION_TIER_PRICES.business.activeEventsQuota).toBe(20);
     expect(SUBSCRIPTION_TIER_PRICES.business.whatsappMessagesIncluded).toBe(6000);
-    expect(SUBSCRIPTION_TIER_PRICES.agency.activeEventsQuota).toBeNull();
+    expect(SUBSCRIPTION_TIER_PRICES.agency.activeEventsQuota).toBe(50);
     expect(SUBSCRIPTION_TIER_PRICES.agency.whatsappMessagesIncluded).toBe(20000);
   });
 });
 
 describe("SUBSCRIPTION_TIER_ANNUAL_PRICES — -20 % arrondi à l'euro supérieur", () => {
-  it('starter annual = 855 € (89 × 12 × 0.80 = 854,40 → ceil 855)', () => {
-    expect(SUBSCRIPTION_TIER_ANNUAL_PRICES.starter.amountMinor).toBe(85500);
+  it('starter annual = 951 € (99 × 12 × 0.80 = 950,40 → ceil 951)', () => {
+    expect(SUBSCRIPTION_TIER_ANNUAL_PRICES.starter.amountMinor).toBe(95100);
   });
 
-  it('business annual = 1719 € (179 × 12 × 0.80 = 1718,40 → ceil 1719)', () => {
-    expect(SUBSCRIPTION_TIER_ANNUAL_PRICES.business.amountMinor).toBe(171900);
+  it('business annual = 2103 € (219 × 12 × 0.80 = 2102,40 → ceil 2103)', () => {
+    expect(SUBSCRIPTION_TIER_ANNUAL_PRICES.business.amountMinor).toBe(210300);
   });
 
-  it('agency annual = 3351 € (349 × 12 × 0.80 = 3350,40 → ceil 3351)', () => {
-    expect(SUBSCRIPTION_TIER_ANNUAL_PRICES.agency.amountMinor).toBe(335100);
+  it('agency annual = 4311 € (449 × 12 × 0.80 = 4310,40 → ceil 4311)', () => {
+    expect(SUBSCRIPTION_TIER_ANNUAL_PRICES.agency.amountMinor).toBe(431100);
   });
 
   it('annual is strictly cheaper than 12 × monthly for every tier', () => {
@@ -268,13 +268,13 @@ describe("SUBSCRIPTION_TIER_ANNUAL_PRICES — -20 % arrondi à l'euro supérieur
 });
 
 describe('PAYG_PRO_PRICE', () => {
-  it('is 69 € EUR one-shot', () => {
-    expect(PAYG_PRO_PRICE.amountMinor).toBe(6900);
+  it('is 79 € EUR one-shot', () => {
+    expect(PAYG_PRO_PRICE.amountMinor).toBe(7900);
     expect(PAYG_PRO_PRICE.currency).toBe('EUR');
   });
 
   it('exposes per-currency prices for the multi-currency router', () => {
-    expect(PAYG_PRO_PRICE.prices.EUR).toBe(6900);
+    expect(PAYG_PRO_PRICE.prices.EUR).toBe(7900);
     expect(PAYG_PRO_PRICE.prices.MAD).toBeGreaterThan(0);
     expect(PAYG_PRO_PRICE.prices.TND).toBeGreaterThan(0);
     expect(PAYG_PRO_PRICE.prices.XOF).toBeGreaterThan(0);
