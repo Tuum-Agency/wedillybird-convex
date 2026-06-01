@@ -321,3 +321,22 @@ La plomberie `lib/email/` est en place avec drivers SES + mock et 3 templates. R
 - **IAM utilisateur AWS Convex (`wedillybird-dev` / `wedillybird-app-runtime`)** : ajouter `rekognition:SearchFacesByImage` + `rekognition:DeleteFaces` au scope-down listé dans la section "AWS — opérations & sécurité" (l'action Convex utilise `AWS_ACCESS_KEY_ID/SECRET` côté Convex env, pas le rôle IAM Lambda)
 - **UI Agent B** : composant `<FaceSearchModal />` qui prend webcam/file → base64 → server action → galerie filtrée par `photoIds`. Placer le bouton "Retrouver mes photos" sur `/i/[token]/gallery` (côté guest) ET `/events/[id]/gallery` (côté owner pour debug)
 - **Quota / rate-limit** : aucun quota par event ou par invité aujourd'hui. À considérer si abus (selfies répétés) — typiquement debounce côté UI + soft-limit Convex sur `searchPhotosByFace` par `requesterId` ou `guestToken` sur fenêtre 1 min
+
+## Plan de table / gestion des tables (post-lancement — DÉCIDÉ : fast-follow)
+
+> **Décision (juin 2026)** : feature **NON bloquante** pour le lancement. On lance le cœur (invitations, RSVP, galerie, check-in) à temps ; le plan de table est un **fast-follow** post-lancement (excellent moment de ré-engagement + levier d'upsell vers Premium). **Zéro code aujourd'hui** (confirmé : seule une mention existe dans un article guide marketing `app/[locale]/(marketing)/guide/page.tsx`). Explicitement exclu de la vidéo de lancement (« not implemented »).
+
+⚠️ **Garde-fou** : NE PAS afficher « plan de table » sur la page pricing / les offres tant que la feature n'est pas livrée (sinon promesse non tenue sur la homepage). Quand livrée → ajouter une featureKey `seatingPlan` aux tiers concernés.
+
+**Packaging décidé** : Premium (59 €) + tous les Pro (Starter/Business/Agency/PAYG). PAS Essentiel (garder lean).
+
+**Scope MVP proposé** :
+- **Données (Convex)** : table `tables` (`eventId`, `name`, `capacity`, `shape?`, `order`) + assignation invité→table (gérer aussi les **plus-ones confirmés**, dont on a déjà les noms via le RSVP). Jointure `tableAssignments` si on veut placer un plus-one indépendamment de son invité principal.
+- **UI dashboard** : panneau « invités non assignés » (confirmés + accompagnants) · liste de tables avec compteur de capacité · assignation (sélection ou drag) · alerte sur-capacité · export/impression du plan (traiteur + jour J).
+- **Gating** : refuser l'accès si tier sans `seatingPlan` (Essentiel).
+
+**Design-first (avant de coder)** — vraie complexité UX, à brainstormer :
+- Liste/colonnes simple vs **plan visuel drag-drop** (tables rondes/rectangulaires positionnables). Reco MVP : liste d'abord, plan visuel en v2.
+- Auto-placement (regrouper familles / RSVP liés) vs manuel.
+- Gestion conflits (« ne pas asseoir X près de Y »), couples, familles, enfants.
+- Export/impression PDF du plan.
