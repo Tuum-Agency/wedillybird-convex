@@ -232,8 +232,8 @@
       "title": "Vos invités, où qu'ils soient.",
       "subtitle": "Un seul lien pour ajouter vos invités. Wedillybird envoie l'invitation sur le canal que chacun utilise déjà — automatiquement.",
       "sms": {
-        "title": "Aux États-Unis — par SMS",
-        "description": "Vos invités américains reçoivent un SMS. Pas d'appli, pas de WhatsApp — l'invitation arrive directement dans leurs messages."
+        "title": "Aux États-Unis et au Canada — par SMS",
+        "description": "Vos invités aux États-Unis et au Canada reçoivent un SMS. Pas d'appli, pas de WhatsApp — l'invitation arrive directement dans leurs messages."
       },
       "whatsapp": {
         "title": "Partout ailleurs — sur WhatsApp",

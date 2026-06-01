@@ -232,8 +232,8 @@
       "title": "I tuoi ospiti, ovunque siano.",
       "subtitle": "Un solo link per aggiungere i tuoi ospiti. Wedillybird invia l'invito sul canale che ognuno già usa — automaticamente.",
       "sms": {
-        "title": "Negli USA — via SMS",
-        "description": "I tuoi ospiti americani ricevono un SMS. Niente app, niente WhatsApp — arriva direttamente nei messaggi che già controllano."
+        "title": "Negli USA e in Canada — via SMS",
+        "description": "I tuoi ospiti negli USA e in Canada ricevono un SMS. Niente app, niente WhatsApp — arriva direttamente nei messaggi che già controllano."
       },
       "whatsapp": {
         "title": "Nel resto del mondo — su WhatsApp",

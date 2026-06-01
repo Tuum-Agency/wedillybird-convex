@@ -232,8 +232,8 @@
       "title": "Your guests, wherever they are.",
       "subtitle": "One link to add your guests. Wedillybird delivers the invitation on the channel each one already uses — automatically.",
       "sms": {
-        "title": "In the US — by text",
-        "description": "Your American guests get an SMS. No app, no WhatsApp — it lands right in the messages they already check every day."
+        "title": "In the US & Canada — by text",
+        "description": "Your guests in the US and Canada get an SMS. No app, no WhatsApp — it lands right in the messages they already check every day."
       },
       "whatsapp": {
         "title": "Worldwide — on WhatsApp",
@@ -403,7 +403,7 @@
       "items": {
         "whyWhatsapp": {
           "q": "Why text instead of an email or a dedicated app?",
-          "a": "Because your guests are already there. Text gets a 98% open rate vs 22% for email, with no app and no account to create. In the US your guests receive an SMS; on WhatsApp worldwide. It's the most universal channel there is."
+          "a": "Because your guests are already there. Text gets a 98% open rate vs 22% for email, with no app and no account to create. In the US and Canada your guests receive an SMS; on WhatsApp worldwide. It's the most universal channel there is."
         },
         "olderGuests": {
           "q": "Will my older or less tech-savvy guests manage?",
