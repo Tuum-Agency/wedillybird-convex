@@ -41,3 +41,22 @@ export function eventHasFeature(
   if (event.organizationId) return true; // event pro → toutes les features Premium
   return false; // event non payé (ni plan ni orga)
 }
+
+/**
+ * Quota d'events actifs simultanés par tier Pro (grille v2 : 5/20/50).
+ * `null` = pas de tier connu → aucun quota appliqué côté publish gate.
+ */
+export function eventQuotaForTier(
+  tier: 'starter' | 'business' | 'agency' | undefined,
+): number | null {
+  switch (tier) {
+    case 'starter':
+      return 5;
+    case 'business':
+      return 20;
+    case 'agency':
+      return 50;
+    default:
+      return null;
+  }
+}

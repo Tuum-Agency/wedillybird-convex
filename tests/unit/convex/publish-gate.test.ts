@@ -169,3 +169,60 @@ describe('decidePublishGate — précédence plan particulier > orga', () => {
     expect(decision).toEqual({ ok: true, consumeCredit: false });
   });
 });
+
+describe("decidePublishGate — quota d'events actifs (Pro, sub active)", () => {
+  const orgId = 'org_q' as unknown as never;
+
+  it('autorise sous le quota (Starter 5, 3 actifs)', () => {
+    expect(
+      decidePublishGate({
+        event: { planTier: undefined, organizationId: orgId },
+        organization: { subscriptionStatus: 'active', paygCredits: 0 },
+        activeEventsQuota: 5,
+        activeEventCount: 3,
+      }),
+    ).toEqual({ ok: true, consumeCredit: false });
+  });
+
+  it('bloque EVENT_QUOTA_EXCEEDED pile au quota (Starter 5, 5 actifs)', () => {
+    expect(
+      decidePublishGate({
+        event: { planTier: undefined, organizationId: orgId },
+        organization: { subscriptionStatus: 'active', paygCredits: 0 },
+        activeEventsQuota: 5,
+        activeEventCount: 5,
+      }),
+    ).toEqual({ ok: false, error: 'EVENT_QUOTA_EXCEEDED' });
+  });
+
+  it('bloque au-delà du quota (Business 20, 25 actifs)', () => {
+    expect(
+      decidePublishGate({
+        event: { planTier: undefined, organizationId: orgId },
+        organization: { subscriptionStatus: 'active', paygCredits: 0 },
+        activeEventsQuota: 20,
+        activeEventCount: 25,
+      }),
+    ).toEqual({ ok: false, error: 'EVENT_QUOTA_EXCEEDED' });
+  });
+
+  it('quota non fourni → pas de check (rétro-compat)', () => {
+    expect(
+      decidePublishGate({
+        event: { planTier: undefined, organizationId: orgId },
+        organization: { subscriptionStatus: 'active', paygCredits: 0 },
+      }),
+    ).toEqual({ ok: true, consumeCredit: false });
+  });
+
+  it("le quota ne s'applique pas au PAYG (pas de sub active, payé à l'event)", () => {
+    expect(
+      decidePublishGate({
+        event: { planTier: undefined, organizationId: orgId },
+        organization: { subscriptionStatus: undefined, paygCredits: 2 },
+        activeEventsQuota: 5,
+        activeEventCount: 10,
+      }),
+    ).toEqual({ ok: true, consumeCredit: true, nextCredits: 1 });
+  });
+});

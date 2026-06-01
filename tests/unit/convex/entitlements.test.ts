@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { eventHasFeature, type GatedFeature } from '../../../convex/lib/entitlements';
+import {
+  eventHasFeature,
+  eventQuotaForTier,
+  type GatedFeature,
+} from '../../../convex/lib/entitlements';
 
 const GATED: readonly GatedFeature[] = [
   'faceSearch',
@@ -37,5 +41,17 @@ describe('eventHasFeature — gating par formule', () => {
     expect(eventHasFeature({ planTier: 'essential', organizationId: 'org_1' }, 'faceSearch')).toBe(
       false,
     );
+  });
+});
+
+describe('eventQuotaForTier', () => {
+  it('mappe les tiers Pro v2 (5 / 20 / 50)', () => {
+    expect(eventQuotaForTier('starter')).toBe(5);
+    expect(eventQuotaForTier('business')).toBe(20);
+    expect(eventQuotaForTier('agency')).toBe(50);
+  });
+
+  it('null quand pas de tier (pas de quota appliqué)', () => {
+    expect(eventQuotaForTier(undefined)).toBeNull();
   });
 });
