@@ -494,6 +494,7 @@
     "codePlaceholder": "6 chiffres",
     "sendCode": "Envoyer le code",
     "sending": "Envoi…",
+    "smsConsent": "En continuant, vous acceptez de recevoir un code de vérification à usage unique par SMS ou WhatsApp. Des frais de message et de données peuvent s'appliquer. Répondez STOP pour vous désinscrire.",
     "verifyCode": "Vérifier",
     "verifying": "Vérification…",
     "resendCode": "Renvoyer le code",

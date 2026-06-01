@@ -490,6 +490,7 @@
     "codePlaceholder": "6 digits",
     "sendCode": "Send code",
     "sending": "Sending…",
+    "smsConsent": "By continuing, you agree to receive a one-time verification code by SMS or WhatsApp. Message and data rates may apply. Reply STOP to opt out.",
     "verifyCode": "Verify",
     "verifying": "Verifying…",
     "resendCode": "Resend code",
