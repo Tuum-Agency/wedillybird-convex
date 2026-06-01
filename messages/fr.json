@@ -227,6 +227,23 @@
         "rsvpHint": "RSVP ouvert sur WhatsApp"
       }
     },
+    "channels": {
+      "chapter": "CHAPITRE 03B — CHAQUE CANAL",
+      "title": "Vos invités, où qu'ils soient.",
+      "subtitle": "Un seul lien pour ajouter vos invités. Wedillybird envoie l'invitation sur le canal que chacun utilise déjà — automatiquement.",
+      "sms": {
+        "title": "Aux États-Unis — par SMS",
+        "description": "Vos invités américains reçoivent un SMS. Pas d'appli, pas de WhatsApp — l'invitation arrive directement dans leurs messages."
+      },
+      "whatsapp": {
+        "title": "Partout ailleurs — sur WhatsApp",
+        "description": "Dans le reste du monde, l'invitation arrive sur WhatsApp, là où sont déjà 2 milliards de personnes. 98 % d'ouverture, rien à installer."
+      },
+      "oneLink": {
+        "title": "Un lien, chaque invité",
+        "description": "Vous ajoutez votre liste une fois. Wedillybird choisit SMS ou WhatsApp pour chaque numéro automatiquement — vous n'y pensez jamais."
+      }
+    },
     "manifesto": {
       "chapter": "CHAPITRE 02 — LE MANIFESTE",
       "eyebrow": "Notre conviction",

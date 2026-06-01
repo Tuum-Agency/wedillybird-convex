@@ -227,6 +227,23 @@
         "rsvpHint": "RSVP offen auf WhatsApp"
       }
     },
+    "channels": {
+      "chapter": "KAPITEL 03B — JEDER KANAL",
+      "title": "Eure Gäste, wo immer sie sind.",
+      "subtitle": "Ein Link, um eure Gäste hinzuzufügen. Wedillybird stellt die Einladung über den Kanal zu, den jeder bereits nutzt — automatisch.",
+      "sms": {
+        "title": "In den USA — per SMS",
+        "description": "Eure US-Gäste erhalten eine SMS. Keine App, kein WhatsApp — sie landet direkt in den Nachrichten, die sie ohnehin lesen."
+      },
+      "whatsapp": {
+        "title": "Weltweit — über WhatsApp",
+        "description": "Überall sonst kommt die Einladung über WhatsApp, wo bereits 2 Milliarden Menschen sind. 98 % Öffnungsrate, nichts zu installieren."
+      },
+      "oneLink": {
+        "title": "Ein Link, jeder Gast",
+        "description": "Ihr fügt eure Gästeliste einmal hinzu. Wedillybird wählt SMS oder WhatsApp für jede Nummer automatisch — ihr müsst nie daran denken."
+      }
+    },
     "manifesto": {
       "chapter": "KAPITEL 02 — DAS MANIFEST",
       "eyebrow": "Unsere Überzeugung",

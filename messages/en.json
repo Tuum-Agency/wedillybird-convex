@@ -32,13 +32,13 @@
       "title": "Terms of Service",
       "lastUpdated": "Last updated: April 25, 2026",
       "article1Title": "1. Purpose",
-      "article1Body": "Wedillybird (\"the Service\") provides a SaaS wedding-planning platform offering guest management, WhatsApp invitations, RSVP tracking, check-in and shared photo galleries. These Terms of Service govern the use of the Service by anyone accessing it (\"the User\").",
+      "article1Body": "Wedillybird (\"the Service\") provides a SaaS wedding-planning platform offering guest management, text invitations, RSVP tracking, check-in and shared photo galleries. These Terms of Service govern the use of the Service by anyone accessing it (\"the User\").",
       "article2Title": "2. Acceptance",
       "article2Body": "Use of the Service implies full and unconditional acceptance of these Terms. The User acknowledges having read and accepted them without reservation when creating their account.",
       "article3Title": "3. Account and access",
-      "article3Body": "Access to the Service requires creating an account by verifying a WhatsApp number. The User is responsible for the confidentiality of their number and for any action taken from their account. Any unauthorised use must be reported immediately.",
+      "article3Body": "Access to the Service requires creating an account by verifying a phone number. The User is responsible for the confidentiality of their number and for any action taken from their account. Any unauthorised use must be reported immediately.",
       "article4Title": "4. Pricing and payment",
-      "article4Body": "The Service is offered with no free tier. For individuals planning a wedding, two one-shot plans are available: Essential (€19, core features + 30-day gallery) and Premium (€49, Essential + 6-month gallery + PDF album). A post-wedding upsell (+€29) extends the gallery to 5 years and adds the HD photo book. For professionals, monthly or annual subscriptions (Starter €89/month, Business €179/month, Agency €349/month, -20% annual) or pay-as-you-go (€69 per event). Payments are processed by Stripe (Europe) or CinetPay (West Africa). Full refund within 7 days if the event has not been sent. If the wedding is cancelled, free postponement to another date.",
+      "article4Body": "The Service is offered with no free tier. For individuals planning a wedding, two one-shot plans are available: Essential (€19, core features + 30-day gallery) and Premium (€59, Essential + 6-month gallery + PDF album). A post-wedding upsell (+€29) extends the gallery to 5 years and adds the HD photo book. For professionals, monthly or annual subscriptions (Starter €99/month, Business €219/month, Agency €449/month, -20% annual) or pay-as-you-go (€79 per event). Payments are processed by Stripe (Europe) or CinetPay (West Africa). Full refund within 7 days if the event has not been sent. If the wedding is cancelled, free postponement to another date.",
       "article5Title": "5. Intellectual property",
       "article5Body": "The User retains ownership of the content they upload. They grant Wedillybird a non-exclusive licence to use this content solely for the operation of the Service. Wedillybird retains ownership of the platform, its code and brand.",
       "article6Title": "6. Liability",
@@ -52,7 +52,7 @@
       "controllerTitle": "Data controller",
       "controllerBody": "Wedillybird, a platform operated by Tuum Agency, is the controller for the data collected through the Service.",
       "dataCollectedTitle": "Data collected",
-      "dataCollectedBody": "WhatsApp number (authentication), name and email (profile), information related to the weddings being organised (dates, venues, guest lists), photos shared in the gallery, technical logs (IP, user-agent).",
+      "dataCollectedBody": "Phone number (authentication), name and email (profile), information related to the weddings being organised (dates, venues, guest lists), photos shared in the gallery, technical logs (IP, user-agent).",
       "purposesTitle": "Purposes",
       "purposesBody": "Provide the Service, authenticate users, send invitations and notifications, process payments, prevent fraud, improve the platform.",
       "legalBasisTitle": "Legal bases (GDPR)",
@@ -60,7 +60,7 @@
       "retentionTitle": "Retention period",
       "retentionBody": "Account data: duration of the subscription + 3 years. Payment data: legal duration (10 years for invoicing). Technical logs: 12 months maximum.",
       "subprocessorsTitle": "Subprocessors",
-      "subprocessorsBody": "Convex (database, US), Vercel (hosting, US/EU), Stripe (payments, EU/US), Meta WhatsApp Cloud API (message delivery, EU/US), Amazon Rekognition Faces (temporary face indexing for photo search, EU). Data is minimised, never resold or shared with third parties for marketing. All bound by standard contractual clauses or equivalent mechanisms.",
+      "subprocessorsBody": "Convex (database, US), Vercel (hosting, US/EU), Stripe (payments, EU/US), Twilio (SMS delivery, US/Canada), Meta WhatsApp Cloud API (message delivery, EU/US), Amazon Rekognition Faces (temporary face indexing for photo search, EU). Data is minimised, never resold or shared with third parties for marketing. All bound by standard contractual clauses or equivalent mechanisms.",
       "rightsTitle": "Your rights",
       "rightsBody": "Access, rectification, erasure, objection, portability, restriction. To exercise a right, write to privacy@wedillybird.com. You can also file a complaint with the CNIL.",
       "contactTitle": "Contact",
@@ -83,20 +83,20 @@
     "link": {
       "eyebrow": "ACTIVATE",
       "phone": {
-        "title": "Enable WhatsApp sign-in",
-        "description": "Get a code on WhatsApp to sign in without a password. Faster than email.",
-        "cta": "Link my WhatsApp",
+        "title": "Enable phone sign-in",
+        "description": "Get a code by text to sign in without a password. Faster than email.",
+        "cta": "Link my phone",
         "drawer": {
-          "title": "Link your WhatsApp",
-          "step1Description": "Enter your WhatsApp number to receive a 6-digit code.",
+          "title": "Link your phone",
+          "step1Description": "Enter your phone number to receive a 6-digit code.",
           "step2Description": "Enter the code sent to {value}.",
-          "successTitle": "WhatsApp linked to your account",
+          "successTitle": "Phone linked to your account",
           "successDescription": "You can now sign in with your number."
         }
       },
       "email": {
         "title": "Enable email sign-in",
-        "description": "Get a code by email to sign in without WhatsApp. Handy for older guests.",
+        "description": "Get a code by email to sign in without a phone number. Handy for older guests.",
         "cta": "Link my email",
         "drawer": {
           "title": "Link your email address",
@@ -106,7 +106,7 @@
           "successDescription": "You can now sign in with your email address."
         }
       },
-      "phoneLabel": "WhatsApp number",
+      "phoneLabel": "Phone number",
       "phonePlaceholder": "+33 6 12 34 56 78",
       "emailLabel": "Email address",
       "emailPlaceholder": "you@email.com",
@@ -175,7 +175,7 @@
     "questions": {
       "account": {
         "q": "How do I create my account?",
-        "a": "Click \"Create an account\", enter your WhatsApp number and type the 6-digit code received on WhatsApp. No password needed."
+        "a": "Click \"Create an account\", enter your phone number and type the 6-digit code received by text. No password needed."
       },
       "invitations": {
         "q": "How do I send invitations to my guests?",
@@ -195,7 +195,7 @@
       },
       "pricing": {
         "q": "What are the prices?",
-        "a": "Two one-shot plans per wedding: Essential (€19) for WhatsApp invitations, RSVP, QR check-in and dashboard; Premium (€49) which adds a 6-month shared photo gallery and the final PDF album. A post-wedding upsell at +€29 lets you keep your gallery for 5 years with an HD photo book and high-definition export."
+        "a": "Two one-shot plans per wedding: Essential (€19) for text invitations, RSVP, QR check-in and dashboard; Premium (€59) which adds a 6-month shared photo gallery and the final PDF album. A post-wedding upsell at +€29 lets you keep your gallery for 5 years with an HD photo book and high-definition export."
       },
       "support": {
         "q": "How do I contact support?",
@@ -212,7 +212,7 @@
       "chapter": "CHAPTER 01 — THE INVITATION",
       "title": "A wedding lives in the conversation.",
       "titleAccent": "Make it happen there.",
-      "subtitle": "Your guests are already on WhatsApp. Wedillybird orchestrates everything there — the invitation, the RSVP, the day itself and the memories. Discreetly, until the next wedding.",
+      "subtitle": "Your guests are already texting. Wedillybird orchestrates everything there — the invitation, the RSVP, the day itself and the memories. Discreetly, until the next wedding.",
       "ctaPrimary": "Plan my wedding",
       "ctaSecondary": "See plans",
       "trust": {
@@ -224,17 +224,34 @@
         "label": "INVITATION · JUNE 8, 2026",
         "couple": "Camille & Hugo",
         "venue": "Domaine des Lilas",
-        "rsvpHint": "RSVP open on WhatsApp"
+        "rsvpHint": "RSVP open by text"
+      }
+    },
+    "channels": {
+      "chapter": "CHAPTER 03B — EVERY CHANNEL",
+      "title": "Your guests, wherever they are.",
+      "subtitle": "One link to add your guests. Wedillybird delivers the invitation on the channel each one already uses — automatically.",
+      "sms": {
+        "title": "In the US — by text",
+        "description": "Your American guests get an SMS. No app, no WhatsApp — it lands right in the messages they already check every day."
+      },
+      "whatsapp": {
+        "title": "Worldwide — on WhatsApp",
+        "description": "Everywhere else, the invitation arrives on WhatsApp, where 2 billion people already are. 98% open rate, nothing to install."
+      },
+      "oneLink": {
+        "title": "One link, every guest",
+        "description": "You add your guest list once. Wedillybird picks SMS or WhatsApp for each number automatically — you never think about it."
       }
     },
     "manifesto": {
       "chapter": "CHAPTER 02 — THE MANIFESTO",
       "eyebrow": "Our conviction",
       "title": "A wedding is no longer planned in a PDF.",
-      "lede": "You've probably received an invitation by email. You opened it once, maybe. Printed it? Never. Meanwhile, your guests are texting each other on WhatsApp to confirm they're coming, ask for the address, share their photos. That's where a wedding lives today — in the conversation. That's where it should be organised.",
+      "lede": "You've probably received an invitation by email. You opened it once, maybe. Printed it? Never. Meanwhile, your guests are texting each other to confirm they're coming, ask for the address, share their photos. That's where a wedding lives today — in the conversation. That's where it should be organised.",
       "before": {
         "label": "Yesterday",
-        "body": "An overflowing inbox, a shared spreadsheet that goes out of sync, WhatsApp follow-ups to 47 people that eat up an entire afternoon. The constant doubt: \"did Grandma actually get it?\""
+        "body": "An overflowing inbox, a shared spreadsheet that goes out of sync, text follow-ups to 47 people that eat up an entire afternoon. The constant doubt: \"did Grandma actually get it?\""
       },
       "after": {
         "label": "Today",
@@ -269,7 +286,7 @@
       "title": "Four pillars, designed for a wedding that lives.",
       "subtitle": "No modules to enable, no plug-ins. Everything works from the very first invitation sent.",
       "invites": {
-        "title": "WhatsApp invitations",
+        "title": "Invitations by text",
         "description": "A personalised link per guest, shared where it will actually be read. Invitation page in your wedding's colours, opened in two seconds — no app to install.",
         "highlights": [
           "Unique links per guest",
@@ -323,7 +340,7 @@
           "alt": "Portrait of a smiling Camille and Hugo"
         },
         "couple-sn": {
-          "quote": "We had over 600 guests across three days. Wedillybird held up where Excel and our WhatsApp groups were buckling. The shared gallery brought the memories back again three months later.",
+          "quote": "We had over 600 guests across three days. Wedillybird held up where Excel and our group chats were buckling. The shared gallery brought the memories back again three months later.",
           "name": "Awa & Mamadou",
           "location": "Wedding 600+ guests · November 2025",
           "initials": "AM",
@@ -373,7 +390,7 @@
       "faq": {
         "q1": "Can I switch plans?",
         "q1Body": "Yes, at any time. Pro-rata is calculated automatically.",
-        "q2": "What happens if I exceed my WhatsApp quota?",
+        "q2": "What happens if I exceed my message quota?",
         "q2Body": "Beyond the included quota, +€0.06 per message sent, billed at the end of the month.",
         "q3": "Is annual really -20%?",
         "q3Body": "Yes, the annual total is equivalent to 12 months × 0.80. No hidden fees."
@@ -385,12 +402,12 @@
       "title": "Everything you want to know.",
       "items": {
         "whyWhatsapp": {
-          "q": "Why WhatsApp instead of an email or a dedicated app?",
-          "a": "Because your guests are already there. WhatsApp shows a 98% open rate vs 22% for email, and requires no installation. It's the most universal channel internationally."
+          "q": "Why text instead of an email or a dedicated app?",
+          "a": "Because your guests are already there. Text gets a 98% open rate vs 22% for email, with no app and no account to create. In the US your guests receive an SMS; on WhatsApp worldwide. It's the most universal channel there is."
         },
         "olderGuests": {
           "q": "Will my older or less tech-savvy guests manage?",
-          "a": "Yes. The invitation page opens in the WhatsApp browser in one tap — no app, no account to create. RSVP takes 3 buttons. More than 92% of grandparents tested confirmed without help."
+          "a": "Yes. The invitation page opens in one tap, straight from the text — no app, no account to create. RSVP takes 3 buttons. More than 92% of grandparents tested confirmed without help."
         },
         "guestLimit": {
           "q": "What's the maximum number of guests?",
@@ -426,7 +443,7 @@
       "trust": "1,240 weddings celebrated · 4.9 / 5 couple satisfaction"
     },
     "footer": {
-      "tagline": "WhatsApp-first wedding concierge. Designed for weddings around the world.",
+      "tagline": "The wedding concierge that lives in your guests' texts. Designed for weddings around the world.",
       "newsletterTitle": "Get our free invitation templates",
       "newsletterSubtitle": "Once a month, templates signed by renowned wedding designers, and zero spam.",
       "newsletterPlaceholder": "you@email.com",
@@ -484,9 +501,9 @@
     "verifyDescription": "We sent a code to {phone}. It expires in 5 minutes.",
     "changeNumber": "Change number",
     "countryCodeLabel": "Country code",
-    "phoneLabel": "WhatsApp number",
+    "phoneLabel": "Phone number",
     "phonePlaceholder": "+33 6 12 34 56 78",
-    "codeLabel": "Code received via WhatsApp",
+    "codeLabel": "Code received by text",
     "codePlaceholder": "6 digits",
     "sendCode": "Send code",
     "sending": "Sending…",
@@ -498,7 +515,7 @@
     "noPhone": "No number was provided. Start again from sign-in.",
     "privacy": "By continuing, you agree to our privacy policy.",
     "methodSwitcherLabel": "Sign-in method",
-    "methodWhatsapp": "WhatsApp",
+    "methodWhatsapp": "Phone",
     "methodEmail": "Email",
     "emailLabel": "Email address",
     "emailPlaceholder": "you@email.com",
@@ -534,7 +551,7 @@
     "stepRole": "You are…",
     "stepRoleDescription": "Choose your role to personalise your experience.",
     "stepSecure": "Secure your account",
-    "stepSecureDescription": "Add your WhatsApp number so you can sign in even without access to your email. It's also a recovery path if you lose your inbox.",
+    "stepSecureDescription": "Add your phone number so you can sign in even without access to your email. It's also a recovery path if you lose your inbox.",
     "fullNameLabel": "First and last name",
     "fullNamePlaceholder": "Amadou Diallo",
     "emailLabel": "Email",
@@ -542,7 +559,7 @@
     "emailInvalid": "Invalid email address",
     "emailRequiredHint": "Needed to sign in with a magic link and to receive your invoices.",
     "emailLockedHint": "This is the address you signed in with. To change it, contact support.",
-    "phoneLabel": "WhatsApp number",
+    "phoneLabel": "Phone number",
     "phonePlaceholder": "+33 6 12 34 56 78",
     "phoneRequiredHint": "International format (E.164) with country code.",
     "sendCode": "Send code",
@@ -559,7 +576,7 @@
     "previous": "Previous",
     "finish": "Finish",
     "errors": {
-      "phoneTaken": "This number already belongs to another account. Sign in with your WhatsApp number to recover that account.",
+      "phoneTaken": "This number already belongs to another account. Sign in with your phone number to recover that account.",
       "alreadyLinked": "This number is already linked to your account.",
       "invalidPhone": "Invalid phone number.",
       "invalidCode": "6-digit code required.",
@@ -627,7 +644,7 @@
     "adding": "Adding…",
     "fullNameLabel": "Full name",
     "fullNamePlaceholder": "Aminata Diallo",
-    "phoneLabel": "Phone (WhatsApp)",
+    "phoneLabel": "Phone number",
     "emailLabel": "Email",
     "emailPlaceholder": "aminata@example.com",
     "categoryLabel": "Category",
@@ -817,7 +834,7 @@
     "teamSubtitle": "Invite your collaborators and manage their access.",
     "backToDashboard": "Back to pro dashboard",
     "inviteTitle": "Invite a collaborator",
-    "phoneLabel": "WhatsApp phone",
+    "phoneLabel": "Phone number",
     "phonePlaceholder": "+44 7700 900123",
     "emailLabel": "Email",
     "emailPlaceholder": "you@example.com",
@@ -908,7 +925,7 @@
       "galleryRetention5y": "Gallery kept for 5 years after the wedding",
       "photoBookHd": "HD photo book printed and delivered to your home",
       "exportHd": "High-definition ZIP export of every photo",
-      "whatsappInvite": "Invitations sent via WhatsApp with your date and unique link",
+      "whatsappInvite": "Invitations sent by text with your date and unique link",
       "guestReminders": "Automatic reminders to non-responders (D-7 and D-1)",
       "multiCurrency": "Fair pricing based on your region",
       "aiModeration": "Automatic AI photo moderation (auto-reject + manual review)",
@@ -945,10 +962,10 @@
         "events10": "Up to 20 active events at once",
         "eventsUnlimited": "Up to 50 active events at once",
         "events1": "1 event",
-        "whatsapp2k": "2,000 WhatsApp messages included / month",
-        "whatsapp6k": "6,000 WhatsApp messages included / month",
-        "whatsapp20k": "20,000 WhatsApp messages included / month",
-        "whatsappOnDemand": "WhatsApp on demand",
+        "whatsapp2k": "2,000 text messages included / month",
+        "whatsapp6k": "6,000 text messages included / month",
+        "whatsapp20k": "20,000 text messages included / month",
+        "whatsappOnDemand": "Texts on demand",
         "brandingWedillybird": "Wedillybird branding (set logo and colours)",
         "brandingCustomLogo": "Custom logo and colours",
         "brandingLogoSubdomain": "Custom logo and dedicated subdomain",
@@ -1331,8 +1348,8 @@
   },
   "Metadata": {
     "landing": {
-      "title": "Wedillybird — Wedding invitations via WhatsApp, RSVP, check-in",
-      "description": "WhatsApp invitations, real-time RSVP, offline QR check-in and shared gallery. Wedillybird simplifies your wedding planning, anywhere in the world."
+      "title": "Wedillybird — Wedding invitations by text, RSVP, check-in",
+      "description": "Text invitations, real-time RSVP, offline QR check-in and shared gallery. Wedillybird simplifies your wedding planning, anywhere in the world."
     },
     "forfaitsPros": {
       "title": "Pro plans for wedding planners — Wedillybird",
@@ -1344,7 +1361,7 @@
     },
     "faq": {
       "title": "FAQ — Wedillybird",
-      "description": "All the answers to frequently asked questions: WhatsApp, RSVP, offline check-in, gallery, pricing, cancellation, GDPR, pro branding."
+      "description": "All the answers to frequently asked questions: text invitations, RSVP, offline check-in, gallery, pricing, cancellation, GDPR, pro branding."
     },
     "legalTerms": {
       "title": "Terms of Service — Wedillybird",

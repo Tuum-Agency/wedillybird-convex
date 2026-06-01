@@ -9,6 +9,7 @@ import { LenisProvider } from '@/components/landing/lenis-provider';
 import { LandingHero } from '@/components/landing/hero';
 import { LandingManifesto } from '@/components/landing/manifesto';
 import { LandingFeaturesGrid } from '@/components/landing/features-grid';
+import { LandingChannels } from '@/components/landing/channels';
 import { LandingCinematicInvitation } from '@/components/landing/cinematic-invitation';
 import { LandingTestimonials } from '@/components/landing/testimonials';
 import { LandingPricingCards } from '@/components/landing/pricing-cards';
@@ -179,6 +180,7 @@ function LandingShell({
         <LandingHero />
         <LandingManifesto />
         <LandingFeaturesGrid />
+        <LandingChannels />
         <LandingCinematicInvitation />
         <LandingTestimonials />
         <LandingPricingCards defaultCurrency={defaultCurrency} />
