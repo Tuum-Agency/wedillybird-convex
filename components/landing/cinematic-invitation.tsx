@@ -249,8 +249,9 @@ export function LandingCinematicInvitation() {
             </p>
           </div>
 
-          {/* Stage SVG */}
-          <div className="relative mx-auto mt-14 flex items-center justify-center">
+          {/* Stage SVG — mt généreux pour que la carte (anim y:-200) ne
+              chevauche pas le paragraphe de description à son point haut. */}
+          <div className="relative mx-auto mt-32 flex items-center justify-center">
             <svg
               viewBox="-220 -280 440 560"
               className="h-[60vh] max-h-[520px] w-auto"
