@@ -238,11 +238,11 @@ describe('SUBSCRIPTION_TIER_PRICES — grille canonique avril 2026', () => {
 
   it('exposes active events quota and WhatsApp inclusion', () => {
     expect(SUBSCRIPTION_TIER_PRICES.starter.activeEventsQuota).toBe(5);
-    expect(SUBSCRIPTION_TIER_PRICES.starter.whatsappMessagesIncluded).toBe(2000);
+    expect(SUBSCRIPTION_TIER_PRICES.starter.whatsappMessagesIncluded).toBe(3000);
     expect(SUBSCRIPTION_TIER_PRICES.business.activeEventsQuota).toBe(20);
-    expect(SUBSCRIPTION_TIER_PRICES.business.whatsappMessagesIncluded).toBe(6000);
+    expect(SUBSCRIPTION_TIER_PRICES.business.whatsappMessagesIncluded).toBe(10000);
     expect(SUBSCRIPTION_TIER_PRICES.agency.activeEventsQuota).toBe(50);
-    expect(SUBSCRIPTION_TIER_PRICES.agency.whatsappMessagesIncluded).toBe(20000);
+    expect(SUBSCRIPTION_TIER_PRICES.agency.whatsappMessagesIncluded).toBe(25000);
   });
 });
 

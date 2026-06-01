@@ -70,7 +70,7 @@ export const SUBSCRIPTION_TIER_PRICES: Record<SubscriptionTier, SubscriptionTier
     descriptionKey: 'starter',
     featureKeys: ['events3', 'whatsapp2k', 'brandingWedillybird', 'supportEmail48h'],
     activeEventsQuota: 5,
-    whatsappMessagesIncluded: 2000,
+    whatsappMessagesIncluded: 3000,
     prices: pricesFromEur(STARTER_EUR),
   },
   business: {
@@ -80,7 +80,7 @@ export const SUBSCRIPTION_TIER_PRICES: Record<SubscriptionTier, SubscriptionTier
     descriptionKey: 'business',
     featureKeys: ['events10', 'whatsapp6k', 'brandingLogoSubdomain', 'supportPriority24h'],
     activeEventsQuota: 20,
-    whatsappMessagesIncluded: 6000,
+    whatsappMessagesIncluded: 10000,
     prices: pricesFromEur(BUSINESS_EUR),
   },
   agency: {
@@ -90,7 +90,7 @@ export const SUBSCRIPTION_TIER_PRICES: Record<SubscriptionTier, SubscriptionTier
     descriptionKey: 'agency',
     featureKeys: ['eventsUnlimited', 'whatsapp20k', 'brandingWhiteLabel', 'accountManager'],
     activeEventsQuota: 50,
-    whatsappMessagesIncluded: 20000,
+    whatsappMessagesIncluded: 25000,
     prices: pricesFromEur(AGENCY_EUR),
   },
 };
