@@ -108,8 +108,8 @@ describe('priceIdForTier currency coverage', () => {
 });
 
 describe('TND pricing sanity (anti-regression)', () => {
-  it('PLANS.essential.prices.TND === 64600 (~ 19 € × 3.4)', () => {
-    expect(PLANS.essential.prices.TND).toBe(64600);
+  it('PLANS.essential.prices.TND === 98600 (~ 29 € × 3.4)', () => {
+    expect(PLANS.essential.prices.TND).toBe(98600);
   });
 
   it('PLANS.premium.prices.TND === 200600', () => {

@@ -14,8 +14,8 @@ import { SUBSCRIPTION_TIER_PRICES } from '@/lib/payments/subscriptions';
  * conversion vers les millimes).
  */
 describe('lib/payments/plans — prix TND particuliers (millimes)', () => {
-  it('essential : 19 € → 64 600 millimes (= 64,6 TND)', () => {
-    expect(getPlanPrice('essential', 'TND')).toBe(64600);
+  it('essential : 29 € → 98 600 millimes (= 98,6 TND)', () => {
+    expect(getPlanPrice('essential', 'TND')).toBe(98600);
   });
 
   it('premium : 59 € → 200 600 millimes (= 200,6 TND)', () => {

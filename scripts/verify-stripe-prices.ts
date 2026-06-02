@@ -53,7 +53,7 @@ const EXPECTED: ExpectedPrice[] = [
   {
     envVar: 'STRIPE_PRICE_ESSENTIAL_EUR',
     planId: 'essential',
-    unitAmount: 1900,
+    unitAmount: 2900,
     currency: 'eur',
     type: 'one_time',
   },

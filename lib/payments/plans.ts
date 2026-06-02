@@ -10,8 +10,8 @@
  *
  * **EUR est la source unique** — tous les autres montants (USD, XOF, MAD, TND)
  * sont dérivés via `convertFromEur` (cf. `lib/payments/currency.ts`). Pas
- * d'overlay régional, pas de pricing spécial Afrique : un mariage à 19 € reste
- * 19 € converti pour tout le monde, partout. L'utilisateur peut overrider la
+ * d'overlay régional, pas de pricing spécial Afrique : un mariage à 29 € reste
+ * 29 € converti pour tout le monde, partout. L'utilisateur peut overrider la
  * devise d'affichage via le sélecteur footer (cf. `stores/currency-store.ts`).
  *
  * Multi-devises : EUR + USD via Stripe, XOF via CinetPay, MAD/TND via Stripe.
@@ -73,7 +73,7 @@ const PREMIUM_EXTRA_FEATURES = [
   'seatingPlan',
 ] as const;
 
-const ESSENTIAL_EUR = 1900; // 19 €
+const ESSENTIAL_EUR = 2900; // 29 €
 const PREMIUM_EUR = 5900; // 59 € (grille v2 — absorbe le coût SMS US)
 const UPSELL_EUR = 2900; // +29 €
 

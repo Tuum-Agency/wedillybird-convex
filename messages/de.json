@@ -38,7 +38,7 @@
       "article3Title": "3. Konto und Zugang",
       "article3Body": "Der Zugang zum Dienst erfordert die Erstellung eines Kontos durch Verifizierung einer WhatsApp-Nummer. Der Nutzer ist für die Vertraulichkeit seiner Nummer und für jede Handlung verantwortlich, die über sein Konto erfolgt. Jede unbefugte Nutzung ist unverzüglich zu melden.",
       "article4Title": "4. Preise und Zahlung",
-      "article4Body": "Der Dienst wird ohne kostenlose Variante angeboten. Für Privatpersonen, die eine Hochzeit organisieren, gibt es zwei Einmalzahlungs-Pakete: Essentiel (19 €, Grundfunktionen + Galerie 30 Tage) und Premium (59 €, Essentiel + Galerie 6 Monate + PDF-Album). Ein Upsell nach der Hochzeit (+29 €) verlängert die Galerie auf 5 Jahre und fügt das HD-Fotobuch hinzu. Für Profis: monatliches oder jährliches Abonnement (Starter 99 €/Monat, Business 219 €/Monat, Agency 449 €/Monat, -20 % bei jährlicher Zahlung) oder Bezahlung pro Event (79 €). Zahlungen werden über Stripe (Europa) oder CinetPay (Westafrika) abgewickelt. Vollständige Rückerstattung innerhalb von 7 Tagen, sofern das Event noch nicht versendet wurde. Bei Absage der Hochzeit ist eine kostenlose Verschiebung auf einen anderen Termin möglich.",
+      "article4Body": "Der Dienst wird ohne kostenlose Variante angeboten. Für Privatpersonen, die eine Hochzeit organisieren, gibt es zwei Einmalzahlungs-Pakete: Essentiel (29 €, Grundfunktionen + Galerie 30 Tage) und Premium (59 €, Essentiel + Galerie 6 Monate + PDF-Album). Ein Upsell nach der Hochzeit (+29 €) verlängert die Galerie auf 5 Jahre und fügt das HD-Fotobuch hinzu. Für Profis: monatliches oder jährliches Abonnement (Starter 99 €/Monat, Business 219 €/Monat, Agency 449 €/Monat, -20 % bei jährlicher Zahlung) oder Bezahlung pro Event (79 €). Zahlungen werden über Stripe (Europa) oder CinetPay (Westafrika) abgewickelt. Vollständige Rückerstattung innerhalb von 7 Tagen, sofern das Event noch nicht versendet wurde. Bei Absage der Hochzeit ist eine kostenlose Verschiebung auf einen anderen Termin möglich.",
       "article5Title": "5. Geistiges Eigentum",
       "article5Body": "Der Nutzer behält das Eigentum an den von ihm hochgeladenen Inhalten. Er räumt Wedillybird eine nicht-exklusive Lizenz zur Nutzung dieser Inhalte ausschließlich zum Zweck des Betriebs des Dienstes ein. Wedillybird behält das Eigentum an der Plattform, dem Code und der Marke.",
       "article6Title": "6. Haftung",
@@ -195,7 +195,7 @@
       },
       "pricing": {
         "q": "Was kostet es?",
-        "a": "Zwei Einmalzahlungspakete pro Hochzeit: Essentiel (19 €) für WhatsApp-Einladungen, RSVP, QR-Check-in und Dashboard; Premium (59 €) ergänzt die geteilte Fotogalerie für 6 Monate und das finale PDF-Album. Ein Upsell nach der Hochzeit für +29 € erlaubt es, deine Galerie 5 Jahre lang zu behalten, mit HD-Fotobuch und HD-Export."
+        "a": "Zwei Einmalzahlungspakete pro Hochzeit: Essentiel (29 €) für WhatsApp-Einladungen, RSVP, QR-Check-in und Dashboard; Premium (59 €) ergänzt die geteilte Fotogalerie für 6 Monate und das finale PDF-Album. Ein Upsell nach der Hochzeit für +29 € erlaubt es, deine Galerie 5 Jahre lang zu behalten, mit HD-Fotobuch und HD-Export."
       },
       "support": {
         "q": "Wie erreiche ich den Support?",
@@ -998,7 +998,7 @@
     "alreadyPremium": "Du bist bereits im umfassendsten Paket.",
     "galleryRetention": "Galerie {days, plural, =1 {# Tag} other {# Tage}} nach der Hochzeit aktiv",
     "plans": {
-      "essential": "Essentiel — 19 €",
+      "essential": "Essentiel — 29 €",
       "premium": "Premium — 59 €"
     },
     "successTitle": "Zahlung bestätigt",

@@ -23,7 +23,7 @@ test.describe('Landing pricing', () => {
     await expect(section.getByRole('heading', { name: /^Essentiel$/i, level: 3 })).toBeVisible();
     const priceEl = section.getByTestId('price-essential');
     await expect(priceEl).toBeVisible();
-    // fr-FR formate avec espace insécable : "19,00 €" (Africa) ou "39,00 €" (Europe).
+    // fr-FR formate avec espace insécable : "29,00 €" (grille EUR unique, sans overlay régional).
     // On vérifie la présence d'un montant numérique et du symbole devise.
     await expect(priceEl).toContainText(/\d+/);
     await expect(priceEl).toContainText(/€/);

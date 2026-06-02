@@ -10,7 +10,7 @@ Résumé impératif :
 
 - **Pas de tier `free`** côté particuliers. Le code actuel en a un — il doit être supprimé.
 - **Particuliers (one-shot)** :
-  - Essentiel **19 €** — 100 invités max — 5 Go galerie 12 mois
+  - Essentiel **29 €** — 100 invités max — 5 Go galerie 12 mois
   - Premium **59 €** — 250 invités max — 25 Go HD 12 mois
   - Upsell HD post-event **+29 €** — archive perpétuelle
 - **Pros (mensuel · -20 % en annuel)** :

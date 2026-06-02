@@ -104,8 +104,8 @@ const PLANS_TO_SYNC: ReadonlyArray<PlanSpec> = [
     id: 'essential',
     productName: 'Wedillybird — Essentiel',
     productDescription:
-      'Forfait particulier 19 €. 100 invités, invitations WhatsApp/SMS, RSVP temps réel, check-in offline, galerie 5 Go 12 mois.',
-    eurMinor: 1900,
+      'Forfait particulier 29 €. 100 invités, invitations WhatsApp/SMS, RSVP temps réel, check-in offline, galerie 5 Go 12 mois.',
+    eurMinor: 2900,
     interval: undefined,
     envVarBase: 'STRIPE_PRICE_ESSENTIAL',
   },

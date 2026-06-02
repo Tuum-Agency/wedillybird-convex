@@ -38,7 +38,7 @@
       "article3Title": "3. Cuenta y acceso",
       "article3Body": "El acceso al Servicio requiere la creación de una cuenta mediante la verificación de un número de WhatsApp. El Usuario es responsable de la confidencialidad de su número y de cualquier acción realizada desde su cuenta. Cualquier uso no autorizado debe comunicarse de inmediato.",
       "article4Title": "4. Tarifas y pago",
-      "article4Body": "El Servicio se ofrece sin plan gratuito. Para particulares que organizan una boda, dos planes de pago único: Esencial (19 €, funciones básicas + galería 30 días) y Premium (59 €, Esencial + galería 6 meses + álbum PDF). Una mejora postboda (+29 €) amplía la galería a 5 años y añade el libro de fotos en HD. Para profesionales, suscripción mensual o anual (Starter 99 €/mes, Business 219 €/mes, Agency 449 €/mes, -20 % en plan anual) o pago por evento (79 €). Los pagos se procesan a través de Stripe (Europa) o CinetPay (África Occidental). Reembolso íntegro en un plazo de 7 días si el evento aún no se ha enviado. En caso de cancelación de la boda, aplazamiento gratuito a otra fecha.",
+      "article4Body": "El Servicio se ofrece sin plan gratuito. Para particulares que organizan una boda, dos planes de pago único: Esencial (29 €, funciones básicas + galería 30 días) y Premium (59 €, Esencial + galería 6 meses + álbum PDF). Una mejora postboda (+29 €) amplía la galería a 5 años y añade el libro de fotos en HD. Para profesionales, suscripción mensual o anual (Starter 99 €/mes, Business 219 €/mes, Agency 449 €/mes, -20 % en plan anual) o pago por evento (79 €). Los pagos se procesan a través de Stripe (Europa) o CinetPay (África Occidental). Reembolso íntegro en un plazo de 7 días si el evento aún no se ha enviado. En caso de cancelación de la boda, aplazamiento gratuito a otra fecha.",
       "article5Title": "5. Propiedad intelectual",
       "article5Body": "El Usuario conserva la propiedad de los contenidos que sube. Otorga a Wedillybird una licencia no exclusiva de uso de dichos contenidos con el único fin del funcionamiento del Servicio. Wedillybird conserva la propiedad de la plataforma, el código y la marca.",
       "article6Title": "6. Responsabilidad",
@@ -195,7 +195,7 @@
       },
       "pricing": {
         "q": "¿Cuáles son las tarifas?",
-        "a": "Dos planes de pago único por boda: Esencial (19 €) para las invitaciones por WhatsApp, el RSVP, el check-in con QR y el panel de control; Premium (59 €) que añade la galería de fotos compartida durante 6 meses y el álbum PDF final. Una mejora postboda de +29 € te permite conservar tu galería 5 años con un libro de fotos HD y la exportación en alta definición."
+        "a": "Dos planes de pago único por boda: Esencial (29 €) para las invitaciones por WhatsApp, el RSVP, el check-in con QR y el panel de control; Premium (59 €) que añade la galería de fotos compartida durante 6 meses y el álbum PDF final. Una mejora postboda de +29 € te permite conservar tu galería 5 años con un libro de fotos HD y la exportación en alta definición."
       },
       "support": {
         "q": "¿Cómo contacto con el soporte?",
@@ -998,7 +998,7 @@
     "alreadyPremium": "Ya estás en el plan más completo.",
     "galleryRetention": "Galería activa {days, plural, =1 {# día} other {# días}} después de la boda",
     "plans": {
-      "essential": "Esencial — 19 €",
+      "essential": "Esencial — 29 €",
       "premium": "Premium — 59 €"
     },
     "successTitle": "Pago confirmado",
