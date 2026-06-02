@@ -56,6 +56,17 @@ export async function GET(
     return NextResponse.json({ error: 'NOT_FOUND' }, { status: 404 });
   }
 
+  // Gate par formule : le téléchargement ZIP de la galerie est une feature
+  // Premium (cf. PREMIUM_EXTRA_FEATURES dans lib/payments/plans.ts). Un event
+  // Essentiel (planTier 'essential', hors organisation Pro) n'y a pas droit —
+  // cohérent avec eventHasFeature côté Convex. Sans ce check, un Essentiel
+  // pourrait télécharger l'archive via l'URL directe alors que l'UI la vend
+  // comme Premium.
+  const hasZipFeature = event.planTier === 'premium' || Boolean(event.organizationId);
+  if (!hasZipFeature) {
+    return NextResponse.json({ error: 'FEATURE_NOT_IN_PLAN' }, { status: 403 });
+  }
+
   let photos: ApprovedPhoto[];
   try {
     const all = await convex.query(convexApi.listPhotosForOwner, {

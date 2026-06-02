@@ -48,11 +48,29 @@ describe('GET /events/[eventId]/gallery/download-zip', () => {
     expect(res.status).toBe(403);
   });
 
+  it('returns 403 FEATURE_NOT_IN_PLAN for an Essentiel event (Premium-only feature)', async () => {
+    getSessionMock.mockResolvedValue({ userId: 'usr_owner', issuedAt: 0 });
+    queryMock.mockImplementation((ref: string) => {
+      if (ref === 'events:getById') {
+        // planTier 'essential', hors organisation → pas de droit au ZIP.
+        return Promise.resolve({ _id: 'evt_1', slug: 'camille-hugo', planTier: 'essential' });
+      }
+      return Promise.resolve(null);
+    });
+
+    const res = await GET(new Request('https://test/'), { params: params('evt_1') });
+
+    expect(res.status).toBe(403);
+    expect(await res.json()).toEqual({ error: 'FEATURE_NOT_IN_PLAN' });
+    // On ne doit même pas charger les photos si le gate bloque.
+    expect(queryMock).not.toHaveBeenCalledWith('photos:listForOwner', expect.anything());
+  });
+
   it('returns 404 when the event has no approved photos', async () => {
     getSessionMock.mockResolvedValue({ userId: 'usr_owner', issuedAt: 0 });
     queryMock.mockImplementation((ref: string) => {
       if (ref === 'events:getById') {
-        return Promise.resolve({ _id: 'evt_1', slug: 'camille-hugo' });
+        return Promise.resolve({ _id: 'evt_1', slug: 'camille-hugo', planTier: 'premium' });
       }
       if (ref === 'photos:listForOwner') {
         return Promise.resolve([]);
@@ -69,7 +87,7 @@ describe('GET /events/[eventId]/gallery/download-zip', () => {
     getSessionMock.mockResolvedValue({ userId: 'usr_owner', issuedAt: 0 });
     queryMock.mockImplementation((ref: string) => {
       if (ref === 'events:getById') {
-        return Promise.resolve({ _id: 'evt_1', slug: 'camille-hugo' });
+        return Promise.resolve({ _id: 'evt_1', slug: 'camille-hugo', planTier: 'premium' });
       }
       if (ref === 'photos:listForOwner') {
         return Promise.resolve([
