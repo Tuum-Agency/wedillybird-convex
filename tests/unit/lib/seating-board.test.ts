@@ -9,7 +9,14 @@ import {
 } from '../../../lib/seating/board';
 
 function guest(id: string, seats = 1): SeatGuest {
-  return { _id: id, fullName: `Guest ${id}`, seats, plusOnesNames: seats > 1 ? ['Plus'] : [] };
+  return {
+    _id: id,
+    guestId: id,
+    memberIndex: 0,
+    fullName: `Guest ${id}`,
+    seats,
+    plusOnesNames: seats > 1 ? ['Plus'] : [],
+  };
 }
 
 function table(id: string, capacity: number, assigned: SeatGuest[] = []) {

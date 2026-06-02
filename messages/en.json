@@ -1427,6 +1427,7 @@
     "autoPlace": "Auto-seat",
     "print": "Print",
     "shapeToggle": "Toggle shape (round/rectangular)",
-    "clickToUnassign": "Click to remove from table"
+    "clickToUnassign": "Click to remove from table",
+    "guestOf": "guest of {host}"
   }
 }

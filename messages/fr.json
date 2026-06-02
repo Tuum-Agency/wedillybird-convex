@@ -1431,6 +1431,7 @@
     "autoPlace": "Placement auto",
     "print": "Imprimer",
     "shapeToggle": "Changer la forme (ronde/rectangulaire)",
-    "clickToUnassign": "Cliquer pour retirer de la table"
+    "clickToUnassign": "Cliquer pour retirer de la table",
+    "guestOf": "invité·e de {host}"
   }
 }

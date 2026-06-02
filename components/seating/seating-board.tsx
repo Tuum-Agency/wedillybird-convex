@@ -31,7 +31,7 @@ import { Link } from '@/i18n/navigation';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/cn';
 import {
-  assignGuestAction,
+  assignSeatAction,
   autoAssignGuestsAction,
   createTableAction,
   deleteTableAction,
@@ -124,19 +124,28 @@ export function SeatingBoard({ eventId, initial }: Props) {
       return;
     }
 
-    // Assignation d'un invité vers une table ou la zone « non placés ».
+    // Assignation d'une personne vers une table ou la zone « non placés ».
     if (!event.over) return;
-    const guestId = String(event.active.id);
+    const unitKey = String(event.active.id);
     const target = String(event.over.id);
     const state: BoardState = { tables, unassigned };
-    if (containerOf(state, guestId) === target) return;
+    if (containerOf(state, unitKey) === target) return;
+    const unit =
+      state.unassigned.find((u) => u._id === unitKey) ??
+      state.tables.flatMap((tb) => tb.assigned).find((u) => u._id === unitKey);
+    if (!unit) return;
 
-    const next = applyMove(state, guestId, target);
+    const next = applyMove(state, unitKey, target);
     setTables(next.tables);
     setUnassigned(next.unassigned);
     setError('');
 
-    void assignGuestAction(guestId, target === UNASSIGNED ? null : target).then((res) => {
+    void assignSeatAction(
+      eventId,
+      unit.guestId,
+      unit.memberIndex,
+      target === UNASSIGNED ? null : target,
+    ).then((res) => {
       if (!res.ok) {
         // Revert optimiste sur échec serveur.
         setTables(state.tables);
@@ -166,13 +175,15 @@ export function SeatingBoard({ eventId, initial }: Props) {
     });
   }
 
-  function handleUnassignGuest(guestId: string) {
+  function handleUnassignGuest(unitKey: string) {
     const state: BoardState = { tables, unassigned };
-    if (containerOf(state, guestId) === UNASSIGNED) return;
-    const next = applyMove(state, guestId, UNASSIGNED);
+    if (containerOf(state, unitKey) === UNASSIGNED) return;
+    const unit = state.tables.flatMap((tb) => tb.assigned).find((u) => u._id === unitKey);
+    if (!unit) return;
+    const next = applyMove(state, unitKey, UNASSIGNED);
     setTables(next.tables);
     setUnassigned(next.unassigned);
-    void assignGuestAction(guestId, null).then((res) => {
+    void assignSeatAction(eventId, unit.guestId, unit.memberIndex, null).then((res) => {
       if (!res.ok) {
         setTables(state.tables);
         setUnassigned(state.unassigned);
@@ -550,6 +561,7 @@ function GuestChip({
   overlay?: boolean;
   seatLabel: string;
 }) {
+  const t = useTranslations('Seating');
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: guest._id,
     data: { type: 'guest' },
@@ -562,6 +574,7 @@ function GuestChip({
       {...(overlay ? {} : attributes)}
       data-testid="guest-chip"
       data-guest-id={guest._id}
+      data-member-index={guest.memberIndex}
       className={`flex cursor-grab touch-none items-center gap-2 rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-ivory-100)] px-2.5 py-2 text-sm active:cursor-grabbing ${
         dimmed || isDragging ? 'opacity-40' : ''
       } ${overlay ? 'shadow-[var(--shadow-popover)]' : ''}`}
@@ -571,8 +584,13 @@ function GuestChip({
         strokeWidth={2}
         aria-hidden
       />
-      <span className="min-w-0 flex-1 truncate text-[color:var(--color-ink-900)]">
-        {guest.fullName}
+      <span className="flex min-w-0 flex-1 flex-col">
+        <span className="truncate text-[color:var(--color-ink-900)]">{guest.fullName}</span>
+        {guest.hostName ? (
+          <span className="truncate text-[10px] text-[color:var(--color-ink-500)]">
+            {t('guestOf', { host: guest.hostName })}
+          </span>
+        ) : null}
       </span>
       {plusOnes > 0 ? (
         <span className="shrink-0 rounded-full bg-[color:var(--color-surface)] px-1.5 py-0.5 text-[10px] font-medium text-[color:var(--color-ink-500)]">

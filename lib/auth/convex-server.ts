@@ -125,11 +125,17 @@ export const convexApi = {
     { tableId: string; requesterId: string },
     { ok: true; unassigned: number }
   >('seating:deleteTable'),
-  assignGuestToTable: makeFunctionReference<
+  assignSeat: makeFunctionReference<
     'mutation',
-    { guestId: string; tableId: string | null; requesterId: string },
+    {
+      eventId: string;
+      guestId: string;
+      memberIndex: number;
+      tableId: string | null;
+      requesterId: string;
+    },
     { ok: true }
-  >('seating:assignGuest'),
+  >('seating:assignSeat'),
   autoAssignGuests: makeFunctionReference<
     'mutation',
     { eventId: string; requesterId: string },
@@ -149,7 +155,10 @@ export const convexApi = {
         order: number;
         assigned: Array<{
           _id: string;
+          guestId: string;
+          memberIndex: number;
           fullName: string;
+          hostName?: string;
           seats: number;
           plusOnesNames: string[];
           category?: string;
@@ -159,7 +168,10 @@ export const convexApi = {
       }>;
       unassigned: Array<{
         _id: string;
+        guestId: string;
+        memberIndex: number;
         fullName: string;
+        hostName?: string;
         seats: number;
         plusOnesNames: string[];
         category?: string;

@@ -116,6 +116,31 @@ test.describe('Plan de table (seating)', () => {
     await expect(page.getByTestId('table-card').first()).toBeVisible();
   });
 
+  test('Premium : un accompagnant se place indépendamment de son invité', async ({ page }) => {
+    await devLogin(page, fixtures.premium.ownerPhone);
+    await page.goto(`/events/${fixtures.premium.eventId}/seating`);
+
+    await page.getByTestId('add-table').click();
+    const tableCard = page.getByTestId('table-card');
+    await expect(tableCard).toHaveCount(1);
+
+    // Un chip « accompagnant » (data-member-index >= 1) existe dans les non-placés.
+    const plusOne = page
+      .getByTestId('unassigned-column')
+      .locator('[data-testid="guest-chip"][data-member-index="1"]')
+      .first();
+    await expect(plusOne).toBeVisible();
+
+    // Glisse uniquement l'accompagnant vers la table.
+    await dndDrag(page, plusOne, tableCard.first());
+
+    // La table contient exactement 1 personne, et c'est bien l'accompagnant.
+    await expect(tableCard.first().getByTestId('guest-chip')).toHaveCount(1, { timeout: 10_000 });
+    await expect(
+      tableCard.first().locator('[data-testid="guest-chip"][data-member-index="1"]'),
+    ).toHaveCount(1);
+  });
+
   test('Premium : vue Plan, repositionner une table', async ({ page }) => {
     await devLogin(page, fixtures.premium.ownerPhone);
     await page.goto(`/events/${fixtures.premium.eventId}/seating`);

@@ -10,9 +10,17 @@
 
 export const UNASSIGNED = 'unassigned';
 
+/**
+ * Unité-personne placeable : soit l'invité principal (`memberIndex` 0), soit un
+ * accompagnant (`memberIndex` >= 1, avec `hostName` = nom de l'invité hôte).
+ * `_id` est l'identifiant d'unité (`guestId` ou `guestId:memberIndex`).
+ */
 export interface SeatGuest {
   _id: string;
+  guestId: string;
+  memberIndex: number;
   fullName: string;
+  hostName?: string;
   seats: number;
   plusOnesNames: string[];
   category?: string;

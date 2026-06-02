@@ -1430,6 +1430,7 @@
     "autoPlace": "Auto-Platzierung",
     "print": "Drucken",
     "shapeToggle": "Form ändern (rund/rechteckig)",
-    "clickToUnassign": "Zum Entfernen vom Tisch klicken"
+    "clickToUnassign": "Zum Entfernen vom Tisch klicken",
+    "guestOf": "Gast von {host}"
   }
 }

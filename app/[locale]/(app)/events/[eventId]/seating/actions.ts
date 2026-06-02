@@ -110,16 +110,20 @@ export async function deleteTableAction(tableId: string): Promise<SeatingActionR
   }
 }
 
-export async function assignGuestAction(
+export async function assignSeatAction(
+  eventId: string,
   guestId: string,
+  memberIndex: number,
   tableId: string | null,
 ): Promise<SeatingActionResult> {
   const session = await getSession();
   if (!session) return { ok: false, error: 'UNAUTHENTICATED' };
   try {
     const convex = getConvexServerClient();
-    await convex.mutation(convexApi.assignGuestToTable, {
+    await convex.mutation(convexApi.assignSeat, {
+      eventId,
       guestId,
+      memberIndex,
       tableId,
       requesterId: session.userId,
     });

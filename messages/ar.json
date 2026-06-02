@@ -1426,6 +1426,7 @@
     "autoPlace": "توزيع تلقائي",
     "print": "طباعة",
     "shapeToggle": "تغيير الشكل (دائري/مستطيل)",
-    "clickToUnassign": "انقر للإزالة من الطاولة"
+    "clickToUnassign": "انقر للإزالة من الطاولة",
+    "guestOf": "ضيف {host}"
   }
 }

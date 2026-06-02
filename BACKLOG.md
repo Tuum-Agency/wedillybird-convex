@@ -322,21 +322,23 @@ La plomberie `lib/email/` est en place avec drivers SES + mock et 3 templates. R
 - **UI Agent B** : composant `<FaceSearchModal />` qui prend webcam/file → base64 → server action → galerie filtrée par `photoIds`. Placer le bouton "Retrouver mes photos" sur `/i/[token]/gallery` (côté guest) ET `/events/[id]/gallery` (côté owner pour debug)
 - **Quota / rate-limit** : aucun quota par event ou par invité aujourd'hui. À considérer si abus (selfies répétés) — typiquement debounce côté UI + soft-limit Convex sur `searchPhotosByFace` par `requesterId` ou `guestToken` sur fenêtre 1 min
 
-## Plan de table / gestion des tables — ✅ LIVRÉ (MVP drag-and-drop)
+## Plan de table / gestion des tables — ✅ LIVRÉ (V1 + V2 + V2.1)
 
-> **Livré (juin 2026)** : board drag-and-drop (`@dnd-kit/core`) sur `/events/[id]/seating`. Colonne « non placés » + cartes tables droppables ; assignation invité→table en glisser-déposer (pointer + tactile + clavier), compteur de capacité + alerte sur-capacité, ajout/suppression de table + capacité éditable. Optimiste avec revert serveur sur échec.
+> **Livré (juin 2026)** sur `/events/[id]/seating`, feature Premium + tous les Pro (`seatingPlan`), Essentiel exclu → upsell. Exposé dans la grille tarifaire B2C.
 
-**Packaging** : Premium (59 €) + tous les Pro (entitlement `seatingPlan`). **Essentiel exclu** → upsell. Exposé dans la grille tarifaire B2C (carte Premium).
+**V1 — board drag-and-drop** (`@dnd-kit/core`) : colonne « non placés » + cartes tables droppables, assignation en glisser-déposer (pointer + tactile + clavier), capacité éditable + alerte sur-capacité, ajout/suppression de table. Optimiste + revert serveur.
 
-**Implémenté** :
-- **Données (Convex)** : table `tables` (`eventId`, `name`, `capacity`, `shape?`, `order`) + `guests.tableId` (index `by_table`). Capacité = invité + ses plus-ones confirmés (`plusOnesNames`).
-- **Functions** : `convex/seating.ts` (createTable / updateTable / deleteTable / assignGuest / getSeatingPlan), owner-ou-collaborateur + entitlement `seatingPlan` gated.
-- **UI** : `components/seating/seating-board.tsx` + page + server actions + lien depuis la page event. i18n `Seating` ×7 locales.
-- **Gating** : `seatingPlan` dans `convex/lib/entitlements.ts` + `PREMIUM_EXTRA_FEATURES`.
+**V2 — plan visuel + automatisation + export** :
+- **Plan visuel spatial** : vue « Plan » (canvas), nœuds tables positionnables en drag (posX/posY persistés), forme ronde/rectangulaire commutable. Toggle Liste ⇄ Plan.
+- **Placement automatique** : `convex/lib/autoplace.ts` (regroupe par catégorie, respecte la capacité, crée les tables manquantes) + mutation `autoAssignGuests`.
+- **Export/impression** : route `/seating/print` (document propre, sauts de page propres) + bouton.
 
-**Reste pour v2 (non bloquant)** :
-- **Plan visuel spatial** : tables rondes/rectangulaires positionnables sur un canvas (le `shape` est déjà stocké). Aujourd'hui = board en colonnes.
-- Placement d'un plus-one **indépendamment** de son invité principal (aujourd'hui ils sont groupés). Nécessiterait une jointure `tableAssignments`.
-- Auto-placement (regrouper familles / RSVP liés), gestion conflits (« ne pas asseoir X près de Y »).
-- Export/impression PDF du plan (traiteur + jour J).
-- Réordonnancement des tables en drag (aujourd'hui ordre = création).
+**V2.1 — placement par personne** : modèle **unité-personne**. L'invité principal (`memberIndex 0`) reste sur `guests.tableId` ; chaque accompagnant (`memberIndex ≥ 1`) est placé **indépendamment** via la table `tableAssignments`. Chaque personne = une place.
+
+**Functions** : `convex/seating.ts` (createTable / updateTable / deleteTable / assignSeat / autoAssignGuests / getSeatingPlan), owner-ou-collaborateur + entitlement gated. **Tests** : unit (board + autoplace) + e2e Playwright (gating, drag, auto-place, plan + repositionnement, plus-one indépendant).
+
+**Reste (améliorations futures, non bloquant)** :
+- Auto-placement plus fin : RSVP liés, **gestion de conflits** (« ne pas asseoir X près de Y »), équilibrage.
+- Réordonnancement des tables en drag dans la vue Liste (la vue Plan couvre déjà le repositionnement).
+- Export **PDF** natif (aujourd'hui = impression navigateur depuis `/seating/print`).
+- Nettoyage des `tableAssignments` orphelines si un accompagnant est retiré du RSVP (best-effort).

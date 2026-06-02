@@ -1430,6 +1430,7 @@
     "autoPlace": "Auto-ubicar",
     "print": "Imprimir",
     "shapeToggle": "Cambiar forma (redonda/rectangular)",
-    "clickToUnassign": "Clic para quitar de la mesa"
+    "clickToUnassign": "Clic para quitar de la mesa",
+    "guestOf": "invitado/a de {host}"
   }
 }

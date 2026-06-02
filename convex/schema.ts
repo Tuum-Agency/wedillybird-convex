@@ -295,6 +295,28 @@ export default defineSchema({
     updatedAt: v.number(),
   }).index('by_event', ['eventId']),
 
+  /**
+   * Placement des **accompagnants** (plus-ones) sur une table, indépendamment
+   * de leur invité principal (v2.1). Convention `memberIndex` :
+   *  - L'invité principal (memberIndex 0) reste porté par `guests.tableId`
+   *    (rétro-compat V1/V2) — il n'a PAS de row ici.
+   *  - Chaque accompagnant `plusOnesNames[k]` = memberIndex `k + 1`, et a une
+   *    row ici quand il est placé (absence de row = non placé).
+   * Une personne = une place (la capacité d'une table compte les personnes).
+   */
+  tableAssignments: defineTable({
+    eventId: v.id('events'),
+    guestId: v.id('guests'),
+    memberIndex: v.number(), // >= 1 (les accompagnants ; le principal est sur guests.tableId)
+    tableId: v.id('tables'),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index('by_event', ['eventId'])
+    .index('by_table', ['tableId'])
+    .index('by_guest', ['guestId'])
+    .index('by_guest_member', ['guestId', 'memberIndex']),
+
   eventCollaborators: defineTable({
     eventId: v.id('events'),
     userId: v.id('users'),
