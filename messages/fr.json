@@ -1425,6 +1425,12 @@
     "overCapacity": "Sur-capacité",
     "deleteTable": "Supprimer la table",
     "capacityLabel": "Capacité",
-    "tableEmpty": "Déposez des invités ici"
+    "tableEmpty": "Déposez des invités ici",
+    "viewList": "Liste",
+    "viewPlan": "Plan",
+    "autoPlace": "Placement auto",
+    "print": "Imprimer",
+    "shapeToggle": "Changer la forme (ronde/rectangulaire)",
+    "clickToUnassign": "Cliquer pour retirer de la table"
   }
 }

@@ -1424,6 +1424,12 @@
     "overCapacity": "Capienza superata",
     "deleteTable": "Elimina tavolo",
     "capacityLabel": "Capienza",
-    "tableEmpty": "Rilascia qui gli invitati"
+    "tableEmpty": "Rilascia qui gli invitati",
+    "viewList": "Elenco",
+    "viewPlan": "Piantina",
+    "autoPlace": "Auto-posiziona",
+    "print": "Stampa",
+    "shapeToggle": "Cambia forma (rotonda/rettangolare)",
+    "clickToUnassign": "Clicca per rimuovere dal tavolo"
   }
 }

@@ -23,6 +23,8 @@ export interface SeatTable {
   name: string;
   capacity: number;
   shape?: 'round' | 'rect';
+  posX?: number;
+  posY?: number;
   order: number;
   assigned: SeatGuest[];
   occupancy: number;
@@ -32,6 +34,30 @@ export interface SeatTable {
 export interface BoardState {
   tables: SeatTable[];
   unassigned: SeatGuest[];
+}
+
+export interface SeatingPlanStats {
+  tableCount: number;
+  totalCapacity: number;
+  seatedSeats: number;
+  unassignedSeats: number;
+  attendingParties: number;
+}
+
+/** Forme renvoyée par la query `getSeatingPlan` (et consommée par l'UI). */
+export interface SeatingPlan {
+  tables: SeatTable[];
+  unassigned: SeatGuest[];
+  stats: SeatingPlanStats;
+}
+
+/**
+ * Position par défaut (grille) d'une table sur le canvas du plan visuel quand
+ * elle n'a pas encore de posX/posY persisté. Partagée entre le rendu (canvas)
+ * et le calcul de repositionnement (board) pour rester cohérent.
+ */
+export function defaultTablePos(index: number): { x: number; y: number } {
+  return { x: 24 + (index % 4) * 210, y: 24 + Math.floor(index / 4) * 190 };
 }
 
 /** Recalcule l'occupation (somme des sièges) et le flag sur-capacité d'une table. */

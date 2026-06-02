@@ -1424,6 +1424,12 @@
     "overCapacity": "Sobreaforo",
     "deleteTable": "Eliminar mesa",
     "capacityLabel": "Aforo",
-    "tableEmpty": "Suelta invitados aquí"
+    "tableEmpty": "Suelta invitados aquí",
+    "viewList": "Lista",
+    "viewPlan": "Plano",
+    "autoPlace": "Auto-ubicar",
+    "print": "Imprimir",
+    "shapeToggle": "Cambiar forma (redonda/rectangular)",
+    "clickToUnassign": "Clic para quitar de la mesa"
   }
 }

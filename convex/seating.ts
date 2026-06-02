@@ -2,6 +2,7 @@ import { v } from 'convex/values';
 import { mutation, query, type MutationCtx, type QueryCtx } from './_generated/server';
 import type { Doc, Id } from './_generated/dataModel';
 import { eventHasFeature } from './lib/entitlements';
+import { autoPlace } from './lib/autoplace';
 
 /**
  * Plan de table / seating. Tables (`tables`) + assignation invité→table portée
@@ -86,14 +87,22 @@ export const updateTable = mutation({
     requesterId: v.id('users'),
     name: v.optional(v.string()),
     capacity: v.optional(v.number()),
+    shape: v.optional(v.union(v.literal('round'), v.literal('rect'))),
+    posX: v.optional(v.number()),
+    posY: v.optional(v.number()),
   },
-  handler: async (ctx, { tableId, requesterId, name, capacity }) => {
+  handler: async (ctx, { tableId, requesterId, name, capacity, shape, posX, posY }) => {
     await requireTableAccess(ctx, tableId, requesterId);
     const patch: Partial<Doc<'tables'>> = { updatedAt: Date.now() };
     if (name !== undefined && name.trim()) patch.name = name.trim();
     if (capacity !== undefined && capacity > 0) {
       patch.capacity = Math.min(Math.round(capacity), MAX_CAPACITY);
     }
+    if (shape !== undefined) patch.shape = shape;
+    // Position du plan visuel : clampée à des bornes raisonnables (le canvas
+    // gère le rendu ; on borne juste pour éviter des valeurs aberrantes).
+    if (posX !== undefined) patch.posX = Math.max(0, Math.min(Math.round(posX), 4000));
+    if (posY !== undefined) patch.posY = Math.max(0, Math.min(Math.round(posY), 4000));
     await ctx.db.patch(tableId, patch);
     return { ok: true as const };
   },
@@ -137,6 +146,85 @@ export const assignGuest = mutation({
     }
     await ctx.db.patch(guestId, { tableId: tableId ?? undefined, updatedAt: Date.now() });
     return { ok: true as const };
+  },
+});
+
+/**
+ * Placement automatique : assigne tous les invités confirmés non placés aux
+ * tables existantes (en regroupant par catégorie + respectant la capacité),
+ * créant de nouvelles tables au besoin (positionnées en grille sur le canvas).
+ * Idempotent au sens « ne touche que les non-placés » — les assignations
+ * manuelles existantes sont préservées.
+ */
+export const autoAssignGuests = mutation({
+  args: { eventId: v.id('events'), requesterId: v.id('users') },
+  handler: async (ctx, { eventId, requesterId }) => {
+    await requireSeatingAccess(ctx, eventId, requesterId);
+    const now = Date.now();
+
+    const tables = await ctx.db
+      .query('tables')
+      .withIndex('by_event', (q) => q.eq('eventId', eventId))
+      .collect();
+    const guests = await ctx.db
+      .query('guests')
+      .withIndex('by_event', (q) => q.eq('eventId', eventId))
+      .collect();
+
+    const occupancy = new Map<string, number>();
+    const unassigned: Array<{ _id: string; seats: number; category?: string }> = [];
+    for (const g of guests) {
+      if (g.rsvpStatus !== 'attending') continue;
+      const seats = seatsForGuest(g);
+      if (g.tableId) {
+        occupancy.set(g.tableId, (occupancy.get(g.tableId) ?? 0) + seats);
+      } else {
+        unassigned.push({ _id: g._id, seats, ...(g.category ? { category: g.category } : {}) });
+      }
+    }
+    if (unassigned.length === 0) {
+      return { assigned: 0, tablesCreated: 0 };
+    }
+
+    const placeTables = tables.map((t) => ({
+      _id: t._id,
+      remaining: Math.max(0, t.capacity - (occupancy.get(t._id) ?? 0)),
+    }));
+
+    const result = autoPlace(unassigned, placeTables, DEFAULT_CAPACITY);
+
+    let created = 0;
+    let assigned = 0;
+    let order = tables.length;
+    for (const nt of result.newTables) {
+      const idx = order;
+      const tableId = await ctx.db.insert('tables', {
+        eventId,
+        name: `Table ${idx + 1}`,
+        capacity: Math.min(nt.capacity, MAX_CAPACITY),
+        shape: 'round' as const,
+        posX: 40 + (idx % 4) * 210,
+        posY: 40 + Math.floor(idx / 4) * 190,
+        order: idx,
+        createdAt: now,
+        updatedAt: now,
+      });
+      order += 1;
+      created += 1;
+      for (const guestId of nt.guestIds) {
+        await ctx.db.patch(guestId as Id<'guests'>, { tableId, updatedAt: now });
+        assigned += 1;
+      }
+    }
+    for (const a of result.assignments) {
+      await ctx.db.patch(a.guestId as Id<'guests'>, {
+        tableId: a.tableId as Id<'tables'>,
+        updatedAt: now,
+      });
+      assigned += 1;
+    }
+
+    return { assigned, tablesCreated: created };
   },
 });
 
@@ -194,6 +282,8 @@ export const getSeatingPlan = query({
           name: t.name,
           capacity: t.capacity,
           shape: t.shape,
+          posX: t.posX,
+          posY: t.posY,
           order: t.order,
           assigned,
           occupancy,

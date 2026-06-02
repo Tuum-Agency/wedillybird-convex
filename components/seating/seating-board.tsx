@@ -15,10 +15,24 @@ import {
   type DragEndEvent,
   type DragStartEvent,
 } from '@dnd-kit/core';
-import { AlertTriangle, GripVertical, Plus, Trash2, Users, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import {
+  AlertTriangle,
+  GripVertical,
+  LayoutGrid,
+  Map as MapIcon,
+  Plus,
+  Printer,
+  Sparkles,
+  Trash2,
+  Users,
+  X,
+} from 'lucide-react';
+import { Link } from '@/i18n/navigation';
+import { Button, buttonVariants } from '@/components/ui/button';
+import { cn } from '@/lib/cn';
 import {
   assignGuestAction,
+  autoAssignGuestsAction,
   createTableAction,
   deleteTableAction,
   updateTableAction,
@@ -26,14 +40,21 @@ import {
 import {
   applyMove,
   containerOf,
+  defaultTablePos,
   UNASSIGNED,
   withOccupancy,
   type BoardState,
   type SeatGuest,
   type SeatTable,
 } from '@/lib/seating/board';
+import { SeatingCanvas, TABLE_DRAG_PREFIX } from '@/components/seating/seating-canvas';
 
 const DEFAULT_CAPACITY = 8;
+const POS_MAX = 4000;
+
+function clampPos(n: number): number {
+  return Math.max(0, Math.min(Math.round(n), POS_MAX));
+}
 
 interface Props {
   eventId: string;
@@ -57,6 +78,7 @@ export function SeatingBoard({ eventId, initial }: Props) {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [view, setView] = useState<'list' | 'plan'>('list');
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
@@ -82,6 +104,27 @@ export function SeatingBoard({ eventId, initial }: Props) {
 
   function onDragEnd(event: DragEndEvent) {
     setActiveId(null);
+    const type = (event.active.data.current as { type?: string } | undefined)?.type;
+
+    // Repositionnement d'une table (vue Plan) — basé sur le delta du drag.
+    if (type === 'table') {
+      const tableId = String(event.active.id).slice(TABLE_DRAG_PREFIX.length);
+      const delta = event.delta;
+      if (!delta || (delta.x === 0 && delta.y === 0)) return;
+      const idx = tables.findIndex((tb) => tb._id === tableId);
+      if (idx < 0) return;
+      const current = tables[idx]!;
+      const fb = defaultTablePos(idx);
+      const posX = clampPos((current.posX ?? fb.x) + delta.x);
+      const posY = clampPos((current.posY ?? fb.y) + delta.y);
+      setTables((cur) => cur.map((tb) => (tb._id === tableId ? { ...tb, posX, posY } : tb)));
+      void updateTableAction(tableId, { posX, posY }).then((res) => {
+        if (!res.ok) setError(t('error'));
+      });
+      return;
+    }
+
+    // Assignation d'un invité vers une table ou la zone « non placés ».
     if (!event.over) return;
     const guestId = String(event.active.id);
     const target = String(event.over.id);
@@ -96,6 +139,41 @@ export function SeatingBoard({ eventId, initial }: Props) {
     void assignGuestAction(guestId, target === UNASSIGNED ? null : target).then((res) => {
       if (!res.ok) {
         // Revert optimiste sur échec serveur.
+        setTables(state.tables);
+        setUnassigned(state.unassigned);
+        setError(t('error'));
+      }
+    });
+  }
+
+  async function handleAutoPlace() {
+    setBusy(true);
+    setError('');
+    const res = await autoAssignGuestsAction(eventId);
+    setBusy(false);
+    if (res.ok) {
+      setTables(res.plan.tables);
+      setUnassigned(res.plan.unassigned);
+    } else {
+      setError(t('error'));
+    }
+  }
+
+  function handleToggleShape(tableId: string, next: 'round' | 'rect') {
+    setTables((cur) => cur.map((tb) => (tb._id === tableId ? { ...tb, shape: next } : tb)));
+    void updateTableAction(tableId, { shape: next }).then((res) => {
+      if (!res.ok) setError(t('error'));
+    });
+  }
+
+  function handleUnassignGuest(guestId: string) {
+    const state: BoardState = { tables, unassigned };
+    if (containerOf(state, guestId) === UNASSIGNED) return;
+    const next = applyMove(state, guestId, UNASSIGNED);
+    setTables(next.tables);
+    setUnassigned(next.unassigned);
+    void assignGuestAction(guestId, null).then((res) => {
+      if (!res.ok) {
         setTables(state.tables);
         setUnassigned(state.unassigned);
         setError(t('error'));
@@ -171,16 +249,71 @@ export function SeatingBoard({ eventId, initial }: Props) {
               tables: tables.length,
             })}
           </p>
-          <Button
-            type="button"
-            size="md"
-            onClick={handleAddTable}
-            disabled={busy}
-            data-testid="add-table"
-          >
-            <Plus className="h-4 w-4" strokeWidth={2} aria-hidden />
-            {t('addTable')}
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <div
+              className="inline-flex rounded-lg border border-[color:var(--color-border)] p-0.5"
+              role="group"
+            >
+              <button
+                type="button"
+                onClick={() => setView('list')}
+                aria-pressed={view === 'list'}
+                data-testid="view-list"
+                className={`focus-ring inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm transition-colors ${
+                  view === 'list'
+                    ? 'bg-[color:var(--color-ink-900)] text-white'
+                    : 'text-[color:var(--color-ink-500)]'
+                }`}
+              >
+                <LayoutGrid className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />
+                {t('viewList')}
+              </button>
+              <button
+                type="button"
+                onClick={() => setView('plan')}
+                aria-pressed={view === 'plan'}
+                data-testid="view-plan"
+                className={`focus-ring inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm transition-colors ${
+                  view === 'plan'
+                    ? 'bg-[color:var(--color-ink-900)] text-white'
+                    : 'text-[color:var(--color-ink-500)]'
+                }`}
+              >
+                <MapIcon className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />
+                {t('viewPlan')}
+              </button>
+            </div>
+            <Button
+              type="button"
+              size="md"
+              variant="outline"
+              onClick={handleAutoPlace}
+              disabled={busy || unassigned.length === 0}
+              data-testid="auto-place"
+            >
+              <Sparkles className="h-4 w-4" strokeWidth={2} aria-hidden />
+              {t('autoPlace')}
+            </Button>
+            <Link
+              href={`/events/${eventId}/seating/print` as never}
+              target="_blank"
+              className={cn(buttonVariants({ variant: 'outline', size: 'md' }))}
+              data-testid="print-plan"
+            >
+              <Printer className="h-4 w-4" strokeWidth={2} aria-hidden />
+              {t('print')}
+            </Link>
+            <Button
+              type="button"
+              size="md"
+              onClick={handleAddTable}
+              disabled={busy}
+              data-testid="add-table"
+            >
+              <Plus className="h-4 w-4" strokeWidth={2} aria-hidden />
+              {t('addTable')}
+            </Button>
+          </div>
         </div>
 
         {error ? (
@@ -210,13 +343,26 @@ export function SeatingBoard({ eventId, initial }: Props) {
               seatLabel={t('seatLabel')}
             />
 
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-              {tables.length === 0 ? (
-                <p className="col-span-full rounded-2xl border border-dashed border-[color:var(--color-border)] px-4 py-10 text-center text-sm text-[color:var(--color-ink-500)]">
-                  {t('noTables')}
-                </p>
-              ) : (
-                tables.map((table) => (
+            {tables.length === 0 ? (
+              <p className="rounded-2xl border border-dashed border-[color:var(--color-border)] px-4 py-10 text-center text-sm text-[color:var(--color-ink-500)]">
+                {t('noTables')}
+              </p>
+            ) : view === 'plan' ? (
+              <SeatingCanvas
+                tables={tables}
+                onUnassignGuest={handleUnassignGuest}
+                onToggleShape={handleToggleShape}
+                onDelete={handleDeleteTable}
+                labels={{
+                  shapeToggle: t('shapeToggle'),
+                  del: t('deleteTable'),
+                  unassign: t('clickToUnassign'),
+                  empty: t('tableEmpty'),
+                }}
+              />
+            ) : (
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                {tables.map((table) => (
                   <TableCard
                     key={table._id}
                     table={table}
@@ -235,9 +381,9 @@ export function SeatingBoard({ eventId, initial }: Props) {
                       seat: t('seatLabel'),
                     }}
                   />
-                ))
-              )}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -404,7 +550,10 @@ function GuestChip({
   overlay?: boolean;
   seatLabel: string;
 }) {
-  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: guest._id });
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+    id: guest._id,
+    data: { type: 'guest' },
+  });
   const plusOnes = guest.seats - 1;
   return (
     <div

@@ -1420,6 +1420,12 @@
     "overCapacity": "تجاوز السعة",
     "deleteTable": "حذف الطاولة",
     "capacityLabel": "السعة",
-    "tableEmpty": "أفلت الضيوف هنا"
+    "tableEmpty": "أفلت الضيوف هنا",
+    "viewList": "قائمة",
+    "viewPlan": "مخطط",
+    "autoPlace": "توزيع تلقائي",
+    "print": "طباعة",
+    "shapeToggle": "تغيير الشكل (دائري/مستطيل)",
+    "clickToUnassign": "انقر للإزالة من الطاولة"
   }
 }

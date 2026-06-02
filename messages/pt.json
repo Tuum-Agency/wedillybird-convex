@@ -1424,6 +1424,12 @@
     "overCapacity": "Acima da capacidade",
     "deleteTable": "Eliminar mesa",
     "capacityLabel": "Capacidade",
-    "tableEmpty": "Largue convidados aqui"
+    "tableEmpty": "Largue convidados aqui",
+    "viewList": "Lista",
+    "viewPlan": "Planta",
+    "autoPlace": "Auto-organizar",
+    "print": "Imprimir",
+    "shapeToggle": "Mudar forma (redonda/retangular)",
+    "clickToUnassign": "Clique para remover da mesa"
   }
 }

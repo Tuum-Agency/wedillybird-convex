@@ -283,9 +283,13 @@ export default defineSchema({
     eventId: v.id('events'),
     name: v.string(),
     capacity: v.number(),
-    // Forme indicative, réservée à un futur plan visuel spatial (v2).
+    // Forme du nœud dans le plan visuel spatial (v2). Défaut traité comme 'round'.
     shape: v.optional(v.union(v.literal('round'), v.literal('rect'))),
-    // Ordre d'affichage dans le board drag-and-drop.
+    // Position (px) du nœud sur le canvas du plan visuel (v2). undefined =
+    // pas encore positionné → l'UI applique une grille par défaut.
+    posX: v.optional(v.number()),
+    posY: v.optional(v.number()),
+    // Ordre d'affichage dans la vue liste (board drag-and-drop).
     order: v.number(),
     createdAt: v.number(),
     updatedAt: v.number(),

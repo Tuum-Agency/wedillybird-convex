@@ -2,6 +2,7 @@
 
 import { getSession } from '@/lib/auth/session';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
+import type { SeatingPlan } from '@/lib/seating/board';
 
 export type SeatingActionResult = { ok: true } | { ok: false; error: string };
 
@@ -41,7 +42,13 @@ export async function createTableAction(
 
 export async function updateTableAction(
   tableId: string,
-  input: { name?: string; capacity?: number },
+  input: {
+    name?: string;
+    capacity?: number;
+    shape?: 'round' | 'rect';
+    posX?: number;
+    posY?: number;
+  },
 ): Promise<SeatingActionResult> {
   const session = await getSession();
   if (!session) return { ok: false, error: 'UNAUTHENTICATED' };
@@ -52,8 +59,40 @@ export async function updateTableAction(
       requesterId: session.userId,
       ...(input.name !== undefined ? { name: input.name } : {}),
       ...(input.capacity !== undefined ? { capacity: input.capacity } : {}),
+      ...(input.shape !== undefined ? { shape: input.shape } : {}),
+      ...(input.posX !== undefined ? { posX: input.posX } : {}),
+      ...(input.posY !== undefined ? { posY: input.posY } : {}),
     });
     return { ok: true };
+  } catch (err) {
+    return mapError(err);
+  }
+}
+
+/**
+ * Placement automatique : assigne les invités non placés + crée les tables
+ * nécessaires côté serveur, puis renvoie le plan rafraîchi pour que le board
+ * remplace son état local (opération en masse → vérité serveur).
+ */
+export async function autoAssignGuestsAction(
+  eventId: string,
+): Promise<
+  | { ok: true; assigned: number; tablesCreated: number; plan: SeatingPlan }
+  | { ok: false; error: string }
+> {
+  const session = await getSession();
+  if (!session) return { ok: false, error: 'UNAUTHENTICATED' };
+  try {
+    const convex = getConvexServerClient();
+    const res = await convex.mutation(convexApi.autoAssignGuests, {
+      eventId,
+      requesterId: session.userId,
+    });
+    const plan = (await convex.query(convexApi.getSeatingPlan, {
+      eventId,
+      requesterId: session.userId,
+    })) as SeatingPlan;
+    return { ok: true, assigned: res.assigned, tablesCreated: res.tablesCreated, plan };
   } catch (err) {
     return mapError(err);
   }

@@ -1421,6 +1421,12 @@
     "overCapacity": "Over capacity",
     "deleteTable": "Delete table",
     "capacityLabel": "Capacity",
-    "tableEmpty": "Drop guests here"
+    "tableEmpty": "Drop guests here",
+    "viewList": "List",
+    "viewPlan": "Floor plan",
+    "autoPlace": "Auto-seat",
+    "print": "Print",
+    "shapeToggle": "Toggle shape (round/rectangular)",
+    "clickToUnassign": "Click to remove from table"
   }
 }

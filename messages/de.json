@@ -1424,6 +1424,12 @@
     "overCapacity": "Überbelegt",
     "deleteTable": "Tisch löschen",
     "capacityLabel": "Kapazität",
-    "tableEmpty": "Gäste hier ablegen"
+    "tableEmpty": "Gäste hier ablegen",
+    "viewList": "Liste",
+    "viewPlan": "Grundriss",
+    "autoPlace": "Auto-Platzierung",
+    "print": "Drucken",
+    "shapeToggle": "Form ändern (rund/rechteckig)",
+    "clickToUnassign": "Zum Entfernen vom Tisch klicken"
   }
 }
