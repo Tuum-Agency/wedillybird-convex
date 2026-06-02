@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Wedillybird — Présentation</title>
+    <style>
+      :root {
+        --terra: #c2613e;
+        --terra-soft: #e8b79f;
+        --gold: #b8893e;
+        --cream: #faf3e8;
+        --cream-2: #f3e9d8;
+        --ink: #2a2420;
+        --ink-soft: #6b5d52;
+        --line: #e3d6c4;
+        --surface: #fffdf9;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: "Geist", "Inter", system-ui, -apple-system, sans-serif;
+        color: var(--ink); background: var(--cream); line-height: 1.6; -webkit-font-smoothing: antialiased;
+      }
+      .wrap { max-width: 1040px; margin: 0 auto; padding: 0 32px; }
+      h1, h2, h3 { font-family: Georgia, "Times New Roman", serif; font-weight: 600; letter-spacing: -0.02em; }
+      .eyebrow { font-family: ui-monospace, monospace; font-size: 11px; letter-spacing: 0.32em; text-transform: uppercase; color: var(--terra); }
+      .muted { color: var(--ink-soft); }
+      /* HERO */
+      .hero { background: radial-gradient(120% 120% at 75% 0%, var(--cream-2), var(--cream) 60%); padding: 80px 0 70px; border-bottom: 1px solid var(--line); }
+      .hero h1 { font-size: clamp(2.4rem, 6vw, 4.2rem); font-style: italic; line-height: 1.02; margin: 14px 0 18px; max-width: 14ch; }
+      .hero p { font-size: 1.25rem; color: var(--ink-soft); max-width: 620px; margin: 0; }
+      .hero .brand { font-family: Georgia, serif; font-style: italic; font-size: 1.3rem; color: var(--terra); }
+      section { padding: 60px 0; }
+      section + section { border-top: 1px solid var(--line); }
+      h2 { font-size: clamp(1.6rem, 3.5vw, 2.3rem); font-style: italic; margin: 6px 0 28px; }
+      h3 { font-size: 1.12rem; margin: 0 0 6px; }
+      .grid { display: grid; gap: 18px; }
+      .cols-2 { grid-template-columns: 1fr 1fr; }
+      .cols-3 { grid-template-columns: repeat(3, 1fr); }
+      @media (max-width: 800px) { .cols-2, .cols-3 { grid-template-columns: 1fr; } .wrap { padding: 0 18px; } }
+      .card { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 24px; }
+      .card.feat { transition: transform 0.2s; }
+      .feat .ic { width: 42px; height: 42px; border-radius: 12px; background: rgba(194, 97, 62, 0.1); display: flex; align-items: center; justify-content: center; font-size: 22px; margin-bottom: 14px; }
+      .feat p { color: var(--ink-soft); font-size: 0.95rem; margin: 0; }
+      .badge { display: inline-block; font-family: ui-monospace, monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--terra); background: rgba(194, 97, 62, 0.1); padding: 3px 9px; border-radius: 999px; margin-bottom: 8px; }
+      .steps { counter-reset: s; display: grid; gap: 16px; grid-template-columns: repeat(4, 1fr); }
+      @media (max-width: 800px) { .steps { grid-template-columns: 1fr 1fr; } }
+      .step { position: relative; padding-top: 8px; }
+      .step::before { counter-increment: s; content: counter(s); font-family: Georgia, serif; font-style: italic; font-size: 1.8rem; color: var(--terra); display: block; margin-bottom: 6px; }
+      .step .t { font-weight: 600; }
+      .step .d { font-size: 0.88rem; color: var(--ink-soft); }
+      /* pricing */
+      .price-card { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 22px; text-align: center; }
+      .price-card.hl { border-color: var(--terra); box-shadow: 0 16px 50px -28px rgba(194, 97, 62, 0.6); position: relative; }
+      .price-card .name { font-weight: 600; }
+      .price-card .amt { font-family: Georgia, serif; font-style: italic; font-size: 2.4rem; color: var(--terra); margin: 6px 0; }
+      .price-card .sub { font-size: 0.82rem; color: var(--ink-soft); }
+      .price-card ul { list-style: none; padding: 0; margin: 14px 0 0; text-align: left; font-size: 0.88rem; }
+      .price-card li { padding: 4px 0 4px 22px; position: relative; }
+      .price-card li::before { content: "✓"; position: absolute; left: 0; color: var(--terra); font-weight: 700; }
+      .tag { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--terra); color: #fff; font-size: 0.72rem; font-weight: 600; padding: 3px 12px; border-radius: 999px; }
+      .cta { background: var(--ink); color: var(--cream); border-radius: 24px; padding: 50px; text-align: center; }
+      .cta h2 { color: var(--cream); margin-top: 0; }
+      .cta .btn { display: inline-block; background: var(--terra); color: #fff; text-decoration: none; font-weight: 600; padding: 14px 30px; border-radius: 999px; margin-top: 10px; }
+      .trust { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; }
+      .trust .t { background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 9px 18px; font-size: 0.9rem; }
+      .foot { padding: 30px 0 60px; font-size: 0.8rem; color: var(--ink-soft); text-align: center; }
+      @media print { section, section + section { break-inside: avoid; } body { background: #fff; } }
+    </style>
+  </head>
+  <body>
+    <header class="hero">
+      <div class="wrap">
+        <span class="brand">Wedillybird</span>
+        <h1>Le mariage, sans le casse-tête des invitations.</h1>
+        <p>
+          Invitations qui arrivent vraiment, RSVP en temps réel, galerie photo partagée et plan de
+          table — réunis dans une seule application, élégante et pensée pour le jour J.
+        </p>
+      </div>
+    </header>
+
+    <section>
+      <div class="wrap">
+        <span class="eyebrow">Le problème</span>
+        <h2>Organiser les invités, c'est le chaos.</h2>
+        <div class="grid cols-3">
+          <div class="card"><h3>Les e-mails finissent en spam</h3><p class="muted">Les save-the-dates et relances par e-mail sont ignorés. Aux US, beaucoup d'invités ne sont même pas sur WhatsApp.</p></div>
+          <div class="card"><h3>Les RSVP se perdent</h3><p class="muted">Tableurs, SMS éparpillés, relances manuelles… On ne sait jamais qui vient vraiment.</p></div>
+          <div class="card"><h3>Les photos et les tables, un casse-tête</h3><p class="muted">Photos dispersées sur 12 téléphones, et le plan de table refait dix fois sur papier.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <span class="eyebrow">La solution</span>
+        <h2>Tout, du save-the-date au jour J.</h2>
+        <div class="grid cols-3">
+          <div class="card feat">
+            <div class="ic">💬</div>
+            <span class="badge">SMS + WhatsApp</span>
+            <h3>Des invitations qui arrivent</h3>
+            <p>SMS automatique aux États-Unis et au Canada, WhatsApp dans le reste du monde — le canal est détecté tout seul selon le numéro. Fini l'e-mail ignoré.</p>
+          </div>
+          <div class="card feat">
+            <div class="ic">✉️</div>
+            <span class="badge">WoW factor</span>
+            <h3>Invitation cinématique</h3>
+            <p>L'invité ouvre une enveloppe animée, le sceau se brise, l'invitation se révèle. Une première impression à la hauteur de l'événement.</p>
+          </div>
+          <div class="card feat">
+            <div class="ic">✅</div>
+            <span class="badge">Temps réel</span>
+            <h3>RSVP en 30 secondes</h3>
+            <p>Présence, accompagnants, régime alimentaire, petit mot — l'invité répond en un instant. Vous voyez tout arriver en direct sur votre tableau de bord.</p>
+          </div>
+          <div class="card feat">
+            <div class="ic">📸</div>
+            <span class="badge">IA</span>
+            <h3>Galerie photo intelligente</h3>
+            <p>Les invités déposent leurs photos, la modération est automatique, et chacun retrouve ses propres photos d'un simple selfie (recherche par visage).</p>
+          </div>
+          <div class="card feat">
+            <div class="ic">🪑</div>
+            <span class="badge">Glisser-déposer</span>
+            <h3>Plan de table visuel</h3>
+            <p>Placez vos invités à la souris, sur une liste ou un plan visuel. Placement automatique par familles, accompagnants gérés un par un, export pour le traiteur.</p>
+          </div>
+          <div class="card feat">
+            <div class="ic">📲</div>
+            <span class="badge">Jour J</span>
+            <h3>Check-in, même sans réseau</h3>
+            <p>Scan des QR codes à l'entrée, fonctionne hors-ligne. Vous savez en temps réel qui est arrivé.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <span class="eyebrow">Comment ça marche</span>
+        <h2>Prêt en quatre étapes.</h2>
+        <div class="steps">
+          <div class="step"><div class="t">Créez l'événement</div><div class="d">Date, lieu, couleurs, mot personnel.</div></div>
+          <div class="step"><div class="t">Importez vos invités</div><div class="d">Numéros + accompagnants. Le canal est choisi automatiquement.</div></div>
+          <div class="step"><div class="t">Envoyez & suivez</div><div class="d">Invitations + relances. RSVP en direct.</div></div>
+          <div class="step"><div class="t">Vivez le jour J</div><div class="d">Check-in, galerie partagée, plan de table prêt.</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <span class="eyebrow">Tarifs</span>
+        <h2>Un prix clair, payé une fois.</h2>
+        <div class="grid cols-3">
+          <div class="price-card">
+            <div class="name">Essentiel</div>
+            <div class="amt">€29</div>
+            <div class="sub">jusqu'à 100 invités · paiement unique</div>
+            <ul>
+              <li>Invitations SMS / WhatsApp</li>
+              <li>RSVP temps réel + check-in</li>
+              <li>Galerie partagée 5 Go · 12 mois</li>
+            </ul>
+          </div>
+          <div class="price-card hl">
+            <span class="tag">Le plus choisi</span>
+            <div class="name">Premium</div>
+            <div class="amt">€59</div>
+            <div class="sub">jusqu'à 250 invités · paiement unique</div>
+            <ul>
+              <li>Tout l'Essentiel</li>
+              <li>Galerie 25 Go HD · recherche par visage</li>
+              <li>Plan de table · invitation cinématique</li>
+              <li>Album PDF · branding personnalisé</li>
+            </ul>
+          </div>
+          <div class="price-card">
+            <div class="name">Upsell HD <span class="muted">(après le mariage)</span></div>
+            <div class="amt">+€29</div>
+            <div class="sub">archive perpétuelle</div>
+            <ul>
+              <li>Galerie conservée à vie</li>
+              <li>Livre photo HD</li>
+              <li>Export ZIP haute définition</li>
+            </ul>
+          </div>
+        </div>
+
+        <h3 style="margin: 36px 0 14px; font-style: italic">Vous êtes wedding planner / agence ?</h3>
+        <div class="grid cols-3">
+          <div class="price-card"><div class="name">Starter</div><div class="amt">€99<span class="sub">/mois</span></div><div class="sub">5 événements · marque blanche</div></div>
+          <div class="price-card"><div class="name">Business</div><div class="amt">€219<span class="sub">/mois</span></div><div class="sub">20 événements · sous-domaine dédié</div></div>
+          <div class="price-card"><div class="name">Agency</div><div class="amt">€449<span class="sub">/mois</span></div><div class="sub">50 événements · marque blanche complète</div></div>
+        </div>
+        <p class="muted" style="text-align: center; font-size: 0.9rem; margin-top: 14px">
+          −20 % en facturation annuelle · ou <b>Pay-as-you-go €79/event</b> sans engagement.
+        </p>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <span class="eyebrow" style="display: block; text-align: center">En toute confiance</span>
+        <h2 style="text-align: center">Sans risque.</h2>
+        <div class="trust">
+          <span class="t">↩️ Remboursé à 100 % sous 7 jours si l'événement n'est pas envoyé</span>
+          <span class="t">📅 Report gratuit en cas d'annulation</span>
+          <span class="t">🌍 7 langues · multi-devises</span>
+          <span class="t">🔒 Galerie active 12 mois après le mariage</span>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <div class="cta">
+          <span class="eyebrow" style="color: var(--terra-soft)">Wedillybird</span>
+          <h2>Créez une invitation que vos proches n'oublieront pas.</h2>
+          <p class="muted" style="color: var(--terra-soft); max-width: 540px; margin: 0 auto">
+            Essayez Wedillybird pour votre mariage — du premier message au dernier QR code scanné.
+          </p>
+          <a class="btn" href="https://wedillybird.com">Commencer sur wedillybird.com</a>
+        </div>
+      </div>
+    </section>
+
+    <p class="foot">Wedillybird — wedillybird.com · Invitations, RSVP, galerie & plan de table pour le plus beau jour.</p>
+  </body>
+</html>

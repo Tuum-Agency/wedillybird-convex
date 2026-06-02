@@ -11,7 +11,7 @@ Reproduire `.env.local` sur Vercel → Project Settings → Environment Variable
 
 - **Convex** : `CONVEX_DEPLOY_KEY` (généré dans Convex dashboard), `NEXT_PUBLIC_CONVEX_URL` (URL du déploiement prod), `NEXT_PUBLIC_CONVEX_SITE_URL`
 - **Session** : `SESSION_SECRET` (`openssl rand -hex 32`, **distinct** du dev)
-- **Stripe** (live mode) : `STRIPE_SECRET_KEY` (`sk_live_…`), `STRIPE_WEBHOOK_SECRET`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` (`pk_live_…`), `STRIPE_PRICE_ESSENTIAL`, `STRIPE_PRICE_PREMIUM`, `STRIPE_PRICE_POST_EVENT_UPSELL` (B2C 19/49/29 €), `STRIPE_PRICE_STARTER`/`STRIPE_PRICE_BUSINESS`/`STRIPE_PRICE_AGENCY` (mensuel 89/179/349 €) + `STRIPE_PRICE_*_ANNUAL` (annuel -20%) + `STRIPE_PRICE_PAYG_EVENT` (Pay-as-you-go 69 €). Tous générés par `scripts/sync-stripe-prices.ts`.
+- **Stripe** (live mode) : `STRIPE_SECRET_KEY` (`sk_live_…`), `STRIPE_WEBHOOK_SECRET`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` (`pk_live_…`), `STRIPE_PRICE_ESSENTIAL`, `STRIPE_PRICE_PREMIUM`, `STRIPE_PRICE_POST_EVENT_UPSELL` (B2C 29/59/29 €), `STRIPE_PRICE_STARTER`/`STRIPE_PRICE_BUSINESS`/`STRIPE_PRICE_AGENCY` (mensuel 99/219/449 €) + `STRIPE_PRICE_*_ANNUAL` (annuel -20%) + `STRIPE_PRICE_PAYG_EVENT` (Pay-as-you-go 79 €). Tous générés par `scripts/sync-stripe-prices.ts`.
 - **AWS / SES** : `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION=eu-west-3`, `AWS_ACCOUNT_ID`, `SES_FROM_ADDRESS=noreply@wedillybird.com`, `SES_CONFIGURATION_SET=wedillybird-default`, `EMAIL_DRIVER=ses`
 - **S3 / CloudFront** : `S3_BUCKET=wedillybird-media-prod`, `CLOUDFRONT_DOMAIN=media.wedillybird.com`, `CLOUDFRONT_DISTRIBUTION_ID=E3O56ZG0J0BA9J`
 - **CinetPay** (quand ouvert) : `CINETPAY_API_KEY`, `CINETPAY_SITE_ID`
@@ -257,8 +257,8 @@ Décision à prendre avant d'implémenter : recommander A pour le MVP, garder B/
 ### Pricing alignment Stripe Prices ✅ (multi-devises)
 - Source de vérité : `.context/redesign-direction.md` section "Pricing figé"
 - État actuel :
-  - `lib/payments/plans.ts` aligné (Essentiel 19€, Premium 49€, +29€ upsell post-mariage) ✅
-  - `lib/payments/subscriptions.ts` aligné sur la grille pros (Starter 89€/179€/349€/mo + variantes annuelles -20% arrondies au € supérieur + Pay-as-you-go 69€/event one-shot) — étendus avec `prices: Record<Currency, number>` (EUR/XOF/MAD/TND) ✅
+  - `lib/payments/plans.ts` aligné (Essentiel 29€, Premium 59€, +29€ upsell post-mariage) ✅
+  - `lib/payments/subscriptions.ts` aligné sur la grille pros (Starter 99€/Business 219€/Agency 449€/mo + variantes annuelles -20% arrondies au € supérieur + Pay-as-you-go 79€/event one-shot) — étendus avec `prices: Record<Currency, number>` (EUR/XOF/MAD/TND) ✅
   - `convex/schema.ts` : ajout `events.pendingPlanTier` (forfait choisi avant paiement) ✅
   - Étape "Choisir votre forfait" ajoutée dans `EventCreateWizard` (couple uniquement, pro saute) ✅
   - Bouton Publier disabled tant qu'aucun paiement enregistré ✅
@@ -286,7 +286,7 @@ Décision à prendre avant d'implémenter : recommander A pour le MVP, garder B/
   - Historique des achats PAYG dans le dashboard pro (table `paygPurchases` à exposer en query).
 
 ### CGU article 4 — réécriture ✅
-- `messages/fr.json:40` réécrit pour la grille canonique (Essentiel 19 €, Premium 49 €, Upsell +29 €, plans pros 89/179/349 €/mo, PAYG 69 €). Mention Stripe (Europe) / CinetPay (Afrique de l'Ouest), remboursement 100 % sous 7j, report gratuit en cas d'annulation.
+- `messages/fr.json:40` réécrit pour la grille canonique (Essentiel 29 €, Premium 59 €, Upsell +29 €, plans pros 99/219/449 €/mo, PAYG 79 €). Mention Stripe (Europe) / CinetPay (Afrique de l'Ouest), remboursement 100 % sous 7j, report gratuit en cas d'annulation.
 
 ## Câblage métier emails (post-PR #12)
 

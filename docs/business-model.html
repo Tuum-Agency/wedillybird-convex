@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Wedillybird — Modèle économique</title>
+    <style>
+      :root {
+        --terra: #c2613e;
+        --terra-soft: #e8b79f;
+        --gold: #b8893e;
+        --cream: #faf3e8;
+        --cream-2: #f3e9d8;
+        --ink: #2a2420;
+        --ink-soft: #6b5d52;
+        --line: #e3d6c4;
+        --green: #4f7a52;
+        --surface: #fffdf9;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: "Geist", "Inter", system-ui, -apple-system, sans-serif;
+        color: var(--ink);
+        background: var(--cream);
+        line-height: 1.55;
+        -webkit-font-smoothing: antialiased;
+      }
+      .wrap { max-width: 1100px; margin: 0 auto; padding: 48px 32px 80px; }
+      h1, h2, h3 { font-family: Georgia, "Times New Roman", serif; font-weight: 600; letter-spacing: -0.02em; }
+      h1 { font-size: clamp(2rem, 5vw, 3.2rem); font-style: italic; line-height: 1.05; margin: 0 0 8px; }
+      h2 { font-size: 1.6rem; margin: 56px 0 18px; padding-bottom: 10px; border-bottom: 2px solid var(--line); }
+      h3 { font-size: 1.15rem; margin: 0 0 6px; }
+      .eyebrow { font-family: ui-monospace, monospace; font-size: 11px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--terra); margin: 0 0 14px; }
+      .lede { font-size: 1.15rem; color: var(--ink-soft); max-width: 760px; }
+      .muted { color: var(--ink-soft); }
+      .grid { display: grid; gap: 20px; }
+      .cols-2 { grid-template-columns: 1fr 1fr; }
+      .cols-3 { grid-template-columns: repeat(3, 1fr); }
+      .cols-4 { grid-template-columns: repeat(4, 1fr); }
+      @media (max-width: 760px) { .cols-2, .cols-3, .cols-4 { grid-template-columns: 1fr; } .wrap { padding: 28px 18px 60px; } }
+      .card { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 22px; }
+      .card.accent { border-color: var(--terra-soft); box-shadow: 0 10px 40px -24px rgba(194, 97, 62, 0.5); }
+      .kpi { text-align: center; }
+      .kpi .num { font-family: Georgia, serif; font-style: italic; font-size: 2.4rem; color: var(--terra); line-height: 1; }
+      .kpi .lbl { font-size: 0.82rem; color: var(--ink-soft); margin-top: 8px; }
+      table { width: 100%; border-collapse: collapse; font-size: 0.92rem; margin-top: 8px; }
+      th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--line); }
+      th { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft); font-weight: 600; }
+      td.price, th.price, td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+      .pill { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 0.74rem; font-weight: 600; }
+      .pill.terra { background: rgba(194, 97, 62, 0.12); color: var(--terra); }
+      .pill.gold { background: rgba(184, 137, 62, 0.14); color: var(--gold); }
+      .pill.green { background: rgba(79, 122, 82, 0.14); color: var(--green); }
+      /* barres de marge */
+      .bar-row { display: grid; grid-template-columns: 150px 1fr 56px; align-items: center; gap: 12px; margin: 9px 0; font-size: 0.9rem; }
+      .bar-track { background: var(--cream-2); border-radius: 999px; height: 22px; position: relative; overflow: hidden; }
+      .bar-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--gold), var(--terra)); }
+      .bar-fill.real { background: linear-gradient(90deg, #6fa173, var(--green)); opacity: 0.9; }
+      .bar-pct { font-variant-numeric: tabular-nums; font-weight: 600; text-align: right; }
+      .flow { display: flex; flex-wrap: wrap; gap: 10px; align-items: stretch; }
+      .flow .node { flex: 1 1 150px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px; }
+      .flow .node .t { font-weight: 600; font-size: 0.95rem; }
+      .flow .node .d { font-size: 0.8rem; color: var(--ink-soft); margin-top: 3px; }
+      .note { background: var(--cream-2); border-left: 3px solid var(--terra); border-radius: 0 10px 10px 0; padding: 14px 18px; font-size: 0.92rem; }
+      .foot { margin-top: 60px; padding-top: 18px; border-top: 1px solid var(--line); font-size: 0.8rem; color: var(--ink-soft); }
+      ul.tight { margin: 6px 0; padding-left: 18px; }
+      ul.tight li { margin: 3px 0; }
+      @media print { body { background: #fff; } .card, .note { break-inside: avoid; } h2 { break-after: avoid; } .wrap { max-width: none; padding: 0; } }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <p class="eyebrow">Wedillybird · Modèle économique</p>
+      <h1>Le business, en un coup d'œil</h1>
+      <p class="lede">
+        Plateforme SaaS d'invitations de mariage, RSVP, galerie photo et plan de table — pensée
+        d'abord pour le marché US/Canada (SMS + WhatsApp). Deux segments, des marges saines
+        garanties même dans le pire scénario d'envoi.
+      </p>
+
+      <div class="grid cols-4" style="margin-top: 28px">
+        <div class="card kpi accent"><div class="num">€29</div><div class="lbl">Entrée de gamme particulier</div></div>
+        <div class="card kpi"><div class="num">45 %</div><div class="lbl">Marge plancher absolue (worst case)</div></div>
+        <div class="card kpi"><div class="num">70–95 %</div><div class="lbl">Marge en conditions réelles</div></div>
+        <div class="card kpi"><div class="num">2</div><div class="lbl">Segments : Couples + Pros</div></div>
+      </div>
+
+      <h2>1. Deux segments, une seule plateforme</h2>
+      <div class="grid cols-2">
+        <div class="card">
+          <span class="pill terra">B2C — Couples</span>
+          <h3 style="margin-top: 10px">Paiement unique par mariage</h3>
+          <p class="muted" style="font-size: 0.92rem">
+            Le couple paie une fois pour son événement. Acquisition par la page d'invitation
+            publique (chaque invité voit la marque) → boucle virale intégrée.
+          </p>
+          <ul class="tight" style="font-size: 0.9rem">
+            <li>Essentiel <b>€29</b> · Premium <b>€59</b> · Upsell HD <b>+€29</b></li>
+            <li>Ticket moyen attendu ~€50 · marge ~85 %</li>
+          </ul>
+        </div>
+        <div class="card">
+          <span class="pill gold">B2B — Wedding pros</span>
+          <h3 style="margin-top: 10px">Abonnement récurrent (MRR)</h3>
+          <p class="muted" style="font-size: 0.92rem">
+            Planners et agences gèrent plusieurs mariages. Revenu récurrent prévisible, faible
+            churn (saisonnalité mariage), marque blanche incluse.
+          </p>
+          <ul class="tight" style="font-size: 0.9rem">
+            <li>Starter <b>€99</b> · Business <b>€219</b> · Agency <b>€449</b> /mois</li>
+            <li>Pay-as-you-go <b>€79</b>/event = porte d'entrée sans engagement</li>
+          </ul>
+        </div>
+      </div>
+
+      <h2>2. Sources de revenus</h2>
+      <div class="flow">
+        <div class="node"><div class="t">One-shot couples</div><div class="d">€29 / €59 par mariage</div></div>
+        <div class="node"><div class="t">Upsell post-event</div><div class="d">+€29 archive HD perpétuelle</div></div>
+        <div class="node"><div class="t">Abonnements Pro</div><div class="d">€99–449/mois (MRR)</div></div>
+        <div class="node"><div class="t">Pay-as-you-go</div><div class="d">€79/event (acquisition Pro)</div></div>
+        <div class="node"><div class="t">Dépassements</div><div class="d">SMS, invités, stockage, events</div></div>
+      </div>
+      <div class="note" style="margin-top: 16px">
+        <b>Garantie « rentable peu importe les circonstances »</b> — chaque levier de dépassement est
+        tarifé <b>au-dessus du coût</b> : SMS <b>€0,06</b> facturé vs <b>€0,0075</b> coût (87 % de marge),
+        invité +cap <b>€0,25</b>, stockage <b>€0,03/Go/mois</b>, event Pro additionnel <b>€19/mois</b>.
+        L'usage ne peut jamais rendre un tier déficitaire.
+      </div>
+
+      <h2>3. Grille tarifaire v2</h2>
+      <div class="grid cols-2">
+        <div class="card">
+          <h3>Particuliers (one-shot)</h3>
+          <table>
+            <tr><th>Tier</th><th class="price">Prix</th><th class="num">Invités</th><th>Galerie</th></tr>
+            <tr><td>Essentiel</td><td class="price"><b>€29</b></td><td class="num">100</td><td>5 Go · 12 mois</td></tr>
+            <tr><td>Premium</td><td class="price"><b>€59</b></td><td class="num">250</td><td>25 Go HD · 12 mois</td></tr>
+            <tr><td>Upsell HD</td><td class="price"><b>+€29</b></td><td class="num">—</td><td>Archive perpétuelle</td></tr>
+          </table>
+        </div>
+        <div class="card">
+          <h3>Pros (mensuel · −20 % en annuel)</h3>
+          <table>
+            <tr><th>Tier</th><th class="price">/mois</th><th class="num">Events</th><th>Stockage</th></tr>
+            <tr><td>Starter</td><td class="price"><b>€99</b> <span class="muted">/ €79</span></td><td class="num">5</td><td>50 Go</td></tr>
+            <tr><td>Business</td><td class="price"><b>€219</b> <span class="muted">/ €175</span></td><td class="num">20</td><td>200 Go</td></tr>
+            <tr><td>Agency</td><td class="price"><b>€449</b> <span class="muted">/ €359</span></td><td class="num">50</td><td>500 Go</td></tr>
+            <tr><td>Pay-as-you-go</td><td class="price"><b>€79</b><span class="muted">/event</span></td><td class="num">1</td><td>25 Go</td></tr>
+          </table>
+        </div>
+      </div>
+
+      <h2>4. Marge nette par formule</h2>
+      <p class="muted" style="margin-top: 0">
+        <span class="pill gold">■ Worst case</span> 100 % SMS Twilio toll-free, bundle plein.
+        <span class="pill green">■ Réaliste</span> 10DLC + ~70 % d'usage + mix WhatsApp.
+      </p>
+      <div class="card">
+        <div class="bar-row"><span>Essentiel €29</span><div class="bar-track"><div class="bar-fill" style="width: 85%"></div></div><span class="bar-pct">85 %</span></div>
+        <div class="bar-row"><span></span><div class="bar-track"><div class="bar-fill real" style="width: 90%"></div></div><span class="bar-pct">90 %</span></div>
+        <div class="bar-row"><span>Premium €59</span><div class="bar-track"><div class="bar-fill" style="width: 84%"></div></div><span class="bar-pct">84 %</span></div>
+        <div class="bar-row"><span></span><div class="bar-track"><div class="bar-fill real" style="width: 90%"></div></div><span class="bar-pct">90 %</span></div>
+        <div class="bar-row"><span>PAYG €79</span><div class="bar-track"><div class="bar-fill" style="width: 91%"></div></div><span class="bar-pct">91 %</span></div>
+        <div class="bar-row"><span>Pro Starter €99</span><div class="bar-track"><div class="bar-fill" style="width: 73%"></div></div><span class="bar-pct">73 %</span></div>
+        <div class="bar-row"><span></span><div class="bar-track"><div class="bar-fill real" style="width: 83%"></div></div><span class="bar-pct">83 %</span></div>
+        <div class="bar-row"><span>Pro Business €219</span><div class="bar-track"><div class="bar-fill" style="width: 62%"></div></div><span class="bar-pct">62 %</span></div>
+        <div class="bar-row"><span></span><div class="bar-track"><div class="bar-fill real" style="width: 74%"></div></div><span class="bar-pct">74 %</span></div>
+        <div class="bar-row"><span>Pro Agency €449</span><div class="bar-track"><div class="bar-fill" style="width: 54%"></div></div><span class="bar-pct">54 %</span></div>
+        <div class="bar-row"><span></span><div class="bar-track"><div class="bar-fill real" style="width: 70%"></div></div><span class="bar-pct">70 %</span></div>
+        <div class="bar-row"><span>Agency annuel</span><div class="bar-track"><div class="bar-fill" style="width: 45%"></div></div><span class="bar-pct">45 %</span></div>
+        <div class="bar-row"><span></span><div class="bar-track"><div class="bar-fill real" style="width: 70%"></div></div><span class="bar-pct">70 %</span></div>
+      </div>
+
+      <h2>5. Économie unitaire — détail (worst case)</h2>
+      <div class="card">
+        <table>
+          <tr><th>Formule</th><th class="price">Prix</th><th class="price">Coût total</th><th class="price">Marge nette</th><th class="num">Marge %</th></tr>
+          <tr><td>Essentiel</td><td class="price">€29</td><td class="price">€4,25</td><td class="price"><b>€24,8</b></td><td class="num">85 %</td></tr>
+          <tr><td>Premium</td><td class="price">€59</td><td class="price">€9,30</td><td class="price"><b>€49,7</b></td><td class="num">84 %</td></tr>
+          <tr><td>Upsell HD</td><td class="price">€29</td><td class="price">€1,42</td><td class="price"><b>€27,6</b></td><td class="num">95 %</td></tr>
+          <tr><td>PAYG</td><td class="price">€79</td><td class="price">€7,26</td><td class="price"><b>€71,7</b></td><td class="num">91 %</td></tr>
+          <tr><td>Pro Starter</td><td class="price">€99</td><td class="price">€24,0</td><td class="price"><b>€75,0</b></td><td class="num">76 %</td></tr>
+          <tr><td>Pro Business</td><td class="price">€219</td><td class="price">€87,3</td><td class="price"><b>€131,7</b></td><td class="num">60 %</td></tr>
+          <tr><td>Pro Agency</td><td class="price">€449</td><td class="price">€213,8</td><td class="price"><b>€235,2</b></td><td class="num">52 %</td></tr>
+        </table>
+        <p class="muted" style="font-size: 0.82rem; margin-bottom: 0">
+          Coûts inclus : SMS Twilio toll-free (€0,0075/msg, bundle 3,5× cap), Stripe (2,9 %+€0,28 one-shot / 1,5 %+€0,28 sub), hosting amorti (Convex + Vercel + AWS).
+        </p>
+      </div>
+
+      <h2>6. Positionnement vs concurrents (US 2026)</h2>
+      <div class="card">
+        <table>
+          <tr><th>Solution</th><th class="price">Prix</th><th>Modèle</th><th>SMS + WhatsApp</th><th>Galerie IA + plan de table</th></tr>
+          <tr><td>Joy</td><td class="price">$60 one-time</td><td>Site + RSVP</td><td>✗</td><td>✗</td></tr>
+          <tr><td>Zola</td><td class="price">Gratuit</td><td>Monétisé registry</td><td>✗</td><td>✗</td></tr>
+          <tr><td>The Knot Pro</td><td class="price">$99–499/mo</td><td>B2B venues</td><td>✗</td><td>partiel</td></tr>
+          <tr><td>Aisle Planner / HoneyBook</td><td class="price">$39–79/mo</td><td>Planner SaaS</td><td>✗</td><td>✗</td></tr>
+          <tr style="background: rgba(194,97,62,0.06)"><td><b>Wedillybird Premium</b></td><td class="price"><b>≈$63</b></td><td>App couple</td><td><b>✓</b></td><td><b>✓</b></td></tr>
+          <tr style="background: rgba(194,97,62,0.06)"><td><b>Wedillybird Pro Agency</b></td><td class="price"><b>≈$479</b></td><td>Planner SaaS</td><td><b>✓</b></td><td><b>✓</b></td></tr>
+        </table>
+        <p class="muted" style="font-size: 0.86rem; margin-bottom: 0">
+          Différenciateur défendable : <b>messagerie native SMS/WhatsApp</b>, <b>galerie avec recherche par visage</b> et
+          <b>plan de table en glisser-déposer</b> — qu'aucun concurrent grand public ne combine.
+        </p>
+      </div>
+
+      <h2>7. Pourquoi le modèle tient</h2>
+      <div class="grid cols-3">
+        <div class="card"><h3>Coûts variables maîtrisés</h3><p class="muted" style="font-size: 0.9rem">Le seul vrai coût variable (SMS) est borné par un bundle dimensionné et facturé au-delà à 8× le coût.</p></div>
+        <div class="card"><h3>Marchés WhatsApp = bonus</h3><p class="muted" style="font-size: 0.9rem">EU / Afrique / LatAm : messages quasi gratuits → marges ~91 %+. Le prix US finance, le reste du monde démultiplie.</p></div>
+        <div class="card"><h3>Acquisition virale</h3><p class="muted" style="font-size: 0.9rem">Chaque invité reçoit un lien de marque Wedillybird → coût d'acquisition structurellement bas.</p></div>
+      </div>
+
+      <p class="foot">
+        Wedillybird — grille v2 validée 2026-05-29, en production. Marges issues de l'économie unitaire
+        worst-case (Twilio toll-free, bundle plein) et réaliste (10DLC + 70 % usage + mix WhatsApp).
+        Document interne / partenaires.
+      </p>
+    </div>
+  </body>
+</html>
