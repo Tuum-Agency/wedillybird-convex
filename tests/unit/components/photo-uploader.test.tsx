@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 const compressMock = vi.fn();
@@ -121,6 +121,141 @@ describe('PhotoUploader (owner mode)', () => {
 
     expect(await screen.findByRole('alert')).toHaveTextContent(/type/);
     expect(getUploadUrl).not.toHaveBeenCalled();
+  });
+});
+
+describe('PhotoUploader (drag-and-drop)', () => {
+  it('expose une dropzone accessible avec role=button et label', () => {
+    render(<PhotoUploader mode="owner" eventId="evt_1" getUploadUrl={vi.fn()} confirm={vi.fn()} />);
+    const dropzone = screen.getByTestId('photo-uploader-dropzone');
+    expect(dropzone).toHaveAttribute('role', 'button');
+    expect(dropzone).toHaveAttribute('aria-label', 'dropzoneTitle');
+    expect(dropzone).toHaveAttribute('data-drag-over', 'false');
+  });
+
+  it('bascule data-drag-over=true pendant dragenter et false au drop', async () => {
+    const compressedBlob = new Blob(['x'], { type: 'image/jpeg' });
+    Object.defineProperty(compressedBlob, 'size', { value: 1 });
+    compressMock.mockResolvedValue({ file: compressedBlob, contentType: 'image/jpeg' });
+    fetchMock.mockResolvedValue({ ok: true });
+    const getUploadUrl = vi
+      .fn()
+      .mockResolvedValue({ ok: true, uploadUrl: 'https://u', s3Key: 'incoming/evt_1/x.jpg' });
+    const confirm = vi.fn().mockResolvedValue({ ok: true, id: 'p1' });
+
+    render(
+      <PhotoUploader mode="owner" eventId="evt_1" getUploadUrl={getUploadUrl} confirm={confirm} />,
+    );
+
+    const dropzone = screen.getByTestId('photo-uploader-dropzone');
+    fireEvent.dragEnter(dropzone, { dataTransfer: { files: [makeFile()] } });
+    expect(dropzone).toHaveAttribute('data-drag-over', 'true');
+
+    fireEvent.drop(dropzone, { dataTransfer: { files: [makeFile()] } });
+    expect(dropzone).toHaveAttribute('data-drag-over', 'false');
+
+    await waitFor(() => expect(getUploadUrl).toHaveBeenCalledWith('evt_1', 'image/jpeg'));
+    await waitFor(() => expect(confirm).toHaveBeenCalled());
+  });
+
+  it("drop d'un fichier accepté déclenche le pipeline upload complet", async () => {
+    const compressedBlob = new Blob(['data'], { type: 'image/png' });
+    Object.defineProperty(compressedBlob, 'size', { value: 999 });
+    compressMock.mockResolvedValue({
+      file: compressedBlob,
+      width: 800,
+      height: 600,
+      contentType: 'image/png',
+    });
+    fetchMock.mockResolvedValue({ ok: true });
+    const getUploadUrl = vi.fn().mockResolvedValue({
+      ok: true,
+      uploadUrl: 'https://s3/x',
+      s3Key: 'incoming/evt_1/png.png',
+    });
+    const confirm = vi.fn().mockResolvedValue({ ok: true, id: 'p1' });
+    const onUploaded = vi.fn();
+
+    render(
+      <PhotoUploader
+        mode="owner"
+        eventId="evt_1"
+        getUploadUrl={getUploadUrl}
+        confirm={confirm}
+        onUploaded={onUploaded}
+      />,
+    );
+
+    const file = new File(['png-bytes'], 'photo.png', { type: 'image/png' });
+    fireEvent.drop(screen.getByTestId('photo-uploader-dropzone'), {
+      dataTransfer: { files: [file] },
+    });
+
+    await waitFor(() => expect(getUploadUrl).toHaveBeenCalledWith('evt_1', 'image/png'));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+    await waitFor(() =>
+      expect(confirm).toHaveBeenCalledWith(
+        expect.objectContaining({ s3Key: 'incoming/evt_1/png.png', contentType: 'image/png' }),
+      ),
+    );
+    await waitFor(() => expect(onUploaded).toHaveBeenCalled());
+  });
+
+  it("drop d'un type non supporté affiche errors.type sans appeler le backend", async () => {
+    const getUploadUrl = vi.fn();
+    const confirm = vi.fn();
+
+    render(
+      <PhotoUploader mode="owner" eventId="evt_1" getUploadUrl={getUploadUrl} confirm={confirm} />,
+    );
+
+    const pdf = new File(['pdf'], 'doc.pdf', { type: 'application/pdf' });
+    fireEvent.drop(screen.getByTestId('photo-uploader-dropzone'), {
+      dataTransfer: { files: [pdf] },
+    });
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(/type/);
+    expect(getUploadUrl).not.toHaveBeenCalled();
+    expect(confirm).not.toHaveBeenCalled();
+  });
+
+  it('drop sans fichier (drag de texte) ne déclenche aucun appel', () => {
+    const getUploadUrl = vi.fn();
+    const confirm = vi.fn();
+
+    render(
+      <PhotoUploader mode="owner" eventId="evt_1" getUploadUrl={getUploadUrl} confirm={confirm} />,
+    );
+
+    fireEvent.drop(screen.getByTestId('photo-uploader-dropzone'), { dataTransfer: { files: [] } });
+
+    expect(getUploadUrl).not.toHaveBeenCalled();
+    expect(screen.queryByRole('alert')).toBeNull();
+  });
+
+  it('clic sur la dropzone ouvre le file picker (déclenche input.click)', async () => {
+    render(<PhotoUploader mode="owner" eventId="evt_1" getUploadUrl={vi.fn()} confirm={vi.fn()} />);
+
+    const input = screen.getByTestId('photo-uploader-input') as HTMLInputElement;
+    const inputClick = vi.spyOn(input, 'click');
+
+    const user = userEvent.setup();
+    await user.click(screen.getByTestId('photo-uploader-dropzone'));
+
+    expect(inputClick).toHaveBeenCalled();
+  });
+
+  it('clavier Enter sur la dropzone ouvre le file picker', () => {
+    render(<PhotoUploader mode="owner" eventId="evt_1" getUploadUrl={vi.fn()} confirm={vi.fn()} />);
+
+    const input = screen.getByTestId('photo-uploader-input') as HTMLInputElement;
+    const inputClick = vi.spyOn(input, 'click');
+    const dropzone = screen.getByTestId('photo-uploader-dropzone');
+
+    dropzone.focus();
+    fireEvent.keyDown(dropzone, { key: 'Enter' });
+
+    expect(inputClick).toHaveBeenCalled();
   });
 });
 

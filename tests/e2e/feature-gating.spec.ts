@@ -94,6 +94,24 @@ test.describe('Feature gating par formule', () => {
     await expect(err).not.toContainText(/Réservé à la formule Premium/i);
   });
 
+  test('Essentiel : téléchargement ZIP de la galerie masqué (Premium-only)', async ({ page }) => {
+    await devLogin(page, fixtures.essential.ownerPhone);
+    await page.goto(`/events/${fixtures.essential.eventId}/gallery`);
+    // Galerie ouverte (le trigger faceSearch est rendu).
+    await expect(page.getByTestId('face-search-trigger')).toBeVisible();
+    // Ni le lien ni la variante désactivée ne doivent apparaître pour Essentiel.
+    await expect(page.getByTestId('download-all')).toHaveCount(0);
+    await expect(page.getByTestId('download-all-disabled')).toHaveCount(0);
+  });
+
+  test('Premium : téléchargement ZIP de la galerie présent', async ({ page }) => {
+    await devLogin(page, fixtures.premium.ownerPhone);
+    await page.goto(`/events/${fixtures.premium.eventId}/gallery`);
+    // Aucune photo approuvée seedée → variante désactivée, mais PRÉSENTE
+    // (le bouton existe pour Premium, contrairement à Essentiel).
+    await expect(page.getByTestId('download-all-disabled')).toBeVisible();
+  });
+
   test('Pro au quota : bouton Publier désactivé + hint quota', async ({ page }) => {
     await devLogin(page, fixtures.pro.ownerPhone);
     await page.goto(`/events/${fixtures.pro.draftEventId}`);
