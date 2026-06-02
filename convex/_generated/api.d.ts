@@ -39,6 +39,7 @@ import type * as photosReprocess from "../photosReprocess.js";
 import type * as reminderActions from "../reminderActions.js";
 import type * as reminders from "../reminders.js";
 import type * as rsvps from "../rsvps.js";
+import type * as seating from "../seating.js";
 import type * as seed from "../seed.js";
 import type * as users from "../users.js";
 import type * as whatsappTemplateNotifications from "../whatsappTemplateNotifications.js";
@@ -82,6 +83,7 @@ declare const fullApi: ApiFromModules<{
   reminderActions: typeof reminderActions;
   reminders: typeof reminders;
   rsvps: typeof rsvps;
+  seating: typeof seating;
   seed: typeof seed;
   users: typeof users;
   whatsappTemplateNotifications: typeof whatsappTemplateNotifications;

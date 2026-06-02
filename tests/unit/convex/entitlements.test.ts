@@ -10,6 +10,7 @@ const GATED: readonly GatedFeature[] = [
   'galleryZipDownload',
   'pdfAlbumFinal',
   'cinematicInvitation',
+  'seatingPlan',
 ];
 
 describe('eventHasFeature — gating par formule', () => {

@@ -622,6 +622,7 @@
     "manageGuests": "Gäste verwalten",
     "openCheckIn": "Check-in",
     "openGallery": "Galerie",
+    "openSeating": "Sitzplan",
     "publish": "Veröffentlichen",
     "unpublish": "Zurück zum Entwurf",
     "draftHint": "Dieses Event ist im Entwurfsstatus. Veröffentliche es, um die Einladungen und die Galerie zu aktivieren.",
@@ -937,7 +938,8 @@
       "faceSearch": "Suche per Gesicht: jeder Gast findet seine Fotos mit einem Selfie",
       "cinematicInvitation": "Einladungsinszenierung: Umschlag öffnet sich, Siegel zerbricht",
       "photoVariants": "Fotos in 3 WebP-Auflösungen optimiert für flüssige Anzeige selbst in 3G",
-      "galleryZipDownload": "Download der gesamten Galerie als ZIP mit einem Klick"
+      "galleryZipDownload": "Download der gesamten Galerie als ZIP mit einem Klick",
+      "seatingPlan": "Sitzplan per Drag-and-drop: weisen Sie zugesagte Gäste den Tischen zu"
     },
     "allEssentialIncluded": "Alles aus Essentiel inbegriffen",
     "pro": {
@@ -1399,5 +1401,29 @@
       "MAD": "Marokkanischer Dirham",
       "TND": "Tunesischer Dinar"
     }
+  },
+  "Seating": {
+    "backToEvent": "Zurück zur Veranstaltung",
+    "title": "Sitzplan",
+    "subtitle": "Ziehen Sie Ihre zugesagten Gäste per Drag-and-drop an die Tische. Bestätigte Begleitpersonen zählen zur Kapazität.",
+    "upsellTitle": "Sitzplan — Premium-Funktion",
+    "upsellHint": "Die Tischverwaltung per Drag-and-drop ist in Premium und allen Pro-Tarifen enthalten. Wechseln Sie zu Premium, um sie zu aktivieren.",
+    "upsellCta": "Auf Premium upgraden",
+    "error": "Etwas ist fehlgeschlagen. Bitte erneut versuchen.",
+    "defaultTableName": "Tisch {n}",
+    "addTable": "Tisch hinzufügen",
+    "stats": "{seated} von {total} platziert · {tables} Tische",
+    "deleteConfirm": "„{name}“ löschen? Die Gäste kehren in die Liste der nicht zugewiesenen zurück.",
+    "noAttending": "Noch keine zugesagten Gäste. „Nehme teil“-Antworten erscheinen hier zum Platzieren.",
+    "unassignedTitle": "Nicht zugewiesen",
+    "unassignedEmpty": "Alle Gäste sind platziert.",
+    "unassignedHint": "An einen Tisch ziehen",
+    "seatLabel": "Plätze",
+    "noTables": "Noch keine Tische. Fügen Sie einen hinzu.",
+    "occupancy": "{occupied}/{capacity}",
+    "overCapacity": "Überbelegt",
+    "deleteTable": "Tisch löschen",
+    "capacityLabel": "Kapazität",
+    "tableEmpty": "Gäste hier ablegen"
   }
 }

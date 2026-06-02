@@ -622,6 +622,7 @@
     "manageGuests": "Gestisci invitati",
     "openCheckIn": "Check-in",
     "openGallery": "Galleria",
+    "openSeating": "Disposizione dei tavoli",
     "publish": "Pubblica",
     "unpublish": "Riporta in bozza",
     "draftHint": "Questo evento è in bozza. Pubblicalo per attivare gli inviti e la galleria.",
@@ -937,7 +938,8 @@
       "faceSearch": "Ricerca per volto: ogni invitato ritrova le sue foto con un selfie",
       "cinematicInvitation": "Cinematica d'invito: busta che si apre, sigillo che si rompe",
       "photoVariants": "Foto ottimizzate in 3 risoluzioni WebP per una visualizzazione fluida anche in 3G",
-      "galleryZipDownload": "Download di tutta la galleria in ZIP con un clic"
+      "galleryZipDownload": "Download di tutta la galleria in ZIP con un clic",
+      "seatingPlan": "Disposizione dei tavoli con trascinamento: assegna gli invitati confermati ai tavoli"
     },
     "allEssentialIncluded": "Tutto l'Essenziale incluso",
     "pro": {
@@ -1399,5 +1401,29 @@
       "MAD": "Dirham marocchino",
       "TND": "Dinaro tunisino"
     }
+  },
+  "Seating": {
+    "backToEvent": "Torna all'evento",
+    "title": "Disposizione dei tavoli",
+    "subtitle": "Trascina e rilascia gli invitati confermati sui tavoli. Gli accompagnatori confermati contano per la capienza.",
+    "upsellTitle": "Disposizione dei tavoli — funzione Premium",
+    "upsellHint": "La gestione dei tavoli con trascinamento è inclusa in Premium e in tutti i piani Pro. Passa a Premium per attivarla.",
+    "upsellCta": "Passa a Premium",
+    "error": "Qualcosa è andato storto. Riprova.",
+    "defaultTableName": "Tavolo {n}",
+    "addTable": "Aggiungi un tavolo",
+    "stats": "{seated} seduti su {total} · {tables} tavoli",
+    "deleteConfirm": "Eliminare «{name}»? Gli invitati torneranno nell’elenco non assegnati.",
+    "noAttending": "Nessun invitato confermato per ora. Le risposte «presente» appariranno qui da assegnare.",
+    "unassignedTitle": "Non assegnati",
+    "unassignedEmpty": "Tutti gli invitati sono assegnati.",
+    "unassignedHint": "Trascina su un tavolo",
+    "seatLabel": "Posti",
+    "noTables": "Nessun tavolo. Aggiungine uno per iniziare.",
+    "occupancy": "{occupied}/{capacity}",
+    "overCapacity": "Capienza superata",
+    "deleteTable": "Elimina tavolo",
+    "capacityLabel": "Capienza",
+    "tableEmpty": "Rilascia qui gli invitati"
   }
 }

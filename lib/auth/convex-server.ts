@@ -100,6 +100,64 @@ export const convexApi = {
     | { applicable: false }
     | { applicable: true; quota: number; activeEventCount: number; atQuota: boolean }
   >('events:orgPublishQuotaStatus'),
+
+  // --- Plan de table / seating (feature Premium + Pro) ---
+  createTable: makeFunctionReference<
+    'mutation',
+    { eventId: string; requesterId: string; name?: string; capacity?: number },
+    { tableId: string }
+  >('seating:createTable'),
+  updateTable: makeFunctionReference<
+    'mutation',
+    { tableId: string; requesterId: string; name?: string; capacity?: number },
+    { ok: true }
+  >('seating:updateTable'),
+  deleteTable: makeFunctionReference<
+    'mutation',
+    { tableId: string; requesterId: string },
+    { ok: true; unassigned: number }
+  >('seating:deleteTable'),
+  assignGuestToTable: makeFunctionReference<
+    'mutation',
+    { guestId: string; tableId: string | null; requesterId: string },
+    { ok: true }
+  >('seating:assignGuest'),
+  getSeatingPlan: makeFunctionReference<
+    'query',
+    { eventId: string; requesterId: string },
+    {
+      tables: Array<{
+        _id: string;
+        name: string;
+        capacity: number;
+        shape?: 'round' | 'rect';
+        order: number;
+        assigned: Array<{
+          _id: string;
+          fullName: string;
+          seats: number;
+          plusOnesNames: string[];
+          category?: string;
+        }>;
+        occupancy: number;
+        overCapacity: boolean;
+      }>;
+      unassigned: Array<{
+        _id: string;
+        fullName: string;
+        seats: number;
+        plusOnesNames: string[];
+        category?: string;
+      }>;
+      stats: {
+        tableCount: number;
+        totalCapacity: number;
+        seatedSeats: number;
+        unassignedSeats: number;
+        attendingParties: number;
+      };
+    }
+  >('seating:getSeatingPlan'),
   listEventsByOwner: makeFunctionReference<
     'query',
     { ownerId: string },

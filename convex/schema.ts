@@ -258,13 +258,38 @@ export default defineSchema({
      * sur la durée de vie de l'event.
      */
     lastReminderSentAt: v.optional(v.number()),
+    /**
+     * Table de placement assignée (plan de table / seating, feature Premium/Pro).
+     * undefined = invité non assigné. L'invité + ses plus-ones confirmés
+     * occupent cette table (capacité comptée côté query getSeatingPlan).
+     */
+    tableId: v.optional(v.id('tables')),
     createdAt: v.number(),
     updatedAt: v.number(),
   })
     .index('by_event', ['eventId'])
     .index('by_event_rsvp', ['eventId', 'rsvpStatus'])
     .index('by_qr_token', ['qrCodeToken'])
-    .index('by_phone', ['phone']),
+    .index('by_phone', ['phone'])
+    .index('by_table', ['tableId']),
+
+  /**
+   * Tables du plan de placement (seating) d'un event. Une row par table
+   * physique. L'assignation invité→table est portée par `guests.tableId`.
+   * Feature Premium + Pro (cf. `seatingPlan` dans convex/lib/entitlements.ts) ;
+   * exclue d'Essentiel.
+   */
+  tables: defineTable({
+    eventId: v.id('events'),
+    name: v.string(),
+    capacity: v.number(),
+    // Forme indicative, réservée à un futur plan visuel spatial (v2).
+    shape: v.optional(v.union(v.literal('round'), v.literal('rect'))),
+    // Ordre d'affichage dans le board drag-and-drop.
+    order: v.number(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index('by_event', ['eventId']),
 
   eventCollaborators: defineTable({
     eventId: v.id('events'),

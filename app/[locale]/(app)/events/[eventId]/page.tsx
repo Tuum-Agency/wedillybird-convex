@@ -12,6 +12,7 @@ import {
   Sparkles,
   Archive,
   Settings,
+  Armchair,
 } from 'lucide-react';
 import { Link, redirect } from '@/i18n/navigation';
 import { getSession } from '@/lib/auth/session';
@@ -402,6 +403,13 @@ export default async function EventDetailPage({
         >
           <Camera className="h-4 w-4" strokeWidth={2} aria-hidden />
           {t('openGallery')}
+        </Link>
+        <Link
+          href={`/events/${eventId}/seating`}
+          className={cn(buttonVariants({ variant: 'outline', size: 'md' }), 'flex-1')}
+        >
+          <Armchair className="h-4 w-4" strokeWidth={2} aria-hidden />
+          {t('openSeating')}
         </Link>
       </div>
     </section>

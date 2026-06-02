@@ -623,6 +623,7 @@
     "manageGuests": "Gérer les invités",
     "openCheckIn": "Check-in",
     "openGallery": "Galerie",
+    "openSeating": "Plan de table",
     "publish": "Publier",
     "unpublish": "Repasser en brouillon",
     "draftHint": "Cet événement est en brouillon. Publiez-le pour activer les invitations et la galerie.",
@@ -938,7 +939,8 @@
       "faceSearch": "Recherche par visage : chaque invité retrouve ses photos avec un selfie",
       "cinematicInvitation": "Cinématique d'invitation : enveloppe qui s'ouvre, sceau qui se brise",
       "photoVariants": "Photos optimisées en 3 résolutions WebP pour un affichage fluide même en 3G",
-      "galleryZipDownload": "Téléchargement de toute la galerie en ZIP en un clic"
+      "galleryZipDownload": "Téléchargement de toute la galerie en ZIP en un clic",
+      "seatingPlan": "Plan de table en glisser-déposer : placez vos invités confirmés sur les tables"
     },
     "allEssentialIncluded": "Tout l'Essentiel inclus",
     "pro": {
@@ -1400,5 +1402,29 @@
       "MAD": "Dirham marocain",
       "TND": "Dinar tunisien"
     }
+  },
+  "Seating": {
+    "backToEvent": "Retour à l'événement",
+    "title": "Plan de table",
+    "subtitle": "Glissez-déposez vos invités confirmés sur les tables. Les accompagnants confirmés comptent dans la capacité.",
+    "upsellTitle": "Plan de table — formule Premium",
+    "upsellHint": "La gestion des tables en glisser-déposer est incluse dans la formule Premium et les offres Pro. Passez en Premium pour l'activer.",
+    "upsellCta": "Passer en Premium",
+    "error": "Une action a échoué. Réessayez.",
+    "defaultTableName": "Table {n}",
+    "addTable": "Ajouter une table",
+    "stats": "{seated} placés sur {total} · {tables} tables",
+    "deleteConfirm": "Supprimer « {name} » ? Les invités reviendront dans la liste des non-placés.",
+    "noAttending": "Aucun invité confirmé pour l'instant. Les réponses « présent » apparaîtront ici à placer.",
+    "unassignedTitle": "Non placés",
+    "unassignedEmpty": "Tous vos invités sont placés.",
+    "unassignedHint": "Glissez vers une table",
+    "seatLabel": "Couverts",
+    "noTables": "Aucune table. Ajoutez-en une pour commencer.",
+    "occupancy": "{occupied}/{capacity}",
+    "overCapacity": "Sur-capacité",
+    "deleteTable": "Supprimer la table",
+    "capacityLabel": "Capacité",
+    "tableEmpty": "Déposez des invités ici"
   }
 }

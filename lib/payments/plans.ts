@@ -70,6 +70,7 @@ const PREMIUM_EXTRA_FEATURES = [
   'cinematicInvitation',
   'photoVariants',
   'galleryZipDownload',
+  'seatingPlan',
 ] as const;
 
 const ESSENTIAL_EUR = 1900; // 19 €

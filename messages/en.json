@@ -619,6 +619,7 @@
     "manageGuests": "Manage guests",
     "openCheckIn": "Check-in",
     "openGallery": "Gallery",
+    "openSeating": "Seating plan",
     "publish": "Publish",
     "unpublish": "Move back to draft",
     "draftHint": "This event is in draft. Publish it to enable invitations and the gallery.",
@@ -934,7 +935,8 @@
       "faceSearch": "Face search: every guest finds their photos with a selfie",
       "cinematicInvitation": "Invitation cinematic: envelope opening, seal cracking",
       "photoVariants": "Photos optimised in 3 WebP resolutions for smooth display even on 3G",
-      "galleryZipDownload": "Download the entire gallery as a ZIP in one click"
+      "galleryZipDownload": "Download the entire gallery as a ZIP in one click",
+      "seatingPlan": "Drag-and-drop seating plan: assign your confirmed guests to tables"
     },
     "allEssentialIncluded": "Everything in Essential included",
     "pro": {
@@ -1396,5 +1398,29 @@
       "MAD": "Moroccan Dirham",
       "TND": "Tunisian Dinar"
     }
+  },
+  "Seating": {
+    "backToEvent": "Back to event",
+    "title": "Seating plan",
+    "subtitle": "Drag and drop your confirmed guests onto tables. Confirmed plus-ones count toward capacity.",
+    "upsellTitle": "Seating plan — Premium feature",
+    "upsellHint": "Drag-and-drop table management is included in Premium and all Pro plans. Upgrade to Premium to enable it.",
+    "upsellCta": "Upgrade to Premium",
+    "error": "Something failed. Please try again.",
+    "defaultTableName": "Table {n}",
+    "addTable": "Add a table",
+    "stats": "{seated} seated of {total} · {tables} tables",
+    "deleteConfirm": "Delete \"{name}\"? Its guests will return to the unassigned list.",
+    "noAttending": "No confirmed guests yet. \"Attending\" replies will show up here to seat.",
+    "unassignedTitle": "Unassigned",
+    "unassignedEmpty": "All your guests are seated.",
+    "unassignedHint": "Drag onto a table",
+    "seatLabel": "Seats",
+    "noTables": "No tables yet. Add one to get started.",
+    "occupancy": "{occupied}/{capacity}",
+    "overCapacity": "Over capacity",
+    "deleteTable": "Delete table",
+    "capacityLabel": "Capacity",
+    "tableEmpty": "Drop guests here"
   }
 }

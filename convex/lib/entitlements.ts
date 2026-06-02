@@ -15,7 +15,8 @@ export type GatedFeature =
   | 'faceSearch'
   | 'galleryZipDownload'
   | 'pdfAlbumFinal'
-  | 'cinematicInvitation';
+  | 'cinematicInvitation'
+  | 'seatingPlan';
 
 /** Features Premium-only (absentes d'Essentiel). */
 const PREMIUM_ONLY: ReadonlySet<GatedFeature> = new Set<GatedFeature>([
@@ -23,6 +24,7 @@ const PREMIUM_ONLY: ReadonlySet<GatedFeature> = new Set<GatedFeature>([
   'galleryZipDownload',
   'pdfAlbumFinal',
   'cinematicInvitation',
+  'seatingPlan',
 ]);
 
 /**

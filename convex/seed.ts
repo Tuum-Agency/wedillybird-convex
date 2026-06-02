@@ -522,6 +522,32 @@ export const seedTierFixtures = mutation({
       updatedAt: now,
     });
 
+    // Quelques invités confirmés sur l'event Premium → de quoi alimenter le
+    // plan de table (board seating) en dev / e2e.
+    const premiumGuests: Array<{
+      fullName: string;
+      plusOnesAllowed: number;
+      plusOnesNames?: string[];
+    }> = [
+      { fullName: 'Alice Martin', plusOnesAllowed: 1, plusOnesNames: ['Bob Martin'] },
+      { fullName: 'Chloé Bernard', plusOnesAllowed: 0 },
+      { fullName: 'David Petit', plusOnesAllowed: 0 },
+      { fullName: 'Emma Durand', plusOnesAllowed: 1, plusOnesNames: ['Félix Durand'] },
+    ];
+    for (const g of premiumGuests) {
+      await ctx.db.insert('guests', {
+        eventId: premiumEventId,
+        fullName: g.fullName,
+        plusOnesAllowed: g.plusOnesAllowed,
+        ...(g.plusOnesNames ? { plusOnesNames: g.plusOnesNames } : {}),
+        rsvpStatus: 'attending' as const,
+        rsvpRespondedAt: now,
+        qrCodeToken: makeQrToken(),
+        createdAt: now,
+        updatedAt: now,
+      });
+    }
+
     // 3) PRO Starter au quota (5 actifs) + 1 draft → publication bloquée.
     let org = await ctx.db
       .query('organizations')

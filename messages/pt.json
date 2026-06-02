@@ -622,6 +622,7 @@
     "manageGuests": "Gerir convidados",
     "openCheckIn": "Check-in",
     "openGallery": "Galeria",
+    "openSeating": "Plano de mesas",
     "publish": "Publicar",
     "unpublish": "Voltar a rascunho",
     "draftHint": "Este evento está em rascunho. Publica-o para ativares os convites e a galeria.",
@@ -937,7 +938,8 @@
       "faceSearch": "Pesquisa por rosto: cada convidado encontra as suas fotografias com uma selfie",
       "cinematicInvitation": "Cinemática de convite: envelope que se abre, selo que se quebra",
       "photoVariants": "Fotografias otimizadas em 3 resoluções WebP para uma visualização fluida mesmo em 3G",
-      "galleryZipDownload": "Transferência de toda a galeria em ZIP num clique"
+      "galleryZipDownload": "Transferência de toda a galeria em ZIP num clique",
+      "seatingPlan": "Plano de mesas com arrastar e soltar: atribua os convidados confirmados às mesas"
     },
     "allEssentialIncluded": "Tudo o do Essencial incluído",
     "pro": {
@@ -1399,5 +1401,29 @@
       "MAD": "Dirham marroquino",
       "TND": "Dinar tunisino"
     }
+  },
+  "Seating": {
+    "backToEvent": "Voltar ao evento",
+    "title": "Plano de mesas",
+    "subtitle": "Arraste e solte os seus convidados confirmados nas mesas. Os acompanhantes confirmados contam para a capacidade.",
+    "upsellTitle": "Plano de mesas — funcionalidade Premium",
+    "upsellHint": "A gestão de mesas com arrastar e soltar está incluída no Premium e em todos os planos Pro. Mude para Premium para ativar.",
+    "upsellCta": "Mudar para Premium",
+    "error": "Algo falhou. Tente novamente.",
+    "defaultTableName": "Mesa {n}",
+    "addTable": "Adicionar uma mesa",
+    "stats": "{seated} sentados de {total} · {tables} mesas",
+    "deleteConfirm": "Eliminar «{name}»? Os convidados voltarão à lista de não atribuídos.",
+    "noAttending": "Ainda não há convidados confirmados. As respostas «presente» aparecerão aqui para atribuir.",
+    "unassignedTitle": "Não atribuídos",
+    "unassignedEmpty": "Todos os seus convidados estão atribuídos.",
+    "unassignedHint": "Arraste para uma mesa",
+    "seatLabel": "Lugares",
+    "noTables": "Sem mesas. Adicione uma para começar.",
+    "occupancy": "{occupied}/{capacity}",
+    "overCapacity": "Acima da capacidade",
+    "deleteTable": "Eliminar mesa",
+    "capacityLabel": "Capacidade",
+    "tableEmpty": "Largue convidados aqui"
   }
 }
