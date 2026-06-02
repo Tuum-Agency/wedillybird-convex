@@ -38,7 +38,7 @@
       "article3Title": "3. Account e accesso",
       "article3Body": "L'accesso al Servizio richiede la creazione di un account tramite verifica di un numero WhatsApp. L'Utente è responsabile della riservatezza del proprio numero e di qualsiasi azione effettuata dal proprio account. Qualsiasi uso non autorizzato deve essere segnalato immediatamente.",
       "article4Title": "4. Tariffe e pagamento",
-      "article4Body": "Il Servizio è proposto senza piano gratuito. Per i privati che organizzano un matrimonio, due formule a pagamento unico: Essenziale (19 €, funzionalità di base + galleria 30 giorni) e Premium (49 €, Essenziale + galleria 6 mesi + album PDF). Un upsell post-matrimonio (+29 €) estende la galleria a 5 anni e aggiunge il libro fotografico HD. Per i professionisti, abbonamento mensile o annuale (Starter 89 €/mese, Business 179 €/mese, Agency 349 €/mese, -20 % in annuale) o pagamento a evento (69 €). I pagamenti sono gestiti da Stripe (Europa) o CinetPay (Africa Occidentale). Rimborso integrale entro 7 giorni se l'evento non è stato inviato. In caso di annullamento del matrimonio, rinvio gratuito a un'altra data.",
+      "article4Body": "Il Servizio è proposto senza piano gratuito. Per i privati che organizzano un matrimonio, due formule a pagamento unico: Essenziale (19 €, funzionalità di base + galleria 30 giorni) e Premium (59 €, Essenziale + galleria 6 mesi + album PDF). Un upsell post-matrimonio (+29 €) estende la galleria a 5 anni e aggiunge il libro fotografico HD. Per i professionisti, abbonamento mensile o annuale (Starter 99 €/mese, Business 219 €/mese, Agency 449 €/mese, -20 % in annuale) o pagamento a evento (79 €). I pagamenti sono gestiti da Stripe (Europa) o CinetPay (Africa Occidentale). Rimborso integrale entro 7 giorni se l'evento non è stato inviato. In caso di annullamento del matrimonio, rinvio gratuito a un'altra data.",
       "article5Title": "5. Proprietà intellettuale",
       "article5Body": "L'Utente conserva la proprietà dei contenuti che carica. Concede a Wedillybird una licenza non esclusiva di utilizzo di tali contenuti ai soli fini del funzionamento del Servizio. Wedillybird conserva la proprietà della piattaforma, del codice e del marchio.",
       "article6Title": "6. Responsabilità",
@@ -195,7 +195,7 @@
       },
       "pricing": {
         "q": "Quali sono le tariffe?",
-        "a": "Due formule a pagamento unico per matrimonio: Essenziale (19 €) per gli inviti WhatsApp, l'RSVP, il check-in QR e la dashboard; Premium (49 €) che aggiunge la galleria foto condivisa per 6 mesi e l'album PDF finale. Un upsell post-matrimonio a +29 € permette di conservare la galleria per 5 anni con un libro fotografico HD e l'export ad alta definizione."
+        "a": "Due formule a pagamento unico per matrimonio: Essenziale (19 €) per gli inviti WhatsApp, l'RSVP, il check-in QR e la dashboard; Premium (59 €) che aggiunge la galleria foto condivisa per 6 mesi e l'album PDF finale. Un upsell post-matrimonio a +29 € permette di conservare la galleria per 5 anni con un libro fotografico HD e l'export ad alta definizione."
       },
       "support": {
         "q": "Come contatto il supporto?",
@@ -999,7 +999,7 @@
     "galleryRetention": "Galleria attiva {days, plural, =1 {# giorno} other {# giorni}} dopo il matrimonio",
     "plans": {
       "essential": "Essenziale — 19 €",
-      "premium": "Premium — 49 €"
+      "premium": "Premium — 59 €"
     },
     "successTitle": "Pagamento confermato",
     "successBody": "Il tuo evento è ora in formula {plan}. Galleria attiva fino a J+{days}.",

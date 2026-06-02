@@ -38,7 +38,7 @@
       "article3Title": "3. Conta e acesso",
       "article3Body": "O acesso ao Serviço requer a criação de uma conta através da verificação de um número WhatsApp. O Utilizador é responsável pela confidencialidade do seu número e por qualquer ação efetuada a partir da sua conta. Qualquer utilização não autorizada deve ser comunicada de imediato.",
       "article4Title": "4. Preços e pagamento",
-      "article4Body": "O Serviço é disponibilizado sem opção gratuita. Para particulares que organizam um casamento, existem duas modalidades em pagamento único: Essencial (19 €, funcionalidades base + galeria 30 dias) e Premium (49 €, Essencial + galeria 6 meses + álbum PDF). Um upsell pós-casamento (+29 €) prolonga a galeria para 5 anos e adiciona o livro fotográfico HD. Para profissionais, há subscrição mensal ou anual (Starter 89 €/mês, Business 179 €/mês, Agency 349 €/mês, -20 % na modalidade anual) ou pagamento por evento (69 €). Os pagamentos são processados pela Stripe (Europa) ou pela CinetPay (África Ocidental). Reembolso integral até 7 dias se o evento ainda não tiver sido enviado. Em caso de cancelamento do casamento, adiamento gratuito para outra data.",
+      "article4Body": "O Serviço é disponibilizado sem opção gratuita. Para particulares que organizam um casamento, existem duas modalidades em pagamento único: Essencial (19 €, funcionalidades base + galeria 30 dias) e Premium (59 €, Essencial + galeria 6 meses + álbum PDF). Um upsell pós-casamento (+29 €) prolonga a galeria para 5 anos e adiciona o livro fotográfico HD. Para profissionais, há subscrição mensal ou anual (Starter 99 €/mês, Business 219 €/mês, Agency 449 €/mês, -20 % na modalidade anual) ou pagamento por evento (79 €). Os pagamentos são processados pela Stripe (Europa) ou pela CinetPay (África Ocidental). Reembolso integral até 7 dias se o evento ainda não tiver sido enviado. Em caso de cancelamento do casamento, adiamento gratuito para outra data.",
       "article5Title": "5. Propriedade intelectual",
       "article5Body": "O Utilizador conserva a propriedade dos conteúdos que carrega. Concede à Wedillybird uma licença não exclusiva de utilização desses conteúdos exclusivamente para o funcionamento do Serviço. A Wedillybird mantém a propriedade da plataforma, do código e da marca.",
       "article6Title": "6. Responsabilidade",
@@ -195,7 +195,7 @@
       },
       "pricing": {
         "q": "Quais são os preços?",
-        "a": "Duas modalidades em pagamento único por casamento: Essencial (19 €) com convites WhatsApp, RSVP, check-in QR e painel; Premium (49 €) que acrescenta a galeria de fotografias partilhada durante 6 meses e o álbum PDF final. Um upsell pós-casamento por +29 € permite manter a tua galeria 5 anos com livro fotográfico HD e exportação em alta definição."
+        "a": "Duas modalidades em pagamento único por casamento: Essencial (19 €) com convites WhatsApp, RSVP, check-in QR e painel; Premium (59 €) que acrescenta a galeria de fotografias partilhada durante 6 meses e o álbum PDF final. Um upsell pós-casamento por +29 € permite manter a tua galeria 5 anos com livro fotográfico HD e exportação em alta definição."
       },
       "support": {
         "q": "Como contactar o apoio?",
@@ -999,7 +999,7 @@
     "galleryRetention": "Galeria ativa {days, plural, =1 {# dia} other {# dias}} após o casamento",
     "plans": {
       "essential": "Essencial — 19 €",
-      "premium": "Premium — 49 €"
+      "premium": "Premium — 59 €"
     },
     "successTitle": "Pagamento confirmado",
     "successBody": "O teu evento está agora no plano {plan}. Galeria ativa até D+{days}.",
