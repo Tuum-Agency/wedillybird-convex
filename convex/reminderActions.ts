@@ -4,6 +4,8 @@ import { v } from 'convex/values';
 import { internal } from './_generated/api';
 import { internalAction } from './_generated/server';
 import { sendWhatsAppCloudTemplate } from './lib/whatsappCloud';
+import { resolveChannel } from './lib/channelRouting';
+import { isTwilioConfigured, sendTwilioSms } from './lib/twilioSms';
 
 /**
  * Action interne d'envoi d'un rappel WhatsApp J-7 / J-1 via Meta Cloud API.
@@ -25,6 +27,36 @@ export const sendGuestWhatsappReminder = internalAction({
     tier: v.union(v.literal('d7'), v.literal('d1')),
   },
   handler: async (ctx, args) => {
+    // Routage canal : invités +1 (US/Canada) → SMS Twilio si configuré, sinon
+    // WhatsApp (comportement historique). Gated sur isTwilioConfigured → inerte
+    // tant que Twilio n'est pas live. bodyParams = [prénom, couple, date|lieu,
+    // url] (cf. reminders.dispatchDailyGuestReminders). La copie SMS est en
+    // anglais (cible +1).
+    if (resolveChannel(args.to) === 'sms' && isTwilioConfigured()) {
+      const first = args.bodyParams[0] ?? '';
+      const couple = args.bodyParams[1] ?? '';
+      const detail = args.bodyParams[2] ?? '';
+      const appBaseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://wedillybird.com';
+      const rsvpUrl = `${appBaseUrl}/en/i/${args.urlButtonParam}`;
+      const body =
+        args.tier === 'd1'
+          ? `${first}, ${couple}'s big day is tomorrow at ${detail}! Details & RSVP: ${rsvpUrl} Reply STOP to opt out.`
+          : `${first}, a reminder that ${couple} are getting married on ${detail}. Please RSVP: ${rsvpUrl} Reply STOP to opt out.`;
+      const smsResult = await sendTwilioSms({ to: args.to, body });
+      if (!smsResult.ok) {
+        console.error(`[reminder:sms] failed for ${args.to} (${args.tier}): ${smsResult.error}`);
+        return { ok: false as const, error: smsResult.error ?? 'UNKNOWN' };
+      }
+      if (smsResult.mock) {
+        console.info(`[twilio:mock] REMINDER ${args.tier} -> ${args.to} | ${body}`);
+      }
+      await ctx.runMutation(internal.guests.markReminderSent, {
+        guestId: args.guestId,
+        tier: args.tier,
+      });
+      return { ok: true as const, mock: smsResult.mock ?? false };
+    }
+
     const result = await sendWhatsAppCloudTemplate({
       to: args.to,
       templateName: args.templateName,
