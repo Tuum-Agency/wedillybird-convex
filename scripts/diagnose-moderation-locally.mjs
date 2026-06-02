@@ -108,14 +108,12 @@ console.log('');
 
 let RekognitionClient, DetectModerationLabelsCommand, DetectTextCommand, DetectLabelsCommand;
 try {
-  ({
-    RekognitionClient,
-    DetectModerationLabelsCommand,
-    DetectTextCommand,
-    DetectLabelsCommand,
-  } = await import('@aws-sdk/client-rekognition'));
+  ({ RekognitionClient, DetectModerationLabelsCommand, DetectTextCommand, DetectLabelsCommand } =
+    await import('@aws-sdk/client-rekognition'));
 } catch {
-  console.error('Missing @aws-sdk/client-rekognition. Run: pnpm add -w @aws-sdk/client-rekognition');
+  console.error(
+    'Missing @aws-sdk/client-rekognition. Run: pnpm add -w @aws-sdk/client-rekognition',
+  );
   process.exit(1);
 }
 
@@ -155,16 +153,17 @@ const lblResp = await client
     process.exit(1);
   });
 const labels = lblResp.Labels ?? [];
-const top = [...labels]
-  .sort((a, b) => (b.Confidence ?? 0) - (a.Confidence ?? 0))
-  .slice(0, 8);
+const top = [...labels].sort((a, b) => (b.Confidence ?? 0) - (a.Confidence ?? 0)).slice(0, 8);
 console.log(`  ${labels.length} label(s), top 8 :`);
 for (const l of top) {
   console.log(`    - ${l.Name} (${l.Confidence?.toFixed(1)}%)`);
 }
 
 const illustrations = labels
-  .filter((l) => l.Name && ILLUSTRATION_LABELS.has(l.Name) && (l.Confidence ?? 0) >= ILLUSTRATION_THRESHOLD)
+  .filter(
+    (l) =>
+      l.Name && ILLUSTRATION_LABELS.has(l.Name) && (l.Confidence ?? 0) >= ILLUSTRATION_THRESHOLD,
+  )
   .map((l) => l.Name);
 
 let rejectedTop = null;
@@ -183,13 +182,17 @@ for (const label of moderationLabels) {
 console.log('');
 console.log('━━ VERDICT ━━');
 if (rejectedTop) {
-  console.log(`✗ rejected (${rejectedTop.severity}) — ${rejectedTop.name} @ ${rejectedTop.confidence.toFixed(1)}%`);
+  console.log(
+    `✗ rejected (${rejectedTop.severity}) — ${rejectedTop.name} @ ${rejectedTop.confidence.toFixed(1)}%`,
+  );
 } else if (illustrations.length > 0) {
   console.log(
     `⚠ manual_review — illustration détectée : ${illustrations.join(', ')} (OpenAI Moderation API non checkée localement)`,
   );
 } else {
-  console.log('✓ approved (côté Rekognition + heuristiques — OpenAI Moderation API non checkée localement)');
+  console.log(
+    '✓ approved (côté Rekognition + heuristiques — OpenAI Moderation API non checkée localement)',
+  );
 }
 
 console.log('');
@@ -197,4 +200,6 @@ console.log('Note : ce diagnostic ne couvre PAS :');
 console.log(' - Le callback HMAC vers Convex (testable en lançant `pnpm convex:dev` + ce script)');
 console.log(' - Le trigger S3 → Lambda (à vérifier dans AWS Console)');
 console.log(' - Les env vars Lambda CONVEX_SITE_URL / LAMBDA_CALLBACK_SECRET');
-console.log(' - Le routage Convex `/lambda/photo-moderation-callback` (déjà OK si `convex:deploy` a été lancé)');
+console.log(
+  ' - Le routage Convex `/lambda/photo-moderation-callback` (déjà OK si `convex:deploy` a été lancé)',
+);

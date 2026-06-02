@@ -95,12 +95,12 @@ test.describe('Landing pricing pros', () => {
     await expect(section.getByRole('heading', { name: /^Agency$/i, level: 3 })).toBeVisible();
   });
 
-  test('prix mensuels par défaut : 89, 179, 349 avec suffixe / mois', async ({ page }) => {
+  test('prix mensuels par défaut : 99, 219, 449 avec suffixe / mois', async ({ page }) => {
     const section = page.locator('#pricing-pros');
-    // fr-FR formate en "89,00 €" — on cherche uniquement le nombre
-    await expect(section.getByText(/\b89\b/).first()).toBeVisible();
-    await expect(section.getByText(/\b179\b/).first()).toBeVisible();
-    await expect(section.getByText(/\b349\b/).first()).toBeVisible();
+    // fr-FR formate en "99,00 €" — on cherche uniquement le nombre
+    await expect(section.getByText(/\b99\b/).first()).toBeVisible();
+    await expect(section.getByText(/\b219\b/).first()).toBeVisible();
+    await expect(section.getByText(/\b449\b/).first()).toBeVisible();
     await expect(section.getByText(/\/\s*mois/i).first()).toBeVisible();
   });
 
@@ -116,17 +116,17 @@ test.describe('Landing pricing pros', () => {
     const annualBtn = section.getByRole('radio', { name: /annuel/i });
     await annualBtn.click();
 
-    // Starter annuel : 85 500 / 12 = 7 125 centimes = 71,25 €
-    // fr-FR formate en "71,25 €" — on cherche "71,25" ou "71"
-    await expect(section.getByText(/71[,.]25/)).toBeVisible();
+    // Starter annuel v2 : 95 100 / 12 = 7 925 centimes = 79,25 €
+    // fr-FR formate en "79,25 €" — on cherche "79,25"
+    await expect(section.getByText(/79[,.]25/)).toBeVisible();
     // Badge économies (aria-live, animé)
     await expect(section.getByText(/économisez\s*20\s*%/i)).toBeVisible();
   });
 
-  test('card PAYG visible avec 69 € et Pay-as-you-go', async ({ page }) => {
+  test('card PAYG visible avec 79 € et Pay-as-you-go', async ({ page }) => {
     const section = page.locator('#pricing-pros');
-    // fr-FR formate 69 € en "69,00 €"
-    await expect(section.getByText(/\b69\b/).first()).toBeVisible();
+    // fr-FR formate 79 € en "79,00 €"
+    await expect(section.getByText(/\b79\b/).first()).toBeVisible();
     await expect(section.getByText(/Pay-as-you-go/i)).toBeVisible();
   });
 
