@@ -37,11 +37,17 @@ test.describe('Pro — without an organization', () => {
       .locator('form', { has: page.locator('input[value="+33612931779"]') })
       .getByRole('button', { name: /se connecter/i })
       .click();
-    await page.waitForURL((url) => /\/dashboard/.test(url.pathname));
+    // Destination authentifiée variable selon l'état user (dashboard / events / onboarding / pro).
+    await page.waitForURL((url) => /\/(dashboard|events|onboarding|pro)(\/|$)/.test(url.pathname));
 
     await page.goto('/pro/dashboard');
+    // Un non-pro est redirigé HORS de /pro/dashboard : vers /pro/onboarding (cas
+    // nominal), /dashboard, ou /events/{id} si ce couple possède déjà un event
+    // (état Convex dev partagé). L'invariant testé = il ne RESTE pas sur /pro/dashboard.
     await page.waitForURL(
-      (url) => url.pathname.endsWith('/dashboard') || url.pathname.endsWith('/pro/onboarding'),
+      (url) =>
+        !url.pathname.endsWith('/pro/dashboard') &&
+        /\/(dashboard|onboarding|events)(\/|$)/.test(url.pathname),
     );
   });
 });
