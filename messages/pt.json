@@ -227,6 +227,23 @@
         "rsvpHint": "RSVP aberto no WhatsApp"
       }
     },
+    "channels": {
+      "chapter": "CAPÍTULO 03B — CADA CANAL",
+      "title": "Os seus convidados, onde quer que estejam.",
+      "subtitle": "Um único link para adicionar os seus convidados. A Wedillybird envia o convite pelo canal que cada um já usa — automaticamente.",
+      "sms": {
+        "title": "Nos EUA e Canadá — por SMS",
+        "description": "Os seus convidados nos EUA e no Canadá recebem um SMS. Sem app, sem WhatsApp — chega diretamente às mensagens que já consultam."
+      },
+      "whatsapp": {
+        "title": "No resto do mundo — no WhatsApp",
+        "description": "Nos outros países, o convite chega pelo WhatsApp, onde já estão 2 mil milhões de pessoas. 98% de abertura, nada para instalar."
+      },
+      "oneLink": {
+        "title": "Um link, cada convidado",
+        "description": "Adiciona a sua lista uma vez. A Wedillybird escolhe SMS ou WhatsApp para cada número automaticamente — nunca tem de pensar nisso."
+      }
+    },
     "manifesto": {
       "chapter": "CAPÍTULO 02 — O MANIFESTO",
       "eyebrow": "A nossa convicção",
@@ -605,6 +622,7 @@
     "manageGuests": "Gerir convidados",
     "openCheckIn": "Check-in",
     "openGallery": "Galeria",
+    "openSeating": "Plano de mesas",
     "publish": "Publicar",
     "unpublish": "Voltar a rascunho",
     "draftHint": "Este evento está em rascunho. Publica-o para ativares os convites e a galeria.",
@@ -617,7 +635,8 @@
     "planUpsellSuffix": "· Retenção 5 anos",
     "activatePlan": "Ativar um plano",
     "publishLockedHint": "Ativa o teu plano para publicares o convite e enviares os RSVP. O pagamento é único, sem subscrição.",
-    "publishLockedHintPayg": "Já não tens crédito Pay-as-you-go. Compra um em /pro/billing ou ativa uma subscrição."
+    "publishLockedHintPayg": "Já não tens crédito Pay-as-you-go. Compra um em /pro/billing ou ativa uma subscrição.",
+    "publishLockedHintQuota": "Cota de eventos ativos atingida ({quota} simultâneos no seu plano). Arquive um evento concluído ou faça upgrade para publicar um novo."
   },
   "Guests": {
     "title": "Lista de convites",
@@ -774,6 +793,7 @@
         "notIndexed": "A indexação dos rostos ainda não terminou. Tenta de novo daqui a alguns minutos.",
         "forbidden": "Não tens acesso a esta galeria.",
         "rateLimited": "Demasiadas pesquisas recentes. Aguarda alguns instantes antes de tentares de novo.",
+        "notInPlan": "Apenas no plano Premium. Mude para Premium para usar a busca facial.",
         "unknown": "Ocorreu um erro. Tenta de novo."
       }
     }
@@ -918,7 +938,8 @@
       "faceSearch": "Pesquisa por rosto: cada convidado encontra as suas fotografias com uma selfie",
       "cinematicInvitation": "Cinemática de convite: envelope que se abre, selo que se quebra",
       "photoVariants": "Fotografias otimizadas em 3 resoluções WebP para uma visualização fluida mesmo em 3G",
-      "galleryZipDownload": "Transferência de toda a galeria em ZIP num clique"
+      "galleryZipDownload": "Transferência de toda a galeria em ZIP num clique",
+      "seatingPlan": "Plano de mesas com arrastar e soltar: atribua os convidados confirmados às mesas"
     },
     "allEssentialIncluded": "Tudo o do Essencial incluído",
     "pro": {
@@ -944,14 +965,14 @@
         "payg": "Apenas um casamento para organizar? Sem subscrição, pagamento ao uso."
       },
       "features": {
-        "events3": "Até 3 eventos ativos em simultâneo",
-        "events10": "Até 10 eventos ativos em simultâneo",
-        "eventsUnlimited": "Eventos ilimitados",
+        "events3": "Até 5 eventos ativos em simultâneo",
+        "events10": "Até 20 eventos ativos em simultâneo",
+        "eventsUnlimited": "Até 50 eventos ativos em simultâneo",
         "events1": "1 evento",
-        "whatsapp2k": "2.000 mensagens WhatsApp incluídas / mês",
-        "whatsapp6k": "6.000 mensagens WhatsApp incluídas / mês",
-        "whatsapp20k": "20.000 mensagens WhatsApp incluídas / mês",
-        "whatsappOnDemand": "WhatsApp a pedido",
+        "whatsapp2k": "3 000 mensagens incluídas / mês",
+        "whatsapp6k": "10 000 mensagens incluídas / mês",
+        "whatsapp20k": "25 000 mensagens incluídas / mês",
+        "whatsappOnDemand": "Mensagens sob demanda",
         "brandingWedillybird": "Branding Wedillybird (logótipo e cores impostos)",
         "brandingCustomLogo": "Logótipo e cores personalizados",
         "brandingLogoSubdomain": "Logótipo personalizado e subdomínio dedicado",
@@ -1380,5 +1401,36 @@
       "MAD": "Dirham marroquino",
       "TND": "Dinar tunisino"
     }
+  },
+  "Seating": {
+    "backToEvent": "Voltar ao evento",
+    "title": "Plano de mesas",
+    "subtitle": "Arraste e solte os seus convidados confirmados nas mesas. Os acompanhantes confirmados contam para a capacidade.",
+    "upsellTitle": "Plano de mesas — funcionalidade Premium",
+    "upsellHint": "A gestão de mesas com arrastar e soltar está incluída no Premium e em todos os planos Pro. Mude para Premium para ativar.",
+    "upsellCta": "Mudar para Premium",
+    "error": "Algo falhou. Tente novamente.",
+    "defaultTableName": "Mesa {n}",
+    "addTable": "Adicionar uma mesa",
+    "stats": "{seated} sentados de {total} · {tables} mesas",
+    "deleteConfirm": "Eliminar «{name}»? Os convidados voltarão à lista de não atribuídos.",
+    "noAttending": "Ainda não há convidados confirmados. As respostas «presente» aparecerão aqui para atribuir.",
+    "unassignedTitle": "Não atribuídos",
+    "unassignedEmpty": "Todos os seus convidados estão atribuídos.",
+    "unassignedHint": "Arraste para uma mesa",
+    "seatLabel": "Lugares",
+    "noTables": "Sem mesas. Adicione uma para começar.",
+    "occupancy": "{occupied}/{capacity}",
+    "overCapacity": "Acima da capacidade",
+    "deleteTable": "Eliminar mesa",
+    "capacityLabel": "Capacidade",
+    "tableEmpty": "Largue convidados aqui",
+    "viewList": "Lista",
+    "viewPlan": "Planta",
+    "autoPlace": "Auto-organizar",
+    "print": "Imprimir",
+    "shapeToggle": "Mudar forma (redonda/retangular)",
+    "clickToUnassign": "Clique para remover da mesa",
+    "guestOf": "convidado(a) de {host}"
   }
 }

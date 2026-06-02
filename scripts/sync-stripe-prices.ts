@@ -49,6 +49,7 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import Stripe from 'stripe';
+import { convertFromEur } from '../lib/payments/currency';
 
 const DRY_RUN = process.argv.includes('--dry-run');
 
@@ -70,11 +71,13 @@ const stripe = new Stripe(SECRET_KEY);
 /*  Devises Stripe-supportées                                                  */
 /* -------------------------------------------------------------------------- */
 
-// Devises gérées par Stripe pour notre grille. XOF est volontairement absente
-// (non supportée par Stripe — le flux XOF passe par CinetPay). USD couvre
-// la région americas (US + CA).
-type StripeCurrency = 'EUR' | 'USD' | 'MAD' | 'TND';
-const SUPPORTED_STRIPE_CURRENCIES: ReadonlyArray<StripeCurrency> = ['EUR', 'USD', 'MAD', 'TND'];
+// Devises gérées par Stripe pour notre grille. XOF **et TND** passent par
+// CinetPay (cf. `priceIdForPlan` qui renvoie undefined pour XOF/TND). USD
+// couvre la région americas (US + CA). Les montants USD/MAD sont dérivés de
+// l'EUR via `convertFromEur` — donc strictement alignés sur ce que l'app
+// affiche/facture.
+type StripeCurrency = 'EUR' | 'USD' | 'MAD';
+const SUPPORTED_STRIPE_CURRENCIES: ReadonlyArray<StripeCurrency> = ['EUR', 'USD', 'MAD'];
 
 /* -------------------------------------------------------------------------- */
 /*  Plans canoniques à synchroniser                                            */
@@ -85,24 +88,24 @@ interface PlanSpec {
   id: string;
   productName: string;
   productDescription: string;
-  /** Montants en unités mineures par devise Stripe-supportée. */
-  amounts: Record<StripeCurrency, number>;
+  /** Montant EUR en unités mineures (source de vérité v2). USD/MAD dérivés via convertFromEur. */
+  eurMinor: number;
   /** undefined = one-shot, 'month' / 'year' = recurring. */
   interval: 'month' | 'year' | undefined;
   /** Préfixe d'env var. Le suffix `_<CURRENCY>` est ajouté automatiquement. */
   envVarBase: string;
 }
 
+// Grille v2 (cf. CLAUDE.md / `.context/pricing-v2.md`). EUR = source de vérité ;
+// USD/MAD dérivés via `convertFromEur` (taux USD 1,08 / MAD 10,7).
 const PLANS_TO_SYNC: ReadonlyArray<PlanSpec> = [
   // Particuliers — one-shot
-  // USD = americas overlay : Essentiel $39, Premium $99 (capture +11 % vs EU),
-  // Upsell +$59. Cf. `lib/payments/region.ts`.
   {
     id: 'essential',
     productName: 'Wedillybird — Essentiel',
     productDescription:
-      'Forfait particulier 19 €. Invitations WhatsApp, RSVP temps réel, check-in offline, tableau de bord, galerie partagée 30 jours.',
-    amounts: { EUR: 1900, USD: 3900, MAD: 21000, TND: 64600 },
+      'Forfait particulier 19 €. 100 invités, invitations WhatsApp/SMS, RSVP temps réel, check-in offline, galerie 5 Go 12 mois.',
+    eurMinor: 1900,
     interval: undefined,
     envVarBase: 'STRIPE_PRICE_ESSENTIAL',
   },
@@ -110,8 +113,8 @@ const PLANS_TO_SYNC: ReadonlyArray<PlanSpec> = [
     id: 'premium',
     productName: 'Wedillybird — Premium',
     productDescription:
-      "Forfait particulier 49 €. Tout l'Essentiel + galerie 6 mois + album PDF final imprimable.",
-    amounts: { EUR: 4900, USD: 9900, MAD: 53000, TND: 166600 },
+      'Forfait particulier 59 €. 250 invités, galerie 25 Go HD 12 mois, recherche par visage, plan de table, album PDF, invitation cinématique.',
+    eurMinor: 5900,
     interval: undefined,
     envVarBase: 'STRIPE_PRICE_PREMIUM',
   },
@@ -119,18 +122,18 @@ const PLANS_TO_SYNC: ReadonlyArray<PlanSpec> = [
     id: 'post_event_upsell',
     productName: 'Wedillybird — Upsell post-mariage',
     productDescription:
-      'Extension post-mariage +29 €. Galerie conservée 5 ans + livre photo HD imprimé + export ZIP haute définition.',
-    amounts: { EUR: 2900, USD: 5900, MAD: 32000, TND: 98600 },
+      'Extension post-mariage +29 €. Archive HD perpétuelle + export ZIP haute définition.',
+    eurMinor: 2900,
     interval: undefined,
     envVarBase: 'STRIPE_PRICE_POST_EVENT_UPSELL',
   },
-  // Pros — mensuel (parité 1:1 USD vs EUR pour les pros)
+  // Pros — mensuel
   {
     id: 'starter_monthly',
     productName: 'Wedillybird Pro — Starter',
     productDescription:
-      '89 €/mois. 3 événements actifs, 2 000 messages WhatsApp inclus, branding Wedillybird forcé.',
-    amounts: { EUR: 8900, USD: 8900, MAD: 95200, TND: 302600 },
+      '99 €/mois. 5 événements × 150 invités, 3 000 messages inclus, 50 Go, branding Wedillybird.',
+    eurMinor: 9900,
     interval: 'month',
     envVarBase: 'STRIPE_PRICE_STARTER',
   },
@@ -138,8 +141,8 @@ const PLANS_TO_SYNC: ReadonlyArray<PlanSpec> = [
     id: 'business_monthly',
     productName: 'Wedillybird Pro — Business',
     productDescription:
-      '179 €/mois. 10 événements actifs, 6 000 messages WhatsApp, logo personnalisé + sous-domaine dédié.',
-    amounts: { EUR: 17900, USD: 17900, MAD: 191500, TND: 608600 },
+      '219 €/mois. 20 événements × 150 invités, 10 000 messages, 200 Go, logo personnalisé + sous-domaine.',
+    eurMinor: 21900,
     interval: 'month',
     envVarBase: 'STRIPE_PRICE_BUSINESS',
   },
@@ -147,21 +150,17 @@ const PLANS_TO_SYNC: ReadonlyArray<PlanSpec> = [
     id: 'agency_monthly',
     productName: 'Wedillybird Pro — Agency',
     productDescription:
-      '349 €/mois. Événements illimités, 20 000 messages WhatsApp, marque blanche complète + SLA 99,9 %.',
-    amounts: { EUR: 34900, USD: 34900, MAD: 373400, TND: 1186600 },
+      '449 €/mois. 50 événements × 150 invités, 25 000 messages, 500 Go, marque blanche.',
+    eurMinor: 44900,
     interval: 'month',
     envVarBase: 'STRIPE_PRICE_AGENCY',
   },
-  // Pros — annuel (-20 % sur le total annuel, arrondi au € supérieur)
-  // Convention : Math.ceil(monthly × 12 × 0.80). Justifié par le fait que les
-  // arrondis Stripe sont stricts au cent et que ces montants serviront aussi de
-  // base à la facturation comptable côté pro (€ entiers plus lisibles).
+  // Pros — annuel (-20 % : Math.ceil(mensuel × 12 × 0,80))
   {
     id: 'starter_annual',
     productName: 'Wedillybird Pro — Starter (annuel)',
-    productDescription:
-      '855 €/an (équivalent 71,25 €/mois, économise 213 €/an vs mensuel). 3 événements actifs, 2 000 messages WhatsApp/mois.',
-    amounts: { EUR: 85500, USD: 85500, MAD: 914800, TND: 2907000 },
+    productDescription: '951 €/an (équiv. 79,25 €/mois). 5 événements actifs, 3 000 messages/mois.',
+    eurMinor: 95100,
     interval: 'year',
     envVarBase: 'STRIPE_PRICE_STARTER_ANNUAL',
   },
@@ -169,8 +168,8 @@ const PLANS_TO_SYNC: ReadonlyArray<PlanSpec> = [
     id: 'business_annual',
     productName: 'Wedillybird Pro — Business (annuel)',
     productDescription:
-      '1 719 €/an (équivalent 143,25 €/mois, économise 429 €/an vs mensuel). 10 événements actifs, 6 000 messages WhatsApp/mois.',
-    amounts: { EUR: 171900, USD: 171900, MAD: 1839300, TND: 5844600 },
+      '2 103 €/an (équiv. 175,25 €/mois). 20 événements actifs, 10 000 messages/mois.',
+    eurMinor: 210300,
     interval: 'year',
     envVarBase: 'STRIPE_PRICE_BUSINESS_ANNUAL',
   },
@@ -178,8 +177,8 @@ const PLANS_TO_SYNC: ReadonlyArray<PlanSpec> = [
     id: 'agency_annual',
     productName: 'Wedillybird Pro — Agency (annuel)',
     productDescription:
-      '3 351 €/an (équivalent 279,25 €/mois, économise 837 €/an vs mensuel). Événements illimités, 20 000 messages WhatsApp/mois.',
-    amounts: { EUR: 335100, USD: 335100, MAD: 3585600, TND: 11393400 },
+      '4 311 €/an (équiv. 359,25 €/mois). 50 événements actifs, 25 000 messages/mois.',
+    eurMinor: 431100,
     interval: 'year',
     envVarBase: 'STRIPE_PRICE_AGENCY_ANNUAL',
   },
@@ -187,9 +186,8 @@ const PLANS_TO_SYNC: ReadonlyArray<PlanSpec> = [
   {
     id: 'payg_event',
     productName: 'Wedillybird Pro — Pay-as-you-go (1 événement)',
-    productDescription:
-      '69 €/événement, sans abonnement. Idéal pour un mariage ponctuel. Messages WhatsApp facturés selon le volume.',
-    amounts: { EUR: 6900, USD: 6900, MAD: 73800, TND: 234600 },
+    productDescription: '79 €/événement, sans abonnement. 150 invités, 25 Go.',
+    eurMinor: 7900,
     interval: undefined,
     envVarBase: 'STRIPE_PRICE_PAYG_EVENT',
   },
@@ -246,7 +244,8 @@ async function syncPlanCurrency(
 ): Promise<SyncResult | null> {
   const envVarName =
     currency === 'EUR' ? `${spec.envVarBase}_EUR` : `${spec.envVarBase}_${currency}`;
-  const unitAmount = spec.amounts[currency];
+  // USD/MAD dérivés de l'EUR via convertFromEur → strictement alignés sur l'app.
+  const unitAmount = convertFromEur(spec.eurMinor, currency);
 
   if (DRY_RUN) {
     return {

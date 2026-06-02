@@ -12,6 +12,7 @@ import {
   Sparkles,
   Archive,
   Settings,
+  Armchair,
 } from 'lucide-react';
 import { Link, redirect } from '@/i18n/navigation';
 import { getSession } from '@/lib/auth/session';
@@ -105,6 +106,7 @@ export default async function EventDetailPage({
     | { kind: 'particulier' }
     | { kind: 'pro_with_sub' }
     | { kind: 'pro_with_credits'; credits: number }
+    | { kind: 'pro_at_quota'; quota: number }
     | { kind: 'pro_no_credits' } = { kind: 'particulier' };
   if (orgId) {
     const credits = await convex
@@ -119,7 +121,21 @@ export default async function EventDetailPage({
     const hasActiveSub =
       orgRole?.subscriptionStatus === 'active' || orgRole?.subscriptionStatus === 'trialing';
     if (hasActiveSub) {
-      proPublishState = { kind: 'pro_with_sub' };
+      // Sub active : publication OK… sauf si l'orga a déjà atteint son quota
+      // d'events actifs simultanés (Starter 5 / Business 20 / Agency 50). Dans
+      // ce cas on désactive le bouton + hint clair plutôt que de laisser la
+      // mutation throw EVENT_QUOTA_EXCEEDED en silence.
+      const quotaStatus = await convex
+        .query(convexApi.orgPublishQuotaStatus, {
+          eventId,
+          requesterId: session!.userId,
+        })
+        .catch(() => null);
+      if (quotaStatus?.applicable && quotaStatus.atQuota) {
+        proPublishState = { kind: 'pro_at_quota', quota: quotaStatus.quota };
+      } else {
+        proPublishState = { kind: 'pro_with_sub' };
+      }
     } else if ((credits?.credits ?? 0) > 0) {
       proPublishState = { kind: 'pro_with_credits', credits: credits!.credits };
     } else {
@@ -253,6 +269,13 @@ export default async function EventDetailPage({
               </p>
             );
           }
+          if (proPublishState.kind === 'pro_at_quota') {
+            return (
+              <p className="text-sm leading-relaxed text-[color:var(--color-ink-500)] sm:text-base">
+                {t('publishLockedHintQuota', { quota: proPublishState.quota })}
+              </p>
+            );
+          }
           if (
             proPublishState.kind === 'pro_with_sub' ||
             proPublishState.kind === 'pro_with_credits' ||
@@ -289,9 +312,11 @@ export default async function EventDetailPage({
             title={
               isDraft && proPublishState.kind === 'pro_no_credits'
                 ? t('publishLockedHintPayg')
-                : isDraft && !isPaid && proPublishState.kind === 'particulier'
-                  ? t('publishLockedHint')
-                  : undefined
+                : isDraft && proPublishState.kind === 'pro_at_quota'
+                  ? t('publishLockedHintQuota', { quota: proPublishState.quota })
+                  : isDraft && !isPaid && proPublishState.kind === 'particulier'
+                    ? t('publishLockedHint')
+                    : undefined
             }
           >
             {isDraft ? (
@@ -378,6 +403,13 @@ export default async function EventDetailPage({
         >
           <Camera className="h-4 w-4" strokeWidth={2} aria-hidden />
           {t('openGallery')}
+        </Link>
+        <Link
+          href={`/events/${eventId}/seating`}
+          className={cn(buttonVariants({ variant: 'outline', size: 'md' }), 'flex-1')}
+        >
+          <Armchair className="h-4 w-4" strokeWidth={2} aria-hidden />
+          {t('openSeating')}
         </Link>
       </div>
     </section>

@@ -71,6 +71,8 @@ export function SignInForm() {
       <Button type="submit" size="lg" disabled={pending}>
         {pending ? t('sending') : t('sendCode')}
       </Button>
+
+      <p className="text-xs leading-relaxed text-[color:var(--color-muted)]">{t('smsConsent')}</p>
     </form>
   );
 }

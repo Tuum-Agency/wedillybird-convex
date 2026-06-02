@@ -21,6 +21,8 @@ import {
 } from './lib/otp';
 import { isValidE164, normalizePhone } from './lib/phone';
 import { sendWhatsAppCloudTemplate } from './lib/whatsappCloud';
+import { resolveChannel } from './lib/channelRouting';
+import { isTwilioConfigured, sendTwilioSms } from './lib/twilioSms';
 import { isValidEmail, normalizeEmail } from './lib/email';
 
 export const requestOtp = action({
@@ -41,14 +43,64 @@ export const requestOtp = action({
       throw new Error('RATE_LIMITED');
     }
 
+    // Demo bypass — uniquement actif si DEMO_BYPASS_PHONE et DEMO_BYPASS_CODE
+    // sont tous deux définis côté Convex ET que le téléphone matche exactement.
+    // Permet à un designer / contractor externe de filmer la démo sans recevoir
+    // d'OTP WhatsApp réel. Ne JAMAIS définir ces env vars sur le déploiement prod.
+    const demoPhone = process.env.DEMO_BYPASS_PHONE;
+    const demoCode = process.env.DEMO_BYPASS_CODE;
+    if (demoPhone && demoCode && normalized === demoPhone) {
+      if (!/^\d{6}$/.test(demoCode)) {
+        throw new Error('INVALID_DEMO_CODE');
+      }
+      const codeHash = await hashOtp(demoCode, normalized);
+      await ctx.runMutation(internal.auth._saveOtpSession, {
+        phone: normalized,
+        codeHash,
+        ipAddress,
+      });
+      console.info(`[auth:demo-bypass] OTP session issued for ${normalized}`);
+      return { phone: normalized, channel: 'whatsapp' as const, provider: 'demo_bypass' as const };
+    }
+
     const code = generateOtpCode();
     const codeHash = await hashOtp(code, normalized);
+
+    // Routage canal par pays (cf. convex/lib/channelRouting.ts) : US/Canada
+    // (+1) → SMS Twilio, reste du monde → WhatsApp. On ne bascule réellement
+    // sur SMS que si Twilio est configuré ; sinon on retombe sur WhatsApp
+    // (comportement historique), garantissant zéro régression tant que le
+    // numéro Twilio + la Toll-Free Verification ne sont pas en place.
+    const channel: 'sms' | 'whatsapp' =
+      resolveChannel(normalized) === 'sms' && isTwilioConfigured() ? 'sms' : 'whatsapp';
 
     await ctx.runMutation(internal.auth._saveOtpSession, {
       phone: normalized,
       codeHash,
+      channel,
       ipAddress,
     });
+
+    if (channel === 'sms') {
+      const brand = process.env.SMS_BRAND_NAME ?? 'Wedillybird';
+      const smsResult = await sendTwilioSms({
+        to: normalized,
+        body: `${brand}: your verification code is ${code}. It expires in 5 minutes.`,
+      });
+      if (!smsResult.ok) {
+        if (smsResult.error === 'TWILIO_NOT_CONFIGURED') {
+          throw new Error('SMS_NOT_CONFIGURED');
+        }
+        throw new Error('SMS_SEND_FAILED');
+      }
+      // Le helper ne pose `mock: true` que si E2E_MODE === '1' — même garde-fou
+      // F-04 que WhatsApp : aucun log d'OTP en clair hors E2E.
+      if (smsResult.mock) {
+        console.info(`[twilio:mock] OTP ${code} -> ${normalized}`);
+        return { phone: normalized, channel: 'sms' as const, provider: 'mock' as const };
+      }
+      return { phone: normalized, channel: 'sms' as const, provider: 'twilio' as const };
+    }
 
     const templateName = process.env.WHATSAPP_OTP_TEMPLATE ?? 'otp_code';
 
@@ -367,14 +419,15 @@ export const _saveOtpSession = internalMutation({
   args: {
     phone: v.string(),
     codeHash: v.string(),
+    channel: v.optional(v.union(v.literal('whatsapp'), v.literal('sms'))),
     ipAddress: v.optional(v.string()),
   },
-  handler: async (ctx, { phone, codeHash, ipAddress }) => {
+  handler: async (ctx, { phone, codeHash, channel, ipAddress }) => {
     const now = Date.now();
     return ctx.db.insert('otpSessions', {
       phone,
       codeHash,
-      channel: 'whatsapp' as const,
+      channel: channel ?? 'whatsapp',
       attempts: 0,
       expiresAt: now + OTP_EXPIRY_MS,
       createdAt: now,

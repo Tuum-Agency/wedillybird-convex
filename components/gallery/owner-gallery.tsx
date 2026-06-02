@@ -45,11 +45,18 @@ export interface OwnerPhotoItem {
 interface Props {
   eventId: string;
   initialPhotos: OwnerPhotoItem[];
+  /**
+   * Téléchargement ZIP de la galerie = feature Premium (cf.
+   * PREMIUM_EXTRA_FEATURES). Masque le bouton pour les formules qui n'y ont
+   * pas droit (la route /download-zip enforce de toute façon côté serveur).
+   * Défaut `true` pour rétro-compat.
+   */
+  canDownloadZip?: boolean;
 }
 
 const FILTERS = ['all', 'pending', 'approved', 'rejected'] as const;
 
-export function OwnerGallery({ eventId, initialPhotos }: Props) {
+export function OwnerGallery({ eventId, initialPhotos, canDownloadZip = true }: Props) {
   const t = useTranslations('Gallery');
   const locale = useLocale();
   const router = useRouter();
@@ -114,6 +121,13 @@ export function OwnerGallery({ eventId, initialPhotos }: Props) {
       <p className="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-ivory-100)] px-4 py-3 text-sm leading-relaxed text-[color:var(--color-ink-700)]">
         {t('moderationNotice')}
       </p>
+      <PhotoUploader
+        mode="owner"
+        eventId={eventId}
+        getUploadUrl={createOwnerUploadUrlAction}
+        confirm={confirmOwnerUploadAction}
+        onUploaded={() => router.refresh()}
+      />
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap gap-2">
           {FILTERS.map((f) => (
@@ -154,34 +168,29 @@ export function OwnerGallery({ eventId, initialPhotos }: Props) {
               {t('faceSearch.showAll')}
             </Button>
           ) : null}
-          {approvedCount > 0 ? (
-            <a
-              href={downloadAllHref}
-              className="focus-ring inline-flex items-center gap-2 rounded-md border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-3 py-2 text-sm font-medium transition-colors hover:bg-[color:var(--color-ivory-100)]"
-              data-testid="download-all"
-              download
-            >
-              <Download className="h-4 w-4" aria-hidden strokeWidth={1.75} />
-              {t('downloadAll')}
-            </a>
-          ) : (
-            <span
-              className="inline-flex cursor-not-allowed items-center gap-2 rounded-md border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-3 py-2 text-sm font-medium opacity-60"
-              data-testid="download-all-disabled"
-              title={t('downloadEmpty')}
-              aria-disabled="true"
-            >
-              <Download className="h-4 w-4" aria-hidden strokeWidth={1.75} />
-              {t('downloadAll')}
-            </span>
-          )}
-          <PhotoUploader
-            mode="owner"
-            eventId={eventId}
-            getUploadUrl={createOwnerUploadUrlAction}
-            confirm={confirmOwnerUploadAction}
-            onUploaded={() => router.refresh()}
-          />
+          {canDownloadZip ? (
+            approvedCount > 0 ? (
+              <a
+                href={downloadAllHref}
+                className="focus-ring inline-flex items-center gap-2 rounded-md border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-3 py-2 text-sm font-medium transition-colors hover:bg-[color:var(--color-ivory-100)]"
+                data-testid="download-all"
+                download
+              >
+                <Download className="h-4 w-4" aria-hidden strokeWidth={1.75} />
+                {t('downloadAll')}
+              </a>
+            ) : (
+              <span
+                className="inline-flex cursor-not-allowed items-center gap-2 rounded-md border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-3 py-2 text-sm font-medium opacity-60"
+                data-testid="download-all-disabled"
+                title={t('downloadEmpty')}
+                aria-disabled="true"
+              >
+                <Download className="h-4 w-4" aria-hidden strokeWidth={1.75} />
+                {t('downloadAll')}
+              </span>
+            )
+          ) : null}
         </div>
       </div>
 
@@ -208,7 +217,7 @@ export function OwnerGallery({ eventId, initialPhotos }: Props) {
                 // eslint-disable-next-line @next/next/no-img-element -- Convex storage URLs are external; next/image requires remotePatterns config
                 <img
                   src={p.variants?.thumb ?? p.url}
-                  alt={p.uploaderName ?? ''}
+                  alt=""
                   loading="lazy"
                   width={p.width}
                   height={p.height}
@@ -222,11 +231,8 @@ export function OwnerGallery({ eventId, initialPhotos }: Props) {
                   }}
                 />
               )}
-              <div className="flex items-center justify-between gap-2 text-xs">
+              <div className="flex items-center justify-end gap-2 text-xs">
                 <Badge variant={statusVariant(p.status)}>{t(`status.${p.status}`)}</Badge>
-                {p.uploaderName ? (
-                  <span className="truncate text-[color:var(--color-muted)]">{p.uploaderName}</span>
-                ) : null}
               </div>
               {p.moderationReason &&
               (p.status === 'rejected' || p.moderationDecision === 'manual_review') ? (

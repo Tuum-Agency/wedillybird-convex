@@ -227,6 +227,23 @@
         "rsvpHint": "RSVP ouvert sur WhatsApp"
       }
     },
+    "channels": {
+      "chapter": "CHAPITRE 03B — CHAQUE CANAL",
+      "title": "Vos invités, où qu'ils soient.",
+      "subtitle": "Un seul lien pour ajouter vos invités. Wedillybird envoie l'invitation sur le canal que chacun utilise déjà — automatiquement.",
+      "sms": {
+        "title": "Aux États-Unis et au Canada — par SMS",
+        "description": "Vos invités aux États-Unis et au Canada reçoivent un SMS. Pas d'appli, pas de WhatsApp — l'invitation arrive directement dans leurs messages."
+      },
+      "whatsapp": {
+        "title": "Partout ailleurs — sur WhatsApp",
+        "description": "Dans le reste du monde, l'invitation arrive sur WhatsApp, là où sont déjà 2 milliards de personnes. 98 % d'ouverture, rien à installer."
+      },
+      "oneLink": {
+        "title": "Un lien, chaque invité",
+        "description": "Vous ajoutez votre liste une fois. Wedillybird choisit SMS ou WhatsApp pour chaque numéro automatiquement — vous n'y pensez jamais."
+      }
+    },
     "manifesto": {
       "chapter": "CHAPITRE 02 — LE MANIFESTE",
       "eyebrow": "Notre conviction",
@@ -494,6 +511,7 @@
     "codePlaceholder": "6 chiffres",
     "sendCode": "Envoyer le code",
     "sending": "Envoi…",
+    "smsConsent": "En continuant, vous acceptez de recevoir un code de vérification à usage unique par SMS ou WhatsApp. Des frais de message et de données peuvent s'appliquer. Répondez STOP pour vous désinscrire.",
     "verifyCode": "Vérifier",
     "verifying": "Vérification…",
     "resendCode": "Renvoyer le code",
@@ -605,6 +623,7 @@
     "manageGuests": "Gérer les invités",
     "openCheckIn": "Check-in",
     "openGallery": "Galerie",
+    "openSeating": "Plan de table",
     "publish": "Publier",
     "unpublish": "Repasser en brouillon",
     "draftHint": "Cet événement est en brouillon. Publiez-le pour activer les invitations et la galerie.",
@@ -617,7 +636,8 @@
     "planUpsellSuffix": "· Rétention 5 ans",
     "activatePlan": "Activer un forfait",
     "publishLockedHint": "Activez votre forfait pour publier votre invitation et envoyer les RSVP. Le paiement est unique, pas d'abonnement.",
-    "publishLockedHintPayg": "Vous n'avez plus de crédit Pay-as-you-go. Achetez-en un sur /pro/billing ou activez un abonnement."
+    "publishLockedHintPayg": "Vous n'avez plus de crédit Pay-as-you-go. Achetez-en un sur /pro/billing ou activez un abonnement.",
+    "publishLockedHintQuota": "Quota d'événements actifs atteint ({quota} simultanés sur votre formule). Archivez un événement terminé ou passez à une formule supérieure pour en publier un nouveau."
   },
   "Guests": {
     "title": "Liste d'invitations",
@@ -774,6 +794,7 @@
         "notIndexed": "L'indexation des visages n'est pas encore terminée. Réessayez dans quelques minutes.",
         "forbidden": "Vous n'avez pas accès à cette galerie.",
         "rateLimited": "Trop de recherches récentes. Patientez quelques instants avant de réessayer.",
+        "notInPlan": "Réservé à la formule Premium. Passez en Premium pour activer la recherche par visage.",
         "unknown": "Une erreur est survenue. Réessayez."
       }
     }
@@ -918,7 +939,8 @@
       "faceSearch": "Recherche par visage : chaque invité retrouve ses photos avec un selfie",
       "cinematicInvitation": "Cinématique d'invitation : enveloppe qui s'ouvre, sceau qui se brise",
       "photoVariants": "Photos optimisées en 3 résolutions WebP pour un affichage fluide même en 3G",
-      "galleryZipDownload": "Téléchargement de toute la galerie en ZIP en un clic"
+      "galleryZipDownload": "Téléchargement de toute la galerie en ZIP en un clic",
+      "seatingPlan": "Plan de table en glisser-déposer : placez vos invités confirmés sur les tables"
     },
     "allEssentialIncluded": "Tout l'Essentiel inclus",
     "pro": {
@@ -944,14 +966,14 @@
         "payg": "Un seul mariage à organiser ? Pas d'abonnement, paiement à l'usage."
       },
       "features": {
-        "events3": "Jusqu'à 3 événements actifs simultanés",
-        "events10": "Jusqu'à 10 événements actifs simultanés",
-        "eventsUnlimited": "Événements illimités",
+        "events3": "Jusqu'à 5 événements actifs simultanés",
+        "events10": "Jusqu'à 20 événements actifs simultanés",
+        "eventsUnlimited": "Jusqu'à 50 événements actifs simultanés",
         "events1": "1 événement",
-        "whatsapp2k": "2 000 messages WhatsApp inclus / mois",
-        "whatsapp6k": "6 000 messages WhatsApp inclus / mois",
-        "whatsapp20k": "20 000 messages WhatsApp inclus / mois",
-        "whatsappOnDemand": "WhatsApp à la demande",
+        "whatsapp2k": "3 000 messages inclus / mois",
+        "whatsapp6k": "10 000 messages inclus / mois",
+        "whatsapp20k": "25 000 messages inclus / mois",
+        "whatsappOnDemand": "Messages à la demande",
         "brandingWedillybird": "Branding Wedillybird (logo et couleurs imposés)",
         "brandingCustomLogo": "Logo et couleurs personnalisés",
         "brandingLogoSubdomain": "Logo personnalisé et sous-domaine dédié",
@@ -1380,5 +1402,36 @@
       "MAD": "Dirham marocain",
       "TND": "Dinar tunisien"
     }
+  },
+  "Seating": {
+    "backToEvent": "Retour à l'événement",
+    "title": "Plan de table",
+    "subtitle": "Glissez-déposez vos invités confirmés sur les tables. Les accompagnants confirmés comptent dans la capacité.",
+    "upsellTitle": "Plan de table — formule Premium",
+    "upsellHint": "La gestion des tables en glisser-déposer est incluse dans la formule Premium et les offres Pro. Passez en Premium pour l'activer.",
+    "upsellCta": "Passer en Premium",
+    "error": "Une action a échoué. Réessayez.",
+    "defaultTableName": "Table {n}",
+    "addTable": "Ajouter une table",
+    "stats": "{seated} placés sur {total} · {tables} tables",
+    "deleteConfirm": "Supprimer « {name} » ? Les invités reviendront dans la liste des non-placés.",
+    "noAttending": "Aucun invité confirmé pour l'instant. Les réponses « présent » apparaîtront ici à placer.",
+    "unassignedTitle": "Non placés",
+    "unassignedEmpty": "Tous vos invités sont placés.",
+    "unassignedHint": "Glissez vers une table",
+    "seatLabel": "Couverts",
+    "noTables": "Aucune table. Ajoutez-en une pour commencer.",
+    "occupancy": "{occupied}/{capacity}",
+    "overCapacity": "Sur-capacité",
+    "deleteTable": "Supprimer la table",
+    "capacityLabel": "Capacité",
+    "tableEmpty": "Déposez des invités ici",
+    "viewList": "Liste",
+    "viewPlan": "Plan",
+    "autoPlace": "Placement auto",
+    "print": "Imprimer",
+    "shapeToggle": "Changer la forme (ronde/rectangulaire)",
+    "clickToUnassign": "Cliquer pour retirer de la table",
+    "guestOf": "invité·e de {host}"
   }
 }

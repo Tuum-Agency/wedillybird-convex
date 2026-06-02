@@ -8,6 +8,8 @@ import {
   getMetaTemplateName,
 } from '../lib/whatsapp/templates';
 import { sendWhatsAppCloudTemplate, isWhatsAppCloudConfigured } from './lib/whatsappCloud';
+import { resolveChannel } from './lib/channelRouting';
+import { isTwilioConfigured, sendTwilioSms } from './lib/twilioSms';
 
 interface BroadcastResult {
   sent: number;
@@ -64,6 +66,15 @@ export const broadcast = action({
       year: 'numeric',
       timeZone: event.timezone,
     }).format(new Date(event.eventDate));
+    // Version EN de la date + base URL pour les invitations SMS (invités
+    // US/Canada). La copie SMS est en anglais car le routage SMS cible le +1.
+    const eventDateEn = new Intl.DateTimeFormat('en-US', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+      timeZone: event.timezone,
+    }).format(new Date(event.eventDate));
+    const appBaseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://wedillybird.com';
 
     const templateName = getMetaTemplateName(styleId, process.env);
     const isMock = !isWhatsAppCloudConfigured();
@@ -73,6 +84,31 @@ export const broadcast = action({
 
     for (const guest of guests) {
       const guestFirstName = guest.fullName.split(' ')[0] ?? guest.fullName;
+
+      // Routage canal : invités +1 (US/Canada) → SMS Twilio si configuré,
+      // sinon WhatsApp (comportement historique). Gated sur isTwilioConfigured
+      // → inerte tant que Twilio n'est pas live (tout part en WhatsApp).
+      if (resolveChannel(guest.phone) === 'sms' && isTwilioConfigured()) {
+        const rsvpUrl = `${appBaseUrl}/en/i/${guest.qrCodeToken}`;
+        const smsResult = await sendTwilioSms({
+          to: guest.phone,
+          body: `${guestFirstName}, ${coupleNames} invite you to their wedding on ${eventDateEn}. ${personalMessage} RSVP: ${rsvpUrl} Reply STOP to opt out.`,
+        });
+        if (!smsResult.ok) {
+          console.error(`[broadcast] SMS failed for ${guest.phone}: ${smsResult.error}`);
+          failed++;
+          continue;
+        }
+        if (smsResult.mock) {
+          console.info(`[twilio:mock] INVITATION SMS -> ${guest.phone} | ${guest.fullName}`);
+        }
+        await ctx.runMutation(internal.guests.markInvitationSent, {
+          guestId: guest._id,
+          channel: 'sms' as const,
+        });
+        sent++;
+        continue;
+      }
 
       const result = await sendWhatsAppCloudTemplate({
         to: guest.phone,

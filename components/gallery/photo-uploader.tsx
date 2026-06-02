@@ -2,8 +2,8 @@
 
 import { useRef, useState, useTransition } from 'react';
 import { useTranslations } from 'next-intl';
-import { Button } from '@/components/ui/button';
-import { compressForUpload } from '@/lib/photos/compress';
+import { UploadCloud } from 'lucide-react';
+import { ALLOWED_CONTENT_TYPES, compressForUpload } from '@/lib/photos/compress';
 
 interface BaseProps {
   onUploaded?: () => void;
@@ -53,13 +53,14 @@ export function PhotoUploader(props: PhotoUploaderProps) {
   const [pending, startTransition] = useTransition();
   const [progress, setProgress] = useState<{ current: number; total: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isDragOver, setIsDragOver] = useState(false);
 
   function openPicker() {
+    if (pending) return;
     inputRef.current?.click();
   }
 
-  function handleFiles(event: React.ChangeEvent<HTMLInputElement>) {
-    const files = Array.from(event.target.files ?? []);
+  function processFiles(files: File[]) {
     if (files.length === 0) return;
     setError(null);
     setProgress({ current: 0, total: files.length });
@@ -83,6 +84,44 @@ export function PhotoUploader(props: PhotoUploaderProps) {
     });
   }
 
+  function handleInputChange(event: React.ChangeEvent<HTMLInputElement>) {
+    processFiles(Array.from(event.target.files ?? []));
+  }
+
+  function handleDragEnter(event: React.DragEvent<HTMLDivElement>) {
+    event.preventDefault();
+    if (pending) return;
+    setIsDragOver(true);
+  }
+
+  function handleDragOver(event: React.DragEvent<HTMLDivElement>) {
+    event.preventDefault();
+    if (pending) return;
+    event.dataTransfer.dropEffect = 'copy';
+    if (!isDragOver) setIsDragOver(true);
+  }
+
+  function handleDragLeave(event: React.DragEvent<HTMLDivElement>) {
+    event.preventDefault();
+    if (event.currentTarget.contains(event.relatedTarget as Node | null)) return;
+    setIsDragOver(false);
+  }
+
+  function handleDrop(event: React.DragEvent<HTMLDivElement>) {
+    event.preventDefault();
+    setIsDragOver(false);
+    if (pending) return;
+    const dropped = Array.from(event.dataTransfer.files);
+    if (dropped.length === 0) return;
+    const allowed = ALLOWED_CONTENT_TYPES as readonly string[];
+    const accepted = dropped.filter((file) => allowed.includes(file.type));
+    if (accepted.length === 0) {
+      setError(t('errors.type'));
+      return;
+    }
+    processFiles(accepted);
+  }
+
   return (
     <div className="flex flex-col gap-2">
       <input
@@ -91,19 +130,49 @@ export function PhotoUploader(props: PhotoUploaderProps) {
         accept="image/jpeg,image/png,image/webp"
         multiple
         className="sr-only"
-        onChange={handleFiles}
+        onChange={handleInputChange}
         data-testid="photo-uploader-input"
       />
-      <Button
-        type="button"
+      <div
+        role="button"
+        tabIndex={pending ? -1 : 0}
+        aria-disabled={pending}
+        aria-label={t('dropzoneTitle')}
         onClick={openPicker}
-        disabled={pending}
-        data-testid="photo-uploader-button"
+        onKeyDown={(event) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            openPicker();
+          }
+        }}
+        onDragEnter={handleDragEnter}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+        data-testid="photo-uploader-dropzone"
+        data-drag-over={isDragOver ? 'true' : 'false'}
+        className={`focus-ring flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-6 py-8 text-center transition-colors ${
+          pending
+            ? 'cursor-not-allowed border-[color:var(--color-border)] bg-[color:var(--color-surface)] opacity-70'
+            : isDragOver
+              ? 'cursor-copy border-[color:var(--color-accent)] bg-[color:var(--color-accent)]/10'
+              : 'cursor-pointer border-[color:var(--color-border)] bg-[color:var(--color-surface)] hover:border-[color:var(--color-accent)] hover:bg-[color:var(--color-ivory-100)]'
+        }`}
       >
-        {pending && progress
-          ? t('uploading', { current: progress.current, total: progress.total })
-          : t('upload')}
-      </Button>
+        <UploadCloud
+          className="h-7 w-7 text-[color:var(--color-ink-500)]"
+          aria-hidden
+          strokeWidth={1.75}
+        />
+        <p className="text-sm font-medium text-[color:var(--color-ink-700)]">
+          {pending && progress
+            ? t('uploading', { current: progress.current, total: progress.total })
+            : t('dropzoneTitle')}
+        </p>
+        {!pending ? (
+          <p className="text-xs text-[color:var(--color-muted)]">{t('dropzoneHint')}</p>
+        ) : null}
+      </div>
       {error ? (
         <p role="alert" className="text-sm text-[color:var(--color-destructive)]">
           {error}

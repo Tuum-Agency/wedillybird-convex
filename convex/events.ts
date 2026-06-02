@@ -3,6 +3,7 @@ import { internalQuery, mutation, query } from './_generated/server';
 import { internal } from './_generated/api';
 import type { Doc, Id } from './_generated/dataModel';
 import { pickUniqueSlug } from './lib/uniqueSlug';
+import { eventQuotaForTier } from './lib/entitlements';
 
 function toSlugBase(partnerA: string, partnerB: string): string {
   const raw = `${partnerA}-${partnerB}`
@@ -319,12 +320,20 @@ export type PaygPublishGateInput = {
     subscriptionStatus?: 'trialing' | 'active' | 'past_due' | 'canceled' | 'unpaid';
     paygCredits?: number;
   } | null;
+  /**
+   * Quota d'events actifs simultanés du tier Pro (5/20/50 ; `null`/absent =
+   * aucun quota appliqué). Optionnel pour rétro-compat : un appelant qui ne le
+   * passe pas ne déclenche aucun check de quota.
+   */
+  activeEventsQuota?: number | null;
+  /** Nb d'events déjà `active` pour l'orga, hors celui en cours de publication. */
+  activeEventCount?: number;
 };
 
 export type PaygPublishGateDecision =
   | { ok: true; consumeCredit: false }
   | { ok: true; consumeCredit: true; nextCredits: number }
-  | { ok: false; error: 'PLAN_REQUIRED' | 'PAYG_CREDIT_REQUIRED' };
+  | { ok: false; error: 'PLAN_REQUIRED' | 'PAYG_CREDIT_REQUIRED' | 'EVENT_QUOTA_EXCEEDED' };
 
 export function decidePublishGate(input: PaygPublishGateInput): PaygPublishGateDecision {
   const { event, organization } = input;
@@ -340,6 +349,16 @@ export function decidePublishGate(input: PaygPublishGateInput): PaygPublishGateD
   const status = organization?.subscriptionStatus;
   const hasActiveSub = status === 'active' || status === 'trialing';
   if (hasActiveSub) {
+    // Quota d'events actifs simultanés : si l'orga est déjà à son quota de
+    // tier, on bloque (l'event simultané supplémentaire est un upsell payant,
+    // pas inclus). Skip si quota/compte non fournis (rétro-compat).
+    if (
+      input.activeEventsQuota != null &&
+      input.activeEventCount != null &&
+      input.activeEventCount >= input.activeEventsQuota
+    ) {
+      return { ok: false as const, error: 'EVENT_QUOTA_EXCEEDED' as const };
+    }
     return { ok: true as const, consumeCredit: false as const };
   }
   const credits = organization?.paygCredits ?? 0;
@@ -371,12 +390,33 @@ export const publish = mutation({
     if (!ev) throw new Error('EVENT_NOT_FOUND');
     if (ev.ownerId !== requesterId) throw new Error('FORBIDDEN');
 
-    const org = ev.organizationId ? await ctx.db.get(ev.organizationId) : null;
+    const orgId = ev.organizationId;
+    const org = orgId ? await ctx.db.get(orgId) : null;
+
+    // Quota d'events actifs simultanés (Pro avec sub active) : on compte les
+    // events `active` de l'orga hors celui en cours de publication.
+    let activeEventsQuota: number | null | undefined;
+    let activeEventCount: number | undefined;
+    if (orgId && org) {
+      activeEventsQuota = eventQuotaForTier(org.subscriptionTier);
+      if (activeEventsQuota != null) {
+        const orgEvents = await ctx.db
+          .query('events')
+          .withIndex('by_organization', (q) => q.eq('organizationId', orgId))
+          .collect();
+        activeEventCount = orgEvents.filter(
+          (e) => e.status === 'active' && e._id !== eventId,
+        ).length;
+      }
+    }
+
     const decision = decidePublishGate({
       event: { planTier: ev.planTier, organizationId: ev.organizationId },
       organization: org
         ? { subscriptionStatus: org.subscriptionStatus, paygCredits: org.paygCredits }
         : null,
+      activeEventsQuota,
+      activeEventCount,
     });
     if (!decision.ok) {
       throw new Error(decision.error);
@@ -391,6 +431,55 @@ export const publish = mutation({
     }
     await ctx.db.patch(eventId, { status: 'active' as const, updatedAt: now });
     return { ok: true as const, status: 'active' as const };
+  },
+});
+
+/**
+ * Renseigne l'UI sur l'état du quota d'events actifs simultanés d'une orga Pro,
+ * pour pré-désactiver le bouton « Publier » et afficher un hint clair plutôt
+ * que de laisser la mutation `publishEvent` throw EVENT_QUOTA_EXCEEDED en
+ * silence (le form action ne remonte pas l'erreur).
+ *
+ * `applicable: false` quand le quota ne s'applique pas (event non-pro, orga
+ * sans sub active — le PAYG paie à l'event, pas de quota — ou tier sans cap).
+ * Le compte exclut l'event courant (celui qu'on s'apprête à publier).
+ */
+export const orgPublishQuotaStatus = query({
+  args: { eventId: v.id('events'), requesterId: v.id('users') },
+  handler: async (ctx, { eventId, requesterId }) => {
+    const event = await ctx.db.get(eventId);
+    if (!event || !event.organizationId) return { applicable: false as const };
+    const orgId = event.organizationId;
+
+    const membership = await ctx.db
+      .query('organizationMemberships')
+      .withIndex('by_org_user', (q) => q.eq('organizationId', orgId).eq('userId', requesterId))
+      .first();
+    if (!membership || membership.status !== 'active') return { applicable: false as const };
+
+    const org = await ctx.db.get(orgId);
+    if (!org) return { applicable: false as const };
+    const hasActiveSub =
+      org.subscriptionStatus === 'active' || org.subscriptionStatus === 'trialing';
+    if (!hasActiveSub) return { applicable: false as const };
+
+    const quota = eventQuotaForTier(org.subscriptionTier);
+    if (quota == null) return { applicable: false as const };
+
+    const orgEvents = await ctx.db
+      .query('events')
+      .withIndex('by_organization', (q) => q.eq('organizationId', orgId))
+      .collect();
+    const activeEventCount = orgEvents.filter(
+      (e) => e.status === 'active' && e._id !== eventId,
+    ).length;
+
+    return {
+      applicable: true as const,
+      quota,
+      activeEventCount,
+      atQuota: activeEventCount >= quota,
+    };
   },
 });
 

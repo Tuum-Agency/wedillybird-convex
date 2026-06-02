@@ -37,10 +37,13 @@ export const dashboardKpi = query({
     );
 
     const mrrMinor = activeSubscriptions.reduce((sum, o) => {
+      // Miroir de SUBSCRIPTION_TIER_PRICES (lib/payments/subscriptions.ts) —
+      // grille v2. Approximation MRR (mensuel uniquement ; les abonnements
+      // annuels ne sont pas proratisés ici).
       const tierPrices: Record<string, number> = {
-        starter: 8900,
-        business: 17900,
-        agency: 34900,
+        starter: 9900,
+        business: 21900,
+        agency: 44900,
       };
       return sum + (tierPrices[o.subscriptionTier ?? ''] ?? 0);
     }, 0);

@@ -21,9 +21,9 @@ describe('payments/plans — canonical grid v2', () => {
     expect(Object.keys(PLANS).sort()).toEqual(['essential', 'premium']);
   });
 
-  it('matches the canonical grid: 19 € essential, 49 € premium', () => {
+  it('matches the canonical grid: 19 € essential, 59 € premium', () => {
     expect(PLANS.essential.prices.EUR).toBe(1900);
-    expect(PLANS.premium.prices.EUR).toBe(4900);
+    expect(PLANS.premium.prices.EUR).toBe(5900);
   });
 
   it('post-event upsell is +29 € for 5 years of retention', () => {

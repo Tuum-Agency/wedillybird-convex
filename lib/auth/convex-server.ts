@@ -94,6 +94,97 @@ export const convexApi = {
     { eventId: string; requesterId: string },
     { ok: true; status: 'draft' | 'active' | 'archived' | 'cancelled' }
   >('events:unpublish'),
+  orgPublishQuotaStatus: makeFunctionReference<
+    'query',
+    { eventId: string; requesterId: string },
+    | { applicable: false }
+    | { applicable: true; quota: number; activeEventCount: number; atQuota: boolean }
+  >('events:orgPublishQuotaStatus'),
+
+  // --- Plan de table / seating (feature Premium + Pro) ---
+  createTable: makeFunctionReference<
+    'mutation',
+    { eventId: string; requesterId: string; name?: string; capacity?: number },
+    { tableId: string }
+  >('seating:createTable'),
+  updateTable: makeFunctionReference<
+    'mutation',
+    {
+      tableId: string;
+      requesterId: string;
+      name?: string;
+      capacity?: number;
+      shape?: 'round' | 'rect';
+      posX?: number;
+      posY?: number;
+    },
+    { ok: true }
+  >('seating:updateTable'),
+  deleteTable: makeFunctionReference<
+    'mutation',
+    { tableId: string; requesterId: string },
+    { ok: true; unassigned: number }
+  >('seating:deleteTable'),
+  assignSeat: makeFunctionReference<
+    'mutation',
+    {
+      eventId: string;
+      guestId: string;
+      memberIndex: number;
+      tableId: string | null;
+      requesterId: string;
+    },
+    { ok: true }
+  >('seating:assignSeat'),
+  autoAssignGuests: makeFunctionReference<
+    'mutation',
+    { eventId: string; requesterId: string },
+    { assigned: number; tablesCreated: number }
+  >('seating:autoAssignGuests'),
+  getSeatingPlan: makeFunctionReference<
+    'query',
+    { eventId: string; requesterId: string },
+    {
+      tables: Array<{
+        _id: string;
+        name: string;
+        capacity: number;
+        shape?: 'round' | 'rect';
+        posX?: number;
+        posY?: number;
+        order: number;
+        assigned: Array<{
+          _id: string;
+          guestId: string;
+          memberIndex: number;
+          fullName: string;
+          hostName?: string;
+          seats: number;
+          plusOnesNames: string[];
+          category?: string;
+        }>;
+        occupancy: number;
+        overCapacity: boolean;
+      }>;
+      unassigned: Array<{
+        _id: string;
+        guestId: string;
+        memberIndex: number;
+        fullName: string;
+        hostName?: string;
+        seats: number;
+        plusOnesNames: string[];
+        category?: string;
+      }>;
+      stats: {
+        tableCount: number;
+        totalCapacity: number;
+        seatedSeats: number;
+        unassignedSeats: number;
+        attendingParties: number;
+      };
+    }
+  >('seating:getSeatingPlan'),
   listEventsByOwner: makeFunctionReference<
     'query',
     { ownerId: string },

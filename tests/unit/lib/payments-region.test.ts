@@ -87,7 +87,7 @@ describe("getRegionalPlanPrice — pas d'overlay (EUR-master)", () => {
   it('returns the same EUR price for every region', () => {
     for (const region of ['africa', 'europe', 'americas'] as const) {
       expect(getRegionalPlanPrice('essential', region, 'EUR')).toBe(1900);
-      expect(getRegionalPlanPrice('premium', region, 'EUR')).toBe(4900);
+      expect(getRegionalPlanPrice('premium', region, 'EUR')).toBe(5900);
     }
   });
 
@@ -100,7 +100,7 @@ describe("getRegionalPlanPrice — pas d'overlay (EUR-master)", () => {
   it('TND derives at 3.4 millimes per cent EUR', () => {
     // 19 € × 3,4 = 64,6 TND = 64 600 millimes.
     expect(getRegionalPlanPrice('essential', 'europe', 'TND')).toBe(64600);
-    expect(getRegionalPlanPrice('premium', 'europe', 'TND')).toBe(166600);
+    expect(getRegionalPlanPrice('premium', 'europe', 'TND')).toBe(200600);
   });
 });
 
@@ -119,10 +119,10 @@ describe("getRegionalUpsellPrice — pas d'overlay", () => {
 });
 
 describe('formatRegionalPlanPrice', () => {
-  it('formats EUR with the canonical 19 / 49 grid in every region', () => {
+  it('formats EUR with the canonical 19 / 59 grid in every region', () => {
     for (const region of ['africa', 'europe', 'americas'] as const) {
       expect(formatRegionalPlanPrice('essential', region, 'EUR')).toMatch(/19,00/);
-      expect(formatRegionalPlanPrice('premium', region, 'EUR')).toMatch(/49,00/);
+      expect(formatRegionalPlanPrice('premium', region, 'EUR')).toMatch(/59,00/);
     }
   });
 

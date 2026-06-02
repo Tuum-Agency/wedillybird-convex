@@ -152,3 +152,40 @@ export async function issueMockLinkEmailCode(input: {
   const result = await convex().action(e2eIssueLinkEmailCodeRef, input);
   return result.code;
 }
+
+/* -------------------------------------------------------------------------- */
+/*  Helpers Convex pour les specs de feature-gating par formule               */
+/* -------------------------------------------------------------------------- */
+
+const seedTestUsersRef = makeFunctionReference<
+  'mutation',
+  Record<string, never>,
+  Array<{ phone: string; userId: string; created: boolean }>
+>('seed:seedTestUsers');
+
+export interface TierFixtures {
+  essential: { ownerPhone: string; eventId: string; slug: string };
+  premium: { ownerPhone: string; eventId: string; slug: string };
+  pro: {
+    ownerPhone: string;
+    organizationId: string;
+    activeEvents: number;
+    quota: number;
+    draftEventId: string;
+    draftSlug: string;
+  };
+}
+
+const seedTierFixturesRef = makeFunctionReference<'mutation', Record<string, never>, TierFixtures>(
+  'seed:seedTierFixtures',
+);
+
+/**
+ * Seed (idempotent) les comptes bypass + events par formule utilisés par
+ * `feature-gating.spec.ts`. Garantit d'abord la présence des users test, puis
+ * crée les fixtures Essentiel / Premium / Pro-au-quota et renvoie leurs IDs.
+ */
+export async function seedTierFixtures(): Promise<TierFixtures> {
+  await convex().mutation(seedTestUsersRef, {});
+  return convex().mutation(seedTierFixturesRef, {});
+}

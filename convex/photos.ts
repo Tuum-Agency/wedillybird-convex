@@ -10,6 +10,7 @@ import {
 } from './_generated/server';
 import { internal } from './_generated/api';
 import type { Doc, Id } from './_generated/dataModel';
+import { eventHasFeature } from './lib/entitlements';
 import {
   FACE_SEARCH_MAX_HITS,
   FACE_SEARCH_RATE_SCOPE,
@@ -481,6 +482,13 @@ export const _resolveSearchAccess = internalQuery({
     }
     if (!allowed) return { ok: false as const, error: 'FORBIDDEN' as const };
 
+    // Gate par formule : la recherche par visage est une feature Premium
+    // (cf. convex/lib/entitlements.ts). Essentiel / event non payé → bloqué,
+    // y compris pour les invités d'un mariage Essentiel.
+    if (!eventHasFeature(event, 'faceSearch')) {
+      return { ok: false as const, error: 'FEATURE_NOT_IN_PLAN' as const };
+    }
+
     return {
       ok: true as const,
       faceCollectionId: event.faceCollectionId,
@@ -683,6 +691,7 @@ export type SearchPhotosByFaceResult =
         | 'NO_COLLECTION_YET'
         | 'FORBIDDEN'
         | 'INVALID_TOKEN'
+        | 'FEATURE_NOT_IN_PLAN'
         | 'RATE_LIMITED'
         | 'UNKNOWN';
     };
@@ -722,6 +731,9 @@ export const searchPhotosByFace = action({
       }
       if (access.error === 'INVALID_TOKEN') {
         return { ok: false as const, error: 'INVALID_TOKEN' as const };
+      }
+      if (access.error === 'FEATURE_NOT_IN_PLAN') {
+        return { ok: false as const, error: 'FEATURE_NOT_IN_PLAN' as const };
       }
       return { ok: false as const, error: 'UNKNOWN' as const };
     }

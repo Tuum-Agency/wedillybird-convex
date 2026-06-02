@@ -66,8 +66,60 @@ test.describe('Gallery — owner authenticated UI', () => {
     }
   });
 
+  test('la zone drag-and-drop est rendue, accessible et clickable', async ({ page }) => {
+    test.skip(
+      !process.env.E2E_GALLERY_EVENT_ID,
+      'E2E_GALLERY_EVENT_ID required (event seedé avec galerie ouverte)',
+    );
+    await loginAsDevUser(page);
+
+    const eventId = process.env.E2E_GALLERY_EVENT_ID!;
+    await page.goto(`/events/${eventId}/gallery`);
+
+    const dropzone = page.getByTestId('photo-uploader-dropzone');
+    await expect(dropzone).toBeVisible();
+    await expect(dropzone).toHaveAttribute('role', 'button');
+    await expect(dropzone).toHaveAttribute('data-drag-over', 'false');
+    await expect(dropzone).toContainText(/Glissez vos photos ici/);
+    await expect(dropzone).toContainText(/cliquez pour parcourir/);
+
+    // L'input file est rendu en sr-only mais doit exister pour le fallback clic.
+    const fileInput = page.getByTestId('photo-uploader-input');
+    await expect(fileInput).toHaveAttribute('accept', /image\/(jpeg|png|webp)/);
+    await expect(fileInput).toHaveAttribute('multiple', '');
+  });
+
+  test("drop d'un fichier non supporté affiche une erreur sans appel backend", async ({ page }) => {
+    test.skip(
+      !process.env.E2E_GALLERY_EVENT_ID,
+      'E2E_GALLERY_EVENT_ID required (event seedé avec galerie ouverte)',
+    );
+    await loginAsDevUser(page);
+
+    const eventId = process.env.E2E_GALLERY_EVENT_ID!;
+    await page.goto(`/events/${eventId}/gallery`);
+
+    const dropzone = page.getByTestId('photo-uploader-dropzone');
+    await expect(dropzone).toBeVisible();
+
+    const requestsToS3: string[] = [];
+    page.on('request', (req) => {
+      if (/\.amazonaws\.com\//.test(req.url())) requestsToS3.push(req.url());
+    });
+
+    await dropzone.evaluate((el) => {
+      const dt = new DataTransfer();
+      dt.items.add(new File(['fake'], 'document.pdf', { type: 'application/pdf' }));
+      el.dispatchEvent(
+        new DragEvent('drop', { bubbles: true, cancelable: true, dataTransfer: dt }),
+      );
+    });
+
+    await expect(page.getByRole('alert')).toBeVisible();
+    expect(requestsToS3).toHaveLength(0);
+  });
+
   test('la grille rendue utilise des columns CSS (masonry)', async ({ page }) => {
-    // skip: requires running dev server with at least one approved photo
     test.skip(
       !process.env.E2E_GALLERY_EVENT_ID,
       'E2E_GALLERY_EVENT_ID required (event seedé avec ≥1 photo)',

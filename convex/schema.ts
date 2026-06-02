@@ -258,13 +258,64 @@ export default defineSchema({
      * sur la durée de vie de l'event.
      */
     lastReminderSentAt: v.optional(v.number()),
+    /**
+     * Table de placement assignée (plan de table / seating, feature Premium/Pro).
+     * undefined = invité non assigné. L'invité + ses plus-ones confirmés
+     * occupent cette table (capacité comptée côté query getSeatingPlan).
+     */
+    tableId: v.optional(v.id('tables')),
     createdAt: v.number(),
     updatedAt: v.number(),
   })
     .index('by_event', ['eventId'])
     .index('by_event_rsvp', ['eventId', 'rsvpStatus'])
     .index('by_qr_token', ['qrCodeToken'])
-    .index('by_phone', ['phone']),
+    .index('by_phone', ['phone'])
+    .index('by_table', ['tableId']),
+
+  /**
+   * Tables du plan de placement (seating) d'un event. Une row par table
+   * physique. L'assignation invité→table est portée par `guests.tableId`.
+   * Feature Premium + Pro (cf. `seatingPlan` dans convex/lib/entitlements.ts) ;
+   * exclue d'Essentiel.
+   */
+  tables: defineTable({
+    eventId: v.id('events'),
+    name: v.string(),
+    capacity: v.number(),
+    // Forme du nœud dans le plan visuel spatial (v2). Défaut traité comme 'round'.
+    shape: v.optional(v.union(v.literal('round'), v.literal('rect'))),
+    // Position (px) du nœud sur le canvas du plan visuel (v2). undefined =
+    // pas encore positionné → l'UI applique une grille par défaut.
+    posX: v.optional(v.number()),
+    posY: v.optional(v.number()),
+    // Ordre d'affichage dans la vue liste (board drag-and-drop).
+    order: v.number(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index('by_event', ['eventId']),
+
+  /**
+   * Placement des **accompagnants** (plus-ones) sur une table, indépendamment
+   * de leur invité principal (v2.1). Convention `memberIndex` :
+   *  - L'invité principal (memberIndex 0) reste porté par `guests.tableId`
+   *    (rétro-compat V1/V2) — il n'a PAS de row ici.
+   *  - Chaque accompagnant `plusOnesNames[k]` = memberIndex `k + 1`, et a une
+   *    row ici quand il est placé (absence de row = non placé).
+   * Une personne = une place (la capacité d'une table compte les personnes).
+   */
+  tableAssignments: defineTable({
+    eventId: v.id('events'),
+    guestId: v.id('guests'),
+    memberIndex: v.number(), // >= 1 (les accompagnants ; le principal est sur guests.tableId)
+    tableId: v.id('tables'),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index('by_event', ['eventId'])
+    .index('by_table', ['tableId'])
+    .index('by_guest', ['guestId'])
+    .index('by_guest_member', ['guestId', 'memberIndex']),
 
   eventCollaborators: defineTable({
     eventId: v.id('events'),

@@ -103,7 +103,11 @@ export default async function GalleryPage({
             href={`/events/${eventId}#upgrade` as never}
           />
         ) : (
-          <OwnerGallery eventId={eventId} initialPhotos={photos} />
+          <OwnerGallery
+            eventId={eventId}
+            initialPhotos={photos}
+            canDownloadZip={event.planTier === 'premium' || Boolean(event.organizationId)}
+          />
         )}
       </div>
     </AppShell>
