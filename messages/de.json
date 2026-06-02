@@ -546,7 +546,8 @@
     },
     "tagline": "Bereiten Sie Ihren großen Tag vor",
     "stepOneEyebrow": "SCHRITT 01 — IDENTITÄT",
-    "stepTwoEyebrow": "SCHRITT 02 — VERIFIZIERUNG"
+    "stepTwoEyebrow": "SCHRITT 02 — VERIFIZIERUNG",
+    "smsConsent": "Indem du fortfährst, stimmst du zu, einen einmaligen Bestätigungscode per SMS oder WhatsApp zu erhalten. Es können Nachrichten- und Datengebühren anfallen. Antworte mit STOP, um dich abzumelden."
   },
   "Onboarding": {
     "stepProfile": "Dein Profil",

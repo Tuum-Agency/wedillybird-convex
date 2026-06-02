@@ -546,7 +546,8 @@
     },
     "tagline": "Prepare su gran día",
     "stepOneEyebrow": "PASO 01 — IDENTIDAD",
-    "stepTwoEyebrow": "PASO 02 — VERIFICACIÓN"
+    "stepTwoEyebrow": "PASO 02 — VERIFICACIÓN",
+    "smsConsent": "Al continuar, aceptas recibir un código de verificación de un solo uso por SMS o WhatsApp. Pueden aplicarse tarifas de mensajes y datos. Responde STOP para darte de baja."
   },
   "Onboarding": {
     "stepProfile": "Tu perfil",
