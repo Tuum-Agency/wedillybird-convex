@@ -47,6 +47,11 @@ for (const s of shots) {
       ? 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1'
       : undefined,
   });
+  await ctx.addInitScript(() => {
+    try {
+      localStorage.setItem('wedillybird-cookie-consent', 'declined');
+    } catch {}
+  });
   const page = await ctx.newPage();
   console.log(`→ ${s.url}`);
   const resp = await page.goto(s.url, { waitUntil: 'networkidle', timeout: 30000 }).catch((e) => {
