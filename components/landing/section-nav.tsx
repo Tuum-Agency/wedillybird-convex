@@ -44,7 +44,11 @@ export function SectionNav() {
       let nextActiveId: string | null = null;
 
       for (const section of sections) {
-        if (section.offsetTop <= marker) {
+        // Position absolue dans le document via getBoundingClientRect (fiable même
+        // quand la section a un offsetParent positionné/transformé par Motion/GSAP).
+        // `offsetTop` est relatif à l'offsetParent → faussait la détection de la FAQ.
+        const top = section.getBoundingClientRect().top + window.scrollY;
+        if (top <= marker) {
           nextActiveId = section.id;
         } else {
           break;

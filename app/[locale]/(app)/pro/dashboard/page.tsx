@@ -139,7 +139,10 @@ export default async function ProDashboardPage({
                 const cfg = STATUS_CONFIG[ev.status];
                 const dateFormatted = new Intl.DateTimeFormat(locale, {
                   dateStyle: 'long',
-                  timeZone: ev.timezone,
+                  // Fallback UTC si l'event n'a pas de timezone (données anciennes / seed).
+                  // Sans timeZone explicite, Intl prend le fuseau du runtime → le serveur
+                  // (UTC) et le client (fuseau local) divergent → mismatch d'hydratation.
+                  timeZone: ev.timezone ?? 'UTC',
                 }).format(new Date(ev.eventDate));
                 return (
                   <li key={ev._id}>

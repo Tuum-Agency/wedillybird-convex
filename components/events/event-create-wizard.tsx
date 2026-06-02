@@ -157,11 +157,6 @@ export function EventCreateWizard({ userRole = 'couple' }: Props) {
     <div className="flex flex-col gap-6">
       <Progress current={step} total={totalSteps} />
 
-      <header className="flex flex-col gap-1.5">
-        <h1 className="font-display text-3xl font-semibold tracking-tight">{t('title')}</h1>
-        <p className="text-sm text-[color:var(--color-muted)]">{t('description')}</p>
-      </header>
-
       {step === 0 ? (
         <section className="flex flex-col gap-5">
           <StepHeader title={t('stepCouple')} description={t('stepCoupleDescription')} />
