@@ -996,7 +996,7 @@
     "galleryRetention": "Gallery active {days, plural, =1 {# day} other {# days}} after the wedding",
     "plans": {
       "essential": "Essential — €19",
-      "premium": "Premium — €49"
+      "premium": "Premium — €59"
     },
     "successTitle": "Payment confirmed",
     "successBody": "Your event is now on the {plan} plan. Gallery active until D+{days}.",
