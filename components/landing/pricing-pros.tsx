@@ -41,6 +41,12 @@ type LandingPricingProsProps = {
    * un via le sélecteur footer.
    */
   defaultCurrency?: Currency;
+  /**
+   * Libellé de l'eyebrow de section. Défaut = numérotation de la landing
+   * ("CHAPITRE 06B…") ; la page `/pros` passe un libellé autonome. Optionnel
+   * pour que l'usage landing reste strictement inchangé.
+   */
+  eyebrow?: string;
 };
 
 /**
@@ -54,7 +60,10 @@ type LandingPricingProsProps = {
  * effective (override utilisateur via le store, sinon devise par défaut de la
  * locale).
  */
-export function LandingPricingPros({ defaultCurrency = 'EUR' }: LandingPricingProsProps = {}) {
+export function LandingPricingPros({
+  defaultCurrency = 'EUR',
+  eyebrow = 'CHAPITRE 06B — FORFAITS PROS',
+}: LandingPricingProsProps = {}) {
   const t = useTranslations('Landing');
   const tPlans = useTranslations('Plans');
   const currency = useEffectiveCurrency(defaultCurrency);
@@ -101,7 +110,7 @@ export function LandingPricingPros({ defaultCurrency = 'EUR' }: LandingPricingPr
           viewport={inViewOnce}
           className="mb-12 inline-block font-mono text-[11px] tracking-[0.32em] text-[color:var(--color-ink-500)] uppercase"
         >
-          CHAPITRE 06B — FORFAITS PROS
+          {eyebrow}
         </motion.span>
 
         <motion.div
