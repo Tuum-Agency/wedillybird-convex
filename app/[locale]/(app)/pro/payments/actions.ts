@@ -8,6 +8,7 @@ import {
   createPaymentLinkCheckout,
   listConnectedPayments,
   listConnectedPayouts,
+  refundConnectedCharge,
   retrieveConnectedBalance,
 } from '@/lib/payments/drivers/stripe';
 import type { ConnectedFinances } from '@/lib/pro/payments';
@@ -152,6 +153,43 @@ export async function getConnectedFinancesAction(): Promise<FinancesResult> {
       listConnectedPayments(accountId),
     ]);
     return { ok: true, data: { balance, payouts, payments } };
+  } catch (e) {
+    return { ok: false, error: msg(e) };
+  }
+}
+
+export type RefundResult = { ok: true; status: string } | { ok: false; error: string };
+
+/**
+ * Rembourse intégralement une charge sur le compte Stripe connecté de l'agence.
+ * Réservé owner/admin (action financière sortante). `NOT_CONNECTED` si aucun
+ * compte connecté ; `FORBIDDEN` sinon. Les fonds repartent du compte de l'agence.
+ */
+export async function refundConnectedChargeAction(chargeId: string): Promise<RefundResult> {
+  const session = await getSession();
+  if (!session) return { ok: false, error: 'UNAUTHENTICATED' };
+  if (!chargeId) return { ok: false, error: 'INVALID_CHARGE' };
+  const convex = getConvexServerClient();
+  const org = await convex.query(convexApi.myOrganization, { userId: session.userId });
+  if (!org) return { ok: false, error: 'NO_ORG' };
+  if (org.myRole !== 'owner' && org.myRole !== 'admin') return { ok: false, error: 'FORBIDDEN' };
+
+  let accountId: string | null = null;
+  try {
+    const status = await convex.query(convexApi.orgConnectStatus, {
+      organizationId: org._id,
+      requesterId: session.userId,
+    });
+    accountId = status.accountId;
+  } catch (e) {
+    return { ok: false, error: msg(e) };
+  }
+  if (!accountId) return { ok: false, error: 'NOT_CONNECTED' };
+
+  try {
+    const res = await refundConnectedCharge(accountId, chargeId);
+    revalidatePath('/pro/payments');
+    return { ok: true, status: res.status };
   } catch (e) {
     return { ok: false, error: msg(e) };
   }

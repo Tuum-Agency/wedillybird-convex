@@ -47,12 +47,14 @@ import {
   nextDueMilestone,
   PAY_STATUS_LABEL,
   PAYOUT_STATUS_LABEL,
+  isChargeRefundable,
   PAYMENT_MODE_META,
   PAYMENT_MODE_ORDER,
   TERM_LABELS,
   TERM_DISCLAIMER,
   TX_TYPE_LABEL,
   type ConnectedFinances,
+  type ConnectedPayment,
   type InvoiceLike,
   type MilestoneStatus,
   type Milestone,
@@ -66,6 +68,7 @@ import {
   createInvoicePaymentLinkAction,
   createFreePaymentLinkAction,
   getConnectedFinancesAction,
+  refundConnectedChargeAction,
 } from '@/app/[locale]/(app)/pro/payments/actions';
 import {
   Dialog,
@@ -369,15 +372,47 @@ const FINANCES_ERR: Record<string, string> = {
 const financesErr = (c: string) =>
   FINANCES_ERR[c] ?? 'Impossible de récupérer vos données Stripe pour le moment.';
 
+const REFUND_ERR: Record<string, string> = {
+  FORBIDDEN: 'Seuls le propriétaire et les admins peuvent rembourser.',
+  NOT_CONNECTED: 'Aucun compte Stripe connecté.',
+};
+const refundErr = (c: string) => REFUND_ERR[c] ?? 'Remboursement impossible. Réessayez.';
+
 /**
  * Solde + virements RÉELS lus sur le compte Stripe connecté de l'agence (Lot B) —
  * l'agence suit son argent sans quitter la plateforme. Récupéré à l'affichage via
  * une server action (lecture seule). États : non connecté / chargement / erreur / data.
  */
-function ConnectedFinancesSection({ connected }: { connected: boolean }) {
+function ConnectedFinancesSection({
+  connected,
+  canManage,
+}: {
+  connected: boolean;
+  canManage: boolean;
+}) {
   const [loading, setLoading] = useState(connected);
   const [data, setData] = useState<ConnectedFinances | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [refundTarget, setRefundTarget] = useState<ConnectedPayment | null>(null);
+  const [refundError, setRefundError] = useState<string | null>(null);
+  const [refunding, startRefund] = useTransition();
+
+  function confirmRefund() {
+    if (!refundTarget) return;
+    const chargeId = refundTarget.id;
+    setRefundError(null);
+    startRefund(async () => {
+      const res = await refundConnectedChargeAction(chargeId);
+      if (!res.ok) {
+        setRefundError(refundErr(res.error));
+        return;
+      }
+      toast.success('Remboursement effectué');
+      setRefundTarget(null);
+      const fresh = await getConnectedFinancesAction();
+      if (fresh.ok) setData(fresh.data);
+    });
+  }
 
   useEffect(() => {
     if (!connected) return;
@@ -483,12 +518,108 @@ function ConnectedFinancesSection({ connected }: { connected: boolean }) {
             </p>
           )}
 
+          {data.payments.length > 0 ? (
+            <div className="flex flex-col gap-2">
+              <span className="px-1 font-mono text-[9px] tracking-[0.18em] text-[color:var(--color-muted-foreground)] uppercase">
+                Encaissements récents
+              </span>
+              <div className="overflow-hidden rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)]">
+                {data.payments.map((p) => (
+                  <div
+                    key={p.id}
+                    className="flex items-center justify-between gap-3 border-b border-[color:var(--color-border)] px-4 py-3 last:border-0"
+                  >
+                    <div className="flex min-w-0 flex-col">
+                      <span className="truncate text-sm text-[color:var(--color-foreground)]">
+                        {p.description ?? p.customerEmail ?? 'Encaissement'}
+                      </span>
+                      <span className="font-mono text-[11px] text-[color:var(--color-muted-foreground)]">
+                        {p.created ? formatDateFr(p.created) : ''}
+                        {p.refunded ? ' · remboursé' : ''}
+                      </span>
+                    </div>
+                    <div className="flex flex-shrink-0 items-center gap-2.5">
+                      <span className="font-mono text-sm text-[color:var(--color-foreground)] tabular-nums">
+                        {formatEurMinor(p.amountMinor)}
+                      </span>
+                      {p.receiptUrl ? (
+                        <a
+                          href={p.receiptUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-[color:var(--color-border-strong)] bg-[color:var(--color-surface)] px-2.5 py-1.5 text-xs text-[color:var(--color-ink-700)] hover:text-[color:var(--color-foreground)]"
+                        >
+                          <Download className="h-3 w-3" strokeWidth={1.9} aria-hidden />
+                          Reçu
+                        </a>
+                      ) : null}
+                      {canManage && isChargeRefundable(p) ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setRefundError(null);
+                            setRefundTarget(p);
+                          }}
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-[color:var(--color-border-strong)] bg-[color:var(--color-surface)] px-2.5 py-1.5 text-xs text-[color:var(--color-ink-700)] hover:border-[color:var(--color-danger)] hover:text-[color:var(--color-foreground)]"
+                        >
+                          Rembourser
+                        </button>
+                      ) : null}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
           <p className="px-1 font-mono text-[10px] leading-relaxed text-[color:var(--color-muted-foreground)]">
             Données lues en direct sur votre compte Stripe — la fréquence des virements se règle
             dans votre dashboard Stripe.
           </p>
         </div>
       ) : null}
+
+      <Dialog
+        open={refundTarget != null}
+        onOpenChange={(v) => {
+          if (!v) {
+            setRefundTarget(null);
+            setRefundError(null);
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Rembourser cet encaissement ?</DialogTitle>
+            <DialogDescription>
+              {refundTarget
+                ? `${formatEurMinor(refundTarget.amountMinor)} seront renvoyés au client depuis votre compte Stripe. Cette action est irréversible.`
+                : ''}
+            </DialogDescription>
+          </DialogHeader>
+          {refundError ? (
+            <p role="alert" className="text-xs text-[color:var(--color-danger)]">
+              {refundError}
+            </p>
+          ) : null}
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button type="button" variant="outline" size="md">
+                Annuler
+              </Button>
+            </DialogClose>
+            <Button
+              type="button"
+              variant="destructive"
+              size="md"
+              disabled={refunding}
+              onClick={confirmRefund}
+            >
+              {refunding ? 'Remboursement…' : 'Confirmer le remboursement'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 }
@@ -502,6 +633,7 @@ function DashboardScreen({
   milestones,
   onActivate,
   onRow,
+  canManage,
 }: {
   account: Account;
   collectedMinor: number;
@@ -511,6 +643,7 @@ function DashboardScreen({
   milestones: Milestone[];
   onActivate: () => void;
   onRow: (m: Milestone) => void;
+  canManage: boolean;
 }) {
   return (
     <div className="flex flex-col gap-5">
@@ -629,7 +762,7 @@ function DashboardScreen({
       </section>
 
       {/* Solde & versements réels (lus sur le compte Stripe connecté) */}
-      <ConnectedFinancesSection connected={account.connected} />
+      <ConnectedFinancesSection connected={account.connected} canManage={canManage} />
     </div>
   );
 }
@@ -1398,15 +1531,6 @@ function TxDetailSheet({
           >
             Fermer
           </button>
-          <span className="flex-1" />
-          <button
-            type="button"
-            onClick={() => toast('Reçu téléchargé')}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-[color:var(--color-border-strong)] px-3.5 py-2 text-xs text-[color:var(--color-ink-700)] hover:text-[color:var(--color-foreground)]"
-          >
-            <Download className="h-3.5 w-3.5" strokeWidth={1.9} aria-hidden />
-            Reçu
-          </button>
         </div>
       </div>
     </div>
@@ -1453,11 +1577,13 @@ export function PaymentsBoard({
   invoices: initialInvoices,
   account: initialAccount,
   canWrite,
+  canManage,
   now,
 }: {
   invoices: InvoiceLike[];
   account: Account;
   canWrite: boolean;
+  canManage: boolean;
   now: number;
 }) {
   const router = useRouter();
@@ -1593,6 +1719,7 @@ export function PaymentsBoard({
           milestones={milestones}
           onActivate={() => setTab('settings')}
           onRow={setTxDetail}
+          canManage={canManage}
         />
       ) : tab === 'plan' ? (
         <PlanScreen

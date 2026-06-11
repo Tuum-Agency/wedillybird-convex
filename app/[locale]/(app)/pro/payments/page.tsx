@@ -64,6 +64,7 @@ export default async function ProPaymentsPage({ params }: { params: Promise<{ lo
         invoices={data.invoices}
         account={data.account}
         canWrite={canWrite}
+        canManage={canManage}
         now={nowMs()}
       />
     </ProSidebarShell>

@@ -76,6 +76,13 @@ export interface ConnectedPayment {
   description: string | null;
   customerEmail: string | null;
   receiptUrl: string | null;
+  /** Déjà (partiellement ou totalement) remboursé ? */
+  refunded: boolean;
+}
+
+/** Une charge est remboursable depuis la plateforme : réussie et pas déjà remboursée. */
+export function isChargeRefundable(p: ConnectedPayment): boolean {
+  return p.status === 'succeeded' && !p.refunded;
 }
 export interface ConnectedFinances {
   balance: ConnectedBalance;

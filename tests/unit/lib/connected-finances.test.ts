@@ -5,6 +5,7 @@ import {
   mapConnectedPayout,
   mapConnectedPayment,
 } from '../../../lib/payments/drivers/stripe';
+import { isChargeRefundable, type ConnectedPayment } from '../../../lib/pro/payments';
 
 /**
  * Mappers purs (compte Stripe connecté → formes client-safe). Cible : sommer le
@@ -80,6 +81,7 @@ describe('mapConnectedPayment', () => {
       description: 'Acompte',
       customerEmail: 'a@b.fr',
       receiptUrl: 'https://receipt',
+      refunded: false,
     });
   });
 
@@ -98,5 +100,44 @@ describe('mapConnectedPayment', () => {
     expect(r.description).toBeNull();
     expect(r.customerEmail).toBeNull();
     expect(r.receiptUrl).toBeNull();
+    expect(r.refunded).toBe(false);
+  });
+
+  it('refunded=true est propagé', () => {
+    const c = {
+      id: 'ch_3',
+      amount: 100,
+      currency: 'eur',
+      status: 'succeeded',
+      created: 0,
+      description: null,
+      billing_details: {},
+      receipt_url: null,
+      refunded: true,
+    } as unknown as Stripe.Charge;
+    expect(mapConnectedPayment(c).refunded).toBe(true);
+  });
+});
+
+describe('isChargeRefundable', () => {
+  const base: ConnectedPayment = {
+    id: 'ch',
+    amountMinor: 1000,
+    currency: 'EUR',
+    status: 'succeeded',
+    created: 0,
+    description: null,
+    customerEmail: null,
+    receiptUrl: null,
+    refunded: false,
+  };
+  it('charge réussie non remboursée → remboursable', () => {
+    expect(isChargeRefundable(base)).toBe(true);
+  });
+  it('déjà remboursée → non remboursable', () => {
+    expect(isChargeRefundable({ ...base, refunded: true })).toBe(false);
+  });
+  it('non réussie (pending) → non remboursable', () => {
+    expect(isChargeRefundable({ ...base, status: 'pending' })).toBe(false);
   });
 });

@@ -886,6 +886,7 @@ export function mapConnectedPayment(c: Stripe.Charge): ConnectedPayment {
     description: c.description ?? null,
     customerEmail: c.billing_details?.email ?? null,
     receiptUrl: c.receipt_url ?? null,
+    refunded: c.refunded ?? false,
   };
 }
 
@@ -914,4 +915,18 @@ export async function listConnectedPayments(
   const stripe = getStripe();
   const res = await stripe.charges.list({ limit }, { stripeAccount: accountId });
   return res.data.map(mapConnectedPayment);
+}
+
+/**
+ * Rembourse intégralement une charge sur le compte connecté de l'agence
+ * (en-tête `Stripe-Account`). Les fonds repartent du compte de l'agence — la
+ * plateforme n'est jamais dans le flux.
+ */
+export async function refundConnectedCharge(
+  accountId: string,
+  chargeId: string,
+): Promise<{ id: string; status: string }> {
+  const stripe = getStripe();
+  const refund = await stripe.refunds.create({ charge: chargeId }, { stripeAccount: accountId });
+  return { id: refund.id, status: refund.status ?? 'unknown' };
 }
