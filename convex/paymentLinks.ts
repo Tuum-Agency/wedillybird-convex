@@ -8,7 +8,7 @@ import { totalMinor } from './quotes';
 
 /**
  * Liens de paiement en ligne (générique) — l'agence crée un lien Stripe sur SON
- * compte connecté (charge directe, 0 commission). Deux origines :
+ * compte connecté (charge directe). Deux origines :
  *  - `invoice` : adossé à une échéance d'une facture (`quoteDocs.schedule[i]`) —
  *    l'échéance passe `paid` automatiquement à l'encaissement (webhook) ;
  *  - `free`    : montant + libellé libres (lien ad hoc pour un service).

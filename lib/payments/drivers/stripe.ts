@@ -486,8 +486,8 @@ export type BudgetCheckoutInput = {
    * est une *direct charge* : la session Checkout est créée sur le compte de
    * l'agence (en-tête `Stripe-Account`), les fonds y vont directement, l'agence
    * est marchand de référence (porte ses frais et litiges), et la plateforme
-   * n'est jamais dans le flux ni ne prélève de commission. Requis : sans compte
-   * connecté, le caller ne crée pas de lien.
+   * n'est jamais dans le flux. Requis : sans compte connecté, le caller ne crée
+   * pas de lien.
    */
   stripeAccountId: string;
 };
@@ -512,8 +512,8 @@ export async function createBudgetCheckout(input: BudgetCheckoutInput): Promise<
 /**
  * Crée une session Checkout *direct charge* sur le compte connecté de l'agence
  * (en-tête `Stripe-Account`) : la session vit sur le compte de l'agence, qui
- * encaisse directement et porte ses propres frais et litiges. Aucune commission
- * plateforme, aucun transfert — Wedillybird n'est jamais dans le flux. Base
+ * encaisse directement et porte ses propres frais et litiges. Aucun transfert
+ * plateforme — Wedillybird n'est jamais dans le flux. Base
  * commune aux paiements budget et aux liens de paiement (facture / libre).
  */
 async function createConnectedCheckout(input: {

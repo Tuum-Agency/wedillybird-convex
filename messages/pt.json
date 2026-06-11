@@ -1066,7 +1066,7 @@
         "guests": "Convidado além do limite de 150: 0,25 €/convidado",
         "event": "Evento simultâneo adicional: 19 €/mês (proporcional)"
       },
-      "addons": "Opções: pagamentos com a sua conta Stripe (0% de comissão), lugar +19 €/mês, casamento adicional +19 €/mês."
+      "addons": "Opções: pagamentos com a sua conta Stripe, lugar +19 €/mês, casamento adicional +19 €/mês."
     }
   },
   "Upgrade": {

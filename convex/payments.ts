@@ -363,7 +363,7 @@ export const _repairOrphanedEventGalleries = internalMutation({
  * Ledger des encaissements d'une agence, dérivé des **factures** du module
  * Devis & Factures (chaque entrée d'échéancier = une échéance encaissable).
  * Réservé Business+. `account.connected` reflète le compte Stripe de l'agence
- * connecté via OAuth (BYOP) ; aucune commission plateforme (`commissionRate = 0`).
+ * connecté (BYOP) — l'agence encaisse sur son propre compte Stripe.
  */
 export const overview = query({
   args: { organizationId: v.id('organizations'), requesterId: v.id('users') },
@@ -397,8 +397,6 @@ export const overview = query({
         /** Compte Stripe de l'agence connecté (capable d'encaisser en ligne) ? */
         connected: Boolean(org?.stripeConnectChargesEnabled),
         country: 'FR' as const,
-        /** Aucune commission plateforme : l'agence encaisse sur son propre compte Stripe. */
-        commissionRate: 0,
       },
     };
   },

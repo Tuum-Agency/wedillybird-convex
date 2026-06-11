@@ -1066,7 +1066,7 @@
         "guests": "Invité au-delà du cap de 150 : 0,25 €/invité",
         "event": "Event simultané supplémentaire : 19 €/mois (prorata)"
       },
-      "addons": "Options : paiements via votre propre compte Stripe (0 % de commission), siège +19 €/mois, mariage supplémentaire +19 €/mois."
+      "addons": "Options : paiements via votre propre compte Stripe, siège +19 €/mois, mariage supplémentaire +19 €/mois."
     }
   },
   "Upgrade": {

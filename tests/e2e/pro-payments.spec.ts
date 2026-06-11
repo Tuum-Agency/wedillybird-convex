@@ -4,7 +4,7 @@ import { requiresConvexDev, loginAsPhone, seedTierFixtures } from './utils/fixtu
 /**
  * Paiements (module Finances) — modèle **BYOP** : l'agence connecte SON propre
  * compte Stripe via l'onboarding hébergé Stripe (compte Standard, charge directe,
- * 0 commission, Wedillybird jamais dans le flux). Couvre :
+ * Wedillybird jamais dans le flux). Couvre :
  *  - gating Starter → verrouillé (Business+) ;
  *  - Business : board (hero, sous-onglets, transactions), carte de connexion,
  *    échéancier « marquer payé », réglages byop/manuel ;
@@ -34,7 +34,7 @@ test.describe('Paiements — connexion Stripe (BYOP)', () => {
     await expect(page.getByText(/Encaissé/).first()).toBeVisible();
     await expect(page.getByRole('tab', { name: 'Tableau de bord' })).toBeVisible();
     await expect(page.getByRole('tab', { name: 'Échéancier' })).toBeVisible();
-    // Non connecté → bannière d'incitation (BYOP), pas de mention commission.
+    // Non connecté → bannière d'incitation (BYOP).
     await expect(
       page.getByText('Connectez votre compte Stripe pour encaisser en ligne', { exact: true }),
     ).toBeVisible();
@@ -76,7 +76,9 @@ test.describe('Paiements — connexion Stripe (BYOP)', () => {
     await expect(page.getByRole('radio', { name: /Suivi manuel/i })).toBeVisible();
     // Sélection BYOP → conséquence propre au mode (encaissement direct).
     await page.getByRole('radio', { name: /Mon compte Stripe/i }).click();
-    await expect(page.getByText(/directement chez vous/i)).toBeVisible();
+    await expect(
+      page.getByText(/les paiements arrivent directement sur votre compte/i),
+    ).toBeVisible();
   });
 
   test('Business : bouton « Nouveau lien » + dialogue de lien libre', async ({ page }) => {

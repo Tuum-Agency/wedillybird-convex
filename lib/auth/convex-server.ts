@@ -1947,7 +1947,6 @@ export const convexApi = {
         payoutSchedule: 'daily' | 'weekly' | 'manual';
         connected: boolean;
         country: 'FR';
-        commissionRate: number;
       };
     }
   >('payments:overview'),

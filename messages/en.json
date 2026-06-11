@@ -1062,7 +1062,7 @@
         "guests": "Guest beyond the 150 cap: €0.25/guest",
         "event": "Additional simultaneous event: €19/month (prorated)"
       },
-      "addons": "Add-ons: payments via your own Stripe account (0% commission), extra seat +€19/month, extra wedding +€19/month."
+      "addons": "Add-ons: payments via your own Stripe account, extra seat +€19/month, extra wedding +€19/month."
     }
   },
   "Upgrade": {

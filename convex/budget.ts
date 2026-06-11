@@ -364,8 +364,8 @@ export const createOnlinePaymentIntent = mutation({
     });
     // Compte Stripe de l'agence (connecté via OAuth Standard). S'il est présent,
     // le lien sera une *charge directe* sur SON compte (en-tête `Stripe-Account`) :
-    // les fonds y vont directement, aucune commission plateforme, Wedillybird
-    // n'est jamais dans le flux. Sans compte connecté → null (pas de lien en ligne).
+    // les fonds y vont directement et Wedillybird n'est jamais dans le flux. Sans
+    // compte connecté → null (pas de lien en ligne).
     const org = await ctx.db.get(line.organizationId);
     const connectAccountId =
       org?.stripeConnectAccountId && org.stripeConnectChargesEnabled

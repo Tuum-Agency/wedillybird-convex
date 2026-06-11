@@ -161,7 +161,7 @@ function initials(name: string): string {
 
 /* ------------------------------ primitives ------------------------------ */
 
-/** Décomposition des frais (le couple paie − frais Stripe = vous recevez). Aucune commission Wedillybird. */
+/** Décomposition des frais (le couple paie − frais Stripe = vous recevez). */
 function FeeBreakdown({
   amountMinor,
   country,
@@ -173,7 +173,7 @@ function FeeBreakdown({
   approx?: boolean;
   title?: string | null;
 }) {
-  const f = computeFee(amountMinor, 0, country);
+  const f = computeFee(amountMinor, country);
   const a = approx ? '~ ' : '';
   return (
     <div className="flex flex-col gap-0.5 rounded-xl border border-[color:var(--color-border-strong)] bg-[color:var(--color-surface-elevated)] px-4 py-3.5">
@@ -195,7 +195,7 @@ function FeeBreakdown({
         </span>
       </div>
       <div className="mt-2 font-mono text-[10px] leading-relaxed text-[color:var(--color-muted-foreground)]">
-        Aucune commission Wedillybird — vous encaissez sur votre propre compte Stripe.
+        Vous encaissez sur votre propre compte Stripe.
       </div>
     </div>
   );
@@ -661,8 +661,8 @@ function DashboardScreen({
             </b>
             <span className="text-[12.5px] text-[color:var(--color-ink-700)]">
               Reliez votre propre compte Stripe (carte de connexion en haut de page) : les paiements
-              par carte arrivent directement chez vous, sans commission. En attendant, vous gardez
-              le suivi manuel.
+              par carte arrivent directement sur votre compte. En attendant, vous gardez le suivi
+              manuel.
             </span>
           </div>
           <button
@@ -712,7 +712,7 @@ function DashboardScreen({
                 </thead>
                 <tbody>
                   {milestones.map((m) => {
-                    const f = computeFee(m.amountMinor, 0, account.country);
+                    const f = computeFee(m.amountMinor, account.country);
                     return (
                       <tr
                         key={`${m.docId}-${m.index}`}
@@ -756,8 +756,8 @@ function DashboardScreen({
             <div className="border-t border-[color:var(--color-border)] px-4 py-3">
               <p className="flex items-start gap-2 text-[11.5px] leading-relaxed text-[color:var(--color-muted-foreground)]">
                 <Info className="mt-0.5 h-3.5 w-3.5 flex-shrink-0" strokeWidth={1.8} aria-hidden />
-                Net reçu = montant encaissé − frais Stripe. Aucune commission Wedillybird : les
-                paiements en ligne vont directement sur votre propre compte Stripe.
+                Net reçu = montant encaissé − frais Stripe. Les paiements en ligne vont directement
+                sur votre propre compte Stripe.
               </p>
             </div>
           </div>
@@ -823,9 +823,7 @@ function FreePayLinkDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Nouveau lien de paiement</DialogTitle>
-          <DialogDescription>
-            Encaissé directement sur votre compte Stripe — aucune commission Wedillybird.
-          </DialogDescription>
+          <DialogDescription>Encaissé directement sur votre compte Stripe.</DialogDescription>
         </DialogHeader>
 
         {link ? (
@@ -1348,14 +1346,6 @@ function SettingsScreen({
                     <span className="text-sm font-semibold text-[color:var(--color-foreground)]">
                       {meta.label}
                     </span>
-                    <span
-                      className={cn(
-                        'inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-mono text-[10px]',
-                        PILL_TONE.ok,
-                      )}
-                    >
-                      {meta.commissionLabel}
-                    </span>
                     {meta.recommended ? (
                       <span className="inline-flex items-center gap-1 rounded-full border border-[color:var(--color-gold-300)]/30 bg-[color:var(--color-accent-soft)] px-2 py-0.5 font-mono text-[9px] tracking-[0.1em] text-[color:var(--color-gold-300)] uppercase">
                         <Sparkles className="h-2.5 w-2.5" strokeWidth={2} aria-hidden />
@@ -1405,7 +1395,7 @@ function SettingsScreen({
             Votre argent, votre compte.
           </b>{' '}
           Les paiements en ligne sont encaissés directement sur votre propre compte Stripe —
-          Wedillybird ne détient jamais vos fonds et ne prélève aucune commission. <StripeBadge />
+          Wedillybird ne détient jamais vos fonds. <StripeBadge />
         </p>
       </div>
     </div>

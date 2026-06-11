@@ -1066,7 +1066,7 @@
         "guests": "Invitato oltre il limite di 150: 0,25 €/invitato",
         "event": "Evento simultaneo aggiuntivo: 19 €/mese (proporzionale)"
       },
-      "addons": "Opzioni: pagamenti con il tuo account Stripe (0% di commissione), postazione +19 €/mese, matrimonio aggiuntivo +19 €/mese."
+      "addons": "Opzioni: pagamenti con il tuo account Stripe, postazione +19 €/mese, matrimonio aggiuntivo +19 €/mese."
     }
   },
   "Upgrade": {

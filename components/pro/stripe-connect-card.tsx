@@ -34,7 +34,7 @@ const errLabel = (c: string) =>
  * Carte de connexion Stripe : l'agence connecte SON propre compte Stripe via
  * l'onboarding hébergé par Stripe. Une fois l'onboarding terminé, les liens de
  * paiement sont encaissés directement sur son compte — Wedillybird ne touche
- * jamais les fonds et ne prélève aucune commission. Trois états : non connecté,
+ * jamais les fonds. Trois états : non connecté,
  * onboarding à terminer, connecté.
  */
 export function StripeConnectCard({
@@ -130,10 +130,10 @@ export function StripeConnectCard({
             </h2>
             <p className="max-w-prose text-sm text-[color:var(--color-muted-foreground)]">
               {active
-                ? 'Votre compte Stripe est connecté. Les liens de paiement sont encaissés directement sur votre compte — Wedillybird ne prélève aucune commission et ne touche jamais vos fonds.'
+                ? 'Votre compte Stripe est connecté. Les liens de paiement sont encaissés directement sur votre compte — Wedillybird ne touche jamais vos fonds.'
                 : incomplete
                   ? 'Votre configuration Stripe n’est pas terminée. Continuez l’onboarding Stripe pour activer l’encaissement en ligne.'
-                  : 'Connectez votre propre compte Stripe pour encaisser vos couples (carte, virement). L’argent va directement sur votre compte, sans commission Wedillybird.'}
+                  : 'Connectez votre propre compte Stripe pour encaisser vos couples (carte, virement). L’argent va directement sur votre compte.'}
             </p>
           </div>
         </div>

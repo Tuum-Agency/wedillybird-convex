@@ -168,9 +168,6 @@ export type PayoutSchedule = 'daily' | 'weekly' | 'manual';
 
 export interface PaymentModeMeta {
   label: string;
-  /** Commission Wedillybird : toujours 0 — la plateforme n'est jamais dans le flux. */
-  commissionRate: number;
-  commissionLabel: string;
   consequence: string;
   desc: string;
   recommended?: boolean;
@@ -180,17 +177,13 @@ export interface PaymentModeMeta {
 export const PAYMENT_MODE_META: Record<PaymentMode, PaymentModeMeta> = {
   byop: {
     label: 'Mon compte Stripe',
-    commissionRate: 0,
-    commissionLabel: 'Commission 0 %',
     consequence:
-      'Vous connectez votre propre compte Stripe : les paiements arrivent directement chez vous, sans commission Wedillybird. Vous gérez vos frais Stripe et vos litiges depuis votre tableau de bord Stripe.',
-    desc: 'Encaissez en ligne (carte) via votre propre compte Stripe. L’argent va directement sur votre compte — Wedillybird ne prélève aucune commission et ne touche jamais vos fonds.',
+      'Vous connectez votre propre compte Stripe : les paiements arrivent directement sur votre compte. Vous gérez vos frais Stripe et vos litiges depuis votre tableau de bord Stripe.',
+    desc: 'Encaissez en ligne (carte, virement) via votre propre compte Stripe. L’argent va directement sur votre compte — Wedillybird ne touche jamais vos fonds.',
     recommended: true,
   },
   manual: {
     label: 'Suivi manuel',
-    commissionRate: 0,
-    commissionLabel: 'Hors ligne',
     consequence:
       'Aucun encaissement en ligne : vous marquez chaque échéance comme réglée à la main (virement, chèque, espèces…).',
     desc: 'Pas d’encaissement en ligne. Vous suivez ici qui a payé quoi, sans connecter de compte Stripe.',
@@ -363,7 +356,6 @@ export type PayoutCountry = 'FR' | 'US' | 'CA';
 export interface FeeBreakdown {
   clientPaysMinor: number;
   stripeFeeMinor: number;
-  platformCommissionMinor: number;
   netReceivedMinor: number;
 }
 
@@ -375,21 +367,14 @@ export function stripeFeeMinor(amountMinor: number, country: PayoutCountry = 'FR
 }
 
 /**
- * Décompose un encaissement : frais Stripe + commission plateforme (0 % par
- * défaut — Wedillybird n'est plus dans le flux) → net reçu. Ex.
- * computeFee(540000) ≈ stripe 8125, commission 0, net 531875.
+ * Décompose un encaissement : montant payé − frais Stripe → net reçu sur le
+ * compte de l'agence. Ex. computeFee(540000, 'FR') ≈ stripe 8125, net 531875.
  */
-export function computeFee(
-  clientPaysMinor: number,
-  commissionRate = 0,
-  country: PayoutCountry = 'FR',
-): FeeBreakdown {
+export function computeFee(clientPaysMinor: number, country: PayoutCountry = 'FR'): FeeBreakdown {
   const stripe = stripeFeeMinor(clientPaysMinor, country);
-  const commission = Math.round(clientPaysMinor * commissionRate);
   return {
     clientPaysMinor,
     stripeFeeMinor: stripe,
-    platformCommissionMinor: commission,
-    netReceivedMinor: clientPaysMinor - stripe - commission,
+    netReceivedMinor: clientPaysMinor - stripe,
   };
 }

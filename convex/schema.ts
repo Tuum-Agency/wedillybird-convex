@@ -78,7 +78,7 @@ export default defineSchema({
     /**
      * Mode d'encaissement des paiements couples :
      * - `byop`   : compte Stripe perso de l'agence, connecté via OAuth Standard
-     *              (charges directes, commission 0 %). Mode actif.
+     *              (charges directes). Mode actif.
      * - `manual` : suivi manuel, aucun encaissement en ligne (défaut)
      * - `managed`: LEGACY (ancien Stripe Connect managé). Plus jamais positionné
      *              par le code ; conservé dans l'union pour les données existantes.
@@ -94,7 +94,7 @@ export default defineSchema({
      * Stripe Connect (BYOP) : compte Stripe **de l'agence** connecté via OAuth
      * Standard. Les encaissements (budget, factures…) sont des *charges directes*
      * sur SON compte (en-tête `Stripe-Account`) — fonds direct chez l'agence,
-     * aucune commission ni transfert plateforme. `…ChargesEnabled` est mis à true
+     * aucun transfert plateforme. `…ChargesEnabled` est mis à true
      * à la connexion. `…PayoutsEnabled` / `…DetailsSubmitted` sont LEGACY (Express).
      */
     stripeConnectAccountId: v.optional(v.string()),
@@ -882,7 +882,7 @@ export default defineSchema({
 
   /**
    * Liens de paiement en ligne créés par l'agence sur SON compte Stripe connecté
-   * (charge directe, 0 commission). Générique : adossé à une échéance de facture
+   * (charge directe). Générique : adossé à une échéance de facture
    * (`kind: 'invoice'`) ou libre (`kind: 'free'`, montant + libellé ad hoc). Le
    * webhook réconcilie via `by_session` ; pour une facture, l'échéance liée passe
    * `paid` automatiquement à l'encaissement. Distinct de `budgetPayments` (qui est

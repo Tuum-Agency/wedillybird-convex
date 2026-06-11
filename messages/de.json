@@ -1066,7 +1066,7 @@
         "guests": "Gast über dem Limit von 150: 0,25 €/Gast",
         "event": "Zusätzliche gleichzeitige Hochzeit: 19 €/Monat (anteilig)"
       },
-      "addons": "Add-ons: Zahlungen über Ihr eigenes Stripe-Konto (0 % Provision), zusätzlicher Sitz +19 €/Monat, zusätzliche Hochzeit +19 €/Monat."
+      "addons": "Add-ons: Zahlungen über Ihr eigenes Stripe-Konto, zusätzlicher Sitz +19 €/Monat, zusätzliche Hochzeit +19 €/Monat."
     }
   },
   "Upgrade": {

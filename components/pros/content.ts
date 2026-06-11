@@ -279,7 +279,7 @@ export const PILLARS: readonly Pillar[] = [
       {
         name: 'Encaissement via votre Stripe',
         detail:
-          'Connectez votre propre compte Stripe : liens de paiement WhatsApp/email, échéanciers reliés aux factures, réconciliation automatique. L’argent va directement chez vous — 0 commission Wedillybird.',
+          'Connectez votre propre compte Stripe : liens de paiement WhatsApp/email, échéanciers reliés aux factures, réconciliation automatique. L’argent va directement sur votre compte.',
         tier: 'addon',
       },
     ],
@@ -687,9 +687,9 @@ export interface PriceLine {
 export const ADDONS: readonly PriceLine[] = [
   {
     label: 'Paiements via votre Stripe',
-    price: '0 %',
+    price: 'Inclus',
     detail:
-      'Connectez votre propre compte Stripe et encaissez vos couples sans quitter l’outil. Aucune commission Wedillybird — l’argent va directement sur votre compte.',
+      'Connectez votre propre compte Stripe et encaissez vos couples sans quitter l’outil. L’argent va directement sur votre compte.',
   },
   {
     label: 'Upsell HD post-mariage',
@@ -749,7 +749,7 @@ export const FAQ: readonly FaqItem[] = [
   },
   {
     q: 'Où va l’argent que mes couples paient ?',
-    a: 'Directement sur votre propre compte Stripe, que vous connectez en un clic. Wedillybird n’est jamais dans le flux, ne détient jamais vos fonds et ne prélève aucune commission — vous gardez vos frais Stripe et vos litiges comme d’habitude.',
+    a: 'Directement sur votre propre compte Stripe, que vous connectez en un clic. Wedillybird n’est jamais dans le flux et ne détient jamais vos fonds — vous gardez vos frais Stripe et vos litiges comme d’habitude.',
   },
   {
     q: 'Mes données et celles de mes couples sont-elles protégées ?',

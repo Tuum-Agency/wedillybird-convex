@@ -1066,7 +1066,7 @@
         "guests": "Invitado por encima del límite de 150: 0,25 €/invitado",
         "event": "Evento simultáneo adicional: 19 €/mes (prorrateado)"
       },
-      "addons": "Opciones: pagos con tu propia cuenta Stripe (0 % de comisión), asiento +19 €/mes, boda adicional +19 €/mes."
+      "addons": "Opciones: pagos con tu propia cuenta Stripe, asiento +19 €/mes, boda adicional +19 €/mes."
     }
   },
   "Upgrade": {

@@ -74,14 +74,11 @@ describe('frais', () => {
     expect(stripeFeeMinor(540_000, 'FR')).toBe(8125); // 1,5 % + 0,25 €
     expect(stripeFeeMinor(540_000, 'US')).toBe(15_690); // 2,9 % + 0,30 €
   });
-  it('computeFee : commission explicite vs défaut 0 % (Wedillybird hors du flux)', () => {
-    const f = computeFee(540_000, 0.005, 'FR');
+  it('computeFee : net = montant − frais Stripe (Wedillybird hors du flux)', () => {
+    const f = computeFee(540_000, 'FR');
+    expect(f.clientPaysMinor).toBe(540_000);
     expect(f.stripeFeeMinor).toBe(8125);
-    expect(f.platformCommissionMinor).toBe(2700); // si on passe une commission explicite
-    expect(f.netReceivedMinor).toBe(529_175);
-    // défaut implicite = 0 % : net = montant − frais Stripe
-    expect(computeFee(540_000, undefined, 'FR').platformCommissionMinor).toBe(0);
-    expect(computeFee(540_000, undefined, 'FR').netReceivedMinor).toBe(531_875);
+    expect(f.netReceivedMinor).toBe(531_875);
   });
 });
 
@@ -134,11 +131,10 @@ describe('nextDueMilestone', () => {
 });
 
 describe('modes & versements', () => {
-  it('PAYMENT_MODE_META : byop & manuel à 0 %, byop recommandé, pas de mode managé', () => {
+  it('PAYMENT_MODE_META : byop recommandé, pas de mode managé', () => {
     expect(PAYMENT_MODE_ORDER).toEqual(['byop', 'manual']);
-    expect(PAYMENT_MODE_META.byop.commissionRate).toBe(0);
     expect(PAYMENT_MODE_META.byop.recommended).toBe(true);
-    expect(PAYMENT_MODE_META.manual.commissionRate).toBe(0);
+    expect(PAYMENT_MODE_META.manual.recommended).toBeUndefined();
     expect('managed' in PAYMENT_MODE_META).toBe(false);
   });
   it('libellés & aide de fréquence', () => {
