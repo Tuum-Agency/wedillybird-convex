@@ -3,8 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { getSession } from '@/lib/auth/session';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
-import { stripeConnectAuthorizeUrl, deauthorizeStripeConnect } from '@/lib/payments/drivers/stripe';
-import { signConnectState, connectStateSecret } from '@/lib/payments/connect-oauth-state';
+import { createConnectedAccount, createAccountOnboardingLink } from '@/lib/payments/drivers/stripe';
 import { appOrigin } from '@/lib/reminders/window';
 
 const E164 = /^\+[1-9]\d{6,14}$/;
@@ -539,7 +538,7 @@ export async function updateWhiteLabelAction(input: {
   }
 }
 
-/* ------------------------------ Stripe Connect OAuth (compte de l'agence) ------------------------------ */
+/* ------------------------------ Stripe Connect — onboarding hébergé (compte de l'agence) ------------------------------ */
 
 export type ConnectStartResult = { ok: true; url: string } | { ok: false; error: string };
 export type ConnectDisconnectResult = { ok: true } | { ok: false; error: string };
@@ -560,10 +559,10 @@ function connectErr(m: string): string {
 }
 
 /**
- * Démarre la connexion OAuth « Se connecter avec Stripe » : l'agence autorise
- * Wedillybird à opérer sur SON propre compte Stripe (encaissement direct, lecture
- * des données). Renvoie l'URL d'autorisation avec un `state` signé (anti-CSRF lié
- * à l'org). Owner/admin uniquement. Dégrade si Stripe/Connect non configuré.
+ * Démarre l'onboarding Stripe hébergé : crée (ou réutilise) le compte connecté
+ * Standard de l'agence, puis renvoie l'URL d'onboarding hébergée par Stripe où
+ * l'agence configure / se connecte à son compte. Owner/admin uniquement. Dégrade
+ * proprement si Stripe/Connect non configuré.
  */
 export async function startStripeConnectAction(): Promise<ConnectStartResult> {
   const session = await getSession();
@@ -574,14 +573,26 @@ export async function startStripeConnectAction(): Promise<ConnectStartResult> {
   if (org.myRole !== 'owner' && org.myRole !== 'admin') return { ok: false, error: 'FORBIDDEN' };
 
   try {
-    const state = await signConnectState(
-      { orgId: org._id, nonce: crypto.randomUUID(), ts: Date.now() },
-      connectStateSecret(),
-    );
-    const url = stripeConnectAuthorizeUrl({
-      state,
-      redirectUri: `${appOrigin()}/api/stripe/oauth/callback`,
-      suggestedBusinessName: org.name,
+    // Réutilise le compte connecté existant (onboarding repris) ou en crée un.
+    const status = await convex.query(convexApi.orgConnectStatus, {
+      organizationId: org._id,
+      requesterId: session.userId,
+    });
+    let accountId = status.accountId;
+    if (!accountId) {
+      const created = await createConnectedAccount({ businessName: org.name });
+      accountId = created.accountId;
+      await convex.mutation(convexApi.setConnectAccount, {
+        organizationId: org._id,
+        requesterId: session.userId,
+        stripeConnectAccountId: accountId,
+      });
+    }
+    const origin = appOrigin();
+    const { url } = await createAccountOnboardingLink({
+      accountId,
+      refreshUrl: `${origin}/api/stripe/connect/refresh`,
+      returnUrl: `${origin}/api/stripe/connect/return`,
     });
     return { ok: true, url };
   } catch (err) {
@@ -591,8 +602,8 @@ export async function startStripeConnectAction(): Promise<ConnectStartResult> {
 }
 
 /**
- * Déconnecte le compte Stripe de l'agence : révoque l'accès OAuth côté Stripe
- * (best-effort) puis oublie le compte (repli en suivi manuel). Owner/admin.
+ * Déconnecte le compte Stripe de l'agence : oublie le compte connecté (repli en
+ * suivi manuel). Le compte Standard reste celui de l'agence sur Stripe. Owner/admin.
  */
 export async function disconnectStripeConnectAction(): Promise<ConnectDisconnectResult> {
   const session = await getSession();
@@ -603,18 +614,6 @@ export async function disconnectStripeConnectAction(): Promise<ConnectDisconnect
   if (org.myRole !== 'owner' && org.myRole !== 'admin') return { ok: false, error: 'FORBIDDEN' };
 
   try {
-    const status = await convex.query(convexApi.orgConnectStatus, {
-      organizationId: org._id,
-      requesterId: session.userId,
-    });
-    if (status.accountId) {
-      try {
-        await deauthorizeStripeConnect(status.accountId);
-      } catch (err) {
-        // Révocation best-effort : si déjà révoqué côté Stripe, on oublie quand même.
-        console.error('[stripe-connect] deauthorize failed (ignored):', err);
-      }
-    }
     await convex.mutation(convexApi.disconnectStripeAccount, {
       organizationId: org._id,
       requesterId: session.userId,

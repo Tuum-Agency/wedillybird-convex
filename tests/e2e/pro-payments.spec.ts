@@ -3,13 +3,14 @@ import { requiresConvexDev, loginAsPhone, seedTierFixtures } from './utils/fixtu
 
 /**
  * Paiements (module Finances) — modèle **BYOP** : l'agence connecte SON propre
- * compte Stripe (OAuth Standard, charge directe, 0 commission, Wedillybird jamais
- * dans le flux). Couvre :
+ * compte Stripe via l'onboarding hébergé Stripe (compte Standard, charge directe,
+ * 0 commission, Wedillybird jamais dans le flux). Couvre :
  *  - gating Starter → verrouillé (Business+) ;
- *  - Business : board (hero, sous-onglets, transactions), carte « Se connecter
- *    avec Stripe », échéancier « marquer payé », réglages byop/manuel ;
- *  - le **bouton de connexion** produit la bonne URL d'autorisation OAuth Stripe ;
- *  - le **callback OAuth** rejette un `state` invalide (anti-CSRF) et le refus agence.
+ *  - Business : board (hero, sous-onglets, transactions), carte de connexion,
+ *    échéancier « marquer payé », réglages byop/manuel ;
+ *  - les routes retour/refresh d'onboarding rejettent les accès non authentifiés.
+ *  (Le flux d'onboarding live — création de compte + redirection Stripe — se
+ *   vérifie au dev browser avec une clé test ; il fait un appel réseau Stripe.)
  */
 test.describe('Paiements — connexion Stripe (BYOP)', () => {
   test.skip(requiresConvexDev(), 'Convex dev deployment required');
@@ -21,13 +22,13 @@ test.describe('Paiements — connexion Stripe (BYOP)', () => {
     await expect(page.getByText(/Inclus à partir du forfait Business/i)).toBeVisible();
   });
 
-  test('Business : carte « Se connecter avec Stripe » + board', async ({ page }) => {
+  test('Business : carte de connexion Stripe + board', async ({ page }) => {
     const fx = await seedTierFixtures();
     await loginAsPhone(page, fx.business.ownerPhone);
     await page.goto('/pro/payments');
     // Carte de connexion BYOP en tête de page.
     await expect(page.getByRole('heading', { name: 'Paiements en ligne' })).toBeVisible();
-    await expect(page.getByRole('button', { name: /Se connecter avec Stripe/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Connecter mon compte Stripe/i })).toBeVisible();
     // Board : titre + hero + sous-onglets.
     await expect(page.getByRole('heading', { name: 'Paiements', level: 1 })).toBeVisible();
     await expect(page.getByText(/Encaissé/).first()).toBeVisible();
@@ -40,49 +41,16 @@ test.describe('Paiements — connexion Stripe (BYOP)', () => {
     await expect(page.getByText('Transactions', { exact: true })).toBeVisible();
   });
 
-  test('Business : le bouton de connexion redirige vers l’URL OAuth Stripe correcte', async ({
-    page,
-  }) => {
-    const fx = await seedTierFixtures();
-    await loginAsPhone(page, fx.business.ownerPhone);
-
-    // On intercepte la navigation vers Stripe pour capturer l'URL SANS charger
-    // la page Stripe (anti-bot / réseau). Prouve que NOTRE côté du handshake est
-    // correct : client_id + scope + state signé + redirect_uri.
-    let authUrl: string | null = null;
-    await page.route(/connect\.stripe\.com\/oauth\/authorize/, (route) => {
-      authUrl = route.request().url();
-      return route.abort();
-    });
-
-    await page.goto('/pro/payments');
-    await page.getByRole('button', { name: /Se connecter avec Stripe/i }).click();
-
-    await expect.poll(() => authUrl, { timeout: 12_000 }).not.toBeNull();
-    const u = new URL(authUrl!);
-    expect(u.host).toBe('connect.stripe.com');
-    expect(u.pathname).toBe('/oauth/authorize');
-    expect(u.searchParams.get('response_type')).toBe('code');
-    expect(u.searchParams.get('scope')).toBe('read_write');
-    expect(u.searchParams.get('client_id')).toBeTruthy();
-    expect(u.searchParams.get('state')).toBeTruthy();
-    expect(u.searchParams.get('redirect_uri')).toContain('/api/stripe/oauth/callback');
-  });
-
-  test('Callback OAuth : state invalide → redirige connect=error (anti-CSRF)', async ({ page }) => {
-    const res = await page.request.get('/api/stripe/oauth/callback?code=abc&state=tampered', {
-      maxRedirects: 0,
-    });
+  test('Route retour onboarding : accès non authentifié → connect=error', async ({ page }) => {
+    const res = await page.request.get('/api/stripe/connect/return', { maxRedirects: 0 });
     expect(res.status()).toBe(307);
     expect(res.headers()['location']).toContain('/pro/payments?connect=error');
   });
 
-  test('Callback OAuth : refus de l’agence (error param) → connect=denied', async ({ page }) => {
-    const res = await page.request.get('/api/stripe/oauth/callback?error=access_denied', {
-      maxRedirects: 0,
-    });
+  test('Route refresh onboarding : accès non authentifié → connect=error', async ({ page }) => {
+    const res = await page.request.get('/api/stripe/connect/refresh', { maxRedirects: 0 });
     expect(res.status()).toBe(307);
-    expect(res.headers()['location']).toContain('connect=denied');
+    expect(res.headers()['location']).toContain('/pro/payments?connect=error');
   });
 
   test('Business : marquer un jalon payé sur l’échéancier', async ({ page }) => {

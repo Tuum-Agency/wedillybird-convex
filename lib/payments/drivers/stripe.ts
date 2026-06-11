@@ -756,66 +756,78 @@ export async function parsePaymentLinkWebhook(
 }
 
 /* -------------------------------------------------------------------------- */
-/*  Stripe Connect OAuth — l'agence connecte SON propre compte Stripe          */
+/*  Stripe Connect — onboarding hébergé (comptes Standard + account_links)      */
+/*  L'agence configure/connecte son propre compte Stripe via une page hébergée  */
+/*  par Stripe, puis les encaissements sont des charges directes (en-tête       */
+/*  `Stripe-Account`). Remplace l'ancien OAuth (déprécié pour les Standard).     */
 /* -------------------------------------------------------------------------- */
 
-function stripeConnectClientId(): string {
-  const id = process.env.STRIPE_CONNECT_CLIENT_ID;
-  if (!id) throw new Error('STRIPE_CONNECT_NOT_CONFIGURED');
-  return id;
+export interface ConnectAccountStatus {
+  /** Le compte peut encaisser (onboarding terminé) → débloque la création de liens. */
+  chargesEnabled: boolean;
+  /** L'agence a soumis ses informations d'onboarding. */
+  detailsSubmitted: boolean;
+  /** Les virements vers la banque de l'agence sont activés. */
+  payoutsEnabled: boolean;
+}
+
+/** Mappe un compte Stripe → statut Connect. Helper **pur** (testable). */
+export function mapConnectAccountStatus(
+  account: Pick<Stripe.Account, 'charges_enabled' | 'details_submitted' | 'payouts_enabled'>,
+): ConnectAccountStatus {
+  return {
+    chargesEnabled: Boolean(account.charges_enabled),
+    detailsSubmitted: Boolean(account.details_submitted),
+    payoutsEnabled: Boolean(account.payouts_enabled),
+  };
 }
 
 /**
- * URL d'autorisation OAuth « Se connecter avec Stripe » (comptes Standard).
- * L'agence se connecte à SON compte Stripe existant et autorise Wedillybird à
- * créer des paiements et lire ses données (`read_write`). `state` = jeton signé
- * anti-CSRF vérifié au retour. `redirectUri` doit figurer dans les réglages
- * Connect de la plateforme.
+ * Crée un **compte connecté Standard** pour l'agence. L'agence garde le contrôle
+ * total (son propre dashboard Stripe, ses frais, ses litiges) ; la plateforme fait
+ * des charges directes via l'en-tête `Stripe-Account` et ne touche jamais les fonds.
+ * Lève si Connect n'est pas activé côté plateforme.
  */
-export function stripeConnectAuthorizeUrl(input: {
-  state: string;
-  redirectUri?: string;
-  suggestedEmail?: string;
-  suggestedBusinessName?: string;
-}): string {
+export async function createConnectedAccount(input?: {
+  email?: string;
+  businessName?: string;
+}): Promise<{ accountId: string }> {
   const stripe = getStripe();
-  return stripe.oauth.authorizeUrl({
-    client_id: stripeConnectClientId(),
-    response_type: 'code',
-    scope: 'read_write',
-    state: input.state,
-    ...(input.redirectUri ? { redirect_uri: input.redirectUri } : {}),
-    ...(input.suggestedEmail || input.suggestedBusinessName
-      ? {
-          stripe_user: {
-            country: 'FR',
-            ...(input.suggestedEmail ? { email: input.suggestedEmail } : {}),
-            ...(input.suggestedBusinessName ? { business_name: input.suggestedBusinessName } : {}),
-          },
-        }
-      : {}),
+  const account = await stripe.accounts.create({
+    type: 'standard',
+    ...(input?.email ? { email: input.email } : {}),
+    ...(input?.businessName ? { business_profile: { name: input.businessName } } : {}),
   });
+  return { accountId: account.id };
 }
 
 /**
- * Échange le code OAuth contre l'id du compte connecté de l'agence (`acct_…`).
- * On ne stocke PAS l'access_token : les encaissements se font via l'en-tête
- * `Stripe-Account` avec la clé plateforme (direct charges).
+ * Crée un lien d'onboarding hébergé par Stripe pour un compte connecté. L'agence
+ * y configure (ou s'y connecte avec) son compte Stripe. `refreshUrl` est rappelé
+ * si le lien expire ; `returnUrl` au retour (on rafraîchit alors le statut).
  */
-export async function exchangeStripeConnectCode(code: string): Promise<{ accountId: string }> {
+export async function createAccountOnboardingLink(input: {
+  accountId: string;
+  refreshUrl: string;
+  returnUrl: string;
+}): Promise<{ url: string }> {
   const stripe = getStripe();
-  const token = await stripe.oauth.token({ grant_type: 'authorization_code', code });
-  if (!token.stripe_user_id) throw new Error('STRIPE_OAUTH_NO_ACCOUNT');
-  return { accountId: token.stripe_user_id };
+  const link = await stripe.accountLinks.create({
+    account: input.accountId,
+    refresh_url: input.refreshUrl,
+    return_url: input.returnUrl,
+    type: 'account_onboarding',
+  });
+  return { url: link.url };
 }
 
-/** Révoque l'accès OAuth à un compte connecté (déconnexion de l'agence). */
-export async function deauthorizeStripeConnect(accountId: string): Promise<void> {
+/** Récupère le statut d'un compte connecté (charges / details / payouts enabled). */
+export async function retrieveConnectedAccountStatus(
+  accountId: string,
+): Promise<ConnectAccountStatus> {
   const stripe = getStripe();
-  await stripe.oauth.deauthorize({
-    client_id: stripeConnectClientId(),
-    stripe_user_id: accountId,
-  });
+  const account = await stripe.accounts.retrieve(accountId);
+  return mapConnectAccountStatus(account);
 }
 
 /* -------------------------------------------------------------------------- */

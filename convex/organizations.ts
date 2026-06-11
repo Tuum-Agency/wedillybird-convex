@@ -1007,12 +1007,12 @@ export const connectStatus = query({
 });
 
 /**
- * Connecte le compte Stripe **de l'agence** (OAuth Standard) : mémorise son
- * `acct_…` et active l'encaissement en ligne (charges directes sur SON compte,
- * via l'en-tête `Stripe-Account`). Aucune commission plateforme. L'agence est
- * marchand de référence et porte ses propres litiges. Owner/admin uniquement.
+ * Mémorise le compte connecté **de l'agence** (Standard, onboarding hébergé) :
+ * stocke son `acct_…` et passe en mode `byop`. `chargesEnabled` reste false tant
+ * que l'onboarding Stripe n'est pas terminé — mis à true par `updateConnectStatus`
+ * au retour de l'onboarding. Owner/admin uniquement.
  */
-export const connectStripeAccount = mutation({
+export const setConnectAccount = mutation({
   args: {
     organizationId: v.id('organizations'),
     requesterId: v.id('users'),
@@ -1022,9 +1022,34 @@ export const connectStripeAccount = mutation({
     await assertCanManage(ctx, organizationId, requesterId);
     await ctx.db.patch(organizationId, {
       stripeConnectAccountId,
-      // Compte Standard ayant autorisé Wedillybird → capable d'encaisser.
-      stripeConnectChargesEnabled: true,
+      stripeConnectChargesEnabled: false,
+      stripeConnectDetailsSubmitted: false,
       paymentsMode: 'byop',
+      updatedAt: Date.now(),
+    });
+    return { ok: true as const };
+  },
+});
+
+/**
+ * Rafraîchit le statut du compte connecté après l'onboarding Stripe (charges /
+ * details / payouts). `chargesEnabled = true` débloque la création de liens de
+ * paiement. Owner/admin uniquement.
+ */
+export const updateConnectStatus = mutation({
+  args: {
+    organizationId: v.id('organizations'),
+    requesterId: v.id('users'),
+    chargesEnabled: v.boolean(),
+    detailsSubmitted: v.boolean(),
+    payoutsEnabled: v.boolean(),
+  },
+  handler: async (ctx, args) => {
+    await assertCanManage(ctx, args.organizationId, args.requesterId);
+    await ctx.db.patch(args.organizationId, {
+      stripeConnectChargesEnabled: args.chargesEnabled,
+      stripeConnectDetailsSubmitted: args.detailsSubmitted,
+      stripeConnectPayoutsEnabled: args.payoutsEnabled,
       updatedAt: Date.now(),
     });
     return { ok: true as const };

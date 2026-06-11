@@ -31,10 +31,11 @@ const errLabel = (c: string) =>
   ERROR_LABEL[c] ?? (c && c.length < 200 ? c : 'Une erreur est survenue. Réessayez.');
 
 /**
- * Carte de connexion Stripe : l'agence relie SON propre compte Stripe via OAuth
- * (« Se connecter avec Stripe »). Une fois connectée, les liens de paiement sont
- * encaissés directement sur son compte — Wedillybird ne touche jamais les fonds
- * et ne prélève aucune commission. Deux états : non connecté, connecté.
+ * Carte de connexion Stripe : l'agence connecte SON propre compte Stripe via
+ * l'onboarding hébergé par Stripe. Une fois l'onboarding terminé, les liens de
+ * paiement sont encaissés directement sur son compte — Wedillybird ne touche
+ * jamais les fonds et ne prélève aucune commission. Trois états : non connecté,
+ * onboarding à terminer, connecté.
  */
 export function StripeConnectCard({
   status,
@@ -49,18 +50,20 @@ export function StripeConnectCard({
   const [confirmingDisconnect, setConfirmingDisconnect] = useState(false);
   const [pending, startTransition] = useTransition();
 
-  const connected = status.accountId != null;
+  const accountExists = status.accountId != null;
+  const active = accountExists && status.chargesEnabled;
+  const incomplete = accountExists && !status.chargesEnabled;
+
   const connectResult = searchParams.get('connect');
-  // Message de retour OAuth dérivé du paramètre d'URL (pas de setState en effet).
-  const returnError =
-    connectResult === 'error'
-      ? 'La connexion Stripe a échoué. Réessayez.'
-      : connectResult === 'denied'
-        ? 'Connexion annulée.'
-        : null;
+  // Messages de retour dérivés du paramètre d'URL (pas de setState dans l'effet).
+  const returnError = connectResult === 'error' ? 'La connexion Stripe a échoué. Réessayez.' : null;
+  const returnInfo =
+    connectResult === 'incomplete'
+      ? 'Configuration Stripe non terminée — continuez pour activer l’encaissement.'
+      : null;
   const shownError = error ?? returnError;
 
-  // Au retour d'une connexion réussie, on nettoie le paramètre d'URL (navigation
+  // Au retour d'un onboarding réussi, on nettoie le paramètre d'URL (navigation
   // seule — pas de setState dans l'effet, cf. règle react-hooks).
   useEffect(() => {
     if (connectResult === 'ok') router.replace('/pro/payments' as Route);
@@ -100,16 +103,23 @@ export function StripeConnectCard({
             aria-hidden
             className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl"
             style={
-              connected
+              active
                 ? {
                     background: 'color-mix(in oklch, var(--color-sage-500) 18%, transparent)',
                     color: 'var(--color-sage-500)',
                   }
-                : { background: 'var(--color-surface-elevated)', color: 'var(--color-blush-300)' }
+                : incomplete
+                  ? {
+                      background: 'color-mix(in oklch, var(--color-gold-500) 18%, transparent)',
+                      color: 'var(--color-gold-500)',
+                    }
+                  : { background: 'var(--color-surface-elevated)', color: 'var(--color-blush-300)' }
             }
           >
-            {connected ? (
+            {active ? (
               <CheckCircle2 className="h-5 w-5" strokeWidth={1.9} />
+            ) : incomplete ? (
+              <AlertTriangle className="h-5 w-5" strokeWidth={1.9} />
             ) : (
               <CreditCard className="h-5 w-5" strokeWidth={1.9} />
             )}
@@ -119,13 +129,15 @@ export function StripeConnectCard({
               Paiements en ligne
             </h2>
             <p className="max-w-prose text-sm text-[color:var(--color-muted-foreground)]">
-              {connected
+              {active
                 ? 'Votre compte Stripe est connecté. Les liens de paiement sont encaissés directement sur votre compte — Wedillybird ne prélève aucune commission et ne touche jamais vos fonds.'
-                : 'Connectez votre propre compte Stripe pour encaisser vos couples par carte. L’argent va directement sur votre compte, sans commission Wedillybird.'}
+                : incomplete
+                  ? 'Votre configuration Stripe n’est pas terminée. Continuez l’onboarding Stripe pour activer l’encaissement en ligne.'
+                  : 'Connectez votre propre compte Stripe pour encaisser vos couples (carte, virement). L’argent va directement sur votre compte, sans commission Wedillybird.'}
             </p>
           </div>
         </div>
-        {connected ? (
+        {active ? (
           <span
             className="inline-flex flex-shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 font-mono text-[10px] tracking-[0.12em] uppercase"
             style={{ background: 'oklch(27% 0.05 145)', color: 'oklch(83% 0.08 145)' }}
@@ -133,10 +145,17 @@ export function StripeConnectCard({
             <CheckCircle2 className="h-3 w-3" strokeWidth={2.2} aria-hidden />
             Connecté
           </span>
+        ) : incomplete ? (
+          <span
+            className="inline-flex flex-shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 font-mono text-[10px] tracking-[0.12em] uppercase"
+            style={{ background: 'oklch(29% 0.05 80)', color: 'oklch(87% 0.09 85)' }}
+          >
+            <AlertTriangle className="h-3 w-3" strokeWidth={2.2} aria-hidden />À terminer
+          </span>
         ) : null}
       </div>
 
-      {connected && status.accountId ? (
+      {accountExists && status.accountId ? (
         <p className="font-mono text-[11px] text-[color:var(--color-muted-foreground)]">
           {status.accountId}
         </p>
@@ -150,11 +169,16 @@ export function StripeConnectCard({
           <AlertTriangle className="h-4 w-4 flex-shrink-0" strokeWidth={2} aria-hidden />
           {shownError}
         </p>
+      ) : returnInfo ? (
+        <p className="flex items-center gap-2 text-sm text-[color:var(--color-muted-foreground)]">
+          <AlertTriangle className="h-4 w-4 flex-shrink-0" strokeWidth={2} aria-hidden />
+          {returnInfo}
+        </p>
       ) : null}
 
       {canManage ? (
         <div className="flex flex-wrap items-center gap-2">
-          {!connected ? (
+          {!accountExists ? (
             <Button
               type="button"
               variant="primary"
@@ -163,7 +187,7 @@ export function StripeConnectCard({
               disabled={pending}
             >
               <CreditCard className="h-4 w-4" strokeWidth={2} aria-hidden />
-              {pending ? 'Redirection…' : 'Se connecter avec Stripe'}
+              {pending ? 'Redirection…' : 'Connecter mon compte Stripe'}
             </Button>
           ) : confirmingDisconnect ? (
             <>
@@ -184,6 +208,28 @@ export function StripeConnectCard({
                 disabled={pending}
               >
                 Annuler
+              </Button>
+            </>
+          ) : incomplete ? (
+            <>
+              <Button
+                type="button"
+                variant="primary"
+                size="md"
+                onClick={onConnect}
+                disabled={pending}
+              >
+                <CreditCard className="h-4 w-4" strokeWidth={2} aria-hidden />
+                {pending ? 'Redirection…' : 'Continuer la configuration'}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="md"
+                onClick={() => setConfirmingDisconnect(true)}
+                disabled={pending}
+              >
+                Déconnecter
               </Button>
             </>
           ) : (

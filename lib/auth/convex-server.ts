@@ -1363,11 +1363,22 @@ export const convexApi = {
       detailsSubmitted: boolean;
     }
   >('organizations:connectStatus'),
-  connectStripeAccount: makeFunctionReference<
+  setConnectAccount: makeFunctionReference<
     'mutation',
     { organizationId: string; requesterId: string; stripeConnectAccountId: string },
     { ok: true }
-  >('organizations:connectStripeAccount'),
+  >('organizations:setConnectAccount'),
+  updateConnectStatus: makeFunctionReference<
+    'mutation',
+    {
+      organizationId: string;
+      requesterId: string;
+      chargesEnabled: boolean;
+      detailsSubmitted: boolean;
+      payoutsEnabled: boolean;
+    },
+    { ok: true }
+  >('organizations:updateConnectStatus'),
   disconnectStripeAccount: makeFunctionReference<
     'mutation',
     { organizationId: string; requesterId: string },
