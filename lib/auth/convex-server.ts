@@ -1006,7 +1006,13 @@ export const convexApi = {
   >('budget:attachOnlineSession'),
   markBudgetOnlinePaymentSucceeded: makeFunctionReference<
     'mutation',
-    { webhookSecret: string; paymentId: string; providerSessionId: string; receiptUrl?: string },
+    {
+      webhookSecret: string;
+      paymentId: string;
+      providerSessionId: string;
+      stripeConnectAccountId?: string;
+      receiptUrl?: string;
+    },
     { ok: true; alreadyApplied: boolean }
   >('budget:markOnlinePaymentSucceeded'),
   markBudgetOnlinePaymentFailed: makeFunctionReference<
@@ -1045,6 +1051,7 @@ export const convexApi = {
       webhookSecret: string;
       paymentLinkId: string;
       providerSessionId: string;
+      stripeConnectAccountId?: string;
       receiptUrl?: string;
     },
     { ok: true; alreadyApplied: boolean }

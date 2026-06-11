@@ -99,6 +99,7 @@ export const createIntent = mutation({
       ...(clientName ? { clientName } : {}),
       status: 'pending',
       provider: 'stripe',
+      stripeConnectAccountId: connectAccountId,
       createdBy: args.requesterId,
       createdAt: now,
       updatedAt: now,
@@ -146,12 +147,23 @@ export const markSucceeded = mutation({
     webhookSecret: v.string(),
     paymentLinkId: v.id('paymentLinks'),
     providerSessionId: v.string(),
+    stripeConnectAccountId: v.optional(v.string()),
     receiptUrl: v.optional(v.string()),
   },
-  handler: async (ctx, { webhookSecret, paymentLinkId, providerSessionId, receiptUrl }) => {
+  handler: async (
+    ctx,
+    { webhookSecret, paymentLinkId, providerSessionId, stripeConnectAccountId, receiptUrl },
+  ) => {
     assertWebhookSecret(webhookSecret);
     const row = await ctx.db.get(paymentLinkId);
     if (!row) throw new Error('PAYMENT_NOT_FOUND');
+    // Anti-falsification : le webhook Connect est signé avec un secret PARTAGÉ entre
+    // tous les comptes connectés. On exige que le compte d'origine de l'event soit le
+    // compte connecté enregistré pour ce lien — sinon une agence pourrait marquer la
+    // facture d'une AUTRE comme payée en émettant un event depuis son propre compte.
+    if (row.stripeConnectAccountId && stripeConnectAccountId !== row.stripeConnectAccountId) {
+      throw new Error('ACCOUNT_MISMATCH');
+    }
     const decision = decidePaymentTransition(row.status, 'succeeded');
     if (!decision.apply) return { ok: true as const, alreadyApplied: true };
     const now = Date.now();
