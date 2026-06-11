@@ -14,6 +14,7 @@ import { LandingCinematicInvitation } from '@/components/landing/cinematic-invit
 import { LandingTestimonials } from '@/components/landing/testimonials';
 import { LandingPricingCards } from '@/components/landing/pricing-cards';
 import { LandingPricingPros } from '@/components/landing/pricing-pros';
+import { LandingProsFeatures } from '@/components/landing/pros-features';
 import { MobileMenu } from '@/components/landing/mobile-menu';
 import { LandingFaqAccordion } from '@/components/landing/faq-accordion';
 import { LandingCtaFinal } from '@/components/landing/cta-final';
@@ -184,6 +185,7 @@ function LandingShell({
         <LandingCinematicInvitation />
         <LandingTestimonials />
         <LandingPricingCards defaultCurrency={defaultCurrency} />
+        <LandingProsFeatures />
         <LandingPricingPros defaultCurrency={defaultCurrency} />
         <LandingFaqAccordion />
         <LandingCtaFinal />

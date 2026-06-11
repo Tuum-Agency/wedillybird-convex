@@ -4,6 +4,7 @@ import { Plus } from 'lucide-react';
 import { Link, redirect } from '@/i18n/navigation';
 import { getSession } from '@/lib/auth/session';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
+import { isAgencyRole, resolvePostAuthDestination } from '@/lib/auth/post-auth-destination';
 import { buttonVariants } from '@/components/ui/button';
 import { AppShell } from '@/components/app/app-shell';
 import { DashboardEventsList } from '@/components/dashboard/events-list';
@@ -47,10 +48,14 @@ export default async function DashboardPage({ params }: { params: Promise<{ loca
     redirect({ href: '/onboarding', locale });
   }
 
-  if (user!.role === 'pro' || user!.role === 'admin') {
+  // Aiguillage agence : un pro/admin avec organisation → back-office pro ;
+  // sans organisation → onboarding pro (créer/rejoindre une agence). Un couple
+  // poursuit sur ce dashboard.
+  if (isAgencyRole(user!.role)) {
     const myOrg = await convex.query(convexApi.myOrganization, { userId: session!.userId });
-    if (myOrg) {
-      redirect({ href: '/pro/dashboard', locale });
+    const destination = resolvePostAuthDestination(user, Boolean(myOrg));
+    if (destination !== '/dashboard') {
+      redirect({ href: destination, locale });
     }
   }
 

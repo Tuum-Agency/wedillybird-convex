@@ -4,28 +4,38 @@ import userEvent from '@testing-library/user-event';
 
 const inviteMock = vi.fn();
 const revokeMock = vi.fn();
+const changeRoleMock = vi.fn();
+const cancelMock = vi.fn();
+const resendMock = vi.fn();
+const reactivateMock = vi.fn();
 const refreshMock = vi.fn();
 
 vi.mock('@/app/[locale]/(app)/pro/actions', () => ({
-  inviteMemberAction: (organizationId: string, formData: FormData) =>
-    inviteMock(organizationId, formData),
-  revokeMemberAction: (membershipId: string) => revokeMock(membershipId),
+  inviteMemberAction: (o: string, f: FormData) => inviteMock(o, f),
+  revokeMemberAction: (id: string) => revokeMock(id),
+  changeMemberRoleAction: (id: string, r: string) => changeRoleMock(id, r),
+  cancelInviteAction: (id: string) => cancelMock(id),
+  resendInviteAction: (id: string) => resendMock(id),
+  reactivateMemberAction: (id: string) => reactivateMock(id),
 }));
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ refresh: refreshMock, push: vi.fn() }),
 }));
 
-vi.mock('next-intl', () => ({
-  useTranslations: (namespace?: string) => (key: string) => `${namespace ?? 'T'}.${key}`,
-}));
-
 import { TeamManager, type MemberItem } from '@/components/pro/team-manager';
 
 const ORG_ID = 'org_1';
+const BASE = {
+  organizationId: ORG_ID,
+  currentUserId: 'u_owner',
+  myRole: 'owner' as const,
+  tier: 'business' as const,
+};
 
 const ownerMember: MemberItem = {
   _id: 'm_1',
+  userId: 'u_owner',
   role: 'owner',
   status: 'active',
   fullName: 'Alice',
@@ -35,6 +45,7 @@ const ownerMember: MemberItem = {
 };
 const plannerMember: MemberItem = {
   _id: 'm_2',
+  userId: 'u_bob',
   role: 'planner',
   status: 'active',
   fullName: 'Bob',
@@ -46,111 +57,96 @@ const pendingMember: MemberItem = {
   _id: 'm_3',
   role: 'viewer',
   status: 'pending',
-  phone: '+33633333333',
+  email: 'invite@studio.fr',
   invitedAt: 0,
 };
 
 beforeEach(() => {
   inviteMock.mockReset();
   revokeMock.mockReset();
+  changeRoleMock.mockReset();
+  cancelMock.mockReset();
+  resendMock.mockReset();
+  reactivateMock.mockReset();
   refreshMock.mockReset();
+  vi.spyOn(window, 'confirm').mockReturnValue(true);
 });
 
 describe('TeamManager', () => {
-  it('hides invite form when user cannot manage', () => {
+  it('cache l’invitation pour les non-managers, liste les membres', () => {
     render(
       <TeamManager
-        organizationId={ORG_ID}
+        {...BASE}
         canManage={false}
+        myRole="planner"
         initialMembers={[ownerMember, plannerMember]}
       />,
     );
-    expect(screen.queryByTestId('invite-form')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('open-invite')).not.toBeInTheDocument();
     expect(screen.getAllByTestId('member-row')).toHaveLength(2);
   });
 
-  it('shows invite form for managers and submits with role + phone', async () => {
+  it('invite via le formulaire (e-mail + rôle) et affiche le lien', async () => {
     inviteMock.mockResolvedValue({ ok: true, inviteToken: 'TOKEN_ABC' });
     const user = userEvent.setup();
-    render(<TeamManager organizationId={ORG_ID} canManage={true} initialMembers={[ownerMember]} />);
-
-    await user.type(screen.getByLabelText('Pro.phoneLabel'), '+33644444444');
-    await user.selectOptions(screen.getByLabelText('Pro.roleLabel'), 'admin');
+    render(<TeamManager {...BASE} canManage initialMembers={[ownerMember]} />);
+    await user.click(screen.getByTestId('open-invite'));
+    await user.type(screen.getByLabelText('E-mail'), 'collegue@studio.fr');
+    await user.click(screen.getByLabelText('Rôle'));
+    await user.click(await screen.findByRole('option', { name: 'Admin' }));
     await user.click(screen.getByTestId('submit-invite'));
 
     await waitFor(() => expect(inviteMock).toHaveBeenCalledTimes(1));
     const [orgId, formData] = inviteMock.mock.calls[0]!;
     expect(orgId).toBe(ORG_ID);
-    expect(formData.get('phone')).toBe('+33644444444');
+    expect(formData.get('email')).toBe('collegue@studio.fr');
     expect(formData.get('role')).toBe('admin');
 
     await screen.findByTestId('invite-success');
     expect(screen.getByText(/TOKEN_ABC/)).toBeInTheDocument();
-    expect(refreshMock).toHaveBeenCalled();
   });
 
-  it('shows error when action returns INVALID_PHONE', async () => {
+  it('affiche une erreur quand l’invitation échoue', async () => {
     inviteMock.mockResolvedValue({ ok: false, error: 'INVALID_PHONE' });
     const user = userEvent.setup();
-    render(<TeamManager organizationId={ORG_ID} canManage={true} initialMembers={[ownerMember]} />);
-
-    await user.type(screen.getByLabelText('Pro.phoneLabel'), 'bad');
+    render(<TeamManager {...BASE} canManage initialMembers={[ownerMember]} />);
+    await user.click(screen.getByTestId('open-invite'));
+    await user.type(screen.getByLabelText('E-mail'), 'x@y.fr');
     await user.click(screen.getByTestId('submit-invite'));
-
-    expect(await screen.findByRole('alert')).toHaveTextContent(/invalid_phone/);
+    expect(await screen.findByRole('alert')).toHaveTextContent(/invalide/i);
   });
 
-  it('does not show revoke button for owner row, but shows for planner', () => {
-    render(
-      <TeamManager
-        organizationId={ORG_ID}
-        canManage={true}
-        initialMembers={[ownerMember, plannerMember]}
-      />,
-    );
-    const rows = screen.getAllByTestId('member-row');
-    expect(rows).toHaveLength(2);
-    const revokeButtons = screen.getAllByTestId('revoke-member');
-    expect(revokeButtons).toHaveLength(1);
+  it('le propriétaire n’a pas de menu d’actions ; le planner oui', async () => {
+    const user = userEvent.setup();
+    render(<TeamManager {...BASE} canManage initialMembers={[ownerMember, plannerMember]} />);
+    expect(screen.getAllByTestId('member-row')).toHaveLength(2);
+    const actionBtns = screen.getAllByLabelText('Actions'); // owner = cadenas, planner = menu
+    expect(actionBtns).toHaveLength(1);
+    await user.click(actionBtns[0]!);
+    expect(screen.getByTestId('revoke-member')).toBeInTheDocument();
   });
 
-  it('hides revoke button for revoked members', () => {
-    render(
-      <TeamManager
-        organizationId={ORG_ID}
-        canManage={true}
-        initialMembers={[ownerMember, { ...plannerMember, status: 'revoked' }]}
-      />,
-    );
-    expect(screen.queryByTestId('revoke-member')).not.toBeInTheDocument();
-  });
-
-  it('triggers revoke action and refreshes router on success', async () => {
+  it('révoque un membre (avec confirmation) et rafraîchit', async () => {
     revokeMock.mockResolvedValue({ ok: true });
     const user = userEvent.setup();
-    render(
-      <TeamManager
-        organizationId={ORG_ID}
-        canManage={true}
-        initialMembers={[ownerMember, plannerMember]}
-      />,
-    );
-
+    render(<TeamManager {...BASE} canManage initialMembers={[ownerMember, plannerMember]} />);
+    await user.click(screen.getByLabelText('Actions'));
     await user.click(screen.getByTestId('revoke-member'));
-
     await waitFor(() => expect(revokeMock).toHaveBeenCalledWith('m_2'));
     await waitFor(() => expect(refreshMock).toHaveBeenCalled());
   });
 
-  it('renders pending status for invited members', () => {
-    render(
-      <TeamManager
-        organizationId={ORG_ID}
-        canManage={true}
-        initialMembers={[ownerMember, pendingMember]}
-      />,
-    );
-    const pendingRow = screen.getAllByTestId('member-row')[1];
-    expect(pendingRow).toHaveAttribute('data-status', 'pending');
+  it('liste les invitations en attente dans une section dédiée', () => {
+    render(<TeamManager {...BASE} canManage initialMembers={[ownerMember, pendingMember]} />);
+    expect(screen.getByText(/Invitations en attente · 1/)).toBeInTheDocument();
+    // la table ne contient que les membres actifs/révoqués → owner seul
+    expect(screen.getAllByTestId('member-row')).toHaveLength(1);
+  });
+
+  it('affiche la matrice de permissions dans l’onglet Rôles', async () => {
+    const user = userEvent.setup();
+    render(<TeamManager {...BASE} canManage initialMembers={[ownerMember]} />);
+    await user.click(screen.getByRole('tab', { name: /Rôles & permissions/ }));
+    expect(screen.getByText('Supprimer l’organisation')).toBeInTheDocument();
   });
 });

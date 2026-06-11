@@ -277,9 +277,9 @@ export const PILLARS: readonly Pillar[] = [
         tier: 'business',
       },
       {
-        name: 'Encaissement Stripe Connect',
+        name: 'Encaissement via votre Stripe',
         detail:
-          'Wedillybird Payments : échéanciers, liens de paiement WhatsApp/email, page marque blanche, litiges et versements (1 % managé / 0 % avec votre propre Stripe).',
+          'Connectez votre propre compte Stripe : liens de paiement WhatsApp/email, échéanciers reliés aux factures, réconciliation automatique. L’argent va directement chez vous — 0 commission Wedillybird.',
         tier: 'addon',
       },
     ],
@@ -686,10 +686,10 @@ export interface PriceLine {
 
 export const ADDONS: readonly PriceLine[] = [
   {
-    label: 'Wedillybird Payments',
-    price: '1 % / 0 %',
+    label: 'Paiements via votre Stripe',
+    price: '0 %',
     detail:
-      'Encaissez vos couples sans quitter l’outil : 1 % en mode managé, 0 % avec votre propre Stripe (BYOP).',
+      'Connectez votre propre compte Stripe et encaissez vos couples sans quitter l’outil. Aucune commission Wedillybird — l’argent va directement sur votre compte.',
   },
   {
     label: 'Upsell HD post-mariage',
@@ -749,7 +749,7 @@ export const FAQ: readonly FaqItem[] = [
   },
   {
     q: 'Où va l’argent que mes couples paient ?',
-    a: 'Directement sur votre compte. Wedillybird Payments s’appuie sur Stripe Connect : versements sur votre IBAN, pas de séquestre. Vous pouvez aussi brancher votre propre compte Stripe (BYOP) et ne payer aucune commission.',
+    a: 'Directement sur votre propre compte Stripe, que vous connectez en un clic. Wedillybird n’est jamais dans le flux, ne détient jamais vos fonds et ne prélève aucune commission — vous gardez vos frais Stripe et vos litiges comme d’habitude.',
   },
   {
     q: 'Mes données et celles de mes couples sont-elles protégées ?',

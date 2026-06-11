@@ -227,6 +227,43 @@ export async function openCustomerPortal(
   return { url: session.url };
 }
 
+export interface SubscriptionInvoice {
+  /** Numéro de facture lisible (ou id si non émise). */
+  id: string;
+  /** Date d'émission (ms). */
+  date: number;
+  periodStart?: number;
+  periodEnd?: number;
+  amountMinor: number;
+  currency: string;
+  status: 'paid' | 'open' | 'void' | 'uncollectible' | 'draft';
+  pdfUrl: string | null;
+  hostedUrl: string | null;
+}
+
+/**
+ * Liste les factures d'abonnement Stripe d'un client. Renvoie `[]` si Stripe
+ * n'est pas configuré (dev) — l'UI affiche alors un état vide.
+ */
+export async function listSubscriptionInvoices(
+  customerId: string,
+  limit = 12,
+): Promise<SubscriptionInvoice[]> {
+  const stripe = getStripe();
+  const res = await stripe.invoices.list({ customer: customerId, limit });
+  return res.data.map((inv) => ({
+    id: inv.number ?? inv.id ?? '—',
+    date: (inv.created ?? 0) * 1000,
+    periodStart: inv.period_start ? inv.period_start * 1000 : undefined,
+    periodEnd: inv.period_end ? inv.period_end * 1000 : undefined,
+    amountMinor: inv.amount_paid || inv.amount_due || inv.total || 0,
+    currency: (inv.currency ?? 'eur').toUpperCase(),
+    status: (inv.status ?? 'draft') as SubscriptionInvoice['status'],
+    pdfUrl: inv.invoice_pdf ?? null,
+    hostedUrl: inv.hosted_invoice_url ?? null,
+  }));
+}
+
 /* -------------------------------------------------------------------------- */
 /*  Pay-as-you-go pro (one-shot, 1 event)                                     */
 /* -------------------------------------------------------------------------- */
@@ -429,6 +466,355 @@ export async function verifyAndParseSubscriptionWebhook(
   }
 
   return null;
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Budget — paiement en ligne d'un montant arbitraire (Wedillybird Pay)      */
+/* -------------------------------------------------------------------------- */
+
+export type BudgetCheckoutInput = {
+  amountMinor: number;
+  /** Libellé affiché sur la page Stripe (ex. « Acompte — Domaine de Bellevue »). */
+  description: string;
+  /** Id du `budgetPayments` en attente, transmis en métadonnée pour la réconciliation. */
+  budgetPaymentId: string;
+  successUrl: string;
+  cancelUrl: string;
+  /**
+   * Compte Stripe **de l'agence** (connecté via OAuth Standard). L'encaissement
+   * est une *direct charge* : la session Checkout est créée sur le compte de
+   * l'agence (en-tête `Stripe-Account`), les fonds y vont directement, l'agence
+   * est marchand de référence (porte ses frais et litiges), et la plateforme
+   * n'est jamais dans le flux ni ne prélève de commission. Requis : sans compte
+   * connecté, le caller ne crée pas de lien.
+   */
+  stripeAccountId: string;
+};
+
+/**
+ * Crée une session Checkout Stripe pour un montant EUR arbitraire (paiement d'une
+ * ligne de budget par le couple). À usage unique ; le lien expire selon Stripe
+ * (~24h). La métadonnée `kind: 'budget_payment'` permet au webhook de router vers
+ * le bon paiement sans le confondre avec un forfait particulier.
+ */
+export async function createBudgetCheckout(input: BudgetCheckoutInput): Promise<CheckoutSession> {
+  return createConnectedCheckout({
+    amountMinor: input.amountMinor,
+    description: input.description,
+    metadata: { kind: 'budget_payment', budgetPaymentId: input.budgetPaymentId },
+    successUrl: input.successUrl,
+    cancelUrl: input.cancelUrl,
+    stripeAccountId: input.stripeAccountId,
+  });
+}
+
+/**
+ * Crée une session Checkout *direct charge* sur le compte connecté de l'agence
+ * (en-tête `Stripe-Account`) : la session vit sur le compte de l'agence, qui
+ * encaisse directement et porte ses propres frais et litiges. Aucune commission
+ * plateforme, aucun transfert — Wedillybird n'est jamais dans le flux. Base
+ * commune aux paiements budget et aux liens de paiement (facture / libre).
+ */
+async function createConnectedCheckout(input: {
+  amountMinor: number;
+  description: string;
+  metadata: Record<string, string>;
+  successUrl: string;
+  cancelUrl: string;
+  stripeAccountId: string;
+}): Promise<CheckoutSession> {
+  const stripe = getStripe();
+  const session = await stripe.checkout.sessions.create(
+    {
+      mode: 'payment',
+      // On NE fixe PAS `payment_method_types` : Checkout affiche alors
+      // dynamiquement tous les moyens que l'agence a activés sur SON propre
+      // dashboard Stripe et qui sont éligibles au montant/à la devise (carte,
+      // virement SEPA, etc.). L'agence gère ses moyens depuis son Stripe (BYOP).
+      line_items: [
+        {
+          quantity: 1,
+          price_data: {
+            currency: 'eur',
+            unit_amount: input.amountMinor,
+            product_data: { name: input.description },
+          },
+        },
+      ],
+      success_url: appendSessionIdParam(input.successUrl),
+      cancel_url: input.cancelUrl,
+      metadata: input.metadata,
+      locale: 'auto',
+    },
+    { stripeAccount: input.stripeAccountId },
+  );
+  if (!session.url) throw new Error('STRIPE_NO_REDIRECT_URL');
+  return { providerSessionId: session.id, redirectUrl: session.url };
+}
+
+export type PaymentLinkCheckoutInput = {
+  amountMinor: number;
+  /** Libellé affiché au couple sur Stripe (ex. « FAC-2026-031 · Acompte »). */
+  description: string;
+  /** Id du `paymentLinks` en attente, transmis en métadonnée pour la réconciliation. */
+  paymentLinkId: string;
+  successUrl: string;
+  cancelUrl: string;
+  /** Compte Stripe **de l'agence** (connecté via OAuth). Requis (charge directe). */
+  stripeAccountId: string;
+};
+
+/**
+ * Crée un lien de paiement Stripe (générique : facture ou libre) sur le compte
+ * connecté de l'agence. La métadonnée `kind: 'payment_link'` route le webhook.
+ */
+export async function createPaymentLinkCheckout(
+  input: PaymentLinkCheckoutInput,
+): Promise<CheckoutSession> {
+  return createConnectedCheckout({
+    amountMinor: input.amountMinor,
+    description: input.description,
+    metadata: { kind: 'payment_link', paymentLinkId: input.paymentLinkId },
+    successUrl: input.successUrl,
+    cancelUrl: input.cancelUrl,
+    stripeAccountId: input.stripeAccountId,
+  });
+}
+
+export interface BudgetPaymentWebhookEvent {
+  kind: 'budget_payment';
+  budgetPaymentId: string;
+  providerSessionId: string;
+  providerEventId: string;
+  status: 'succeeded' | 'failed';
+  receiptUrl?: string;
+}
+
+/**
+ * Classe une session Checkout (déjà vérifiée) comme paiement de budget, ou null
+ * si ce n'en est pas un. Helper **pur** (pas d'appel réseau) → testable.
+ */
+export function classifyBudgetSession(
+  session: Pick<Stripe.Checkout.Session, 'id' | 'metadata'>,
+  eventType: string,
+  eventId: string,
+): Omit<BudgetPaymentWebhookEvent, 'receiptUrl'> | null {
+  if (
+    eventType !== 'checkout.session.completed' &&
+    eventType !== 'checkout.session.expired' &&
+    eventType !== 'checkout.session.async_payment_failed'
+  ) {
+    return null;
+  }
+  if (session.metadata?.kind !== 'budget_payment') return null;
+  const budgetPaymentId = session.metadata.budgetPaymentId;
+  if (!budgetPaymentId) return null;
+  return {
+    kind: 'budget_payment',
+    budgetPaymentId,
+    providerSessionId: session.id,
+    providerEventId: eventId,
+    status: eventType === 'checkout.session.completed' ? 'succeeded' : 'failed',
+  };
+}
+
+/**
+ * Vérifie la signature et parse un webhook comme paiement de budget. Renvoie
+ * null si l'event n'est pas un paiement de budget (le caller continue vers les
+ * autres parseurs). Sur succès, récupère le reçu Stripe (preuve auto).
+ */
+export async function parseBudgetPaymentWebhook(
+  rawBody: string,
+  signature: string | null,
+): Promise<BudgetPaymentWebhookEvent | null> {
+  if (!signature) throw new Error('INVALID_SIGNATURE');
+  const secret = process.env.STRIPE_WEBHOOK_SECRET;
+  if (!secret) throw new Error('STRIPE_DRIVER_NOT_CONFIGURED');
+  const stripe = getStripe();
+  let event: Stripe.Event;
+  try {
+    event = stripe.webhooks.constructEvent(rawBody, signature, secret);
+  } catch {
+    throw new Error('INVALID_SIGNATURE');
+  }
+
+  const base = classifyBudgetSession(
+    event.data.object as Stripe.Checkout.Session,
+    event.type,
+    event.id,
+  );
+  if (!base) return null;
+  if (base.status !== 'succeeded') return base;
+
+  // En direct charge, le webhook est un event Connect (`event.account` renseigné).
+  // On récupère le reçu via l'en-tête `Stripe-Account` du bon compte.
+  const receiptUrl = await retrieveCheckoutReceiptUrl(
+    base.providerSessionId,
+    event.account ?? undefined,
+  );
+  return { ...base, ...(receiptUrl ? { receiptUrl } : {}) };
+}
+
+/**
+ * Récupère l'URL du reçu hébergé Stripe d'une session Checkout (best-effort).
+ * En charge directe, le reçu vit sur le compte connecté → en-tête `Stripe-Account`.
+ */
+async function retrieveCheckoutReceiptUrl(
+  sessionId: string,
+  connectedAccount: string | undefined,
+): Promise<string | undefined> {
+  const stripe = getStripe();
+  try {
+    const full = await stripe.checkout.sessions.retrieve(
+      sessionId,
+      { expand: ['payment_intent.latest_charge'] },
+      connectedAccount ? { stripeAccount: connectedAccount } : undefined,
+    );
+    const pi = full.payment_intent;
+    if (pi && typeof pi !== 'string') {
+      const charge = pi.latest_charge;
+      if (charge && typeof charge !== 'string' && charge.receipt_url) return charge.receipt_url;
+    }
+  } catch {
+    // pas de reçu → on encaisse quand même.
+  }
+  return undefined;
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Liens de paiement génériques (facture / libre) — compte connecté agence    */
+/* -------------------------------------------------------------------------- */
+
+export interface PaymentLinkWebhookEvent {
+  kind: 'payment_link';
+  paymentLinkId: string;
+  providerSessionId: string;
+  providerEventId: string;
+  status: 'succeeded' | 'failed';
+  receiptUrl?: string;
+}
+
+/**
+ * Classe une session Checkout comme paiement d'un lien générique, ou null. Helper
+ * **pur** (pas d'appel réseau) → testable.
+ */
+export function classifyPaymentLinkSession(
+  session: Pick<Stripe.Checkout.Session, 'id' | 'metadata'>,
+  eventType: string,
+  eventId: string,
+): Omit<PaymentLinkWebhookEvent, 'receiptUrl'> | null {
+  if (
+    eventType !== 'checkout.session.completed' &&
+    eventType !== 'checkout.session.expired' &&
+    eventType !== 'checkout.session.async_payment_failed'
+  ) {
+    return null;
+  }
+  if (session.metadata?.kind !== 'payment_link') return null;
+  const paymentLinkId = session.metadata.paymentLinkId;
+  if (!paymentLinkId) return null;
+  return {
+    kind: 'payment_link',
+    paymentLinkId,
+    providerSessionId: session.id,
+    providerEventId: eventId,
+    status: eventType === 'checkout.session.completed' ? 'succeeded' : 'failed',
+  };
+}
+
+/**
+ * Vérifie la signature et parse un webhook comme paiement d'un lien générique.
+ * Renvoie null si ce n'en est pas un. Sur succès, récupère le reçu (preuve auto).
+ */
+export async function parsePaymentLinkWebhook(
+  rawBody: string,
+  signature: string | null,
+): Promise<PaymentLinkWebhookEvent | null> {
+  if (!signature) throw new Error('INVALID_SIGNATURE');
+  const secret = process.env.STRIPE_WEBHOOK_SECRET;
+  if (!secret) throw new Error('STRIPE_DRIVER_NOT_CONFIGURED');
+  const stripe = getStripe();
+  let event: Stripe.Event;
+  try {
+    event = stripe.webhooks.constructEvent(rawBody, signature, secret);
+  } catch {
+    throw new Error('INVALID_SIGNATURE');
+  }
+  const base = classifyPaymentLinkSession(
+    event.data.object as Stripe.Checkout.Session,
+    event.type,
+    event.id,
+  );
+  if (!base) return null;
+  if (base.status !== 'succeeded') return base;
+  const receiptUrl = await retrieveCheckoutReceiptUrl(
+    base.providerSessionId,
+    event.account ?? undefined,
+  );
+  return { ...base, ...(receiptUrl ? { receiptUrl } : {}) };
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Stripe Connect OAuth — l'agence connecte SON propre compte Stripe          */
+/* -------------------------------------------------------------------------- */
+
+function stripeConnectClientId(): string {
+  const id = process.env.STRIPE_CONNECT_CLIENT_ID;
+  if (!id) throw new Error('STRIPE_CONNECT_NOT_CONFIGURED');
+  return id;
+}
+
+/**
+ * URL d'autorisation OAuth « Se connecter avec Stripe » (comptes Standard).
+ * L'agence se connecte à SON compte Stripe existant et autorise Wedillybird à
+ * créer des paiements et lire ses données (`read_write`). `state` = jeton signé
+ * anti-CSRF vérifié au retour. `redirectUri` doit figurer dans les réglages
+ * Connect de la plateforme.
+ */
+export function stripeConnectAuthorizeUrl(input: {
+  state: string;
+  redirectUri?: string;
+  suggestedEmail?: string;
+  suggestedBusinessName?: string;
+}): string {
+  const stripe = getStripe();
+  return stripe.oauth.authorizeUrl({
+    client_id: stripeConnectClientId(),
+    response_type: 'code',
+    scope: 'read_write',
+    state: input.state,
+    ...(input.redirectUri ? { redirect_uri: input.redirectUri } : {}),
+    ...(input.suggestedEmail || input.suggestedBusinessName
+      ? {
+          stripe_user: {
+            country: 'FR',
+            ...(input.suggestedEmail ? { email: input.suggestedEmail } : {}),
+            ...(input.suggestedBusinessName ? { business_name: input.suggestedBusinessName } : {}),
+          },
+        }
+      : {}),
+  });
+}
+
+/**
+ * Échange le code OAuth contre l'id du compte connecté de l'agence (`acct_…`).
+ * On ne stocke PAS l'access_token : les encaissements se font via l'en-tête
+ * `Stripe-Account` avec la clé plateforme (direct charges).
+ */
+export async function exchangeStripeConnectCode(code: string): Promise<{ accountId: string }> {
+  const stripe = getStripe();
+  const token = await stripe.oauth.token({ grant_type: 'authorization_code', code });
+  if (!token.stripe_user_id) throw new Error('STRIPE_OAUTH_NO_ACCOUNT');
+  return { accountId: token.stripe_user_id };
+}
+
+/** Révoque l'accès OAuth à un compte connecté (déconnexion de l'agence). */
+export async function deauthorizeStripeConnect(accountId: string): Promise<void> {
+  const stripe = getStripe();
+  await stripe.oauth.deauthorize({
+    client_id: stripeConnectClientId(),
+    stripe_user_id: accountId,
+  });
 }
 
 /* -------------------------------------------------------------------------- */

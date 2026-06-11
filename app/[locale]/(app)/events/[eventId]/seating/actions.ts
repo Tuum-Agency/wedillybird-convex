@@ -74,10 +74,18 @@ export async function updateTableAction(
  * nécessaires côté serveur, puis renvoie le plan rafraîchi pour que le board
  * remplace son état local (opération en masse → vérité serveur).
  */
+export interface AutoPlaceSettings {
+  groupByCategory?: boolean;
+  keepGroupsTogether?: boolean;
+  balanceTables?: boolean;
+  createTables?: boolean;
+}
+
 export async function autoAssignGuestsAction(
   eventId: string,
+  opts?: { mode?: 'unplaced' | 'all'; settings?: AutoPlaceSettings },
 ): Promise<
-  | { ok: true; assigned: number; tablesCreated: number; plan: SeatingPlan }
+  | { ok: true; assigned: number; tablesCreated: number; unplaced: number; plan: SeatingPlan }
   | { ok: false; error: string }
 > {
   const session = await getSession();
@@ -87,12 +95,20 @@ export async function autoAssignGuestsAction(
     const res = await convex.mutation(convexApi.autoAssignGuests, {
       eventId,
       requesterId: session.userId,
+      ...(opts?.mode ? { mode: opts.mode } : {}),
+      ...(opts?.settings ? { settings: opts.settings } : {}),
     });
     const plan = (await convex.query(convexApi.getSeatingPlan, {
       eventId,
       requesterId: session.userId,
     })) as SeatingPlan;
-    return { ok: true, assigned: res.assigned, tablesCreated: res.tablesCreated, plan };
+    return {
+      ok: true,
+      assigned: res.assigned,
+      tablesCreated: res.tablesCreated,
+      unplaced: res.unplaced,
+      plan,
+    };
   } catch (err) {
     return mapError(err);
   }

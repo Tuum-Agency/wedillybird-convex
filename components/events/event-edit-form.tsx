@@ -7,6 +7,13 @@ import { Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { updateEventAction } from '@/app/[locale]/(app)/events/actions';
 
 interface InitialValues {
@@ -141,19 +148,25 @@ export function EventEditForm({
         />
         <div className="flex flex-col gap-2">
           <Label htmlFor="timezone">Fuseau horaire</Label>
-          <select
-            id="timezone"
+          <Select
             name="timezone"
             value={form.timezone}
-            onChange={(e) => setForm({ ...form, timezone: e.target.value })}
-            className="focus-ring h-11 rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-3 text-sm"
+            onValueChange={(v) => setForm({ ...form, timezone: v })}
           >
-            {TIMEZONES.map((tz) => (
-              <option key={tz.id} value={tz.id}>
-                {tz.label}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger
+              id="timezone"
+              className="focus-ring h-11 rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-3 text-sm"
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {TIMEZONES.map((tz) => (
+                <SelectItem key={tz.id} value={tz.id}>
+                  {tz.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           {fieldErrors.timezone ? (
             <p className="text-xs text-[color:var(--color-destructive)]">{fieldErrors.timezone}</p>
           ) : null}
@@ -200,19 +213,25 @@ export function EventEditForm({
         </div>
         <div className="flex flex-col gap-2">
           <Label htmlFor="themeFont">Police</Label>
-          <select
-            id="themeFont"
+          <Select
             name="themeFont"
             value={form.themeFont}
-            onChange={(e) => setForm({ ...form, themeFont: e.target.value })}
-            className="focus-ring h-11 rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-3 text-sm"
+            onValueChange={(v) => setForm({ ...form, themeFont: v })}
           >
-            {FONT_OPTIONS.map((f) => (
-              <option key={f.id} value={f.id}>
-                {f.label}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger
+              id="themeFont"
+              className="focus-ring h-11 rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-3 text-sm"
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {FONT_OPTIONS.map((f) => (
+                <SelectItem key={f.id} value={f.id}>
+                  {f.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </Section>
 

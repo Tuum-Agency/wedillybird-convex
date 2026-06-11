@@ -3,6 +3,13 @@
 import { useState } from 'react';
 import { useLocale } from 'next-intl';
 import { Badge } from '@/components/ui/badge';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 type Payment = {
   _id: string;
@@ -58,29 +65,31 @@ export function AdminPaymentsTable({ payments }: { payments: Payment[] }) {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center gap-3">
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-3 py-2 text-sm text-[color:var(--color-foreground)]"
-        >
-          <option value="all">Tous les statuts</option>
-          <option value="succeeded">Réussi</option>
-          <option value="pending">En attente</option>
-          <option value="failed">Échoué</option>
-          <option value="cancelled">Annulé</option>
-        </select>
-        <select
-          value={currencyFilter}
-          onChange={(e) => setCurrencyFilter(e.target.value)}
-          className="rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-3 py-2 text-sm text-[color:var(--color-foreground)]"
-        >
-          <option value="all">Toutes les devises</option>
-          <option value="EUR">EUR</option>
-          <option value="USD">USD</option>
-          <option value="XOF">XOF</option>
-          <option value="MAD">MAD</option>
-          <option value="TND">TND</option>
-        </select>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-3 py-2 text-sm text-[color:var(--color-foreground)]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Tous les statuts</SelectItem>
+            <SelectItem value="succeeded">Réussi</SelectItem>
+            <SelectItem value="pending">En attente</SelectItem>
+            <SelectItem value="failed">Échoué</SelectItem>
+            <SelectItem value="cancelled">Annulé</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={currencyFilter} onValueChange={setCurrencyFilter}>
+          <SelectTrigger className="rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-3 py-2 text-sm text-[color:var(--color-foreground)]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Toutes les devises</SelectItem>
+            <SelectItem value="EUR">EUR</SelectItem>
+            <SelectItem value="USD">USD</SelectItem>
+            <SelectItem value="XOF">XOF</SelectItem>
+            <SelectItem value="MAD">MAD</SelectItem>
+            <SelectItem value="TND">TND</SelectItem>
+          </SelectContent>
+        </Select>
         <span className="font-mono text-xs text-[color:var(--color-muted-foreground)]">
           {filtered.length} transaction{filtered.length > 1 ? 's' : ''}
         </span>

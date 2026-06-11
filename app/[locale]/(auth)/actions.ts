@@ -11,6 +11,7 @@ import {
 } from '@/lib/validators/auth';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
 import { clearSessionCookie, getSession, setSessionCookie } from '@/lib/auth/session';
+import { isAgencyRole, resolvePostAuthDestination } from '@/lib/auth/post-auth-destination';
 
 type ActionResult =
   | { ok: true; phone?: string; email?: string }
@@ -118,8 +119,15 @@ export async function completeOnboardingAction(formData: FormData): Promise<Acti
     return { ok: false, error: message };
   }
 
+  // Aiguillage agence vs particulier : un pro fraîchement onboardé n'a pas
+  // encore d'organisation → /pro/onboarding ; un couple → /dashboard.
   const locale = await getLocale();
-  redirect({ href: '/dashboard', locale });
+  const onboardedUser = await convex.query(convexApi.currentUser, { userId: session.userId });
+  const hasActiveOrg = isAgencyRole(onboardedUser?.role)
+    ? Boolean(await convex.query(convexApi.myOrganization, { userId: session.userId }))
+    : false;
+  const destination = resolvePostAuthDestination(onboardedUser, hasActiveOrg);
+  redirect({ href: destination, locale });
   return { ok: true };
 }
 

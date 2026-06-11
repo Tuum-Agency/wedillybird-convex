@@ -496,6 +496,49 @@
       },
       "payments": "Pagamenti sicuri tramite",
       "rights": "Tutti i diritti riservati"
+    },
+    "prosFeatures": {
+      "eyebrow": "Per agenzie e wedding planner",
+      "title": "Tutto il back-office della tua agenzia",
+      "subtitle": "Dal primo lead all’ultimo pagamento, col tuo marchio.",
+      "items": {
+        "cockpit": {
+          "name": "Cruscotto & cockpit",
+          "desc": "Tutti i tuoi matrimoni, RSVP, scadenze e fatturato su un’unica schermata."
+        },
+        "crm": {
+          "name": "CRM & pipeline",
+          "desc": "Dal lead al matrimonio consegnato, in kanban, con conversione in un clic."
+        },
+        "planning": {
+          "name": "Retroplanning",
+          "desc": "Attività ancorate al giorno del sì, modelli riutilizzabili, assegnazione al team."
+        },
+        "budget": {
+          "name": "Budget per matrimonio",
+          "desc": "Monitoraggio, modifica ed export, pronto da presentare alla coppia."
+        },
+        "docs": {
+          "name": "Preventivi, fatture & contratti",
+          "desc": "Editor col tuo marchio e firma elettronica."
+        },
+        "vendors": {
+          "name": "Rubrica fornitori",
+          "desc": "Location, catering e fotografi, collegati a ogni matrimonio."
+        },
+        "portal": {
+          "name": "Portale coppia white-label",
+          "desc": "Le coppie seguono il loro matrimonio col tuo nome."
+        },
+        "integrations": {
+          "name": "Integrazioni",
+          "desc": "HoneyBook, Zapier, API e webhook."
+        },
+        "team": {
+          "name": "Team e ruoli",
+          "desc": "Postazioni, ruoli e inviti per i tuoi collaboratori."
+        }
+      }
     }
   },
   "Auth": {
@@ -879,6 +922,7 @@
       "no_contact": "Inserisci un telefono o un'email",
       "already_member": "Questa persona fa già parte dell'organizzazione",
       "cannot_assign_owner": "Il ruolo proprietario non può essere assegnato",
+      "seat_limit_reached": "Hai raggiunto il limite di postazioni del tuo piano. Passa a un piano superiore o rimuovi un membro.",
       "invite_not_found": "Invito non trovato",
       "invite_already_used": "Questo invito è già stato utilizzato",
       "unknown": "Si è verificato un errore. Riprova."
@@ -983,12 +1027,46 @@
         "supportPriority24h": "Supporto prioritario (risposta entro 24h)",
         "accountManager": "Account manager dedicato + SLA 99,9 %",
         "proDashboard": "Pro dashboard completa",
-        "noCommitment": "Nessun impegno"
+        "noCommitment": "Nessun impegno",
+        "s_events": "5 matrimoni in parallelo",
+        "s_quota": "50 GB di spazio",
+        "s_execution": "Tutto il giorno del sì: RSVP WhatsApp, galleria face-search, check-in, tableau",
+        "s_crm": "CRM clienti in vista elenco",
+        "s_budget": "Budget per matrimonio, sola lettura",
+        "s_brand": "White-label: sottodominio e logo",
+        "b_inherit": "Tutto il piano Starter, più:",
+        "b_quota": "20 matrimoni in parallelo",
+        "b_crm": "Pipeline CRM: kanban e conversione da lead a matrimonio",
+        "b_docs": "Preventivi, fatture e contratti con firma elettronica",
+        "b_budget": "Budget modificabile, export PDF e contabile, fornitori illimitati",
+        "b_portal": "Portale coppia in white-label",
+        "a_inherit": "Tutto il piano Business, più:",
+        "a_quota": "50 matrimoni in parallelo",
+        "a_integrations": "Integrazioni CRM: HoneyBook, Zapier, API",
+        "a_analytics": "Analytics multi-matrimonio",
+        "a_brand": "White-label totale: dominio ed email a tuo nome",
+        "a_am": "Account manager dedicato, risposta entro 4 h",
+        "p_exec": "1 matrimonio in modalità esecuzione",
+        "p_quota": "150 invitati, 25 GB, galleria 12 mesi",
+        "p_nosub": "Senza abbonamento, fatturato per evento",
+        "s_guests": "150 invitati per matrimonio",
+        "s_messages": "3000 messaggi WhatsApp/SMS al mese",
+        "s_seats": "2 postazioni",
+        "b_storage": "200 GB di spazio",
+        "b_messages": "10 000 messaggi al mese",
+        "b_seats": "8 postazioni",
+        "a_storage": "500 GB di spazio",
+        "a_messages": "25 000 messaggi al mese",
+        "a_seats": "Postazioni illimitate"
       },
       "overflow": {
-        "whatsapp": "Oltre la quota: 0,06 € per messaggio",
-        "storage": "Storage galleria: 0,03 € per GB al mese oltre"
-      }
+        "whatsapp": "Messaggio WhatsApp/SMS oltre il bundle: 0,06 €/messaggio",
+        "storage": "Spazio oltre la quota: 0,03 €/GB/mese",
+        "title": "Eccedenze",
+        "guests": "Invitato oltre il limite di 150: 0,25 €/invitato",
+        "event": "Evento simultaneo aggiuntivo: 19 €/mese (proporzionale)"
+      },
+      "addons": "Opzioni: pagamenti con il tuo account Stripe (0% di commissione), postazione +19 €/mese, matrimonio aggiuntivo +19 €/mese."
     }
   },
   "Upgrade": {

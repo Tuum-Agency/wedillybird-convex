@@ -6,6 +6,23 @@ afterEach(() => {
   cleanup();
 });
 
+// jsdom n'implémente pas l'API Pointer Capture ni scrollIntoView, dont Radix
+// (Select, etc.) a besoin pour s'ouvrir. On les stube pour tester nos Select shadcn.
+if (typeof Element !== 'undefined') {
+  if (!Element.prototype.hasPointerCapture) {
+    Element.prototype.hasPointerCapture = () => false;
+  }
+  if (!Element.prototype.setPointerCapture) {
+    Element.prototype.setPointerCapture = () => {};
+  }
+  if (!Element.prototype.releasePointerCapture) {
+    Element.prototype.releasePointerCapture = () => {};
+  }
+  if (!Element.prototype.scrollIntoView) {
+    Element.prototype.scrollIntoView = () => {};
+  }
+}
+
 if (
   typeof globalThis.localStorage === 'undefined' ||
   typeof globalThis.localStorage.setItem !== 'function'

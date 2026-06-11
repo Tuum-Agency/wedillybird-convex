@@ -496,6 +496,49 @@
       },
       "payments": "Sichere Zahlungen über",
       "rights": "Alle Rechte vorbehalten"
+    },
+    "prosFeatures": {
+      "eyebrow": "Für Agenturen und Hochzeitsplaner",
+      "title": "Das komplette Backoffice Ihrer Agentur",
+      "subtitle": "Vom ersten Lead bis zur letzten Zahlung, unter Ihrer Marke.",
+      "items": {
+        "cockpit": {
+          "name": "Dashboard & Cockpit",
+          "desc": "Alle Hochzeiten, RSVPs, Fristen und Umsatz auf einem Bildschirm."
+        },
+        "crm": {
+          "name": "CRM & Pipeline",
+          "desc": "Vom Lead bis zur gelieferten Hochzeit, im Kanban, mit Ein-Klick-Konversion."
+        },
+        "planning": {
+          "name": "Rückwärtsplanung",
+          "desc": "Aufgaben am Hochzeitstag verankert, wiederverwendbare Vorlagen, Team-Zuweisung."
+        },
+        "budget": {
+          "name": "Budget pro Hochzeit",
+          "desc": "Verfolgung, Bearbeitung und Export, bereit zur Präsentation beim Paar."
+        },
+        "docs": {
+          "name": "Angebote, Rechnungen & Verträge",
+          "desc": "Editor mit Ihrer Marke und elektronischer Signatur."
+        },
+        "vendors": {
+          "name": "Dienstleister-Verzeichnis",
+          "desc": "Locations, Caterer und Fotografen, mit jeder Hochzeit verknüpft."
+        },
+        "portal": {
+          "name": "White-Label-Paarportal",
+          "desc": "Ihre Paare verfolgen ihre Hochzeit unter Ihrem Namen."
+        },
+        "integrations": {
+          "name": "Integrationen",
+          "desc": "HoneyBook, Zapier, API und Webhooks."
+        },
+        "team": {
+          "name": "Team & Rollen",
+          "desc": "Sitze, Rollen und Einladungen für Ihre Mitarbeiter."
+        }
+      }
     }
   },
   "Auth": {
@@ -879,6 +922,7 @@
       "no_contact": "Gib eine Telefonnummer oder E-Mail an",
       "already_member": "Diese Person ist bereits Teil der Organisation",
       "cannot_assign_owner": "Die Inhaberrolle kann nicht zugewiesen werden",
+      "seat_limit_reached": "Sie haben das Sitzplatzlimit Ihres Tarifs erreicht. Führen Sie ein Upgrade durch oder entfernen Sie ein Mitglied.",
       "invite_not_found": "Einladung nicht gefunden",
       "invite_already_used": "Diese Einladung wurde bereits verwendet",
       "unknown": "Ein Fehler ist aufgetreten. Bitte erneut versuchen."
@@ -983,12 +1027,46 @@
         "supportPriority24h": "Priority-Support (Antwort innerhalb von 24 h)",
         "accountManager": "Dedizierter Account Manager + SLA 99,9 %",
         "proDashboard": "Vollständiges Profi-Dashboard",
-        "noCommitment": "Keine Verpflichtung"
+        "noCommitment": "Keine Verpflichtung",
+        "s_events": "5 Hochzeiten parallel",
+        "s_quota": "50 GB Speicher",
+        "s_execution": "Der ganze Hochzeitstag: WhatsApp-RSVP, Face-Search-Galerie, Check-in, Sitzplan",
+        "s_crm": "Kunden-CRM in Listenansicht",
+        "s_budget": "Budget pro Hochzeit, nur lesend",
+        "s_brand": "White-Label: Subdomain und Logo",
+        "b_inherit": "Alles aus Starter, plus:",
+        "b_quota": "20 Hochzeiten parallel",
+        "b_crm": "CRM-Pipeline: Kanban und Lead-zu-Hochzeit-Konversion",
+        "b_docs": "Angebote, Rechnungen und elektronisch signierte Verträge",
+        "b_budget": "Editierbares Budget, PDF- und Buchhaltungsexport, unbegrenzte Dienstleister",
+        "b_portal": "White-Label-Paarportal",
+        "a_inherit": "Alles aus Business, plus:",
+        "a_quota": "50 Hochzeiten parallel",
+        "a_integrations": "CRM-Integrationen: HoneyBook, Zapier, API",
+        "a_analytics": "Multi-Hochzeit-Analytics",
+        "a_brand": "Vollständiges White-Label: eigene Domain und E-Mails",
+        "a_am": "Dedizierter Account Manager, Antwort in unter 4 h",
+        "p_exec": "1 Hochzeit im Ausführungsmodus",
+        "p_quota": "150 Gäste, 25 GB, Galerie 12 Monate",
+        "p_nosub": "Kein Abo, pro Event abgerechnet",
+        "s_guests": "150 Gäste pro Hochzeit",
+        "s_messages": "3.000 WhatsApp/SMS-Nachrichten pro Monat",
+        "s_seats": "2 Sitze",
+        "b_storage": "200 GB Speicher",
+        "b_messages": "10.000 Nachrichten pro Monat",
+        "b_seats": "8 Sitze",
+        "a_storage": "500 GB Speicher",
+        "a_messages": "25.000 Nachrichten pro Monat",
+        "a_seats": "Unbegrenzte Sitze"
       },
       "overflow": {
-        "whatsapp": "Über das Kontingent hinaus: 0,06 € pro Nachricht",
-        "storage": "Galerie-Speicher: 0,03 € pro GB pro Monat über das Kontingent hinaus"
-      }
+        "whatsapp": "WhatsApp/SMS-Nachricht über dem Kontingent: 0,06 €/Nachricht",
+        "storage": "Speicher über dem Kontingent: 0,03 €/GB/Monat",
+        "title": "Mehrverbrauch",
+        "guests": "Gast über dem Limit von 150: 0,25 €/Gast",
+        "event": "Zusätzliche gleichzeitige Hochzeit: 19 €/Monat (anteilig)"
+      },
+      "addons": "Add-ons: Zahlungen über Ihr eigenes Stripe-Konto (0 % Provision), zusätzlicher Sitz +19 €/Monat, zusätzliche Hochzeit +19 €/Monat."
     }
   },
   "Upgrade": {

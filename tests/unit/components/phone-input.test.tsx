@@ -63,8 +63,8 @@ describe('PhoneInput', () => {
     const { container } = render(<PhoneInput name="phone" />);
     const input = screen.getByRole('textbox') as HTMLInputElement;
     await user.type(input, '612345678');
-    const select = screen.getByLabelText('countryCodeLabel') as HTMLSelectElement;
-    await user.selectOptions(select, 'SN');
+    await user.click(screen.getByLabelText('countryCodeLabel'));
+    await user.click(await screen.findByRole('option', { name: /Sénégal/ }));
     const hidden = container.querySelector(
       'input[type="hidden"][name="phone"]',
     ) as HTMLInputElement;
