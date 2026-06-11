@@ -15,7 +15,7 @@ import type { ConnectedFinances } from '@/lib/pro/payments';
 import { appOrigin } from '@/lib/reminders/window';
 
 export type PaymentLinkResult =
-  | { ok: true; url: string; id: string }
+  | { ok: true; url: string; id: string; amountMinor: number; description: string }
   | { ok: false; error: string };
 
 type LinkIntent =
@@ -67,7 +67,13 @@ async function runPaymentLink(intent: LinkIntent): Promise<PaymentLinkResult> {
       checkoutUrl: redirectUrl,
     });
     revalidatePath('/pro/payments');
-    return { ok: true, url: redirectUrl, id: created.id };
+    return {
+      ok: true,
+      url: redirectUrl,
+      id: created.id,
+      amountMinor: created.amountMinor,
+      description: created.description,
+    };
   } catch (e) {
     // Stripe indisponible / non configuré → on nettoie le lien en attente orphelin.
     try {

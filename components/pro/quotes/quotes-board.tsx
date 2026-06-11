@@ -1142,7 +1142,12 @@ function QuoteDetail({
                   ) : canWrite ? (
                     <div className="flex flex-wrap items-center justify-end gap-1.5">
                       {doc.type === 'invoice' && connected ? (
-                        <PayLinkButton docId={doc._id} index={i} connected={connected} />
+                        <PayLinkButton
+                          docId={doc._id}
+                          index={i}
+                          connected={connected}
+                          clientName={doc.clientName}
+                        />
                       ) : null}
                       <button
                         type="button"

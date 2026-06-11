@@ -84,6 +84,68 @@ export interface ConnectedPayment {
 export function isChargeRefundable(p: ConnectedPayment): boolean {
   return p.status === 'succeeded' && !p.refunded;
 }
+
+/* ------------------------------ message pré-écrit (lien de paiement) ------------------------------ */
+
+interface PaymentMsgStrings {
+  hi: (name?: string) => string;
+  body: (description: string, amount: string) => string;
+  thanks: string;
+}
+
+// Message prêt-à-envoyer, dans la langue choisie par l'agence (locale next-intl).
+// Self-contained (pas de clés next-intl) → les 7 locales sont fournies ici.
+const PAYMENT_MSG = {
+  fr: {
+    hi: (n) => (n ? `Bonjour ${n},` : 'Bonjour,'),
+    body: (d, a) => `Voici votre lien de paiement sécurisé pour « ${d} » (${a}) :`,
+    thanks: 'Merci, et à très vite !',
+  },
+  en: {
+    hi: (n) => (n ? `Hello ${n},` : 'Hello,'),
+    body: (d, a) => `Here is your secure payment link for "${d}" (${a}):`,
+    thanks: 'Thank you!',
+  },
+  es: {
+    hi: (n) => (n ? `Hola ${n},` : 'Hola,'),
+    body: (d, a) => `Aquí tienes tu enlace de pago seguro para «${d}» (${a}):`,
+    thanks: '¡Gracias!',
+  },
+  it: {
+    hi: (n) => (n ? `Ciao ${n},` : 'Ciao,'),
+    body: (d, a) => `Ecco il tuo link di pagamento sicuro per "${d}" (${a}):`,
+    thanks: 'Grazie!',
+  },
+  pt: {
+    hi: (n) => (n ? `Olá ${n},` : 'Olá,'),
+    body: (d, a) => `Aqui está o seu link de pagamento seguro para "${d}" (${a}):`,
+    thanks: 'Obrigado!',
+  },
+  de: {
+    hi: (n) => (n ? `Hallo ${n},` : 'Hallo,'),
+    body: (d, a) => `Hier ist Ihr sicherer Zahlungslink für „${d}“ (${a}):`,
+    thanks: 'Vielen Dank!',
+  },
+  ar: {
+    hi: (n) => (n ? `مرحبًا ${n}،` : 'مرحبًا،'),
+    body: (d, a) => `إليك رابط الدفع الآمن الخاص بـ «${d}» (${a}):`,
+    thanks: 'شكرًا لك!',
+  },
+} satisfies Record<string, PaymentMsgStrings>;
+
+/**
+ * Construit un message prêt-à-copier pour envoyer un lien de paiement au client,
+ * dans la langue de l'agence (`locale`). L'agence n'a plus qu'à coller et envoyer.
+ */
+export function paymentRequestMessage(
+  locale: string,
+  p: { clientName?: string; amountMinor: number; description: string; url: string },
+): string {
+  const amount = `${(p.amountMinor / 100).toFixed(2).replace('.', ',')} €`;
+  const t = PAYMENT_MSG[locale as keyof typeof PAYMENT_MSG] ?? PAYMENT_MSG.fr;
+  const name = p.clientName?.trim() || undefined;
+  return `${t.hi(name)}\n\n${t.body(p.description, amount)}\n${p.url}\n\n${t.thanks}`;
+}
 export interface ConnectedFinances {
   balance: ConnectedBalance;
   payouts: ConnectedPayout[];

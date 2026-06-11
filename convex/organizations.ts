@@ -1064,6 +1064,8 @@ export const disconnectStripeAccount = mutation({
     await ctx.db.patch(organizationId, {
       stripeConnectAccountId: undefined,
       stripeConnectChargesEnabled: false,
+      stripeConnectDetailsSubmitted: false,
+      stripeConnectPayoutsEnabled: false,
       paymentsMode: 'manual',
       updatedAt: Date.now(),
     });

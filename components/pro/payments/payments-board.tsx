@@ -9,7 +9,9 @@ import {
   Landmark,
   Calendar,
   Send,
+  Copy,
   Link2,
+  MessageSquare,
   Scale,
   ShieldCheck,
   Lock,
@@ -29,6 +31,7 @@ import {
   ExternalLink,
   type LucideIcon,
 } from 'lucide-react';
+import { useLocale } from 'next-intl';
 import { cn } from '@/lib/cn';
 import { formatEurMinor, formatDateFr } from '@/lib/pro/format';
 import { toast } from '@/components/ui/toast';
@@ -47,6 +50,7 @@ import {
   PAY_STATUS_LABEL,
   PAYOUT_STATUS_LABEL,
   isChargeRefundable,
+  paymentRequestMessage,
   PAYMENT_MODE_META,
   PAYMENT_MODE_ORDER,
   TERM_LABELS,
@@ -788,10 +792,15 @@ function FreePayLinkDialog({
   onOpenChange: (v: boolean) => void;
   connected: boolean;
 }) {
+  const locale = useLocale();
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
   const [clientName, setClientName] = useState('');
-  const [url, setUrl] = useState<string | null>(null);
+  const [link, setLink] = useState<{
+    url: string;
+    amountMinor: number;
+    description: string;
+  } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
 
@@ -799,7 +808,7 @@ function FreePayLinkDialog({
     setAmount('');
     setDescription('');
     setClientName('');
-    setUrl(null);
+    setLink(null);
     setError(null);
   }
 
@@ -819,7 +828,7 @@ function FreePayLinkDialog({
           </DialogDescription>
         </DialogHeader>
 
-        {url ? (
+        {link ? (
           <div className="flex flex-col gap-3">
             <p className="text-sm text-[color:var(--color-foreground)]">
               Lien créé et copié. Partagez-le avec votre client :
@@ -831,10 +840,10 @@ function FreePayLinkDialog({
                 aria-hidden
               />
               <span className="flex-1 truncate font-mono text-xs text-[color:var(--color-blush-300)]">
-                {url}
+                {link.url}
               </span>
               <a
-                href={url}
+                href={link.url}
                 target="_blank"
                 rel="noreferrer"
                 aria-label="Ouvrir le lien"
@@ -842,6 +851,39 @@ function FreePayLinkDialog({
               >
                 <ExternalLink className="h-3.5 w-3.5" strokeWidth={1.8} aria-hidden />
               </a>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="md"
+                onClick={() => {
+                  void navigator.clipboard?.writeText(link.url);
+                  toast.success('Lien copié');
+                }}
+              >
+                <Copy className="h-4 w-4" strokeWidth={1.9} aria-hidden />
+                Copier le lien
+              </Button>
+              <Button
+                type="button"
+                variant="primary"
+                size="md"
+                onClick={() => {
+                  void navigator.clipboard?.writeText(
+                    paymentRequestMessage(locale, {
+                      clientName: clientName || undefined,
+                      amountMinor: link.amountMinor,
+                      description: link.description,
+                      url: link.url,
+                    }),
+                  );
+                  toast.success('Message prêt à envoyer copié');
+                }}
+              >
+                <MessageSquare className="h-4 w-4" strokeWidth={1.9} aria-hidden />
+                Copier le message
+              </Button>
             </div>
           </div>
         ) : (
@@ -891,7 +933,7 @@ function FreePayLinkDialog({
         )}
 
         <DialogFooter>
-          {url ? (
+          {link ? (
             <DialogClose asChild>
               <Button type="button" variant="outline" size="md">
                 Fermer
@@ -921,7 +963,11 @@ function FreePayLinkDialog({
                       setError(linkErr(res.error));
                       return;
                     }
-                    setUrl(res.url);
+                    setLink({
+                      url: res.url,
+                      amountMinor: res.amountMinor,
+                      description: res.description,
+                    });
                     void navigator.clipboard?.writeText(res.url);
                     toast.success('Lien de paiement créé et copié');
                   });
@@ -1069,7 +1115,12 @@ function PlanScreen({
                 </span>
                 {!m.paid && canWrite ? (
                   <div className="flex flex-wrap items-center justify-end gap-1.5">
-                    <PayLinkButton docId={m.docId} index={m.index} connected={account.connected} />
+                    <PayLinkButton
+                      docId={m.docId}
+                      index={m.index}
+                      connected={account.connected}
+                      clientName={m.clientName}
+                    />
                     <button
                       type="button"
                       disabled={pending}
@@ -1153,6 +1204,7 @@ function PlanScreen({
                   docId={next.docId}
                   index={next.index}
                   connected={account.connected}
+                  clientName={next.clientName}
                 />
                 <p className="font-mono text-[10px] leading-relaxed text-[color:var(--color-muted-foreground)]">
                   Le lien est encaissé directement sur votre compte Stripe. Copiez-le pour l’envoyer
