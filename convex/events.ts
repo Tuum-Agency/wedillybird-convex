@@ -7,6 +7,7 @@ import { eventQuotaForTier } from './lib/entitlements';
 import { assertEventAccess } from './lib/eventAuth';
 import { assertOrgWrite } from './lib/orgAuth';
 import { normalizePhone, isValidE164 } from './lib/phone';
+import { summarizeGuestRsvp } from './lib/guestStats';
 
 function toSlugBase(partnerA: string, partnerB: string): string {
   const raw = `${partnerA}-${partnerB}`
@@ -767,7 +768,6 @@ export const coupleOverview = query({
       .query('guests')
       .withIndex('by_event', (q) => q.eq('eventId', eventId))
       .collect();
-    const count = (s: string) => guests.filter((g) => g.rsvpStatus === s).length;
     return {
       _id: event._id,
       title: event.title,
@@ -776,16 +776,7 @@ export const coupleOverview = query({
       timezone: event.timezone,
       venue: event.venue ?? null,
       status: event.status,
-      guestStats: {
-        total: guests.length,
-        attending: count('attending'),
-        declined: count('declined'),
-        maybe: count('maybe'),
-        pending: count('pending'),
-        expectedHeadcount: guests
-          .filter((g) => g.rsvpStatus === 'attending')
-          .reduce((a, g) => a + 1 + (g.plusOnesNames?.length ?? 0), 0),
-      },
+      guestStats: summarizeGuestRsvp(guests),
     };
   },
 });

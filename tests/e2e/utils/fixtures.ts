@@ -61,7 +61,9 @@ export async function loginAsDevUser(page: Page): Promise<void> {
   // (défaut), /events/{id} (couple possédant déjà un event), /onboarding
   // (nouvel utilisateur) ou /pro. On attend une destination authentifiée,
   // pas spécifiquement /dashboard (sinon timeout pour les owners d'event).
-  await page.waitForURL((url) => /\/(dashboard|events|onboarding|pro)(\/|$)/.test(url.pathname));
+  await page.waitForURL((url) =>
+    /\/(dashboard|events|onboarding|pro|espace-couple)(\/|$)/.test(url.pathname),
+  );
 }
 
 /**
@@ -77,7 +79,9 @@ export async function loginAsPhone(page: Page, phone: string): Promise<void> {
   // (défaut), /events/{id} (couple possédant déjà un event), /onboarding
   // (nouvel utilisateur) ou /pro. On attend une destination authentifiée,
   // pas spécifiquement /dashboard (sinon timeout pour les owners d'event).
-  await page.waitForURL((url) => /\/(dashboard|events|onboarding|pro)(\/|$)/.test(url.pathname));
+  await page.waitForURL((url) =>
+    /\/(dashboard|events|onboarding|pro|espace-couple)(\/|$)/.test(url.pathname),
+  );
 }
 
 /**
