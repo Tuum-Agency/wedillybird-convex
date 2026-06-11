@@ -20,6 +20,7 @@ import {
   CircleCheck,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { PayLinkButton } from '@/components/pro/payments/pay-link-button';
 import {
   Select,
   SelectContent,
@@ -136,12 +137,14 @@ export function QuotesBoard({
   weddings,
   organizationId,
   canWrite,
+  connected,
 }: {
   initialDocs: QuoteDoc[];
   clients: ClientOpt[];
   weddings: WeddingOpt[];
   organizationId: string;
   canWrite: boolean;
+  connected: boolean;
 }) {
   const router = useRouter();
   const [docs, setDocs] = useState<QuoteDoc[]>(initialDocs);
@@ -194,6 +197,7 @@ export function QuotesBoard({
       <QuoteDetail
         doc={view.doc}
         canWrite={canWrite}
+        connected={connected}
         onBack={() => setView({ kind: 'list' })}
         onEdit={() => setView({ kind: 'builder', type: view.doc.type, doc: view.doc })}
         onChanged={(doc) => {
@@ -980,6 +984,7 @@ function QuoteBuilder({
 function QuoteDetail({
   doc,
   canWrite,
+  connected,
   onBack,
   onEdit,
   onChanged,
@@ -987,6 +992,7 @@ function QuoteDetail({
 }: {
   doc: QuoteDoc;
   canWrite: boolean;
+  connected: boolean;
   onBack: () => void;
   onEdit: () => void;
   onChanged: (d: QuoteDoc) => void;
@@ -1134,15 +1140,20 @@ function QuoteDetail({
                       Encaissé
                     </span>
                   ) : canWrite ? (
-                    <button
-                      type="button"
-                      disabled={pending}
-                      onClick={() => recordPayment(i)}
-                      className="focus-ring inline-flex items-center gap-1 rounded-lg border border-[color:var(--color-border-strong)] px-2.5 py-1 text-[11px] font-medium text-[color:var(--color-foreground)] transition-colors hover:border-[color:var(--color-sage-500)] hover:text-[color:var(--color-sage-500)] disabled:opacity-50"
-                    >
-                      <CircleCheck className="h-3.5 w-3.5" strokeWidth={1.9} aria-hidden />
-                      Marquer payé
-                    </button>
+                    <div className="flex flex-wrap items-center justify-end gap-1.5">
+                      {doc.type === 'invoice' && connected ? (
+                        <PayLinkButton docId={doc._id} index={i} connected={connected} />
+                      ) : null}
+                      <button
+                        type="button"
+                        disabled={pending}
+                        onClick={() => recordPayment(i)}
+                        className="focus-ring inline-flex items-center gap-1 rounded-lg border border-[color:var(--color-border-strong)] px-2.5 py-1 text-[11px] font-medium text-[color:var(--color-foreground)] transition-colors hover:border-[color:var(--color-sage-500)] hover:text-[color:var(--color-sage-500)] disabled:opacity-50"
+                      >
+                        <CircleCheck className="h-3.5 w-3.5" strokeWidth={1.9} aria-hidden />
+                        Marquer payé
+                      </button>
+                    </div>
                   ) : (
                     <span className="text-[11px] text-[color:var(--color-muted-foreground)]">
                       En attente

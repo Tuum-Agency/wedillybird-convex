@@ -42,12 +42,19 @@ export default async function ProQuotesPage({ params }: { params: Promise<{ loca
   }
 
   const convex = getConvexServerClient();
-  const data = await convex.query(convexApi.quotesListByOrg, {
-    organizationId: org._id,
-    requesterId: session.userId,
-  });
+  const [data, connect] = await Promise.all([
+    convex.query(convexApi.quotesListByOrg, {
+      organizationId: org._id,
+      requesterId: session.userId,
+    }),
+    convex.query(convexApi.orgConnectStatus, {
+      organizationId: org._id,
+      requesterId: session.userId,
+    }),
+  ]);
 
   const canWrite = org.myRole !== 'viewer';
+  const connected = connect.accountId != null;
 
   return (
     <ProSidebarShell current="quotes" org={shellOrg} user={{ name: user?.fullName }}>
@@ -57,6 +64,7 @@ export default async function ProQuotesPage({ params }: { params: Promise<{ loca
         weddings={data.weddings}
         organizationId={org._id}
         canWrite={canWrite}
+        connected={connected}
       />
     </ProSidebarShell>
   );
