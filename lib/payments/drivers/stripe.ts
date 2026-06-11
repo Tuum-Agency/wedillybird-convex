@@ -624,20 +624,36 @@ export function classifyBudgetSession(
  * null si l'event n'est pas un paiement de budget (le caller continue vers les
  * autres parseurs). Sur succès, récupère le reçu Stripe (preuve auto).
  */
+/**
+ * Vérifie la signature d'un webhook Stripe en essayant le secret plateforme puis,
+ * en repli, le secret Connect (`STRIPE_CONNECT_WEBHOOK_SECRET`) pour les événements
+ * des comptes connectés (charges directes BYOP). Additif : sans secret Connect, le
+ * comportement est identique à une vérif simple par le secret plateforme — les
+ * webhooks d'abonnement (compte plateforme) ne sont donc pas affectés.
+ */
+function verifyStripeSignatureWithConnect(rawBody: string, signature: string | null): Stripe.Event {
+  if (!signature) throw new Error('INVALID_SIGNATURE');
+  const primary = process.env.STRIPE_WEBHOOK_SECRET;
+  if (!primary) throw new Error('STRIPE_DRIVER_NOT_CONFIGURED');
+  const stripe = getStripe();
+  const secrets = [primary, process.env.STRIPE_CONNECT_WEBHOOK_SECRET].filter((s): s is string =>
+    Boolean(s),
+  );
+  for (const secret of secrets) {
+    try {
+      return stripe.webhooks.constructEvent(rawBody, signature, secret);
+    } catch {
+      // signature invalide pour ce secret → on tente le suivant (Connect)
+    }
+  }
+  throw new Error('INVALID_SIGNATURE');
+}
+
 export async function parseBudgetPaymentWebhook(
   rawBody: string,
   signature: string | null,
 ): Promise<BudgetPaymentWebhookEvent | null> {
-  if (!signature) throw new Error('INVALID_SIGNATURE');
-  const secret = process.env.STRIPE_WEBHOOK_SECRET;
-  if (!secret) throw new Error('STRIPE_DRIVER_NOT_CONFIGURED');
-  const stripe = getStripe();
-  let event: Stripe.Event;
-  try {
-    event = stripe.webhooks.constructEvent(rawBody, signature, secret);
-  } catch {
-    throw new Error('INVALID_SIGNATURE');
-  }
+  const event = verifyStripeSignatureWithConnect(rawBody, signature);
 
   const base = classifyBudgetSession(
     event.data.object as Stripe.Checkout.Session,
@@ -731,16 +747,7 @@ export async function parsePaymentLinkWebhook(
   rawBody: string,
   signature: string | null,
 ): Promise<PaymentLinkWebhookEvent | null> {
-  if (!signature) throw new Error('INVALID_SIGNATURE');
-  const secret = process.env.STRIPE_WEBHOOK_SECRET;
-  if (!secret) throw new Error('STRIPE_DRIVER_NOT_CONFIGURED');
-  const stripe = getStripe();
-  let event: Stripe.Event;
-  try {
-    event = stripe.webhooks.constructEvent(rawBody, signature, secret);
-  } catch {
-    throw new Error('INVALID_SIGNATURE');
-  }
+  const event = verifyStripeSignatureWithConnect(rawBody, signature);
   const base = classifyPaymentLinkSession(
     event.data.object as Stripe.Checkout.Session,
     event.type,
