@@ -296,6 +296,55 @@ export const convexApi = {
       updatedAt: number;
     } | null
   >('events:getById'),
+  // ---- Espace couple (mariages d'agence) ----
+  linkCouple: makeFunctionReference<
+    'mutation',
+    { eventId: string; requesterId: string; phone: string },
+    { ok: true; userId: string; alreadyLinked: boolean }
+  >('events:linkCouple'),
+  unlinkCouple: makeFunctionReference<
+    'mutation',
+    { eventId: string; requesterId: string },
+    { ok: true }
+  >('events:unlinkCouple'),
+  coupleLinks: makeFunctionReference<
+    'query',
+    { eventId: string; requesterId: string },
+    Array<{ userId: string; phone: string; invitedAt: number }>
+  >('events:coupleLinks'),
+  coupleOverview: makeFunctionReference<
+    'query',
+    { eventId: string; requesterId: string },
+    {
+      _id: string;
+      title: string;
+      coupleNames: { partnerA: string; partnerB: string };
+      eventDate: number;
+      timezone: string;
+      venue: { name: string; address: string } | null;
+      status: string;
+      guestStats: {
+        total: number;
+        attending: number;
+        declined: number;
+        maybe: number;
+        pending: number;
+        expectedHeadcount: number;
+      };
+    }
+  >('events:coupleOverview'),
+  listMineAsCouple: makeFunctionReference<
+    'query',
+    { userId: string },
+    Array<{
+      _id: string;
+      title: string;
+      coupleNames: { partnerA: string; partnerB: string };
+      eventDate: number;
+      venue: { name: string; address: string } | null;
+      status: string;
+    }>
+  >('events:listMineAsCouple'),
   addGuest: makeFunctionReference<
     'mutation',
     {
@@ -1077,6 +1126,21 @@ export const convexApi = {
       paidAt?: number;
     }>
   >('paymentLinks:listByOrg'),
+  listPaymentLinksForEvent: makeFunctionReference<
+    'query',
+    { eventId: string; requesterId: string },
+    Array<{
+      _id: string;
+      amountMinor: number;
+      currency: string;
+      description: string;
+      status: 'pending' | 'succeeded' | 'failed';
+      checkoutUrl?: string;
+      receiptUrl?: string;
+      createdAt: number;
+      paidAt?: number;
+    }>
+  >('paymentLinks:listForEvent'),
   // ---- Rétroplanning (tous tiers) ----
   planningListByEvent: makeFunctionReference<
     'query',

@@ -9,6 +9,7 @@ import {
 } from './_generated/server';
 import type { Doc, Id } from './_generated/dataModel';
 import { generateQrToken } from './lib/qrToken';
+import { assertEventAccess } from './lib/eventAuth';
 
 const QR_MAX_ATTEMPTS = 6;
 
@@ -17,10 +18,9 @@ async function assertEventOwnership(
   eventId: Id<'events'>,
   userId: Id<'users'>,
 ): Promise<Doc<'events'>> {
-  const event = await ctx.db.get(eventId);
-  if (!event) throw new Error('EVENT_NOT_FOUND');
-  if (event.ownerId !== userId) throw new Error('FORBIDDEN');
-  return event;
+  // Propriétaire OU collaborateur gestionnaire — dont le couple rattaché par
+  // l'agence (rôle `couple`), qui peut ainsi gérer SA liste d'invités.
+  return assertEventAccess(ctx, eventId, userId, { write: true });
 }
 
 async function uniqueQrToken(ctx: MutationCtx): Promise<string> {

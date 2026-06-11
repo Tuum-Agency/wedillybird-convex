@@ -5,6 +5,7 @@ import { requireProContext } from '@/lib/pro/require-pro-context';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
 import { ProSidebarShell } from '@/components/pro/pro-sidebar-shell';
 import { WeddingHubClient } from '@/components/pro/weddings/wedding-hub';
+import { CoupleLinkCard } from '@/components/pro/couple-link-card';
 import { PRO_TIER_LIMITS } from '@/lib/payments/entitlements';
 import { nowMs } from '@/lib/pro/format';
 
@@ -35,18 +36,23 @@ export default async function ProWeddingHubPage({
     redirect({ href: '/pro/weddings', locale });
   }
 
-  const [counts, budget, planning, orgEvents, guests, cockpit, seatingPlan] = await Promise.all([
-    convex.query(convexApi.countGuestsByEvent, { eventId, requesterId: session.userId }),
-    convex.query(convexApi.budgetListByEvent, { eventId, requesterId: session.userId }),
-    convex.query(convexApi.planningListByEvent, { eventId, requesterId: session.userId }),
-    convex.query(convexApi.listOrgEvents, { organizationId: org._id, requesterId: session.userId }),
-    convex.query(convexApi.listGuestsByEvent, { eventId, requesterId: session.userId }),
-    convex.query(convexApi.proCockpit, { userId: session.userId }),
-    // Le plan de table requiert l'entitlement seatingPlan ; on dégrade en null sinon.
-    convex
-      .query(convexApi.getSeatingPlan, { eventId, requesterId: session.userId })
-      .catch(() => null),
-  ]);
+  const [counts, budget, planning, orgEvents, guests, cockpit, seatingPlan, coupleLinks] =
+    await Promise.all([
+      convex.query(convexApi.countGuestsByEvent, { eventId, requesterId: session.userId }),
+      convex.query(convexApi.budgetListByEvent, { eventId, requesterId: session.userId }),
+      convex.query(convexApi.planningListByEvent, { eventId, requesterId: session.userId }),
+      convex.query(convexApi.listOrgEvents, {
+        organizationId: org._id,
+        requesterId: session.userId,
+      }),
+      convex.query(convexApi.listGuestsByEvent, { eventId, requesterId: session.userId }),
+      convex.query(convexApi.proCockpit, { userId: session.userId }),
+      // Le plan de table requiert l'entitlement seatingPlan ; on dégrade en null sinon.
+      convex
+        .query(convexApi.getSeatingPlan, { eventId, requesterId: session.userId })
+        .catch(() => null),
+      convex.query(convexApi.coupleLinks, { eventId, requesterId: session.userId }).catch(() => []),
+    ]);
 
   const tier = org.subscriptionTier ?? null;
   const now = nowMs();
@@ -107,6 +113,9 @@ export default async function ProWeddingHubPage({
           seatingPlan,
         }}
       />
+      <div className="mx-auto w-full max-w-6xl px-4 pb-12 sm:px-6">
+        <CoupleLinkCard eventId={event!._id} initialLinks={coupleLinks} />
+      </div>
     </ProSidebarShell>
   );
 }

@@ -4,6 +4,9 @@ import { internal } from './_generated/api';
 import type { Doc, Id } from './_generated/dataModel';
 import { pickUniqueSlug } from './lib/uniqueSlug';
 import { eventQuotaForTier } from './lib/entitlements';
+import { assertEventAccess } from './lib/eventAuth';
+import { assertOrgWrite } from './lib/orgAuth';
+import { normalizePhone, isValidE164 } from './lib/phone';
 
 function toSlugBase(partnerA: string, partnerB: string): string {
   const raw = `${partnerA}-${partnerB}`
@@ -655,3 +658,158 @@ export type EventListItem = {
   venue?: { name: string; address: string; lat?: number; lng?: number };
   updatedAt: number;
 };
+
+/* ============================ ESPACE COUPLE (mariages d'agence) ============================ */
+
+/**
+ * Rattache un couple à un mariage créé par l'agence : retrouve (ou crée) l'user par
+ * téléphone et l'ajoute en collaborateur rôle `couple`. Le couple accède ensuite à
+ * son espace en se connectant avec ce numéro (OTP réutilise l'user par téléphone,
+ * cf. auth.verifyOtp). Réservé à l'agence propriétaire du mariage (org-write).
+ */
+export const linkCouple = mutation({
+  args: { eventId: v.id('events'), requesterId: v.id('users'), phone: v.string() },
+  handler: async (ctx, args) => {
+    const event = await ctx.db.get(args.eventId);
+    if (!event) throw new Error('EVENT_NOT_FOUND');
+    if (!event.organizationId) throw new Error('NOT_AN_ORG_EVENT');
+    await assertOrgWrite(ctx, event.organizationId, args.requesterId);
+
+    const normalized = normalizePhone(args.phone);
+    if (!normalized || !isValidE164(normalized)) throw new Error('INVALID_PHONE');
+
+    const now = Date.now();
+    let user = await ctx.db
+      .query('users')
+      .withIndex('by_phone', (q) => q.eq('phone', normalized))
+      .first();
+    if (!user) {
+      const userId = await ctx.db.insert('users', {
+        phone: normalized,
+        locale: 'fr',
+        role: 'couple',
+        createdAt: now,
+        lastSeenAt: now,
+      });
+      user = await ctx.db.get(userId);
+    }
+    if (!user) throw new Error('USER_CREATE_FAILED');
+
+    const existing = await ctx.db
+      .query('eventCollaborators')
+      .withIndex('by_event_user', (q) => q.eq('eventId', args.eventId).eq('userId', user!._id))
+      .first();
+    if (existing) {
+      if (existing.role !== 'couple') await ctx.db.patch(existing._id, { role: 'couple' });
+      return { ok: true as const, userId: user._id, alreadyLinked: true };
+    }
+    await ctx.db.insert('eventCollaborators', {
+      eventId: args.eventId,
+      userId: user._id,
+      role: 'couple',
+      invitedBy: args.requesterId,
+      invitedAt: now,
+      acceptedAt: now,
+    });
+    return { ok: true as const, userId: user._id, alreadyLinked: false };
+  },
+});
+
+/** Détache le couple d'un mariage (retire les collaborateurs rôle `couple`). Org-write. */
+export const unlinkCouple = mutation({
+  args: { eventId: v.id('events'), requesterId: v.id('users') },
+  handler: async (ctx, { eventId, requesterId }) => {
+    const event = await ctx.db.get(eventId);
+    if (!event) throw new Error('EVENT_NOT_FOUND');
+    if (!event.organizationId) throw new Error('NOT_AN_ORG_EVENT');
+    await assertOrgWrite(ctx, event.organizationId, requesterId);
+    const collabs = await ctx.db
+      .query('eventCollaborators')
+      .withIndex('by_event', (q) => q.eq('eventId', eventId))
+      .collect();
+    for (const c of collabs.filter((c) => c.role === 'couple')) await ctx.db.delete(c._id);
+    return { ok: true as const };
+  },
+});
+
+/** Le ou les couples rattachés à un mariage (affichage agence). Org-read implicite via owner. */
+export const coupleLinks = query({
+  args: { eventId: v.id('events'), requesterId: v.id('users') },
+  handler: async (ctx, { eventId, requesterId }) => {
+    const event = await ctx.db.get(eventId);
+    if (!event || !event.organizationId) return [];
+    await assertOrgWrite(ctx, event.organizationId, requesterId);
+    const collabs = await ctx.db
+      .query('eventCollaborators')
+      .withIndex('by_event', (q) => q.eq('eventId', eventId))
+      .collect();
+    const couples = collabs.filter((c) => c.role === 'couple');
+    const rows = await Promise.all(
+      couples.map(async (c) => {
+        const u = await ctx.db.get(c.userId);
+        return u ? { userId: u._id, phone: u.phone, invitedAt: c.invitedAt } : null;
+      }),
+    );
+    return rows.filter((r): r is { userId: Id<'users'>; phone: string; invitedAt: number } => !!r);
+  },
+});
+
+/**
+ * Vue « espace couple » d'un mariage : infos couple-safe (date, lieu, statut) + stats
+ * invités/RSVP. Propriétaire OU collaborateur (donc le couple rattaché). N'expose
+ * PAS le budget ni les marges de l'agence.
+ */
+export const coupleOverview = query({
+  args: { eventId: v.id('events'), requesterId: v.id('users') },
+  handler: async (ctx, { eventId, requesterId }) => {
+    const event = await assertEventAccess(ctx, eventId, requesterId);
+    const guests = await ctx.db
+      .query('guests')
+      .withIndex('by_event', (q) => q.eq('eventId', eventId))
+      .collect();
+    const count = (s: string) => guests.filter((g) => g.rsvpStatus === s).length;
+    return {
+      _id: event._id,
+      title: event.title,
+      coupleNames: event.coupleNames,
+      eventDate: event.eventDate,
+      timezone: event.timezone,
+      venue: event.venue ?? null,
+      status: event.status,
+      guestStats: {
+        total: guests.length,
+        attending: count('attending'),
+        declined: count('declined'),
+        maybe: count('maybe'),
+        pending: count('pending'),
+        expectedHeadcount: guests
+          .filter((g) => g.rsvpStatus === 'attending')
+          .reduce((a, g) => a + 1 + (g.plusOnesNames?.length ?? 0), 0),
+      },
+    };
+  },
+});
+
+/** Mariages où l'user est rattaché comme `couple` — entrée de l'espace couple. */
+export const listMineAsCouple = query({
+  args: { userId: v.id('users') },
+  handler: async (ctx, { userId }) => {
+    const collabs = await ctx.db
+      .query('eventCollaborators')
+      .withIndex('by_user', (q) => q.eq('userId', userId))
+      .collect();
+    const events = await Promise.all(
+      collabs.filter((c) => c.role === 'couple').map((c) => ctx.db.get(c.eventId)),
+    );
+    return events
+      .filter((e): e is Doc<'events'> => e !== null)
+      .map((e) => ({
+        _id: e._id,
+        title: e.title,
+        coupleNames: e.coupleNames,
+        eventDate: e.eventDate,
+        venue: e.venue ?? null,
+        status: e.status,
+      }));
+  },
+});

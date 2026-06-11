@@ -1,7 +1,8 @@
 import { v } from 'convex/values';
 import { mutation, query, type MutationCtx } from './_generated/server';
-import type { Doc } from './_generated/dataModel';
+import type { Doc, Id } from './_generated/dataModel';
 import { assertOrgRead, assertOrgWrite } from './lib/orgAuth';
+import { assertEventAccess } from './lib/eventAuth';
 import { proTierAtLeast } from './lib/entitlements';
 import { decidePaymentTransition } from './budget';
 import { totalMinor } from './quotes';
@@ -56,6 +57,7 @@ export const createIntent = mutation({
     let clientName: string | undefined = args.clientName?.trim() || undefined;
     let invoiceDocId = args.invoiceDocId;
     let invoiceMilestoneIndex = args.invoiceMilestoneIndex;
+    let linkEventId: Id<'events'> | undefined;
 
     if (args.kind === 'invoice') {
       if (!args.invoiceDocId || args.invoiceMilestoneIndex == null) {
@@ -71,6 +73,7 @@ export const createIntent = mutation({
       clientName = clientName ?? doc.clientName;
       invoiceDocId = args.invoiceDocId;
       invoiceMilestoneIndex = args.invoiceMilestoneIndex;
+      linkEventId = doc.eventId ?? undefined;
     } else {
       // free
       const desc = args.description?.trim();
@@ -93,6 +96,7 @@ export const createIntent = mutation({
       kind: args.kind,
       ...(invoiceDocId ? { invoiceDocId } : {}),
       ...(invoiceMilestoneIndex != null ? { invoiceMilestoneIndex } : {}),
+      ...(linkEventId ? { eventId: linkEventId } : {}),
       amountMinor,
       currency: 'EUR',
       description,
@@ -238,6 +242,35 @@ export const listByOrg = query({
         amountMinor: r.amountMinor,
         description: r.description,
         clientName: r.clientName,
+        status: r.status,
+        checkoutUrl: r.checkoutUrl,
+        receiptUrl: r.receiptUrl,
+        createdAt: r.createdAt,
+        paidAt: r.paidAt,
+      }));
+  },
+});
+
+/**
+ * Liens de paiement d'un mariage — pour l'**espace couple**. Accessible au
+ * propriétaire OU à un collaborateur (le couple rattaché). Renvoie de quoi payer
+ * (montant, libellé, statut, lien Checkout) ; aucune info interne agence.
+ */
+export const listForEvent = query({
+  args: { eventId: v.id('events'), requesterId: v.id('users') },
+  handler: async (ctx, { eventId, requesterId }) => {
+    await assertEventAccess(ctx, eventId, requesterId);
+    const rows = await ctx.db
+      .query('paymentLinks')
+      .withIndex('by_event', (q) => q.eq('eventId', eventId))
+      .collect();
+    return rows
+      .sort((a, b) => b.createdAt - a.createdAt)
+      .map((r) => ({
+        _id: r._id,
+        amountMinor: r.amountMinor,
+        currency: r.currency,
+        description: r.description,
         status: r.status,
         checkoutUrl: r.checkoutUrl,
         receiptUrl: r.receiptUrl,

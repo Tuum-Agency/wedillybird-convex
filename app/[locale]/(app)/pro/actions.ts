@@ -625,3 +625,56 @@ export async function disconnectStripeConnectAction(): Promise<ConnectDisconnect
     return { ok: false, error: connectErr(err instanceof Error ? err.message : 'UNKNOWN') };
   }
 }
+
+/* ------------------------------ Espace couple (rattachement) ------------------------------ */
+
+export type LinkCoupleResult = { ok: true; alreadyLinked: boolean } | { ok: false; error: string };
+
+const LINK_COUPLE_ERR: Record<string, string> = {
+  INVALID_PHONE: 'Numéro invalide (format international, ex. +33 6 12 34 56 78).',
+  NOT_AN_ORG_EVENT: 'Ce mariage n’est pas géré par votre agence.',
+  FORBIDDEN: 'Action réservée au propriétaire et aux admins de l’agence.',
+  EVENT_NOT_FOUND: 'Mariage introuvable.',
+};
+
+/**
+ * Rattache un couple à un mariage de l'agence (par téléphone) : il accède ensuite à
+ * son espace couple en se connectant avec ce numéro. Autorisation (owner/admin de
+ * l'org) vérifiée côté Convex via `assertOrgWrite`.
+ */
+export async function linkCoupleAction(eventId: string, phone: string): Promise<LinkCoupleResult> {
+  const session = await getSession();
+  if (!session) return { ok: false, error: 'UNAUTHORIZED' };
+  try {
+    const convex = getConvexServerClient();
+    const res = await convex.mutation(convexApi.linkCouple, {
+      eventId,
+      requesterId: session.userId,
+      phone,
+    });
+    revalidatePath(`/pro/weddings/${eventId}`);
+    return { ok: true, alreadyLinked: res.alreadyLinked };
+  } catch (err) {
+    const m = err instanceof Error ? err.message : 'UNKNOWN';
+    return {
+      ok: false,
+      error: LINK_COUPLE_ERR[m] ?? 'Impossible de rattacher le couple. Réessayez.',
+    };
+  }
+}
+
+/** Détache le couple d'un mariage de l'agence. Owner/admin (vérifié côté Convex). */
+export async function unlinkCoupleAction(
+  eventId: string,
+): Promise<{ ok: boolean; error?: string }> {
+  const session = await getSession();
+  if (!session) return { ok: false, error: 'UNAUTHORIZED' };
+  try {
+    const convex = getConvexServerClient();
+    await convex.mutation(convexApi.unlinkCouple, { eventId, requesterId: session.userId });
+    revalidatePath(`/pro/weddings/${eventId}`);
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : 'UNKNOWN' };
+  }
+}

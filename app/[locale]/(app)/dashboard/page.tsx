@@ -61,6 +61,15 @@ export default async function DashboardPage({ params }: { params: Promise<{ loca
 
   const events = await convex.query(convexApi.listEventsByOwner, { ownerId: session!.userId });
 
+  // Couple rattaché à une agence (collaborateur, sans mariage en propre) → son espace
+  // couple dédié (suivi, invités, paiements de SON mariage géré par l'agence).
+  const coupleWeddings = await convex.query(convexApi.listMineAsCouple, {
+    userId: session!.userId,
+  });
+  if (coupleWeddings.length > 0 && events.length === 0) {
+    redirect({ href: '/espace-couple', locale });
+  }
+
   // Particuliers (couple) avec un seul mariage → redirect direct vers la page
   // de l'événement. Le dashboard liste-de-cards est un pattern pro/multi-events
   // qui n'a pas de sens pour un compte particulier qui n'a droit qu'à un seul
@@ -104,6 +113,31 @@ export default async function DashboardPage({ params }: { params: Promise<{ loca
         </header>
 
         <LinkMethodSection user={user!} />
+
+        {coupleWeddings.length > 0 ? (
+          <section className="mb-10 flex flex-col gap-4">
+            <h2 className="font-display text-xl text-[color:var(--color-ink-900)] italic">
+              Vos mariages avec votre agence
+            </h2>
+            <ul className="grid gap-3 sm:grid-cols-2">
+              {coupleWeddings.map((w) => (
+                <li key={w._id}>
+                  <Link
+                    href={`/espace-couple/${w._id}`}
+                    className="focus-ring flex flex-col gap-1 rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-5 transition-colors hover:border-[color:var(--color-blush-400)]"
+                  >
+                    <span className="font-display text-xl text-[color:var(--color-ink-900)] italic">
+                      {w.coupleNames.partnerA} &amp; {w.coupleNames.partnerB}
+                    </span>
+                    <span className="font-mono text-[10px] tracking-[0.16em] text-[color:var(--color-ink-500)] uppercase">
+                      Ouvrir mon espace
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
 
         {events.length === 0 ? <EmptyState /> : <DashboardEventsList events={events} />}
       </div>
