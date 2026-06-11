@@ -174,6 +174,14 @@ const seedTestUsersRef = makeFunctionReference<
 export interface TierFixtures {
   essential: { ownerPhone: string; eventId: string; slug: string };
   premium: { ownerPhone: string; eventId: string; slug: string };
+  business: {
+    ownerPhone: string;
+    organizationId: string;
+    slug: string;
+    eventId: string;
+    clientCount: number;
+    budgetLineCount: number;
+  };
   pro: {
     ownerPhone: string;
     organizationId: string;

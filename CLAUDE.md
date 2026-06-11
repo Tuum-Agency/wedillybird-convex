@@ -30,7 +30,16 @@ Le code livré dans les sprints 1-11 (notamment Sprint 9.2 sur les subscriptions
 
 ## Direction de design (V2)
 
-`.context/redesign-direction.md` contient la direction artistique figée pour le redesign V2 (palette OKLCH terracotta, Migra Italic + Geist, Motion + GSAP, page invitation publique = 50 % du WoW factor, etc.). Toute proposition de modification UI doit respecter cette direction ou rouvrir le brainstorming.
+**Source de vérité** : le code — `app/globals.css` (design tokens OKLCH, thèmes) et `app/[locale]/layout.tsx` (polices) — distillé dans **`DESIGN.md`** (design system complet, à fournir aux outils de design). `.context/redesign-direction.md` est **historique/périmé** : en cas de conflit, le code et `DESIGN.md` priment.
+
+Direction « Wedillybird Bloom », **deux univers visuels stricts** :
+
+- **Light « mariage éditorial »** → couple, invité, public, auth, **page d'invitation publique (= 50 % du WoW, Motion + GSAP)**, portail couple marque blanche. Palette claire blush / champagne / ivoire, accents gold ; ambiance papeterie premium (Aesop / Vogue Italia).
+- **Dark « Linear-grade »** → back-office agence (dashboard pro, CRM, budget, prestataires, etc.), activé via `data-theme="dark"`. Dense, rigoureux ; charbon brun-violet + accents blush/gold conservés.
+
+Typo : **Bodoni Moda Italic** (display, h1-h3, toujours italic) + **Geist Sans** (UI) + **Geist Mono** (QR, IDs, IBAN). Palette **OKLCH** Blush/Champagne/Ivory/Sage/Ink (les alias `terracotta` sont legacy, en cours de suppression — **ne pas** décrire la marque comme « terracotta »). Multi-tenant : override `--brand-500`, luminance contrainte 35-65 % (AA). `prefers-reduced-motion` respecté.
+
+Toute proposition de modification UI doit respecter cette direction ou rouvrir le brainstorming.
 
 ## Conventions — rappel rapide
 

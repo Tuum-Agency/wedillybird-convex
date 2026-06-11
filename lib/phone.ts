@@ -37,6 +37,24 @@ export function isValidE164(phone: string): boolean {
   return /^\+[1-9]\d{7,14}$/.test(phone);
 }
 
+/**
+ * Sépare un numéro E.164 (`+33612345678`) en indicatif connu + numéro local, en
+ * choisissant le **plus long** indicatif qui correspond (évite que `+1` mange
+ * `+1xx`). Renvoie null si l'entrée n'est pas un E.164 ou si aucun indicatif ne
+ * correspond. Pur → utilisé par `PhoneInput` (pré-remplissage en édition) et testé.
+ */
+export function splitE164(
+  e164: string,
+  dialCodes: readonly string[],
+): { dial: string; local: string } | null {
+  if (typeof e164 !== 'string' || !e164.startsWith('+')) return null;
+  const digits = e164.slice(1).replace(/[^\d]/g, '');
+  if (!digits) return null;
+  const dial = [...dialCodes].sort((a, b) => b.length - a.length).find((d) => digits.startsWith(d));
+  if (!dial) return null;
+  return { dial, local: digits.slice(dial.length) };
+}
+
 export function maskPhone(phone: string): string {
   if (phone.length < 6) return phone;
   const prefix = phone.slice(0, 3);

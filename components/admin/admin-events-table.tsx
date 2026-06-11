@@ -3,6 +3,13 @@
 import { useState } from 'react';
 import { useLocale } from 'next-intl';
 import { Badge } from '@/components/ui/badge';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useServerAction } from '@/components/admin/use-admin-action';
 import {
   adminUpdateEventStatusAction,
@@ -57,17 +64,18 @@ export function AdminEventsTable({ events }: { events: Event[] }) {
           onChange={(e) => setSearch(e.target.value)}
           className="rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-3 py-2 text-sm text-[color:var(--color-foreground)] placeholder:text-[color:var(--color-muted-foreground)] focus:ring-1 focus:ring-[color:var(--color-border-strong)] focus:outline-none"
         />
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-3 py-2 text-sm text-[color:var(--color-foreground)]"
-        >
-          <option value="all">Tous les statuts</option>
-          <option value="draft">Brouillon</option>
-          <option value="active">Actif</option>
-          <option value="archived">Archivé</option>
-          <option value="cancelled">Annulé</option>
-        </select>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-3 py-2 text-sm text-[color:var(--color-foreground)]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Tous les statuts</SelectItem>
+            <SelectItem value="draft">Brouillon</SelectItem>
+            <SelectItem value="active">Actif</SelectItem>
+            <SelectItem value="archived">Archivé</SelectItem>
+            <SelectItem value="cancelled">Annulé</SelectItem>
+          </SelectContent>
+        </Select>
         <span className="font-mono text-xs text-[color:var(--color-muted-foreground)]">
           {filtered.length} résultat{filtered.length > 1 ? 's' : ''}
         </span>
@@ -132,26 +140,26 @@ function EventRow({ event }: { event: Event }) {
       </td>
       <td className="px-4 py-3">
         <div className="flex items-center gap-2">
-          <select
-            onChange={(e) => {
-              const newStatus = e.target.value as Event['status'];
+          <Select
+            value=""
+            disabled={updating}
+            onValueChange={(v) => {
+              const newStatus = v as Event['status'];
               if (confirm(`Changer le statut en "${newStatus}" ?`)) {
                 updateStatus(event._id, newStatus);
               }
-              e.target.value = '';
             }}
-            disabled={updating}
-            defaultValue=""
-            className="rounded-md border border-[color:var(--color-border)] bg-transparent px-2 py-1 text-xs text-[color:var(--color-muted-foreground)]"
           >
-            <option value="" disabled>
-              Statut…
-            </option>
-            <option value="draft">Brouillon</option>
-            <option value="active">Actif</option>
-            <option value="archived">Archivé</option>
-            <option value="cancelled">Annulé</option>
-          </select>
+            <SelectTrigger className="rounded-md border border-[color:var(--color-border)] bg-transparent px-2 py-1 text-xs text-[color:var(--color-muted-foreground)]">
+              <SelectValue placeholder="Statut…" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="draft">Brouillon</SelectItem>
+              <SelectItem value="active">Actif</SelectItem>
+              <SelectItem value="archived">Archivé</SelectItem>
+              <SelectItem value="cancelled">Annulé</SelectItem>
+            </SelectContent>
+          </Select>
           {event.status !== 'cancelled' ? (
             <button
               onClick={() => {

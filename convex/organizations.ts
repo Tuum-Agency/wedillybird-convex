@@ -9,6 +9,7 @@ import {
 import { internal } from './_generated/api';
 import type { Doc, Id } from './_generated/dataModel';
 import { pickUniqueSlug } from './lib/uniqueSlug';
+import { seatLimitForTier } from './lib/entitlements';
 
 const ROLE = v.union(
   v.literal('owner'),
@@ -142,6 +143,245 @@ export const updateBranding = mutation({
   },
 });
 
+/** Met à jour les réglages messagerie par défaut de l'organisation (owner/admin). */
+export const updateMessagingDefaults = mutation({
+  args: {
+    organizationId: v.id('organizations'),
+    requesterId: v.id('users'),
+    defaults: v.object({
+      channel: v.union(v.literal('whatsapp'), v.literal('sms'), v.literal('auto')),
+      senderName: v.string(),
+      defaultTemplate: v.union(
+        v.literal('editorial'),
+        v.literal('classic'),
+        v.literal('modern'),
+        v.literal('festive'),
+        v.literal('sober'),
+      ),
+      reminderJ7: v.boolean(),
+      reminderJ1: v.boolean(),
+    }),
+  },
+  handler: async (ctx, args) => {
+    await assertCanManage(ctx, args.organizationId, args.requesterId);
+    const senderName = args.defaults.senderName.trim().slice(0, 120) || 'Wedillybird';
+    await ctx.db.patch(args.organizationId, {
+      messagingDefaults: { ...args.defaults, senderName },
+      updatedAt: Date.now(),
+    });
+    return { ok: true as const };
+  },
+});
+
+const NOTIF_CHANNEL = v.object({ email: v.boolean(), app: v.boolean() });
+
+/** Met à jour les préférences de notification de l'organisation (owner/admin). */
+export const updateNotificationPrefs = mutation({
+  args: {
+    organizationId: v.id('organizations'),
+    requesterId: v.id('users'),
+    prefs: v.object({
+      rsvp: NOTIF_CHANNEL,
+      payment: NOTIF_CHANNEL,
+      newLead: NOTIF_CHANNEL,
+      taskDue: NOTIF_CHANNEL,
+      weeklyDigest: NOTIF_CHANNEL,
+    }),
+  },
+  handler: async (ctx, args) => {
+    await assertCanManage(ctx, args.organizationId, args.requesterId);
+    await ctx.db.patch(args.organizationId, {
+      notificationPrefs: args.prefs,
+      updatedAt: Date.now(),
+    });
+    return { ok: true as const };
+  },
+});
+
+/**
+ * Réglages d'encaissement (module Paiements) : mode `byop` (compte Stripe de
+ * l'agence connecté via OAuth) ou `manual` (suivi hors ligne). Owner/admin
+ * uniquement. Le mode `managed` (legacy) n'est plus acceptable.
+ */
+export const setPaymentsSettings = mutation({
+  args: {
+    organizationId: v.id('organizations'),
+    requesterId: v.id('users'),
+    mode: v.optional(v.union(v.literal('byop'), v.literal('manual'))),
+  },
+  handler: async (ctx, args) => {
+    await assertCanManage(ctx, args.organizationId, args.requesterId);
+    const patch: Record<string, unknown> = { updatedAt: Date.now() };
+    if (args.mode !== undefined) patch.paymentsMode = args.mode;
+    await ctx.db.patch(args.organizationId, patch);
+    return { ok: true as const };
+  },
+});
+
+/**
+ * Zone de danger — transfert de propriété. Réservé au propriétaire actuel.
+ * Rétrograde l'ancien propriétaire en admin et promeut un membre actif en owner.
+ */
+export const transferOwnership = mutation({
+  args: {
+    organizationId: v.id('organizations'),
+    requesterId: v.id('users'),
+    newOwnerUserId: v.id('users'),
+  },
+  handler: async (ctx, args) => {
+    const org = await ctx.db.get(args.organizationId);
+    if (!org) throw new Error('NOT_FOUND');
+    if (org.ownerId !== args.requesterId) throw new Error('OWNER_ONLY');
+    if (args.newOwnerUserId === args.requesterId) throw new Error('ALREADY_OWNER');
+    const memberships = await ctx.db
+      .query('organizationMemberships')
+      .withIndex('by_organization', (q) => q.eq('organizationId', org._id))
+      .collect();
+    const current = memberships.find((m) => m.userId === args.requesterId);
+    const target = memberships.find(
+      (m) => m.userId === args.newOwnerUserId && m.status === 'active',
+    );
+    if (!target) throw new Error('MEMBER_NOT_FOUND');
+    await ctx.db.patch(org._id, { ownerId: args.newOwnerUserId, updatedAt: Date.now() });
+    if (current) await ctx.db.patch(current._id, { role: 'admin' });
+    await ctx.db.patch(target._id, { role: 'owner' });
+    return { ok: true as const };
+  },
+});
+
+/**
+ * Zone de danger — suppression définitive de l'organisation et de ses données.
+ * Réservé au propriétaire ; exige la saisie exacte du nom de l'agence. Cascade
+ * sur les tables rattachées (événements + enfants, clients, prestataires,
+ * budget, planning, devis, contrats, membres).
+ */
+export const deleteOrganization = mutation({
+  args: {
+    organizationId: v.id('organizations'),
+    requesterId: v.id('users'),
+    confirmName: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const org = await ctx.db.get(args.organizationId);
+    if (!org) throw new Error('NOT_FOUND');
+    if (org.ownerId !== args.requesterId) throw new Error('OWNER_ONLY');
+    if (args.confirmName.trim() !== org.name) throw new Error('NAME_MISMATCH');
+    const orgId = org._id;
+
+    // Événements + enfants par événement.
+    const events = await ctx.db
+      .query('events')
+      .withIndex('by_organization', (q) => q.eq('organizationId', orgId))
+      .collect();
+    for (const ev of events) {
+      for (const g of await ctx.db
+        .query('guests')
+        .withIndex('by_event', (q) => q.eq('eventId', ev._id))
+        .collect())
+        await ctx.db.delete(g._id);
+      for (const ph of await ctx.db
+        .query('photos')
+        .withIndex('by_event', (q) => q.eq('eventId', ev._id))
+        .collect())
+        await ctx.db.delete(ph._id);
+      await ctx.db.delete(ev._id);
+    }
+
+    // Clients + notes.
+    const clients = await ctx.db
+      .query('clients')
+      .withIndex('by_organization', (q) => q.eq('organizationId', orgId))
+      .collect();
+    for (const c of clients) {
+      for (const n of await ctx.db
+        .query('clientNotes')
+        .withIndex('by_client', (q) => q.eq('clientId', c._id))
+        .collect())
+        await ctx.db.delete(n._id);
+      await ctx.db.delete(c._id);
+    }
+
+    // Tables org-scoped restantes.
+    for (const vd of await ctx.db
+      .query('vendors')
+      .withIndex('by_organization', (q) => q.eq('organizationId', orgId))
+      .collect())
+      await ctx.db.delete(vd._id);
+    for (const en of await ctx.db
+      .query('vendorEngagements')
+      .withIndex('by_organization', (q) => q.eq('organizationId', orgId))
+      .collect())
+      await ctx.db.delete(en._id);
+    for (const t of await ctx.db
+      .query('planningTasks')
+      .withIndex('by_organization', (q) => q.eq('organizationId', orgId))
+      .collect())
+      await ctx.db.delete(t._id);
+    for (const bl of await ctx.db
+      .query('budgetLines')
+      .withIndex('by_organization', (q) => q.eq('organizationId', orgId))
+      .collect())
+      await ctx.db.delete(bl._id);
+    for (const ct of await ctx.db
+      .query('contracts')
+      .withIndex('by_organization', (q) => q.eq('organizationId', orgId))
+      .collect())
+      await ctx.db.delete(ct._id);
+    for (const qd of await ctx.db
+      .query('quoteDocs')
+      .withIndex('by_organization', (q) => q.eq('organizationId', orgId))
+      .collect())
+      await ctx.db.delete(qd._id);
+    for (const m of await ctx.db
+      .query('organizationMemberships')
+      .withIndex('by_organization', (q) => q.eq('organizationId', orgId))
+      .collect())
+      await ctx.db.delete(m._id);
+
+    await ctx.db.delete(orgId);
+    return { ok: true as const };
+  },
+});
+
+/**
+ * Marque blanche totale (Agency) : domaine sur mesure, e-mail expéditeur,
+ * retrait du badge Wedillybird. Réservé aux owners/admins d'une org Agency.
+ */
+export const updateWhiteLabel = mutation({
+  args: {
+    organizationId: v.id('organizations'),
+    requesterId: v.id('users'),
+    customDomain: v.optional(v.string()),
+    senderEmail: v.optional(v.string()),
+    whiteLabelFull: v.optional(v.boolean()),
+  },
+  handler: async (ctx, args) => {
+    await assertCanManage(ctx, args.organizationId, args.requesterId);
+    const org = await ctx.db.get(args.organizationId);
+    if (!org) throw new Error('NOT_FOUND');
+    if (org.subscriptionTier !== 'agency') throw new Error('FEATURE_NOT_IN_PLAN');
+    const patch: Partial<Doc<'organizations'>> = { updatedAt: Date.now() };
+    if (args.customDomain !== undefined) {
+      const d = args.customDomain
+        .trim()
+        .toLowerCase()
+        .replace(/^https?:\/\//, '')
+        .replace(/\/.*$/, '')
+        .replace(/^www\./, '');
+      if (d && !/^([a-z0-9-]+\.)+[a-z]{2,}$/.test(d)) throw new Error('INVALID_DOMAIN');
+      patch.customDomain = d || undefined;
+    }
+    if (args.senderEmail !== undefined) {
+      const e = args.senderEmail.trim().toLowerCase();
+      if (e && !/^[^\s@]+@([a-z0-9-]+\.)+[a-z]{2,}$/.test(e)) throw new Error('INVALID_EMAIL');
+      patch.senderEmail = e || undefined;
+    }
+    if (args.whiteLabelFull !== undefined) patch.whiteLabelFull = args.whiteLabelFull;
+    await ctx.db.patch(args.organizationId, patch);
+    return { ok: true as const };
+  },
+});
+
 /**
  * Generates a single-use upload URL pointing at Convex storage. The client
  * POSTs the logo file directly to this URL (multipart) and gets back a
@@ -245,6 +485,13 @@ export const myOrganization = query({
       primaryColor: org.primaryColor,
       accentColor: org.accentColor,
       logoUrl,
+      customDomain: org.customDomain,
+      senderEmail: org.senderEmail,
+      whiteLabelFull: org.whiteLabelFull ?? false,
+      notificationPrefs: org.notificationPrefs ?? null,
+      messagingDefaults: org.messagingDefaults ?? null,
+      paymentsMode: org.paymentsMode ?? null,
+      payoutSchedule: org.payoutSchedule ?? null,
       stripeCustomerId: org.stripeCustomerId,
       subscriptionTier: org.subscriptionTier,
       subscriptionStatus: org.subscriptionStatus,
@@ -315,8 +562,10 @@ export const listEvents = query({
     const events = await ctx.db
       .query('events')
       .withIndex('by_organization', (q) => q.eq('organizationId', organizationId))
-      .order('desc')
       .collect();
+    // Tri par date de mariage croissante : le mariage le plus proche en premier
+    // (défaut sensé pour les sélecteurs budget/rétroplanning/plan de table).
+    events.sort((a, b) => a.eventDate - b.eventDate);
     return events.map((e) => ({
       _id: e._id,
       title: e.title,
@@ -328,6 +577,7 @@ export const listEvents = query({
       planTier: e.planTier,
       maxGuests: e.maxGuests,
       ownerId: e.ownerId,
+      venue: e.venue?.name,
     }));
   },
 });
@@ -345,6 +595,7 @@ export const listMembers = query({
         const user = m.userId ? await ctx.db.get(m.userId) : null;
         return {
           _id: m._id,
+          userId: m.userId,
           role: m.role,
           status: m.status,
           fullName: user?.fullName,
@@ -404,6 +655,20 @@ export const invite = mutation({
       if (dup && dup.status !== 'revoked') throw new Error('ALREADY_MEMBER');
     }
 
+    const org = await ctx.db.get(args.organizationId);
+
+    // Limite de sièges (grille v3 : 2 / 8 / illimité). Les membres actifs ET
+    // les invitations en attente occupent un siège (l'owner inclus).
+    const seatLimit = seatLimitForTier(org?.subscriptionTier);
+    if (seatLimit !== null) {
+      const all = await ctx.db
+        .query('organizationMemberships')
+        .withIndex('by_organization', (q) => q.eq('organizationId', args.organizationId))
+        .collect();
+      const seatsUsed = all.filter((m) => m.status === 'active' || m.status === 'pending').length;
+      if (seatsUsed >= seatLimit) throw new Error('SEAT_LIMIT_REACHED');
+    }
+
     const token = generateInviteToken();
     const now = Date.now();
     const id = await ctx.db.insert('organizationMemberships', {
@@ -420,7 +685,6 @@ export const invite = mutation({
 
     // Notify any existing org members that someone was invited (best effort).
     if (args.email) {
-      const org = await ctx.db.get(args.organizationId);
       const inviter = await ctx.db.get(args.requesterId);
       if (org && inviter) {
         const inviteeName = args.email.split('@')[0];
@@ -477,6 +741,74 @@ export const revokeMembership = mutation({
     await assertCanManage(ctx, m.organizationId, requesterId);
     if (m.role === 'owner') throw new Error('CANNOT_REVOKE_OWNER');
     await ctx.db.patch(membershipId, { status: 'revoked' });
+    return { ok: true as const };
+  },
+});
+
+/** Change le rôle d'un membre (owner/admin uniquement ; jamais l'owner). */
+export const updateMemberRole = mutation({
+  args: { membershipId: v.id('organizationMemberships'), requesterId: v.id('users'), role: ROLE },
+  handler: async (ctx, { membershipId, requesterId, role }) => {
+    const m = await ctx.db.get(membershipId);
+    if (!m) throw new Error('NOT_FOUND');
+    await assertCanManage(ctx, m.organizationId, requesterId);
+    if (m.role === 'owner') throw new Error('CANNOT_CHANGE_OWNER');
+    if (role === 'owner') throw new Error('CANNOT_ASSIGN_OWNER');
+    await ctx.db.patch(membershipId, { role });
+    return { ok: true as const };
+  },
+});
+
+/** Annule une invitation en attente (supprime la ligne). */
+export const cancelInvite = mutation({
+  args: { membershipId: v.id('organizationMemberships'), requesterId: v.id('users') },
+  handler: async (ctx, { membershipId, requesterId }) => {
+    const m = await ctx.db.get(membershipId);
+    if (!m) throw new Error('NOT_FOUND');
+    await assertCanManage(ctx, m.organizationId, requesterId);
+    if (m.status !== 'pending') throw new Error('NOT_PENDING');
+    await ctx.db.delete(membershipId);
+    return { ok: true as const };
+  },
+});
+
+/** Renvoie une invitation en attente (régénère un token). */
+export const resendInvite = mutation({
+  args: { membershipId: v.id('organizationMemberships'), requesterId: v.id('users') },
+  handler: async (ctx, { membershipId, requesterId }) => {
+    const m = await ctx.db.get(membershipId);
+    if (!m) throw new Error('NOT_FOUND');
+    await assertCanManage(ctx, m.organizationId, requesterId);
+    if (m.status !== 'pending') throw new Error('NOT_PENDING');
+    const token = generateInviteToken();
+    await ctx.db.patch(membershipId, {
+      inviteToken: token,
+      invitedAt: Date.now(),
+      invitedBy: requesterId,
+    });
+    return { ok: true as const, inviteToken: token };
+  },
+});
+
+/** Réactive un membre révoqué (reconsomme un siège — quota vérifié). */
+export const reactivateMember = mutation({
+  args: { membershipId: v.id('organizationMemberships'), requesterId: v.id('users') },
+  handler: async (ctx, { membershipId, requesterId }) => {
+    const m = await ctx.db.get(membershipId);
+    if (!m) throw new Error('NOT_FOUND');
+    await assertCanManage(ctx, m.organizationId, requesterId);
+    if (m.status !== 'revoked') throw new Error('NOT_REVOKED');
+    const org = await ctx.db.get(m.organizationId);
+    const seatLimit = seatLimitForTier(org?.subscriptionTier);
+    if (seatLimit !== null) {
+      const all = await ctx.db
+        .query('organizationMemberships')
+        .withIndex('by_organization', (q) => q.eq('organizationId', m.organizationId))
+        .collect();
+      const seatsUsed = all.filter((x) => x.status === 'active' || x.status === 'pending').length;
+      if (seatsUsed >= seatLimit) throw new Error('SEAT_LIMIT_REACHED');
+    }
+    await ctx.db.patch(membershipId, { status: m.userId ? 'active' : 'pending' });
     return { ok: true as const };
   },
 });
@@ -653,5 +985,90 @@ export const findByStripeCustomer = query({
       .query('organizations')
       .withIndex('by_stripe_customer', (q) => q.eq('stripeCustomerId', stripeCustomerId))
       .first();
+  },
+});
+
+/* --------------------------- Stripe Connect (versements) --------------------------- */
+
+/** Statut Connect d'une agence (lecture pour tout membre). */
+export const connectStatus = query({
+  args: { organizationId: v.id('organizations'), requesterId: v.id('users') },
+  handler: async (ctx, { organizationId, requesterId }) => {
+    await assertCanRead(ctx, organizationId, requesterId);
+    const org = await ctx.db.get(organizationId);
+    if (!org) throw new Error('NOT_FOUND');
+    return {
+      accountId: org.stripeConnectAccountId ?? null,
+      chargesEnabled: Boolean(org.stripeConnectChargesEnabled),
+      payoutsEnabled: Boolean(org.stripeConnectPayoutsEnabled),
+      detailsSubmitted: Boolean(org.stripeConnectDetailsSubmitted),
+    };
+  },
+});
+
+/**
+ * Mémorise le compte connecté **de l'agence** (Standard, onboarding hébergé) :
+ * stocke son `acct_…` et passe en mode `byop`. `chargesEnabled` reste false tant
+ * que l'onboarding Stripe n'est pas terminé — mis à true par `updateConnectStatus`
+ * au retour de l'onboarding. Owner/admin uniquement.
+ */
+export const setConnectAccount = mutation({
+  args: {
+    organizationId: v.id('organizations'),
+    requesterId: v.id('users'),
+    stripeConnectAccountId: v.string(),
+  },
+  handler: async (ctx, { organizationId, requesterId, stripeConnectAccountId }) => {
+    await assertCanManage(ctx, organizationId, requesterId);
+    await ctx.db.patch(organizationId, {
+      stripeConnectAccountId,
+      stripeConnectChargesEnabled: false,
+      stripeConnectDetailsSubmitted: false,
+      paymentsMode: 'byop',
+      updatedAt: Date.now(),
+    });
+    return { ok: true as const };
+  },
+});
+
+/**
+ * Rafraîchit le statut du compte connecté après l'onboarding Stripe (charges /
+ * details / payouts). `chargesEnabled = true` débloque la création de liens de
+ * paiement. Owner/admin uniquement.
+ */
+export const updateConnectStatus = mutation({
+  args: {
+    organizationId: v.id('organizations'),
+    requesterId: v.id('users'),
+    chargesEnabled: v.boolean(),
+    detailsSubmitted: v.boolean(),
+    payoutsEnabled: v.boolean(),
+  },
+  handler: async (ctx, args) => {
+    await assertCanManage(ctx, args.organizationId, args.requesterId);
+    await ctx.db.patch(args.organizationId, {
+      stripeConnectChargesEnabled: args.chargesEnabled,
+      stripeConnectDetailsSubmitted: args.detailsSubmitted,
+      stripeConnectPayoutsEnabled: args.payoutsEnabled,
+      updatedAt: Date.now(),
+    });
+    return { ok: true as const };
+  },
+});
+
+/** Déconnecte le compte Stripe de l'agence (oubli + repli en suivi manuel). */
+export const disconnectStripeAccount = mutation({
+  args: { organizationId: v.id('organizations'), requesterId: v.id('users') },
+  handler: async (ctx, { organizationId, requesterId }) => {
+    await assertCanManage(ctx, organizationId, requesterId);
+    await ctx.db.patch(organizationId, {
+      stripeConnectAccountId: undefined,
+      stripeConnectChargesEnabled: false,
+      stripeConnectDetailsSubmitted: false,
+      stripeConnectPayoutsEnabled: false,
+      paymentsMode: 'manual',
+      updatedAt: Date.now(),
+    });
+    return { ok: true as const };
   },
 });

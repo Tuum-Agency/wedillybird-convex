@@ -2,6 +2,8 @@ import { v } from 'convex/values';
 import { internalMutation, mutation, query } from './_generated/server';
 import { internal } from './_generated/api';
 import { toIntlTag } from '../lib/i18n/locale-tags';
+import { assertOrgRead } from './lib/orgAuth';
+import { proTierAtLeast } from './lib/entitlements';
 
 function ownerLocaleToIntlTag(locale: string | undefined): string {
   return toIntlTag(locale);
@@ -354,5 +356,48 @@ export const _repairOrphanedEventGalleries = internalMutation({
     }
 
     return { scanned, repaired, skipped };
+  },
+});
+
+/* ============================ PAIEMENTS AGENCE (Finances) ============================
+ * Ledger des encaissements d'une agence, dérivé des **factures** du module
+ * Devis & Factures (chaque entrée d'échéancier = une échéance encaissable).
+ * Réservé Business+. `account.connected` reflète le compte Stripe de l'agence
+ * connecté (BYOP) — l'agence encaisse sur son propre compte Stripe.
+ */
+export const overview = query({
+  args: { organizationId: v.id('organizations'), requesterId: v.id('users') },
+  handler: async (ctx, { organizationId, requesterId }) => {
+    await assertOrgRead(ctx, organizationId, requesterId);
+    const org = await ctx.db.get(organizationId);
+    const allowed = proTierAtLeast(org?.subscriptionTier, 'business');
+
+    const invoices = await ctx.db
+      .query('quoteDocs')
+      .withIndex('by_org_type', (q) => q.eq('organizationId', organizationId).eq('type', 'invoice'))
+      .collect();
+
+    return {
+      allowed,
+      invoices: invoices.map((d) => ({
+        _id: d._id,
+        number: d.number,
+        clientName: d.clientName,
+        eventId: d.eventId,
+        status: d.status,
+        schedule: d.schedule ?? [],
+      })),
+      account: {
+        /** Mode d'encaissement (byop = via le Stripe de l'agence / manuel). Défaut : manuel. */
+        mode: ((org?.paymentsMode ?? 'manual') === 'manual' ? 'manual' : 'byop') as
+          | 'byop'
+          | 'manual',
+        /** Fréquence des versements (héritée ; en BYOP, gérée côté Stripe de l'agence). */
+        payoutSchedule: (org?.payoutSchedule ?? 'daily') as 'daily' | 'weekly' | 'manual',
+        /** Compte Stripe de l'agence connecté (capable d'encaisser en ligne) ? */
+        connected: Boolean(org?.stripeConnectChargesEnabled),
+        country: 'FR' as const,
+      },
+    };
   },
 });

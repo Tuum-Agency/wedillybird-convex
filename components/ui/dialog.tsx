@@ -1,0 +1,80 @@
+'use client';
+
+import * as DialogPrimitive from '@radix-ui/react-dialog';
+import { X } from 'lucide-react';
+import type { ComponentProps, ReactNode } from 'react';
+import { cn } from '@/lib/cn';
+
+/**
+ * Dialog (shadcn/Radix) — **le** pattern modal du projet. À utiliser pour toute
+ * interaction en surimpression (confirmation, formulaire, aperçu, choix). Thémé
+ * tokens OKLCH → dark agence + light éditorial. API alignée sur `Drawer` pour
+ * substitution directe : Dialog / DialogContent / DialogHeader / DialogTitle.
+ */
+
+export const Dialog = DialogPrimitive.Root;
+export const DialogTrigger = DialogPrimitive.Trigger;
+export const DialogClose = DialogPrimitive.Close;
+
+export function DialogContent({
+  className,
+  children,
+  showClose = true,
+  ...props
+}: ComponentProps<typeof DialogPrimitive.Content> & { showClose?: boolean }) {
+  return (
+    <DialogPrimitive.Portal>
+      <DialogPrimitive.Overlay className="animate-fade-in fixed inset-0 z-50 bg-black/55 backdrop-blur-sm" />
+      <DialogPrimitive.Content
+        className={cn(
+          'animate-scale-in fixed top-1/2 left-1/2 z-50 flex max-h-[90dvh] w-[calc(100vw-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-2xl border border-[color:var(--color-border-strong)] bg-[color:var(--color-surface)] shadow-[var(--shadow-popover)] focus:outline-none',
+          className,
+        )}
+        {...props}
+      >
+        <div className="flex flex-col overflow-y-auto p-6">{children}</div>
+        {showClose ? (
+          <DialogPrimitive.Close
+            aria-label="Fermer"
+            className="focus-ring absolute top-4 right-4 rounded-lg p-1 text-[color:var(--color-muted-foreground)] transition-colors hover:bg-[color:var(--color-surface-elevated)] hover:text-[color:var(--color-foreground)]"
+          >
+            <X className="h-4 w-4" strokeWidth={2} aria-hidden />
+          </DialogPrimitive.Close>
+        ) : null}
+      </DialogPrimitive.Content>
+    </DialogPrimitive.Portal>
+  );
+}
+
+export function DialogHeader({ className, children }: { className?: string; children: ReactNode }) {
+  return <div className={cn('mb-4 flex flex-col gap-1 pr-8 text-left', className)}>{children}</div>;
+}
+
+export function DialogFooter({ className, children }: { className?: string; children: ReactNode }) {
+  return (
+    <div className={cn('mt-5 flex items-center justify-end gap-2', className)}>{children}</div>
+  );
+}
+
+export function DialogTitle({ className, children }: ComponentProps<typeof DialogPrimitive.Title>) {
+  return (
+    <DialogPrimitive.Title
+      className={cn('font-display text-xl text-[color:var(--color-foreground)] italic', className)}
+    >
+      {children}
+    </DialogPrimitive.Title>
+  );
+}
+
+export function DialogDescription({
+  className,
+  children,
+}: ComponentProps<typeof DialogPrimitive.Description>) {
+  return (
+    <DialogPrimitive.Description
+      className={cn('text-sm text-[color:var(--color-muted-foreground)]', className)}
+    >
+      {children}
+    </DialogPrimitive.Description>
+  );
+}

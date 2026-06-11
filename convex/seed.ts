@@ -33,6 +33,12 @@ const TEST_USERS = [
     fullName: 'Kwame Kouassi',
     role: 'pro' as const,
   },
+  {
+    phone: '+33600000002',
+    email: 'camille@wedillybird.test',
+    fullName: 'Camille Faye',
+    role: 'pro' as const,
+  },
 ];
 
 export const seedTestUsers = mutation({
@@ -465,7 +471,8 @@ export const seedTierFixtures = mutation({
     const jean = await userByPhone('+33698765432');
     const aicha = await userByPhone('+221771234567');
     const kwame = await userByPhone('+225071234567');
-    if (!jean || !aicha || !kwame) {
+    const camille = await userByPhone('+33600000002');
+    if (!jean || !aicha || !kwame || !camille) {
       throw new Error('RUN_seedTestUsers_FIRST');
     }
 
@@ -625,12 +632,912 @@ export const seedTierFixtures = mutation({
       updatedAt: now,
     });
 
+    // 4) BUSINESS — agence Studio Lumière, back-office complet (CRM, budget…)
+    //    avec quelques clients de démo pour peupler le pipeline (e2e + captures).
+    let bizOrg = await ctx.db
+      .query('organizations')
+      .withIndex('by_slug', (q) => q.eq('slug', 'demo-business-org'))
+      .first();
+    // Agency (Studio Lumière) : back-office complet, tous les modules débloqués
+    // (CRM, budget, prestataires, analytics, intégrations).
+    if (!bizOrg) {
+      const bizId = await ctx.db.insert('organizations', {
+        ownerId: camille._id,
+        name: 'Studio Lumière',
+        slug: 'demo-business-org',
+        subscriptionTier: 'agency',
+        subscriptionStatus: 'active',
+        createdAt: now,
+        updatedAt: now,
+      });
+      bizOrg = await ctx.db.get(bizId);
+    } else {
+      await ctx.db.patch(bizOrg._id, {
+        subscriptionTier: 'agency',
+        subscriptionStatus: 'active',
+        updatedAt: now,
+      });
+    }
+    if (!bizOrg) throw new Error('BIZ_ORG_INIT_FAILED');
+
+    const bizMembership = await ctx.db
+      .query('organizationMemberships')
+      .withIndex('by_org_user', (q) =>
+        q.eq('organizationId', bizOrg!._id).eq('userId', camille._id),
+      )
+      .first();
+    if (!bizMembership) {
+      await ctx.db.insert('organizationMemberships', {
+        organizationId: bizOrg._id,
+        userId: camille._id,
+        role: 'owner',
+        status: 'active',
+        invitedBy: camille._id,
+        invitedAt: now,
+        acceptedAt: now,
+      });
+    }
+
+    // Données de démo en **create-once** (pas de wipe) → les specs e2e qui
+    // tournent en parallèle et appellent toutes seedTierFixtures ne s'écrasent
+    // pas mutuellement. Les items ajoutés par les tests persistent (assertions
+    // sur des noms uniques côté tests).
+    const demoClients: Array<{
+      partnerA: string;
+      partnerB: string;
+      stage: 'lead' | 'contacted' | 'quote' | 'booked' | 'in_progress' | 'delivered';
+      phone?: string;
+      whatsapp?: string;
+      email?: string;
+      venue?: string;
+      budgetMinor?: number;
+      budgetBookedMinor?: number;
+      source?: string;
+    }> = [
+      {
+        partnerA: 'Awa',
+        partnerB: 'Karim',
+        stage: 'booked',
+        phone: '+33 6 41 22 18 03',
+        whatsapp: '+33 6 41 22 18 03',
+        email: 'awa.traore@gmail.com',
+        venue: 'Domaine de la Roseraie, Aix-en-Provence',
+        budgetMinor: 1_800_000,
+        budgetBookedMinor: 1_260_000,
+        source: 'Recommandation',
+      },
+      {
+        partnerA: 'Léa',
+        partnerB: 'Tom',
+        stage: 'in_progress',
+        phone: '+33 6 88 54 09 71',
+        whatsapp: '+33 6 88 54 09 71',
+        email: 'lea.bernard@outlook.fr',
+        venue: 'Château de Varennes, Bourgogne',
+        budgetMinor: 2_400_000,
+        budgetBookedMinor: 1_920_000,
+        source: 'Instagram',
+      },
+      {
+        partnerA: 'Sofia',
+        partnerB: 'Mehdi',
+        stage: 'quote',
+        phone: '+33 7 60 31 47 92',
+        email: 'sofia.haddad@gmail.com',
+        budgetMinor: 3_100_000,
+        source: 'Salon',
+      },
+    ];
+    const existingClient = await ctx.db
+      .query('clients')
+      .withIndex('by_organization', (q) => q.eq('organizationId', bizOrg._id))
+      .first();
+    if (!existingClient) {
+      for (const c of demoClients) {
+        const cid = await ctx.db.insert('clients', {
+          organizationId: bizOrg._id,
+          partnerA: c.partnerA,
+          partnerB: c.partnerB,
+          stage: c.stage,
+          ...(c.phone ? { phone: c.phone } : {}),
+          ...(c.whatsapp ? { whatsapp: c.whatsapp } : {}),
+          ...(c.email ? { email: c.email } : {}),
+          ...(c.venue ? { venue: c.venue } : {}),
+          ...(c.budgetMinor != null ? { budgetMinor: c.budgetMinor } : {}),
+          ...(c.budgetBookedMinor != null ? { budgetBookedMinor: c.budgetBookedMinor } : {}),
+          weddingDate: eventDate,
+          ...(c.source ? { source: c.source } : {}),
+          assigneeId: camille._id,
+          lastContactAt: now,
+          createdAt: now,
+          updatedAt: now,
+        });
+        await ctx.db.insert('clientNotes', {
+          clientId: cid,
+          organizationId: bizOrg._id,
+          type: 'note',
+          text: `Lead entrant via ${c.source ?? 'le site'}. Dossier suivi par Camille.`,
+          createdAt: now,
+        });
+      }
+    }
+
+    // Mariage de démo **stable** (create-once par slug) → l'id ne change pas
+    // entre deux seeds, donc le budget rattaché reste valide.
+    let bizEvent = await ctx.db
+      .query('events')
+      .withIndex('by_slug', (q) => q.eq('slug', 'demo-business-wedding'))
+      .first();
+    if (!bizEvent) {
+      const bizEvtId = await ctx.db.insert('events', {
+        ownerId: camille._id,
+        organizationId: bizOrg._id,
+        slug: 'demo-business-wedding',
+        title: 'Awa & Karim',
+        coupleNames: { partnerA: 'Awa', partnerB: 'Karim' },
+        eventDate,
+        timezone: 'Europe/Paris',
+        status: 'active',
+        maxGuests: 150,
+        venue: { name: 'Domaine de la Roseraie', address: 'Aix-en-Provence' },
+        galleryExpiresAt,
+        createdAt: now,
+        updatedAt: now,
+      });
+      bizEvent = await ctx.db.get(bizEvtId);
+    }
+    const bizEventId = bizEvent!._id;
+    // Enveloppe budgétaire de démo (backfill idempotent sur l'event stable).
+    if (bizEvent!.budgetEnvelopeMinor == null) {
+      await ctx.db.patch(bizEventId, { budgetEnvelopeMinor: 1_800_000, updatedAt: now });
+    }
+    // Lieu de réception (backfill idempotent — affiché dans les infos du mariage).
+    if (bizEvent!.venue == null) {
+      await ctx.db.patch(bizEventId, {
+        venue: { name: 'Domaine de la Roseraie', address: 'Aix-en-Provence' },
+        updatedAt: now,
+      });
+    }
+
+    // Autres mariages de l'agence (peuplent les sélecteurs + la liste Mariages).
+    // Create-once par slug ; rattachés à l'org et à Camille.
+    const moreEvents = [
+      {
+        slug: 'demo-lea-tom',
+        partnerA: 'Léa',
+        partnerB: 'Tom',
+        days: 90,
+        venue: { name: 'Château de Varennes', address: 'Bourgogne' },
+        maxGuests: 120,
+      },
+      {
+        slug: 'demo-sofia-mehdi',
+        partnerA: 'Sofia',
+        partnerB: 'Mehdi',
+        days: 120,
+        venue: { name: 'Villa Ephrussi', address: 'Saint-Jean-Cap-Ferrat' },
+        maxGuests: 180,
+      },
+    ];
+    for (const ev of moreEvents) {
+      const existing = await ctx.db
+        .query('events')
+        .withIndex('by_slug', (q) => q.eq('slug', ev.slug))
+        .first();
+      if (existing) continue;
+      await ctx.db.insert('events', {
+        ownerId: camille._id,
+        organizationId: bizOrg._id,
+        slug: ev.slug,
+        title: `${ev.partnerA} & ${ev.partnerB}`,
+        coupleNames: { partnerA: ev.partnerA, partnerB: ev.partnerB },
+        eventDate: now + ev.days * 24 * 60 * 60 * 1000,
+        timezone: 'Europe/Paris',
+        status: 'active',
+        maxGuests: ev.maxGuests,
+        venue: ev.venue,
+        galleryExpiresAt,
+        createdAt: now,
+        updatedAt: now,
+      });
+    }
+
+    // Liste d'invités de démo pour le hub mariage agence (Invités / Messaging /
+    // Check-in / Plan de table). Create-once : si l'event a déjà des invités,
+    // on ne réinsère rien. Distribution RSVP « saine » (majorité confirmés).
+    const existingBizGuest = await ctx.db
+      .query('guests')
+      .withIndex('by_event', (q) => q.eq('eventId', bizEventId))
+      .first();
+    if (!existingBizGuest) {
+      const bizGuests: Array<{
+        fullName: string;
+        phone: string;
+        category: 'Famille' | 'Amis' | 'Témoins' | 'Collègues';
+        plusOnesAllowed: number;
+        rsvpStatus: 'attending' | 'pending' | 'declined' | 'maybe';
+      }> = [
+        {
+          fullName: 'Aminata Diallo',
+          phone: '+221 77 123 45 67',
+          category: 'Famille',
+          plusOnesAllowed: 2,
+          rsvpStatus: 'attending',
+        },
+        {
+          fullName: 'Amadou Diallo',
+          phone: '+221 77 987 65 43',
+          category: 'Famille',
+          plusOnesAllowed: 1,
+          rsvpStatus: 'attending',
+        },
+        {
+          fullName: 'Khadija Ndiaye',
+          phone: '+221 76 321 65 98',
+          category: 'Famille',
+          plusOnesAllowed: 0,
+          rsvpStatus: 'attending',
+        },
+        {
+          fullName: 'Ousmane Sarr',
+          phone: '+221 76 778 99 00',
+          category: 'Famille',
+          plusOnesAllowed: 2,
+          rsvpStatus: 'pending',
+        },
+        {
+          fullName: 'Mariama Bâ',
+          phone: '+221 78 909 12 34',
+          category: 'Famille',
+          plusOnesAllowed: 1,
+          rsvpStatus: 'attending',
+        },
+        {
+          fullName: 'Cheikh Gueye',
+          phone: '+221 77 556 67 78',
+          category: 'Famille',
+          plusOnesAllowed: 0,
+          rsvpStatus: 'declined',
+        },
+        {
+          fullName: 'Camille Bernard',
+          phone: '+33 6 12 34 56 78',
+          category: 'Amis',
+          plusOnesAllowed: 1,
+          rsvpStatus: 'attending',
+        },
+        {
+          fullName: 'Hugo Lefèvre',
+          phone: '+33 6 88 44 22 11',
+          category: 'Amis',
+          plusOnesAllowed: 1,
+          rsvpStatus: 'attending',
+        },
+        {
+          fullName: 'Sophie Marchand',
+          phone: '+33 7 65 43 21 09',
+          category: 'Amis',
+          plusOnesAllowed: 0,
+          rsvpStatus: 'pending',
+        },
+        {
+          fullName: 'Léa Petit',
+          phone: '+33 6 22 33 44 55',
+          category: 'Amis',
+          plusOnesAllowed: 0,
+          rsvpStatus: 'attending',
+        },
+        {
+          fullName: 'Élise Moreau',
+          phone: '+33 7 12 98 76 54',
+          category: 'Amis',
+          plusOnesAllowed: 1,
+          rsvpStatus: 'maybe',
+        },
+        {
+          fullName: 'Nora Benali',
+          phone: '+212 6 70 11 22 33',
+          category: 'Amis',
+          plusOnesAllowed: 1,
+          rsvpStatus: 'attending',
+        },
+        {
+          fullName: 'Mehdi Haddad',
+          phone: '+212 6 61 23 45 67',
+          category: 'Amis',
+          plusOnesAllowed: 1,
+          rsvpStatus: 'pending',
+        },
+        {
+          fullName: 'Awa Traoré',
+          phone: '+221 76 555 33 22',
+          category: 'Témoins',
+          plusOnesAllowed: 1,
+          rsvpStatus: 'attending',
+        },
+        {
+          fullName: 'Yacine Mbaye',
+          phone: '+221 77 444 88 12',
+          category: 'Témoins',
+          plusOnesAllowed: 0,
+          rsvpStatus: 'attending',
+        },
+        {
+          fullName: 'Fatou Sow',
+          phone: '+221 78 222 11 09',
+          category: 'Témoins',
+          plusOnesAllowed: 2,
+          rsvpStatus: 'attending',
+        },
+        {
+          fullName: 'Ibrahima Fall',
+          phone: '+221 77 010 20 30',
+          category: 'Témoins',
+          plusOnesAllowed: 0,
+          rsvpStatus: 'attending',
+        },
+        {
+          fullName: 'Modou Diop',
+          phone: '+221 78 345 12 67',
+          category: 'Collègues',
+          plusOnesAllowed: 0,
+          rsvpStatus: 'pending',
+        },
+        {
+          fullName: 'Clara Dubois',
+          phone: '+33 6 47 81 20 55',
+          category: 'Collègues',
+          plusOnesAllowed: 1,
+          rsvpStatus: 'attending',
+        },
+        {
+          fullName: 'Thomas Girard',
+          phone: '+33 6 95 12 73 40',
+          category: 'Collègues',
+          plusOnesAllowed: 0,
+          rsvpStatus: 'declined',
+        },
+        {
+          fullName: 'Inès Roussel',
+          phone: '+33 7 33 64 18 92',
+          category: 'Collègues',
+          plusOnesAllowed: 0,
+          rsvpStatus: 'attending',
+        },
+        {
+          fullName: 'Bineta Faye',
+          phone: '+221 77 802 44 19',
+          category: 'Famille',
+          plusOnesAllowed: 1,
+          rsvpStatus: 'pending',
+        },
+        {
+          fullName: 'Lucas Martin',
+          phone: '+33 6 70 55 13 28',
+          category: 'Amis',
+          plusOnesAllowed: 1,
+          rsvpStatus: 'attending',
+        },
+        {
+          fullName: 'Aïssatou Ba',
+          phone: '+221 76 410 67 33',
+          category: 'Témoins',
+          plusOnesAllowed: 0,
+          rsvpStatus: 'attending',
+        },
+      ];
+      const bizRespondedOffset = [3, 5, 7, 9, 11, 13, 15, 18, 21, 26];
+      let bizRespIdx = 0;
+      for (const g of bizGuests) {
+        const responded =
+          g.rsvpStatus === 'attending' || g.rsvpStatus === 'declined' || g.rsvpStatus === 'maybe';
+        const rsvpRespondedAt = responded
+          ? now -
+            (bizRespondedOffset[bizRespIdx++ % bizRespondedOffset.length] ?? 5) * 60 * 60 * 1000
+          : undefined;
+        await ctx.db.insert('guests', {
+          eventId: bizEventId,
+          fullName: g.fullName,
+          phone: g.phone,
+          category: g.category,
+          plusOnesAllowed: g.plusOnesAllowed,
+          rsvpStatus: g.rsvpStatus,
+          ...(rsvpRespondedAt ? { rsvpRespondedAt } : {}),
+          qrCodeToken: makeQrToken(),
+          invitationSentAt: now - 14 * 24 * 60 * 60 * 1000,
+          invitationChannel: 'whatsapp',
+          createdAt: now,
+          updatedAt: now,
+        });
+      }
+    }
+
+    // Prestataires démo (create-once).
+    const demoVendors = [
+      {
+        name: 'Domaine de Bellevue',
+        category: 'Lieu',
+        location: 'Provence',
+        priceRange: 3,
+        rating: 5,
+      },
+      { name: 'Maison Diop', category: 'Traiteur', location: 'Paris', priceRange: 2, rating: 4 },
+      {
+        name: 'Studio Lumen',
+        category: 'Photo / Vidéo',
+        location: 'Lyon',
+        priceRange: 2,
+        rating: 5,
+      },
+      {
+        name: 'Atelier Camélia',
+        category: 'Décoration & Fleurs',
+        location: 'Aix-en-Provence',
+        priceRange: 2,
+        rating: 5,
+      },
+      {
+        name: 'Studio Sono',
+        category: 'Musique / DJ',
+        location: 'Marseille',
+        priceRange: 2,
+        rating: 4,
+      },
+      { name: 'Maison Lila', category: 'Tenues', location: 'Paris', priceRange: 3, rating: 5 },
+      { name: 'Atelier Plume', category: 'Papeterie', location: 'Lyon', priceRange: 1, rating: 4 },
+    ];
+    const existingVendors = await ctx.db
+      .query('vendors')
+      .withIndex('by_organization', (q) => q.eq('organizationId', bizOrg._id))
+      .collect();
+    const vendorNames = new Set(existingVendors.map((v) => v.name));
+    for (const vn of demoVendors) {
+      if (vendorNames.has(vn.name)) continue;
+      await ctx.db.insert('vendors', {
+        organizationId: bizOrg._id,
+        name: vn.name,
+        category: vn.category,
+        location: vn.location,
+        priceRange: vn.priceRange,
+        rating: vn.rating,
+        createdAt: now,
+        updatedAt: now,
+      });
+    }
+
+    // Engagements « Par mariage » démo (create-once) : rattache les prestataires
+    // au mariage agence avec des statuts variés + budget prévu.
+    const existingEngagement = await ctx.db
+      .query('vendorEngagements')
+      .withIndex('by_event', (q) => q.eq('eventId', bizEventId))
+      .first();
+    if (!existingEngagement) {
+      const orgVendors = await ctx.db
+        .query('vendors')
+        .withIndex('by_organization', (q) => q.eq('organizationId', bizOrg._id))
+        .collect();
+      const engSeed: Array<{
+        name: string;
+        status: 'contacted' | 'quoted' | 'booked' | 'confirmed';
+        plannedMinor: number;
+      }> = [
+        { name: 'Domaine de Bellevue', status: 'confirmed', plannedMinor: 800_000 },
+        { name: 'Maison Diop', status: 'booked', plannedMinor: 600_000 },
+        { name: 'Studio Lumen', status: 'quoted', plannedMinor: 250_000 },
+      ];
+      for (const e of engSeed) {
+        const vd = orgVendors.find((v) => v.name === e.name);
+        if (!vd) continue;
+        await ctx.db.insert('vendorEngagements', {
+          organizationId: bizOrg._id,
+          vendorId: vd._id,
+          eventId: bizEventId,
+          status: e.status,
+          plannedMinor: e.plannedMinor,
+          createdAt: now,
+          updatedAt: now,
+        });
+      }
+    }
+
+    // Budget démo — set curé riche (montants/statuts variés, échéances).
+    const DAY_MS = 24 * 60 * 60 * 1000;
+    const evDate = bizEvent!.eventDate;
+    const demoBudget = [
+      {
+        category: 'Lieu',
+        label: 'Domaine de Bellevue',
+        vendorName: 'Domaine de Bellevue',
+        plannedMinor: 800_000,
+        paidMinor: 400_000,
+        due: evDate - 90 * DAY_MS,
+      },
+      {
+        category: 'Traiteur',
+        label: 'Menu 150 couverts',
+        vendorName: 'Maison Diop',
+        plannedMinor: 600_000,
+        paidMinor: 300_000,
+        due: evDate - 30 * DAY_MS,
+      },
+      {
+        category: 'Photo / Vidéo',
+        label: 'Reportage jour J',
+        vendorName: 'Studio Lumen',
+        plannedMinor: 250_000,
+        paidMinor: 250_000,
+        due: evDate - 120 * DAY_MS,
+      },
+      {
+        category: 'Décoration & Fleurs',
+        label: 'Scénographie florale',
+        vendorName: 'Atelier Camélia',
+        plannedMinor: 180_000,
+        paidMinor: 90_000,
+        due: evDate - 20 * DAY_MS,
+      },
+      {
+        category: 'Musique / DJ',
+        label: 'DJ + sonorisation',
+        vendorName: 'Studio Sono',
+        plannedMinor: 150_000,
+        paidMinor: 0,
+        due: evDate - 15 * DAY_MS,
+      },
+      {
+        category: 'Tenues',
+        label: 'Robe & costume',
+        vendorName: 'Maison Lila',
+        plannedMinor: 320_000,
+        paidMinor: 160_000,
+        due: evDate - 45 * DAY_MS,
+      },
+      {
+        category: 'Papeterie',
+        label: 'Faire-part & menus',
+        vendorName: 'Atelier Plume',
+        plannedMinor: 45_000,
+        paidMinor: 45_000,
+        due: evDate - 150 * DAY_MS,
+      },
+    ];
+    const existingLines = await ctx.db
+      .query('budgetLines')
+      .withIndex('by_event', (q) => q.eq('eventId', bizEventId))
+      .collect();
+    // Nettoie les lignes vides (artefacts de test : « Fleurs … » à 0 €).
+    for (const l of existingLines) {
+      if (l.plannedMinor === 0 && l.paidMinor === 0) await ctx.db.delete(l._id);
+    }
+    // Upsert par libellé : ajoute les lignes curées manquantes (idempotent).
+    const keptLabels = new Set(
+      existingLines.filter((l) => !(l.plannedMinor === 0 && l.paidMinor === 0)).map((l) => l.label),
+    );
+    for (const b of demoBudget) {
+      if (keptLabels.has(b.label)) continue;
+      const lineId = await ctx.db.insert('budgetLines', {
+        eventId: bizEventId,
+        organizationId: bizOrg._id,
+        category: b.category,
+        label: b.label,
+        vendorName: b.vendorName,
+        plannedMinor: b.plannedMinor,
+        paidMinor: b.paidMinor,
+        dueDate: b.due,
+        createdAt: now,
+        updatedAt: now,
+      });
+      // Le montant déjà réglé devient un paiement du registre (cohérence avec le
+      // suivi par paiements : `paidMinor` = somme des paiements `succeeded`).
+      if (b.paidMinor > 0) {
+        await ctx.db.insert('budgetPayments', {
+          budgetLineId: lineId,
+          eventId: bizEventId,
+          organizationId: bizOrg._id,
+          amountMinor: b.paidMinor,
+          method: 'transfer',
+          status: 'succeeded',
+          paidAt: b.due,
+          note: 'Acompte',
+          createdBy: camille._id,
+          createdAt: now,
+          updatedAt: now,
+        });
+      }
+    }
+    // Backfill : lignes déjà présentes (seeds antérieurs au registre) sans aucun
+    // paiement → crée un acompte égal à leur `paidMinor` pour peupler l'historique.
+    for (const l of existingLines) {
+      if (l.paidMinor <= 0) continue;
+      const hasPayment = await ctx.db
+        .query('budgetPayments')
+        .withIndex('by_line', (q) => q.eq('budgetLineId', l._id))
+        .first();
+      if (hasPayment) continue;
+      await ctx.db.insert('budgetPayments', {
+        budgetLineId: l._id,
+        eventId: bizEventId,
+        organizationId: bizOrg._id,
+        amountMinor: l.paidMinor,
+        method: 'transfer',
+        status: 'succeeded',
+        paidAt: l.dueDate ?? now,
+        note: 'Acompte',
+        createdBy: camille._id,
+        createdAt: now,
+        updatedAt: now,
+      });
+    }
+    // Devis & Factures démo — upsert-by-number avec reset à chaque seed → état
+    // déterministe (FAC-031 garde toujours son solde non réglé pour les e2e).
+    {
+      const orgClients = await ctx.db
+        .query('clients')
+        .withIndex('by_organization', (q) => q.eq('organizationId', bizOrg._id))
+        .collect();
+      const byA = (a: string) => orgClients.find((c) => c.partnerA === a);
+      const cn = (c: { partnerA: string; partnerB?: string } | undefined) =>
+        c ? (c.partnerB ? `${c.partnerA} & ${c.partnerB}` : c.partnerA) : 'Client';
+      const awa = byA('Awa');
+      const lea = byA('Léa');
+      const sofia = byA('Sofia');
+      const year = new Date(now).getFullYear();
+      const due = now + 30 * 24 * 3600 * 1000;
+      const coord = [
+        { label: 'Coordination jour J (12 h)', qty: 1, unitPriceMinor: 140_000 },
+        { label: 'Supervision équipe & prestataires', qty: 1, unitPriceMinor: 80_000 },
+        { label: 'Repérage & plan de salle', qty: 1, unitPriceMinor: 30_000 },
+      ];
+      type SeedDoc = {
+        type: 'quote' | 'invoice';
+        number: string;
+        client?: { _id: Id<'clients'>; partnerA: string; partnerB?: string };
+        eventId?: Id<'events'>;
+        status:
+          | 'draft'
+          | 'sent'
+          | 'accepted'
+          | 'refused'
+          | 'expired'
+          | 'partial'
+          | 'paid'
+          | 'overdue';
+        lineItems: Array<{ label: string; qty: number; unitPriceMinor: number }>;
+        discountMinor?: number;
+        schedule?: Array<{ label: string; amountMinor: number; paid: boolean }>;
+        notes?: string;
+      };
+      const seedDocs: SeedDoc[] = [
+        {
+          type: 'quote',
+          number: `DEV-${year}-014`,
+          client: awa,
+          eventId: bizEventId,
+          status: 'sent',
+          lineItems: coord,
+          notes: 'Devis valable 30 jours. Acompte de 30 % à la signature.',
+        },
+        {
+          type: 'invoice',
+          number: `FAC-${year}-031`,
+          client: awa,
+          eventId: bizEventId,
+          status: 'partial',
+          lineItems: coord,
+          schedule: [
+            { label: 'Acompte 30 %', amountMinor: 75_000, paid: true },
+            { label: 'Solde', amountMinor: 175_000, paid: false },
+          ],
+        },
+        {
+          type: 'quote',
+          number: `DEV-${year}-018`,
+          client: lea,
+          status: 'accepted',
+          lineItems: [{ label: 'Forfait coordination complète', qty: 1, unitPriceMinor: 320_000 }],
+          discountMinor: 20_000,
+        },
+        {
+          type: 'invoice',
+          number: `FAC-${year}-027`,
+          client: sofia,
+          status: 'paid',
+          lineItems: [{ label: 'Forfait Premium coordination', qty: 1, unitPriceMinor: 420_000 }],
+          schedule: [
+            { label: 'Acompte 50 %', amountMinor: 210_000, paid: true },
+            { label: 'Solde', amountMinor: 210_000, paid: true },
+          ],
+        },
+        {
+          type: 'invoice',
+          number: `FAC-${year}-022`,
+          client: lea,
+          status: 'overdue',
+          lineItems: [{ label: 'Acompte forfait coordination', qty: 1, unitPriceMinor: 150_000 }],
+          schedule: [{ label: 'Acompte', amountMinor: 150_000, paid: false }],
+        },
+      ];
+      const existingDocs = await ctx.db
+        .query('quoteDocs')
+        .withIndex('by_organization', (q) => q.eq('organizationId', bizOrg._id))
+        .collect();
+      for (const d of seedDocs) {
+        const fields = {
+          organizationId: bizOrg._id,
+          type: d.type,
+          number: d.number,
+          ...(d.client ? { clientId: d.client._id } : {}),
+          clientName: cn(d.client),
+          ...(d.eventId ? { eventId: d.eventId } : {}),
+          status: d.status,
+          lineItems: d.lineItems,
+          ...(d.discountMinor != null ? { discountMinor: d.discountMinor } : {}),
+          ...(d.schedule ? { schedule: d.schedule } : {}),
+          dueDate: due,
+          ...(d.notes ? { notes: d.notes } : {}),
+          updatedAt: now,
+        };
+        const prior = existingDocs.find((x) => x.number === d.number);
+        if (prior) {
+          // reset l'état canonique (schedule/statut) sans dupliquer l'activité
+          await ctx.db.patch(prior._id, fields);
+          continue;
+        }
+        const docId = await ctx.db.insert('quoteDocs', {
+          ...fields,
+          issueDate: now,
+          createdAt: now,
+        });
+        await ctx.db.insert('quoteActivity', {
+          docId,
+          organizationId: bizOrg._id,
+          label: d.type === 'quote' ? 'Devis créé' : 'Facture créée',
+          icon: 'FilePlus',
+          createdAt: now,
+        });
+      }
+    }
+    // Contrat de démo — Awa & Karim, envoyé pour signature. On RÉINITIALISE à
+    // chaque seed (comme le rétroplanning ci-dessous) : sinon le contrat de démo
+    // s'accumule au fil des re-seeds sur le déploiement dev partagé et les vues
+    // (et les tests) voient plusieurs CON-2026-007.
+    {
+      const oldContracts = await ctx.db
+        .query('contracts')
+        .withIndex('by_organization', (q) => q.eq('organizationId', bizOrg._id))
+        .collect();
+      for (const c of oldContracts) {
+        const audits = await ctx.db
+          .query('contractAudit')
+          .withIndex('by_contract', (q) => q.eq('contractId', c._id))
+          .collect();
+        for (const a of audits) await ctx.db.delete(a._id);
+        await ctx.db.delete(c._id);
+      }
+      const orgClients = await ctx.db
+        .query('clients')
+        .withIndex('by_organization', (q) => q.eq('organizationId', bizOrg._id))
+        .collect();
+      const awa = orgClients.find((c) => c.partnerA === 'Awa');
+      const ctSections = [
+        {
+          title: 'Parties',
+          body: 'Entre l’agence Studio Lumière, représentée par Camille, ci-après « le Prestataire », et {{couple}}, ci-après « les Clients ».',
+        },
+        {
+          title: 'Prix & échéancier',
+          body: 'Le montant total s’élève à {{total}}. Un acompte de 30 % ({{acompte}}) est dû à la signature ; le solde ({{solde}}) au plus tard à J−30.',
+        },
+        {
+          title: 'Annulation & report',
+          body: 'En cas d’annulation par les Clients, l’acompte reste acquis. Le report de date est gratuit dans la limite des disponibilités.',
+        },
+      ];
+      const ctId = await ctx.db.insert('contracts', {
+        organizationId: bizOrg._id,
+        number: `CON-${new Date(now).getFullYear()}-007`,
+        ...(awa ? { clientId: awa._id } : {}),
+        clientName: awa
+          ? awa.partnerB
+            ? `${awa.partnerA} & ${awa.partnerB}`
+            : awa.partnerA
+          : 'Awa & Karim',
+        eventId: bizEventId,
+        status: 'sent',
+        sections: ctSections,
+        totalMinor: 250_000,
+        sentAt: now,
+        createdAt: now,
+        updatedAt: now,
+      });
+      await ctx.db.insert('contractAudit', {
+        contractId: ctId,
+        organizationId: bizOrg._id,
+        event: 'Contrat créé',
+        by: 'Camille',
+        createdAt: now,
+      });
+      await ctx.db.insert('contractAudit', {
+        contractId: ctId,
+        organizationId: bizOrg._id,
+        event: 'Envoyé pour signature',
+        by: 'Camille',
+        createdAt: now,
+      });
+    }
+    // Rétroplanning de démo (varié : statuts tri-état + échéances) sur l'event
+    // agence, pour peupler les vues Par phase / Tableau / Frise comme le design.
+    // On RÉINITIALISE systématiquement au set curé (16 tâches) : sinon les tâches
+    // créées par les tests/l'usage s'accumulent sans limite et la page devient
+    // injouable (des centaines de doublons). Le seed = source de vérité de la démo.
+    {
+      const oldTasks = await ctx.db
+        .query('planningTasks')
+        .withIndex('by_event', (q) => q.eq('eventId', bizEventId))
+        .collect();
+      for (const t of oldTasks) await ctx.db.delete(t._id);
+      const DAY = 24 * 60 * 60 * 1000;
+      const planSeed: Array<{
+        phase: 'm12' | 'm6' | 'm3' | 'm1' | 'd7' | 'dday' | 'after';
+        title: string;
+        status: 'todo' | 'doing' | 'done';
+        due: number | null; // jours depuis maintenant (null = sans échéance)
+      }> = [
+        { phase: 'm12', title: 'Définir le budget global', status: 'done', due: -40 },
+        { phase: 'm12', title: 'Choisir et réserver le lieu', status: 'done', due: -35 },
+        { phase: 'm12', title: 'Établir la liste des invités', status: 'done', due: -28 },
+        { phase: 'm6', title: 'Réserver le traiteur', status: 'done', due: -10 },
+        { phase: 'm6', title: 'Réserver le photographe / vidéaste', status: 'doing', due: 6 },
+        { phase: 'm6', title: 'Choisir les tenues des mariés', status: 'todo', due: 12 },
+        { phase: 'm3', title: 'Envoyer les faire-part', status: 'doing', due: -2 },
+        { phase: 'm3', title: 'Réserver le DJ / groupe', status: 'todo', due: 18 },
+        { phase: 'm3', title: 'Commander les fleurs et la décoration', status: 'todo', due: 22 },
+        { phase: 'm1', title: 'Finaliser le plan de table', status: 'todo', due: 33 },
+        { phase: 'm1', title: 'Confirmer le menu final avec le traiteur', status: 'todo', due: 36 },
+        { phase: 'm1', title: 'Relancer les invités sans réponse', status: 'todo', due: 40 },
+        { phase: 'd7', title: 'Briefer les prestataires sur le déroulé', status: 'todo', due: 53 },
+        { phase: 'd7', title: 'Préparer la trousse de secours jour J', status: 'todo', due: 54 },
+        { phase: 'dday', title: 'Coordonner l’arrivée des prestataires', status: 'todo', due: 60 },
+        {
+          phase: 'after',
+          title: 'Envoyer les remerciements et la galerie photos',
+          status: 'todo',
+          due: 74,
+        },
+      ];
+      let pOrder = now;
+      for (const t of planSeed) {
+        await ctx.db.insert('planningTasks', {
+          eventId: bizEventId,
+          organizationId: bizOrg._id,
+          phase: t.phase,
+          title: t.title,
+          done: t.status === 'done',
+          status: t.status,
+          ...(t.due != null ? { dueDate: now + t.due * DAY } : {}),
+          assigneeId: camille._id,
+          order: pOrder++,
+          createdAt: now,
+          updatedAt: now,
+        });
+      }
+    }
+
     return {
       essential: {
         ownerPhone: jean.phone,
         eventId: essentialEventId,
         slug: 'gating-essential-demo',
         expect: 'faceSearch → FEATURE_NOT_IN_PLAN (bloqué)',
+      },
+      business: {
+        ownerPhone: camille.phone,
+        organizationId: bizOrg._id,
+        slug: 'demo-business-org',
+        eventId: bizEventId,
+        clientCount: demoClients.length,
+        budgetLineCount: demoBudget.length,
+        expect: 'CRM + budget accessibles (Business)',
       },
       premium: {
         ownerPhone: aicha.phone,
@@ -648,6 +1555,28 @@ export const seedTierFixtures = mutation({
         expect: 'publish draft → EVENT_QUOTA_EXCEEDED (bouton désactivé)',
       },
     };
+  },
+});
+
+/** Dev only : vide les clients + notes d'une organisation (pour re-seed propre). */
+export const _wipeOrgClients = internalMutation({
+  args: { organizationId: v.id('organizations') },
+  handler: async (ctx, { organizationId }) => {
+    const clients = await ctx.db
+      .query('clients')
+      .withIndex('by_organization', (q) => q.eq('organizationId', organizationId))
+      .collect();
+    let deleted = 0;
+    for (const c of clients) {
+      const notes = await ctx.db
+        .query('clientNotes')
+        .withIndex('by_client', (q) => q.eq('clientId', c._id))
+        .collect();
+      for (const n of notes) await ctx.db.delete(n._id);
+      await ctx.db.delete(c._id);
+      deleted += 1;
+    }
+    return { deleted };
   },
 });
 

@@ -42,4 +42,12 @@ export const TEST_USERS: ReadonlyArray<TestUserFixture> = [
     role: 'pro',
     locale: 'fr',
   },
+  {
+    // Agence Business (Studio Lumière) — back-office complet (CRM, budget…).
+    phone: '+33600000002',
+    email: 'camille@wedillybird.test',
+    fullName: 'Camille Faye',
+    role: 'pro',
+    locale: 'fr',
+  },
 ];

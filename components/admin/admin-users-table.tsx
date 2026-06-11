@@ -3,6 +3,13 @@
 import { useState } from 'react';
 import { useLocale } from 'next-intl';
 import { Badge } from '@/components/ui/badge';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useServerAction } from '@/components/admin/use-admin-action';
 import {
   adminSuspendUserAction,
@@ -51,17 +58,18 @@ export function AdminUsersTable({ users }: { users: User[] }) {
           onChange={(e) => setSearch(e.target.value)}
           className="rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-3 py-2 text-sm text-[color:var(--color-foreground)] placeholder:text-[color:var(--color-muted-foreground)] focus:ring-1 focus:ring-[color:var(--color-border-strong)] focus:outline-none"
         />
-        <select
-          value={roleFilter}
-          onChange={(e) => setRoleFilter(e.target.value)}
-          className="rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-3 py-2 text-sm text-[color:var(--color-foreground)]"
-        >
-          <option value="all">Tous les rôles</option>
-          <option value="couple">Couple</option>
-          <option value="pro">Pro</option>
-          <option value="guest">Invité</option>
-          <option value="admin">Admin</option>
-        </select>
+        <Select value={roleFilter} onValueChange={setRoleFilter}>
+          <SelectTrigger className="rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-3 py-2 text-sm text-[color:var(--color-foreground)]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Tous les rôles</SelectItem>
+            <SelectItem value="couple">Couple</SelectItem>
+            <SelectItem value="pro">Pro</SelectItem>
+            <SelectItem value="guest">Invité</SelectItem>
+            <SelectItem value="admin">Admin</SelectItem>
+          </SelectContent>
+        </Select>
         <span className="font-mono text-xs text-[color:var(--color-muted-foreground)]">
           {filtered.length} résultat{filtered.length > 1 ? 's' : ''}
         </span>
@@ -137,26 +145,26 @@ function UserRow({ user }: { user: User }) {
             </button>
           ) : null}
           {user.role !== 'admin' ? (
-            <select
-              onChange={(e) => {
-                const newRole = e.target.value as User['role'];
+            <Select
+              value=""
+              disabled={changing}
+              onValueChange={(v) => {
+                const newRole = v as User['role'];
                 if (confirm(`Changer le rôle en "${newRole}" ?`)) {
                   changeRole(user._id, newRole);
                 }
-                e.target.value = '';
               }}
-              disabled={changing}
-              defaultValue=""
-              className="rounded-md border border-[color:var(--color-border)] bg-transparent px-2 py-1 text-xs text-[color:var(--color-muted-foreground)]"
             >
-              <option value="" disabled>
-                Rôle…
-              </option>
-              <option value="couple">Couple</option>
-              <option value="pro">Pro</option>
-              <option value="guest">Invité</option>
-              <option value="admin">Admin</option>
-            </select>
+              <SelectTrigger className="rounded-md border border-[color:var(--color-border)] bg-transparent px-2 py-1 text-xs text-[color:var(--color-muted-foreground)]">
+                <SelectValue placeholder="Rôle…" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="couple">Couple</SelectItem>
+                <SelectItem value="pro">Pro</SelectItem>
+                <SelectItem value="guest">Invité</SelectItem>
+                <SelectItem value="admin">Admin</SelectItem>
+              </SelectContent>
+            </Select>
           ) : null}
         </div>
       </td>

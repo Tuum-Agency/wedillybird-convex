@@ -13,9 +13,9 @@ const PRODUCT_LINKS = [
 ] as const;
 
 const PROS_LINKS = [
-  { key: 'planners', href: '/forfaits-pros' as const },
-  { key: 'venues', href: '/forfaits-pros' as const },
-  { key: 'agencies', href: '/forfaits-pros' as const },
+  { key: 'planners', href: '/pros' as const },
+  { key: 'venues', href: '/pros' as const },
+  { key: 'agencies', href: '/pros' as const },
 ] as const;
 
 const RESOURCES_LINKS = [

@@ -17,6 +17,8 @@ const eslintConfig = defineConfig([
     'infra/node_modules/**',
     // Convex codegen (auto-regenerated, not maintained by hand).
     'convex/_generated/**',
+    // Espace de travail local (gitignored) : prototypes design, scripts jetables.
+    '.context/**',
   ]),
 ]);
 

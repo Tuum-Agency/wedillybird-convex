@@ -31,11 +31,16 @@ vi.mock('next-intl/server', () => ({
   getLocale: async () => 'en',
 }));
 
-vi.mock('@/components/pro/pro-shell', () => ({
-  ProShell: ({ children }: React.PropsWithChildren) => (
+vi.mock('@/components/pro/pro-sidebar-shell', () => ({
+  ProSidebarShell: ({ children }: React.PropsWithChildren) => (
     <div data-testid="pro-shell">{children}</div>
   ),
-  ProNav: () => <nav data-testid="pro-nav" />,
+}));
+
+// `PlanCards` est un client component (next-intl `useTranslations`) ; on le
+// stube pour ces tests qui ne portent que sur l'historique PAYG.
+vi.mock('@/components/pro/plan-cards', () => ({
+  PlanCards: () => <div data-testid="plan-cards" />,
 }));
 
 // L'import des server actions de la page n'est utilisé qu'en `<form action={…}>`,

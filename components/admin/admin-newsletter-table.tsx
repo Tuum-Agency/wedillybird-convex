@@ -3,6 +3,13 @@
 import { useState } from 'react';
 import { useLocale } from 'next-intl';
 import { Badge } from '@/components/ui/badge';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 type Subscriber = {
   _id: string;
@@ -34,15 +41,16 @@ export function AdminNewsletterTable({ subscribers }: { subscribers: Subscriber[
           onChange={(e) => setSearch(e.target.value)}
           className="rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-3 py-2 text-sm text-[color:var(--color-foreground)] placeholder:text-[color:var(--color-muted-foreground)] focus:ring-1 focus:ring-[color:var(--color-border-strong)] focus:outline-none"
         />
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-3 py-2 text-sm text-[color:var(--color-foreground)]"
-        >
-          <option value="all">Tous</option>
-          <option value="active">Actifs</option>
-          <option value="unsubscribed">Désabonnés</option>
-        </select>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-3 py-2 text-sm text-[color:var(--color-foreground)]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Tous</SelectItem>
+            <SelectItem value="active">Actifs</SelectItem>
+            <SelectItem value="unsubscribed">Désabonnés</SelectItem>
+          </SelectContent>
+        </Select>
         <span className="font-mono text-xs text-[color:var(--color-muted-foreground)]">
           {filtered.length} abonné{filtered.length > 1 ? 's' : ''}
         </span>

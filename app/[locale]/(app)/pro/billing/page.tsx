@@ -1,18 +1,59 @@
 import { redirect } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
-import { Check, Sparkles, Zap } from 'lucide-react';
+import {
+  Zap,
+  RefreshCw,
+  Calendar,
+  CreditCard,
+  ShieldCheck,
+  ArrowRight,
+  Download,
+  Receipt,
+  type LucideIcon,
+} from 'lucide-react';
 import { getSession } from '@/lib/auth/session';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
 import {
   SUBSCRIPTION_TIER_PRICES,
+  SUBSCRIPTION_TIER_ANNUAL_PRICES,
   PAYG_PRO_PRICE,
   type SubscriptionTier,
 } from '@/lib/payments/subscriptions';
 import { Button } from '@/components/ui/button';
-import { ProShell, ProNav } from '@/components/pro/pro-shell';
+import { ProSidebarShell } from '@/components/pro/pro-sidebar-shell';
+import { QuotaGauges } from '@/components/pro/quota-gauges';
+import { PlanCards, type PlanCardData, type TierMeta } from '@/components/pro/plan-cards';
+import { BuyCreditButton, CancelSubscriptionButton } from '@/components/pro/billing-dialogs';
+import { AccountingExport } from '@/components/pro/accounting-export';
+import { PRO_TIER_LIMITS, BYTES_PER_GO } from '@/lib/payments/entitlements';
+import { listSubscriptionInvoices, type SubscriptionInvoice } from '@/lib/payments/drivers/stripe';
+import {
+  recentMonths,
+  BILLING_INVOICE_STATUS,
+  type BillingInvoiceStatus,
+} from '@/lib/pro/billing-export';
+import { nowMs } from '@/lib/pro/format';
 import { subscribeAction, openBillingPortalAction, payAsYouGoAction } from './actions';
 
 const TIER_ORDER: readonly SubscriptionTier[] = ['starter', 'business', 'agency'];
+
+const TIER_META: TierMeta = {
+  starter: {
+    events: PRO_TIER_LIMITS.starter.activeEvents,
+    messages: PRO_TIER_LIMITS.starter.whatsappMessagesPerMonth,
+    storageGo: Math.round(PRO_TIER_LIMITS.starter.storageBytes / BYTES_PER_GO),
+  },
+  business: {
+    events: PRO_TIER_LIMITS.business.activeEvents,
+    messages: PRO_TIER_LIMITS.business.whatsappMessagesPerMonth,
+    storageGo: Math.round(PRO_TIER_LIMITS.business.storageBytes / BYTES_PER_GO),
+  },
+  agency: {
+    events: PRO_TIER_LIMITS.agency.activeEvents,
+    messages: PRO_TIER_LIMITS.agency.whatsappMessagesPerMonth,
+    storageGo: Math.round(PRO_TIER_LIMITS.agency.storageBytes / BYTES_PER_GO),
+  },
+};
 
 const STATUS_COLOR: Record<string, { bg: string; fg: string; dot: string }> = {
   trialing: {
@@ -75,6 +116,55 @@ function formatPeriodEnd(timestamp: number | undefined, locale: string): string 
   });
 }
 
+const INV_TONE: Record<'ok' | 'warn' | 'muted' | 'danger', string> = {
+  ok: 'bg-[oklch(26%_0.04_145)] text-[oklch(82%_0.07_145)]',
+  warn: 'bg-[oklch(28%_0.022_78)] text-[oklch(85%_0.04_78)]',
+  muted: 'bg-[color:var(--color-surface-elevated)] text-[color:var(--color-muted-foreground)]',
+  danger: 'bg-[oklch(28%_0.04_25)] text-[oklch(82%_0.07_22)]',
+};
+
+function formatInvDate(ts: number, locale: string): string {
+  return new Date(ts).toLocaleDateString(locale, {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
+}
+
+function formatInvPeriod(
+  start: number | undefined,
+  end: number | undefined,
+  locale: string,
+): string {
+  if (!start || !end) return '—';
+  const s = new Date(start).toLocaleDateString(locale, { day: 'numeric', month: 'short' });
+  const e = new Date(end).toLocaleDateString(locale, {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
+  return `${s} → ${e}`;
+}
+
+/** Cellule clé/valeur de la carte « Abonnement actuel » (design Facturation). */
+function BillingCell({ Icon, k, v }: { Icon: LucideIcon; k: string; v: string }) {
+  return (
+    <div className="flex flex-col gap-1.5 rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface-elevated)] px-3.5 py-3">
+      <span className="font-mono text-[9px] tracking-[0.14em] text-[color:var(--color-muted-foreground)] uppercase">
+        {k}
+      </span>
+      <span className="inline-flex items-center gap-1.5 text-sm text-[color:var(--color-foreground)]">
+        <Icon
+          className="h-3.5 w-3.5 flex-shrink-0 text-[color:var(--color-blush-300)]"
+          strokeWidth={1.9}
+          aria-hidden
+        />
+        {v}
+      </span>
+    </div>
+  );
+}
+
 export default async function ProBillingPage({
   searchParams,
 }: {
@@ -85,7 +175,6 @@ export default async function ProBillingPage({
 
   const locale = await getLocale();
   const tBilling = await getTranslations('Billing');
-  const tPlans = await getTranslations('Plans');
 
   const convex = getConvexServerClient();
   const org = await convex.query(convexApi.myOrganization, { userId: session.userId });
@@ -112,8 +201,36 @@ export default async function ProBillingPage({
     requesterId: session.userId,
   });
 
+  // Factures d'abonnement Stripe (vide si Stripe non configuré / pas de client).
+  let subscriptionInvoices: SubscriptionInvoice[] = [];
+  if (org.stripeCustomerId) {
+    try {
+      subscriptionInvoices = await listSubscriptionInvoices(org.stripeCustomerId);
+    } catch {
+      subscriptionInvoices = [];
+    }
+  }
+  const exportMonths = recentMonths(nowMs(), 6);
+
   const currentTier = org.subscriptionTier;
   const isCurrentTier = (tier: SubscriptionTier) => currentTier === tier;
+
+  const planCards: PlanCardData[] = TIER_ORDER.map((tier) => ({
+    tier,
+    label: SUBSCRIPTION_TIER_PRICES[tier].label,
+    descriptionKey: SUBSCRIPTION_TIER_PRICES[tier].descriptionKey,
+    featureKeys: SUBSCRIPTION_TIER_PRICES[tier].featureKeys,
+    monthlyMinor: SUBSCRIPTION_TIER_PRICES[tier].amountMinor,
+    annualMinor: SUBSCRIPTION_TIER_ANNUAL_PRICES[tier].amountMinor,
+    isCurrent: isCurrentTier(tier),
+    isMid: tier === 'business',
+  }));
+
+  // Consommation réelle (réutilise l'agrégat du cockpit) pour les jauges de quotas.
+  const cockpit = currentTier
+    ? await convex.query(convexApi.proCockpit, { userId: session.userId })
+    : null;
+  const usage = cockpit?.usage ?? null;
   const periodEndLabel = formatPeriodEnd(org.subscriptionPeriodEnd, locale);
   const hasActive =
     org.subscriptionStatus === 'active' ||
@@ -122,11 +239,16 @@ export default async function ProBillingPage({
   const statusCfg = org.subscriptionStatus ? STATUS_COLOR[org.subscriptionStatus] : undefined;
 
   return (
-    <ProShell
-      orgName={org.name}
-      orgPrimaryColor={org.primaryColor ?? undefined}
-      userName={user?.fullName}
-      nav={<ProNav current="billing" />}
+    <ProSidebarShell
+      current="billing"
+      org={{
+        name: org.name,
+        primaryColor: org.primaryColor,
+        tier: org.subscriptionTier ?? null,
+        role: org.myRole,
+      }}
+      user={{ name: user?.fullName }}
+      eventsUsed={undefined}
     >
       <div className="container-page mx-auto flex max-w-5xl flex-col gap-10 py-12 sm:py-16">
         <header className="flex flex-col gap-3">
@@ -165,25 +287,18 @@ export default async function ProBillingPage({
           </div>
         ) : null}
 
-        {/* Statut actuel */}
-        <section className="rounded-3xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-7">
-          <div className="flex flex-wrap items-center justify-between gap-5">
-            <div className="flex flex-col gap-2">
-              <span className="font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-muted-foreground)] uppercase">
-                {tBilling('currentStatusLabel')}
-              </span>
-              {currentTier && org.subscriptionStatus ? (
+        {/* Abonnement actuel — carte détaillée (design Facturation) */}
+        {currentTier && org.subscriptionStatus ? (
+          <section
+            className="flex flex-col gap-5 rounded-3xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-6 sm:p-7"
+            data-testid="current-subscription"
+          >
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div className="flex flex-col gap-2.5">
                 <div className="flex flex-wrap items-center gap-3">
-                  <span
-                    className="font-display italic"
-                    style={{
-                      fontSize: 'clamp(1.5rem, 2.4vw, 1.875rem)',
-                      letterSpacing: '-0.018em',
-                      color: 'var(--color-foreground)',
-                    }}
-                  >
+                  <h3 className="font-display text-2xl text-[color:var(--color-foreground)] italic">
                     {SUBSCRIPTION_TIER_PRICES[currentTier].label}
-                  </span>
+                  </h3>
                   {statusCfg ? (
                     <span
                       className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-mono text-[9px] tracking-[0.18em] uppercase"
@@ -200,141 +315,91 @@ export default async function ProBillingPage({
                     </span>
                   ) : null}
                 </div>
-              ) : (
-                <span
-                  className="font-display italic"
-                  style={{
-                    fontSize: 'clamp(1.25rem, 2vw, 1.5rem)',
-                    color: 'var(--color-foreground)',
-                  }}
-                >
-                  {tBilling('noSubscription')}
+                <span className="flex items-baseline gap-1.5">
+                  <span className="font-display text-3xl text-[color:var(--color-foreground)] italic tabular-nums">
+                    {formatPrice(SUBSCRIPTION_TIER_PRICES[currentTier].amountMinor, locale)}
+                  </span>
+                  <span className="text-sm text-[color:var(--color-muted-foreground)]">/ mois</span>
                 </span>
-              )}
-              {periodEndLabel && hasActive ? (
-                <span className="text-sm text-[color:var(--color-muted-foreground)]">
-                  {tBilling('renewalDate', { date: periodEndLabel })}
-                </span>
-              ) : null}
+              </div>
+              <span className="font-mono text-[10px] tracking-[0.18em] text-[color:var(--color-muted-foreground)] uppercase">
+                Abonnement agence
+              </span>
             </div>
-            {org.stripeCustomerId ? (
-              <form action={openBillingPortalAction}>
-                <Button type="submit" variant="outline" size="md" data-testid="open-portal">
-                  {tBilling('manageSubscription')}
-                </Button>
-              </form>
-            ) : null}
-          </div>
-        </section>
 
-        {/* Tier cards */}
-        <section className="grid gap-4 md:grid-cols-3" data-testid="tier-grid">
-          {TIER_ORDER.map((tier) => {
-            const price = SUBSCRIPTION_TIER_PRICES[tier];
-            const isCurrent = isCurrentTier(tier);
-            const isMid = tier === 'business';
-            return (
-              <article
-                key={tier}
-                data-testid={`tier-card-${tier}`}
-                data-current={isCurrent ? 'true' : undefined}
-                className={`relative flex flex-col gap-5 overflow-hidden rounded-3xl border p-7 transition-[transform,border-color] duration-300 ${
-                  isCurrent
-                    ? 'border-[color:var(--color-blush-400)] bg-[color:var(--color-surface)] shadow-[var(--shadow-blush)]'
-                    : isMid
-                      ? 'border-[color:var(--color-border-strong)] bg-[color:var(--color-surface)] [@media(hover:hover)]:hover:-translate-y-1'
-                      : 'border-[color:var(--color-border)] bg-[color:var(--color-surface)] [@media(hover:hover)]:hover:-translate-y-0.5'
-                }`}
-              >
-                {isCurrent ? (
-                  <span className="absolute top-5 right-5 inline-flex items-center gap-1.5 rounded-full bg-[color:var(--color-blush-400)] px-2.5 py-1 font-mono text-[9px] tracking-[0.18em] text-[oklch(15%_0.012_28)] uppercase">
-                    <Sparkles className="h-3 w-3" strokeWidth={2.5} aria-hidden />
-                    {tBilling('currentPlanBadge')}
-                  </span>
-                ) : isMid ? (
-                  <span className="absolute top-5 right-5 inline-flex items-center gap-1.5 rounded-full bg-[oklch(28%_0.05_80)] px-2.5 py-1 font-mono text-[9px] tracking-[0.18em] text-[oklch(85%_0.05_80)] uppercase">
-                    <Sparkles className="h-3 w-3" strokeWidth={2.5} aria-hidden />
-                    {tBilling('recommendedBadge')}
-                  </span>
-                ) : null}
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <BillingCell Icon={RefreshCw} k="Cycle de facturation" v="Mensuel" />
+              <BillingCell
+                Icon={Calendar}
+                k="Prochaine échéance"
+                v={hasActive && periodEndLabel ? periodEndLabel : '—'}
+              />
+              <BillingCell
+                Icon={CreditCard}
+                k="Moyen de paiement"
+                v={org.stripeCustomerId ? 'Carte · via Stripe' : 'Aucun'}
+              />
+              <BillingCell
+                Icon={ShieldCheck}
+                k="Forfait"
+                v={`${SUBSCRIPTION_TIER_PRICES[currentTier].label}`}
+              />
+            </div>
 
-                <header className="flex flex-col gap-1.5">
-                  <h2
-                    className="font-display italic"
-                    style={{
-                      fontSize: 'clamp(1.25rem, 1.8vw, 1.5rem)',
-                      letterSpacing: '-0.018em',
-                      color: 'var(--color-foreground)',
-                    }}
-                  >
-                    {price.label}
-                  </h2>
-                  <p className="text-sm text-[color:var(--color-muted-foreground)]">
-                    {tPlans(
-                      `pro.descriptions.${price.descriptionKey}` as Parameters<typeof tPlans>[0],
-                    )}
-                  </p>
-                </header>
-
-                <p className="flex items-baseline gap-2">
-                  <span
-                    className="font-display tabular-nums"
-                    style={{
-                      fontSize: 'clamp(2.25rem, 4vw, 2.75rem)',
-                      fontStyle: 'italic',
-                      fontWeight: 300,
-                      letterSpacing: '-0.025em',
-                      lineHeight: 1,
-                      color: 'var(--color-foreground)',
-                    }}
-                  >
-                    {formatPrice(price.amountMinor, locale)}
-                  </span>
-                  <span className="text-sm text-[color:var(--color-muted-foreground)]">
-                    {tBilling('perMonth')}
-                  </span>
-                </p>
-
-                <ul className="flex flex-col gap-2 text-sm">
-                  {price.featureKeys.map((key) => (
-                    <li
-                      key={key}
-                      className="flex items-start gap-2.5 text-[color:var(--color-ink-700)]"
-                    >
-                      <span
-                        aria-hidden
-                        className="mt-0.5 inline-flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full bg-[color:var(--color-blush-400)]/15 text-[color:var(--color-blush-400)]"
-                      >
-                        <Check className="h-2.5 w-2.5" strokeWidth={3} />
-                      </span>
-                      <span className="leading-relaxed">
-                        {tPlans(`pro.features.${key}` as Parameters<typeof tPlans>[0])}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-
-                <form action={subscribeAction} className="mt-auto">
-                  <input type="hidden" name="tier" value={tier} />
-                  <Button
-                    type="submit"
-                    variant={isCurrent ? 'outline' : isMid ? 'primary' : 'outline'}
-                    size="md"
-                    className="w-full"
-                    disabled={isCurrent && hasActive}
-                    data-testid={`subscribe-${tier}`}
-                  >
-                    {isCurrent && hasActive
-                      ? tBilling('currentPlanButton')
-                      : currentTier
-                        ? tBilling('changePlan')
-                        : tBilling('subscribe')}
+            <div className="flex flex-wrap items-center gap-2">
+              {org.stripeCustomerId ? (
+                <form action={openBillingPortalAction}>
+                  <Button type="submit" variant="primary" size="md" data-testid="open-portal">
+                    {tBilling('manageSubscription')}
                   </Button>
                 </form>
-              </article>
-            );
-          })}
-        </section>
+              ) : null}
+              <a
+                href="#plans"
+                className="focus-ring inline-flex items-center gap-1.5 rounded-lg border border-[color:var(--color-border-strong)] px-4 py-2 text-sm text-[color:var(--color-foreground)] transition-colors hover:border-[color:var(--color-blush-400)]"
+              >
+                <RefreshCw className="h-4 w-4" strokeWidth={1.9} aria-hidden />
+                Changer de formule
+              </a>
+              <span className="flex-1" />
+              {org.stripeCustomerId && hasActive && org.myRole === 'owner' ? (
+                <CancelSubscriptionButton
+                  planLabel={SUBSCRIPTION_TIER_PRICES[currentTier].label}
+                  renewalLabel={periodEndLabel ?? 'la fin de la période'}
+                  action={openBillingPortalAction}
+                />
+              ) : null}
+            </div>
+          </section>
+        ) : (
+          <section className="flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-7">
+            <span className="font-display text-xl text-[color:var(--color-foreground)] italic">
+              {tBilling('noSubscription')}
+            </span>
+            <a
+              href="#plans"
+              className="inline-flex items-center gap-1.5 text-sm text-[color:var(--color-blush-300)] hover:underline"
+            >
+              Choisir un forfait <ArrowRight className="h-4 w-4" strokeWidth={2} aria-hidden />
+            </a>
+          </section>
+        )}
+
+        {/* Consommation / quotas */}
+        {currentTier && usage ? <QuotaGauges tier={currentTier} usage={usage} /> : null}
+
+        {/* Tier cards — bascule mensuel / annuel (−20 %) */}
+        <div id="plans" className="scroll-mt-6">
+          <PlanCards
+            plans={planCards}
+            hasActive={hasActive}
+            hasCurrentTier={!!currentTier}
+            locale={locale}
+            subscribeAction={subscribeAction}
+            currentTier={currentTier ?? null}
+            tierMeta={TIER_META}
+          />
+        </div>
 
         {/* Pay-as-you-go — alternative à l'abonnement, paiement à l'événement. */}
         <section
@@ -366,11 +431,11 @@ export default async function ProBillingPage({
               })}
             </p>
           </div>
-          <form action={payAsYouGoAction}>
-            <Button type="submit" variant="outline" size="md" data-testid="buy-payg">
-              {tBilling('buyCredit')}
-            </Button>
-          </form>
+          <BuyCreditButton
+            label={tBilling('buyCredit')}
+            priceLabel={formatPrice(PAYG_PRO_PRICE.amountMinor, locale)}
+            action={payAsYouGoAction}
+          />
         </section>
 
         {/* Historique des achats Pay-as-you-go (50 derniers, MVP sans pagination) */}
@@ -449,10 +514,131 @@ export default async function ProBillingPage({
           )}
         </section>
 
+        {/* Factures d'abonnement (Stripe) */}
+        <section
+          className="rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-6"
+          data-testid="subscription-invoices"
+        >
+          <header className="mb-4 flex flex-wrap items-end justify-between gap-3">
+            <div className="flex flex-col gap-1">
+              <span className="font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-muted-foreground)] uppercase">
+                Abonnement
+              </span>
+              <h3
+                className="font-display italic"
+                style={{
+                  fontSize: 'clamp(1.125rem, 1.6vw, 1.375rem)',
+                  letterSpacing: '-0.018em',
+                  color: 'var(--color-foreground)',
+                }}
+              >
+                Factures
+              </h3>
+            </div>
+            {subscriptionInvoices.length > 0 ? (
+              <span className="font-mono text-[11px] text-[color:var(--color-muted-foreground)]">
+                Total payé{' '}
+                <b className="text-[color:var(--color-foreground)]">
+                  {formatPrice(
+                    subscriptionInvoices
+                      .filter((i) => i.status === 'paid')
+                      .reduce((s, i) => s + i.amountMinor, 0),
+                    locale,
+                  )}
+                </b>
+              </span>
+            ) : null}
+          </header>
+
+          {subscriptionInvoices.length === 0 ? (
+            <div
+              className="flex items-center gap-3 rounded-xl border border-dashed border-[color:var(--color-border-strong)] bg-[color:var(--color-surface)]/40 px-5 py-6 text-sm text-[color:var(--color-muted-foreground)]"
+              data-testid="invoices-empty"
+            >
+              <Receipt className="h-5 w-5 flex-shrink-0" strokeWidth={1.6} aria-hidden />
+              Vos factures d’abonnement apparaîtront ici dès le premier prélèvement. Elles restent
+              téléchargeables depuis le portail Stripe.
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[680px] border-collapse text-sm">
+                <thead>
+                  <tr className="border-b border-[color:var(--color-border)] text-left font-mono text-[9px] tracking-[0.18em] text-[color:var(--color-muted-foreground)] uppercase">
+                    <th className="px-3 py-2.5 font-medium">N° facture</th>
+                    <th className="px-3 py-2.5 font-medium">Date</th>
+                    <th className="px-3 py-2.5 font-medium">Période</th>
+                    <th className="px-3 py-2.5 text-right font-medium">Montant</th>
+                    <th className="px-3 py-2.5 font-medium">Statut</th>
+                    <th className="px-3 py-2.5 text-right font-medium">Document</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {subscriptionInvoices.map((inv) => {
+                    const meta = BILLING_INVOICE_STATUS[inv.status as BillingInvoiceStatus] ?? {
+                      label: inv.status,
+                      tone: 'muted' as const,
+                    };
+                    return (
+                      <tr
+                        key={inv.id}
+                        className="border-b border-[color:var(--color-border)]/60 last:border-0"
+                      >
+                        <td className="px-3 py-3 font-mono text-xs font-medium text-[color:var(--color-foreground)]">
+                          {inv.id}
+                        </td>
+                        <td className="px-3 py-3 font-mono text-xs text-[color:var(--color-muted-foreground)]">
+                          {formatInvDate(inv.date, locale)}
+                        </td>
+                        <td className="px-3 py-3 text-xs text-[color:var(--color-ink-700)]">
+                          {formatInvPeriod(inv.periodStart, inv.periodEnd, locale)}
+                        </td>
+                        <td className="px-3 py-3 text-right font-mono text-xs text-[color:var(--color-foreground)] tabular-nums">
+                          {formatPrice(inv.amountMinor, locale)}
+                        </td>
+                        <td className="px-3 py-3">
+                          <span
+                            className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-medium ${INV_TONE[meta.tone]}`}
+                          >
+                            <span
+                              className="h-1.5 w-1.5 rounded-full bg-current opacity-80"
+                              aria-hidden
+                            />
+                            {meta.label}
+                          </span>
+                        </td>
+                        <td className="px-3 py-3 text-right">
+                          {inv.pdfUrl || inv.hostedUrl ? (
+                            <a
+                              href={inv.pdfUrl ?? inv.hostedUrl ?? '#'}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="focus-ring inline-flex items-center gap-1.5 rounded-lg border border-[color:var(--color-border)] px-2.5 py-1.5 text-xs text-[color:var(--color-muted-foreground)] hover:border-[color:var(--color-blush-400)] hover:text-[color:var(--color-foreground)]"
+                            >
+                              <Download className="h-3.5 w-3.5" strokeWidth={1.9} aria-hidden />
+                              PDF
+                            </a>
+                          ) : (
+                            <span className="text-xs text-[color:var(--color-muted-foreground)]">
+                              —
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
+
+        {/* Export comptable mensuel */}
+        <AccountingExport months={exportMonths} />
+
         <footer className="text-center font-mono text-[10px] tracking-[0.24em] text-[color:var(--color-muted-foreground)] uppercase">
           {tBilling('securePaymentFooter')}
         </footer>
       </div>
-    </ProShell>
+    </ProSidebarShell>
   );
 }

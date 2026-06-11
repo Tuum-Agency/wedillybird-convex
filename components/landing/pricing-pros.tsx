@@ -19,18 +19,45 @@ import { cn } from '@/lib/cn';
 import { inViewOnce, scrollReveal, scrollRevealParent } from '@/lib/motion/presets';
 
 const PRO_FEATURE_KEYS: Record<SubscriptionTier, ReadonlyArray<string>> = {
-  starter: ['events3', 'whatsapp2k', 'brandingWedillybird', 'supportEmail48h'],
-  business: [
-    'events10',
-    'whatsapp6k',
-    'brandingCustomLogo',
-    'subdomainCustom',
-    'supportPriority24h',
+  starter: [
+    's_events',
+    's_guests',
+    's_quota',
+    's_messages',
+    's_seats',
+    's_execution',
+    's_crm',
+    's_budget',
+    's_brand',
   ],
-  agency: ['eventsUnlimited', 'whatsapp20k', 'brandingWhiteLabel', 'accountManager'],
+  business: [
+    'b_inherit',
+    'b_quota',
+    'b_storage',
+    'b_messages',
+    'b_seats',
+    'b_crm',
+    'b_docs',
+    'b_budget',
+    'b_portal',
+  ],
+  agency: [
+    'a_inherit',
+    'a_quota',
+    'a_storage',
+    'a_messages',
+    'a_seats',
+    'a_integrations',
+    'a_analytics',
+    'a_brand',
+    'a_am',
+  ],
 };
 
-const PAYG_FEATURE_KEYS = ['events1', 'whatsappOnDemand', 'proDashboard', 'noCommitment'] as const;
+const PAYG_FEATURE_KEYS = ['p_exec', 'p_quota', 'p_nosub'] as const;
+
+/** Clés rendues comme intertitre « Tout X, plus : » (sans coche, en gras). */
+const INHERIT_KEYS = new Set<string>(['b_inherit', 'a_inherit']);
 
 type Billing = 'monthly' | 'annual';
 
@@ -41,6 +68,12 @@ type LandingPricingProsProps = {
    * un via le sélecteur footer.
    */
   defaultCurrency?: Currency;
+  /**
+   * Libellé de l'eyebrow de section. Défaut = numérotation de la landing
+   * ("CHAPITRE 06B…") ; la page `/pros` passe un libellé autonome. Optionnel
+   * pour que l'usage landing reste strictement inchangé.
+   */
+  eyebrow?: string;
 };
 
 /**
@@ -54,7 +87,10 @@ type LandingPricingProsProps = {
  * effective (override utilisateur via le store, sinon devise par défaut de la
  * locale).
  */
-export function LandingPricingPros({ defaultCurrency = 'EUR' }: LandingPricingProsProps = {}) {
+export function LandingPricingPros({
+  defaultCurrency = 'EUR',
+  eyebrow = 'CHAPITRE 06B — FORFAITS PROS',
+}: LandingPricingProsProps = {}) {
   const t = useTranslations('Landing');
   const tPlans = useTranslations('Plans');
   const currency = useEffectiveCurrency(defaultCurrency);
@@ -101,7 +137,7 @@ export function LandingPricingPros({ defaultCurrency = 'EUR' }: LandingPricingPr
           viewport={inViewOnce}
           className="mb-12 inline-block font-mono text-[11px] tracking-[0.32em] text-[color:var(--color-ink-500)] uppercase"
         >
-          CHAPITRE 06B — FORFAITS PROS
+          {eyebrow}
         </motion.span>
 
         <motion.div
@@ -278,27 +314,24 @@ export function LandingPricingPros({ defaultCurrency = 'EUR' }: LandingPricingPr
 
               {/* Features */}
               <ul className="flex flex-col gap-2.5 text-sm">
-                {PRO_FEATURE_KEYS[tier].map((key) => (
-                  <li key={key} className="flex items-start gap-2.5">
-                    <Check
-                      aria-hidden
-                      className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-[color:var(--color-gold-500)]"
-                      strokeWidth={2}
-                    />
-                    <span className="leading-relaxed text-[color:var(--color-ink-700)]">
-                      {key === 'subdomainCustom'
-                        ? tPlans.rich('pro.features.subdomainCustom', {
-                            slug: 'votre-agence',
-                            code: (chunks) => (
-                              <code className="rounded bg-[color:var(--color-ivory-200)] px-1.5 py-0.5 font-mono text-xs">
-                                {chunks}
-                              </code>
-                            ),
-                          })
-                        : tPlans(`pro.features.${key}` as Parameters<typeof tPlans>[0])}
-                    </span>
-                  </li>
-                ))}
+                {PRO_FEATURE_KEYS[tier].map((key) =>
+                  INHERIT_KEYS.has(key) ? (
+                    <li key={key} className="pt-1 font-medium text-[color:var(--color-ink-900)]">
+                      {tPlans(`pro.features.${key}` as Parameters<typeof tPlans>[0])}
+                    </li>
+                  ) : (
+                    <li key={key} className="flex items-start gap-2.5">
+                      <Check
+                        aria-hidden
+                        className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-[color:var(--color-gold-500)]"
+                        strokeWidth={2}
+                      />
+                      <span className="leading-relaxed text-[color:var(--color-ink-700)]">
+                        {tPlans(`pro.features.${key}` as Parameters<typeof tPlans>[0])}
+                      </span>
+                    </li>
+                  ),
+                )}
               </ul>
 
               {/* CTA */}
@@ -387,15 +420,33 @@ export function LandingPricingPros({ defaultCurrency = 'EUR' }: LandingPricingPr
           </div>
         </motion.div>
 
-        {/* Note de dépassement */}
+        {/* Options transverses (add-ons) */}
         <motion.p
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1, transition: { duration: 0.5, delay: 0.15 } }}
+          viewport={inViewOnce}
+          className="mx-auto mt-8 max-w-6xl text-center text-sm text-[color:var(--color-ink-500)]"
+        >
+          {tPlans('pro.addons')}
+        </motion.p>
+
+        {/* Dépassements — bloc complet, une ligne par type (grille v3) */}
+        <motion.div
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1, transition: { duration: 0.5, delay: 0.2 } }}
           viewport={inViewOnce}
-          className="mx-auto mt-6 max-w-6xl font-mono text-[10px] leading-relaxed text-[color:var(--color-ink-400)]"
+          className="mx-auto mt-6 max-w-6xl"
         >
-          {tPlans('pro.overflow.whatsapp')} · {tPlans('pro.overflow.storage')}
-        </motion.p>
+          <p className="mb-2.5 font-mono text-[10px] tracking-[0.24em] text-[color:var(--color-ink-500)] uppercase">
+            {tPlans('pro.overflow.title')}
+          </p>
+          <ul className="grid gap-x-10 gap-y-1.5 font-mono text-[10px] leading-relaxed text-[color:var(--color-ink-400)] sm:grid-cols-2">
+            <li>{tPlans('pro.overflow.whatsapp')}</li>
+            <li>{tPlans('pro.overflow.guests')}</li>
+            <li>{tPlans('pro.overflow.storage')}</li>
+            <li>{tPlans('pro.overflow.event')}</li>
+          </ul>
+        </motion.div>
       </div>
     </section>
   );

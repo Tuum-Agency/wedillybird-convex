@@ -492,6 +492,49 @@
       },
       "payments": "Secure payments via",
       "rights": "All rights reserved"
+    },
+    "prosFeatures": {
+      "eyebrow": "For agencies and wedding planners",
+      "title": "Your agency’s entire back office",
+      "subtitle": "From the first lead to the final payment, under your brand.",
+      "items": {
+        "cockpit": {
+          "name": "Dashboard & cockpit",
+          "desc": "All your weddings, RSVPs, deadlines and revenue on one screen."
+        },
+        "crm": {
+          "name": "CRM & pipeline",
+          "desc": "From lead to delivered wedding, in kanban, with one-click conversion."
+        },
+        "planning": {
+          "name": "Backward planning",
+          "desc": "Tasks anchored to the wedding day, reusable templates, team assignment."
+        },
+        "budget": {
+          "name": "Per-wedding budget",
+          "desc": "Tracking, editing and exports, ready to present to the couple."
+        },
+        "docs": {
+          "name": "Quotes, invoices & contracts",
+          "desc": "Branded editor with electronic signature."
+        },
+        "vendors": {
+          "name": "Vendor directory",
+          "desc": "Venues, caterers and photographers, linked to each wedding."
+        },
+        "portal": {
+          "name": "White-label couple portal",
+          "desc": "Your couples follow their wedding under your name."
+        },
+        "integrations": {
+          "name": "Integrations",
+          "desc": "HoneyBook, Zapier, API and webhooks."
+        },
+        "team": {
+          "name": "Team & roles",
+          "desc": "Seats, roles and invitations for your collaborators."
+        }
+      }
     }
   },
   "Auth": {
@@ -875,6 +918,7 @@
       "no_contact": "Provide a phone number or an email",
       "already_member": "This person is already part of the organisation",
       "cannot_assign_owner": "The owner role cannot be assigned",
+      "seat_limit_reached": "You've reached your plan's seat limit. Upgrade your plan or remove a member.",
       "invite_not_found": "Invitation not found",
       "invite_already_used": "This invitation has already been used",
       "unknown": "Something went wrong. Try again."
@@ -979,12 +1023,46 @@
         "supportPriority24h": "Priority support (reply within 24h)",
         "accountManager": "Dedicated account manager + 99.9% SLA",
         "proDashboard": "Full pro dashboard",
-        "noCommitment": "No commitment"
+        "noCommitment": "No commitment",
+        "s_events": "5 weddings in parallel",
+        "s_quota": "50 GB of storage",
+        "s_execution": "The whole wedding day: WhatsApp RSVP, face-search gallery, check-in, seating plan",
+        "s_crm": "Client CRM in list view",
+        "s_budget": "Per-wedding budget, read-only",
+        "s_brand": "White-label: subdomain and logo",
+        "b_inherit": "Everything in Starter, plus:",
+        "b_quota": "20 weddings in parallel",
+        "b_crm": "CRM pipeline: kanban and lead-to-wedding conversion",
+        "b_docs": "Quotes, invoices and e-signed contracts",
+        "b_budget": "Editable budget, PDF and accounting exports, unlimited vendors",
+        "b_portal": "White-label couple portal",
+        "a_inherit": "Everything in Business, plus:",
+        "a_quota": "50 weddings in parallel",
+        "a_integrations": "CRM integrations: HoneyBook, Zapier, API",
+        "a_analytics": "Multi-wedding analytics",
+        "a_brand": "Total white-label: your own domain and emails",
+        "a_am": "Dedicated account manager, reply within 4 h",
+        "p_exec": "1 wedding in execution mode",
+        "p_quota": "150 guests, 25 GB, gallery for 12 months",
+        "p_nosub": "No subscription, billed per event",
+        "s_guests": "150 guests per wedding",
+        "s_messages": "3,000 WhatsApp/SMS messages per month",
+        "s_seats": "2 seats",
+        "b_storage": "200 GB of storage",
+        "b_messages": "10,000 messages per month",
+        "b_seats": "8 seats",
+        "a_storage": "500 GB of storage",
+        "a_messages": "25,000 messages per month",
+        "a_seats": "Unlimited seats"
       },
       "overflow": {
-        "whatsapp": "Beyond the quota: €0.06 per message",
-        "storage": "Gallery storage: €0.03 per GB per month above the included amount"
-      }
+        "whatsapp": "WhatsApp/SMS message beyond the bundle: €0.06/message",
+        "storage": "Storage beyond the quota: €0.03/GB/month",
+        "title": "Overages",
+        "guests": "Guest beyond the 150 cap: €0.25/guest",
+        "event": "Additional simultaneous event: €19/month (prorated)"
+      },
+      "addons": "Add-ons: payments via your own Stripe account, extra seat +€19/month, extra wedding +€19/month."
     }
   },
   "Upgrade": {

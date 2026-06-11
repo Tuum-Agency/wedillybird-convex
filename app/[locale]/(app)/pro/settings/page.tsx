@@ -1,9 +1,9 @@
-import { getTranslations, setRequestLocale } from 'next-intl/server';
+import { setRequestLocale } from 'next-intl/server';
 import { redirect } from '@/i18n/navigation';
 import { getSession } from '@/lib/auth/session';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
-import { ProShell, ProNav } from '@/components/pro/pro-shell';
-import { BrandingForm } from '@/components/pro/branding-form';
+import { ProSidebarShell } from '@/components/pro/pro-sidebar-shell';
+import { SettingsShell } from '@/components/pro/settings-shell';
 
 const DEFAULT_PRIMARY = '#2c1a11';
 const DEFAULT_ACCENT = '#c8a165';
@@ -33,7 +33,13 @@ export default async function ProSettingsPage({ params }: { params: Promise<{ lo
   if (!org) redirect({ href: '/pro/onboarding', locale });
 
   const user = await convex.query(convexApi.currentUser, { userId: session!.userId });
-  const t = await getTranslations('Branding');
+  const members =
+    org!.myRole === 'owner'
+      ? await convex.query(convexApi.listOrgMembers, {
+          organizationId: org!._id,
+          requesterId: session!.userId,
+        })
+      : [];
 
   // Couleurs : on assure un format hex 6-digit pour les inputs natifs (ils
   // n'acceptent pas la forme courte). Si l'orga a une valeur invalide
@@ -44,39 +50,57 @@ export default async function ProSettingsPage({ params }: { params: Promise<{ lo
   const initialAccent = isHex6(org!.accentColor) ? org!.accentColor : DEFAULT_ACCENT;
 
   return (
-    <ProShell
-      orgName={org!.name}
-      orgPrimaryColor={org!.primaryColor ?? undefined}
-      userName={user?.fullName}
-      nav={<ProNav current="settings" />}
+    <ProSidebarShell
+      current="settings"
+      org={{
+        name: org!.name,
+        primaryColor: org!.primaryColor,
+        tier: org!.subscriptionTier ?? null,
+        role: org!.myRole,
+      }}
+      user={{ name: user?.fullName }}
     >
-      <div className="container-page mx-auto flex max-w-3xl flex-col gap-10 py-12 sm:py-16">
-        <header className="flex flex-col gap-3">
+      <div className="container-page mx-auto flex max-w-5xl flex-col gap-8 py-8 sm:py-10">
+        <header className="flex flex-col gap-1.5">
           <span className="font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-muted-foreground)] uppercase">
-            {t('eyebrow')}
+            Pilotage · Réglages
           </span>
           <h1
             className="font-display text-balance italic"
             style={{
-              fontSize: 'clamp(2rem, 4.5vw, 3rem)',
+              fontSize: 'clamp(1.9rem, 4vw, 2.75rem)',
               lineHeight: 1.05,
               letterSpacing: '-0.022em',
               color: 'var(--color-foreground)',
             }}
           >
-            {t('title')}
+            Réglages
           </h1>
-          <p className="text-base leading-relaxed text-[color:var(--color-muted-foreground)] sm:text-lg">
-            {t('subtitle')}
-          </p>
         </header>
 
-        <BrandingForm
-          initialLogoUrl={org!.logoUrl}
-          initialPrimaryColor={initialPrimary}
-          initialAccentColor={initialAccent}
+        <SettingsShell
+          org={{
+            name: org!.name,
+            slug: org!.slug,
+            tier: org!.subscriptionTier ?? null,
+            role: org!.myRole,
+          }}
+          user={{ name: user?.fullName, email: user?.email }}
+          branding={{
+            logoUrl: org!.logoUrl,
+            primaryColor: initialPrimary,
+            accentColor: initialAccent,
+          }}
+          whiteLabel={{
+            customDomain: org!.customDomain ?? '',
+            senderEmail: org!.senderEmail ?? '',
+            whiteLabelFull: org!.whiteLabelFull,
+          }}
+          notifPrefs={org!.notificationPrefs}
+          messagingDefaults={org!.messagingDefaults}
+          members={members}
         />
       </div>
-    </ProShell>
+    </ProSidebarShell>
   );
 }
