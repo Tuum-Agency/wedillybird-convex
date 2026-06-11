@@ -1397,12 +1397,23 @@ export const seedTierFixtures = mutation({
         });
       }
     }
-    // Contrat de démo (create-once) — Awa & Karim, envoyé pour signature.
-    const existingContract = await ctx.db
-      .query('contracts')
-      .withIndex('by_organization', (q) => q.eq('organizationId', bizOrg._id))
-      .first();
-    if (!existingContract) {
+    // Contrat de démo — Awa & Karim, envoyé pour signature. On RÉINITIALISE à
+    // chaque seed (comme le rétroplanning ci-dessous) : sinon le contrat de démo
+    // s'accumule au fil des re-seeds sur le déploiement dev partagé et les vues
+    // (et les tests) voient plusieurs CON-2026-007.
+    {
+      const oldContracts = await ctx.db
+        .query('contracts')
+        .withIndex('by_organization', (q) => q.eq('organizationId', bizOrg._id))
+        .collect();
+      for (const c of oldContracts) {
+        const audits = await ctx.db
+          .query('contractAudit')
+          .withIndex('by_contract', (q) => q.eq('contractId', c._id))
+          .collect();
+        for (const a of audits) await ctx.db.delete(a._id);
+        await ctx.db.delete(c._id);
+      }
       const orgClients = await ctx.db
         .query('clients')
         .withIndex('by_organization', (q) => q.eq('organizationId', bizOrg._id))

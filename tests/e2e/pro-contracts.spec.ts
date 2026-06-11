@@ -25,7 +25,7 @@ test.describe('Contrats', () => {
     await page.goto('/pro/contracts');
     await expect(page.getByRole('heading', { name: 'Contrats', level: 1 })).toBeVisible();
     await expect(page.getByText('Dossier de réservation')).toBeVisible(); // smart-file
-    await expect(page.getByText('CON-2026-007')).toBeVisible(); // contrat seedé
+    await expect(page.getByText('CON-2026-007').first()).toBeVisible(); // contrat seedé (smart-file + ligne tableau)
     await expect(page.getByRole('button', { name: 'Modèles' })).toBeVisible();
   });
 
@@ -51,7 +51,7 @@ test.describe('Contrats', () => {
     const fx = await seedTierFixtures();
     await loginAsPhone(page, fx.business.ownerPhone);
     await page.goto('/pro/contracts');
-    await page.locator('tr', { hasText: 'CON-2026-007' }).click(); // ligne du tableau (pas le smart-file)
+    await page.locator('tr', { hasText: 'CON-2026-007' }).first().click(); // 1re ligne (dev partagé : plusieurs contrats seedés possibles)
     await expect(page.getByText('Piste d’audit', { exact: true })).toBeVisible();
     await expect(page.getByText('eIDAS').first()).toBeVisible();
     await expect(page.getByText('Contrat créé')).toBeVisible(); // entrée d'audit

@@ -90,7 +90,8 @@ test.describe('Rétroplanning', () => {
 
     // Le modèle maison apparaît dans le dialogue d'application.
     await page.getByTestId('apply-classic').click();
-    await expect(page.getByRole('button', { name: new RegExp(name) })).toBeVisible();
+    // `name` matche aussi le bouton « Supprimer le modèle … » → on cible la carte (1re).
+    await expect(page.getByRole('button', { name: new RegExp(name) }).first()).toBeVisible();
     await expect(page.getByRole('button', { name: `Supprimer le modèle ${name}` })).toBeVisible();
   });
 
