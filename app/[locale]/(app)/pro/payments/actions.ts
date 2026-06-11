@@ -4,7 +4,13 @@ import { revalidatePath } from 'next/cache';
 import { getSession } from '@/lib/auth/session';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
 import { parseEurToMinor } from '@/lib/pro/format';
-import { createPaymentLinkCheckout } from '@/lib/payments/drivers/stripe';
+import {
+  createPaymentLinkCheckout,
+  listConnectedPayments,
+  listConnectedPayouts,
+  retrieveConnectedBalance,
+} from '@/lib/payments/drivers/stripe';
+import type { ConnectedFinances } from '@/lib/pro/payments';
 import { appOrigin } from '@/lib/reminders/window';
 
 export type PaymentLinkResult =
@@ -111,4 +117,42 @@ export async function createFreePaymentLinkAction(input: {
     description,
     ...(clientName ? { clientName } : {}),
   });
+}
+
+export type FinancesResult = { ok: true; data: ConnectedFinances } | { ok: false; error: string };
+
+/**
+ * Lit le solde, les virements et les encaissements sur le compte Stripe connecté
+ * de l'agence — pour tout voir depuis la plateforme, sans ouvrir Stripe. Lecture
+ * seule (en-tête Stripe-Account). `NOT_CONNECTED` si aucun compte connecté.
+ */
+export async function getConnectedFinancesAction(): Promise<FinancesResult> {
+  const session = await getSession();
+  if (!session) return { ok: false, error: 'UNAUTHENTICATED' };
+  const convex = getConvexServerClient();
+  const org = await convex.query(convexApi.myOrganization, { userId: session.userId });
+  if (!org) return { ok: false, error: 'NO_ORG' };
+
+  let accountId: string | null = null;
+  try {
+    const status = await convex.query(convexApi.orgConnectStatus, {
+      organizationId: org._id,
+      requesterId: session.userId,
+    });
+    accountId = status.accountId;
+  } catch (e) {
+    return { ok: false, error: msg(e) };
+  }
+  if (!accountId) return { ok: false, error: 'NOT_CONNECTED' };
+
+  try {
+    const [balance, payouts, payments] = await Promise.all([
+      retrieveConnectedBalance(accountId),
+      listConnectedPayouts(accountId),
+      listConnectedPayments(accountId),
+    ]);
+    return { ok: true, data: { balance, payouts, payments } };
+  } catch (e) {
+    return { ok: false, error: msg(e) };
+  }
 }

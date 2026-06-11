@@ -137,4 +137,16 @@ test.describe('Paiements — connexion Stripe (BYOP)', () => {
       page.getByText(/Connectez votre Stripe pour générer un lien/i).first(),
     ).toBeVisible();
   });
+
+  test('Tableau de bord : section « Solde & versements » (Lot B)', async ({ page }) => {
+    const fx = await seedTierFixtures();
+    await loginAsPhone(page, fx.business.ownerPhone);
+    await page.goto('/pro/payments');
+    // Section solde/virements présente ; org non connectée → invite à connecter
+    // (le solde réel est lu sur le compte Stripe une fois connecté).
+    await expect(page.getByText('Solde & versements')).toBeVisible();
+    await expect(
+      page.getByText(/Connectez votre compte Stripe pour suivre votre solde/i),
+    ).toBeVisible();
+  });
 });

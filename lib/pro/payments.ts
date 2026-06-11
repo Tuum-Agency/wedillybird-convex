@@ -46,6 +46,52 @@ export const PAY_STATUS_LABEL: Record<MilestoneStatus, string> = {
   upcoming: 'À venir',
 };
 
+/* ------------------------------ compte Stripe connecté (Lot B) ------------------------------ */
+// Données lues sur le compte Stripe de l'agence (charge directe / BYOP). Types
+// **client-safe** (aucun import du SDK Stripe) : partagés driver ↔ action ↔ UI.
+
+/** Solde du compte Stripe de l'agence (centimes EUR). */
+export interface ConnectedBalance {
+  availableMinor: number;
+  pendingMinor: number;
+  currency: string;
+}
+/** Virement Stripe vers le compte bancaire de l'agence. */
+export interface ConnectedPayout {
+  id: string;
+  amountMinor: number;
+  currency: string;
+  status: string;
+  /** Date d'arrivée estimée (ms). */
+  arrivalDate: number;
+  created: number;
+}
+/** Encaissement (charge) reçu sur le compte Stripe de l'agence. */
+export interface ConnectedPayment {
+  id: string;
+  amountMinor: number;
+  currency: string;
+  status: string;
+  created: number;
+  description: string | null;
+  customerEmail: string | null;
+  receiptUrl: string | null;
+}
+export interface ConnectedFinances {
+  balance: ConnectedBalance;
+  payouts: ConnectedPayout[];
+  payments: ConnectedPayment[];
+}
+
+/** Libellé FR d'un statut de virement Stripe. */
+export const PAYOUT_STATUS_LABEL: Record<string, string> = {
+  paid: 'Versé',
+  pending: 'En cours',
+  in_transit: 'En transit',
+  canceled: 'Annulé',
+  failed: 'Échoué',
+};
+
 /* ------------------------------ mode d'encaissement ------------------------------ */
 
 export type PaymentMode = 'byop' | 'manual';

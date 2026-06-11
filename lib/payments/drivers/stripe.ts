@@ -15,6 +15,7 @@ import {
   type SubscriptionStatus,
   type SubscriptionTier,
 } from '../subscriptions';
+import type { ConnectedBalance, ConnectedPayment, ConnectedPayout } from '../../pro/payments';
 
 let cached: Stripe | null = null;
 
@@ -844,4 +845,73 @@ function parseSession(
         ? session.payment_status
         : undefined,
   };
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Lecture du compte Stripe connecté (solde / virements / encaissements)      */
+/*  L'agence voit son argent SANS quitter la plateforme. En-tête Stripe-Account.*/
+/* -------------------------------------------------------------------------- */
+
+/** Mappe le solde Stripe → EUR (centimes), dispo + en attente. Pur (testable). */
+export function mapConnectedBalance(balance: Stripe.Balance): ConnectedBalance {
+  const sumEur = (rows: ReadonlyArray<{ amount: number; currency: string }>) =>
+    rows.filter((r) => r.currency === 'eur').reduce((a, r) => a + r.amount, 0);
+  return {
+    availableMinor: sumEur(balance.available ?? []),
+    pendingMinor: sumEur(balance.pending ?? []),
+    currency: 'EUR',
+  };
+}
+
+/** Mappe un virement Stripe → forme client-safe. Pur. */
+export function mapConnectedPayout(p: Stripe.Payout): ConnectedPayout {
+  return {
+    id: p.id,
+    amountMinor: p.amount,
+    currency: (p.currency ?? 'eur').toUpperCase(),
+    status: p.status,
+    arrivalDate: (p.arrival_date ?? 0) * 1000,
+    created: (p.created ?? 0) * 1000,
+  };
+}
+
+/** Mappe une charge Stripe → forme client-safe. Pur. */
+export function mapConnectedPayment(c: Stripe.Charge): ConnectedPayment {
+  return {
+    id: c.id,
+    amountMinor: c.amount,
+    currency: (c.currency ?? 'eur').toUpperCase(),
+    status: c.status,
+    created: (c.created ?? 0) * 1000,
+    description: c.description ?? null,
+    customerEmail: c.billing_details?.email ?? null,
+    receiptUrl: c.receipt_url ?? null,
+  };
+}
+
+/** Solde du compte connecté de l'agence (en-tête `Stripe-Account`). */
+export async function retrieveConnectedBalance(accountId: string): Promise<ConnectedBalance> {
+  const stripe = getStripe();
+  const balance = await stripe.balance.retrieve({}, { stripeAccount: accountId });
+  return mapConnectedBalance(balance);
+}
+
+/** Derniers virements du compte connecté vers la banque de l'agence. */
+export async function listConnectedPayouts(
+  accountId: string,
+  limit = 5,
+): Promise<ConnectedPayout[]> {
+  const stripe = getStripe();
+  const res = await stripe.payouts.list({ limit }, { stripeAccount: accountId });
+  return res.data.map(mapConnectedPayout);
+}
+
+/** Derniers encaissements (charges) reçus sur le compte connecté. */
+export async function listConnectedPayments(
+  accountId: string,
+  limit = 8,
+): Promise<ConnectedPayment[]> {
+  const stripe = getStripe();
+  const res = await stripe.charges.list({ limit }, { stripeAccount: accountId });
+  return res.data.map(mapConnectedPayment);
 }

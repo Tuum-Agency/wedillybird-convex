@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, useTransition } from 'react';
+import { useEffect, useMemo, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Wallet,
@@ -46,11 +46,13 @@ import {
   computeFee,
   nextDueMilestone,
   PAY_STATUS_LABEL,
+  PAYOUT_STATUS_LABEL,
   PAYMENT_MODE_META,
   PAYMENT_MODE_ORDER,
   TERM_LABELS,
   TERM_DISCLAIMER,
   TX_TYPE_LABEL,
+  type ConnectedFinances,
   type InvoiceLike,
   type MilestoneStatus,
   type Milestone,
@@ -63,6 +65,7 @@ import { setPaymentsSettingsAction } from '@/app/[locale]/(app)/pro/actions';
 import {
   createInvoicePaymentLinkAction,
   createFreePaymentLinkAction,
+  getConnectedFinancesAction,
 } from '@/app/[locale]/(app)/pro/payments/actions';
 import {
   Dialog,
@@ -360,6 +363,136 @@ function HeroTile({
   );
 }
 
+const FINANCES_ERR: Record<string, string> = {
+  NOT_CONNECTED: 'Connectez votre compte Stripe pour suivre votre solde et vos virements ici.',
+};
+const financesErr = (c: string) =>
+  FINANCES_ERR[c] ?? 'Impossible de récupérer vos données Stripe pour le moment.';
+
+/**
+ * Solde + virements RÉELS lus sur le compte Stripe connecté de l'agence (Lot B) —
+ * l'agence suit son argent sans quitter la plateforme. Récupéré à l'affichage via
+ * une server action (lecture seule). États : non connecté / chargement / erreur / data.
+ */
+function ConnectedFinancesSection({ connected }: { connected: boolean }) {
+  const [loading, setLoading] = useState(connected);
+  const [data, setData] = useState<ConnectedFinances | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!connected) return;
+    let active = true;
+    getConnectedFinancesAction().then((res) => {
+      if (!active) return;
+      if (res.ok) {
+        setData(res.data);
+        setError(null);
+      } else {
+        setError(financesErr(res.error));
+      }
+      setLoading(false);
+    });
+    return () => {
+      active = false;
+    };
+  }, [connected]);
+
+  return (
+    <section className="flex flex-col gap-3">
+      <SectionHead title="Solde & versements" count="Votre compte Stripe" />
+      {!connected ? (
+        <div className="flex items-center gap-3 rounded-2xl border border-dashed border-[color:var(--color-border-strong)] bg-[color:var(--color-surface)]/40 px-6 py-7 text-sm text-[color:var(--color-muted-foreground)]">
+          <Landmark className="h-5 w-5 flex-shrink-0" strokeWidth={1.6} aria-hidden />
+          Connectez votre compte Stripe pour suivre votre solde et vos virements directement ici.
+        </div>
+      ) : loading ? (
+        <div className="rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-6 py-7 text-sm text-[color:var(--color-muted-foreground)]">
+          Chargement de votre solde Stripe…
+        </div>
+      ) : error ? (
+        <div className="flex items-center gap-2 rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-6 py-5 text-sm text-[color:var(--color-muted-foreground)]">
+          <CircleAlert className="h-4 w-4 flex-shrink-0" strokeWidth={1.9} aria-hidden />
+          {error}
+        </div>
+      ) : data ? (
+        <div className="flex flex-col gap-3">
+          <div className="grid grid-cols-1 gap-px overflow-hidden rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-border)] sm:grid-cols-2">
+            <div className="flex flex-col gap-1.5 bg-[color:var(--color-surface)] px-4 py-3.5">
+              <span className="inline-flex items-center gap-1.5 font-mono text-[9px] tracking-[0.16em] text-[color:var(--color-muted-foreground)] uppercase">
+                <Wallet
+                  className="h-3 w-3 text-[color:var(--color-sage-500)]"
+                  strokeWidth={1.9}
+                  aria-hidden
+                />
+                Disponible
+              </span>
+              <span className="font-mono text-[19px] text-[color:var(--color-foreground)] tabular-nums">
+                {formatEurMinor(data.balance.availableMinor)}
+              </span>
+            </div>
+            <div className="flex flex-col gap-1.5 bg-[color:var(--color-surface)] px-4 py-3.5">
+              <span className="inline-flex items-center gap-1.5 font-mono text-[9px] tracking-[0.16em] text-[color:var(--color-muted-foreground)] uppercase">
+                <Hourglass
+                  className="h-3 w-3 text-[color:var(--color-blush-300)]"
+                  strokeWidth={1.9}
+                  aria-hidden
+                />
+                En attente
+              </span>
+              <span className="font-mono text-[19px] text-[color:var(--color-foreground)] tabular-nums">
+                {formatEurMinor(data.balance.pendingMinor)}
+              </span>
+            </div>
+          </div>
+
+          {data.payouts.length > 0 ? (
+            <div className="overflow-hidden rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)]">
+              {data.payouts.map((p) => (
+                <div
+                  key={p.id}
+                  className="flex items-center justify-between gap-3 border-b border-[color:var(--color-border)] px-4 py-3 last:border-0"
+                >
+                  <span className="inline-flex items-center gap-2 text-sm text-[color:var(--color-ink-700)]">
+                    <Landmark
+                      className="h-3.5 w-3.5 text-[color:var(--color-muted-foreground)]"
+                      strokeWidth={1.7}
+                      aria-hidden
+                    />
+                    Virement{p.arrivalDate ? ` · ${formatDateFr(p.arrivalDate)}` : ''}
+                  </span>
+                  <span className="flex items-center gap-2.5">
+                    <span className="font-mono text-sm text-[color:var(--color-foreground)] tabular-nums">
+                      {formatEurMinor(p.amountMinor)}
+                    </span>
+                    <span
+                      className={cn(
+                        'rounded-full px-2 py-0.5 font-mono text-[9px] uppercase',
+                        p.status === 'paid' ? PILL_TONE.ok : PILL_TONE.warn,
+                      )}
+                    >
+                      {PAYOUT_STATUS_LABEL[p.status] ?? p.status}
+                    </span>
+                  </span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="px-1 text-xs text-[color:var(--color-muted-foreground)]">
+              Aucun virement pour l’instant. Vos versements apparaîtront ici dès le premier
+              encaissement.
+            </p>
+          )}
+
+          <p className="px-1 font-mono text-[10px] leading-relaxed text-[color:var(--color-muted-foreground)]">
+            Données lues en direct sur votre compte Stripe — la fréquence des virements se règle
+            dans votre dashboard Stripe.
+          </p>
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
 function DashboardScreen({
   account,
   collectedMinor,
@@ -495,16 +628,8 @@ function DashboardScreen({
         )}
       </section>
 
-      {/* Versements */}
-      <section className="flex flex-col gap-3">
-        <SectionHead title="Versements" count="Votre compte Stripe" />
-        <div className="flex items-center gap-3 rounded-2xl border border-dashed border-[color:var(--color-border-strong)] bg-[color:var(--color-surface)]/40 px-6 py-7 text-sm text-[color:var(--color-muted-foreground)]">
-          <Landmark className="h-5 w-5 flex-shrink-0" strokeWidth={1.6} aria-hidden />
-          {account.connected
-            ? 'Vos versements sont gérés directement par votre compte Stripe, selon la fréquence configurée dans votre tableau de bord Stripe.'
-            : 'Connectez votre compte Stripe pour encaisser en ligne ; les versements seront gérés depuis votre propre compte.'}
-        </div>
-      </section>
+      {/* Solde & versements réels (lus sur le compte Stripe connecté) */}
+      <ConnectedFinancesSection connected={account.connected} />
     </div>
   );
 }
