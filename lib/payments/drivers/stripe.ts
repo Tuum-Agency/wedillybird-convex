@@ -362,17 +362,12 @@ export async function verifyAndParseSubscriptionWebhook(
   rawBody: string,
   signature: string | null,
 ): Promise<SubscriptionWebhookEvent | null> {
-  if (!signature) throw new Error('INVALID_SIGNATURE');
-  const secret = process.env.STRIPE_WEBHOOK_SECRET;
-  if (!secret) throw new Error('STRIPE_DRIVER_NOT_CONFIGURED');
-
-  const stripe = getStripe();
-  let event: Stripe.Event;
-  try {
-    event = stripe.webhooks.constructEvent(rawBody, signature, secret);
-  } catch {
-    throw new Error('INVALID_SIGNATURE');
-  }
+  // Vérif double-secret : un event Connect (compte connecté) est signé avec le
+  // secret Connect, pas le secret plateforme. On le vérifie quand même ici pour
+  // qu'il « tombe » en null (pas un abonnement) et que le caller continue vers les
+  // parseurs budget / liens — sinon il serait rejeté en 400 AVANT de les atteindre
+  // (les liens de paiement ne se réconcilieraient jamais en prod).
+  const event = verifyStripeSignatureWithConnect(rawBody, signature);
 
   if (
     event.type === 'customer.subscription.created' ||
@@ -588,6 +583,8 @@ export interface BudgetPaymentWebhookEvent {
   providerSessionId: string;
   providerEventId: string;
   status: 'succeeded' | 'failed';
+  /** Compte connecté d'origine de l'event (`event.account`) — anti-falsification inter-tenant. */
+  stripeAccountId?: string | null;
   receiptUrl?: string;
 }
 
@@ -661,15 +658,16 @@ export async function parseBudgetPaymentWebhook(
     event.id,
   );
   if (!base) return null;
-  if (base.status !== 'succeeded') return base;
+  const withAccount = { ...base, stripeAccountId: event.account ?? null };
+  if (withAccount.status !== 'succeeded') return withAccount;
 
   // En direct charge, le webhook est un event Connect (`event.account` renseigné).
   // On récupère le reçu via l'en-tête `Stripe-Account` du bon compte.
   const receiptUrl = await retrieveCheckoutReceiptUrl(
-    base.providerSessionId,
+    withAccount.providerSessionId,
     event.account ?? undefined,
   );
-  return { ...base, ...(receiptUrl ? { receiptUrl } : {}) };
+  return { ...withAccount, ...(receiptUrl ? { receiptUrl } : {}) };
 }
 
 /**
@@ -708,6 +706,8 @@ export interface PaymentLinkWebhookEvent {
   providerSessionId: string;
   providerEventId: string;
   status: 'succeeded' | 'failed';
+  /** Compte connecté d'origine de l'event (`event.account`) — anti-falsification inter-tenant. */
+  stripeAccountId?: string | null;
   receiptUrl?: string;
 }
 
@@ -754,12 +754,13 @@ export async function parsePaymentLinkWebhook(
     event.id,
   );
   if (!base) return null;
-  if (base.status !== 'succeeded') return base;
+  const withAccount = { ...base, stripeAccountId: event.account ?? null };
+  if (withAccount.status !== 'succeeded') return withAccount;
   const receiptUrl = await retrieveCheckoutReceiptUrl(
-    base.providerSessionId,
+    withAccount.providerSessionId,
     event.account ?? undefined,
   );
-  return { ...base, ...(receiptUrl ? { receiptUrl } : {}) };
+  return { ...withAccount, ...(receiptUrl ? { receiptUrl } : {}) };
 }
 
 /* -------------------------------------------------------------------------- */
@@ -905,7 +906,9 @@ export function mapConnectedPayment(c: Stripe.Charge): ConnectedPayment {
     description: c.description ?? null,
     customerEmail: c.billing_details?.email ?? null,
     receiptUrl: c.receipt_url ?? null,
-    refunded: c.refunded ?? false,
+    // `refunded` n'est vrai qu'au remboursement TOTAL ; on traite aussi le partiel
+    // comme remboursé pour l'affichage (sinon la charge réapparaît « remboursable »).
+    refunded: Boolean(c.refunded) || (c.amount_refunded ?? 0) > 0,
   };
 }
 
@@ -946,6 +949,20 @@ export async function refundConnectedCharge(
   chargeId: string,
 ): Promise<{ id: string; status: string }> {
   const stripe = getStripe();
-  const refund = await stripe.refunds.create({ charge: chargeId }, { stripeAccount: accountId });
+  // Vérifie que la charge existe bien sur CE compte connecté, est réussie et pas
+  // déjà remboursée — évite de rembourser une charge arbitraire ou un double
+  // remboursement. (Le scoping `stripeAccount` empêche déjà tout cross-compte.)
+  let charge: Stripe.Charge;
+  try {
+    charge = await stripe.charges.retrieve(chargeId, undefined, { stripeAccount: accountId });
+  } catch {
+    throw new Error('CHARGE_NOT_FOUND');
+  }
+  if (charge.status !== 'succeeded') throw new Error('CHARGE_NOT_REFUNDABLE');
+  if (charge.refunded || (charge.amount_refunded ?? 0) > 0) throw new Error('ALREADY_REFUNDED');
+  const refund = await stripe.refunds.create(
+    { charge: chargeId },
+    { stripeAccount: accountId, idempotencyKey: `refund_${chargeId}` },
+  );
   return { id: refund.id, status: refund.status ?? 'unknown' };
 }

@@ -348,6 +348,16 @@ export const createOnlinePaymentIntent = mutation({
     if (!Number.isFinite(args.amountMinor) || args.amountMinor <= 0)
       throw new Error('INVALID_AMOUNT');
     const now = Date.now();
+    // Compte Stripe de l'agence (connecté). S'il est présent, le lien sera une
+    // *charge directe* sur SON compte (en-tête `Stripe-Account`) : les fonds y vont
+    // directement et Wedillybird n'est jamais dans le flux. On le mémorise sur la
+    // ligne pour vérifier l'origine du webhook (anti-falsification). Sans compte
+    // connecté → null (pas de lien en ligne).
+    const org = await ctx.db.get(line.organizationId);
+    const connectAccountId =
+      org?.stripeConnectAccountId && org.stripeConnectChargesEnabled
+        ? org.stripeConnectAccountId
+        : null;
     const id = await ctx.db.insert('budgetPayments', {
       budgetLineId: line._id,
       eventId: line.eventId,
@@ -358,19 +368,11 @@ export const createOnlinePaymentIntent = mutation({
       paidAt: now,
       ...(args.note?.trim() ? { note: args.note.trim() } : {}),
       provider: 'stripe',
+      ...(connectAccountId ? { stripeConnectAccountId: connectAccountId } : {}),
       createdBy: args.requesterId,
       createdAt: now,
       updatedAt: now,
     });
-    // Compte Stripe de l'agence (connecté via OAuth Standard). S'il est présent,
-    // le lien sera une *charge directe* sur SON compte (en-tête `Stripe-Account`) :
-    // les fonds y vont directement et Wedillybird n'est jamais dans le flux. Sans
-    // compte connecté → null (pas de lien en ligne).
-    const org = await ctx.db.get(line.organizationId);
-    const connectAccountId =
-      org?.stripeConnectAccountId && org.stripeConnectChargesEnabled
-        ? org.stripeConnectAccountId
-        : null;
     return {
       id,
       eventId: line.eventId,
@@ -408,12 +410,24 @@ export const markOnlinePaymentSucceeded = mutation({
     webhookSecret: v.string(),
     paymentId: v.id('budgetPayments'),
     providerSessionId: v.string(),
+    stripeConnectAccountId: v.optional(v.string()),
     receiptUrl: v.optional(v.string()),
   },
-  handler: async (ctx, { webhookSecret, paymentId, providerSessionId, receiptUrl }) => {
+  handler: async (
+    ctx,
+    { webhookSecret, paymentId, providerSessionId, stripeConnectAccountId, receiptUrl },
+  ) => {
     assertWebhookSecret(webhookSecret);
     const payment = await ctx.db.get(paymentId);
     if (!payment) throw new Error('PAYMENT_NOT_FOUND');
+    // Anti-falsification inter-tenant (webhook Connect = secret partagé entre comptes
+    // connectés) : l'event doit provenir du compte connecté enregistré pour ce paiement.
+    if (
+      payment.stripeConnectAccountId &&
+      stripeConnectAccountId !== payment.stripeConnectAccountId
+    ) {
+      throw new Error('ACCOUNT_MISMATCH');
+    }
     const decision = decidePaymentTransition(payment.status, 'succeeded');
     if (!decision.apply) return { ok: true as const, alreadyApplied: true };
     await ctx.db.patch(paymentId, {

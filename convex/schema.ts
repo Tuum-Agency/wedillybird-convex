@@ -813,6 +813,9 @@ export default defineSchema({
     proofFileName: v.optional(v.string()),
     // ---- Paiement en ligne (Wedillybird Pay) ----
     provider: v.optional(v.union(v.literal('stripe'), v.literal('cinetpay'), v.literal('mock'))),
+    /** Compte connecté de l'agence sur lequel la session a été créée — sert à vérifier
+     *  l'origine du webhook (`event.account`) pour bloquer tout marquage inter-tenant. */
+    stripeConnectAccountId: v.optional(v.string()),
     providerSessionId: v.optional(v.string()),
     /** Lien de paiement à partager (Stripe Checkout) tant que le paiement est `pending`. */
     checkoutUrl: v.optional(v.string()),
@@ -902,6 +905,9 @@ export default defineSchema({
     clientName: v.optional(v.string()),
     status: v.union(v.literal('pending'), v.literal('succeeded'), v.literal('failed')),
     provider: v.union(v.literal('stripe')),
+    /** Compte connecté de l'agence sur lequel la session a été créée — sert à vérifier
+     *  l'origine du webhook (`event.account`) pour bloquer tout marquage inter-tenant. */
+    stripeConnectAccountId: v.optional(v.string()),
     providerSessionId: v.optional(v.string()),
     /** Lien Checkout à partager tant que `pending`. */
     checkoutUrl: v.optional(v.string()),

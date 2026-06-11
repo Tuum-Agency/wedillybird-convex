@@ -123,6 +123,7 @@ export async function POST(
             webhookSecret,
             paymentId: budgetEvent.budgetPaymentId,
             providerSessionId: budgetEvent.providerSessionId,
+            stripeConnectAccountId: budgetEvent.stripeAccountId ?? undefined,
             receiptUrl: budgetEvent.receiptUrl,
           });
           return NextResponse.json({
@@ -171,6 +172,7 @@ export async function POST(
             webhookSecret,
             paymentLinkId: linkEvent.paymentLinkId,
             providerSessionId: linkEvent.providerSessionId,
+            stripeConnectAccountId: linkEvent.stripeAccountId ?? undefined,
             receiptUrl: linkEvent.receiptUrl,
           });
           return NextResponse.json({
