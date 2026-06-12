@@ -21,13 +21,13 @@ Reproduire `.env.local` sur Vercel → Project Settings → Environment Variable
 
 ### Bloqueurs prod externes
 0. **Demo bypass OTP à retirer post-tournage** — env vars `DEMO_BYPASS_PHONE` + `DEMO_BYPASS_CODE` posées sur le déploiement Convex **dev** (`capable-crocodile-720`) pour le tournage de la vidéo de lancement (compte `+33600000001` / event `sarah-marc-launch-demo`). Bypass actif uniquement si les **deux** env vars sont set ET que le téléphone matche exactement. Une fois la vidéo livrée : `pnpx convex env unset DEMO_BYPASS_PHONE && pnpx convex env unset DEMO_BYPASS_CODE`. Ces env vars NE DOIVENT JAMAIS être posées sur le déploiement prod `fearless-poodle-133`.
-1. **SES sortie de sandbox** — cf. section "AWS — opérations & sécurité". Sans ça, magic link / contact / newsletter / rappels invités n'arrivent qu'à des adresses vérifiées.
-2. **Stripe Customer Portal** — à configurer dans Stripe Dashboard (Settings → Customer Portal) avant ouverture des subscriptions pro.
+1. **SES sortie de sandbox** — ✅ **RÉSOLU** (2026-06-06, vérifié API 2026-06-12 : production access, 50 000/j, 14 msg/s, état HEALTHY, suppression-list bounce+complaint active en eu-west-3). Monitoring CloudWatch (event destination + alarmes BounceRate/ComplaintRate) → SNS `hello@wedillybird.com` en place.
+2. **Stripe Customer Portal** — ✅ **RÉSOLU** : configuration live active (annulation + update + moyen de paiement), vérifié 2026-06-12.
 3. **CinetPay creds prod** — à récupérer sur dashboard CinetPay (apiKey + siteId).
 4. **DNS wildcard `*.wedillybird.com`** — Vercel domain + registrar, requis pour multi-tenant pro (sous-domaines `slug.wedillybird.com`).
 5. **WhatsApp template `team_invitation`** — à créer + valider dans Meta Business Manager.
-6. **Boîte `hello@wedillybird.com`** — vérifier MX configuré sur le domaine, sinon les emails de contact bouncent silencieusement.
-7. **Pricing alignment** — code aligné sur la grille canonique ✅ (cf. section "Pricing alignment Stripe Prices" plus bas). Reste à lancer `scripts/sync-stripe-prices.ts` côté Stripe live et mettre à jour les env vars Vercel.
+6. **Boîte `hello@wedillybird.com`** — ✅ MX configuré (Zoho : `mx.zoho.eu`, `mx2`, `mx3`), vérifié 2026-06-12. Reçoit bien (utilisé pour les alertes SES SNS).
+7. **Pricing alignment** — ✅ **TERMINÉ** (2026-06-12). Code aligné + Stripe Prices live créés/alignés (30 Prices canoniques actifs EUR/USD/MAD), anciens Prices aux mauvais montants archivés, env vars `STRIPE_PRICE_*` Vercel pointant sur les bons IDs (alias sans devise re-pointés). Vérifié via l'API Stripe (0 transaction live à ce jour).
 8. **Rotation clé AWS** `AKIAXCZRV3YXAVVRYIWU` — clé déjà exposée en dev, à rotater avant ouverture trafic prod (cf. "Rotation de l'access key initiale").
 9. **Ouverture commerciale US (USD)** — code prêt (region `americas`, currency `USD`, pricing $39 / $99 / +$59 B2C ; $89 / $179 / $349 pros), `scripts/sync-stripe-prices.ts` étendu pour USD ✅. Bloqueurs **externes uniquement** :
    - **Stripe Tax** activation côté compte + monitoring nexus par état (Wayfair : seuil typique $100k OU 200 transactions par état → obligation de collecter sales tax). Tant que le launch US n'est pas effectif on peut shipper le code, mais on n'envoie pas de trafic acquisition US sans ça.
