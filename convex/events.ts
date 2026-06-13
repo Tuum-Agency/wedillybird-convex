@@ -292,7 +292,11 @@ export const getById = query({
         .query('eventCollaborators')
         .withIndex('by_event_user', (q) => q.eq('eventId', eventId).eq('userId', requesterId))
         .first();
-      if (!collab) throw new Error('FORBIDDEN');
+      // Ni propriétaire ni collaborateur → renvoyer `null` (et non un throw
+      // FORBIDDEN) : les pages font `if (!event) notFound()` → 404 propre au
+      // lieu d'un 500 non géré. Bonus sécurité : ne révèle pas à un tiers
+      // l'existence de l'event (pas de distinction not-found / forbidden).
+      if (!collab) return null;
     }
     return ev;
   },
