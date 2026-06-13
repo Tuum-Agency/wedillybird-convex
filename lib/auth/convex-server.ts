@@ -595,14 +595,14 @@ export const convexApi = {
       plan: 'essential' | 'premium';
       currency: 'EUR' | 'USD' | 'XOF' | 'MAD' | 'TND';
       amountMinor: number;
-      provider: 'stripe' | 'cinetpay' | 'mock';
+      provider: 'stripe' | 'mock';
       providerSessionId: string;
     },
     { id: string }
   >('payments:recordIntent'),
   findPaymentBySession: makeFunctionReference<
     'query',
-    { provider: 'stripe' | 'cinetpay' | 'mock'; providerSessionId: string },
+    { provider: 'stripe' | 'mock'; providerSessionId: string },
     {
       _id: string;
       userId: string;
@@ -610,7 +610,7 @@ export const convexApi = {
       plan: 'essential' | 'premium';
       currency: 'EUR' | 'USD' | 'XOF' | 'MAD' | 'TND';
       amountMinor: number;
-      provider: 'stripe' | 'cinetpay' | 'mock';
+      provider: 'stripe' | 'mock';
       providerSessionId: string;
       providerEventId?: string;
       status: 'pending' | 'succeeded' | 'failed' | 'cancelled';
@@ -619,7 +619,7 @@ export const convexApi = {
   markPaymentSucceeded: makeFunctionReference<
     'mutation',
     {
-      provider: 'stripe' | 'cinetpay' | 'mock';
+      provider: 'stripe' | 'mock';
       providerSessionId: string;
       providerEventId: string;
     },
@@ -628,7 +628,7 @@ export const convexApi = {
   markPaymentFailed: makeFunctionReference<
     'mutation',
     {
-      provider: 'stripe' | 'cinetpay' | 'mock';
+      provider: 'stripe' | 'mock';
       providerSessionId: string;
       providerEventId: string;
       status: 'failed' | 'cancelled';
@@ -644,7 +644,7 @@ export const convexApi = {
       plan: 'essential' | 'premium';
       currency: 'EUR' | 'USD' | 'XOF' | 'MAD' | 'TND';
       amountMinor: number;
-      provider: 'stripe' | 'cinetpay' | 'mock';
+      provider: 'stripe' | 'mock';
       status: 'pending' | 'succeeded' | 'failed' | 'cancelled';
       createdAt: number;
     }>
@@ -660,7 +660,7 @@ export const convexApi = {
         plan: 'essential' | 'premium';
         currency: 'EUR' | 'USD' | 'XOF' | 'MAD' | 'TND';
         amountMinor: number;
-        provider: 'stripe' | 'cinetpay' | 'mock';
+        provider: 'stripe' | 'mock';
         status: 'pending' | 'succeeded' | 'failed' | 'cancelled';
         createdAt: number;
         updatedAt: number;
@@ -968,7 +968,7 @@ export const convexApi = {
           note?: string;
           proofFileName?: string;
           proofUrl: string | null;
-          provider?: 'stripe' | 'cinetpay' | 'mock';
+          provider?: 'stripe' | 'mock';
           checkoutUrl?: string;
           createdAt: number;
         }>;
@@ -1774,7 +1774,7 @@ export const convexApi = {
       plan: 'essential' | 'premium';
       currency: 'EUR' | 'USD' | 'XOF' | 'MAD' | 'TND';
       amountMinor: number;
-      provider: 'stripe' | 'cinetpay' | 'mock';
+      provider: 'stripe' | 'mock';
       status: 'pending' | 'succeeded' | 'failed' | 'cancelled';
       failureReason?: string;
       userName: string | null;

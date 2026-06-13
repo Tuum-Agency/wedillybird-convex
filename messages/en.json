@@ -38,7 +38,7 @@
       "article3Title": "3. Account and access",
       "article3Body": "Access to the Service requires creating an account by verifying a phone number. The User is responsible for the confidentiality of their number and for any action taken from their account. Any unauthorised use must be reported immediately.",
       "article4Title": "4. Pricing and payment",
-      "article4Body": "The Service is offered with no free tier. For individuals planning a wedding, two one-shot plans are available: Essential (€29, core features + 30-day gallery) and Premium (€59, Essential + 6-month gallery + PDF album). A post-wedding upsell (+€29) extends the gallery to 5 years and adds the HD photo book. For professionals, monthly or annual subscriptions (Starter €99/month, Business €219/month, Agency €449/month, -20% annual) or pay-as-you-go (€79 per event). Payments are processed by Stripe (Europe) or CinetPay (West Africa). Full refund within 7 days if the event has not been sent. If the wedding is cancelled, free postponement to another date.",
+      "article4Body": "The Service is offered with no free tier. For individuals planning a wedding, two one-shot plans are available: Essential (€29, core features + 30-day gallery) and Premium (€59, Essential + 6-month gallery + PDF album). A post-wedding upsell (+€29) extends the gallery to 5 years and adds the HD photo book. For professionals, monthly or annual subscriptions (Starter €99/month, Business €219/month, Agency €449/month, -20% annual) or pay-as-you-go (€79 per event). Payments are processed by Stripe. Full refund within 7 days if the event has not been sent. If the wedding is cancelled, free postponement to another date.",
       "article5Title": "5. Intellectual property",
       "article5Body": "The User retains ownership of the content they upload. They grant Wedillybird a non-exclusive licence to use this content solely for the operation of the Service. Wedillybird retains ownership of the platform, its code and brand.",
       "article6Title": "6. Liability",
@@ -1091,7 +1091,6 @@
       "forbidden": "You don't have permissions on this event",
       "payment_record_failed": "Couldn't record the transaction",
       "stripe_driver_not_configured": "Stripe not configured on this environment",
-      "cinetpay_driver_not_configured": "CinetPay not configured on this environment",
       "reconciliation": "The Stripe webhook is delayed. The payment was received but the upgrade will apply in a few moments. Refresh the page.",
       "network": "Network error, try again",
       "unknown": "Something went wrong. Try again."

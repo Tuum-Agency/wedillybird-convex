@@ -1,6 +1,6 @@
 import type { Currency } from './plans';
 
-export type ProviderName = 'stripe' | 'cinetpay' | 'mock';
+export type ProviderName = 'stripe' | 'mock';
 
 const STRIPE_COUNTRIES = new Set([
   'FR',
@@ -24,30 +24,6 @@ const STRIPE_COUNTRIES = new Set([
 // avec `AMERICAS_COUNTRIES` dans `region.ts` — les deux Sets décrivent la
 // même région marché.
 const USD_COUNTRIES = new Set(['US', 'CA']);
-
-// Routing CinetPay pour Afrique de l'Ouest + Maghreb (XOF, MAD, TND).
-// Activé via le feature flag CINETPAY_ENABLED=true. Sans ce flag (ou si défini
-// à une valeur autre que "true"), tous les pays tombent sur Stripe + EUR.
-// Les credentials CINETPAY_API_KEY + CINETPAY_SITE_ID doivent être configurés
-// en parallèle avant d'activer ce flag en production.
-const CINETPAY_BY_CURRENCY: Record<string, Currency> = {
-  SN: 'XOF',
-  CI: 'XOF',
-  ML: 'XOF',
-  BF: 'XOF',
-  TG: 'XOF',
-  BJ: 'XOF',
-  GW: 'XOF',
-  NE: 'XOF',
-  CM: 'XOF',
-  GA: 'XOF',
-  CG: 'XOF',
-  TD: 'XOF',
-  CF: 'XOF',
-  GQ: 'XOF',
-  MA: 'MAD',
-  TN: 'TND',
-};
 
 export interface PaymentRouting {
   provider: ProviderName;
@@ -73,12 +49,6 @@ export function routePayment(
   if (STRIPE_COUNTRIES.has(code)) {
     const defaultCurrency: Currency = USD_COUNTRIES.has(code) ? 'USD' : 'EUR';
     return { provider: 'stripe', currency: preferred?.currency ?? defaultCurrency };
-  }
-  if (process.env.CINETPAY_ENABLED === 'true' && code in CINETPAY_BY_CURRENCY) {
-    return {
-      provider: 'cinetpay',
-      currency: preferred?.currency ?? CINETPAY_BY_CURRENCY[code]!,
-    };
   }
   return { provider: 'stripe', currency: preferred?.currency ?? 'EUR' };
 }

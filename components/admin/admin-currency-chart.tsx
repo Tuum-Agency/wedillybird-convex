@@ -8,7 +8,6 @@ const COLORS: Record<string, string> = {
   MAD: 'oklch(65% 0.08 250)',
   TND: 'oklch(65% 0.1 78)',
   stripe: 'oklch(60% 0.15 270)',
-  cinetpay: 'oklch(65% 0.12 145)',
   mock: 'oklch(55% 0.05 78)',
 };
 

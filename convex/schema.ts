@@ -404,7 +404,7 @@ export default defineSchema({
       v.literal('TND'),
     ),
     amountMinor: v.number(),
-    provider: v.union(v.literal('stripe'), v.literal('cinetpay'), v.literal('mock')),
+    provider: v.union(v.literal('stripe'), v.literal('mock')),
     providerSessionId: v.string(),
     providerEventId: v.optional(v.string()),
     status: v.union(
@@ -813,7 +813,7 @@ export default defineSchema({
     proofStorageId: v.optional(v.id('_storage')),
     proofFileName: v.optional(v.string()),
     // ---- Paiement en ligne (Wedillybird Pay) ----
-    provider: v.optional(v.union(v.literal('stripe'), v.literal('cinetpay'), v.literal('mock'))),
+    provider: v.optional(v.union(v.literal('stripe'), v.literal('mock'))),
     /** Compte connecté de l'agence sur lequel la session a été créée — sert à vérifier
      *  l'origine du webhook (`event.account`) pour bloquer tout marquage inter-tenant. */
     stripeConnectAccountId: v.optional(v.string()),

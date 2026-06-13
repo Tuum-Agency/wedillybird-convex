@@ -38,7 +38,7 @@
       "article3Title": "3. Konto und Zugang",
       "article3Body": "Der Zugang zum Dienst erfordert die Erstellung eines Kontos durch Verifizierung einer WhatsApp-Nummer. Der Nutzer ist für die Vertraulichkeit seiner Nummer und für jede Handlung verantwortlich, die über sein Konto erfolgt. Jede unbefugte Nutzung ist unverzüglich zu melden.",
       "article4Title": "4. Preise und Zahlung",
-      "article4Body": "Der Dienst wird ohne kostenlose Variante angeboten. Für Privatpersonen, die eine Hochzeit organisieren, gibt es zwei Einmalzahlungs-Pakete: Essentiel (29 €, Grundfunktionen + Galerie 30 Tage) und Premium (59 €, Essentiel + Galerie 6 Monate + PDF-Album). Ein Upsell nach der Hochzeit (+29 €) verlängert die Galerie auf 5 Jahre und fügt das HD-Fotobuch hinzu. Für Profis: monatliches oder jährliches Abonnement (Starter 99 €/Monat, Business 219 €/Monat, Agency 449 €/Monat, -20 % bei jährlicher Zahlung) oder Bezahlung pro Event (79 €). Zahlungen werden über Stripe (Europa) oder CinetPay (Westafrika) abgewickelt. Vollständige Rückerstattung innerhalb von 7 Tagen, sofern das Event noch nicht versendet wurde. Bei Absage der Hochzeit ist eine kostenlose Verschiebung auf einen anderen Termin möglich.",
+      "article4Body": "Der Dienst wird ohne kostenlose Variante angeboten. Für Privatpersonen, die eine Hochzeit organisieren, gibt es zwei Einmalzahlungs-Pakete: Essentiel (29 €, Grundfunktionen + Galerie 30 Tage) und Premium (59 €, Essentiel + Galerie 6 Monate + PDF-Album). Ein Upsell nach der Hochzeit (+29 €) verlängert die Galerie auf 5 Jahre und fügt das HD-Fotobuch hinzu. Für Profis: monatliches oder jährliches Abonnement (Starter 99 €/Monat, Business 219 €/Monat, Agency 449 €/Monat, -20 % bei jährlicher Zahlung) oder Bezahlung pro Event (79 €). Zahlungen werden über Stripe abgewickelt. Vollständige Rückerstattung innerhalb von 7 Tagen, sofern das Event noch nicht versendet wurde. Bei Absage der Hochzeit ist eine kostenlose Verschiebung auf einen anderen Termin möglich.",
       "article5Title": "5. Geistiges Eigentum",
       "article5Body": "Der Nutzer behält das Eigentum an den von ihm hochgeladenen Inhalten. Er räumt Wedillybird eine nicht-exklusive Lizenz zur Nutzung dieser Inhalte ausschließlich zum Zweck des Betriebs des Dienstes ein. Wedillybird behält das Eigentum an der Plattform, dem Code und der Marke.",
       "article6Title": "6. Haftung",
@@ -1095,7 +1095,6 @@
       "forbidden": "Du hast keine Rechte für dieses Event",
       "payment_record_failed": "Transaktion konnte nicht erfasst werden",
       "stripe_driver_not_configured": "Stripe in dieser Umgebung nicht konfiguriert",
-      "cinetpay_driver_not_configured": "CinetPay in dieser Umgebung nicht konfiguriert",
       "reconciliation": "Der Stripe-Webhook ist verzögert. Die Zahlung wurde empfangen, das Upgrade wird gleich angewendet. Aktualisiere die Seite.",
       "network": "Netzwerkfehler, erneut versuchen",
       "unknown": "Ein Fehler ist aufgetreten. Bitte erneut versuchen."

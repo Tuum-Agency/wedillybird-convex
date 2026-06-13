@@ -23,7 +23,8 @@
  * `convertFromEur` (cf. `lib/payments/currency.ts`). Pas d'overlay régional :
  * un Starter à 89 € reste 89 € converti pour tout le monde.
  *
- * Multi-devises : EUR + USD via Stripe, XOF via CinetPay, MAD/TND via Stripe.
+ * Multi-devises : EUR + USD + MAD réglés via Stripe. XOF/TND restent des
+ * devises d'affichage uniquement (pas de processeur de paiement).
  * Les Stripe Prices stables sont nommés `STRIPE_PRICE_<TIER>[_ANNUAL]_<CURRENCY>`
  * (ex. STRIPE_PRICE_STARTER_MAD, STRIPE_PRICE_AGENCY_ANNUAL_USD). Le suffix sans
  * devise (`STRIPE_PRICE_STARTER`) reste un alias EUR pour rétro-compat env.
@@ -53,7 +54,7 @@ export interface SubscriptionTierDefinition {
   /**
    * Montants équivalents par devise alternative (en unités mineures). Dérivés
    * d'`amountMinor` via `pricesFromEur`. EUR = `amountMinor`. XOF non supporté
-   * par Stripe (CinetPay prend le relais).
+   * par Stripe (devise d'affichage uniquement).
    */
   prices: Record<Currency, number>;
 }
@@ -149,8 +150,9 @@ export function isSubscriptionBilling(value: unknown): value is SubscriptionBill
  *                                              STRIPE_PRICE_AGENCY_ANNUAL_TND)
  *   STRIPE_PRICE_<TIER>[_ANNUAL]              (alias EUR pour rétro-compat env)
  *
- * Devise XOF : non supportée par Stripe (paiement routé vers CinetPay) — la
- * fonction throw `UNSUPPORTED_STRIPE_CURRENCY` si on l'invoque avec XOF.
+ * Devise XOF : non supportée par Stripe (devise d'affichage uniquement, pas de
+ * processeur de paiement) — la fonction throw `UNSUPPORTED_STRIPE_CURRENCY` si
+ * on l'invoque avec XOF.
  *
  * Throw `MISSING_<ENVNAME>` si la variable n'est pas définie.
  */

@@ -25,6 +25,7 @@ import type * as lib_channelRouting from "../lib/channelRouting.js";
 import type * as lib_email from "../lib/email.js";
 import type * as lib_entitlements from "../lib/entitlements.js";
 import type * as lib_eventAuth from "../lib/eventAuth.js";
+import type * as lib_guestStats from "../lib/guestStats.js";
 import type * as lib_magicLink from "../lib/magicLink.js";
 import type * as lib_orgAuth from "../lib/orgAuth.js";
 import type * as lib_otp from "../lib/otp.js";
@@ -81,6 +82,7 @@ declare const fullApi: ApiFromModules<{
   "lib/email": typeof lib_email;
   "lib/entitlements": typeof lib_entitlements;
   "lib/eventAuth": typeof lib_eventAuth;
+  "lib/guestStats": typeof lib_guestStats;
   "lib/magicLink": typeof lib_magicLink;
   "lib/orgAuth": typeof lib_orgAuth;
   "lib/otp": typeof lib_otp;

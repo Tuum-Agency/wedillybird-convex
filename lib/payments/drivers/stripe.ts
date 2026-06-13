@@ -63,8 +63,8 @@ export const stripeDriver: PaymentDriver = {
     // Préfère un Stripe Price stable (env var STRIPE_PRICE_<PLAN>_<CURRENCY>
     // ou alias EUR `STRIPE_PRICE_<PLAN>`) — créé par scripts/sync-stripe-prices.ts.
     // Si l'env var n'est pas configurée, tombe sur price_data inline pour ne
-    // pas bloquer le checkout en dev. Couvre EUR + MAD + TND. XOF passe par
-    // le driver CinetPay et n'arrive normalement jamais ici.
+    // pas bloquer le checkout en dev. Couvre EUR + MAD + TND. XOF n'a pas de
+    // processeur de paiement et n'arrive normalement jamais ici.
     const stablePrice = priceIdForPlan(input.plan, input.currency);
     const lineItem = stablePrice
       ? { quantity: 1, price: stablePrice }

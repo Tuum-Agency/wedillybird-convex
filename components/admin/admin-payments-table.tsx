@@ -16,7 +16,7 @@ type Payment = {
   plan: 'essential' | 'premium';
   currency: 'EUR' | 'USD' | 'XOF' | 'MAD' | 'TND';
   amountMinor: number;
-  provider: 'stripe' | 'cinetpay' | 'mock';
+  provider: 'stripe' | 'mock';
   status: 'pending' | 'succeeded' | 'failed' | 'cancelled';
   failureReason?: string;
   userName: string | null;

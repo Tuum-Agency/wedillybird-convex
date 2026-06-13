@@ -137,9 +137,6 @@ export function LandingFooterRich() {
               <span className="rounded-md border border-[color:var(--color-border)] bg-white px-3 py-1.5 text-xs font-bold tracking-wide text-[#635bff]">
                 Stripe
               </span>
-              <span className="rounded-md border border-[color:var(--color-border)] bg-white px-3 py-1.5 text-xs font-bold tracking-wide text-[oklch(45%_0.13_152)]">
-                CinetPay
-              </span>
             </div>
           </div>
         </div>

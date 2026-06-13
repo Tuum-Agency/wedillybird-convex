@@ -120,7 +120,7 @@ describe('priceIdForTier', () => {
     );
   });
 
-  it('throws UNSUPPORTED_STRIPE_CURRENCY for XOF (CinetPay path only)', () => {
+  it('throws UNSUPPORTED_STRIPE_CURRENCY for XOF (no Stripe settlement)', () => {
     expect(() => priceIdForTier('starter', 'monthly', 'XOF')).toThrow(
       'UNSUPPORTED_STRIPE_CURRENCY',
     );
