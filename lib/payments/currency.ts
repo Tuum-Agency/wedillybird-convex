@@ -11,9 +11,8 @@
  * refresh à la main si la parité EUR/XX dérive trop, ou à brancher sur une
  * source de vérité plus tard (ECB feed, etc.).
  *
- * Pour les paiements eux-mêmes, Stripe (et CinetPay) appliquent leur propre
- * conversion au moment du charge ; ces taux servent **uniquement à l'affichage
- * marketing**.
+ * Pour les paiements eux-mêmes, Stripe applique sa propre conversion au moment
+ * du charge ; ces taux servent **uniquement à l'affichage marketing**.
  */
 import type { Locale } from '@/i18n/routing';
 import type { Currency } from './plans';
@@ -113,4 +112,4 @@ export function defaultCurrencyForLocale(locale: Locale): Currency {
  * Ordre : major (EUR, USD) puis local-Africa pour les utilisateurs qui
  * voudraient voir le prix dans leur monnaie locale.
  */
-export const SELECTABLE_CURRENCIES: ReadonlyArray<Currency> = ['EUR', 'USD', 'XOF', 'MAD', 'TND'];
+export const SELECTABLE_CURRENCIES: ReadonlyArray<Currency> = ['EUR', 'USD', 'MAD'];

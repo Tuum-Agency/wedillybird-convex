@@ -4,10 +4,9 @@
  * source de vérité") : toute la grille s'aligne sur EUR avec conversion
  * automatique pour les autres devises, partout (Afrique incluse).
  *
- * Cette fonction reste utile pour le routage des paiements (Stripe vs CinetPay)
- * et pour pré-sélectionner une devise locale pertinente (XOF/MAD/TND) lors du
- * rendu initial — l'utilisateur peut ensuite ré-override via le sélecteur
- * footer (cf. `stores/currency-store.ts`).
+ * Cette fonction reste utile pour pré-sélectionner une devise locale pertinente
+ * (MAD) lors du rendu initial — l'utilisateur peut ensuite ré-override via le
+ * sélecteur footer (cf. `stores/currency-store.ts`).
  */
 import type { Currency, PlanTier } from './plans';
 import { convertFromEur } from './currency';
@@ -50,9 +49,9 @@ const AFRICAN_COUNTRIES = new Set([
 const AMERICAS_COUNTRIES = new Set(['US', 'CA']);
 
 /**
- * Région tarifaire détectée à partir du header geoIP Vercel. Sert au routage
- * paiement (Africa → CinetPay, autres → Stripe) et au choix d'une devise par
- * défaut pertinente côté serveur. Override possible via cookie `wbb_region`.
+ * Région tarifaire détectée à partir du header geoIP Vercel. Sert au choix d'une
+ * devise par défaut pertinente côté serveur. Override possible via cookie
+ * `wbb_region`.
  */
 export function detectPricingRegion(headers: Headers): PricingRegion {
   const cookieHeader = headers.get('cookie') ?? '';

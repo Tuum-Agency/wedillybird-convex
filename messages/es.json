@@ -38,7 +38,7 @@
       "article3Title": "3. Cuenta y acceso",
       "article3Body": "El acceso al Servicio requiere la creación de una cuenta mediante la verificación de un número de WhatsApp. El Usuario es responsable de la confidencialidad de su número y de cualquier acción realizada desde su cuenta. Cualquier uso no autorizado debe comunicarse de inmediato.",
       "article4Title": "4. Tarifas y pago",
-      "article4Body": "El Servicio se ofrece sin plan gratuito. Para particulares que organizan una boda, dos planes de pago único: Esencial (29 €, funciones básicas + galería 30 días) y Premium (59 €, Esencial + galería 6 meses + álbum PDF). Una mejora postboda (+29 €) amplía la galería a 5 años y añade el libro de fotos en HD. Para profesionales, suscripción mensual o anual (Starter 99 €/mes, Business 219 €/mes, Agency 449 €/mes, -20 % en plan anual) o pago por evento (79 €). Los pagos se procesan a través de Stripe (Europa) o CinetPay (África Occidental). Reembolso íntegro en un plazo de 7 días si el evento aún no se ha enviado. En caso de cancelación de la boda, aplazamiento gratuito a otra fecha.",
+      "article4Body": "El Servicio se ofrece sin plan gratuito. Para particulares que organizan una boda, dos planes de pago único: Esencial (29 €, funciones básicas + galería 30 días) y Premium (59 €, Esencial + galería 6 meses + álbum PDF). Una mejora postboda (+29 €) amplía la galería a 5 años y añade el libro de fotos en HD. Para profesionales, suscripción mensual o anual (Starter 99 €/mes, Business 219 €/mes, Agency 449 €/mes, -20 % en plan anual) o pago por evento (79 €). Los pagos se procesan a través de Stripe. Reembolso íntegro en un plazo de 7 días si el evento aún no se ha enviado. En caso de cancelación de la boda, aplazamiento gratuito a otra fecha.",
       "article5Title": "5. Propiedad intelectual",
       "article5Body": "El Usuario conserva la propiedad de los contenidos que sube. Otorga a Wedillybird una licencia no exclusiva de uso de dichos contenidos con el único fin del funcionamiento del Servicio. Wedillybird conserva la propiedad de la plataforma, el código y la marca.",
       "article6Title": "6. Responsabilidad",
@@ -1095,7 +1095,6 @@
       "forbidden": "No tienes permisos sobre este evento",
       "payment_record_failed": "No se ha podido registrar la transacción",
       "stripe_driver_not_configured": "Stripe no está configurado en este entorno",
-      "cinetpay_driver_not_configured": "CinetPay no está configurado en este entorno",
       "reconciliation": "El webhook de Stripe va con retraso. El pago se ha recibido correctamente, pero la mejora se aplicará en unos instantes. Actualiza la página.",
       "network": "Error de red, inténtalo de nuevo",
       "unknown": "Se ha producido un error. Inténtalo de nuevo."

@@ -378,6 +378,7 @@ export default defineSchema({
     eventId: v.id('events'),
     userId: v.id('users'),
     role: v.union(
+      v.literal('couple'), // le ou les marié·e·s rattaché·e·s par l'agence (espace couple)
       v.literal('co_owner'),
       v.literal('planner'),
       v.literal('scanner'),
@@ -403,7 +404,7 @@ export default defineSchema({
       v.literal('TND'),
     ),
     amountMinor: v.number(),
-    provider: v.union(v.literal('stripe'), v.literal('cinetpay'), v.literal('mock')),
+    provider: v.union(v.literal('stripe'), v.literal('mock')),
     providerSessionId: v.string(),
     providerEventId: v.optional(v.string()),
     status: v.union(
@@ -812,7 +813,7 @@ export default defineSchema({
     proofStorageId: v.optional(v.id('_storage')),
     proofFileName: v.optional(v.string()),
     // ---- Paiement en ligne (Wedillybird Pay) ----
-    provider: v.optional(v.union(v.literal('stripe'), v.literal('cinetpay'), v.literal('mock'))),
+    provider: v.optional(v.union(v.literal('stripe'), v.literal('mock'))),
     /** Compte connecté de l'agence sur lequel la session a été créée — sert à vérifier
      *  l'origine du webhook (`event.account`) pour bloquer tout marquage inter-tenant. */
     stripeConnectAccountId: v.optional(v.string()),
@@ -897,6 +898,8 @@ export default defineSchema({
     /** Facture liée (kind 'invoice') + index de l'échéance dans `schedule`. */
     invoiceDocId: v.optional(v.id('quoteDocs')),
     invoiceMilestoneIndex: v.optional(v.number()),
+    /** Mariage rattaché (pour l'espace couple) — dérivé de la facture (kind 'invoice'). */
+    eventId: v.optional(v.id('events')),
     amountMinor: v.number(),
     currency: v.string(),
     /** Libellé affiché au couple sur Stripe Checkout. */
@@ -920,7 +923,8 @@ export default defineSchema({
   })
     .index('by_organization', ['organizationId'])
     .index('by_session', ['providerSessionId'])
-    .index('by_invoice', ['invoiceDocId']),
+    .index('by_invoice', ['invoiceDocId'])
+    .index('by_event', ['eventId']),
 
   /** Historique d'activité d'un document (création, envoi, paiement…). */
   quoteActivity: defineTable({

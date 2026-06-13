@@ -8,7 +8,7 @@
 
 Résumé impératif :
 
-- **Pas de tier `free`** côté particuliers. Le code actuel en a un — il doit être supprimé.
+- **Pas de tier `free`** côté particuliers. (Supprimé du code ✅ — `PlanTier = 'essential' | 'premium'`.)
 - **Particuliers (one-shot)** :
   - Essentiel **29 €** — 100 invités max — 5 Go galerie 12 mois
   - Premium **59 €** — 250 invités max — 25 Go HD 12 mois
@@ -26,7 +26,7 @@ Résumé impératif :
 - **Règles transverses** : remboursement 100 % sous 7j si event non envoyé, report gratuit en cas d'annulation, galerie active 12 mois post-event puis archivage.
 - **Bundle interne** : 3,5 × cap invités (couvre invitation + reminders + RSVP + gallery link).
 
-Le code livré dans les sprints 1-11 (notamment Sprint 9.2 sur les subscriptions Pro) **diverge** de cette grille et doit être refactoré. Les Stripe Prices test (`price_1TQ712…`, `price_1TQ713…`, `price_1TQ714…`) sont **à recréer** avec les bons montants.
+Le code (`lib/payments/plans.ts`, `lib/payments/subscriptions.ts`) est **aligné** sur cette grille. Les Stripe Prices **live** ont été créés et nettoyés (2026-06-12) : **30 Prices canoniques actifs** (Essentiel 29 / Premium 59 / Upsell 29 / Starter 99·951 / Business 219·2103 / Agency 449·4311 / PAYG 79, en EUR/USD/MAD) ; les anciens Prices aux mauvais montants ont été **archivés**. Les env vars `STRIPE_PRICE_*` Vercel pointent sur les bons IDs (génération `price_1Tdp*`/`1Tdtq*`). Vérifié via l'API Stripe (0 transaction live à ce jour).
 
 ## Direction de design (V2)
 
@@ -53,6 +53,6 @@ Toute proposition de modification UI doit respecter cette direction ou rouvrir l
 
 ## État livré (avril 2026)
 
-Sprints 1-11 livrés (auth WhatsApp, invités, RSVP, check-in offline, galerie, paiements one-shot, dashboard pro, AWS S3+CloudFront+SES+Rekognition+Sharp variants, Stripe Subscriptions, CinetPay driver, branding org, wildcard subdomain, WhatsApp invite). Voir PRs #12-#16 sur GitHub.
+Sprints 1-11 livrés (auth WhatsApp, invités, RSVP, check-in offline, galerie, paiements one-shot, dashboard pro, AWS S3+CloudFront+SES+Rekognition+Sharp variants, Stripe Subscriptions, branding org, wildcard subdomain, WhatsApp invite). Voir PRs #12-#16 sur GitHub.
 
-Bloqueurs prod externes (`BACKLOG.md`) : SES sandbox exit, Stripe Customer Portal config, IAM scope-down, DNS wildcard Vercel, Meta template `team_invitation`, CinetPay creds prod, **alignement pricing sur la grille canonique** (à programmer comme nouveau sprint).
+Bloqueurs prod externes (`BACKLOG.md`) : SES sandbox exit, Stripe Customer Portal config, IAM scope-down, DNS wildcard Vercel, Meta template `team_invitation`, **alignement pricing sur la grille canonique** (à programmer comme nouveau sprint).

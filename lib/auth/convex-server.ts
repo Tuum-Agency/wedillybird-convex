@@ -296,6 +296,55 @@ export const convexApi = {
       updatedAt: number;
     } | null
   >('events:getById'),
+  // ---- Espace couple (mariages d'agence) ----
+  linkCouple: makeFunctionReference<
+    'mutation',
+    { eventId: string; requesterId: string; phone: string },
+    { ok: true; userId: string; alreadyLinked: boolean }
+  >('events:linkCouple'),
+  unlinkCouple: makeFunctionReference<
+    'mutation',
+    { eventId: string; requesterId: string },
+    { ok: true }
+  >('events:unlinkCouple'),
+  coupleLinks: makeFunctionReference<
+    'query',
+    { eventId: string; requesterId: string },
+    Array<{ userId: string; phone: string; invitedAt: number }>
+  >('events:coupleLinks'),
+  coupleOverview: makeFunctionReference<
+    'query',
+    { eventId: string; requesterId: string },
+    {
+      _id: string;
+      title: string;
+      coupleNames: { partnerA: string; partnerB: string };
+      eventDate: number;
+      timezone: string;
+      venue: { name: string; address: string } | null;
+      status: string;
+      guestStats: {
+        total: number;
+        attending: number;
+        declined: number;
+        maybe: number;
+        pending: number;
+        expectedHeadcount: number;
+      };
+    }
+  >('events:coupleOverview'),
+  listMineAsCouple: makeFunctionReference<
+    'query',
+    { userId: string },
+    Array<{
+      _id: string;
+      title: string;
+      coupleNames: { partnerA: string; partnerB: string };
+      eventDate: number;
+      venue: { name: string; address: string } | null;
+      status: string;
+    }>
+  >('events:listMineAsCouple'),
   addGuest: makeFunctionReference<
     'mutation',
     {
@@ -546,14 +595,14 @@ export const convexApi = {
       plan: 'essential' | 'premium';
       currency: 'EUR' | 'USD' | 'XOF' | 'MAD' | 'TND';
       amountMinor: number;
-      provider: 'stripe' | 'cinetpay' | 'mock';
+      provider: 'stripe' | 'mock';
       providerSessionId: string;
     },
     { id: string }
   >('payments:recordIntent'),
   findPaymentBySession: makeFunctionReference<
     'query',
-    { provider: 'stripe' | 'cinetpay' | 'mock'; providerSessionId: string },
+    { provider: 'stripe' | 'mock'; providerSessionId: string },
     {
       _id: string;
       userId: string;
@@ -561,7 +610,7 @@ export const convexApi = {
       plan: 'essential' | 'premium';
       currency: 'EUR' | 'USD' | 'XOF' | 'MAD' | 'TND';
       amountMinor: number;
-      provider: 'stripe' | 'cinetpay' | 'mock';
+      provider: 'stripe' | 'mock';
       providerSessionId: string;
       providerEventId?: string;
       status: 'pending' | 'succeeded' | 'failed' | 'cancelled';
@@ -570,7 +619,7 @@ export const convexApi = {
   markPaymentSucceeded: makeFunctionReference<
     'mutation',
     {
-      provider: 'stripe' | 'cinetpay' | 'mock';
+      provider: 'stripe' | 'mock';
       providerSessionId: string;
       providerEventId: string;
     },
@@ -579,7 +628,7 @@ export const convexApi = {
   markPaymentFailed: makeFunctionReference<
     'mutation',
     {
-      provider: 'stripe' | 'cinetpay' | 'mock';
+      provider: 'stripe' | 'mock';
       providerSessionId: string;
       providerEventId: string;
       status: 'failed' | 'cancelled';
@@ -595,7 +644,7 @@ export const convexApi = {
       plan: 'essential' | 'premium';
       currency: 'EUR' | 'USD' | 'XOF' | 'MAD' | 'TND';
       amountMinor: number;
-      provider: 'stripe' | 'cinetpay' | 'mock';
+      provider: 'stripe' | 'mock';
       status: 'pending' | 'succeeded' | 'failed' | 'cancelled';
       createdAt: number;
     }>
@@ -611,7 +660,7 @@ export const convexApi = {
         plan: 'essential' | 'premium';
         currency: 'EUR' | 'USD' | 'XOF' | 'MAD' | 'TND';
         amountMinor: number;
-        provider: 'stripe' | 'cinetpay' | 'mock';
+        provider: 'stripe' | 'mock';
         status: 'pending' | 'succeeded' | 'failed' | 'cancelled';
         createdAt: number;
         updatedAt: number;
@@ -919,7 +968,7 @@ export const convexApi = {
           note?: string;
           proofFileName?: string;
           proofUrl: string | null;
-          provider?: 'stripe' | 'cinetpay' | 'mock';
+          provider?: 'stripe' | 'mock';
           checkoutUrl?: string;
           createdAt: number;
         }>;
@@ -1077,6 +1126,21 @@ export const convexApi = {
       paidAt?: number;
     }>
   >('paymentLinks:listByOrg'),
+  listPaymentLinksForEvent: makeFunctionReference<
+    'query',
+    { eventId: string; requesterId: string },
+    Array<{
+      _id: string;
+      amountMinor: number;
+      currency: string;
+      description: string;
+      status: 'pending' | 'succeeded' | 'failed';
+      checkoutUrl?: string;
+      receiptUrl?: string;
+      createdAt: number;
+      paidAt?: number;
+    }>
+  >('paymentLinks:listForEvent'),
   // ---- Rétroplanning (tous tiers) ----
   planningListByEvent: makeFunctionReference<
     'query',
@@ -1710,7 +1774,7 @@ export const convexApi = {
       plan: 'essential' | 'premium';
       currency: 'EUR' | 'USD' | 'XOF' | 'MAD' | 'TND';
       amountMinor: number;
-      provider: 'stripe' | 'cinetpay' | 'mock';
+      provider: 'stripe' | 'mock';
       status: 'pending' | 'succeeded' | 'failed' | 'cancelled';
       failureReason?: string;
       userName: string | null;

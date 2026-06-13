@@ -9,7 +9,7 @@ function ownerLocaleToIntlTag(locale: string | undefined): string {
   return toIntlTag(locale);
 }
 
-const PROVIDER = v.union(v.literal('stripe'), v.literal('cinetpay'), v.literal('mock'));
+const PROVIDER = v.union(v.literal('stripe'), v.literal('mock'));
 const CURRENCY = v.union(
   v.literal('EUR'),
   v.literal('USD'),

@@ -11,7 +11,7 @@ import type { ProviderName } from '@/lib/payments/country';
 import { cn } from '@/lib/cn';
 
 function isProviderName(value: string | undefined): value is ProviderName {
-  return value === 'stripe' || value === 'cinetpay' || value === 'mock';
+  return value === 'stripe' || value === 'mock';
 }
 
 export default async function UpgradeSuccessPage({

@@ -74,7 +74,7 @@ export interface BudgetPaymentRow {
   note?: string;
   proofFileName?: string;
   proofUrl: string | null;
-  provider?: 'stripe' | 'cinetpay' | 'mock';
+  provider?: 'stripe' | 'mock';
   checkoutUrl?: string;
   createdAt: number;
 }

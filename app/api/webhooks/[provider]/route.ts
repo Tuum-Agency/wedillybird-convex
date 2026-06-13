@@ -9,12 +9,11 @@ import {
 } from '@/lib/payments/drivers/stripe';
 
 function isProviderName(value: string): value is ProviderName {
-  return value === 'stripe' || value === 'cinetpay' || value === 'mock';
+  return value === 'stripe' || value === 'mock';
 }
 
 function readSignatureHeader(headers: Headers, provider: ProviderName): string | null {
   if (provider === 'stripe') return headers.get('stripe-signature');
-  if (provider === 'cinetpay') return headers.get('x-token') ?? headers.get('x-signature');
   return headers.get('x-signature');
 }
 

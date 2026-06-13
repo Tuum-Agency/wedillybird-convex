@@ -62,7 +62,7 @@ describe('pricesFromEur', () => {
 });
 
 describe('SELECTABLE_CURRENCIES', () => {
-  it('inclut les 5 devises EUR/USD/XOF/MAD/TND', () => {
-    expect(SELECTABLE_CURRENCIES).toEqual(['EUR', 'USD', 'XOF', 'MAD', 'TND']);
+  it('inclut les 3 devises settleables EUR/USD/MAD', () => {
+    expect(SELECTABLE_CURRENCIES).toEqual(['EUR', 'USD', 'MAD']);
   });
 });

@@ -38,7 +38,7 @@
       "article3Title": "3. Conta e acesso",
       "article3Body": "O acesso ao Serviço requer a criação de uma conta através da verificação de um número WhatsApp. O Utilizador é responsável pela confidencialidade do seu número e por qualquer ação efetuada a partir da sua conta. Qualquer utilização não autorizada deve ser comunicada de imediato.",
       "article4Title": "4. Preços e pagamento",
-      "article4Body": "O Serviço é disponibilizado sem opção gratuita. Para particulares que organizam um casamento, existem duas modalidades em pagamento único: Essencial (29 €, funcionalidades base + galeria 30 dias) e Premium (59 €, Essencial + galeria 6 meses + álbum PDF). Um upsell pós-casamento (+29 €) prolonga a galeria para 5 anos e adiciona o livro fotográfico HD. Para profissionais, há subscrição mensal ou anual (Starter 99 €/mês, Business 219 €/mês, Agency 449 €/mês, -20 % na modalidade anual) ou pagamento por evento (79 €). Os pagamentos são processados pela Stripe (Europa) ou pela CinetPay (África Ocidental). Reembolso integral até 7 dias se o evento ainda não tiver sido enviado. Em caso de cancelamento do casamento, adiamento gratuito para outra data.",
+      "article4Body": "O Serviço é disponibilizado sem opção gratuita. Para particulares que organizam um casamento, existem duas modalidades em pagamento único: Essencial (29 €, funcionalidades base + galeria 30 dias) e Premium (59 €, Essencial + galeria 6 meses + álbum PDF). Um upsell pós-casamento (+29 €) prolonga a galeria para 5 anos e adiciona o livro fotográfico HD. Para profissionais, há subscrição mensal ou anual (Starter 99 €/mês, Business 219 €/mês, Agency 449 €/mês, -20 % na modalidade anual) ou pagamento por evento (79 €). Os pagamentos são processados pela Stripe. Reembolso integral até 7 dias se o evento ainda não tiver sido enviado. Em caso de cancelamento do casamento, adiamento gratuito para outra data.",
       "article5Title": "5. Propriedade intelectual",
       "article5Body": "O Utilizador conserva a propriedade dos conteúdos que carrega. Concede à Wedillybird uma licença não exclusiva de utilização desses conteúdos exclusivamente para o funcionamento do Serviço. A Wedillybird mantém a propriedade da plataforma, do código e da marca.",
       "article6Title": "6. Responsabilidade",
@@ -1095,7 +1095,6 @@
       "forbidden": "Não tens permissões neste evento",
       "payment_record_failed": "Não foi possível registar a transação",
       "stripe_driver_not_configured": "Stripe não configurado neste ambiente",
-      "cinetpay_driver_not_configured": "CinetPay não configurado neste ambiente",
       "reconciliation": "O webhook do Stripe está atrasado. O pagamento foi recebido mas o upgrade vai aplicar-se daqui a alguns instantes. Atualiza a página.",
       "network": "Erro de rede, tenta de novo",
       "unknown": "Ocorreu um erro. Tenta de novo."

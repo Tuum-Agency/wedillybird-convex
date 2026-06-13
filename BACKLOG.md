@@ -14,20 +14,18 @@ Reproduire `.env.local` sur Vercel → Project Settings → Environment Variable
 - **Stripe** (live mode) : `STRIPE_SECRET_KEY` (`sk_live_…`), `STRIPE_WEBHOOK_SECRET`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` (`pk_live_…`), `STRIPE_PRICE_ESSENTIAL`, `STRIPE_PRICE_PREMIUM`, `STRIPE_PRICE_POST_EVENT_UPSELL` (B2C 29/59/29 €), `STRIPE_PRICE_STARTER`/`STRIPE_PRICE_BUSINESS`/`STRIPE_PRICE_AGENCY` (mensuel 99/219/449 €) + `STRIPE_PRICE_*_ANNUAL` (annuel -20%) + `STRIPE_PRICE_PAYG_EVENT` (Pay-as-you-go 79 €). Tous générés par `scripts/sync-stripe-prices.ts`.
 - **AWS / SES** : `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION=eu-west-3`, `AWS_ACCOUNT_ID`, `SES_FROM_ADDRESS=noreply@wedillybird.com`, `SES_CONFIGURATION_SET=wedillybird-default`, `EMAIL_DRIVER=ses`
 - **S3 / CloudFront** : `S3_BUCKET=wedillybird-media-prod`, `CLOUDFRONT_DOMAIN=media.wedillybird.com`, `CLOUDFRONT_DISTRIBUTION_ID=E3O56ZG0J0BA9J`
-- **CinetPay** (quand ouvert) : `CINETPAY_API_KEY`, `CINETPAY_SITE_ID`
 - **Lambda** : `LAMBDA_CALLBACK_SECRET`
 - **WhatsApp** (quand template prod validé) : `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_OTP_TEMPLATE`, `WHATSAPP_INVITE_TEMPLATE`
 - **Contact inbox** (optionnel, sinon default codé) : `CONTACT_INBOX_EMAIL=hello@wedillybird.com`
 
 ### Bloqueurs prod externes
 0. **Demo bypass OTP à retirer post-tournage** — env vars `DEMO_BYPASS_PHONE` + `DEMO_BYPASS_CODE` posées sur le déploiement Convex **dev** (`capable-crocodile-720`) pour le tournage de la vidéo de lancement (compte `+33600000001` / event `sarah-marc-launch-demo`). Bypass actif uniquement si les **deux** env vars sont set ET que le téléphone matche exactement. Une fois la vidéo livrée : `pnpx convex env unset DEMO_BYPASS_PHONE && pnpx convex env unset DEMO_BYPASS_CODE`. Ces env vars NE DOIVENT JAMAIS être posées sur le déploiement prod `fearless-poodle-133`.
-1. **SES sortie de sandbox** — cf. section "AWS — opérations & sécurité". Sans ça, magic link / contact / newsletter / rappels invités n'arrivent qu'à des adresses vérifiées.
-2. **Stripe Customer Portal** — à configurer dans Stripe Dashboard (Settings → Customer Portal) avant ouverture des subscriptions pro.
-3. **CinetPay creds prod** — à récupérer sur dashboard CinetPay (apiKey + siteId).
+1. **SES sortie de sandbox** — ✅ **RÉSOLU** (2026-06-06, vérifié API 2026-06-12 : production access, 50 000/j, 14 msg/s, état HEALTHY, suppression-list bounce+complaint active en eu-west-3). Monitoring CloudWatch (event destination + alarmes BounceRate/ComplaintRate) → SNS `hello@wedillybird.com` en place.
+2. **Stripe Customer Portal** — ✅ **RÉSOLU** : configuration live active (annulation + update + moyen de paiement), vérifié 2026-06-12.
 4. **DNS wildcard `*.wedillybird.com`** — Vercel domain + registrar, requis pour multi-tenant pro (sous-domaines `slug.wedillybird.com`).
 5. **WhatsApp template `team_invitation`** — à créer + valider dans Meta Business Manager.
-6. **Boîte `hello@wedillybird.com`** — vérifier MX configuré sur le domaine, sinon les emails de contact bouncent silencieusement.
-7. **Pricing alignment** — code aligné sur la grille canonique ✅ (cf. section "Pricing alignment Stripe Prices" plus bas). Reste à lancer `scripts/sync-stripe-prices.ts` côté Stripe live et mettre à jour les env vars Vercel.
+6. **Boîte `hello@wedillybird.com`** — ✅ MX configuré (Zoho : `mx.zoho.eu`, `mx2`, `mx3`), vérifié 2026-06-12. Reçoit bien (utilisé pour les alertes SES SNS).
+7. **Pricing alignment** — ✅ **TERMINÉ** (2026-06-12). Code aligné + Stripe Prices live créés/alignés (30 Prices canoniques actifs EUR/USD/MAD), anciens Prices aux mauvais montants archivés, env vars `STRIPE_PRICE_*` Vercel pointant sur les bons IDs (alias sans devise re-pointés). Vérifié via l'API Stripe (0 transaction live à ce jour).
 8. **Rotation clé AWS** `AKIAXCZRV3YXAVVRYIWU` — clé déjà exposée en dev, à rotater avant ouverture trafic prod (cf. "Rotation de l'access key initiale").
 9. **Ouverture commerciale US (USD)** — code prêt (region `americas`, currency `USD`, pricing $39 / $99 / +$59 B2C ; $89 / $179 / $349 pros), `scripts/sync-stripe-prices.ts` étendu pour USD ✅. Bloqueurs **externes uniquement** :
    - **Stripe Tax** activation côté compte + monitoring nexus par état (Wayfair : seuil typique $100k OU 200 transactions par état → obligation de collecter sales tax). Tant que le launch US n'est pas effectif on peut shipper le code, mais on n'envoie pas de trafic acquisition US sans ça.
@@ -42,7 +40,6 @@ Reproduire `.env.local` sur Vercel → Project Settings → Environment Variable
 - [ ] Vercel preview URL testée manuellement (golden path : sign-up WhatsApp, magic link email, /contact, newsletter footer, RSVP `/i/[token]`, paiement test Stripe)
 - [ ] DNS `wedillybird.com` pointé sur Vercel + certificat SSL provisionné
 - [ ] Webhooks Stripe configurés sur le domaine prod (`https://wedillybird.com/api/webhooks/stripe`) avec le secret `STRIPE_WEBHOOK_SECRET` aligné
-- [ ] Webhooks CinetPay (si activé) pointés sur prod (`/api/webhooks/cinetpay`)
 - [ ] Lambda Rekognition callback URL pointe sur le Convex prod (`<prod-deploy>.convex.site/lambda/photo-moderation-callback`)
 
 ### Post-déploiement checklist
@@ -54,12 +51,6 @@ Reproduire `.env.local` sur Vercel → Project Settings → Environment Variable
 - [ ] CGU `messages/fr.json` article 4 à réécrire (mention obsolète d'une formule "gratuite" + mauvais noms Sérénité/Prestige)
 
 ## Paiements
-
-### CinetPay driver (post-Sprint 6) ✅ livré
-- **Status** : driver implémenté (`lib/payments/drivers/cinetpay.ts`) — `createCheckout` POST sur `/v2/payment`, `verifyAndParseWebhook` HMAC SHA256 via header `x-token`, `retrieveSessionStatus` via `/v2/payment/check`. Skip silencieux `CINETPAY_DRIVER_NOT_CONFIGURED` tant que les env vars sont absentes (rollout progressif).
-- **Restant** : récupérer les creds prod `CINETPAY_API_KEY` + `CINETPAY_SITE_ID` sur dashboard CinetPay, configurer le webhook prod sur `https://wedillybird.com/api/webhooks/cinetpay`, décommenter le routage XOF/MAD/TND dans `lib/payments/country.ts:CINETPAY_BY_CURRENCY` quand prêt à activer le routage automatique par pays.
-- **Doc** : https://docs.cinetpay.com/api/1.0-en/checkout/initialisation
-- **Webhook header** : `x-token` (HMAC SHA256 des champs cpm_* concat).
 
 ### Stripe Subscriptions pour comptes pro (post-Sprint 7)
 - **Bloqué par** : créer 3 Stripe Prices recurring (Starter 29€/mo, Business 79€/mo, Agency 199€/mo)
@@ -272,7 +263,7 @@ Décision à prendre avant d'implémenter : recommander A pour le MVP, garder B/
   - Mettre à jour `STRIPE_PRICE_*_EUR` / `STRIPE_PRICE_*_MAD` / `STRIPE_PRICE_*_TND` env vars dev + Vercel (le script imprime le bloc copy-pastable)
   - Tester le checkout sur chaque tier × devise supportée
 - TND : **non créé** côté compte test actuel (compte Stripe Wedillybird n'a pas de bank account TND → erreur `Invalid currency: tnd`). Pour activer le marché Tunisie : ouvrir un bank account TND dans Stripe Dashboard puis relancer le script. Tant qu'il n'y a pas de Price TND, le driver tombe sur `price_data` inline pour TND (fonctionnel mais sans Price stable).
-- XOF : routé vers CinetPay par design (mobile money Wave/Orange Money). Le script ne crée pas de Price XOF côté Stripe. **Bloqueur** : `CINETPAY_API_KEY` + `CINETPAY_SITE_ID` à configurer (cf. section "CinetPay driver").
+- XOF : devise d'affichage uniquement, sans processeur de paiement (non supporté). Le script ne crée pas de Price XOF côté Stripe et le checkout n'accepte pas cette devise.
 - Pay-as-you-go pro **code-side** : MVP livré ✅
   - Schema : `organizations.paygCredits` (nb crédits non-consommés) + table `paygPurchases` (idempotent par `stripeSessionId`)
   - Action server `payAsYouGoAction` + carte UI sur `/pro/billing` ("Acheter un crédit", 69 €)
@@ -286,7 +277,7 @@ Décision à prendre avant d'implémenter : recommander A pour le MVP, garder B/
   - Historique des achats PAYG dans le dashboard pro (table `paygPurchases` à exposer en query).
 
 ### CGU article 4 — réécriture ✅
-- `messages/fr.json:40` réécrit pour la grille canonique (Essentiel 29 €, Premium 59 €, Upsell +29 €, plans pros 99/219/449 €/mo, PAYG 79 €). Mention Stripe (Europe) / CinetPay (Afrique de l'Ouest), remboursement 100 % sous 7j, report gratuit en cas d'annulation.
+- `messages/fr.json:40` réécrit pour la grille canonique (Essentiel 29 €, Premium 59 €, Upsell +29 €, plans pros 99/219/449 €/mo, PAYG 79 €). Mention Stripe, remboursement 100 % sous 7j, report gratuit en cas d'annulation.
 
 ## Câblage métier emails (post-PR #12)
 

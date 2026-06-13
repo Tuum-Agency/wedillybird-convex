@@ -18,8 +18,8 @@ function makeHeaders(entries: Record<string, string> = {}): Headers {
  * ont été retirés au profit d'une grille unique EUR avec conversion automatique
  * pour les autres devises (cf. CLAUDE.md "Pricing — source de vérité").
  *
- * La détection de région reste utile pour le routage des paiements
- * (Stripe vs CinetPay) — c'est ce que ce fichier teste désormais.
+ * La détection de région reste utile pour pré-sélectionner une devise par
+ * défaut pertinente — c'est ce que ce fichier teste désormais.
  */
 describe('detectPricingRegion', () => {
   it("returns africa for XOF zone countries (Senegal, Côte d'Ivoire, Mali, etc.)", () => {

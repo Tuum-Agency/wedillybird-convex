@@ -78,6 +78,12 @@ export default async function EventDetailPage({
   });
   if (!event) notFound();
 
+  // Un couple rattaché à une agence (collaborateur, pas propriétaire) ne doit pas voir
+  // cette page « propriétaire » B2C (upgrade, publication…) : on l'envoie sur son espace.
+  if (event.ownerId !== session!.userId) {
+    redirect({ href: `/espace-couple/${eventId}`, locale });
+  }
+
   const counts = await convex.query(convexApi.countGuestsByEvent, {
     eventId,
     requesterId: session!.userId,

@@ -13,7 +13,7 @@ import { SUBSCRIPTION_TIER_PRICES, priceIdForTier } from '@/lib/payments/subscri
  * Hypothèses :
  *   - `priceIdForPlan('essential', 'TND')` → `undefined` (env var absente, pas
  *      de fallback legacy hors EUR).
- *   - `priceIdForPlan('essential', 'XOF')` → `undefined` (XOF routé CinetPay).
+ *   - `priceIdForPlan('essential', 'XOF')` → `undefined` (XOF non settleable Stripe).
  *   - `priceIdForTier('starter', 'monthly', 'TND')` → throw
  *      `MISSING_STRIPE_PRICE_STARTER_TND` (aucune env var TND).
  *   - `priceIdForTier('starter', 'monthly', 'XOF')` → throw
@@ -36,7 +36,7 @@ describe('priceIdForPlan currency coverage', () => {
     process.env = { ...ORIGINAL_ENV };
   });
 
-  it('returns undefined for XOF (CinetPay-routed)', () => {
+  it('returns undefined for XOF (no Stripe settlement)', () => {
     process.env.STRIPE_PRICE_ESSENTIAL_XOF = 'price_should_be_ignored_xof';
     expect(priceIdForPlan('essential', 'XOF')).toBeUndefined();
   });

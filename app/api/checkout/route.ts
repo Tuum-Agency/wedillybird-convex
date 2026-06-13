@@ -9,7 +9,7 @@ import { getPaymentDriver } from '@/lib/payments';
 const bodySchema = z.object({
   eventId: z.string().min(1),
   plan: z.enum(['essential', 'premium']),
-  currency: z.enum(['EUR', 'XOF', 'MAD', 'TND']).optional(),
+  currency: z.enum(['EUR', 'USD', 'MAD']).optional(),
 });
 
 export async function POST(req: Request): Promise<Response> {
