@@ -80,6 +80,39 @@ export const seedTestUsers = mutation({
 });
 
 /**
+ * Seed (ou promotion) d'un super admin pour les tests E2E du dashboard `/admin`.
+ * Idempotent : crée le user s'il manque, sinon force `role: 'admin'`. Le numéro
+ * correspond au fixture admin de `lib/dev/test-users.ts` (porte d'entrée
+ * `/dev-login`).
+ */
+export const seedAdminUser = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const now = Date.now();
+    const phone = '+33600000001';
+    const existing = await ctx.db
+      .query('users')
+      .withIndex('by_phone', (q) => q.eq('phone', phone))
+      .first();
+
+    if (existing) {
+      await ctx.db.patch(existing._id, { role: 'admin', lastSeenAt: now });
+      return { userId: existing._id, created: false };
+    }
+    const userId = await ctx.db.insert('users', {
+      phone,
+      email: 'admin@wedillybird.test',
+      fullName: 'Super Admin',
+      role: 'admin',
+      locale: 'fr',
+      createdAt: now,
+      lastSeenAt: now,
+    });
+    return { userId, created: true };
+  },
+});
+
+/**
  * Mutation utilitaire pour les tests E2E du flow linking : crée un user
  * "magic-link-only" (email présent, phone absent) — état intermédiaire
  * d'un user qui s'est connecté via magic link sans encore lier son

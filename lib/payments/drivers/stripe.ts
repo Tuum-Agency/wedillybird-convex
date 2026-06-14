@@ -966,3 +966,97 @@ export async function refundConnectedCharge(
   );
   return { id: refund.id, status: refund.status ?? 'unknown' };
 }
+
+/* -------------------------------------------------------------------------- */
+/*  Admin plateforme — remboursements one-shot + gestion des abonnements       */
+/*                                                                            */
+/*  Ces opérations s'exécutent sur le compte Stripe **de la plateforme**       */
+/*  (pas d'en-tête `stripeAccount`), contrairement aux fonctions BYOP Connect  */
+/*  ci-dessus qui ciblent le compte connecté de l'agence.                      */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Rembourse un paiement one-shot plateforme (Essentiel / Premium) à partir de
+ * l'id de session Checkout stocké dans `payments.providerSessionId`.
+ *
+ * - `amountMinor` omis → remboursement **total** ; sinon remboursement partiel
+ *   du montant indiqué (unités mineures, même devise que la charge).
+ * - Idempotence : clé dérivée de la session + du montant pour éviter les doublons
+ *   si l'action est rejouée.
+ *
+ * Throws : `SESSION_NOT_FOUND`, `NOT_PAID`, `NO_PAYMENT_INTENT`,
+ * `ALREADY_FULLY_REFUNDED`.
+ */
+export async function refundPlatformPayment(
+  providerSessionId: string,
+  amountMinor?: number,
+): Promise<{ id: string; status: string; amountMinor: number }> {
+  const stripe = getStripe();
+
+  let session: Stripe.Checkout.Session;
+  try {
+    session = await stripe.checkout.sessions.retrieve(providerSessionId);
+  } catch {
+    throw new Error('SESSION_NOT_FOUND');
+  }
+  if (session.payment_status !== 'paid') throw new Error('NOT_PAID');
+
+  const paymentIntentId =
+    typeof session.payment_intent === 'string'
+      ? session.payment_intent
+      : (session.payment_intent?.id ?? null);
+  if (!paymentIntentId) throw new Error('NO_PAYMENT_INTENT');
+
+  const refund = await stripe.refunds.create(
+    {
+      payment_intent: paymentIntentId,
+      ...(amountMinor != null ? { amount: amountMinor } : {}),
+    },
+    { idempotencyKey: `admin_refund_${providerSessionId}_${amountMinor ?? 'full'}` },
+  );
+
+  return {
+    id: refund.id,
+    status: refund.status ?? 'unknown',
+    amountMinor: refund.amount,
+  };
+}
+
+/**
+ * Annule un abonnement pro plateforme.
+ * - `mode: 'period_end'` → `cancel_at_period_end = true` : l'agence garde
+ *   l'accès jusqu'à la fin de la période déjà payée.
+ * - `mode: 'immediate'` → `subscriptions.cancel` : coupe l'accès tout de suite
+ *   (pas de remboursement prorata automatique — à faire séparément si voulu).
+ */
+export async function cancelPlatformSubscription(
+  subscriptionId: string,
+  mode: 'period_end' | 'immediate',
+): Promise<{ status: string; cancelAtPeriodEnd: boolean; currentPeriodEnd: number | null }> {
+  const stripe = getStripe();
+  let sub: Stripe.Subscription;
+  if (mode === 'immediate') {
+    sub = await stripe.subscriptions.cancel(subscriptionId);
+  } else {
+    sub = await stripe.subscriptions.update(subscriptionId, { cancel_at_period_end: true });
+  }
+  const periodEnd = (sub as unknown as { current_period_end?: number }).current_period_end ?? null;
+  return {
+    status: sub.status,
+    cancelAtPeriodEnd: sub.cancel_at_period_end ?? false,
+    currentPeriodEnd: periodEnd ? periodEnd * 1000 : null,
+  };
+}
+
+/**
+ * Réactive un abonnement programmé pour annulation en fin de période
+ * (`cancel_at_period_end = false`). Sans effet si l'abonnement est déjà
+ * totalement annulé côté Stripe (lever alors une nouvelle souscription).
+ */
+export async function reactivatePlatformSubscription(
+  subscriptionId: string,
+): Promise<{ status: string; cancelAtPeriodEnd: boolean }> {
+  const stripe = getStripe();
+  const sub = await stripe.subscriptions.update(subscriptionId, { cancel_at_period_end: false });
+  return { status: sub.status, cancelAtPeriodEnd: sub.cancel_at_period_end ?? false };
+}

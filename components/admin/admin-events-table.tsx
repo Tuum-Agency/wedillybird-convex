@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { Badge } from '@/components/ui/badge';
 import {
   Select,
@@ -40,6 +40,7 @@ const STATUS_VARIANT: Record<string, 'neutral' | 'success' | 'warning' | 'destru
 };
 
 export function AdminEventsTable({ events }: { events: Event[] }) {
+  const t = useTranslations('Admin');
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
@@ -59,7 +60,7 @@ export function AdminEventsTable({ events }: { events: Event[] }) {
       <div className="flex flex-wrap items-center gap-3">
         <input
           type="text"
-          placeholder="Rechercher un événement…"
+          placeholder={t('events.searchPlaceholder')}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-3 py-2 text-sm text-[color:var(--color-foreground)] placeholder:text-[color:var(--color-muted-foreground)] focus:ring-1 focus:ring-[color:var(--color-border-strong)] focus:outline-none"
@@ -69,15 +70,15 @@ export function AdminEventsTable({ events }: { events: Event[] }) {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Tous les statuts</SelectItem>
-            <SelectItem value="draft">Brouillon</SelectItem>
-            <SelectItem value="active">Actif</SelectItem>
-            <SelectItem value="archived">Archivé</SelectItem>
-            <SelectItem value="cancelled">Annulé</SelectItem>
+            <SelectItem value="all">{t('events.statusFilterAll')}</SelectItem>
+            <SelectItem value="draft">{t('eventStatuses.draft')}</SelectItem>
+            <SelectItem value="active">{t('eventStatuses.active')}</SelectItem>
+            <SelectItem value="archived">{t('eventStatuses.archived')}</SelectItem>
+            <SelectItem value="cancelled">{t('eventStatuses.cancelled')}</SelectItem>
           </SelectContent>
         </Select>
         <span className="font-mono text-xs text-[color:var(--color-muted-foreground)]">
-          {filtered.length} résultat{filtered.length > 1 ? 's' : ''}
+          {t('events.count', { count: filtered.length })}
         </span>
       </div>
 
@@ -85,13 +86,13 @@ export function AdminEventsTable({ events }: { events: Event[] }) {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-[color:var(--color-border)] bg-[color:var(--color-surface)]">
-              <Th>Couple</Th>
-              <Th>Titre</Th>
-              <Th>Date</Th>
-              <Th>Statut</Th>
-              <Th>Plan</Th>
-              <Th>Propriétaire</Th>
-              <Th>Actions</Th>
+              <Th>{t('events.colCouple')}</Th>
+              <Th>{t('events.colTitle')}</Th>
+              <Th>{t('events.colDate')}</Th>
+              <Th>{t('events.colStatus')}</Th>
+              <Th>{t('events.colPlan')}</Th>
+              <Th>{t('events.colOwner')}</Th>
+              <Th>{t('common.colActions')}</Th>
             </tr>
           </thead>
           <tbody>
@@ -114,6 +115,7 @@ function Th({ children }: { children: React.ReactNode }) {
 }
 
 function EventRow({ event }: { event: Event }) {
+  const t = useTranslations('Admin');
   const locale = useLocale();
   const { execute: updateStatus, loading: updating } = useServerAction(
     adminUpdateEventStatusAction,
@@ -145,32 +147,32 @@ function EventRow({ event }: { event: Event }) {
             disabled={updating}
             onValueChange={(v) => {
               const newStatus = v as Event['status'];
-              if (confirm(`Changer le statut en "${newStatus}" ?`)) {
+              if (confirm(t('events.confirmChangeStatus', { status: newStatus }))) {
                 updateStatus(event._id, newStatus);
               }
             }}
           >
             <SelectTrigger className="rounded-md border border-[color:var(--color-border)] bg-transparent px-2 py-1 text-xs text-[color:var(--color-muted-foreground)]">
-              <SelectValue placeholder="Statut…" />
+              <SelectValue placeholder={t('events.statusPlaceholder')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="draft">Brouillon</SelectItem>
-              <SelectItem value="active">Actif</SelectItem>
-              <SelectItem value="archived">Archivé</SelectItem>
-              <SelectItem value="cancelled">Annulé</SelectItem>
+              <SelectItem value="draft">{t('eventStatuses.draft')}</SelectItem>
+              <SelectItem value="active">{t('eventStatuses.active')}</SelectItem>
+              <SelectItem value="archived">{t('eventStatuses.archived')}</SelectItem>
+              <SelectItem value="cancelled">{t('eventStatuses.cancelled')}</SelectItem>
             </SelectContent>
           </Select>
           {event.status !== 'cancelled' ? (
             <button
               onClick={() => {
-                if (confirm(`Supprimer l'événement "${event.title}" ?`)) {
+                if (confirm(t('events.confirmDelete', { title: event.title }))) {
                   deleteEvent(event._id);
                 }
               }}
               disabled={deleting}
               className="rounded-md px-2 py-1 text-xs font-medium text-red-400 transition-colors hover:bg-red-400/10 disabled:opacity-50"
             >
-              Supprimer
+              {t('common.delete')}
             </button>
           ) : null}
         </div>

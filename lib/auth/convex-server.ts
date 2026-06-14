@@ -1723,10 +1723,15 @@ export const convexApi = {
       paidEvents: number;
       conversionRate: number;
       totalRevenueMinor: number;
+      netRevenueMinor: number;
+      totalRefundedMinor: number;
+      refundedPaymentsCount: number;
       mrrMinor: number;
       failedPaymentsCount: number;
       failedPaymentsAmountMinor: number;
       activeSubscriptions: number;
+      pastDueSubscriptions: number;
+      canceledSubscriptions: number;
       revenueByMonth: Record<string, number>;
       usersByMonth: Record<string, { couple: number; pro: number; guest: number }>;
       revenueByCurrency: Record<string, number>;
@@ -1775,8 +1780,10 @@ export const convexApi = {
       currency: 'EUR' | 'USD' | 'XOF' | 'MAD' | 'TND';
       amountMinor: number;
       provider: 'stripe' | 'mock';
-      status: 'pending' | 'succeeded' | 'failed' | 'cancelled';
+      status: 'pending' | 'succeeded' | 'failed' | 'cancelled' | 'refunded' | 'partially_refunded';
       failureReason?: string;
+      refundedAmountMinor?: number;
+      refundedAt?: number;
       userName: string | null;
       userEmail: string | null;
       eventId: string;
@@ -1795,6 +1802,8 @@ export const convexApi = {
       subscriptionStatus?: string;
       subscriptionPeriodEnd?: number;
       paygCredits?: number;
+      hasStripeSubscription?: boolean;
+      hasStripeCustomer?: boolean;
       ownerName: string | null;
       ownerEmail: string | null;
       createdAt: number;
@@ -1886,6 +1895,102 @@ export const convexApi = {
     { adminId: string; eventId: string },
     { ok: true }
   >('admin:deleteEvent'),
+  adminGetPaymentRefundInfo: makeFunctionReference<
+    'query',
+    { adminId: string; paymentId: string },
+    {
+      _id: string;
+      provider: 'stripe' | 'mock';
+      providerSessionId: string;
+      status: 'pending' | 'succeeded' | 'failed' | 'cancelled' | 'refunded' | 'partially_refunded';
+      currency: string;
+      amountMinor: number;
+      refundedAmountMinor: number;
+    }
+  >('admin:getPaymentRefundInfo'),
+  adminMarkPaymentRefunded: makeFunctionReference<
+    'mutation',
+    { adminId: string; paymentId: string; refundAmountMinor: number; stripeRefundId?: string },
+    { ok: true; status: 'refunded' | 'partially_refunded' }
+  >('admin:markPaymentRefunded'),
+  adminGetOrgSubscriptionInfo: makeFunctionReference<
+    'query',
+    { adminId: string; organizationId: string },
+    {
+      _id: string;
+      name: string;
+      stripeSubscriptionId: string | null;
+      stripeCustomerId: string | null;
+      subscriptionTier: string | null;
+      subscriptionStatus: string | null;
+      subscriptionPeriodEnd: number | null;
+    }
+  >('admin:getOrgSubscriptionInfo'),
+  adminMarkSubscriptionCanceled: makeFunctionReference<
+    'mutation',
+    { adminId: string; organizationId: string; mode: 'period_end' | 'immediate' },
+    { ok: true }
+  >('admin:markSubscriptionCanceled'),
+  adminMarkSubscriptionReactivated: makeFunctionReference<
+    'mutation',
+    { adminId: string; organizationId: string },
+    { ok: true }
+  >('admin:markSubscriptionReactivated'),
+  adminPlatformAnalytics: makeFunctionReference<
+    'query',
+    { adminId: string; now?: number },
+    {
+      funnel: {
+        couplesSignedUp: number;
+        eventsCreated: number;
+        eventsPublished: number;
+        checkoutStarted: number;
+        paid: number;
+      };
+      checkout: {
+        intentsStarted: number;
+        byStatus: {
+          pending: number;
+          succeeded: number;
+          failed: number;
+          cancelled: number;
+          refunded: number;
+        };
+        abandonmentRate: number;
+      };
+      timing: { medianCheckoutMinutes: number; medianCreateToPayHours: number };
+      seasonality: {
+        eventsByEventMonth: Record<string, number>;
+        eventsByCreatedMonth: Record<string, number>;
+        eventsByWeekday: number[];
+        upcoming: { next30: number; next60: number; next90: number };
+      };
+      mix: {
+        planMix: { essential: number; premium: number };
+        proTierMix: { starter: number; business: number; agency: number };
+        avgGuests: number;
+        aovMinor: number;
+      };
+      trend: {
+        paidLast30: number;
+        paidPrev30: number;
+        revenueLast30Minor: number;
+        revenuePrev30Minor: number;
+        newEventsLast30: number;
+        newEventsPrev30: number;
+      };
+      subscriptions: {
+        byStatus: {
+          active: number;
+          trialing: number;
+          past_due: number;
+          canceled: number;
+          unpaid: number;
+        };
+        mrrByTierMinor: { starter: number; business: number; agency: number };
+      };
+    }
+  >('admin:platformAnalytics'),
 
   // ----- Devis & Factures (module Finances) -----
   quotesListByOrg: makeFunctionReference<

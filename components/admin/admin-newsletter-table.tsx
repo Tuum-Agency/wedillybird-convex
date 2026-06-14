@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { Badge } from '@/components/ui/badge';
 import {
   Select,
@@ -21,6 +21,7 @@ type Subscriber = {
 };
 
 export function AdminNewsletterTable({ subscribers }: { subscribers: Subscriber[] }) {
+  const t = useTranslations('Admin');
   const locale = useLocale();
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [search, setSearch] = useState('');
@@ -36,7 +37,7 @@ export function AdminNewsletterTable({ subscribers }: { subscribers: Subscriber[
       <div className="flex flex-wrap items-center gap-3">
         <input
           type="text"
-          placeholder="Rechercher par email…"
+          placeholder={t('newsletter.searchPlaceholder')}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-3 py-2 text-sm text-[color:var(--color-foreground)] placeholder:text-[color:var(--color-muted-foreground)] focus:ring-1 focus:ring-[color:var(--color-border-strong)] focus:outline-none"
@@ -46,13 +47,13 @@ export function AdminNewsletterTable({ subscribers }: { subscribers: Subscriber[
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Tous</SelectItem>
-            <SelectItem value="active">Actifs</SelectItem>
-            <SelectItem value="unsubscribed">Désabonnés</SelectItem>
+            <SelectItem value="all">{t('newsletter.statusFilterAll')}</SelectItem>
+            <SelectItem value="active">{t('newsletter.statusFilterActive')}</SelectItem>
+            <SelectItem value="unsubscribed">{t('newsletter.statusFilterUnsubscribed')}</SelectItem>
           </SelectContent>
         </Select>
         <span className="font-mono text-xs text-[color:var(--color-muted-foreground)]">
-          {filtered.length} abonné{filtered.length > 1 ? 's' : ''}
+          {t('newsletter.count', { count: filtered.length })}
         </span>
       </div>
 
@@ -60,11 +61,11 @@ export function AdminNewsletterTable({ subscribers }: { subscribers: Subscriber[
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-[color:var(--color-border)] bg-[color:var(--color-surface)]">
-              <Th>Email</Th>
-              <Th>Statut</Th>
-              <Th>Source</Th>
-              <Th>Inscrit le</Th>
-              <Th>Désabonné le</Th>
+              <Th>{t('newsletter.colEmail')}</Th>
+              <Th>{t('newsletter.colStatus')}</Th>
+              <Th>{t('newsletter.colSource')}</Th>
+              <Th>{t('newsletter.colSubscribedAt')}</Th>
+              <Th>{t('newsletter.colUnsubscribedAt')}</Th>
             </tr>
           </thead>
           <tbody>
@@ -76,7 +77,9 @@ export function AdminNewsletterTable({ subscribers }: { subscribers: Subscriber[
                 <td className="px-4 py-3 font-medium">{s.email}</td>
                 <td className="px-4 py-3">
                   <Badge variant={s.status === 'active' ? 'success' : 'neutral'}>
-                    {s.status === 'active' ? 'Actif' : 'Désabonné'}
+                    {s.status === 'active'
+                      ? t('newsletter.statusActive')
+                      : t('newsletter.statusUnsubscribed')}
                   </Badge>
                 </td>
                 <td className="px-4 py-3 text-[color:var(--color-muted-foreground)]">

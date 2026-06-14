@@ -27,7 +27,10 @@ export const getForInvoice = query({
     const event = await ctx.db.get(payment.eventId);
     const isBuyer = payment.userId === requesterId;
     const isOwner = event?.ownerId === requesterId;
-    if (!isBuyer && !isOwner) throw new Error('FORBIDDEN');
+    // Le super admin peut télécharger n'importe quelle facture (support / compta).
+    const requester = await ctx.db.get(requesterId);
+    const isAdmin = requester?.role === 'admin';
+    if (!isBuyer && !isOwner && !isAdmin) throw new Error('FORBIDDEN');
 
     const customer = await ctx.db.get(payment.userId);
 

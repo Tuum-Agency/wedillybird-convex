@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import {
   AreaChart,
   Area,
@@ -14,6 +15,7 @@ import {
 type MonthData = { couple: number; pro: number; guest: number };
 
 export function AdminUsersChart({ data }: { data: Record<string, MonthData> }) {
+  const t = useTranslations('Admin');
   const chartData = Object.entries(data)
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([month, counts]) => ({
@@ -24,7 +26,7 @@ export function AdminUsersChart({ data }: { data: Record<string, MonthData> }) {
   if (chartData.length === 0) {
     return (
       <div className="flex h-64 items-center justify-center text-sm text-[color:var(--color-muted-foreground)]">
-        Aucune donnée disponible
+        {t('charts.noData')}
       </div>
     );
   }
@@ -56,7 +58,7 @@ export function AdminUsersChart({ data }: { data: Record<string, MonthData> }) {
           stackId="1"
           stroke="oklch(65% 0.15 22)"
           fill="oklch(65% 0.15 22 / 0.3)"
-          name="Couples"
+          name={t('charts.couples')}
         />
         <Area
           type="monotone"
@@ -64,7 +66,7 @@ export function AdminUsersChart({ data }: { data: Record<string, MonthData> }) {
           stackId="1"
           stroke="oklch(65% 0.12 145)"
           fill="oklch(65% 0.12 145 / 0.3)"
-          name="Pros"
+          name={t('charts.pros')}
         />
         <Area
           type="monotone"
@@ -72,7 +74,7 @@ export function AdminUsersChart({ data }: { data: Record<string, MonthData> }) {
           stackId="1"
           stroke="oklch(65% 0.08 250)"
           fill="oklch(65% 0.08 250 / 0.3)"
-          name="Invités"
+          name={t('charts.guests')}
         />
       </AreaChart>
     </ResponsiveContainer>
