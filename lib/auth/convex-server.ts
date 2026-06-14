@@ -37,7 +37,7 @@ export const convexApi = {
   verifyOtp: makeFunctionReference<
     'mutation',
     { phone: string; code: string },
-    { userId: string; sessionToken: string; phone: string }
+    { userId: string; sessionToken: string; phone: string; isNewUser: boolean }
   >('auth:verifyOtp'),
   requestMagicLink: makeFunctionReference<
     'action',
@@ -47,7 +47,7 @@ export const convexApi = {
   verifyMagicLink: makeFunctionReference<
     'mutation',
     { email: string; token: string },
-    { userId: string; sessionToken: string; email: string }
+    { userId: string; sessionToken: string; email: string; isNewUser: boolean }
   >('auth:verifyMagicLink'),
   currentUser: makeFunctionReference<
     'query',
@@ -1625,6 +1625,32 @@ export const convexApi = {
     { email: string; source?: string; ipAddress?: string },
     { id: string; alreadyActive: boolean; reactivated: boolean }
   >('newsletter:subscribe'),
+  newsletterUnsubscribe: makeFunctionReference<
+    'mutation',
+    { email: string },
+    { ok: true; found: boolean }
+  >('newsletter:unsubscribe'),
+  newsletterListCampaigns: makeFunctionReference<
+    'query',
+    { adminId: string },
+    Array<{
+      _id: string;
+      subject: string;
+      status: 'sending' | 'sent' | 'failed';
+      totalRecipients: number;
+      sentCount: number;
+      failedCount: number;
+      createdAt: number;
+      sentAt?: number;
+    }>
+  >('newsletter:listCampaigns'),
+  newsletterSendCampaign: makeFunctionReference<
+    'action',
+    { adminId: string; subject: string; bodyText: string; testEmail?: string },
+    | { ok: true; test: true; recipient: string }
+    | { ok: true; test: false; campaignId: string; sentCount: number; failedCount: number }
+    | { ok: false; error: string }
+  >('emailActions:sendNewsletterCampaign'),
   broadcastInvitations: makeFunctionReference<
     'action',
     { eventId: string; requesterId: string },
@@ -1936,6 +1962,17 @@ export const convexApi = {
     { adminId: string; organizationId: string },
     { ok: true }
   >('admin:markSubscriptionReactivated'),
+  adminLogAction: makeFunctionReference<
+    'mutation',
+    {
+      adminId: string;
+      action: string;
+      targetType: 'coupon' | 'discount' | 'subscription' | 'organization';
+      targetId: string;
+      details?: string;
+    },
+    { ok: true }
+  >('admin:logAction'),
   adminPlatformAnalytics: makeFunctionReference<
     'query',
     { adminId: string; now?: number },

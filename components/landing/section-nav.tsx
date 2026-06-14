@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { cn } from '@/lib/cn';
+import { analytics } from '@/lib/analytics/posthog-client';
 
 type SectionItem = {
   id: string;
@@ -88,6 +89,13 @@ export function SectionNav() {
             key={item.id}
             href={`/#${item.id}` as never}
             aria-current={isActive ? 'true' : undefined}
+            onClick={() =>
+              analytics.ctaClicked({
+                source: 'nav',
+                destination: `#${item.id}`,
+                label: t(item.key),
+              })
+            }
             className={cn(
               'relative font-mono text-[10px] tracking-[0.24em] uppercase transition-colors',
               isActive

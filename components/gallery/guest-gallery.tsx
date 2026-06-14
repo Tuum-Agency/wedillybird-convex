@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { PhotoUploader } from './photo-uploader';
 import { FaceSearchModal } from './face-search-modal';
+import { analytics } from '@/lib/analytics/posthog-client';
 import {
   createGuestUploadUrlAction,
   confirmGuestUploadAction,
@@ -117,6 +118,8 @@ export function GuestGallery({ token, inviteeName, initialPhotos }: Props) {
             getUploadUrl={createGuestUploadUrlAction}
             confirm={confirmGuestUploadAction}
             onUploaded={() => {
+              // Upload confirmé (au moins une photo) — boucle virale invité.
+              analytics.galleryPhotoUploaded();
               router.refresh();
               setLastUploadAt(Date.now());
             }}

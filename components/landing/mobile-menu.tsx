@@ -7,6 +7,7 @@ import { Link, usePathname, useRouter } from '@/i18n/navigation';
 import { Drawer, DrawerContent, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer';
 import { LOCALE_NATIVE_NAMES, routing, type Locale } from '@/i18n/routing';
 import { cn } from '@/lib/cn';
+import { analytics } from '@/lib/analytics/posthog-client';
 
 const SECTION_ITEMS: ReadonlyArray<{ id: string; key: string }> = [
   { id: 'features', key: 'features' },
@@ -81,7 +82,14 @@ export function MobileMenu() {
             <Link
               key={item.id}
               href={`/#${item.id}` as never}
-              onClick={() => setOpen(false)}
+              onClick={() => {
+                analytics.ctaClicked({
+                  source: 'nav',
+                  destination: `#${item.id}`,
+                  label: tNav(item.key),
+                });
+                setOpen(false);
+              }}
               className="focus-ring font-display rounded-2xl px-4 py-4 text-2xl text-[color:var(--color-ink-900)] italic [@media(hover:hover)]:hover:bg-[color:var(--color-ivory-200)]"
             >
               {tNav(item.key)}

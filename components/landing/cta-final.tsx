@@ -6,6 +6,7 @@ import { ArrowRight, Heart } from 'lucide-react';
 import { Link } from '@/i18n/navigation';
 import { buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/cn';
+import { analytics } from '@/lib/analytics/posthog-client';
 import { inViewOnce, scrollReveal } from '@/lib/motion/presets';
 
 /**
@@ -66,6 +67,7 @@ export function LandingCtaFinal() {
         </p>
         <Link
           href="/sign-up"
+          onClick={() => analytics.ctaClicked({ source: 'cta_final', destination: '/sign-up' })}
           className={cn(
             buttonVariants({ variant: 'primary', size: 'xl' }),
             'group mt-10 inline-flex min-w-64',

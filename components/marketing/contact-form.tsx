@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { translateZodMessage } from '@/lib/validators/translate-zod';
+import { analytics } from '@/lib/analytics/posthog-client';
 
 type FieldErrors = Partial<Record<'name' | 'email' | 'subject' | 'message', string[]>>;
 
@@ -51,6 +52,8 @@ export function ContactForm() {
           fieldErrors?: FieldErrors;
         };
         if (res.ok && json.ok) {
+          // Succès confirmé serveur → capture analytics (doublé côté /api/contact).
+          analytics.contactFormSubmitted();
           setState({ kind: 'success' });
           return;
         }

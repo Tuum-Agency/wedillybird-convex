@@ -14,7 +14,7 @@ import { clearSessionCookie, getSession, setSessionCookie } from '@/lib/auth/ses
 import { isAgencyRole, resolvePostAuthDestination } from '@/lib/auth/post-auth-destination';
 
 type ActionResult =
-  | { ok: true; phone?: string; email?: string }
+  | { ok: true; phone?: string; email?: string; isNewUser?: boolean }
   | { ok: false; error: string; fieldErrors?: Record<string, string[] | undefined> };
 
 export async function requestOtpAction(formData: FormData): Promise<ActionResult> {
@@ -74,7 +74,7 @@ export async function verifyOtpAction(formData: FormData): Promise<ActionResult>
       issuedAt: Date.now(),
     });
 
-    return { ok: true, phone: result.phone };
+    return { ok: true, phone: result.phone, isNewUser: result.isNewUser };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : 'UNKNOWN' };
   }

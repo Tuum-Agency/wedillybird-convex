@@ -6,6 +6,7 @@ import { ArrowRight, Sparkles } from 'lucide-react';
 import { Link } from '@/i18n/navigation';
 import { buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/cn';
+import { analytics } from '@/lib/analytics/posthog-client';
 import { inViewOnce, scrollReveal } from '@/lib/motion/presets';
 
 /**
@@ -65,6 +66,15 @@ export function ProsCta() {
         </p>
         <Link
           href={'/sign-up?plan=business&billing=monthly' as never}
+          onClick={() =>
+            analytics.ctaClicked({
+              source: 'pros_cta',
+              destination: '/sign-up',
+              plan: 'business',
+              billing: 'monthly',
+              audience: 'pro',
+            })
+          }
           className={cn(
             buttonVariants({ variant: 'primary', size: 'xl' }),
             'group mt-10 inline-flex min-w-64',

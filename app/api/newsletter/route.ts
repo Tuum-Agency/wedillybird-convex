@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
+import { captureServer, EVENTS } from '@/lib/analytics/posthog-server';
 import { sendEmail } from '@/lib/email';
 import { renderNewsletterSignup } from '@/lib/email/templates';
 import { isHoneypotTriggered, newsletterSchema } from '@/lib/validators/contact';
@@ -87,6 +88,21 @@ export async function POST(request: Request) {
   if (subscribeResult.alreadyActive) {
     return NextResponse.json({ ok: true, alreadyActive: true });
   }
+
+  // 2bis. Analytics serveur : `newsletter_subscribed`. Le footer poste un form
+  //       HTML pleine page (sans JS) → cet event serveur est l'unique source de
+  //       vérité. On ne tire QUE sur une inscription nouvelle ou réactivée
+  //       (alreadyActive a déjà court-circuité plus haut → pas de double compte
+  //       sur un re-submit). distinctId = email (lead opt-in). Ne casse jamais.
+  await captureServer({
+    distinctId: parsed.data.email,
+    event: EVENTS.newsletterSubscribed,
+    properties: {
+      source,
+      reactivated: subscribeResult.reactivated,
+      $set: { email: parsed.data.email },
+    },
+  });
 
   // 3. Notif admin SES en best-effort. Si échec, on log mais on retourne
   //    ok — le subscriber est dans Convex, c'est ça qui compte.

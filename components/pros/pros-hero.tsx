@@ -6,6 +6,7 @@ import { ArrowRight } from 'lucide-react';
 import { Link } from '@/i18n/navigation';
 import { buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/cn';
+import { analytics } from '@/lib/analytics/posthog-client';
 import { EASE_OUT_QUINT } from '@/lib/motion/presets';
 import { BrowserFrame, CockpitMock } from './previews';
 
@@ -73,6 +74,15 @@ export function ProsHero() {
             >
               <Link
                 href={'/sign-up?plan=business&billing=monthly' as never}
+                onClick={() =>
+                  analytics.ctaClicked({
+                    source: 'pros_hero',
+                    destination: '/sign-up',
+                    plan: 'business',
+                    billing: 'monthly',
+                    audience: 'pro',
+                  })
+                }
                 className={cn(buttonVariants({ variant: 'primary', size: 'lg' }), 'group')}
               >
                 {t('hero.ctaPrimary')}
@@ -83,6 +93,13 @@ export function ProsHero() {
               </Link>
               <Link
                 href={'#tarifs' as never}
+                onClick={() =>
+                  analytics.ctaClicked({
+                    source: 'pros_hero_secondary',
+                    destination: '#tarifs',
+                    audience: 'pro',
+                  })
+                }
                 className={cn(buttonVariants({ variant: 'outline', size: 'lg' }))}
               >
                 {t('hero.ctaSecondary')}

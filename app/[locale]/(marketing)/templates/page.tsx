@@ -3,6 +3,7 @@ import { ArrowLeft, Sparkles } from 'lucide-react';
 import { Link } from '@/i18n/navigation';
 import { WedillybirdLogo } from '@/components/brand/wedillybird-logo';
 import { LandingFooterRich } from '@/components/landing/footer-rich';
+import { TemplatesCta } from '@/components/landing/templates-cta';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/cn';
@@ -103,12 +104,7 @@ export default async function TemplatesPage({ params }: { params: Promise<{ loca
           </div>
 
           <div className="mt-8 flex justify-center">
-            <Link
-              href="/sign-up"
-              className="inline-flex h-12 items-center justify-center rounded-full bg-[color:var(--color-ink-900)] px-8 text-sm font-semibold text-white transition-transform hover:scale-105"
-            >
-              {t('templates.cta')}
-            </Link>
+            <TemplatesCta label={t('templates.cta')} />
           </div>
         </div>
       </main>

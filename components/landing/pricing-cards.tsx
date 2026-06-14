@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { Calendar, Check, ShieldCheck, Sparkles, Star } from 'lucide-react';
 import { Link } from '@/i18n/navigation';
 import { buttonVariants } from '@/components/ui/button';
+import { analytics } from '@/lib/analytics/posthog-client';
 import {
   PLANS,
   POST_EVENT_UPSELL,
@@ -226,6 +227,16 @@ export function LandingPricingCards({ defaultCurrency }: Props) {
 
                 <Link
                   href="/sign-up"
+                  // Tracking : sélection de forfait particulier + clic CTA.
+                  onClick={() => {
+                    analytics.pricingPlanSelected({ tier, audience: 'consumer' });
+                    analytics.ctaClicked({
+                      source: `pricing_${tier}`,
+                      plan: tier,
+                      audience: 'consumer',
+                      destination: '/sign-up',
+                    });
+                  }}
                   className={cn(
                     buttonVariants({
                       variant: recommended ? 'primary' : 'outline',

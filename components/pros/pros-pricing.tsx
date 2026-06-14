@@ -4,6 +4,7 @@ import { motion } from 'motion/react';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { LandingPricingPros } from '@/components/landing/pricing-pros';
+import { analytics } from '@/lib/analytics/posthog-client';
 import type { Currency } from '@/lib/payments/plans';
 import { inViewOnce, scrollReveal, scrollRevealParent } from '@/lib/motion/presets';
 import { ADDONS, CAPACITIES, OVERAGES } from './content';
@@ -180,6 +181,14 @@ export function ProsPricing({ defaultCurrency }: { defaultCurrency: Currency }) 
               link: (chunks) => (
                 <Link
                   href="/forfaits-pros"
+                  // Tracking : clic « voir le détail » propre à la page Pros.
+                  onClick={() =>
+                    analytics.ctaClicked({
+                      source: 'pros_pricing_detail',
+                      destination: '/forfaits-pros',
+                      audience: 'pro',
+                    })
+                  }
                   className="font-medium text-[color:var(--color-primary)] underline-offset-4 hover:underline"
                 >
                   {chunks}

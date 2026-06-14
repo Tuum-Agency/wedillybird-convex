@@ -6,6 +6,7 @@ import { useRouter } from '@/i18n/navigation';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { OtpInput } from '@/components/auth/otp-input';
+import { analytics } from '@/lib/analytics/posthog-client';
 import { requestOtpAction, verifyOtpAction } from '@/app/[locale]/(auth)/actions';
 
 interface VerifyFormProps {
@@ -57,6 +58,12 @@ export function VerifyForm({ phone }: VerifyFormProps) {
       startTransition(async () => {
         const result = await verifyOtpAction(formData);
         if (result.ok) {
+          // Nouveau compte (pas une reconnexion) créé via OTP WhatsApp →
+          // signup_completed avant la redirection vers l'onboarding (no-op
+          // sans consentement). On ne compte PAS les logins comme des signups.
+          if (result.isNewUser) {
+            analytics.signupCompleted({ method: 'whatsapp' });
+          }
           router.push('/onboarding');
           return;
         }

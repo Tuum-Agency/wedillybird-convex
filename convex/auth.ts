@@ -210,7 +210,9 @@ export const verifyOtp = mutation({
     }
 
     const sessionToken = crypto.randomUUID();
-    return { userId, sessionToken, phone: normalized };
+    // `isNewUser` distingue une vraie inscription d'une reconnexion (l'OTP sert
+    // aux deux) — exploité pour l'event analytics `signup_completed`.
+    return { userId, sessionToken, phone: normalized, isNewUser: !existing };
   },
 });
 
@@ -369,7 +371,9 @@ export const verifyMagicLink = mutation({
     }
 
     const sessionToken = crypto.randomUUID();
-    return { userId, sessionToken, email: normalized };
+    // `isNewUser` distingue une vraie inscription d'une reconnexion (le magic
+    // link sert aux deux) — exploité pour l'event analytics `signup_completed`.
+    return { userId, sessionToken, email: normalized, isNewUser: !existing };
   },
 });
 

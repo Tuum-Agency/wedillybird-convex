@@ -3,10 +3,10 @@ import { setRequestLocale, getTranslations } from 'next-intl/server';
 import { OG_DEFAULT_IMAGES, TWITTER_DEFAULT_IMAGES } from '@/lib/seo/og';
 import { toOgLocale } from '@/lib/i18n/locale-tags';
 import { Link } from '@/i18n/navigation';
-import { buttonVariants } from '@/components/ui/button';
 import { WedillybirdLogo } from '@/components/brand/wedillybird-logo';
 import { LocaleSwitcher } from '@/components/layout/locale-switcher';
 import { LandingFooterRich } from '@/components/landing/footer-rich';
+import { HeaderCta } from '@/components/landing/header-cta';
 import { ProsHero } from '@/components/pros/pros-hero';
 import { ProsJourney } from '@/components/pros/pros-journey';
 import { ProsWedge } from '@/components/pros/pros-wedge';
@@ -17,7 +17,6 @@ import { ProsFaq } from '@/components/pros/pros-faq';
 import { ProsCta } from '@/components/pros/pros-cta';
 import { defaultCurrencyForLocale } from '@/lib/payments/currency';
 import type { Locale } from '@/i18n/routing';
-import { cn } from '@/lib/cn';
 
 const NAV_LINKS = [
   { href: '#fonctionnalites', labelKey: 'nav.features' },
@@ -95,15 +94,15 @@ export default async function ProsPage({ params }: { params: Promise<{ locale: s
           <div className="flex items-center justify-end gap-2 md:gap-3">
             <LocaleSwitcher className="hidden md:inline-flex" />
             <span aria-hidden className="hidden h-5 w-px bg-[color:var(--color-border)] md:block" />
-            <Link
-              href={'/sign-up?plan=business&billing=monthly' as never}
-              className={cn(
-                buttonVariants({ variant: 'primary', size: 'sm' }),
-                'whitespace-nowrap',
-              )}
-            >
-              {t('cta')}
-            </Link>
+            <HeaderCta
+              href="/sign-up?plan=business&billing=monthly"
+              label={t('cta')}
+              source="pros_header"
+              destination="/sign-up"
+              plan="business"
+              billing="monthly"
+              audience="pro"
+            />
           </div>
         </div>
       </header>

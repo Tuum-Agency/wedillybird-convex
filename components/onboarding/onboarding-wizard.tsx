@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { OtpInput } from '@/components/auth/otp-input';
 import { cn } from '@/lib/cn';
+import { analytics } from '@/lib/analytics/posthog-client';
 import { completeOnboardingAction } from '@/app/[locale]/(auth)/actions';
 import { isValidEmail } from '@/lib/validators/email';
 
@@ -177,15 +178,23 @@ export function OnboardingWizard({
 
   function submit() {
     if (!form.role) return;
+    const selectedRole = form.role;
     setError(null);
     const formData = new FormData();
     formData.set('fullName', form.fullName.trim());
-    formData.set('role', form.role);
+    formData.set('role', selectedRole);
     formData.set('email', form.email.trim());
 
     startTransition(async () => {
       const result = await completeOnboardingAction(formData);
-      if (!result || result.ok) return;
+      if (!result || result.ok) {
+        // Succès : l'action redirige côté serveur (result undefined) ou renvoie
+        // ok:true. On émet onboarding_completed avec le rôle choisi — l'user est
+        // déjà identifié par le layout (app), l'event s'y rattache. No-op sans
+        // consentement.
+        analytics.onboardingCompleted({ role: selectedRole });
+        return;
+      }
       if (result.fieldErrors) {
         const flat: Record<string, string | undefined> = {};
         for (const [k, v] of Object.entries(result.fieldErrors)) {
