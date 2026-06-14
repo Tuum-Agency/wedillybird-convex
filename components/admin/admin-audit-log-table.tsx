@@ -1,6 +1,6 @@
 'use client';
 
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { Badge } from '@/components/ui/badge';
 
 type AuditEntry = {
@@ -14,14 +14,6 @@ type AuditEntry = {
   createdAt: number;
 };
 
-const ACTION_LABELS: Record<string, string> = {
-  suspend_user: 'Suspension utilisateur',
-  change_role: 'Changement de rôle',
-  update_event_status: 'Changement statut événement',
-  delete_event: 'Suppression événement',
-  moderate_photo: 'Modération photo',
-};
-
 const TARGET_VARIANT: Record<string, 'neutral' | 'primary' | 'accent' | 'warning'> = {
   user: 'primary',
   event: 'accent',
@@ -33,17 +25,18 @@ const TARGET_VARIANT: Record<string, 'neutral' | 'primary' | 'accent' | 'warning
 };
 
 export function AdminAuditLogTable({ logs }: { logs: AuditEntry[] }) {
+  const t = useTranslations('Admin');
   const locale = useLocale();
   return (
     <div className="overflow-x-auto rounded-xl border border-[color:var(--color-border)]">
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-[color:var(--color-border)] bg-[color:var(--color-surface)]">
-            <Th>Date</Th>
-            <Th>Admin</Th>
-            <Th>Action</Th>
-            <Th>Cible</Th>
-            <Th>Détails</Th>
+            <Th>{t('auditLog.colDate')}</Th>
+            <Th>{t('auditLog.colAdmin')}</Th>
+            <Th>{t('auditLog.colAction')}</Th>
+            <Th>{t('auditLog.colTarget')}</Th>
+            <Th>{t('auditLog.colDetails')}</Th>
           </tr>
         </thead>
         <tbody>
@@ -53,7 +46,7 @@ export function AdminAuditLogTable({ logs }: { logs: AuditEntry[] }) {
                 colSpan={5}
                 className="px-4 py-10 text-center text-sm text-[color:var(--color-muted-foreground)]"
               >
-                Aucune action enregistrée
+                {t('auditLog.empty')}
               </td>
             </tr>
           ) : null}
@@ -69,7 +62,9 @@ export function AdminAuditLogTable({ logs }: { logs: AuditEntry[] }) {
                 }).format(new Date(l.createdAt))}
               </td>
               <td className="px-4 py-3 font-medium">{l.adminName ?? l.adminEmail ?? '—'}</td>
-              <td className="px-4 py-3">{ACTION_LABELS[l.action] ?? l.action}</td>
+              <td className="px-4 py-3">
+                {t.has(`auditActions.${l.action}`) ? t(`auditActions.${l.action}`) : l.action}
+              </td>
               <td className="px-4 py-3">
                 <Badge variant={TARGET_VARIANT[l.targetType] ?? 'neutral'}>{l.targetType}</Badge>
                 <span className="ml-2 font-mono text-xs text-[color:var(--color-muted-foreground)]">

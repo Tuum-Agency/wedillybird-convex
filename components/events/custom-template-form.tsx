@@ -14,6 +14,7 @@
  */
 
 import { useState, useTransition } from 'react';
+import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -25,24 +26,7 @@ import { submitCustomTemplateAction } from '@/app/[locale]/(app)/events/actions'
 const BODY_MAX = 1024;
 const CTA_MAX = 25;
 
-const NOTIFY_CHANNELS: ReadonlyArray<{
-  value: 'whatsapp' | 'email' | 'both';
-  label: string;
-  hint: string;
-}> = [
-  { value: 'email', label: 'Par email', hint: 'Notification dans votre boîte de réception.' },
-  {
-    value: 'whatsapp',
-    label: 'Sur WhatsApp',
-    hint: 'Message direct sur votre numéro WhatsApp.',
-  },
-  { value: 'both', label: 'Les deux', hint: "Vous ne raterez pas l'info." },
-];
-
-const PLACEHOLDER_HINT = '{{1}} obligatoire';
-
-const SAMPLE_BODY =
-  "Bonjour {{1}},\n\n{{2}} ont l'honneur de vous convier à leur mariage le {{3}}. {{4}}\n\nMerci de confirmer votre présence en cliquant sur le bouton ci-dessous.";
+const NOTIFY_CHANNEL_VALUES = ['email', 'whatsapp', 'both'] as const;
 
 interface Props {
   eventId: string;
@@ -50,9 +34,11 @@ interface Props {
 }
 
 export function CustomTemplateForm({ eventId, defaultNotifyChannel = 'email' }: Props) {
+  const t = useTranslations('Events');
   const router = useRouter();
-  const [bodyText, setBodyText] = useState(SAMPLE_BODY);
-  const [ctaLabel, setCtaLabel] = useState('Confirmer ma présence');
+  const sampleBody = t('customSampleBody', { p1: '{{1}}', p2: '{{2}}', p3: '{{3}}', p4: '{{4}}' });
+  const [bodyText, setBodyText] = useState(sampleBody);
+  const [ctaLabel, setCtaLabel] = useState(t('customCtaDefault'));
   const [notifyChannel, setNotifyChannel] = useState<'whatsapp' | 'email' | 'both'>(
     defaultNotifyChannel,
   );
@@ -76,13 +62,13 @@ export function CustomTemplateForm({ eventId, defaultNotifyChannel = 'email' }: 
     setError(null);
     if (!canSubmit) {
       if (!hasGuestVar || bodyTooShort) {
-        setError('Le message doit contenir au moins 20 caractères et inclure {{1}}.');
+        setError(t('customErrorBodyShort', { placeholder: '{{1}}' }));
       } else if (bodyTooLong) {
-        setError(`Le message dépasse ${BODY_MAX} caractères.`);
+        setError(t('customErrorBodyLong', { max: BODY_MAX }));
       } else if (ctaTooLong) {
-        setError(`Le libellé du bouton dépasse ${CTA_MAX} caractères.`);
+        setError(t('customErrorCtaLong', { max: CTA_MAX }));
       } else if (!ctaLabel.trim()) {
-        setError('Le libellé du bouton est requis.');
+        setError(t('customErrorCtaRequired'));
       }
       return;
     }
@@ -99,18 +85,17 @@ export function CustomTemplateForm({ eventId, defaultNotifyChannel = 'email' }: 
         return;
       }
       const map: Record<string, string> = {
-        BODY_TOO_SHORT: 'Le message doit contenir au moins 20 caractères et inclure {{1}}.',
-        BODY_TOO_LONG: `Le message dépasse ${BODY_MAX} caractères.`,
-        BODY_MISSING_GUEST_PLACEHOLDER: 'Le message doit inclure {{1}} (prénom invité).',
-        CTA_LABEL_REQUIRED: 'Le libellé du bouton est requis.',
-        CTA_LABEL_TOO_LONG: `Le libellé du bouton dépasse ${CTA_MAX} caractères.`,
-        INVALID_CHANNEL: 'Choisissez un canal de notification valide.',
-        INVALID_INPUT: 'Champ manquant ou invalide.',
+        BODY_TOO_SHORT: t('customErrorBodyShort', { placeholder: '{{1}}' }),
+        BODY_TOO_LONG: t('customErrorBodyLong', { max: BODY_MAX }),
+        BODY_MISSING_GUEST_PLACEHOLDER: t('customErrorBodyMissingPlaceholder', {
+          placeholder: '{{1}}',
+        }),
+        CTA_LABEL_REQUIRED: t('customErrorCtaRequired'),
+        CTA_LABEL_TOO_LONG: t('customErrorCtaLong', { max: CTA_MAX }),
+        INVALID_CHANNEL: t('customErrorInvalidChannel'),
+        INVALID_INPUT: t('customErrorInvalidInput'),
       };
-      setError(
-        map[result.error] ??
-          'Soumission impossible. Vérifiez vos infos ou réessayez dans un instant.',
-      );
+      setError(map[result.error] ?? t('customErrorGeneric'));
     });
   }
 
@@ -120,7 +105,7 @@ export function CustomTemplateForm({ eventId, defaultNotifyChannel = 'email' }: 
       className="flex flex-col gap-6 rounded-2xl border border-[color:var(--color-border)] bg-white p-5 shadow-[var(--shadow-soft)] sm:p-6"
     >
       <div className="flex flex-col gap-2">
-        <Label htmlFor="customBody">Corps du message</Label>
+        <Label htmlFor="customBody">{t('customBodyLabel')}</Label>
         <textarea
           id="customBody"
           name="bodyText"
@@ -142,7 +127,7 @@ export function CustomTemplateForm({ eventId, defaultNotifyChannel = 'email' }: 
               !hasGuestVar ? 'text-[color:var(--color-blush-700)]' : null,
             )}
           >
-            {PLACEHOLDER_HINT}
+            {t('customPlaceholderHint', { placeholder: '{{1}}' })}
           </span>
           <span
             className={cn(
@@ -154,23 +139,26 @@ export function CustomTemplateForm({ eventId, defaultNotifyChannel = 'email' }: 
           </span>
         </div>
         <p className="text-xs text-[color:var(--color-ink-500)]">
-          Variables disponibles : <span className="font-mono">{'{{1}}'}</span> prénom invité ·{' '}
-          <span className="font-mono">{'{{2}}'}</span> noms du couple ·{' '}
-          <span className="font-mono">{'{{3}}'}</span> date ·{' '}
-          <span className="font-mono">{'{{4}}'}</span> mot perso ·{' '}
-          <span className="font-mono">{'{{5}}'}</span> libre.
+          {t.rich('customVariablesHint', {
+            p1: '{{1}}',
+            p2: '{{2}}',
+            p3: '{{3}}',
+            p4: '{{4}}',
+            p5: '{{5}}',
+            code: (chunks) => <span className="font-mono">{chunks}</span>,
+          })}
         </p>
       </div>
 
       <div className="flex flex-col gap-2">
-        <Label htmlFor="customCta">Libellé du bouton</Label>
+        <Label htmlFor="customCta">{t('customCtaLabel')}</Label>
         <Input
           id="customCta"
           name="ctaLabel"
           value={ctaLabel}
           maxLength={CTA_MAX}
           onChange={(e) => setCtaLabel(e.target.value)}
-          placeholder="Confirmer ma présence"
+          placeholder={t('customCtaDefault')}
         />
         <p className="text-right font-mono text-[10px] tracking-[0.18em] text-[color:var(--color-ink-500)] uppercase">
           {ctaLabel.length}/{CTA_MAX}
@@ -178,17 +166,17 @@ export function CustomTemplateForm({ eventId, defaultNotifyChannel = 'email' }: 
       </div>
 
       <div className="flex flex-col gap-3">
-        <Label>Comment être prévenu·e du résultat ?</Label>
+        <Label>{t('customNotifyLabel')}</Label>
         <div className="flex flex-col gap-2">
-          {NOTIFY_CHANNELS.map((opt) => {
-            const selected = notifyChannel === opt.value;
+          {NOTIFY_CHANNEL_VALUES.map((value) => {
+            const selected = notifyChannel === value;
             return (
               <button
-                key={opt.value}
+                key={value}
                 type="button"
                 role="radio"
                 aria-checked={selected}
-                onClick={() => setNotifyChannel(opt.value)}
+                onClick={() => setNotifyChannel(value)}
                 className={cn(
                   'focus-ring flex flex-col gap-1 rounded-xl border p-4 text-left transition-all',
                   selected
@@ -198,7 +186,7 @@ export function CustomTemplateForm({ eventId, defaultNotifyChannel = 'email' }: 
               >
                 <div className="flex items-center justify-between gap-3">
                   <span className="text-sm font-medium text-[color:var(--color-ink-900)]">
-                    {opt.label}
+                    {t(`customNotifyOptions.${value}.label`)}
                   </span>
                   <span
                     aria-hidden
@@ -212,7 +200,9 @@ export function CustomTemplateForm({ eventId, defaultNotifyChannel = 'email' }: 
                     {selected ? '✦' : ''}
                   </span>
                 </div>
-                <span className="text-xs text-[color:var(--color-ink-500)]">{opt.hint}</span>
+                <span className="text-xs text-[color:var(--color-ink-500)]">
+                  {t(`customNotifyOptions.${value}.hint`)}
+                </span>
               </button>
             );
           })}
@@ -223,9 +213,7 @@ export function CustomTemplateForm({ eventId, defaultNotifyChannel = 'email' }: 
         className="rounded-xl border border-dashed border-[color:var(--color-blush-300)] px-4 py-3 text-xs leading-relaxed text-[color:var(--color-ink-500)]"
         style={{ background: 'oklch(98% 0.012 22)' }}
       >
-        Validation Meta sous 24-48h. Vous serez prévenu·e dès la décision via le canal choisi
-        ci-dessus. Tant que le template n&apos;est pas validé, les invitations utiliseront le style
-        préfabriqué sélectionné en haut de page.
+        {t('customMetaNotice')}
       </div>
 
       {error ? (
@@ -237,7 +225,7 @@ export function CustomTemplateForm({ eventId, defaultNotifyChannel = 'email' }: 
       <div className="flex justify-end">
         <Button type="submit" variant="primary" size="md" disabled={!canSubmit}>
           <Send className="h-4 w-4" strokeWidth={2} aria-hidden />
-          {pending ? 'Soumission…' : 'Soumettre à WhatsApp'}
+          {pending ? t('customSubmitting') : t('customSubmit')}
         </Button>
       </div>
     </form>

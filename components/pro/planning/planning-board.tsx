@@ -3,6 +3,7 @@
 import { Fragment, useMemo, useState, useTransition, type FormEvent } from 'react';
 import type { Route } from 'next';
 import { useRouter } from 'next/navigation';
+import { useTranslations, useLocale } from 'next-intl';
 import {
   Plus,
   Trash2,
@@ -69,7 +70,6 @@ import {
   type PlanningPhase,
   type TaskStatus,
 } from '@/lib/pro/planning';
-import { formatDateFr } from '@/lib/pro/format';
 import {
   createTaskAction,
   updateTaskAction,
@@ -116,22 +116,39 @@ const BUILTIN_PREFIX = 'builtin:';
 /** Sentinel « non assigné » (Radix Select interdit value=""). Normalisé en '' avant submit. */
 const ASSIGNEE_NONE = '__none__';
 
+/** Traducteur du namespace `Pro.planningBoard`, partagé par les sous-composants. */
+type T = ReturnType<typeof useTranslations>;
+
 type ViewKey = 'phase' | 'board' | 'frise';
-const VIEWS: ReadonlyArray<{ key: ViewKey; label: string; Icon: typeof Rows3 }> = [
-  { key: 'phase', label: 'Par phase', Icon: Rows3 },
-  { key: 'board', label: 'Tableau', Icon: Columns3 },
-  { key: 'frise', label: 'Frise', Icon: GanttChart },
+const VIEWS: ReadonlyArray<{ key: ViewKey; labelKey: string; Icon: typeof Rows3 }> = [
+  { key: 'phase', labelKey: 'views.phase', Icon: Rows3 },
+  { key: 'board', labelKey: 'views.board', Icon: Columns3 },
+  { key: 'frise', labelKey: 'views.frise', Icon: GanttChart },
 ];
 
 const PRIORITY_OPTS = [
-  { key: 'low', label: 'Basse' },
-  { key: 'normal', label: 'Normale' },
-  { key: 'high', label: 'Haute' },
+  { key: 'low', labelKey: 'priority.low' },
+  { key: 'normal', labelKey: 'priority.normal' },
+  { key: 'high', labelKey: 'priority.high' },
 ] as const;
 
 /** ms → « yyyy-mm-dd » (UTC) pour un <input type="date">. Appelé hors render. */
 function toDateInput(ms: number): string {
   return new Date(ms).toISOString().slice(0, 10);
+}
+
+/**
+ * Timestamp ms → date courte localisée (UTC pour éviter les décalages SSR).
+ * Remplace `formatDateFr` (figé en fr-FR) par un formatage piloté par la locale active.
+ */
+function formatDateLocalized(ms: number | null | undefined, locale: string): string {
+  if (ms == null) return '—';
+  return new Intl.DateTimeFormat(locale, {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    timeZone: 'UTC',
+  }).format(new Date(ms));
 }
 
 interface PlanningMember {
@@ -181,6 +198,8 @@ export function PlanningBoard({
   members?: PlanningMember[];
   customTemplates?: CustomTemplate[];
 }) {
+  const t = useTranslations('Pro.planningBoard');
+  const locale = useLocale();
   const router = useRouter();
   const memberById = useMemo(() => new Map(members.map((m) => [m.userId, m.name])), [members]);
   const [tasks, setTasks] = useState<PlanningTaskRow[]>(initialTasks);
@@ -317,7 +336,7 @@ export function PlanningBoard({
     const assigneeId = String(fd.get('assigneeId') ?? '') || undefined;
     const notes = String(fd.get('notes') ?? '').trim() || undefined;
     if (!title) {
-      setFormError('Le titre est requis.');
+      setFormError(t('errors.titleRequired'));
       return;
     }
     const dueParsed = dueRaw ? Date.parse(dueRaw) || undefined : undefined;
@@ -345,7 +364,7 @@ export function PlanningBoard({
       startTransition(async () => {
         const res = await updateTaskAction(id, fd);
         if (!res.ok) {
-          setFormError('Une erreur est survenue. Réessayez.');
+          setFormError(t('errors.generic'));
           return;
         }
         await setSubtasksAction(id, subtasksSnapshot);
@@ -373,7 +392,7 @@ export function PlanningBoard({
     startTransition(async () => {
       const res = await createTaskAction(selectedEventId, fd);
       if (!res.ok) {
-        setFormError('Une erreur est survenue. Réessayez.');
+        setFormError(t('errors.generic'));
         return;
       }
       const newId = res.id ?? optimistic._id;
@@ -417,7 +436,7 @@ export function PlanningBoard({
   function onSaveTemplate(rawName: string): boolean {
     const name = rawName.trim();
     if (!name) {
-      setFormError('Le nom du modèle est requis.');
+      setFormError(t('errors.templateNameRequired'));
       return false;
     }
     // Instantané optimiste depuis les tâches courantes (phase + titre, triées).
@@ -430,8 +449,8 @@ export function PlanningBoard({
       if (!res.ok) {
         setFormError(
           res.error === 'TEMPLATE_LIMIT_REACHED'
-            ? 'Limite de modèles atteinte (20). Supprimez-en un.'
-            : 'Une erreur est survenue. Réessayez.',
+            ? t('errors.templateLimit', { max: 20 })
+            : t('errors.generic'),
         );
         // Annule l'ajout optimiste si présent.
         setCustoms((prev) => prev.filter((t) => t._id !== tempId));
@@ -454,9 +473,9 @@ export function PlanningBoard({
       {/* En-tête : eyebrow + (sélecteur · lieu) à gauche · (avancement + actions) à droite */}
       <header className="flex flex-col gap-5">
         <span className="font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-muted-foreground)] uppercase">
-          Rétroplanning · {orgName}
+          {t('eyebrow', { org: orgName })}
         </span>
-        <h1 className="sr-only">Rétroplanning</h1>
+        <h1 className="sr-only">{t('title')}</h1>
 
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
           {/* Gauche : sélecteur de mariage + lieu */}
@@ -472,6 +491,7 @@ export function PlanningBoard({
           {/* Droite : carte d'avancement + actions */}
           <div className="flex flex-wrap items-center gap-3 lg:justify-end">
             <ProgressCard
+              t={t}
               pct={progress.pct}
               done={progress.done}
               total={progress.total}
@@ -485,8 +505,8 @@ export function PlanningBoard({
                     variant="outline"
                     size="icon"
                     className="h-11 w-11"
-                    title="Enregistrer le planning comme modèle"
-                    aria-label="Enregistrer le planning comme modèle"
+                    title={t('saveAsTemplate')}
+                    aria-label={t('saveAsTemplate')}
                     onClick={() => {
                       setFormError(null);
                       setSaveOpen(true);
@@ -504,7 +524,7 @@ export function PlanningBoard({
                   data-testid="apply-classic"
                 >
                   <LayoutTemplate className="h-4 w-4" strokeWidth={2} aria-hidden />
-                  Appliquer un modèle
+                  {t('applyTemplate')}
                 </Button>
                 <Button
                   type="button"
@@ -514,7 +534,7 @@ export function PlanningBoard({
                   data-testid="new-task"
                 >
                   <Plus className="h-4 w-4" strokeWidth={2.2} aria-hidden />
-                  Nouvelle tâche
+                  {t('newTask')}
                 </Button>
               </div>
             ) : null}
@@ -525,7 +545,7 @@ export function PlanningBoard({
       {tasks.length === 0 ? (
         <div className="flex flex-col items-center gap-5 rounded-3xl border border-dashed border-[color:var(--color-border-strong)] bg-[color:var(--color-surface)]/40 px-8 py-14 text-center">
           <p className="max-w-sm text-sm text-[color:var(--color-muted-foreground)]">
-            Aucune tâche. {canWrite ? 'Appliquez un modèle pour démarrer.' : ''}
+            {t('empty.none')} {canWrite ? t('empty.applyToStart') : ''}
           </p>
           {canWrite ? (
             <div className="flex flex-wrap items-center justify-center gap-2">
@@ -536,7 +556,7 @@ export function PlanningBoard({
                 onClick={() => setTemplateDialogId(`${BUILTIN_PREFIX}classic`)}
               >
                 <Sparkles className="h-4 w-4" strokeWidth={2} aria-hidden />
-                Modèle « Mariage classique »
+                {t('empty.templateClassic')}
               </Button>
               <Button
                 type="button"
@@ -544,7 +564,7 @@ export function PlanningBoard({
                 size="md"
                 onClick={() => setTemplateDialogId(`${BUILTIN_PREFIX}intimate`)}
               >
-                Modèle « Mariage intime »
+                {t('empty.templateIntimate')}
               </Button>
               {customs.length > 0 ? (
                 <Button
@@ -554,7 +574,7 @@ export function PlanningBoard({
                   onClick={() => setTemplateDialogId(customs[0]!._id)}
                 >
                   <BookMarked className="h-4 w-4" strokeWidth={2} aria-hidden />
-                  Mes modèles ({customs.length})
+                  {t('empty.myTemplates', { count: customs.length })}
                 </Button>
               ) : null}
             </div>
@@ -567,7 +587,7 @@ export function PlanningBoard({
             <div
               className="flex items-center gap-1 self-start rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-1"
               role="tablist"
-              aria-label="Vue du rétroplanning"
+              aria-label={t('viewTablist')}
             >
               {VIEWS.map((vw) => (
                 <button
@@ -584,7 +604,7 @@ export function PlanningBoard({
                   )}
                 >
                   <vw.Icon className="h-4 w-4" strokeWidth={1.85} aria-hidden />
-                  {vw.label}
+                  {t(vw.labelKey)}
                 </button>
               ))}
             </div>
@@ -599,8 +619,8 @@ export function PlanningBoard({
                   type="search"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Rechercher…"
-                  aria-label="Rechercher une tâche"
+                  placeholder={t('searchPlaceholder')}
+                  aria-label={t('searchAria')}
                   className="focus-ring h-9 w-44 rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-surface)] pr-3 pl-8 text-sm text-[color:var(--color-foreground)] placeholder:text-[color:var(--color-muted-foreground)]"
                 />
               </label>
@@ -609,13 +629,13 @@ export function PlanningBoard({
                 onValueChange={(v) => setFilterStatus(v as 'all' | TaskStatus)}
               >
                 <SelectTrigger
-                  aria-label="Filtrer par statut"
+                  aria-label={t('filterStatusAria')}
                   className="h-9 w-auto min-w-[124px] border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-2.5"
                 >
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Tous statuts</SelectItem>
+                  <SelectItem value="all">{t('filterAllStatuses')}</SelectItem>
                   {PLANNING_STATUSES.map((s) => (
                     <SelectItem key={s} value={s}>
                       {STATUS_LABEL[s]}
@@ -625,14 +645,14 @@ export function PlanningBoard({
               </Select>
               <Select value={filterAssignee} onValueChange={setFilterAssignee}>
                 <SelectTrigger
-                  aria-label="Filtrer par assigné·e"
+                  aria-label={t('filterAssigneeAria')}
                   className="h-9 w-auto min-w-[124px] border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-2.5"
                 >
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Tous</SelectItem>
-                  <SelectItem value="unassigned">Non assigné·e</SelectItem>
+                  <SelectItem value="all">{t('filterAll')}</SelectItem>
+                  <SelectItem value="unassigned">{t('unassigned')}</SelectItem>
                   {members.map((m) => (
                     <SelectItem key={m.userId} value={m.userId}>
                       {m.name}
@@ -646,31 +666,44 @@ export function PlanningBoard({
           {filteredTasks.length === 0 ? (
             <div className="flex flex-col items-center gap-3 rounded-3xl border border-dashed border-[color:var(--color-border-strong)] bg-[color:var(--color-surface)]/40 px-8 py-12 text-center">
               <p className="text-sm text-[color:var(--color-muted-foreground)]">
-                Aucune tâche ne correspond à ces filtres.
+                {t('noFilterMatch')}
               </p>
               <button
                 type="button"
                 onClick={resetFilters}
                 className="text-xs text-[color:var(--color-blush-300)] underline-offset-2 hover:underline"
               >
-                Réinitialiser les filtres
+                {t('resetFilters')}
               </button>
             </div>
           ) : view === 'phase' ? (
             <PhaseView
+              t={t}
               tasks={filteredTasks}
               now={now}
               canWrite={canWrite}
               memberById={memberById}
-              onCycle={(t) => applyStatus(t, nextStatus(t.status))}
+              onCycle={(task) => applyStatus(task, nextStatus(task.status))}
               onRemove={onRemove}
               onAdd={openCreate}
               onEdit={openEdit}
             />
           ) : view === 'board' ? (
-            <BoardView tasks={filteredTasks} now={now} canWrite={canWrite} onMove={applyStatus} />
+            <BoardView
+              t={t}
+              tasks={filteredTasks}
+              now={now}
+              canWrite={canWrite}
+              onMove={applyStatus}
+            />
           ) : (
-            <FriseView tasks={filteredTasks} now={now} eventDate={eventDate} />
+            <FriseView
+              t={t}
+              tasks={filteredTasks}
+              now={now}
+              locale={locale}
+              eventDate={eventDate}
+            />
           )}
         </>
       )}
@@ -678,7 +711,7 @@ export function PlanningBoard({
       <Dialog open={drawerOpen} onOpenChange={closeDrawer}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>{editing ? 'Modifier la tâche' : 'Nouvelle tâche'}</DialogTitle>
+            <DialogTitle>{editing ? t('dialog.editTitle') : t('dialog.newTitle')}</DialogTitle>
           </DialogHeader>
           <form
             key={editing?._id ?? `new-${presetPhase}`}
@@ -687,22 +720,22 @@ export function PlanningBoard({
           >
             <label className="flex flex-col gap-1.5">
               <span className="text-xs font-medium text-[color:var(--color-muted-foreground)]">
-                Tâche *
+                {t('dialog.taskLabel')}
               </span>
               <Input
                 name="title"
                 required
-                placeholder="Réserver le photographe"
+                placeholder={t('dialog.taskPlaceholder')}
                 defaultValue={editing?.title ?? ''}
               />
             </label>
             <div className="grid grid-cols-2 gap-3">
               <div className="flex flex-col gap-1.5">
                 <span className="text-xs font-medium text-[color:var(--color-muted-foreground)]">
-                  Phase
+                  {t('dialog.phaseLabel')}
                 </span>
                 <Select name="phase" defaultValue={presetPhase}>
-                  <SelectTrigger aria-label="Phase">
+                  <SelectTrigger aria-label={t('dialog.phaseLabel')}>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -716,7 +749,7 @@ export function PlanningBoard({
               </div>
               <label className="flex flex-col gap-1.5">
                 <span className="text-xs font-medium text-[color:var(--color-muted-foreground)]">
-                  Échéance
+                  {t('dialog.dueLabel')}
                 </span>
                 <Input name="dueDate" type="date" defaultValue={editDue} />
               </label>
@@ -724,16 +757,16 @@ export function PlanningBoard({
             <div className="grid grid-cols-2 gap-3">
               <div className="flex flex-col gap-1.5">
                 <span className="text-xs font-medium text-[color:var(--color-muted-foreground)]">
-                  Priorité
+                  {t('dialog.priorityLabel')}
                 </span>
                 <Select name="priority" defaultValue={editing?.priority ?? 'normal'}>
-                  <SelectTrigger aria-label="Priorité">
+                  <SelectTrigger aria-label={t('dialog.priorityLabel')}>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     {PRIORITY_OPTS.map((p) => (
                       <SelectItem key={p.key} value={p.key}>
-                        {p.label}
+                        {t(p.labelKey)}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -741,14 +774,14 @@ export function PlanningBoard({
               </div>
               <div className="flex flex-col gap-1.5">
                 <span className="text-xs font-medium text-[color:var(--color-muted-foreground)]">
-                  Assigné·e
+                  {t('dialog.assigneeLabel')}
                 </span>
                 <Select name="assigneeId" defaultValue={editing?.assigneeId ?? ASSIGNEE_NONE}>
-                  <SelectTrigger aria-label="Assigné·e">
+                  <SelectTrigger aria-label={t('dialog.assigneeLabel')}>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value={ASSIGNEE_NONE}>Non assigné·e</SelectItem>
+                    <SelectItem value={ASSIGNEE_NONE}>{t('unassigned')}</SelectItem>
                     {members.map((m) => (
                       <SelectItem key={m.userId} value={m.userId}>
                         {m.name}
@@ -760,20 +793,20 @@ export function PlanningBoard({
             </div>
             <label className="flex flex-col gap-1.5">
               <span className="text-xs font-medium text-[color:var(--color-muted-foreground)]">
-                Note
+                {t('dialog.noteLabel')}
               </span>
               <textarea
                 name="notes"
                 defaultValue={editing?.notes ?? ''}
                 rows={2}
                 maxLength={2000}
-                placeholder="Détails, contacts, rappels…"
+                placeholder={t('dialog.notePlaceholder')}
                 className="focus-ring resize-none rounded-lg border border-[color:var(--color-border-strong)] bg-[color:var(--color-surface-elevated)] px-3 py-2.5 text-sm text-[color:var(--color-foreground)] outline-none placeholder:text-[color:var(--color-muted-foreground)]"
               />
             </label>
             <div className="flex flex-col gap-2">
               <span className="text-xs font-medium text-[color:var(--color-muted-foreground)]">
-                Sous-tâches
+                {t('dialog.subtasks')}
                 {drawerSubtasks.length > 0 ? (
                   <span className="ml-1 font-mono tabular-nums">
                     ({drawerSubtasks.filter((s) => s.done).length}/{drawerSubtasks.length})
@@ -816,7 +849,7 @@ export function PlanningBoard({
                       <button
                         type="button"
                         onClick={() => setDrawerSubtasks((arr) => arr.filter((_, xi) => xi !== i))}
-                        aria-label={`Retirer ${s.label}`}
+                        aria-label={t('dialog.removeSubtask', { label: s.label })}
                         className="focus-ring rounded p-0.5 text-[color:var(--color-muted-foreground)] hover:text-[color:var(--color-danger)]"
                       >
                         <X className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />
@@ -835,13 +868,13 @@ export function PlanningBoard({
                       addSubtask();
                     }
                   }}
-                  placeholder="Ajouter une sous-tâche…"
+                  placeholder={t('dialog.addSubtaskPlaceholder')}
                   className="focus-ring h-9 flex-1 rounded-lg border border-[color:var(--color-border-strong)] bg-[color:var(--color-surface-elevated)] px-3 text-sm text-[color:var(--color-foreground)] outline-none placeholder:text-[color:var(--color-muted-foreground)]"
                 />
                 <button
                   type="button"
                   onClick={addSubtask}
-                  aria-label="Ajouter la sous-tâche"
+                  aria-label={t('dialog.addSubtask')}
                   className="focus-ring inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[color:var(--color-border-strong)] text-[color:var(--color-foreground)] transition-colors hover:border-[color:var(--color-blush-400)]"
                 >
                   <Plus className="h-4 w-4" strokeWidth={2.2} aria-hidden />
@@ -860,10 +893,10 @@ export function PlanningBoard({
                 className={cn(buttonVariants({ variant: 'ghost', size: 'md' }))}
               >
                 <X className="h-4 w-4" strokeWidth={2} aria-hidden />
-                Annuler
+                {t('cancel')}
               </button>
               <Button type="submit" variant="primary" size="md" disabled={pending}>
-                {pending ? 'Enregistrement…' : editing ? 'Enregistrer' : 'Ajouter'}
+                {pending ? t('saving') : editing ? t('save') : t('add')}
               </Button>
             </div>
           </form>
@@ -872,6 +905,7 @@ export function PlanningBoard({
 
       {templateDialogId ? (
         <TemplateDialog
+          t={t}
           templates={allTemplates}
           initialId={templateDialogId}
           now={now}
@@ -887,6 +921,7 @@ export function PlanningBoard({
 
       {saveOpen ? (
         <SaveTemplateDialog
+          t={t}
           taskCount={tasks.length}
           error={formError}
           pending={pending}
@@ -903,12 +938,14 @@ export function PlanningBoard({
 /* -------------------------------------------------------------------------- */
 
 function SaveTemplateDialog({
+  t,
   taskCount,
   error,
   pending,
   onClose,
   onSave,
 }: {
+  t: T;
   taskCount: number;
   error: string | null;
   pending: boolean;
@@ -931,9 +968,9 @@ function SaveTemplateDialog({
             </span>
             <div className="flex flex-col gap-0.5">
               <span className="font-mono text-[10px] tracking-[0.16em] text-[color:var(--color-muted-foreground)] uppercase">
-                Modèle maison
+                {t('saveDialog.eyebrow')}
               </span>
-              <DialogTitle>Enregistrer comme modèle</DialogTitle>
+              <DialogTitle>{t('saveDialog.title')}</DialogTitle>
             </div>
           </div>
         </DialogHeader>
@@ -944,22 +981,18 @@ function SaveTemplateDialog({
           }}
           className="flex flex-col gap-4"
         >
-          <DialogDescription>
-            Les {taskCount} tâche{taskCount > 1 ? 's' : ''} actuelle{taskCount > 1 ? 's' : ''}{' '}
-            (phase + intitulé) seront enregistrées comme modèle réutilisable. Les dates, statuts et
-            assignations ne sont pas conservés.
-          </DialogDescription>
+          <DialogDescription>{t('saveDialog.description', { count: taskCount })}</DialogDescription>
           <label className="flex flex-col gap-1.5">
             <span className="text-xs font-medium text-[color:var(--color-muted-foreground)]">
-              Nom du modèle *
+              {t('saveDialog.nameLabel')}
             </span>
             <Input
               autoFocus
               value={name}
               onChange={(e) => setName(e.target.value)}
               maxLength={80}
-              placeholder="Mariage champêtre, Pack premium…"
-              aria-label="Nom du modèle"
+              placeholder={t('saveDialog.namePlaceholder')}
+              aria-label={t('saveDialog.nameAria')}
             />
           </label>
           {error ? (
@@ -973,7 +1006,7 @@ function SaveTemplateDialog({
               onClick={onClose}
               className="rounded-lg px-4 py-2 text-sm text-[color:var(--color-muted-foreground)] hover:text-[color:var(--color-foreground)]"
             >
-              Annuler
+              {t('cancel')}
             </button>
             <Button
               type="submit"
@@ -983,7 +1016,7 @@ function SaveTemplateDialog({
               data-testid="confirm-save-template"
             >
               <Save className="h-4 w-4" strokeWidth={2} aria-hidden />
-              {pending ? 'Enregistrement…' : 'Enregistrer'}
+              {pending ? t('saving') : t('save')}
             </Button>
           </DialogFooter>
         </form>
@@ -1007,6 +1040,7 @@ const PHASE_OFFSET_DAYS: Record<PlanningPhase, number> = {
 };
 
 function TemplateDialog({
+  t,
   templates,
   initialId,
   now,
@@ -1018,6 +1052,7 @@ function TemplateDialog({
   onApply,
   onDelete,
 }: {
+  t: T;
   templates: DialogTemplate[];
   initialId: string;
   now: number;
@@ -1044,7 +1079,11 @@ function TemplateDialog({
     if (eventDate == null) return null;
     const date = eventDate + PHASE_OFFSET_DAYS[phase] * 86_400_000;
     const days = Math.ceil((date - now) / 86_400_000);
-    return days < 0 ? `J+${-days}` : days === 0 ? 'Jour J' : `J−${days}`;
+    return days < 0
+      ? t('jBadge.after', { n: -days })
+      : days === 0
+        ? t('jBadge.dday')
+        : t('jBadge.before', { n: days });
   }
 
   const count = selected?.tasks.length ?? 0;
@@ -1064,23 +1103,23 @@ function TemplateDialog({
             </span>
             <div className="flex flex-col gap-0.5">
               <span className="font-mono text-[10px] tracking-[0.16em] text-[color:var(--color-muted-foreground)] uppercase">
-                Modèle de rétroplanning
+                {t('applyDialog.eyebrow')}
               </span>
-              <DialogTitle>Appliquer un modèle</DialogTitle>
+              <DialogTitle>{t('applyTemplate')}</DialogTitle>
             </div>
           </div>
         </DialogHeader>
 
         <div className="flex flex-col gap-4">
           <div className="grid max-h-[184px] grid-cols-2 gap-2 overflow-y-auto">
-            {templates.map((t) => {
-              const on = t.id === selected?.id;
-              const isCustom = t.kind === 'custom';
+            {templates.map((tpl) => {
+              const on = tpl.id === selected?.id;
+              const isCustom = tpl.kind === 'custom';
               return (
-                <div key={t.id} className="relative">
+                <div key={tpl.id} className="relative">
                   <button
                     type="button"
-                    onClick={() => setSelectedId(t.id)}
+                    onClick={() => setSelectedId(tpl.id)}
                     className={cn(
                       'flex w-full flex-col gap-0.5 rounded-xl border px-3 py-2.5 text-left transition-colors',
                       isCustom && canWrite ? 'pr-9' : '',
@@ -1090,17 +1129,18 @@ function TemplateDialog({
                     )}
                   >
                     <b className="truncate text-sm text-[color:var(--color-foreground)]">
-                      {t.label}
+                      {tpl.label}
                     </b>
                     <span className="font-mono text-[10px] text-[color:var(--color-muted-foreground)] tabular-nums">
-                      {t.tasks.length} tâches{isCustom ? ' · maison' : ''}
+                      {t('applyDialog.taskCount', { count: tpl.tasks.length })}
+                      {isCustom ? t('applyDialog.customTag') : ''}
                     </span>
                   </button>
                   {isCustom && canWrite ? (
                     <button
                       type="button"
-                      onClick={() => onDelete(t.id)}
-                      aria-label={`Supprimer le modèle ${t.label}`}
+                      onClick={() => onDelete(tpl.id)}
+                      aria-label={t('applyDialog.deleteTemplate', { name: tpl.label })}
                       className="focus-ring absolute top-1.5 right-1.5 rounded-md p-1 text-[color:var(--color-muted-foreground)] transition-colors hover:text-[color:var(--color-danger)]"
                     >
                       <Trash2 className="h-3.5 w-3.5" strokeWidth={1.85} aria-hidden />
@@ -1114,7 +1154,7 @@ function TemplateDialog({
           <div className="flex flex-col gap-3 overflow-y-auto rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface-elevated)]/40 p-3">
             {grouped.length === 0 ? (
               <p className="px-1 py-4 text-center text-sm text-[color:var(--color-muted-foreground)]">
-                Ce modèle ne contient aucune tâche.
+                {t('applyDialog.emptyTemplate')}
               </p>
             ) : (
               grouped.map((col) => (
@@ -1130,7 +1170,7 @@ function TemplateDialog({
                     ) : null}
                   </div>
                   <ul className="flex flex-col gap-1 pl-1">
-                    {col.items.map((t, i) => (
+                    {col.items.map((item, i) => (
                       <li
                         key={i}
                         className="flex items-center gap-2 text-sm text-[color:var(--color-foreground)]"
@@ -1139,7 +1179,7 @@ function TemplateDialog({
                           className="h-1 w-1 flex-shrink-0 rounded-full bg-[color:var(--color-blush-400)]"
                           aria-hidden
                         />
-                        {t.title}
+                        {item.title}
                       </li>
                     ))}
                   </ul>
@@ -1150,7 +1190,7 @@ function TemplateDialog({
 
           {hasTasks && count > 0 ? (
             <p className="text-xs text-[color:var(--color-muted-foreground)]">
-              Les {count} tâches s’ajouteront au rétroplanning existant.
+              {t('applyDialog.willAppend', { count })}
             </p>
           ) : null}
         </div>
@@ -1161,7 +1201,7 @@ function TemplateDialog({
             onClick={onClose}
             className="rounded-lg px-4 py-2 text-sm text-[color:var(--color-muted-foreground)] hover:text-[color:var(--color-foreground)]"
           >
-            Annuler
+            {t('cancel')}
           </button>
           <Button
             type="button"
@@ -1172,7 +1212,7 @@ function TemplateDialog({
             data-testid="confirm-template"
           >
             <Sparkles className="h-4 w-4" strokeWidth={2} aria-hidden />
-            Appliquer {count} tâches
+            {t('applyDialog.applyCount', { count })}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -1184,12 +1224,12 @@ function TemplateDialog({
 /*  Vue PAR PHASE                                                             */
 /* -------------------------------------------------------------------------- */
 
-function MemberDot({ name }: { name: string }) {
+function MemberDot({ t, name }: { t: T; name: string }) {
   const h = memberHue(name);
   return (
     <span
       title={name}
-      aria-label={`Assigné à ${name}`}
+      aria-label={t('assignedTo', { name })}
       className="inline-flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full font-mono text-[9px] font-medium"
       style={{ background: `oklch(32% 0.045 ${h})`, color: `oklch(84% 0.06 ${h})` }}
     >
@@ -1199,6 +1239,7 @@ function MemberDot({ name }: { name: string }) {
 }
 
 function PhaseView({
+  t,
   tasks,
   now,
   canWrite,
@@ -1208,21 +1249,22 @@ function PhaseView({
   onAdd,
   onEdit,
 }: {
+  t: T;
   tasks: PlanningTaskRow[];
   now: number;
   canWrite: boolean;
   memberById: Map<string, string>;
-  onCycle: (t: PlanningTaskRow) => void;
-  onRemove: (t: PlanningTaskRow) => void;
+  onCycle: (task: PlanningTaskRow) => void;
+  onRemove: (task: PlanningTaskRow) => void;
   onAdd: (phase: PlanningPhase) => void;
-  onEdit: (t: PlanningTaskRow) => void;
+  onEdit: (task: PlanningTaskRow) => void;
 }) {
   const columns = groupByPhase(tasks).filter((c) => c.total > 0);
   return (
     <div className="flex flex-col gap-3">
       {columns.map((col) => {
         const late = col.items.filter(
-          (t) => !t.done && t.dueDate != null && t.dueDate < now,
+          (it) => !it.done && it.dueDate != null && it.dueDate < now,
         ).length;
         return (
           <section
@@ -1239,7 +1281,7 @@ function PhaseView({
                     className="inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 font-mono text-[9px] text-[color:var(--color-danger)]"
                     style={{ background: 'oklch(28% 0.06 25)' }}
                   >
-                    {late} en retard
+                    {t('lateCount', { count: late })}
                   </span>
                 ) : null}
               </div>
@@ -1248,62 +1290,68 @@ function PhaseView({
               </span>
             </div>
             <ul>
-              {col.items.map((t) => (
+              {col.items.map((task) => (
                 <li
-                  key={t._id}
+                  key={task._id}
                   className="flex items-center gap-3 border-b border-[color:var(--color-border)] px-4 py-2.5 last:border-0"
                 >
-                  <StatusPill status={t.status} onClick={canWrite ? () => onCycle(t) : undefined} />
+                  <StatusPill
+                    t={t}
+                    status={task.status}
+                    onClick={canWrite ? () => onCycle(task) : undefined}
+                  />
                   {canWrite ? (
                     <button
                       type="button"
-                      onClick={() => onEdit(t)}
+                      onClick={() => onEdit(task)}
                       className={cn(
                         'focus-ring flex-1 rounded text-left text-sm transition-colors hover:text-[color:var(--color-blush-300)]',
-                        t.done
+                        task.done
                           ? 'text-[color:var(--color-muted-foreground)] line-through'
                           : 'text-[color:var(--color-foreground)]',
                       )}
                     >
-                      {t.title}
+                      {task.title}
                     </button>
                   ) : (
                     <span
                       className={cn(
                         'flex-1 text-sm',
-                        t.done
+                        task.done
                           ? 'text-[color:var(--color-muted-foreground)] line-through'
                           : 'text-[color:var(--color-foreground)]',
                       )}
                     >
-                      {t.title}
+                      {task.title}
                     </span>
                   )}
-                  {t.subtasks && t.subtasks.length > 0 ? (
+                  {task.subtasks && task.subtasks.length > 0 ? (
                     <span
                       className="inline-flex flex-shrink-0 items-center gap-1 font-mono text-[10px] text-[color:var(--color-muted-foreground)] tabular-nums"
-                      title="Sous-tâches"
+                      title={t('dialog.subtasks')}
                     >
                       <Check className="h-3 w-3" strokeWidth={2.4} aria-hidden />
-                      {t.subtasks.filter((s) => s.done).length}/{t.subtasks.length}
+                      {task.subtasks.filter((s) => s.done).length}/{task.subtasks.length}
                     </span>
                   ) : null}
-                  {t.notes ? (
+                  {task.notes ? (
                     <StickyNote
                       className="h-3.5 w-3.5 flex-shrink-0 text-[color:var(--color-muted-foreground)]"
                       strokeWidth={1.8}
-                      aria-label="A une note"
+                      aria-label={t('hasNote')}
                     />
                   ) : null}
-                  {t.assigneeId && memberById.has(t.assigneeId) ? (
-                    <MemberDot name={memberById.get(t.assigneeId)!} />
+                  {task.assigneeId && memberById.has(task.assigneeId) ? (
+                    <MemberDot t={t} name={memberById.get(task.assigneeId)!} />
                   ) : null}
-                  {t.dueDate ? <DueBadge dueDate={t.dueDate} now={now} done={t.done} /> : null}
+                  {task.dueDate ? (
+                    <DueBadge t={t} dueDate={task.dueDate} now={now} done={task.done} />
+                  ) : null}
                   {canWrite ? (
                     <button
                       type="button"
-                      onClick={() => onRemove(t)}
-                      aria-label={`Supprimer ${t.title}`}
+                      onClick={() => onRemove(task)}
+                      aria-label={t('removeTask', { title: task.title })}
                       className="focus-ring rounded-md p-1 text-[color:var(--color-muted-foreground)] hover:text-[color:var(--color-danger)]"
                     >
                       <Trash2 className="h-3.5 w-3.5" strokeWidth={1.85} />
@@ -1319,7 +1367,7 @@ function PhaseView({
                 className="focus-ring flex w-full items-center gap-2 border-t border-[color:var(--color-border)] px-4 py-2 text-left text-xs text-[color:var(--color-muted-foreground)] transition-colors hover:bg-[color:var(--color-surface-elevated)] hover:text-[color:var(--color-foreground)]"
               >
                 <Plus className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />
-                Ajouter une tâche
+                {t('addTask')}
               </button>
             ) : null}
           </section>
@@ -1334,20 +1382,22 @@ function PhaseView({
 /* -------------------------------------------------------------------------- */
 
 function BoardView({
+  t,
   tasks,
   now,
   canWrite,
   onMove,
 }: {
+  t: T;
   tasks: PlanningTaskRow[];
   now: number;
   canWrite: boolean;
-  onMove: (t: PlanningTaskRow, status: TaskStatus) => void;
+  onMove: (task: PlanningTaskRow, status: TaskStatus) => void;
 }) {
   const columns = groupByStatus(tasks);
   const [activeId, setActiveId] = useState<string | null>(null);
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
-  const activeTask = activeId ? (tasks.find((t) => t._id === activeId) ?? null) : null;
+  const activeTask = activeId ? (tasks.find((task) => task._id === activeId) ?? null) : null;
 
   function onDragStart(e: DragStartEvent) {
     setActiveId(String(e.active.id));
@@ -1358,7 +1408,7 @@ function BoardView({
     if (!overId) return;
     const status = String(overId) as TaskStatus;
     if (!PLANNING_STATUSES.includes(status)) return;
-    const task = tasks.find((t) => t._id === String(e.active.id));
+    const task = tasks.find((it) => it._id === String(e.active.id));
     if (task && task.status !== status) onMove(task, status);
   }
 
@@ -1374,17 +1424,18 @@ function BoardView({
         >
           {col.items.length === 0 ? (
             <p className="rounded-xl border border-dashed border-[color:var(--color-border)] px-3 py-6 text-center text-xs text-[color:var(--color-muted-foreground)]">
-              Aucune tâche
+              {t('emptyColumn')}
             </p>
           ) : (
-            col.items.map((t) => (
+            col.items.map((task) => (
               <KanbanCard
-                key={t._id}
-                task={t}
+                key={task._id}
+                t={t}
+                task={task}
                 now={now}
                 canWrite={canWrite}
                 onMove={onMove}
-                dragging={activeId === t._id}
+                dragging={activeId === task._id}
               />
             ))
           )}
@@ -1406,7 +1457,7 @@ function BoardView({
     >
       {grid}
       <DragOverlay>
-        {activeTask ? <KanbanCardFace task={activeTask} now={now} dragging /> : null}
+        {activeTask ? <KanbanCardFace t={t} task={activeTask} now={now} dragging /> : null}
       </DragOverlay>
     </DndContext>
   );
@@ -1450,16 +1501,18 @@ function KanbanColumn({
 }
 
 function KanbanCard({
+  t,
   task,
   now,
   canWrite,
   onMove,
   dragging,
 }: {
+  t: T;
   task: PlanningTaskRow;
   now: number;
   canWrite: boolean;
-  onMove: (t: PlanningTaskRow, status: TaskStatus) => void;
+  onMove: (task: PlanningTaskRow, status: TaskStatus) => void;
   dragging: boolean;
 }) {
   const { attributes, listeners, setNodeRef } = useDraggable({ id: task._id, disabled: !canWrite });
@@ -1486,9 +1539,11 @@ function KanbanCard({
       <div className="flex items-center justify-between gap-2">
         <span className="inline-flex items-center gap-1.5">
           <PhaseChip phase={task.phase} />
-          {task.dueDate ? <DueBadge dueDate={task.dueDate} now={now} done={task.done} /> : null}
+          {task.dueDate ? (
+            <DueBadge t={t} dueDate={task.dueDate} now={now} done={task.done} />
+          ) : null}
         </span>
-        {canWrite ? <KanbanArrows task={task} onMove={onMove} /> : null}
+        {canWrite ? <KanbanArrows t={t} task={task} onMove={onMove} /> : null}
       </div>
     </article>
   );
@@ -1496,10 +1551,12 @@ function KanbanCard({
 
 /** Aperçu statique de carte (DragOverlay). */
 function KanbanCardFace({
+  t,
   task,
   now,
   dragging,
 }: {
+  t: T;
   task: PlanningTaskRow;
   now: number;
   dragging?: boolean;
@@ -1523,18 +1580,20 @@ function KanbanCardFace({
       </p>
       <span className="inline-flex items-center gap-1.5">
         <PhaseChip phase={task.phase} />
-        {task.dueDate ? <DueBadge dueDate={task.dueDate} now={now} done={task.done} /> : null}
+        {task.dueDate ? <DueBadge t={t} dueDate={task.dueDate} now={now} done={task.done} /> : null}
       </span>
     </article>
   );
 }
 
 function KanbanArrows({
+  t,
   task,
   onMove,
 }: {
+  t: T;
   task: PlanningTaskRow;
-  onMove: (t: PlanningTaskRow, status: TaskStatus) => void;
+  onMove: (task: PlanningTaskRow, status: TaskStatus) => void;
 }) {
   const idx = PLANNING_STATUSES.indexOf(task.status);
   return (
@@ -1543,7 +1602,7 @@ function KanbanArrows({
         type="button"
         disabled={idx === 0}
         onClick={() => onMove(task, PLANNING_STATUSES[idx - 1]!)}
-        aria-label={`Déplacer « ${task.title} » vers la gauche`}
+        aria-label={t('moveLeft', { title: task.title })}
         className="focus-ring rounded-md p-1 text-[color:var(--color-muted-foreground)] transition-colors hover:text-[color:var(--color-foreground)] disabled:opacity-30"
       >
         <ChevronLeft className="h-4 w-4" strokeWidth={2} aria-hidden />
@@ -1552,7 +1611,7 @@ function KanbanArrows({
         type="button"
         disabled={idx === PLANNING_STATUSES.length - 1}
         onClick={() => onMove(task, PLANNING_STATUSES[idx + 1]!)}
-        aria-label={`Déplacer « ${task.title} » vers la droite`}
+        aria-label={t('moveRight', { title: task.title })}
         className="focus-ring rounded-md p-1 text-[color:var(--color-muted-foreground)] transition-colors hover:text-[color:var(--color-foreground)] disabled:opacity-30"
       >
         <ChevronRight className="h-4 w-4" strokeWidth={2} aria-hidden />
@@ -1566,23 +1625,27 @@ function KanbanArrows({
 /* -------------------------------------------------------------------------- */
 
 function FriseView({
+  t,
   tasks,
   now,
+  locale,
   eventDate,
 }: {
+  t: T;
   tasks: PlanningTaskRow[];
   now: number;
+  locale: string;
   eventDate: number | null;
 }) {
   const { dated, undatedCount, upcoming, firstUpcomingIdx } = useMemo(() => {
-    const withDue = tasks.filter((t) => t.dueDate != null) as Array<
+    const withDue = tasks.filter((task) => task.dueDate != null) as Array<
       PlanningTaskRow & { dueDate: number }
     >;
     withDue.sort((a, b) => a.dueDate - b.dueDate);
-    const up = withDue.filter((t) => !t.done && t.dueDate >= now).slice(0, 4);
+    const up = withDue.filter((task) => !task.done && task.dueDate >= now).slice(0, 4);
     // Index de la première tâche dont l'échéance est aujourd'hui ou à venir
     // (sépare passé / futur sur la frise). -1 si tout est passé.
-    const idx = withDue.findIndex((t) => t.dueDate >= now);
+    const idx = withDue.findIndex((task) => task.dueDate >= now);
     return {
       dated: withDue,
       undatedCount: tasks.length - withDue.length,
@@ -1597,31 +1660,31 @@ function FriseView({
       <section className="flex flex-col gap-3 rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-5">
         <div className="flex items-center justify-between">
           <h2 className="font-display text-lg text-[color:var(--color-foreground)] italic">
-            Prochaines échéances
+            {t('frise.upcomingTitle')}
           </h2>
           {eventDate ? (
             <span className="inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.14em] text-[color:var(--color-muted-foreground)] uppercase">
-              <Calendar className="h-3.5 w-3.5" strokeWidth={1.8} aria-hidden /> Jour J ·{' '}
-              {formatDateFr(eventDate)}
+              <Calendar className="h-3.5 w-3.5" strokeWidth={1.8} aria-hidden />{' '}
+              {t('frise.ddayWithDate', { date: formatDateLocalized(eventDate, locale) })}
             </span>
           ) : null}
         </div>
         {upcoming.length === 0 ? (
           <p className="text-sm text-[color:var(--color-muted-foreground)]">
-            Aucune échéance à venir.
+            {t('frise.noUpcoming')}
           </p>
         ) : (
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-            {upcoming.map((t) => (
+            {upcoming.map((task) => (
               <div
-                key={t._id}
+                key={task._id}
                 className="flex items-center gap-3 rounded-xl border border-[color:var(--color-border)] px-3.5 py-2.5"
               >
-                <DueBadge dueDate={t.dueDate} now={now} done={t.done} />
+                <DueBadge t={t} dueDate={task.dueDate} now={now} done={task.done} />
                 <span className="flex-1 truncate text-sm text-[color:var(--color-foreground)]">
-                  {t.title}
+                  {task.title}
                 </span>
-                <PhaseChip phase={t.phase} />
+                <PhaseChip phase={task.phase} />
               </div>
             ))}
           </div>
@@ -1631,13 +1694,13 @@ function FriseView({
       {/* Timeline */}
       {dated.length === 0 ? (
         <p className="rounded-2xl border border-dashed border-[color:var(--color-border-strong)] bg-[color:var(--color-surface)]/40 px-8 py-12 text-center text-sm text-[color:var(--color-muted-foreground)]">
-          Aucune tâche datée. Ajoutez des échéances pour afficher la frise.
+          {t('frise.noDated')}
         </p>
       ) : (
         <ol className="relative flex flex-col gap-1 border-l border-[color:var(--color-border)] pl-6">
-          {dated.map((t, i) => {
-            const info = dueInfo(t.dueDate, now);
-            const color = t.done
+          {dated.map((task, i) => {
+            const info = dueInfo(task.dueDate, now);
+            const color = task.done
               ? 'var(--color-sage-500)'
               : info.kind === 'overdue'
                 ? 'var(--color-danger)'
@@ -1645,8 +1708,8 @@ function FriseView({
                   ? 'var(--color-warning)'
                   : 'var(--color-border-strong)';
             return (
-              <Fragment key={t._id}>
-                {i === firstUpcomingIdx ? <TodayMarker now={now} /> : null}
+              <Fragment key={task._id}>
+                {i === firstUpcomingIdx ? <TodayMarker t={t} locale={locale} now={now} /> : null}
                 <li className="relative flex items-center gap-3 py-2">
                   <span
                     className="absolute top-1/2 left-[-1.5rem] h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-[color:var(--color-surface)]"
@@ -1654,32 +1717,32 @@ function FriseView({
                     aria-hidden
                   />
                   <span className="w-24 flex-shrink-0 font-mono text-[11px] text-[color:var(--color-muted-foreground)] tabular-nums">
-                    {formatDateFr(t.dueDate)}
+                    {formatDateLocalized(task.dueDate, locale)}
                   </span>
-                  <DueBadge dueDate={t.dueDate} now={now} done={t.done} />
+                  <DueBadge t={t} dueDate={task.dueDate} now={now} done={task.done} />
                   <span
                     className={cn(
                       'flex-1 truncate text-sm',
-                      t.done
+                      task.done
                         ? 'text-[color:var(--color-muted-foreground)] line-through'
                         : 'text-[color:var(--color-foreground)]',
                     )}
                   >
-                    {t.title}
+                    {task.title}
                   </span>
-                  <PhaseChip phase={t.phase} />
+                  <PhaseChip phase={task.phase} />
                 </li>
               </Fragment>
             );
           })}
           {/* Tout est passé → repère en bas de frise. */}
-          {firstUpcomingIdx === -1 ? <TodayMarker now={now} /> : null}
+          {firstUpcomingIdx === -1 ? <TodayMarker t={t} locale={locale} now={now} /> : null}
         </ol>
       )}
 
       {undatedCount > 0 ? (
         <p className="font-mono text-[11px] text-[color:var(--color-muted-foreground)]">
-          + {undatedCount} tâche{undatedCount > 1 ? 's' : ''} sans échéance
+          {t('frise.undatedCount', { count: undatedCount })}
         </p>
       ) : null}
     </div>
@@ -1691,19 +1754,19 @@ function FriseView({
 /* -------------------------------------------------------------------------- */
 
 /** Repère « Aujourd'hui » inséré dans la frise entre passé et à-venir. */
-function TodayMarker({ now }: { now: number }) {
+function TodayMarker({ t, locale, now }: { t: T; locale: string; now: number }) {
   return (
-    <li className="relative flex items-center gap-3 py-1.5" aria-label="Aujourd'hui">
+    <li className="relative flex items-center gap-3 py-1.5" aria-label={t('frise.today')}>
       <span
         className="absolute top-1/2 left-[-1.5rem] h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-[color:var(--color-surface)] ring-2 ring-[color:var(--color-blush-400)]/40"
         style={{ background: 'var(--color-blush-400)' }}
         aria-hidden
       />
       <span className="w-24 flex-shrink-0 font-mono text-[11px] font-medium text-[color:var(--color-blush-300)] tabular-nums">
-        {formatDateFr(now)}
+        {formatDateLocalized(now, locale)}
       </span>
       <span className="inline-flex items-center rounded-full bg-[color:var(--color-blush-500)]/15 px-2 py-0.5 font-mono text-[9px] tracking-[0.14em] text-[color:var(--color-blush-300)] uppercase">
-        Aujourd’hui
+        {t('frise.today')}
       </span>
       <span
         className="h-px flex-1 bg-gradient-to-r from-[color:var(--color-blush-400)]/40 to-transparent"
@@ -1713,7 +1776,7 @@ function TodayMarker({ now }: { now: number }) {
   );
 }
 
-function StatusPill({ status, onClick }: { status: TaskStatus; onClick?: () => void }) {
+function StatusPill({ t, status, onClick }: { t: T; status: TaskStatus; onClick?: () => void }) {
   const tone = STATUS_TONE[status];
   const inner = (
     <>
@@ -1735,7 +1798,7 @@ function StatusPill({ status, onClick }: { status: TaskStatus; onClick?: () => v
     <button
       type="button"
       onClick={onClick}
-      aria-label={`Statut : ${STATUS_LABEL[status]} — changer`}
+      aria-label={t('statusChange', { status: STATUS_LABEL[status] })}
       className="focus-ring inline-flex w-[88px] flex-shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium transition-opacity hover:opacity-80"
       style={{ background: tone.bg, color: tone.fg }}
     >
@@ -1744,14 +1807,24 @@ function StatusPill({ status, onClick }: { status: TaskStatus; onClick?: () => v
   );
 }
 
-function DueBadge({ dueDate, now, done }: { dueDate: number; now: number; done: boolean }) {
+function DueBadge({
+  t,
+  dueDate,
+  now,
+  done,
+}: {
+  t: T;
+  dueDate: number;
+  now: number;
+  done: boolean;
+}) {
   if (done) {
     return (
       <span
         className="inline-flex flex-shrink-0 items-center rounded-full px-1.5 py-0.5 font-mono text-[10px] tabular-nums"
         style={{ background: 'oklch(26% 0.04 145)', color: 'oklch(82% 0.07 145)' }}
       >
-        Fait
+        {t('done')}
       </span>
     );
   }
@@ -1783,11 +1856,13 @@ function PhaseChip({ phase }: { phase: PlanningPhase }) {
 
 /** Carte d'avancement compacte (anneau + compteur + retards) pour l'entête. */
 function ProgressCard({
+  t,
   pct,
   done,
   total,
   overdue,
 }: {
+  t: T;
   pct: number;
   done: number;
   total: number;
@@ -1795,21 +1870,23 @@ function ProgressCard({
 }) {
   return (
     <div className="flex items-center gap-4 rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-5 py-3">
-      <ProgressRing pct={pct} size={52} stroke={5} />
+      <ProgressRing t={t} pct={pct} size={52} stroke={5} />
       <div className="flex flex-col gap-0.5">
         <span className="font-mono text-[9px] tracking-[0.2em] text-[color:var(--color-muted-foreground)] uppercase">
-          Avancement
+          {t('progress.label')}
         </span>
         <span className="text-sm font-medium text-[color:var(--color-foreground)] tabular-nums">
-          {done} / {total} tâche{total > 1 ? 's' : ''}
+          {t('progress.ratio', { done, total })}
         </span>
         {overdue > 0 ? (
           <span className="inline-flex items-center gap-1 text-xs text-[color:var(--color-danger)]">
             <AlertTriangle className="h-3.5 w-3.5 flex-shrink-0" strokeWidth={2} aria-hidden />{' '}
-            {overdue} en retard
+            {t('overdueCount', { count: overdue })}
           </span>
         ) : (
-          <span className="text-xs text-[color:var(--color-muted-foreground)]">À jour</span>
+          <span className="text-xs text-[color:var(--color-muted-foreground)]">
+            {t('progress.upToDate')}
+          </span>
         )}
       </div>
     </div>
@@ -1817,10 +1894,12 @@ function ProgressCard({
 }
 
 function ProgressRing({
+  t,
   pct,
   size = 60,
   stroke = 6,
 }: {
+  t: T;
   pct: number;
   size?: number;
   stroke?: number;
@@ -1832,7 +1911,7 @@ function ProgressRing({
       className="relative flex flex-shrink-0 items-center justify-center"
       style={{ width: size, height: size }}
       role="img"
-      aria-label={`${pct}% des tâches faites`}
+      aria-label={t('progress.ringAria', { pct })}
     >
       <svg
         width={size}

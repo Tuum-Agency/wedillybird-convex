@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { setRequestLocale } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { Wallet } from 'lucide-react';
 import { requireProContext } from '@/lib/pro/require-pro-context';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
@@ -7,7 +7,10 @@ import { ProSidebarShell } from '@/components/pro/pro-sidebar-shell';
 import { BudgetBoard } from '@/components/pro/budget/budget-board';
 import { tierHasFeature } from '@/lib/payments/entitlements';
 
-export const metadata: Metadata = { title: 'Budget — Wedillybird Pro' };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('ProPages');
+  return { title: t('budgetMetaTitle') };
+}
 
 export default async function ProBudgetPage({
   params,
@@ -20,6 +23,7 @@ export default async function ProBudgetPage({
   const sp = await searchParams;
   setRequestLocale(locale);
   const { session, org, user } = await requireProContext(locale);
+  const t = await getTranslations('ProPages');
   const tier = org.subscriptionTier ?? null;
   const canEdit = tierHasFeature(tier, 'budgetEditing');
 
@@ -50,11 +54,11 @@ export default async function ProBudgetPage({
                 color: 'var(--color-foreground)',
               }}
             >
-              Budget
+              {t('budgetTitle')}
             </h1>
           </header>
           <div className="rounded-3xl border border-dashed border-[color:var(--color-border-strong)] bg-[color:var(--color-surface)]/40 px-8 py-16 text-center text-sm text-[color:var(--color-muted-foreground)]">
-            Aucun mariage pour l’instant. Créez un mariage pour suivre son budget.
+            {t('budgetEmpty')}
           </div>
         </div>
       </ProSidebarShell>

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { setRequestLocale } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { FileSignature } from 'lucide-react';
 import { requireProContext } from '@/lib/pro/require-pro-context';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
@@ -8,7 +8,10 @@ import { ModulePlaceholder } from '@/components/pro/module-placeholder';
 import { ContractsBoard } from '@/components/pro/contracts/contracts-board';
 import { tierHasFeature } from '@/lib/payments/entitlements';
 
-export const metadata: Metadata = { title: 'Contrats — Wedillybird Pro' };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('ProPages');
+  return { title: t('contractsMetaTitle') };
+}
 
 export default async function ProContractsPage({
   params,
@@ -18,6 +21,7 @@ export default async function ProContractsPage({
   const { locale } = await params;
   setRequestLocale(locale);
   const { session, org, user } = await requireProContext(locale);
+  const t = await getTranslations('ProPages');
   const tier = org.subscriptionTier ?? null;
   const locked = !tierHasFeature(tier, 'documentsEsign');
   const shellOrg = { name: org.name, primaryColor: org.primaryColor, tier, role: org.myRole };
@@ -26,16 +30,16 @@ export default async function ProContractsPage({
     return (
       <ProSidebarShell current="contracts" org={shellOrg} user={{ name: user?.fullName }}>
         <ModulePlaceholder
-          eyebrow="Finances"
-          title="Contrats"
+          eyebrow={t('contractsLockedEyebrow')}
+          title={t('contractsTitle')}
           Icon={FileSignature}
-          description="Modèles de contrats, signature électronique et suivi du cycle de vie — du devis accepté au contrat signé."
+          description={t('contractsLockedDescription')}
           capabilities={[
-            'Modèles de contrats réutilisables',
-            'Signature électronique du couple',
-            'Suivi des statuts (envoyé, signé, contre-signé, actif)',
-            'Rattachement au mariage et au devis',
-            'Journal d’audit horodaté',
+            t('contractsCap1'),
+            t('contractsCap2'),
+            t('contractsCap3'),
+            t('contractsCap4'),
+            t('contractsCap5'),
           ]}
           lockedUntil="business"
         />

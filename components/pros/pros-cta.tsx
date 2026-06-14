@@ -1,10 +1,12 @@
 'use client';
 
 import { motion } from 'motion/react';
+import { useTranslations } from 'next-intl';
 import { ArrowRight, Sparkles } from 'lucide-react';
 import { Link } from '@/i18n/navigation';
 import { buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/cn';
+import { analytics } from '@/lib/analytics/posthog-client';
 import { inViewOnce, scrollReveal } from '@/lib/motion/presets';
 
 /**
@@ -12,6 +14,8 @@ import { inViewOnce, scrollReveal } from '@/lib/motion/presets';
  * carte gradient blush + champagne, ornement gold, un seul CTA.
  */
 export function ProsCta() {
+  const t = useTranslations('Pros');
+
   return (
     <section className="container-page py-28">
       <motion.div
@@ -55,28 +59,34 @@ export function ProsCta() {
             color: 'var(--color-ink-900)',
           }}
         >
-          Voyez-le sur vos propres mariages.
+          {t('cta.title')}
         </h2>
         <p className="mx-auto mt-6 max-w-xl text-base text-[color:var(--color-ink-500)] sm:text-lg">
-          Créez votre espace agence, importez un mariage et envoyez votre première invitation
-          aujourd’hui. Sans engagement, résiliable à tout moment.
+          {t('cta.subtitle')}
         </p>
         <Link
           href={'/sign-up?plan=business&billing=monthly' as never}
+          onClick={() =>
+            analytics.ctaClicked({
+              source: 'pros_cta',
+              destination: '/sign-up',
+              plan: 'business',
+              billing: 'monthly',
+              audience: 'pro',
+            })
+          }
           className={cn(
             buttonVariants({ variant: 'primary', size: 'xl' }),
             'group mt-10 inline-flex min-w-64',
           )}
         >
-          Créer mon espace agence
+          {t('cta.button')}
           <ArrowRight
             className="ml-1 h-4 w-4 transition-transform [@media(hover:hover)]:group-hover:translate-x-0.5"
             aria-hidden
           />
         </Link>
-        <p className="mt-7 text-xs text-[color:var(--color-ink-300)]">
-          Starter, Business ou Agency · annuel −20 % · pay-as-you-go à 79 €/mariage
-        </p>
+        <p className="mt-7 text-xs text-[color:var(--color-ink-300)]">{t('cta.footnote')}</p>
       </motion.div>
     </section>
   );

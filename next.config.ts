@@ -68,6 +68,29 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   typedRoutes: true,
+  // Reverse proxy PostHog : l'ingestion analytics passe par `/ingest` (même
+  // origine) plutôt que par `*.posthog.com`, pour déjouer les bloqueurs de
+  // pub/tracking. Reste compatible avec la CSP (`connect-src 'self'`) puisque
+  // le navigateur ne contacte que notre domaine. Le SDK serveur (posthog-node),
+  // lui, tape directement `us.i.posthog.com` (pas de proxy nécessaire).
+  // Ordre important : `static`/`array` (assets) AVANT le catch-all `:path*`.
+  skipTrailingSlashRedirect: true,
+  async rewrites() {
+    return [
+      {
+        source: '/ingest/static/:path*',
+        destination: 'https://us-assets.i.posthog.com/static/:path*',
+      },
+      {
+        source: '/ingest/array/:path*',
+        destination: 'https://us-assets.i.posthog.com/array/:path*',
+      },
+      {
+        source: '/ingest/:path*',
+        destination: 'https://us.i.posthog.com/:path*',
+      },
+    ];
+  },
   async headers() {
     return [
       {

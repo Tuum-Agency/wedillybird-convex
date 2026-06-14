@@ -6,6 +6,7 @@ import {
   CreditCard,
   AlertTriangle,
   Building2,
+  RotateCcw,
 } from 'lucide-react';
 import { redirect } from '@/i18n/navigation';
 import { getSession } from '@/lib/auth/session';
@@ -66,18 +67,59 @@ export default async function AdminDashboardPage({
           </p>
         </header>
 
+        {/* Alertes — n'apparaissent que si quelque chose requiert l'attention */}
+        {kpi.pastDueSubscriptions > 0 ||
+        kpi.failedPaymentsCount > 0 ||
+        kpi.refundedPaymentsCount > 0 ? (
+          <div className="flex flex-wrap gap-3">
+            {kpi.pastDueSubscriptions > 0 ? (
+              <AlertChip
+                href="/admin/subscriptions"
+                label={`${kpi.pastDueSubscriptions} abonnement${kpi.pastDueSubscriptions > 1 ? 's' : ''} en impayé (past_due)`}
+              />
+            ) : null}
+            {kpi.failedPaymentsCount > 0 ? (
+              <AlertChip
+                href="/admin/payments"
+                label={`${kpi.failedPaymentsCount} paiement${kpi.failedPaymentsCount > 1 ? 's' : ''} échoué${kpi.failedPaymentsCount > 1 ? 's' : ''} (${formatEur(kpi.failedPaymentsAmountMinor)})`}
+              />
+            ) : null}
+            {kpi.refundedPaymentsCount > 0 ? (
+              <AlertChip
+                href="/admin/payments"
+                tone="neutral"
+                label={`${kpi.refundedPaymentsCount} remboursement${kpi.refundedPaymentsCount > 1 ? 's' : ''} (${formatEur(kpi.totalRefundedMinor)})`}
+              />
+            ) : null}
+          </div>
+        ) : null}
+
         {/* KPI Cards */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <KpiCard
             icon={<CreditCard className="h-4 w-4" />}
-            label="Revenu total"
-            value={formatEur(kpi.totalRevenueMinor)}
+            label="Revenu net"
+            value={formatEur(kpi.netRevenueMinor)}
+            sub={`brut ${formatEur(kpi.totalRevenueMinor)}`}
           />
           <KpiCard
             icon={<TrendingUp className="h-4 w-4" />}
             label="MRR"
             value={formatEur(kpi.mrrMinor)}
-            sub={`${kpi.activeSubscriptions} abonnements`}
+            sub={`${kpi.activeSubscriptions} abonnements actifs`}
+          />
+          <KpiCard
+            icon={<RotateCcw className="h-4 w-4" />}
+            label="Remboursements"
+            value={formatEur(kpi.totalRefundedMinor)}
+            sub={`${kpi.refundedPaymentsCount} paiement${kpi.refundedPaymentsCount > 1 ? 's' : ''}`}
+          />
+          <KpiCard
+            icon={<AlertTriangle className="h-4 w-4" />}
+            label="Paiements échoués"
+            value={kpi.failedPaymentsCount.toString()}
+            sub={formatEur(kpi.failedPaymentsAmountMinor)}
+            variant={kpi.failedPaymentsCount > 0 ? 'destructive' : undefined}
           />
           <KpiCard
             icon={<Users className="h-4 w-4" />}
@@ -93,16 +135,16 @@ export default async function AdminDashboardPage({
           />
           <KpiCard
             icon={<Building2 className="h-4 w-4" />}
+            label="Abonnements"
+            value={kpi.activeSubscriptions.toString()}
+            sub={`${kpi.pastDueSubscriptions} past_due · ${kpi.canceledSubscriptions} annulés`}
+            variant={kpi.pastDueSubscriptions > 0 ? 'destructive' : undefined}
+          />
+          <KpiCard
+            icon={<TrendingUp className="h-4 w-4" />}
             label="Taux de conversion"
             value={formatPercent(kpi.conversionRate)}
             sub={`${kpi.paidEvents} payés / ${kpi.totalEvents} créés`}
-          />
-          <KpiCard
-            icon={<AlertTriangle className="h-4 w-4" />}
-            label="Paiements échoués"
-            value={kpi.failedPaymentsCount.toString()}
-            sub={formatEur(kpi.failedPaymentsAmountMinor)}
-            variant="destructive"
           />
         </div>
 
@@ -167,6 +209,30 @@ export default async function AdminDashboardPage({
         </div>
       </div>
     </AdminShell>
+  );
+}
+
+function AlertChip({
+  href,
+  label,
+  tone = 'destructive',
+}: {
+  href: string;
+  label: string;
+  tone?: 'destructive' | 'neutral';
+}) {
+  return (
+    <Link
+      href={href as never}
+      className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+        tone === 'destructive'
+          ? 'border-red-400/30 bg-red-400/10 text-red-300 hover:bg-red-400/20'
+          : 'border-[color:var(--color-border)] bg-[color:var(--color-surface)] text-[color:var(--color-muted-foreground)] hover:bg-[color:var(--color-surface-elevated)]'
+      }`}
+    >
+      <AlertTriangle className="h-3.5 w-3.5" />
+      {label}
+    </Link>
   );
 }
 

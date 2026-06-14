@@ -1,4 +1,4 @@
-import { setRequestLocale } from 'next-intl/server';
+import { getFormatter, getTranslations, setRequestLocale } from 'next-intl/server';
 import { Calendar, MapPin, ArrowRight, Heart } from 'lucide-react';
 import { getSession } from '@/lib/auth/session';
 import { Link, redirect } from '@/i18n/navigation';
@@ -26,12 +26,15 @@ export default async function CoupleSpacePage({ params }: { params: Promise<{ lo
     redirect({ href: `/espace-couple/${weddings[0]!._id}`, locale });
   }
 
+  const t = await getTranslations('CoupleSpace');
+  const format = await getFormatter();
+
   return (
     <AppShell userName={user?.fullName}>
       <div className="container-page flex flex-col gap-10 py-12 sm:py-16">
         <header className="flex flex-col gap-2">
           <span className="font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-ink-500)] uppercase">
-            Espace couple
+            {t('eyebrow')}
           </span>
           <h1
             className="font-display italic"
@@ -42,7 +45,7 @@ export default async function CoupleSpacePage({ params }: { params: Promise<{ lo
               color: 'var(--color-ink-900)',
             }}
           >
-            Vos mariages
+            {t('weddingsTitle')}
           </h1>
         </header>
 
@@ -53,10 +56,7 @@ export default async function CoupleSpacePage({ params }: { params: Promise<{ lo
               strokeWidth={1.6}
               aria-hidden
             />
-            <p className="max-w-sm text-sm text-[color:var(--color-ink-500)]">
-              Aucun mariage rattaché à votre compte pour l’instant. Votre agence vous y donnera
-              accès — vous le verrez apparaître ici.
-            </p>
+            <p className="max-w-sm text-sm text-[color:var(--color-ink-500)]">{t('empty')}</p>
           </div>
         ) : (
           <ul className="grid gap-3 sm:grid-cols-2">
@@ -71,7 +71,7 @@ export default async function CoupleSpacePage({ params }: { params: Promise<{ lo
                   </span>
                   <span className="inline-flex items-center gap-1.5 text-sm text-[color:var(--color-ink-500)]">
                     <Calendar className="h-3.5 w-3.5" strokeWidth={1.9} aria-hidden />
-                    {new Date(w.eventDate).toLocaleDateString('fr-FR', {
+                    {format.dateTime(new Date(w.eventDate), {
                       day: 'numeric',
                       month: 'long',
                       year: 'numeric',
@@ -84,7 +84,7 @@ export default async function CoupleSpacePage({ params }: { params: Promise<{ lo
                     </span>
                   ) : null}
                   <span className="mt-1 inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] text-[color:var(--color-ink-700)] uppercase">
-                    Ouvrir mon espace
+                    {t('openMySpace')}
                     <ArrowRight
                       className="h-3 w-3 transition-transform group-hover:translate-x-0.5"
                       strokeWidth={2}

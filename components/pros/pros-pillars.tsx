@@ -2,6 +2,7 @@
 
 import { type ReactNode } from 'react';
 import { motion } from 'motion/react';
+import { useTranslations } from 'next-intl';
 import { Check } from 'lucide-react';
 import { inViewOnce, scrollReveal, scrollRevealParent } from '@/lib/motion/presets';
 import { PILLARS } from './content';
@@ -19,6 +20,8 @@ const PREVIEWS: Record<string, { url: string; node: ReactNode }> = {
  * dark encadré. Le reste est une grille éditoriale light.
  */
 export function ProsPillars() {
+  const t = useTranslations('Pros');
+
   return (
     <section
       id="fonctionnalites"
@@ -32,7 +35,7 @@ export function ProsPillars() {
           viewport={inViewOnce}
           className="mb-10 inline-block font-mono text-[11px] tracking-[0.32em] text-[color:var(--color-ink-500)] uppercase"
         >
-          Le produit · 11 piliers
+          {t('pillars.eyebrow')}
         </motion.span>
 
         <motion.header
@@ -52,15 +55,13 @@ export function ProsPillars() {
               color: 'var(--color-ink-900)',
             }}
           >
-            Tout ce dont une agence a besoin, détaillé.
+            {t('pillars.title')}
           </motion.h2>
           <motion.p
             variants={scrollReveal}
             className="max-w-xl text-base leading-relaxed text-[color:var(--color-ink-500)]"
           >
-            Du cockpit au jour J, chaque module est conçu pour un wedding planner. La capacité
-            (mariages, messages, stockage) reste un garde-fou ; ce qui définit votre forfait, c’est
-            la profondeur du back-office.
+            {t('pillars.subtitle')}
           </motion.p>
 
           {/* Légende des badges */}
@@ -74,16 +75,16 @@ export function ProsPillars() {
                 strokeWidth={2}
                 aria-hidden
               />
-              Inclus dans tous les forfaits
+              {t('pillars.legend.all')}
             </span>
             <span className="inline-flex items-center gap-1.5 text-xs text-[color:var(--color-ink-500)]">
-              <TierBadge tier="business" /> à partir de Business
+              <TierBadge tier="business" /> {t('pillars.legend.business')}
             </span>
             <span className="inline-flex items-center gap-1.5 text-xs text-[color:var(--color-ink-500)]">
-              <TierBadge tier="agency" /> exclusif Agency
+              <TierBadge tier="agency" /> {t('pillars.legend.agency')}
             </span>
             <span className="inline-flex items-center gap-1.5 text-xs text-[color:var(--color-ink-500)]">
-              <TierBadge tier="addon" /> option transverse
+              <TierBadge tier="addon" /> {t('pillars.legend.addon')}
             </span>
           </motion.div>
         </motion.header>
@@ -128,10 +129,10 @@ export function ProsPillars() {
                       className="font-display text-2xl text-balance text-[color:var(--color-ink-900)] italic sm:text-3xl"
                       style={{ letterSpacing: '-0.02em', lineHeight: 1.08 }}
                     >
-                      {pillar.name}
+                      {t(`pillars.items.${pillar.id}.name` as Parameters<typeof t>[0])}
                     </h3>
                     <p className="text-sm leading-relaxed text-[color:var(--color-ink-500)]">
-                      {pillar.summary}
+                      {t(`pillars.items.${pillar.id}.summary` as Parameters<typeof t>[0])}
                     </p>
                   </motion.div>
 
@@ -139,7 +140,7 @@ export function ProsPillars() {
                   <div className="grid content-start gap-x-8 gap-y-5 p-7 sm:grid-cols-2 sm:p-9">
                     {pillar.features.map((f) => (
                       <motion.div
-                        key={f.name}
+                        key={f.key}
                         variants={scrollReveal}
                         className="flex flex-col gap-1"
                       >
@@ -152,12 +153,20 @@ export function ProsPillars() {
                             />
                           )}
                           <h4 className="text-sm font-medium text-[color:var(--color-ink-900)]">
-                            {f.name}
+                            {t(
+                              `pillars.items.${pillar.id}.features.${f.key}.name` as Parameters<
+                                typeof t
+                              >[0],
+                            )}
                           </h4>
                           <TierBadge tier={f.tier} />
                         </div>
                         <p className="text-[13px] leading-relaxed text-[color:var(--color-ink-500)]">
-                          {f.detail}
+                          {t(
+                            `pillars.items.${pillar.id}.features.${f.key}.detail` as Parameters<
+                              typeof t
+                            >[0],
+                          )}
                         </p>
                       </motion.div>
                     ))}

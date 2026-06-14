@@ -1,5 +1,19 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import { NextIntlClientProvider } from 'next-intl';
+import type { ReactElement } from 'react';
+import frMessages from '@/messages/fr.json';
+
+// La page embarque des composants clients (ex. `BuyCreditButton`) qui appellent
+// `useTranslations` ; on enveloppe le rendu du vrai provider FR pour qu'ils ne
+// fassent pas exploser le rendu (les assertions portent sur l'historique PAYG).
+function renderWithIntl(ui: ReactElement) {
+  return render(
+    <NextIntlClientProvider locale="fr" messages={frMessages}>
+      {ui}
+    </NextIntlClientProvider>,
+  );
+}
 
 const getSessionMock = vi.fn();
 const queryMock = vi.fn();
@@ -84,7 +98,7 @@ describe('ProBillingPage — PAYG history', () => {
     });
 
     const ui = await ProBillingPage({ searchParams: searchParams() });
-    render(ui);
+    renderWithIntl(ui);
 
     expect(screen.getByTestId('payg-history')).toBeInTheDocument();
     expect(screen.getByTestId('payg-history-empty')).toBeInTheDocument();
@@ -119,7 +133,7 @@ describe('ProBillingPage — PAYG history', () => {
     });
 
     const ui = await ProBillingPage({ searchParams: searchParams() });
-    render(ui);
+    renderWithIntl(ui);
 
     const rows = screen.getAllByTestId('payg-history-row');
     expect(rows).toHaveLength(2);

@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react';
-import { setRequestLocale } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { ArrowLeft, Calendar, Camera, Eye, MapPin } from 'lucide-react';
 import { Link, redirect } from '@/i18n/navigation';
@@ -65,6 +65,9 @@ export default async function EventPreviewPage({
     '--invitation-accent': accentColor,
   } as CSSProperties;
 
+  const t = await getTranslations('CoupleSpace');
+  const tInv = await getTranslations('Invitation');
+
   return (
     <main
       className="paper-grain relative flex min-h-screen flex-col bg-[color:var(--color-ivory-50)]"
@@ -75,14 +78,14 @@ export default async function EventPreviewPage({
       <div className="fixed top-0 right-0 left-0 z-40 flex items-center justify-between gap-4 border-b border-[color:var(--color-border)] bg-[color:var(--color-ink-900)] px-5 py-2.5 text-white shadow-md">
         <span className="inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.32em] uppercase">
           <Eye className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />
-          Aperçu de l&apos;invitation
+          {t('previewBanner')}
         </span>
         <Link
           href={`/events/${eventId}` as never}
           className="inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.24em] text-white/80 uppercase transition-colors hover:text-white"
         >
           <ArrowLeft className="h-3 w-3" strokeWidth={2} aria-hidden />
-          Retour
+          {t('previewBack')}
         </Link>
       </div>
 
@@ -100,7 +103,7 @@ export default async function EventPreviewPage({
             {/* Header couple */}
             <header className="flex flex-col items-center gap-5 text-center">
               <span className="font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-ink-500)] uppercase">
-                Vous êtes invité·e
+                {tInv('youreInvited')}
               </span>
               <h1
                 className="font-display text-balance italic"
@@ -136,18 +139,20 @@ export default async function EventPreviewPage({
                 style={{ background: 'var(--invitation-accent)' }}
               />
               <p className="text-base leading-relaxed text-[color:var(--color-ink-700)] sm:text-lg">
-                Cher·chère{' '}
-                <span className="font-medium text-[color:var(--color-ink-900)] underline decoration-dotted underline-offset-4">
-                  prénom de l&apos;invité
-                </span>
-                , nous serions heureux de votre présence.
+                {t.rich('previewAddressing', {
+                  name: (chunks) => (
+                    <span className="font-medium text-[color:var(--color-ink-900)] underline decoration-dotted underline-offset-4">
+                      {chunks}
+                    </span>
+                  ),
+                })}
               </p>
             </header>
 
             {/* Countdown live */}
             <section className="flex flex-col items-center gap-5">
               <span className="font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-ink-500)] uppercase">
-                Compte à rebours
+                {tInv('countdownLabel')}
               </span>
               <WeddingCountdown eventDate={event.eventDate} accentColor={accentColor} />
             </section>
@@ -164,7 +169,7 @@ export default async function EventPreviewPage({
                 </span>
                 <div className="flex flex-col gap-1">
                   <span className="font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-ink-500)] uppercase">
-                    Date &amp; heure
+                    {tInv('dateAndTime')}
                   </span>
                   <p className="text-base text-[color:var(--color-ink-900)] sm:text-lg">
                     {eventDateFormatted}
@@ -183,7 +188,7 @@ export default async function EventPreviewPage({
                   </span>
                   <div className="flex flex-col gap-1">
                     <span className="font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-ink-500)] uppercase">
-                      Lieu
+                      {tInv('venue')}
                     </span>
                     <p className="text-base font-medium text-[color:var(--color-ink-900)] sm:text-lg">
                       {event.venue.name}
@@ -199,7 +204,7 @@ export default async function EventPreviewPage({
             {/* Placeholder RSVP — pas de form en mode aperçu */}
             <section className="flex flex-col items-center gap-4 rounded-3xl border border-dashed border-[color:var(--color-border-strong)] bg-white/60 p-8 text-center">
               <span className="font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-ink-500)] uppercase">
-                Formulaire RSVP
+                {t('previewRsvpEyebrow')}
               </span>
               <p
                 className="font-display text-balance italic"
@@ -210,12 +215,9 @@ export default async function EventPreviewPage({
                   color: 'var(--color-ink-900)',
                 }}
               >
-                Vos invités confirmeront leur présence ici.
+                {t('previewRsvpTitle')}
               </p>
-              <p className="text-sm text-[color:var(--color-ink-500)]">
-                3 boutons (Je confirme · Je ne pourrai pas · Peut-être) + accompagnants + régime
-                alimentaire + un mot pour les mariés.
-              </p>
+              <p className="text-sm text-[color:var(--color-ink-500)]">{t('previewRsvpHint')}</p>
             </section>
 
             {/* Lien galerie (statique en preview) */}
@@ -230,10 +232,10 @@ export default async function EventPreviewPage({
                 </span>
                 <span className="flex flex-col">
                   <span className="text-base font-medium text-[color:var(--color-ink-900)]">
-                    Voir la galerie partagée
+                    {tInv('openGallery')}
                   </span>
                   <span className="font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-ink-500)] uppercase">
-                    Photos partagées par les invités
+                    {t('previewGalleryCaption')}
                   </span>
                 </span>
               </span>

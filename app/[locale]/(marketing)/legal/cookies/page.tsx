@@ -29,8 +29,9 @@ export async function generateMetadata({
 
 export default async function CookiesPage() {
   const t = await getTranslations('Legal.cookies');
+  const tm = await getTranslations('Marketing.legal');
   return (
-    <EditorialPage eyebrow="DOCUMENT JURIDIQUE" title={t('title')} lastUpdated={t('lastUpdated')}>
+    <EditorialPage eyebrow={tm('eyebrow')} title={t('title')} lastUpdated={t('lastUpdated')}>
       <EditorialSection title={t('whatTitle')} body={t('whatBody')} />
       <EditorialSection title={t('typesTitle')} body={t('typesBody')} />
       <EditorialSection title={t('controlTitle')} body={t('controlBody')} />

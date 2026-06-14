@@ -2,6 +2,7 @@
 
 import { useMemo, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import {
   ShieldCheck,
   Crown,
@@ -93,14 +94,18 @@ const STATUS_TINT: Record<MemberStatus, { bg: string; fg: string }> = {
   revoked: { bg: 'var(--color-surface-elevated)', fg: 'var(--color-muted-foreground)' },
 };
 
-const ERR: Record<string, string> = {
-  SEAT_LIMIT_REACHED: 'Limite de sièges atteinte pour votre forfait.',
-  ALREADY_MEMBER: 'Cette personne est déjà membre.',
-  NO_CONTACT: 'Renseignez un e-mail ou un numéro WhatsApp.',
-  INVALID_PHONE: 'Numéro invalide (avec l’indicatif, ex. +33…).',
-  FORBIDDEN: 'Réservé au propriétaire et aux admins.',
-};
-const errLabel = (c: string) => ERR[c] ?? 'Une erreur est survenue.';
+const KNOWN_ERROR_KEYS = new Set([
+  'SEAT_LIMIT_REACHED',
+  'ALREADY_MEMBER',
+  'NO_CONTACT',
+  'INVALID_PHONE',
+  'FORBIDDEN',
+]);
+type TeamT = ReturnType<typeof useTranslations<'Pro.main'>>;
+const makeErrLabel = (t: TeamT) => (c: string) =>
+  KNOWN_ERROR_KEYS.has(c)
+    ? t(`team.errors.${c}` as Parameters<typeof t>[0])
+    : t('team.errors.generic');
 
 function Avatar({ name, size = 34 }: { name: string; size?: number }) {
   const hue = memberHue(name);
@@ -154,6 +159,8 @@ export function TeamManager({
   tier,
   initialMembers,
 }: Props) {
+  const t = useTranslations('Pro.main');
+  const errLabel = makeErrLabel(t);
   const router = useRouter();
   const [members, setMembers] = useState<MemberItem[]>(initialMembers);
   const [tab, setTab] = useState<'members' | 'roles'>('members');
@@ -182,13 +189,13 @@ export function TeamManager({
       {/* Tabs */}
       <div
         role="tablist"
-        aria-label="Sections équipe"
+        aria-label={t('team.tabsAria')}
         className="flex gap-1 border-b border-[color:var(--color-border)]"
       >
         {(
           [
-            ['members', `Membres`],
-            ['roles', 'Rôles & permissions'],
+            ['members', t('team.tabMembers')],
+            ['roles', t('team.tabRoles')],
           ] as const
         ).map(([k, label]) => (
           <button
@@ -218,8 +225,7 @@ export function TeamManager({
           {!canManage ? (
             <div className="flex items-start gap-2.5 rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-4 py-3 text-xs text-[color:var(--color-muted-foreground)]">
               <Lock className="mt-0.5 h-3.5 w-3.5 flex-shrink-0" strokeWidth={1.85} aria-hidden />
-              Vous consultez l’équipe en tant que {ROLE_LABEL[myRole]}. L’invitation, le changement
-              de rôle et la révocation sont réservés au propriétaire et aux admins.
+              {t('team.readOnlyBanner', { role: ROLE_LABEL[myRole] })}
             </div>
           ) : null}
 
@@ -227,11 +233,11 @@ export function TeamManager({
           <div className="flex flex-col gap-3 rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex flex-col gap-2">
               <span className="font-mono text-[10px] tracking-[0.18em] text-[color:var(--color-muted-foreground)] uppercase">
-                {members.length} membre{members.length > 1 ? 's' : ''} · {activeCount} actif
-                {activeCount > 1 ? 's' : ''}
+                {t('team.memberCount', { count: members.length })} ·{' '}
+                {t('team.activeCount', { count: activeCount })} ·{' '}
                 {seat.limit != null
-                  ? ` · ${seat.free} siège${(seat.free ?? 0) > 1 ? 's' : ''} libre${(seat.free ?? 0) > 1 ? 's' : ''}`
-                  : ' · sièges illimités'}
+                  ? t('team.freeSeats', { count: seat.free ?? 0 })
+                  : t('team.unlimitedSeats')}
               </span>
               {seat.limit != null ? (
                 <div className="flex gap-1">
@@ -259,7 +265,7 @@ export function TeamManager({
                 data-testid="open-invite"
               >
                 <Plus className="h-4 w-4" strokeWidth={2.2} aria-hidden />
-                Inviter un membre
+                {t('team.inviteMember')}
               </Button>
             ) : null}
           </div>
@@ -277,7 +283,7 @@ export function TeamManager({
           {pendingInvites.length ? (
             <section className="flex flex-col gap-2">
               <h2 className="font-mono text-[10px] tracking-[0.16em] text-[color:var(--color-muted-foreground)] uppercase">
-                Invitations en attente · {pendingInvites.length}
+                {t('team.pendingInvites', { count: pendingInvites.length })}
               </h2>
               <div className="flex flex-col gap-2">
                 {pendingInvites.map((m) => (
@@ -295,10 +301,10 @@ export function TeamManager({
                     </span>
                     <span className="flex min-w-0 flex-1 flex-col">
                       <span className="truncate text-sm text-[color:var(--color-foreground)]">
-                        {m.email ?? m.phone ?? 'Invitation'}
+                        {m.email ?? m.phone ?? t('team.invitationFallback')}
                       </span>
                       <span className="font-mono text-[10px] text-[color:var(--color-muted-foreground)]">
-                        Invité·e le {formatDateFr(m.invitedAt)}
+                        {t('team.invitedOn', { date: formatDateFr(m.invitedAt) })}
                       </span>
                     </span>
                     <RolePill role={m.role} />
@@ -311,12 +317,12 @@ export function TeamManager({
                           className="focus-ring inline-flex items-center gap-1 rounded-lg border border-[color:var(--color-border)] px-2 py-1 text-[11px] text-[color:var(--color-muted-foreground)] hover:text-[color:var(--color-foreground)]"
                         >
                           <Send className="h-3 w-3" strokeWidth={1.9} />
-                          Renvoyer
+                          {t('team.resend')}
                         </button>
                         <button
                           type="button"
                           onClick={() => {
-                            if (confirm('Annuler cette invitation ?'))
+                            if (confirm(t('team.confirmCancelInvite')))
                               run(
                                 () => cancelInviteAction(m._id),
                                 () => setMembers((p) => p.filter((x) => x._id !== m._id)),
@@ -326,7 +332,7 @@ export function TeamManager({
                           className="focus-ring inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] text-[color:var(--color-danger)] hover:opacity-80"
                         >
                           <X className="h-3 w-3" strokeWidth={2} />
-                          Annuler
+                          {t('team.cancel')}
                         </button>
                       </span>
                     ) : null}
@@ -344,16 +350,16 @@ export function TeamManager({
             >
               <thead>
                 <tr className="border-b border-[color:var(--color-border)] text-left font-mono text-[9px] tracking-[0.18em] text-[color:var(--color-muted-foreground)] uppercase">
-                  <th className="px-4 py-3 font-medium">Membre</th>
-                  <th className="px-4 py-3 font-medium">Coordonnées</th>
-                  <th className="px-4 py-3 font-medium">Rôle</th>
-                  <th className="px-4 py-3 font-medium">Statut</th>
+                  <th className="px-4 py-3 font-medium">{t('team.colMember')}</th>
+                  <th className="px-4 py-3 font-medium">{t('team.colContact')}</th>
+                  <th className="px-4 py-3 font-medium">{t('team.colRole')}</th>
+                  <th className="px-4 py-3 font-medium">{t('team.colStatus')}</th>
                   <th className="px-4 py-3" />
                 </tr>
               </thead>
               <tbody>
                 {activeMembers.map((m) => {
-                  const name = m.fullName ?? m.phone ?? m.email ?? 'Membre';
+                  const name = m.fullName ?? m.phone ?? m.email ?? t('team.memberFallback');
                   const isYou = m.userId === currentUserId;
                   const isOwner = m.role === 'owner';
                   return (
@@ -374,7 +380,7 @@ export function TeamManager({
                               {name}
                               {isYou ? (
                                 <span className="rounded-full bg-[color:var(--color-blush-500)]/15 px-1.5 py-0.5 font-mono text-[9px] tracking-[0.1em] text-[color:var(--color-blush-300)] uppercase">
-                                  Vous
+                                  {t('team.you')}
                                 </span>
                               ) : null}
                             </span>
@@ -422,7 +428,7 @@ export function TeamManager({
                               <Lock
                                 className="h-3 w-3 text-[color:var(--color-muted-foreground)]"
                                 strokeWidth={1.9}
-                                aria-label="Le propriétaire détient l’organisation"
+                                aria-label={t('team.ownerHoldsOrgAria')}
                               />
                             ) : null}
                           </span>
@@ -436,7 +442,7 @@ export function TeamManager({
                           <RowActions
                             status={m.status}
                             onRevoke={() => {
-                              if (confirm(`Révoquer l’accès de ${name} ?`))
+                              if (confirm(t('team.confirmRevoke', { name })))
                                 run(
                                   () => revokeMemberAction(m._id),
                                   () =>
@@ -463,7 +469,7 @@ export function TeamManager({
                           <Lock
                             className="ml-auto h-3.5 w-3.5 text-[color:var(--color-muted-foreground)]"
                             strokeWidth={1.85}
-                            aria-label="Le propriétaire ne peut pas être révoqué"
+                            aria-label={t('team.ownerCannotBeRevokedAria')}
                           />
                         ) : null}
                       </td>
@@ -557,13 +563,14 @@ function RowActions({
   onRevoke: () => void;
   onReactivate: () => void;
 }) {
+  const t = useTranslations('Pro.main');
   const [open, setOpen] = useState(false);
   return (
     <div className="relative inline-block">
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        aria-label="Actions"
+        aria-label={t('team.actionsAria')}
         className="focus-ring rounded-lg p-1.5 text-[color:var(--color-muted-foreground)] hover:bg-[color:var(--color-surface-elevated)] hover:text-[color:var(--color-foreground)]"
       >
         <MoreVertical className="h-4 w-4" strokeWidth={2} />
@@ -587,7 +594,7 @@ function RowActions({
                 data-testid="revoke-member"
               >
                 <Ban className="h-3.5 w-3.5" strokeWidth={1.85} />
-                Révoquer l’accès
+                {t('team.revokeAccess')}
               </button>
             ) : status === 'revoked' ? (
               <button
@@ -600,7 +607,7 @@ function RowActions({
                 className="flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-sm text-[color:var(--color-foreground)] hover:bg-[color:var(--color-surface)]"
               >
                 <UserCheck className="h-3.5 w-3.5" strokeWidth={1.85} />
-                Réactiver l’accès
+                {t('team.reactivateAccess')}
               </button>
             ) : null}
           </div>
@@ -619,6 +626,8 @@ function InviteCard({
   onClose: () => void;
   onInvited: () => void;
 }) {
+  const t = useTranslations('Pro.main');
+  const errLabel = makeErrLabel(t);
   const [channel, setChannel] = useState<'email' | 'whatsapp'>('email');
   const [error, setError] = useState<string | null>(null);
   const [link, setLink] = useState<string | null>(null);
@@ -648,10 +657,10 @@ function InviteCard({
       >
         <span className="flex items-center gap-2 text-sm font-medium text-[color:var(--color-foreground)]">
           <Check className="h-4 w-4 text-[color:var(--color-sage-500)]" strokeWidth={2.2} />
-          C’est envoyé !
+          {t('team.inviteSent')}
         </span>
         <span className="text-xs text-[color:var(--color-muted-foreground)]">
-          Partagez ce lien d’invitation (valable 7 jours) :
+          {t('team.shareInviteLink')}
         </span>
         <div className="flex items-center gap-2 rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-surface-elevated)] px-3 py-2">
           <code className="min-w-0 flex-1 truncate font-mono text-xs text-[color:var(--color-foreground)]">
@@ -660,7 +669,7 @@ function InviteCard({
           <button
             type="button"
             onClick={() => navigator.clipboard?.writeText(link)}
-            aria-label="Copier le lien"
+            aria-label={t('team.copyLink')}
             className="focus-ring flex-shrink-0 rounded-md p-1 text-[color:var(--color-muted-foreground)] hover:text-[color:var(--color-foreground)]"
           >
             <Copy className="h-3.5 w-3.5" strokeWidth={1.85} />
@@ -668,10 +677,10 @@ function InviteCard({
         </div>
         <div className="flex justify-end gap-2">
           <Button type="button" variant="ghost" size="sm" onClick={() => setLink(null)}>
-            Inviter quelqu’un d’autre
+            {t('team.inviteSomeoneElse')}
           </Button>
           <Button type="button" variant="primary" size="sm" onClick={onClose}>
-            Terminé
+            {t('team.done')}
           </Button>
         </div>
       </div>
@@ -686,7 +695,7 @@ function InviteCard({
     >
       <div className="flex items-center justify-between">
         <h2 className="font-display text-base text-[color:var(--color-foreground)] italic">
-          Inviter un membre
+          {t('team.inviteMember')}
         </h2>
         <span className="inline-flex rounded-lg border border-[color:var(--color-border)] p-0.5">
           {(['email', 'whatsapp'] as const).map((c) => (
@@ -702,25 +711,30 @@ function InviteCard({
                   : 'text-[color:var(--color-muted-foreground)]',
               )}
             >
-              {c === 'email' ? 'E-mail' : 'WhatsApp'}
+              {c === 'email' ? t('team.channelEmail') : 'WhatsApp'}
             </button>
           ))}
         </span>
       </div>
       <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
         {channel === 'email' ? (
-          <Input name="email" type="email" placeholder="collegue@studio.fr" aria-label="E-mail" />
+          <Input
+            name="email"
+            type="email"
+            placeholder={t('team.emailPlaceholder')}
+            aria-label={t('team.channelEmail')}
+          />
         ) : (
           <Input
             name="phone"
             type="tel"
             placeholder="+33 6 12 34 56 78"
-            aria-label="Numéro WhatsApp"
+            aria-label={t('team.whatsappNumberAria')}
           />
         )}
         <Select name="role" defaultValue="planner">
           <SelectTrigger
-            aria-label="Rôle"
+            aria-label={t('team.roleAria')}
             className="focus-ring h-10 rounded-lg border border-[color:var(--color-border-strong)] bg-[color:var(--color-surface-elevated)] px-3 text-sm text-[color:var(--color-foreground)]"
           >
             <SelectValue />
@@ -741,11 +755,11 @@ function InviteCard({
       ) : null}
       <div className="flex items-center justify-between">
         <span className="font-mono text-[10px] text-[color:var(--color-muted-foreground)]">
-          Invitation valable 7 jours.
+          {t('team.inviteValidNote')}
         </span>
         <div className="flex gap-2">
           <Button type="button" variant="ghost" size="sm" onClick={onClose}>
-            Annuler
+            {t('team.cancel')}
           </Button>
           <Button
             type="submit"
@@ -755,7 +769,7 @@ function InviteCard({
             data-testid="submit-invite"
           >
             <Send className="h-3.5 w-3.5" strokeWidth={1.9} aria-hidden />
-            {pending ? 'Envoi…' : 'Envoyer l’invitation'}
+            {pending ? t('team.sending') : t('team.sendInvite')}
           </Button>
         </div>
       </div>
@@ -764,6 +778,7 @@ function InviteCard({
 }
 
 function RolesTab({ counts }: { counts: MemberItem[] }) {
+  const t = useTranslations('Pro.main');
   const roleCount = (r: Role) =>
     counts.filter((m) => m.role === r && m.status !== 'revoked').length;
   return (
@@ -772,7 +787,7 @@ function RolesTab({ counts }: { counts: MemberItem[] }) {
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {(['owner', 'admin', 'planner', 'viewer'] as Role[]).map((r) => {
           const Icon = ROLE_ICON[r];
-          const t = ROLE_TINT[r];
+          const tint = ROLE_TINT[r];
           return (
             <div
               key={r}
@@ -780,7 +795,7 @@ function RolesTab({ counts }: { counts: MemberItem[] }) {
             >
               <span
                 className="flex h-9 w-9 items-center justify-center rounded-xl"
-                style={{ background: t.bg, color: t.fg }}
+                style={{ background: tint.bg, color: tint.fg }}
               >
                 <Icon className="h-[18px] w-[18px]" strokeWidth={1.8} aria-hidden />
               </span>
@@ -794,8 +809,8 @@ function RolesTab({ counts }: { counts: MemberItem[] }) {
                 {ROLE_DESC[r]}
               </p>
               <span className="mt-auto pt-1 font-mono text-[10px] text-[color:var(--color-muted-foreground)]">
-                {roleCount(r)} membre{roleCount(r) > 1 ? 's' : ''}
-                {r === 'owner' ? ' · unique' : ''}
+                {t('team.memberCount', { count: roleCount(r) })}
+                {r === 'owner' ? t('team.uniqueSuffix') : ''}
               </span>
             </div>
           );
@@ -805,10 +820,10 @@ function RolesTab({ counts }: { counts: MemberItem[] }) {
       {/* Permission matrix */}
       <div className="flex items-baseline gap-2.5">
         <h2 className="font-display text-xl text-[color:var(--color-foreground)] italic">
-          Matrice des permissions
+          {t('team.permissionMatrix')}
         </h2>
         <span className="font-mono text-[10px] tracking-[0.16em] text-[color:var(--color-muted-foreground)] uppercase">
-          {CAPABILITIES.length} capacités
+          {t('team.capabilitiesCount', { count: CAPABILITIES.length })}
         </span>
       </div>
       <div className="overflow-x-auto rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)]">
@@ -816,17 +831,17 @@ function RolesTab({ counts }: { counts: MemberItem[] }) {
           <thead>
             <tr className="border-b border-[color:var(--color-border)]">
               <th className="px-4 py-3 text-left font-mono text-[10px] font-medium tracking-[0.14em] text-[color:var(--color-muted-foreground)] uppercase">
-                Capacité
+                {t('team.capability')}
               </th>
               {(['owner', 'admin', 'planner', 'viewer'] as Role[]).map((r) => {
                 const Icon = ROLE_ICON[r];
-                const t = ROLE_TINT[r];
+                const tint = ROLE_TINT[r];
                 return (
                   <th key={r} className="px-3 py-3 align-bottom">
                     <span className="flex flex-col items-center gap-1.5">
                       <span
                         className="flex h-7 w-7 items-center justify-center rounded-lg"
-                        style={{ background: t.bg, color: t.fg }}
+                        style={{ background: tint.bg, color: tint.fg }}
                       >
                         <Icon className="h-4 w-4" strokeWidth={1.85} aria-hidden />
                       </span>
@@ -862,12 +877,16 @@ function RolesTab({ counts }: { counts: MemberItem[] }) {
                   <td key={r} className="px-3 py-3.5 text-center">
                     {cap.allow[r] ? (
                       <span className="mx-auto inline-flex h-6 w-6 items-center justify-center rounded-lg bg-[color:var(--color-sage-500)]/15 text-[color:var(--color-sage-500)]">
-                        <Check className="h-3.5 w-3.5" strokeWidth={2.6} aria-label="Autorisé" />
+                        <Check
+                          className="h-3.5 w-3.5"
+                          strokeWidth={2.6}
+                          aria-label={t('team.allowed')}
+                        />
                       </span>
                     ) : (
                       <span
                         className="text-[color:var(--color-muted-foreground)]"
-                        aria-label="Refusé"
+                        aria-label={t('team.denied')}
                       >
                         —
                       </span>
@@ -880,8 +899,7 @@ function RolesTab({ counts }: { counts: MemberItem[] }) {
         </table>
       </div>
       <p className="text-xs text-[color:var(--color-muted-foreground)]">
-        Les permissions sont héritées : un Admin peut tout ce que peut un Planner, et un Planner
-        tout ce que peut un Lecteur.
+        {t('team.inheritanceNote')}
       </p>
     </div>
   );

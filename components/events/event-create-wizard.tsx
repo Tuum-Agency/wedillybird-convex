@@ -81,6 +81,7 @@ export function EventCreateWizard({ userRole = 'couple' }: Props) {
   const t = useTranslations('EventCreate');
   const tCommon = useTranslations('Common');
   const tPlans = useTranslations('Plans');
+  const tEvents = useTranslations('Events');
   const showPlanStep = userRole === 'couple';
   const totalSteps = showPlanStep ? 5 : 4;
   const [step, setStep] = useState<StepIndex>(0);
@@ -162,7 +163,11 @@ export function EventCreateWizard({ userRole = 'couple' }: Props) {
 
   return (
     <div className="flex flex-col gap-6">
-      <Progress current={step} total={totalSteps} />
+      <Progress
+        current={step}
+        total={totalSteps}
+        label={tEvents('wizardProgress', { current: step + 1, total: totalSteps })}
+      />
 
       {step === 0 ? (
         <section className="flex flex-col gap-5">
@@ -472,9 +477,9 @@ function ColorField({
   );
 }
 
-function Progress({ current, total }: { current: number; total: number }) {
+function Progress({ current, total, label }: { current: number; total: number; label: string }) {
   return (
-    <div className="flex items-center gap-2" aria-label={`Étape ${current + 1} sur ${total}`}>
+    <div className="flex items-center gap-2" aria-label={label}>
       {Array.from({ length: total }).map((_, i) => (
         <span
           key={i}

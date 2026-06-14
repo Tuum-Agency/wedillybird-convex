@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { useTranslations } from 'next-intl';
 import { MessageCircle, Mail } from 'lucide-react';
 import { cn } from '@/lib/cn';
+import { analytics } from '@/lib/analytics/posthog-client';
 import { SignInForm } from './sign-in-form';
 import { MagicLinkForm } from './magic-link-form';
 
@@ -16,11 +17,38 @@ type Method = 'whatsapp' | 'email';
  *
  * Pattern visuel : 2 boutons radio en haut, contenu animé en dessous.
  * Animation Motion niveau B sobre (cross-fade rapide entre les forms).
+ *
+ * `intent` distingue le même formulaire selon sa page hôte : `signup` (page
+ * /sign-up, cible des CTA marketing) déclenche l'analytics d'entrée de tunnel,
+ * `signin` (par défaut, page /sign-in) reste silencieux. `plan`/`billing` sont
+ * lus côté serveur depuis la query (props) pour ne pas forcer un bailout CSR
+ * (useSearchParams) sur la page /sign-in qui partage ce composant.
  */
-export function AuthMethodSwitcher() {
+export function AuthMethodSwitcher({
+  intent = 'signin',
+  plan,
+  billing,
+}: {
+  intent?: 'signin' | 'signup';
+  plan?: string;
+  billing?: 'monthly' | 'annual';
+}) {
   const t = useTranslations('Auth');
   const reduced = useReducedMotion();
   const [method, setMethod] = useState<Method>('whatsapp');
+
+  // Entrée dans le tunnel d'inscription : un seul `signup_started` au montage,
+  // côté /sign-up uniquement. La méthode par défaut est WhatsApp ; plan/billing
+  // sont propagés depuis les liens pricing. No-op sans consentement (cf.
+  // posthog-client).
+  const startedRef = useRef(false);
+  useEffect(() => {
+    if (intent !== 'signup' || startedRef.current) return;
+    startedRef.current = true;
+    analytics.signupStarted({ method, ...(plan ? { plan } : {}), ...(billing ? { billing } : {}) });
+    // Montage unique : pas de dépendances pour éviter tout double envoi.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="flex flex-col gap-7">

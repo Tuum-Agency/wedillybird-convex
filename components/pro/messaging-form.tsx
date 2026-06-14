@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { MessageSquare, Sparkles, Bell, Check, CircleCheck, Circle } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { Button } from '@/components/ui/button';
@@ -99,6 +100,7 @@ export function MessagingForm({
   initialDefaults: Partial<MessagingDefaults> | null;
   canWrite: boolean;
 }) {
+  const t = useTranslations('Pro.main');
   const router = useRouter();
   const [d, setD] = useState<MessagingDefaults>(() => mergeMessaging(orgName, initialDefaults));
   const [saved, setSaved] = useState(false);
@@ -116,7 +118,7 @@ export function MessagingForm({
     startTransition(async () => {
       const res = await updateMessagingDefaultsAction(d);
       if (!res.ok) {
-        setError('Enregistrement impossible. Réessayez.');
+        setError(t('messaging.saveError'));
         return;
       }
       setSaved(true);
@@ -128,12 +130,12 @@ export function MessagingForm({
     <div className="flex flex-col gap-4">
       <Card
         Icon={MessageSquare}
-        title="Canal & expéditeur"
-        sub="Comment vos invitations partent par défaut."
+        title={t('messaging.channelCardTitle')}
+        sub={t('messaging.channelCardSub')}
       >
         <Row
-          title="Canal par défaut"
-          desc="WhatsApp en priorité, SMS en repli automatique."
+          title={t('messaging.defaultChannel')}
+          desc={t('messaging.defaultChannelDesc')}
           control={
             <div className="flex items-center gap-1 rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-surface-elevated)] p-0.5">
               {MSG_CHANNELS.map((c) => (
@@ -157,7 +159,7 @@ export function MessagingForm({
         />
         <label className="flex flex-col gap-1.5">
           <span className="text-xs font-medium text-[color:var(--color-muted-foreground)]">
-            Nom d’expéditeur
+            {t('messaging.senderName')}
           </span>
           <input
             value={d.senderName}
@@ -171,8 +173,8 @@ export function MessagingForm({
 
       <Card
         Icon={Sparkles}
-        title="Template d’invitation par défaut"
-        sub="Appliqué aux nouveaux mariages."
+        title={t('messaging.templateCardTitle')}
+        sub={t('messaging.templateCardSub')}
       >
         <div className="flex flex-wrap gap-2">
           {MSG_TEMPLATE_OPTS.map((t) => {
@@ -206,26 +208,30 @@ export function MessagingForm({
         </div>
       </Card>
 
-      <Card Icon={Bell} title="Relances automatiques" sub="Rappels RSVP avant le jour J.">
+      <Card
+        Icon={Bell}
+        title={t('messaging.remindersCardTitle')}
+        sub={t('messaging.remindersCardSub')}
+      >
         <Row
-          title="Relance à J−7"
-          desc="Rappel une semaine avant aux invités sans réponse."
+          title={t('messaging.reminderJ7')}
+          desc={t('messaging.reminderJ7Desc')}
           control={
             <Switch
               on={d.reminderJ7}
               onChange={(v) => patch('reminderJ7', v)}
-              label="Relance J-7"
+              label={t('messaging.reminderJ7Aria')}
             />
           }
         />
         <Row
-          title="Relance à J−1"
-          desc="Dernier rappel la veille."
+          title={t('messaging.reminderJ1')}
+          desc={t('messaging.reminderJ1Desc')}
           control={
             <Switch
               on={d.reminderJ1}
               onChange={(v) => patch('reminderJ1', v)}
-              label="Relance J-1"
+              label={t('messaging.reminderJ1Aria')}
             />
           }
         />
@@ -247,11 +253,11 @@ export function MessagingForm({
             disabled={pending}
             data-testid="save-messaging"
           >
-            {pending ? 'Enregistrement…' : 'Enregistrer'}
+            {pending ? t('messaging.saving') : t('messaging.save')}
           </Button>
           {saved ? (
             <span className="inline-flex items-center gap-1.5 text-sm text-[color:var(--color-sage-500)]">
-              <Check className="h-4 w-4" strokeWidth={2.4} aria-hidden /> Enregistré
+              <Check className="h-4 w-4" strokeWidth={2.4} aria-hidden /> {t('messaging.saved')}
             </span>
           ) : null}
         </div>

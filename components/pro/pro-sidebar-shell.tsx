@@ -25,6 +25,7 @@ import {
   Lock,
   type LucideIcon,
 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { signOutAction } from '@/app/[locale]/(auth)/actions';
 import { LocaleSwitcher } from '@/components/layout/locale-switcher';
@@ -63,7 +64,7 @@ export type ProNavKey =
 
 interface NavItem {
   key: ProNavKey;
-  label: string;
+  labelKey: string;
   href:
     | '/pro/dashboard'
     | '/pro/clients'
@@ -84,50 +85,55 @@ interface NavItem {
   feature?: ProFeature;
 }
 
-const NAV_GROUPS: ReadonlyArray<{ label: string; items: ReadonlyArray<NavItem> }> = [
+const NAV_GROUPS: ReadonlyArray<{ labelKey: string; items: ReadonlyArray<NavItem> }> = [
   {
-    label: 'Général',
+    labelKey: 'sidebar.groupGeneral',
     items: [
-      { key: 'dashboard', label: 'Tableau de bord', href: '/pro/dashboard', Icon: LayoutDashboard },
+      {
+        key: 'dashboard',
+        labelKey: 'sidebar.navDashboard',
+        href: '/pro/dashboard',
+        Icon: LayoutDashboard,
+      },
       {
         key: 'clients',
-        label: 'Clients',
+        labelKey: 'sidebar.navClients',
         href: '/pro/clients',
         Icon: Users,
         feature: 'crmPipeline',
       },
-      { key: 'weddings', label: 'Mariages', href: '/pro/weddings', Icon: Heart },
+      { key: 'weddings', labelKey: 'sidebar.navWeddings', href: '/pro/weddings', Icon: Heart },
     ],
   },
   {
-    label: 'Organisation',
+    labelKey: 'sidebar.groupOrganization',
     items: [
-      { key: 'planning', label: 'Rétroplanning', href: '/pro/planning', Icon: ListChecks },
-      { key: 'budget', label: 'Budget', href: '/pro/budget', Icon: Wallet },
-      { key: 'vendors', label: 'Prestataires', href: '/pro/vendors', Icon: Store },
-      { key: 'team', label: 'Équipe', href: '/pro/team', Icon: UsersRound },
+      { key: 'planning', labelKey: 'sidebar.navPlanning', href: '/pro/planning', Icon: ListChecks },
+      { key: 'budget', labelKey: 'sidebar.navBudget', href: '/pro/budget', Icon: Wallet },
+      { key: 'vendors', labelKey: 'sidebar.navVendors', href: '/pro/vendors', Icon: Store },
+      { key: 'team', labelKey: 'sidebar.navTeam', href: '/pro/team', Icon: UsersRound },
     ],
   },
   {
-    label: 'Finances',
+    labelKey: 'sidebar.groupFinances',
     items: [
       {
         key: 'quotes',
-        label: 'Devis & Factures',
+        labelKey: 'sidebar.navQuotes',
         href: '/pro/quotes',
         Icon: FileText,
         feature: 'documentsEsign',
       },
       {
         key: 'payments',
-        label: 'Paiements',
+        labelKey: 'sidebar.navPayments',
         href: '/pro/payments',
         Icon: Banknote,
         feature: 'documentsEsign',
       },
       {
         key: 'contracts',
-        label: 'Contrats',
+        labelKey: 'sidebar.navContracts',
         href: '/pro/contracts',
         Icon: FileSignature,
         feature: 'documentsEsign',
@@ -135,33 +141,33 @@ const NAV_GROUPS: ReadonlyArray<{ label: string; items: ReadonlyArray<NavItem> }
     ],
   },
   {
-    label: 'Pilotage',
+    labelKey: 'sidebar.groupPilotage',
     items: [
       {
         key: 'analytics',
-        label: 'Analytics',
+        labelKey: 'sidebar.navAnalytics',
         href: '/pro/analytics',
         Icon: BarChart3,
         feature: 'analyticsMulti',
       },
       {
         key: 'integrations',
-        label: 'Intégrations',
+        labelKey: 'sidebar.navIntegrations',
         href: '/pro/integrations',
         Icon: Plug,
         feature: 'crmPipeline',
       },
-      { key: 'billing', label: 'Facturation', href: '/pro/billing', Icon: CreditCard },
-      { key: 'settings', label: 'Réglages', href: '/pro/settings', Icon: Settings },
+      { key: 'billing', labelKey: 'sidebar.navBilling', href: '/pro/billing', Icon: CreditCard },
+      { key: 'settings', labelKey: 'sidebar.navSettings', href: '/pro/settings', Icon: Settings },
     ],
   },
 ];
 
-const ROLE_LABEL: Record<'owner' | 'admin' | 'planner' | 'viewer', string> = {
-  owner: 'Propriétaire',
-  admin: 'Admin',
-  planner: 'Planner',
-  viewer: 'Lecture',
+const ROLE_LABEL_KEY: Record<'owner' | 'admin' | 'planner' | 'viewer', string> = {
+  owner: 'sidebar.roleOwner',
+  admin: 'sidebar.roleAdmin',
+  planner: 'sidebar.rolePlanner',
+  viewer: 'sidebar.roleViewer',
 };
 
 const TIER_LABEL: Record<SubscriptionTier, string> = {
@@ -197,6 +203,7 @@ export function ProSidebarShell({
   eventsUsed,
   children,
 }: ProSidebarShellProps) {
+  const t = useTranslations('Pro.main');
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -213,7 +220,7 @@ export function ProSidebarShell({
   const tier = org.tier ?? null;
   const dot = org.primaryColor || 'var(--color-gold-500)';
   const eventsCap = tier ? PRO_TIER_LIMITS[tier].activeEvents : null;
-  const roleLabel = ROLE_LABEL[org.role];
+  const roleLabel = t(ROLE_LABEL_KEY[org.role] as Parameters<typeof t>[0]);
 
   return (
     <div
@@ -261,7 +268,7 @@ export function ProSidebarShell({
                   {org.name}
                 </span>
                 <span className="font-mono text-[9px] tracking-[0.18em] text-[color:var(--color-muted-foreground)] uppercase">
-                  {tier ? `Forfait ${TIER_LABEL[tier]}` : 'Sans abonnement'}
+                  {tier ? t('sidebar.planLabel', { tier: TIER_LABEL[tier] }) : t('sidebar.noPlan')}
                 </span>
               </span>
             ) : null}
@@ -270,7 +277,7 @@ export function ProSidebarShell({
             type="button"
             onClick={() => setCollapsed((c) => !c)}
             aria-pressed={collapsed}
-            aria-label={collapsed ? 'Déplier le menu' : 'Replier le menu'}
+            aria-label={collapsed ? t('sidebar.expandMenu') : t('sidebar.collapseMenu')}
             className="focus-ring hidden flex-shrink-0 rounded-lg p-1.5 text-[color:var(--color-muted-foreground)] transition-colors hover:bg-[color:var(--color-surface-elevated)] hover:text-[color:var(--color-foreground)] lg:inline-flex"
           >
             {collapsed ? (
@@ -282,7 +289,7 @@ export function ProSidebarShell({
           <button
             type="button"
             onClick={() => setMobileOpen(false)}
-            aria-label="Fermer le menu"
+            aria-label={t('sidebar.closeMenu')}
             className="focus-ring flex-shrink-0 rounded-lg p-1.5 text-[color:var(--color-muted-foreground)] hover:bg-[color:var(--color-surface-elevated)] lg:hidden"
           >
             <X className="h-4 w-4" strokeWidth={1.85} />
@@ -291,62 +298,66 @@ export function ProSidebarShell({
 
         {/* Nav */}
         <nav
-          aria-label="Navigation principale"
+          aria-label={t('sidebar.mainNavAria')}
           className="flex-1 overflow-y-auto px-3 py-4"
           onClick={() => setMobileOpen(false)}
         >
-          {NAV_GROUPS.map((group) => (
-            <div key={group.label} className="mb-5 flex flex-col gap-0.5">
-              {!collapsed ? (
-                <p className="mb-1.5 px-2 font-mono text-[9px] tracking-[0.22em] text-[color:var(--color-muted-foreground)] uppercase">
-                  {group.label}
-                </p>
-              ) : (
-                <span aria-hidden className="mx-2 mb-1.5 h-px bg-[color:var(--color-border)]" />
-              )}
-              {group.items.map((item) => {
-                const active = item.key === current;
-                const locked = item.feature ? !tierHasFeature(tier, item.feature) : false;
-                return (
-                  <Link
-                    key={item.key}
-                    href={item.href}
-                    aria-current={active ? 'page' : undefined}
-                    title={item.label}
-                    className={cn(
-                      'focus-ring group flex items-center gap-3 rounded-lg px-2.5 py-2 text-sm transition-colors',
-                      collapsed && 'justify-center',
-                      active
-                        ? 'bg-[color:var(--color-surface-elevated)] font-medium text-[color:var(--color-foreground)]'
-                        : 'text-[color:var(--color-muted-foreground)] hover:bg-[color:var(--color-surface-elevated)] hover:text-[color:var(--color-foreground)]',
-                    )}
-                  >
-                    <span
-                      aria-hidden
+          {NAV_GROUPS.map((group) => {
+            const groupLabel = t(group.labelKey as Parameters<typeof t>[0]);
+            return (
+              <div key={group.labelKey} className="mb-5 flex flex-col gap-0.5">
+                {!collapsed ? (
+                  <p className="mb-1.5 px-2 font-mono text-[9px] tracking-[0.22em] text-[color:var(--color-muted-foreground)] uppercase">
+                    {groupLabel}
+                  </p>
+                ) : (
+                  <span aria-hidden className="mx-2 mb-1.5 h-px bg-[color:var(--color-border)]" />
+                )}
+                {group.items.map((item) => {
+                  const active = item.key === current;
+                  const locked = item.feature ? !tierHasFeature(tier, item.feature) : false;
+                  const itemLabel = t(item.labelKey as Parameters<typeof t>[0]);
+                  return (
+                    <Link
+                      key={item.key}
+                      href={item.href}
+                      aria-current={active ? 'page' : undefined}
+                      title={itemLabel}
                       className={cn(
-                        'flex-shrink-0',
-                        active ? 'text-[color:var(--color-blush-300)]' : '',
+                        'focus-ring group flex items-center gap-3 rounded-lg px-2.5 py-2 text-sm transition-colors',
+                        collapsed && 'justify-center',
+                        active
+                          ? 'bg-[color:var(--color-surface-elevated)] font-medium text-[color:var(--color-foreground)]'
+                          : 'text-[color:var(--color-muted-foreground)] hover:bg-[color:var(--color-surface-elevated)] hover:text-[color:var(--color-foreground)]',
                       )}
                     >
-                      <item.Icon className="h-[18px] w-[18px]" strokeWidth={1.85} />
-                    </span>
-                    {!collapsed ? (
-                      <>
-                        <span className="flex-1 truncate">{item.label}</span>
-                        {locked ? (
-                          <Lock
-                            className="h-3.5 w-3.5 flex-shrink-0 text-[color:var(--color-muted-foreground)]"
-                            strokeWidth={1.85}
-                            aria-label="Inclus dans un forfait supérieur"
-                          />
-                        ) : null}
-                      </>
-                    ) : null}
-                  </Link>
-                );
-              })}
-            </div>
-          ))}
+                      <span
+                        aria-hidden
+                        className={cn(
+                          'flex-shrink-0',
+                          active ? 'text-[color:var(--color-blush-300)]' : '',
+                        )}
+                      >
+                        <item.Icon className="h-[18px] w-[18px]" strokeWidth={1.85} />
+                      </span>
+                      {!collapsed ? (
+                        <>
+                          <span className="flex-1 truncate">{itemLabel}</span>
+                          {locked ? (
+                            <Lock
+                              className="h-3.5 w-3.5 flex-shrink-0 text-[color:var(--color-muted-foreground)]"
+                              strokeWidth={1.85}
+                              aria-label={t('sidebar.lockedFeatureAria')}
+                            />
+                          ) : null}
+                        </>
+                      ) : null}
+                    </Link>
+                  );
+                })}
+              </div>
+            );
+          })}
         </nav>
 
         {/* Footer : utilisateur connecté + déconnexion (icône seule, à droite) */}
@@ -373,8 +384,8 @@ export function ProSidebarShell({
                 <form action={signOutAction} className="flex-shrink-0">
                   <button
                     type="submit"
-                    aria-label="Se déconnecter"
-                    title="Se déconnecter"
+                    aria-label={t('sidebar.signOut')}
+                    title={t('sidebar.signOut')}
                     className="focus-ring grid h-8 w-8 place-items-center rounded-lg text-[color:var(--color-muted-foreground)] transition-colors hover:bg-[color:var(--color-surface-elevated)] hover:text-[color:var(--color-foreground)]"
                   >
                     <LogOut className="h-4 w-4" strokeWidth={1.85} aria-hidden />
@@ -387,8 +398,8 @@ export function ProSidebarShell({
             <form action={signOutAction} className="mt-1 flex justify-center">
               <button
                 type="submit"
-                aria-label="Se déconnecter"
-                title="Se déconnecter"
+                aria-label={t('sidebar.signOut')}
+                title={t('sidebar.signOut')}
                 className="focus-ring grid h-8 w-8 place-items-center rounded-lg text-[color:var(--color-muted-foreground)] transition-colors hover:bg-[color:var(--color-surface-elevated)] hover:text-[color:var(--color-foreground)]"
               >
                 <LogOut className="h-4 w-4" strokeWidth={1.85} aria-hidden />
@@ -405,7 +416,7 @@ export function ProSidebarShell({
           <button
             type="button"
             onClick={() => setMobileOpen(true)}
-            aria-label="Ouvrir le menu"
+            aria-label={t('sidebar.openMenu')}
             className="focus-ring rounded-lg p-1.5 text-[color:var(--color-muted-foreground)] hover:bg-[color:var(--color-surface-elevated)] lg:hidden"
           >
             <Menu className="h-5 w-5" strokeWidth={1.85} />
@@ -419,8 +430,8 @@ export function ProSidebarShell({
             />
             <input
               type="search"
-              placeholder="Rechercher un mariage, un client…"
-              aria-label="Recherche globale"
+              placeholder={t('sidebar.searchPlaceholder')}
+              aria-label={t('sidebar.searchAria')}
               className="focus-ring h-9 w-full rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-surface)] pr-3 pl-9 text-sm text-[color:var(--color-foreground)] placeholder:text-[color:var(--color-muted-foreground)]"
             />
           </label>
@@ -434,7 +445,7 @@ export function ProSidebarShell({
                   style={{ background: dot }}
                 />
                 <b className="text-[color:var(--color-foreground)]">{eventsUsed ?? 0}</b>/
-                {eventsCap} mariages
+                {eventsCap} {t('sidebar.weddingsUnit')}
               </span>
             ) : null}
 

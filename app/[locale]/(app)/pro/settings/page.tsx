@@ -1,4 +1,5 @@
-import { setRequestLocale } from 'next-intl/server';
+import type { Metadata } from 'next';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { redirect } from '@/i18n/navigation';
 import { getSession } from '@/lib/auth/session';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
@@ -7,6 +8,11 @@ import { SettingsShell } from '@/components/pro/settings-shell';
 
 const DEFAULT_PRIMARY = '#2c1a11';
 const DEFAULT_ACCENT = '#c8a165';
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('ProPages');
+  return { title: t('settingsMetaTitle') };
+}
 
 /**
  * /pro/settings — page de réglages de l'organisation pro.
@@ -24,6 +30,7 @@ const DEFAULT_ACCENT = '#c8a165';
 export default async function ProSettingsPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   setRequestLocale(locale);
+  const t = await getTranslations('ProPages');
 
   const session = await getSession();
   if (!session) redirect({ href: '/sign-in', locale });
@@ -63,7 +70,7 @@ export default async function ProSettingsPage({ params }: { params: Promise<{ lo
       <div className="container-page mx-auto flex max-w-5xl flex-col gap-8 py-8 sm:py-10">
         <header className="flex flex-col gap-1.5">
           <span className="font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-muted-foreground)] uppercase">
-            Pilotage · Réglages
+            {t('settingsEyebrow')}
           </span>
           <h1
             className="font-display text-balance italic"
@@ -74,7 +81,7 @@ export default async function ProSettingsPage({ params }: { params: Promise<{ lo
               color: 'var(--color-foreground)',
             }}
           >
-            Réglages
+            {t('settingsTitle')}
           </h1>
         </header>
 

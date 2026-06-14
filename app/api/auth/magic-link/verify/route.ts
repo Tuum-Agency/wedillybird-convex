@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
 import { setSessionCookie } from '@/lib/auth/session';
 import { verifyMagicLinkSchema } from '@/lib/validators/auth';
+import { captureServer, EVENTS } from '@/lib/analytics/posthog-server';
 
 /**
  * GET /api/auth/magic-link/verify?email=xxx&token=yyy
@@ -41,6 +42,17 @@ export async function GET(request: Request) {
       email: result.email,
       issuedAt: Date.now(),
     });
+
+    // Nouveau compte (pas une reconnexion) créé via magic link email →
+    // signup_completed côté serveur (fiable : le lien est ouvert hors contexte
+    // client, pas de capture navigateur possible ici).
+    if (result.isNewUser) {
+      await captureServer({
+        distinctId: result.userId,
+        event: EVENTS.signupCompleted,
+        properties: { method: 'email' },
+      });
+    }
 
     // Pas de phone (et email-only flow) : on envoie vers /onboarding pour
     // qu'ils complètent leur profil. Si le user existe déjà avec fullName

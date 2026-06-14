@@ -1,22 +1,29 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { Copy, ExternalLink, Link2, MessageSquare } from 'lucide-react';
 import { toast } from '@/components/ui/toast';
 import { paymentRequestMessage } from '@/lib/pro/payments';
 import { createInvoicePaymentLinkAction } from '@/app/[locale]/(app)/pro/payments/actions';
 
-export const LINK_ERR: Record<string, string> = {
-  STRIPE_NOT_CONNECTED: 'Connectez d’abord votre compte Stripe.',
-  PAYMENTS_NOT_CONFIGURED: 'Le paiement en ligne n’est pas encore configuré.',
-  FEATURE_NOT_IN_PLAN: 'Réservé au forfait Business.',
-  ALREADY_PAID: 'Cette échéance est déjà réglée.',
-  INVALID_AMOUNT: 'Montant invalide.',
-  INVALID_DESCRIPTION: 'Indiquez un libellé.',
-  INVALID_SCHEDULE: 'Échéance introuvable.',
-};
-export const linkErr = (c: string) => LINK_ERR[c] ?? 'Création du lien impossible. Réessayez.';
+/** Codes d'erreur serveur disposant d'un libellé dédié (sinon message générique). */
+const LINK_ERR_CODES = new Set([
+  'STRIPE_NOT_CONNECTED',
+  'PAYMENTS_NOT_CONFIGURED',
+  'FEATURE_NOT_IN_PLAN',
+  'ALREADY_PAID',
+  'INVALID_AMOUNT',
+  'INVALID_DESCRIPTION',
+  'INVALID_SCHEDULE',
+]);
+
+/** Hook : traduit un code d'erreur de création de lien (fallback générique). */
+export function useLinkErr() {
+  const t = useTranslations('Pro.payments');
+  return (code: string) =>
+    LINK_ERR_CODES.has(code) ? t(`linkErrors.${code}` as const) : t('linkErrors.generic');
+}
 
 interface CreatedLink {
   url: string;
@@ -41,6 +48,8 @@ export function PayLinkButton({
   connected: boolean;
   clientName?: string;
 }) {
+  const t = useTranslations('Pro.payments');
+  const linkErr = useLinkErr();
   const locale = useLocale();
   const [link, setLink] = useState<CreatedLink | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -49,7 +58,7 @@ export function PayLinkButton({
   if (!connected) {
     return (
       <span className="font-mono text-[10px] tracking-[0.08em] text-[color:var(--color-muted-foreground)]">
-        Connectez votre Stripe pour générer un lien
+        {t('payLink.connectPrompt')}
       </span>
     );
   }
@@ -63,7 +72,7 @@ export function PayLinkButton({
         url: link.url,
       });
       void navigator.clipboard?.writeText(msg);
-      toast.success('Message prêt à envoyer copié');
+      toast.success(t('toasts.messageCopied'));
     };
     return (
       <div className="flex flex-wrap items-center gap-1.5">
@@ -71,12 +80,12 @@ export function PayLinkButton({
           type="button"
           onClick={() => {
             void navigator.clipboard?.writeText(link.url);
-            toast.success('Lien copié');
+            toast.success(t('toasts.linkCopied'));
           }}
           className="inline-flex items-center gap-1.5 rounded-lg border border-[color:var(--color-border-strong)] bg-[color:var(--color-surface)] px-2.5 py-1.5 text-xs text-[color:var(--color-ink-700)] hover:border-[color:var(--color-blush-400)] hover:text-[color:var(--color-foreground)]"
         >
           <Copy className="h-3 w-3" strokeWidth={1.9} aria-hidden />
-          Copier le lien
+          {t('actions.copyLink')}
         </button>
         <button
           type="button"
@@ -84,7 +93,7 @@ export function PayLinkButton({
           className="inline-flex items-center gap-1.5 rounded-lg border border-[color:var(--color-border-strong)] bg-[color:var(--color-surface)] px-2.5 py-1.5 text-xs text-[color:var(--color-ink-700)] hover:border-[color:var(--color-blush-400)] hover:text-[color:var(--color-foreground)]"
         >
           <MessageSquare className="h-3 w-3" strokeWidth={1.9} aria-hidden />
-          Copier le message
+          {t('actions.copyMessage')}
         </button>
         <a
           href={link.url}
@@ -93,7 +102,7 @@ export function PayLinkButton({
           className="inline-flex items-center gap-1.5 rounded-lg border border-[color:var(--color-border-strong)] bg-[color:var(--color-surface)] px-2.5 py-1.5 text-xs text-[color:var(--color-ink-700)] hover:border-[color:var(--color-sage-500)] hover:text-[color:var(--color-foreground)]"
         >
           <ExternalLink className="h-3 w-3" strokeWidth={1.9} aria-hidden />
-          Ouvrir
+          {t('actions.open')}
         </a>
       </div>
     );
@@ -114,13 +123,13 @@ export function PayLinkButton({
             }
             setLink({ url: res.url, amountMinor: res.amountMinor, description: res.description });
             void navigator.clipboard?.writeText(res.url);
-            toast.success('Lien de paiement créé et copié');
+            toast.success(t('toasts.linkCreated'));
           });
         }}
         className="inline-flex items-center gap-1.5 rounded-lg border border-[color:var(--color-border-strong)] bg-[color:var(--color-surface)] px-2.5 py-1.5 text-xs text-[color:var(--color-ink-700)] hover:border-[color:var(--color-blush-400)] hover:text-[color:var(--color-foreground)] disabled:opacity-60"
       >
         <Link2 className="h-3 w-3" strokeWidth={1.9} aria-hidden />
-        {pending ? 'Création…' : 'Lien de paiement'}
+        {pending ? t('actions.creating') : t('payLink.cta')}
       </button>
       {error ? (
         <span role="alert" className="text-[10px] text-[color:var(--color-danger)]">

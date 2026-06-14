@@ -15,6 +15,7 @@ import {
   CheckCircle2,
   type LucideIcon,
 } from 'lucide-react';
+import { getTranslations } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
 import { buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/cn';
@@ -103,22 +104,6 @@ export interface CockpitData {
   locale: string;
 }
 
-const NF = new Intl.NumberFormat('fr-FR');
-const MONTHS_SHORT = [
-  'JANV',
-  'FÉVR',
-  'MARS',
-  'AVR',
-  'MAI',
-  'JUIN',
-  'JUIL',
-  'AOÛT',
-  'SEPT',
-  'OCT',
-  'NOV',
-  'DÉC',
-];
-
 type Tone = 'pos' | 'neg' | 'neutral';
 const TONE_COLOR: Record<Tone, string> = {
   pos: 'var(--color-sage-500)',
@@ -126,20 +111,24 @@ const TONE_COLOR: Record<Tone, string> = {
   neutral: 'var(--color-muted-foreground)',
 };
 
-function relAgo(days: number): string {
-  if (days <= 0) return "aujourd'hui";
-  if (days === 1) return 'hier';
-  return `il y a ${days} j`;
+type T = Awaited<ReturnType<typeof getTranslations>>;
+
+function relAgo(days: number, t: T): string {
+  if (days <= 0) return t('cockpit.relToday');
+  if (days === 1) return t('cockpit.relYesterday');
+  return t('cockpit.relDaysAgo', { n: days });
 }
 
-function formatGo(bytes: number): string {
+function formatGo(bytes: number, t: T): string {
   const go = bytes / BYTES_PER_GO;
-  return `${go >= 10 || go === 0 ? Math.round(go) : go.toFixed(1)} Go`;
+  return t('cockpit.goValue', {
+    value: go >= 10 || go === 0 ? String(Math.round(go)) : go.toFixed(1),
+  });
 }
 
-function formatEurMinor(minor: number): string {
+function formatEurMinor(minor: number, locale: string): string {
   const eur = minor / 100;
-  return `${eur.toLocaleString('fr-FR', { minimumFractionDigits: eur % 1 === 0 ? 0 : 2 })} €`;
+  return `${eur.toLocaleString(locale, { minimumFractionDigits: eur % 1 === 0 ? 0 : 2 })} €`;
 }
 
 function clockNow(): number {
@@ -189,7 +178,7 @@ function Sparkline({
   );
 }
 
-export function Cockpit(data: CockpitData) {
+export async function Cockpit(data: CockpitData) {
   const {
     org,
     usage,
@@ -200,18 +189,21 @@ export function Cockpit(data: CockpitData) {
     deadlines,
     overdueTasks,
     recentActivity,
+    locale,
   } = data;
+  const t = await getTranslations('Pro.main');
+  const nf = new Intl.NumberFormat(locale);
   const tier = org.subscriptionTier ?? null;
   const gauges = tier ? buildQuotaGauges(tier, usage) : null;
   const hasActivity = !!(recentActivity && recentActivity.length > 0);
 
-  const today = new Intl.DateTimeFormat('fr-FR', {
+  const today = new Intl.DateTimeFormat(locale, {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
   }).format(new Date());
   const greeting = data.userName
-    ? `${capitalize(today)} · Bonjour ${data.userName}`
+    ? t('cockpit.greetingWithName', { date: capitalize(today), name: data.userName })
     : capitalize(today);
 
   const kpiCards: {
@@ -227,41 +219,44 @@ export function Cockpit(data: CockpitData) {
     {
       key: 'weddings',
       Icon: Heart,
-      label: 'Mariages actifs',
-      value: NF.format(kpis.activeWeddings),
+      label: t('cockpit.kpiActiveWeddings'),
+      value: nf.format(kpis.activeWeddings),
       spark: kpiTrends.weddings,
       delta: kpis.weddingsThisMonth > 0 ? `+${kpis.weddingsThisMonth}` : '±0',
-      note: kpis.weddingsThisMonth > 0 ? 'ce mois' : `${NF.format(kpis.totalEvents)} au total`,
+      note:
+        kpis.weddingsThisMonth > 0
+          ? t('cockpit.kpiThisMonth')
+          : t('cockpit.kpiTotalCount', { count: nf.format(kpis.totalEvents) }),
       tone: kpis.weddingsThisMonth > 0 ? 'pos' : 'neutral',
     },
     {
       key: 'rsvp',
       Icon: Hourglass,
-      label: 'RSVP en attente',
-      value: NF.format(kpis.pendingRsvp),
+      label: t('cockpit.kpiPendingRsvp'),
+      value: nf.format(kpis.pendingRsvp),
       spark: kpiTrends.rsvp,
-      delta: NF.format(kpis.respondedLast7),
-      note: 'réponses · 7 j',
+      delta: nf.format(kpis.respondedLast7),
+      note: t('cockpit.kpiResponses7d'),
       tone: kpis.respondedLast7 > 0 ? 'pos' : 'neutral',
     },
     {
       key: 'deadlines',
       Icon: ListChecks,
-      label: 'Échéances · 7 j',
-      value: NF.format(kpis.weekDeadlines),
+      label: t('cockpit.kpiDeadlines7d'),
+      value: nf.format(kpis.weekDeadlines),
       spark: kpiTrends.tasksDone,
-      delta: overdueTasks > 0 ? NF.format(overdueTasks) : '0',
-      note: overdueTasks > 0 ? 'en retard' : 'à jour',
+      delta: overdueTasks > 0 ? nf.format(overdueTasks) : '0',
+      note: overdueTasks > 0 ? t('cockpit.kpiOverdue') : t('cockpit.kpiUpToDate'),
       tone: overdueTasks > 0 ? 'neg' : 'pos',
     },
     {
       key: 'revenue',
       Icon: Banknote,
-      label: 'CA encaissé',
-      value: formatEurMinor(kpis.collectedMinor),
+      label: t('cockpit.kpiRevenue'),
+      value: formatEurMinor(kpis.collectedMinor, locale),
       spark: kpiTrends.revenue,
-      delta: NF.format(kpis.paidInvoicesCount),
-      note: 'factures encaissées',
+      delta: nf.format(kpis.paidInvoicesCount),
+      note: t('cockpit.kpiPaidInvoices'),
       tone: 'neutral',
     },
   ];
@@ -272,7 +267,7 @@ export function Cockpit(data: CockpitData) {
       <header className="flex flex-col gap-5">
         <div className="flex flex-col gap-1.5">
           <span className="font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-muted-foreground)] uppercase">
-            Cockpit · {org.name}
+            {t('cockpit.eyebrow', { org: org.name })}
           </span>
           <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
             <div className="flex flex-col gap-1">
@@ -285,7 +280,7 @@ export function Cockpit(data: CockpitData) {
                   color: 'var(--color-foreground)',
                 }}
               >
-                Tableau de bord
+                {t('cockpit.heading')}
               </h1>
               <p className="text-sm text-[color:var(--color-muted-foreground)]">{greeting}</p>
             </div>
@@ -296,7 +291,7 @@ export function Cockpit(data: CockpitData) {
                   className={cn(buttonVariants({ variant: 'outline', size: 'md' }))}
                 >
                   <UserPlus className="h-4 w-4" strokeWidth={2} aria-hidden />
-                  Nouveau client
+                  {t('cockpit.newClient')}
                 </Link>
               ) : null}
               <Link
@@ -304,7 +299,7 @@ export function Cockpit(data: CockpitData) {
                 className={cn(buttonVariants({ variant: 'primary', size: 'md' }))}
               >
                 <Plus className="h-4 w-4" strokeWidth={2.2} aria-hidden />
-                Nouveau mariage
+                {t('cockpit.newWedding')}
               </Link>
             </div>
           </div>
@@ -314,11 +309,16 @@ export function Cockpit(data: CockpitData) {
           tier={tier}
           status={org.subscriptionStatus ?? null}
           periodEnd={org.subscriptionPeriodEnd ?? null}
+          locale={locale}
+          t={t}
         />
       </header>
 
       {/* KPIs réels (valeur + mini-série + delta) */}
-      <section aria-label="Indicateurs clés" className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <section
+        aria-label={t('cockpit.kpiSectionAria')}
+        className="grid grid-cols-2 gap-3 lg:grid-cols-4"
+      >
         {kpiCards.map((k) => {
           const Arrow =
             k.tone === 'pos' ? TrendingUp : k.tone === 'neg' ? TrendingDown : ArrowRight;
@@ -359,21 +359,21 @@ export function Cockpit(data: CockpitData) {
               className="font-display text-xl text-[color:var(--color-foreground)] italic"
               style={{ letterSpacing: '-0.018em' }}
             >
-              Prochains mariages
+              {t('cockpit.upcomingWeddings')}
             </h2>
             <Link
               href="/pro/weddings"
               className="inline-flex items-center gap-1 font-mono text-[10px] tracking-[0.16em] text-[color:var(--color-muted-foreground)] uppercase transition-colors hover:text-[color:var(--color-foreground)]"
             >
-              Tout voir <ArrowRight className="h-3 w-3" strokeWidth={2} aria-hidden />
+              {t('cockpit.seeAll')} <ArrowRight className="h-3 w-3" strokeWidth={2} aria-hidden />
             </Link>
           </div>
           {upcoming.length === 0 ? (
-            <EmptyUpcoming />
+            <EmptyUpcoming t={t} />
           ) : (
             <ul className="flex flex-col gap-3">
               {upcoming.map((w) => (
-                <UpcomingRow key={w._id} wedding={w} locale={data.locale} />
+                <UpcomingRow key={w._id} wedding={w} locale={data.locale} nf={nf} t={t} />
               ))}
             </ul>
           )}
@@ -385,13 +385,13 @@ export function Cockpit(data: CockpitData) {
             className="font-display text-xl text-[color:var(--color-foreground)] italic"
             style={{ letterSpacing: '-0.018em' }}
           >
-            Consommation du forfait
+            {t('cockpit.planConsumption')}
           </h2>
           {gauges ? (
-            <QuotaCard gauges={gauges} usage={usage} />
+            <QuotaCard gauges={gauges} usage={usage} locale={locale} nf={nf} t={t} />
           ) : (
             <div className="rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-6 text-sm text-[color:var(--color-muted-foreground)]">
-              Aucun abonnement actif — vos quotas s’afficheront ici une fois un forfait choisi.
+              {t('cockpit.noSubscriptionQuotas')}
             </div>
           )}
         </section>
@@ -406,13 +406,13 @@ export function Cockpit(data: CockpitData) {
         )}
       >
         {/* Deadlines & tâches */}
-        <DeadlinesCard deadlines={deadlines} overdueTasks={overdueTasks} />
+        <DeadlinesCard deadlines={deadlines} overdueTasks={overdueTasks} locale={locale} t={t} />
 
         {/* Pipeline (entonnoir) */}
-        <PipelineCard pipeline={pipeline} />
+        <PipelineCard pipeline={pipeline} nf={nf} t={t} />
 
         {/* Activité récente */}
-        {hasActivity ? <ActivityCard activity={recentActivity!} /> : null}
+        {hasActivity ? <ActivityCard activity={recentActivity!} t={t} /> : null}
       </div>
     </div>
   );
@@ -425,15 +425,20 @@ export function Cockpit(data: CockpitData) {
 function DeadlinesCard({
   deadlines,
   overdueTasks,
+  locale,
+  t,
 }: {
   deadlines: CockpitData['deadlines'];
   overdueTasks: number;
+  locale: string;
+  t: T;
 }) {
+  const monthFmt = new Intl.DateTimeFormat(locale, { month: 'short' });
   return (
     <section className="flex flex-col gap-3 rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-5">
       <div className="flex items-center justify-between">
         <h2 className="font-display text-lg text-[color:var(--color-foreground)] italic">
-          Deadlines &amp; tâches
+          {t('cockpit.deadlinesTitle')}
         </h2>
         <span
           className={cn(
@@ -443,12 +448,14 @@ function DeadlinesCard({
               : 'text-[color:var(--color-muted-foreground)]',
           )}
         >
-          {overdueTasks > 0 ? `${overdueTasks} en retard` : 'rétroplanning'}
+          {overdueTasks > 0
+            ? t('cockpit.overdueCount', { count: overdueTasks })
+            : t('cockpit.retroPlanning')}
         </span>
       </div>
       {deadlines.length === 0 ? (
         <p className="text-sm text-[color:var(--color-muted-foreground)]">
-          Aucune échéance planifiée.
+          {t('cockpit.noDeadlines')}
         </p>
       ) : (
         <ul className="flex flex-col divide-y divide-[color:var(--color-border)]">
@@ -471,8 +478,8 @@ function DeadlinesCard({
                   )}
                 >
                   <span className="text-sm font-semibold">{due.getDate()}</span>
-                  <span className="mt-0.5 text-[8px] tracking-[0.06em]">
-                    {MONTHS_SHORT[due.getMonth()]}
+                  <span className="mt-0.5 text-[8px] tracking-[0.06em] uppercase">
+                    {monthFmt.format(due)}
                   </span>
                 </span>
                 <span className="flex min-w-0 flex-1 flex-col gap-0.5">
@@ -487,15 +494,15 @@ function DeadlinesCard({
                 </span>
                 {when === 'late' ? (
                   <span className="flex-shrink-0 rounded-full bg-[oklch(28%_0.05_25)] px-2 py-0.5 font-mono text-[9px] tracking-[0.1em] text-[oklch(84%_0.09_25)] uppercase">
-                    En retard
+                    {t('cockpit.late')}
                   </span>
                 ) : when === 'today' ? (
                   <span className="flex-shrink-0 rounded-full bg-[color:var(--color-blush-500)]/15 px-2 py-0.5 font-mono text-[9px] tracking-[0.1em] text-[color:var(--color-blush-300)] uppercase">
-                    Aujourd’hui
+                    {t('cockpit.today')}
                   </span>
                 ) : (
                   <span className="flex-shrink-0 font-mono text-[10px] text-[color:var(--color-muted-foreground)]">
-                    J−{d.daysUntil}
+                    {t('cockpit.jUntil', { n: d.daysUntil })}
                   </span>
                 )}
               </li>
@@ -511,19 +518,32 @@ function DeadlinesCard({
 /*  Pipeline (entonnoir)                                                        */
 /* -------------------------------------------------------------------------- */
 
-function PipelineCard({ pipeline }: { pipeline: CockpitData['pipeline'] }) {
+function PipelineCard({
+  pipeline,
+  nf,
+  t,
+}: {
+  pipeline: CockpitData['pipeline'];
+  nf: Intl.NumberFormat;
+  t: T;
+}) {
   const countOf = (s: string) => pipeline.find((p) => p.stage === s)?.count ?? 0;
   const stages = [
     {
       key: 'leads',
-      label: 'Leads',
+      label: t('cockpit.stageLeads'),
       val: countOf('lead') + countOf('contacted'),
       color: 'oklch(72% 0.1 250)',
     },
-    { key: 'quotes', label: 'Devis envoyés', val: countOf('quote'), color: 'oklch(80% 0.1 80)' },
+    {
+      key: 'quotes',
+      label: t('cockpit.stageQuotes'),
+      val: countOf('quote'),
+      color: 'oklch(80% 0.1 80)',
+    },
     {
       key: 'booked',
-      label: 'Réservés',
+      label: t('cockpit.stageBooked'),
       val: countOf('booked') + countOf('in_progress') + countOf('delivered'),
       color: 'var(--color-sage-500)',
     },
@@ -536,18 +556,18 @@ function PipelineCard({ pipeline }: { pipeline: CockpitData['pipeline'] }) {
     <section className="flex flex-col gap-3.5 rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-5">
       <div className="flex items-center justify-between">
         <h2 className="font-display text-lg text-[color:var(--color-foreground)] italic">
-          Pipeline clients
+          {t('cockpit.pipelineTitle')}
         </h2>
         <Link
           href="/pro/clients"
           className="inline-flex items-center gap-1 font-mono text-[10px] tracking-[0.16em] text-[color:var(--color-muted-foreground)] uppercase transition-colors hover:text-[color:var(--color-foreground)]"
         >
-          Voir le CRM <ArrowRight className="h-3 w-3" strokeWidth={2} aria-hidden />
+          {t('cockpit.seeCrm')} <ArrowRight className="h-3 w-3" strokeWidth={2} aria-hidden />
         </Link>
       </div>
       {total === 0 ? (
         <p className="text-sm text-[color:var(--color-muted-foreground)]">
-          Aucun client dans le pipeline pour l’instant.
+          {t('cockpit.emptyPipeline')}
         </p>
       ) : (
         <>
@@ -578,11 +598,15 @@ function PipelineCard({ pipeline }: { pipeline: CockpitData['pipeline'] }) {
           </div>
           <div className="mt-auto flex items-center justify-between border-t border-[color:var(--color-border)] pt-3 text-xs">
             <span className="text-[color:var(--color-muted-foreground)]">
-              Taux de réservation{' '}
-              <b className="font-mono text-[color:var(--color-foreground)]">{conv} %</b>
+              {t.rich('cockpit.bookingRate', {
+                rate: conv,
+                b: (chunks) => (
+                  <b className="font-mono text-[color:var(--color-foreground)]">{chunks}</b>
+                ),
+              })}
             </span>
             <span className="font-mono text-[10px] tracking-[0.12em] text-[color:var(--color-muted-foreground)] uppercase">
-              {total} dossiers
+              {t('cockpit.fileCount', { count: nf.format(total) })}
             </span>
           </div>
         </>
@@ -610,11 +634,17 @@ const ACTIVITY_META: Record<string, { Icon: LucideIcon; bg: string; fg: string }
   },
 };
 
-function ActivityCard({ activity }: { activity: NonNullable<CockpitData['recentActivity']> }) {
+function ActivityCard({
+  activity,
+  t,
+}: {
+  activity: NonNullable<CockpitData['recentActivity']>;
+  t: T;
+}) {
   return (
     <section className="flex flex-col gap-3 rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-5">
       <h2 className="font-display text-lg text-[color:var(--color-foreground)] italic">
-        Activité récente
+        {t('cockpit.recentActivity')}
       </h2>
       <ul className="flex flex-col gap-3">
         {activity.map((a, i) => {
@@ -632,7 +662,7 @@ function ActivityCard({ activity }: { activity: NonNullable<CockpitData['recentA
                 {a.label}
               </span>
               <span className="flex-shrink-0 font-mono text-[10px] text-[color:var(--color-muted-foreground)]">
-                {relAgo(a.daysAgo)}
+                {relAgo(a.daysAgo, t)}
               </span>
             </li>
           );
@@ -646,36 +676,52 @@ function ActivityCard({ activity }: { activity: NonNullable<CockpitData['recentA
 /*  Bandeau d'abonnement                                                        */
 /* -------------------------------------------------------------------------- */
 
+function resolveBanner(
+  tier: SubscriptionTier | null,
+  status: SubscriptionStatus | null,
+  periodEnd: number | null,
+  locale: string,
+  t: T,
+): { tone: 'danger' | 'warning' | 'info'; message: string; cta: string } {
+  if (!tier || !status) {
+    return {
+      tone: 'warning',
+      message: t('cockpit.bannerNoSubscription'),
+      cta: t('cockpit.bannerChoosePlan'),
+    };
+  }
+  if (status === 'past_due' || status === 'unpaid') {
+    return {
+      tone: 'danger',
+      message: t('cockpit.bannerPaymentFailed'),
+      cta: t('cockpit.bannerManage'),
+    };
+  }
+  const message =
+    periodEnd && periodEnd > clockNow()
+      ? t('cockpit.bannerCancelledUntil', {
+          date: new Intl.DateTimeFormat(locale, { dateStyle: 'long' }).format(new Date(periodEnd)),
+        })
+      : t('cockpit.bannerCancelled');
+  return { tone: 'warning', message, cta: t('cockpit.bannerReactivate') };
+}
+
 function SubscriptionBanner({
   tier,
   status,
   periodEnd,
+  locale,
+  t,
 }: {
   tier: SubscriptionTier | null;
   status: SubscriptionStatus | null;
   periodEnd: number | null;
+  locale: string;
+  t: T;
 }) {
   if (tier && (status === 'active' || status === 'trialing')) return null;
 
-  let tone: 'danger' | 'warning' | 'info' = 'info';
-  let message: string;
-  let cta = 'Gérer l’abonnement';
-
-  if (!tier || !status) {
-    tone = 'warning';
-    message = 'Aucun abonnement actif — choisissez un forfait pour débloquer le back-office.';
-    cta = 'Choisir un forfait';
-  } else if (status === 'past_due' || status === 'unpaid') {
-    tone = 'danger';
-    message = 'Paiement échoué — mettez à jour votre moyen de paiement pour éviter la suspension.';
-  } else {
-    tone = 'warning';
-    message =
-      periodEnd && periodEnd > clockNow()
-        ? `Abonnement résilié — actif jusqu'au ${new Intl.DateTimeFormat('fr-FR', { dateStyle: 'long' }).format(new Date(periodEnd))}.`
-        : 'Abonnement résilié — réactivez-le pour retrouver l’accès complet.';
-    cta = 'Réactiver';
-  }
+  const { tone, message, cta } = resolveBanner(tier, status, periodEnd, locale, t);
 
   const toneStyles: Record<
     'danger' | 'warning' | 'info',
@@ -715,33 +761,57 @@ function SubscriptionBanner({
 /*  Quota card + gauges                                                         */
 /* -------------------------------------------------------------------------- */
 
-function QuotaCard({ gauges, usage }: { gauges: ProQuotaGauges; usage: CockpitData['usage'] }) {
+function QuotaCard({
+  gauges,
+  usage,
+  locale,
+  nf,
+  t,
+}: {
+  gauges: ProQuotaGauges;
+  usage: CockpitData['usage'];
+  locale: string;
+  nf: Intl.NumberFormat;
+  t: T;
+}) {
   return (
     <div className="flex flex-col gap-5 rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-5">
       <Gauge
-        label="Mariages actifs"
+        label={t('cockpit.gaugeActiveWeddings')}
         status={gauges.events}
-        format={(n) => NF.format(n)}
-        overageNote={`au-delà : ${formatEurMinor(PRO_OVERAGE_EUR_MINOR.extraEventPerMonth)}/mois`}
+        format={(n) => nf.format(n)}
+        overageNote={t('cockpit.overageEvent', {
+          price: formatEurMinor(PRO_OVERAGE_EUR_MINOR.extraEventPerMonth, locale),
+        })}
+        t={t}
       />
       <Gauge
-        label="Messages ce mois"
+        label={t('cockpit.gaugeMessages')}
         status={gauges.messages}
-        format={(n) => NF.format(n)}
-        overageNote={`au-delà : ${formatEurMinor(PRO_OVERAGE_EUR_MINOR.whatsappMessage)}/message`}
+        format={(n) => nf.format(n)}
+        overageNote={t('cockpit.overageMessage', {
+          price: formatEurMinor(PRO_OVERAGE_EUR_MINOR.whatsappMessage, locale),
+        })}
+        t={t}
       />
       <Gauge
-        label="Stockage"
+        label={t('cockpit.gaugeStorage')}
         status={gauges.storage}
-        format={formatGo}
-        overageNote={`au-delà : ${formatEurMinor(PRO_OVERAGE_EUR_MINOR.storageGoPerMonth)}/Go/mois`}
+        format={(n) => formatGo(n, t)}
+        overageNote={t('cockpit.overageStorage', {
+          price: formatEurMinor(PRO_OVERAGE_EUR_MINOR.storageGoPerMonth, locale),
+        })}
         rawUsed={usage.storageBytes}
+        t={t}
       />
       <Gauge
-        label="Sièges équipe"
+        label={t('cockpit.gaugeSeats')}
         status={gauges.seats}
-        format={(n) => NF.format(n)}
-        overageNote={`au-delà : ${formatEurMinor(PRO_OVERAGE_EUR_MINOR.extraSeatPerMonth)}/siège/mois`}
+        format={(n) => nf.format(n)}
+        overageNote={t('cockpit.overageSeat', {
+          price: formatEurMinor(PRO_OVERAGE_EUR_MINOR.extraSeatPerMonth, locale),
+        })}
+        t={t}
       />
     </div>
   );
@@ -752,12 +822,14 @@ function Gauge({
   status,
   format,
   overageNote,
+  t,
 }: {
   label: string;
   status: QuotaStatus;
   format: (n: number) => string;
   overageNote: string;
   rawUsed?: number;
+  t: T;
 }) {
   const pct = status.unlimited ? 0 : Math.min(100, Math.round(status.ratio * 100));
   const fill =
@@ -774,7 +846,7 @@ function Gauge({
         <span className="font-mono text-[11px] text-[color:var(--color-muted-foreground)] tabular-nums">
           {status.unlimited ? (
             <>
-              {format(status.used)} <span className="opacity-60">· illimité</span>
+              {format(status.used)} <span className="opacity-60">· {t('cockpit.unlimited')}</span>
             </>
           ) : (
             <>
@@ -805,7 +877,7 @@ function Gauge({
       )}
       {status.overage > 0 ? (
         <span className="font-mono text-[10px] text-[color:var(--color-danger)]">
-          Dépassement : {format(status.overage)} — {overageNote}
+          {t('cockpit.overageLabel', { value: format(status.overage), note: overageNote })}
         </span>
       ) : (
         <span className="font-mono text-[10px] text-[color:var(--color-muted-foreground)]/70">
@@ -822,20 +894,36 @@ function Gauge({
 
 const STATUS_PILL: Record<
   'draft' | 'active' | 'archived' | 'cancelled',
-  { label: string; bg: string; fg: string }
+  { labelKey: string; bg: string; fg: string }
 > = {
-  active: { label: 'Actif', bg: 'oklch(26% 0.04 145)', fg: 'oklch(82% 0.07 145)' },
-  draft: { label: 'Brouillon', bg: 'oklch(28% 0.022 78)', fg: 'oklch(85% 0.04 78)' },
-  archived: { label: 'Archivé', bg: 'oklch(28% 0.012 78)', fg: 'oklch(72% 0.018 65)' },
-  cancelled: { label: 'Annulé', bg: 'oklch(28% 0.04 25)', fg: 'oklch(82% 0.07 22)' },
+  active: {
+    labelKey: 'cockpit.statusActive',
+    bg: 'oklch(26% 0.04 145)',
+    fg: 'oklch(82% 0.07 145)',
+  },
+  draft: { labelKey: 'cockpit.statusDraft', bg: 'oklch(28% 0.022 78)', fg: 'oklch(85% 0.04 78)' },
+  archived: {
+    labelKey: 'cockpit.statusArchived',
+    bg: 'oklch(28% 0.012 78)',
+    fg: 'oklch(72% 0.018 65)',
+  },
+  cancelled: {
+    labelKey: 'cockpit.statusCancelled',
+    bg: 'oklch(28% 0.04 25)',
+    fg: 'oklch(82% 0.07 22)',
+  },
 };
 
 function UpcomingRow({
   wedding,
   locale,
+  nf,
+  t,
 }: {
   wedding: CockpitData['upcoming'][number];
   locale: string;
+  nf: Intl.NumberFormat;
+  t: T;
 }) {
   const pill = STATUS_PILL[wedding.status];
   const dateLabel = new Intl.DateTimeFormat(locale, {
@@ -869,12 +957,16 @@ function UpcomingRow({
             className="inline-flex flex-shrink-0 items-center rounded-full px-2 py-0.5 font-mono text-[9px] tracking-[0.14em] uppercase"
             style={{ background: pill.bg, color: pill.fg }}
           >
-            {pill.label}
+            {t(pill.labelKey as Parameters<typeof t>[0])}
           </span>
         </div>
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-[11px] text-[color:var(--color-muted-foreground)]">
           <span>{dateLabel}</span>
-          {wedding.daysUntil >= 0 ? <span>J−{wedding.daysUntil}</span> : <span>passé</span>}
+          {wedding.daysUntil >= 0 ? (
+            <span>{t('cockpit.jUntil', { n: wedding.daysUntil })}</span>
+          ) : (
+            <span>{t('cockpit.past')}</span>
+          )}
           {wedding.venue ? (
             <span className="inline-flex max-w-[160px] items-center gap-1 truncate">
               <MapPin className="h-3 w-3 flex-shrink-0" strokeWidth={1.9} aria-hidden />
@@ -883,10 +975,13 @@ function UpcomingRow({
           ) : null}
           {wedding.rsvpTotal > 0 ? (
             <span>
-              RSVP {NF.format(wedding.rsvpAttending)}/{NF.format(wedding.rsvpTotal)}
+              {t('cockpit.rsvpCount', {
+                attending: nf.format(wedding.rsvpAttending),
+                total: nf.format(wedding.rsvpTotal),
+              })}
             </span>
           ) : (
-            <span className="opacity-70">aucun invité</span>
+            <span className="opacity-70">{t('cockpit.noGuests')}</span>
           )}
         </div>
         {wedding.rsvpTotal > 0 ? (
@@ -902,7 +997,7 @@ function UpcomingRow({
   );
 }
 
-function EmptyUpcoming() {
+function EmptyUpcoming({ t }: { t: T }) {
   return (
     <div className="flex flex-col items-center gap-4 rounded-2xl border border-dashed border-[color:var(--color-border-strong)] bg-[color:var(--color-surface)]/40 px-6 py-12 text-center">
       <span
@@ -912,14 +1007,14 @@ function EmptyUpcoming() {
         <Heart className="h-5 w-5" strokeWidth={1.5} />
       </span>
       <p className="max-w-xs text-sm text-[color:var(--color-muted-foreground)]">
-        Aucun mariage pour l’instant. Créez le premier pour démarrer.
+        {t('cockpit.emptyUpcoming')}
       </p>
       <Link
         href={'/pro/weddings?new=1' as never}
         className={cn(buttonVariants({ variant: 'primary', size: 'sm' }))}
       >
         <Plus className="h-4 w-4" strokeWidth={2.2} aria-hidden />
-        Nouveau mariage
+        {t('cockpit.newWedding')}
       </Link>
     </div>
   );

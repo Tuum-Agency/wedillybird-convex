@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { motion } from 'motion/react';
+import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { Send, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -39,6 +40,7 @@ export function BroadcastInvitationsCard({
   eventStatus: 'draft' | 'active' | 'archived' | 'cancelled';
   counts: Counts;
 }) {
+  const t = useTranslations('Events');
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [state, setState] = useState<SendState>({ kind: 'idle' });
@@ -50,9 +52,7 @@ export function BroadcastInvitationsCard({
 
   function handleClick() {
     if (!isPublished || remaining === 0) return;
-    const confirmed = window.confirm(
-      `Confirmer l'envoi à ${remaining} invité${remaining > 1 ? 's' : ''} ? Cette action est irréversible — chaque invité recevra son lien personnalisé sur WhatsApp.`,
-    );
+    const confirmed = window.confirm(t('broadcastConfirm', { count: remaining }));
     if (!confirmed) return;
 
     setState({ kind: 'idle' });
@@ -71,10 +71,10 @@ export function BroadcastInvitationsCard({
       }
       const message =
         result.error === 'EVENT_NOT_PUBLISHED'
-          ? "L'événement doit être publié pour envoyer les invitations."
+          ? t('broadcastErrorNotPublished')
           : result.error === 'FORBIDDEN'
-            ? 'Vous n’avez pas les droits sur cet événement.'
-            : "Échec de l'envoi. Réessayez dans un instant.";
+            ? t('broadcastErrorForbidden')
+            : t('broadcastErrorGeneric');
       setState({ kind: 'error', message });
     });
   }
@@ -83,7 +83,7 @@ export function BroadcastInvitationsCard({
     <section className="flex flex-col gap-5 rounded-3xl border border-[color:var(--color-border)] bg-white p-7 shadow-[var(--shadow-soft)]">
       <div className="flex flex-col gap-2">
         <span className="font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-blush-700)] uppercase">
-          Envoi des invitations
+          {t('broadcastEyebrow')}
         </span>
         <h2
           className="font-display italic"
@@ -94,20 +94,27 @@ export function BroadcastInvitationsCard({
             color: 'var(--color-ink-900)',
           }}
         >
-          Faites partir vos invitations WhatsApp
+          {t('broadcastTitle')}
         </h2>
 
         {/* Stats progress */}
         <div className="mt-2 flex flex-col gap-2">
           <div className="flex items-center justify-between text-sm">
             <span className="text-[color:var(--color-ink-700)]">
-              <strong className="text-[color:var(--color-ink-900)]">{counts.invited}</strong>{' '}
-              <span className="text-[color:var(--color-ink-500)]">/ {counts.withPhone}</span>{' '}
-              invitations envoyées
+              {t.rich('broadcastProgress', {
+                invited: counts.invited,
+                withPhone: counts.withPhone,
+                strong: (chunks) => (
+                  <strong className="text-[color:var(--color-ink-900)]">{chunks}</strong>
+                ),
+                muted: (chunks) => (
+                  <span className="text-[color:var(--color-ink-500)]">{chunks}</span>
+                ),
+              })}
             </span>
             {counts.total > counts.withPhone ? (
               <span className="font-mono text-[10px] tracking-[0.18em] text-[color:var(--color-ink-500)] uppercase">
-                {counts.total - counts.withPhone} sans téléphone
+                {t('broadcastWithoutPhone', { count: counts.total - counts.withPhone })}
               </span>
             ) : null}
           </div>
@@ -134,8 +141,7 @@ export function BroadcastInvitationsCard({
             aria-hidden
           />
           <p className="text-sm leading-relaxed text-[color:var(--color-ink-700)]">
-            Publiez d&apos;abord votre événement (section ci-dessus) pour activer l&apos;envoi des
-            invitations.
+            {t('broadcastHintNotPublished')}
           </p>
         </div>
       ) : null}
@@ -148,7 +154,7 @@ export function BroadcastInvitationsCard({
             aria-hidden
           />
           <p className="text-sm leading-relaxed text-[color:var(--color-ink-700)]">
-            Ajoutez des invités avec un numéro WhatsApp pour pouvoir leur envoyer une invitation.
+            {t('broadcastHintNoPhones')}
           </p>
         </div>
       ) : null}
@@ -161,8 +167,7 @@ export function BroadcastInvitationsCard({
             aria-hidden
           />
           <p className="text-sm leading-relaxed text-[color:var(--color-blush-800)]">
-            Toutes les invitations sont parties. Si vous ajoutez de nouveaux invités, le bouton
-            ré-apparaîtra pour eux.
+            {t('broadcastAllSent')}
           </p>
         </div>
       ) : null}
@@ -181,13 +186,12 @@ export function BroadcastInvitationsCard({
           />
           <div className="flex flex-col gap-1">
             <p className="text-sm font-medium text-[color:var(--color-blush-800)]">
-              {state.sent} invitation{state.sent > 1 ? 's' : ''} envoyée
-              {state.sent > 1 ? 's' : ''} avec succès.
-              {state.failed > 0 ? ` ${state.failed} échec${state.failed > 1 ? 's' : ''}.` : ''}
+              {t('broadcastSuccess', { count: state.sent })}
+              {state.failed > 0 ? ` ${t('broadcastFailures', { count: state.failed })}` : ''}
             </p>
             {state.mock ? (
               <p className="font-mono text-[10px] tracking-[0.24em] text-[color:var(--color-ink-500)] uppercase">
-                Mode mock — pas d&apos;envoi réel (credentials WhatsApp absents).
+                {t('broadcastMockNotice')}
               </p>
             ) : null}
           </div>
@@ -210,12 +214,12 @@ export function BroadcastInvitationsCard({
       >
         <Send className="h-4 w-4" strokeWidth={2} aria-hidden />
         {pending
-          ? 'Envoi en cours…'
+          ? t('broadcastButtonSending')
           : remaining === 0
             ? noPhones
-              ? 'Aucun invité avec téléphone'
-              : 'Tout est envoyé'
-            : `Envoyer à ${remaining} invité${remaining > 1 ? 's' : ''}`}
+              ? t('broadcastButtonNoPhones')
+              : t('broadcastButtonAllSent')
+            : t('broadcastButtonSend', { count: remaining })}
       </Button>
     </section>
   );

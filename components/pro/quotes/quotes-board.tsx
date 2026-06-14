@@ -2,6 +2,7 @@
 
 import { useMemo, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import {
   FileText,
   Receipt,
@@ -118,13 +119,21 @@ function CoupleName({ name }: { name: string }) {
   );
 }
 
-const ERR: Record<string, string> = {
-  FEATURE_NOT_IN_PLAN: 'Réservé aux forfaits Business et Agency.',
-  FORBIDDEN: 'Vous n’avez pas les droits requis.',
-  INVALID_CLIENT: 'Sélectionnez un client.',
-  INVALID_LINES: 'Ajoutez au moins une ligne.',
-};
-const errLabel = (c: string) => ERR[c] ?? 'Une erreur est survenue.';
+/** Traduit un code d'erreur serveur en message lisible (clos, donc switch). */
+function errLabel(t: (key: string) => string, code: string): string {
+  switch (code) {
+    case 'FEATURE_NOT_IN_PLAN':
+      return t('errors.featureNotInPlan');
+    case 'FORBIDDEN':
+      return t('errors.forbidden');
+    case 'INVALID_CLIENT':
+      return t('errors.invalidClient');
+    case 'INVALID_LINES':
+      return t('errors.invalidLines');
+    default:
+      return t('errors.generic');
+  }
+}
 
 type View =
   | { kind: 'list' }
@@ -146,6 +155,7 @@ export function QuotesBoard({
   canWrite: boolean;
   connected: boolean;
 }) {
+  const t = useTranslations('Pro.quotesBoard');
   const router = useRouter();
   const [docs, setDocs] = useState<QuoteDoc[]>(initialDocs);
   const [view, setView] = useState<View>({ kind: 'list' });
@@ -217,7 +227,7 @@ export function QuotesBoard({
     <div className="container-page flex flex-col gap-6 py-8 sm:py-10">
       <header className="flex flex-col gap-1.5">
         <span className="font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-muted-foreground)] uppercase">
-          Finances · Devis &amp; Factures
+          {t('eyebrow')}
         </span>
         <h1
           className="font-display italic"
@@ -228,7 +238,7 @@ export function QuotesBoard({
             color: 'var(--color-foreground)',
           }}
         >
-          Devis &amp; Factures
+          {t('title')}
         </h1>
       </header>
 
@@ -237,25 +247,25 @@ export function QuotesBoard({
         <Kpi
           tone="ok"
           Icon={Wallet}
-          label="Encaissé ce mois"
+          label={t('kpis.collected')}
           value={formatEurMinor(kpis.collectedMinor)}
         />
         <Kpi
           tone="warn"
           Icon={Loader}
-          label="En attente"
+          label={t('kpis.pending')}
           value={formatEurMinor(kpis.pendingMinor)}
         />
         <Kpi
           tone="danger"
           Icon={CircleAlert}
-          label="En retard"
+          label={t('kpis.overdue')}
           value={formatEurMinor(kpis.overdueMinor)}
         />
         <Kpi
           tone="muted"
           Icon={FileText}
-          label="Devis en cours"
+          label={t('kpis.openQuotes')}
           value={formatEurMinor(kpis.openQuotesMinor)}
         />
       </div>
@@ -263,28 +273,28 @@ export function QuotesBoard({
       {/* tabs + search + action */}
       <div className="flex flex-wrap items-center gap-2.5">
         <div className="flex items-center rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-0.5">
-          {(['quote', 'invoice'] as const).map((t) => (
+          {(['quote', 'invoice'] as const).map((tabKind) => (
             <button
-              key={t}
+              key={tabKind}
               type="button"
-              onClick={() => setTab(t)}
-              aria-selected={tab === t}
+              onClick={() => setTab(tabKind)}
+              aria-selected={tab === tabKind}
               role="tab"
               className={cn(
                 'inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors',
-                tab === t
+                tab === tabKind
                   ? 'bg-[color:var(--color-surface-elevated)] text-[color:var(--color-foreground)]'
                   : 'text-[color:var(--color-muted-foreground)]',
               )}
             >
-              {t === 'quote' ? (
+              {tabKind === 'quote' ? (
                 <FileText className="h-3.5 w-3.5" strokeWidth={1.9} />
               ) : (
                 <Receipt className="h-3.5 w-3.5" strokeWidth={1.9} />
               )}
-              {t === 'quote' ? 'Devis' : 'Factures'}
+              {tabKind === 'quote' ? t('tabs.quotes') : t('tabs.invoices')}
               <span className="font-mono text-[10px] text-[color:var(--color-muted-foreground)]">
-                {t === 'quote' ? counts.quote : counts.invoice}
+                {tabKind === 'quote' ? counts.quote : counts.invoice}
               </span>
             </button>
           ))}
@@ -299,8 +309,8 @@ export function QuotesBoard({
             type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Rechercher…"
-            aria-label="Rechercher un document"
+            placeholder={t('searchPlaceholder')}
+            aria-label={t('searchAriaLabel')}
             className="focus-ring h-9 w-full rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-surface)] pr-3 pl-9 text-sm text-[color:var(--color-foreground)] placeholder:text-[color:var(--color-muted-foreground)]"
           />
         </label>
@@ -314,7 +324,7 @@ export function QuotesBoard({
             data-testid="new-doc"
           >
             <Plus className="h-4 w-4" strokeWidth={2.2} aria-hidden />
-            {tab === 'quote' ? 'Nouveau devis' : 'Nouvelle facture'}
+            {tab === 'quote' ? t('newQuote') : t('newInvoice')}
           </Button>
         ) : null}
       </div>
@@ -323,26 +333,28 @@ export function QuotesBoard({
       {rows.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-[color:var(--color-border-strong)] bg-[color:var(--color-surface)]/40 px-8 py-14 text-center text-sm text-[color:var(--color-muted-foreground)]">
           {query
-            ? 'Aucun document ne correspond.'
+            ? t('empty.noMatch')
             : tab === 'quote'
-              ? 'Aucun devis pour l’instant.'
-              : 'Aucune facture pour l’instant.'}
+              ? t('empty.noQuotes')
+              : t('empty.noInvoices')}
         </div>
       ) : (
         <div className="overflow-x-auto rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)]">
           <table className="w-full min-w-[820px] border-collapse text-sm">
             <thead>
               <tr className="border-b border-[color:var(--color-border)] text-left font-mono text-[9px] tracking-[0.18em] text-[color:var(--color-muted-foreground)] uppercase">
-                <th className="px-4 py-3 font-medium">Numéro</th>
-                <th className="px-4 py-3 font-medium">Client</th>
-                {tab === 'quote' ? <th className="px-4 py-3 font-medium">Mariage</th> : null}
-                <th className="px-4 py-3 text-right font-medium">Montant</th>
-                {tab === 'invoice' ? (
-                  <th className="px-4 py-3 font-medium">Payé / Restant</th>
+                <th className="px-4 py-3 font-medium">{t('cols.number')}</th>
+                <th className="px-4 py-3 font-medium">{t('cols.client')}</th>
+                {tab === 'quote' ? (
+                  <th className="px-4 py-3 font-medium">{t('cols.wedding')}</th>
                 ) : null}
-                <th className="px-4 py-3 font-medium">Statut</th>
+                <th className="px-4 py-3 text-right font-medium">{t('cols.amount')}</th>
+                {tab === 'invoice' ? (
+                  <th className="px-4 py-3 font-medium">{t('cols.paidRemaining')}</th>
+                ) : null}
+                <th className="px-4 py-3 font-medium">{t('cols.status')}</th>
                 <th className="px-4 py-3 font-medium">
-                  {tab === 'quote' ? 'Validité' : 'Échéance'}
+                  {tab === 'quote' ? t('cols.validity') : t('cols.dueDate')}
                 </th>
                 <th className="px-4 py-3" />
               </tr>
@@ -411,11 +423,11 @@ export function QuotesBoard({
                           startTransition(async () => {
                             const res = await convertDocAction(d._id);
                             if (res.ok) refresh();
-                            else alert(errLabel(res.error));
+                            else alert(errLabel(t, res.error));
                           });
                         }}
                         onDelete={() => {
-                          if (!confirm(`Supprimer ${d.number} ?`)) return;
+                          if (!confirm(t('confirmDelete', { number: d.number }))) return;
                           setDocs((prev) => prev.filter((x) => x._id !== d._id));
                           startTransition(async () => {
                             await removeDocAction(d._id);
@@ -433,7 +445,7 @@ export function QuotesBoard({
       )}
       {pending ? (
         <span className="sr-only" role="status">
-          Mise à jour…
+          {t('updating')}
         </span>
       ) : null}
     </div>
@@ -486,13 +498,14 @@ function RowMenu({
   onConvert: () => void;
   onDelete: () => void;
 }) {
+  const t = useTranslations('Pro.quotesBoard');
   const [open, setOpen] = useState(false);
   return (
     <div className="relative inline-block">
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        aria-label="Actions"
+        aria-label={t('rowMenu.actions')}
         aria-haspopup="menu"
         aria-expanded={open}
         className="focus-ring rounded-lg p-1.5 text-[color:var(--color-muted-foreground)] hover:bg-[color:var(--color-surface)] hover:text-[color:var(--color-foreground)]"
@@ -513,7 +526,7 @@ function RowMenu({
                 setOpen(false);
               }}
             >
-              Voir
+              {t('rowMenu.view')}
             </MenuBtn>
             {canWrite ? (
               <MenuBtn
@@ -523,7 +536,7 @@ function RowMenu({
                   setOpen(false);
                 }}
               >
-                Éditer
+                {t('rowMenu.edit')}
               </MenuBtn>
             ) : null}
             {canWrite && doc.type === 'quote' ? (
@@ -534,7 +547,7 @@ function RowMenu({
                   setOpen(false);
                 }}
               >
-                Convertir en facture
+                {t('convertToInvoice')}
               </MenuBtn>
             ) : null}
             {canWrite ? (
@@ -548,7 +561,7 @@ function RowMenu({
                     setOpen(false);
                   }}
                 >
-                  Supprimer
+                  {t('rowMenu.delete')}
                 </MenuBtn>
               </>
             ) : null}
@@ -605,9 +618,10 @@ function QuoteBuilder({
   onBack: () => void;
   onSaved: (doc: QuoteDoc) => void;
 }) {
+  const t = useTranslations('Pro.quotesBoard');
   const [lines, setLines] = useState<LineItem[]>(
     initial?.lineItems.map((l) => ({ ...l })) ?? [
-      { label: 'Coordination jour J (12 h)', qty: 1, unitPriceMinor: 140000 },
+      { label: t('builder.defaultLineLabel'), qty: 1, unitPriceMinor: 140000 },
     ],
   );
   const [clientId, setClientId] = useState(initial?.clientId ?? clients[0]?._id ?? '');
@@ -645,23 +659,27 @@ function QuoteBuilder({
       ),
     );
 
-  const agencyInitial = 'L';
+  const agencyInitial = t('preview.agencyInitial');
 
   function save(send: boolean) {
     setError(null);
     const clean = lines.filter((l) => l.label.trim());
     if (!clientId) {
-      setError('Sélectionnez un client.');
+      setError(t('errors.invalidClient'));
       return;
     }
     if (!clean.length) {
-      setError('Ajoutez au moins une ligne.');
+      setError(t('errors.invalidLines'));
       return;
     }
     const schedule = isInvoice
       ? [
-          { label: `Acompte ${acompte} %`, amountMinor: acompteMinor, paid: false },
-          { label: 'Solde', amountMinor: total - acompteMinor, paid: false },
+          {
+            label: t('builder.scheduleDeposit', { pct: acompte }),
+            amountMinor: acompteMinor,
+            paid: false,
+          },
+          { label: t('builder.scheduleBalance'), amountMinor: total - acompteMinor, paid: false },
         ]
       : undefined;
     start(async () => {
@@ -679,7 +697,7 @@ function QuoteBuilder({
         ? await updateDocAction(initial._id, payload)
         : await createDocAction(organizationId, payload);
       if (!res.ok) {
-        setError(errLabel(res.error));
+        setError(errLabel(t, res.error));
         return;
       }
       const saved: QuoteDoc = {
@@ -709,25 +727,25 @@ function QuoteBuilder({
         className="focus-ring flex items-center gap-1.5 self-start text-sm text-[color:var(--color-muted-foreground)] hover:text-[color:var(--color-foreground)]"
       >
         <ArrowLeft className="h-4 w-4" strokeWidth={2} aria-hidden />
-        Retour
+        {t('back')}
       </button>
       <h1 className="font-display text-2xl text-[color:var(--color-foreground)] italic">
         {initial
-          ? `Modifier ${initial.number}`
+          ? t('builder.editTitle', { number: initial.number })
           : docType === 'quote'
-            ? 'Nouveau devis'
-            : 'Nouvelle facture'}
+            ? t('newQuote')
+            : t('newInvoice')}
       </h1>
 
       <div className="grid gap-5 lg:grid-cols-[1fr_minmax(300px,380px)]">
         {/* form */}
         <div className="flex flex-col gap-4">
-          <Card title="Client & mariage">
+          <Card title={t('builder.clientWeddingCard')}>
             <div className="grid gap-3 sm:grid-cols-2">
-              <Field label="Client">
+              <Field label={t('cols.client')}>
                 <Select value={clientId} onValueChange={setClientId}>
                   <SelectTrigger className={SELECT}>
-                    <SelectValue placeholder="— Aucun client —" />
+                    <SelectValue placeholder={t('builder.noClientPlaceholder')} />
                   </SelectTrigger>
                   <SelectContent>
                     {clients.map((c) => (
@@ -738,7 +756,7 @@ function QuoteBuilder({
                   </SelectContent>
                 </Select>
               </Field>
-              <Field label="Mariage lié (optionnel)">
+              <Field label={t('builder.linkedWedding')}>
                 <Select
                   value={eventId || 'none'}
                   onValueChange={(v) => setEventId(v === 'none' ? '' : v)}
@@ -747,7 +765,7 @@ function QuoteBuilder({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">— Aucun —</SelectItem>
+                    <SelectItem value="none">{t('builder.noneOption')}</SelectItem>
                     {weddings.map((w) => (
                       <SelectItem key={w._id} value={w._id}>
                         {w.coupleNames}
@@ -759,13 +777,13 @@ function QuoteBuilder({
             </div>
           </Card>
 
-          <Card title="Lignes">
+          <Card title={t('builder.linesCard')}>
             <div className="flex flex-col gap-2">
               <div className="grid grid-cols-[1fr_64px_88px_88px_32px] gap-2 px-1 font-mono text-[9px] tracking-[0.14em] text-[color:var(--color-muted-foreground)] uppercase">
-                <span>Libellé</span>
-                <span className="text-right">Qté</span>
-                <span className="text-right">P.U.</span>
-                <span className="text-right">Total</span>
+                <span>{t('builder.colLabel')}</span>
+                <span className="text-right">{t('builder.colQty')}</span>
+                <span className="text-right">{t('builder.colUnitPrice')}</span>
+                <span className="text-right">{t('builder.colTotal')}</span>
                 <span />
               </div>
               {lines.map((l, i) => (
@@ -776,21 +794,21 @@ function QuoteBuilder({
                   <input
                     value={l.label}
                     onChange={(e) => setLine(i, 'label', e.target.value)}
-                    aria-label="Libellé"
+                    aria-label={t('builder.colLabel')}
                     className={INPUT}
                   />
                   <input
                     value={l.qty}
                     onChange={(e) => setLine(i, 'qty', e.target.value)}
                     inputMode="numeric"
-                    aria-label="Quantité"
+                    aria-label={t('builder.qtyAria')}
                     className={cn(INPUT, 'text-right font-mono')}
                   />
                   <input
                     value={l.unitPriceMinor / 100}
                     onChange={(e) => setLine(i, 'unitPriceMinor', e.target.value)}
                     inputMode="numeric"
-                    aria-label="Prix unitaire"
+                    aria-label={t('builder.unitPriceAria')}
                     className={cn(INPUT, 'text-right font-mono')}
                   />
                   <span className="text-right font-mono text-xs text-[color:var(--color-foreground)] tabular-nums">
@@ -798,7 +816,7 @@ function QuoteBuilder({
                   </span>
                   <button
                     onClick={() => setLines((ls) => ls.filter((_, j) => j !== i))}
-                    aria-label="Supprimer la ligne"
+                    aria-label={t('builder.removeLineAria')}
                     className="focus-ring flex items-center justify-center rounded-md p-1 text-[color:var(--color-muted-foreground)] hover:text-[color:var(--color-danger)]"
                   >
                     <Trash2 className="h-3.5 w-3.5" strokeWidth={1.8} />
@@ -811,10 +829,10 @@ function QuoteBuilder({
               className="focus-ring mt-1 inline-flex items-center gap-1.5 self-start rounded-lg border border-dashed border-[color:var(--color-border-strong)] px-3 py-1.5 text-xs text-[color:var(--color-muted-foreground)] hover:text-[color:var(--color-foreground)]"
             >
               <Plus className="h-3.5 w-3.5" strokeWidth={2.2} aria-hidden />
-              Ajouter une ligne
+              {t('builder.addLine')}
             </button>
             <div className="mt-2 grid gap-3 sm:grid-cols-2">
-              <Field label="Remise (€)">
+              <Field label={t('builder.discountField')}>
                 <input
                   value={discountEur}
                   onChange={(e) => setDiscountEur(e.target.value)}
@@ -822,34 +840,40 @@ function QuoteBuilder({
                   className={cn(INPUT, 'text-right font-mono')}
                 />
               </Field>
-              <Field label="TVA / Taxe">
+              <Field label={t('builder.taxField')}>
                 <Select value={String(taxRate)} onValueChange={(v) => setTaxRate(parseFloat(v))}>
                   <SelectTrigger className={SELECT}>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="0">Sans taxe (0 %)</SelectItem>
-                    <SelectItem value="20">TVA 20 % (FR)</SelectItem>
-                    <SelectItem value="5">Taxe 5 % (US/CA)</SelectItem>
+                    <SelectItem value="0">{t('builder.taxNone')}</SelectItem>
+                    <SelectItem value="20">{t('builder.taxFr')}</SelectItem>
+                    <SelectItem value="5">{t('builder.taxUs')}</SelectItem>
                   </SelectContent>
                 </Select>
               </Field>
             </div>
             <div className="mt-2 flex flex-col gap-1.5 border-t border-[color:var(--color-border)] pt-3">
-              <TotalRow label="Sous-total" value={formatEurMinor(sub)} />
+              <TotalRow label={t('builder.subtotal')} value={formatEurMinor(sub)} />
               {discountMinor > 0 ? (
-                <TotalRow label="Remise" value={`−${formatEurMinor(discountMinor)}`} />
+                <TotalRow
+                  label={t('builder.discount')}
+                  value={`−${formatEurMinor(discountMinor)}`}
+                />
               ) : null}
               {taxRate > 0 ? (
-                <TotalRow label={`TVA ${taxRate} %`} value={formatEurMinor(tax)} />
+                <TotalRow
+                  label={t('builder.taxRow', { rate: taxRate })}
+                  value={formatEurMinor(tax)}
+                />
               ) : null}
-              <TotalRow label="Total" value={formatEurMinor(total)} grand />
+              <TotalRow label={t('builder.total')} value={formatEurMinor(total)} grand />
             </div>
           </Card>
 
           {isInvoice ? (
-            <Card title="Échéancier">
-              <Field label="Acompte (%)">
+            <Card title={t('builder.scheduleCard')}>
+              <Field label={t('builder.depositField')}>
                 <input
                   value={acompte}
                   onChange={(e) =>
@@ -861,14 +885,14 @@ function QuoteBuilder({
               </Field>
               <div className="mt-2 flex flex-col gap-2">
                 <ScheduleRow
-                  label={`Acompte ${acompte} % · à la signature`}
+                  label={t('builder.scheduleDepositOnSign', { pct: acompte })}
                   amount={formatEurMinor(acompteMinor)}
-                  when="aujourd’hui"
+                  when={t('builder.whenToday')}
                 />
                 <ScheduleRow
-                  label="Solde"
+                  label={t('builder.scheduleBalance')}
                   amount={formatEurMinor(total - acompteMinor)}
-                  when="à l’échéance"
+                  when={t('builder.whenDue')}
                 />
               </div>
             </Card>
@@ -889,7 +913,7 @@ function QuoteBuilder({
               onClick={() => save(false)}
             >
               <FileText className="h-4 w-4" strokeWidth={1.8} aria-hidden />
-              Enregistrer brouillon
+              {t('builder.saveDraft')}
             </Button>
             <Button
               type="button"
@@ -899,7 +923,7 @@ function QuoteBuilder({
               onClick={() => save(true)}
             >
               <Send className="h-4 w-4" strokeWidth={1.9} aria-hidden />
-              {pending ? 'Envoi…' : 'Envoyer'}
+              {pending ? t('builder.sending') : t('builder.send')}
             </Button>
           </div>
         </div>
@@ -911,11 +935,13 @@ function QuoteBuilder({
               <span className="font-display flex h-8 w-8 items-center justify-center rounded-lg bg-[color:var(--color-blush-500)] text-sm text-white">
                 {agencyInitial}
               </span>
-              <b className="text-sm text-[color:var(--color-foreground)]">Studio Lumière</b>
+              <b className="text-sm text-[color:var(--color-foreground)]">
+                {t('preview.agencyName')}
+              </b>
             </span>
             <span className="text-right">
               <span className="font-display block text-base text-[color:var(--color-foreground)] italic">
-                {docType === 'quote' ? 'Devis' : 'Facture'}
+                {docType === 'quote' ? t('doc.quote') : t('doc.invoice')}
               </span>
               <span className="block font-mono text-[10px] text-[color:var(--color-muted-foreground)]">
                 {initial?.number ?? '—'}
@@ -925,7 +951,7 @@ function QuoteBuilder({
           <div className="flex items-center justify-between py-3 text-xs">
             <span>
               <span className="block font-mono text-[9px] tracking-[0.14em] text-[color:var(--color-muted-foreground)] uppercase">
-                Client
+                {t('cols.client')}
               </span>
               <span className="text-[color:var(--color-foreground)]">
                 {clients.find((c) => c._id === clientId)?.name ?? '—'}
@@ -933,7 +959,7 @@ function QuoteBuilder({
             </span>
             <span className="text-right">
               <span className="block font-mono text-[9px] tracking-[0.14em] text-[color:var(--color-muted-foreground)] uppercase">
-                Date
+                {t('doc.date')}
               </span>
               <span className="text-[color:var(--color-foreground)]">{formatDateFr(nowMs())}</span>
             </span>
@@ -941,10 +967,10 @@ function QuoteBuilder({
           <table className="w-full border-collapse text-[11px]">
             <thead>
               <tr className="border-b border-[color:var(--color-border)] text-left font-mono text-[8px] tracking-[0.1em] text-[color:var(--color-muted-foreground)] uppercase">
-                <th className="py-1.5">Désignation</th>
-                <th className="py-1.5 text-right">Qté</th>
-                <th className="py-1.5 text-right">P.U.</th>
-                <th className="py-1.5 text-right">Total</th>
+                <th className="py-1.5">{t('doc.designation')}</th>
+                <th className="py-1.5 text-right">{t('builder.colQty')}</th>
+                <th className="py-1.5 text-right">{t('builder.colUnitPrice')}</th>
+                <th className="py-1.5 text-right">{t('builder.colTotal')}</th>
               </tr>
             </thead>
             <tbody>
@@ -967,7 +993,7 @@ function QuoteBuilder({
             </tbody>
           </table>
           <div className="mt-3 flex justify-between border-t border-[color:var(--color-border)] pt-2 text-sm">
-            <span className="text-[color:var(--color-muted-foreground)]">Total</span>
+            <span className="text-[color:var(--color-muted-foreground)]">{t('builder.total')}</span>
             <span className="font-display text-[color:var(--color-foreground)] italic">
               {formatEurMinor(total)}
             </span>
@@ -998,6 +1024,7 @@ function QuoteDetail({
   onChanged: (d: QuoteDoc) => void;
   onConverted: () => void;
 }) {
+  const t = useTranslations('Pro.quotesBoard');
   const [pending, start] = useTransition();
   const total = docTotalMinor(doc);
   const paid = docPaidMinor(doc);
@@ -1030,7 +1057,7 @@ function QuoteDetail({
         className="focus-ring flex items-center gap-1.5 self-start text-sm text-[color:var(--color-muted-foreground)] hover:text-[color:var(--color-foreground)]"
       >
         <ArrowLeft className="h-4 w-4" strokeWidth={2} aria-hidden />
-        Retour à la liste
+        {t('detail.backToList')}
       </button>
 
       <div className="grid gap-5 lg:grid-cols-[1.6fr_1fr]">
@@ -1039,13 +1066,13 @@ function QuoteDetail({
           <div className="flex items-start justify-between gap-3 border-b border-[color:var(--color-border)] pb-4">
             <span className="flex items-center gap-2">
               <span className="font-display flex h-9 w-9 items-center justify-center rounded-lg bg-[color:var(--color-blush-500)] text-base text-white">
-                L
+                {t('preview.agencyInitial')}
               </span>
-              <b className="text-[color:var(--color-foreground)]">Studio Lumière</b>
+              <b className="text-[color:var(--color-foreground)]">{t('preview.agencyName')}</b>
             </span>
             <span className="text-right">
               <span className="font-display block text-lg text-[color:var(--color-foreground)] italic">
-                {doc.type === 'quote' ? 'Devis' : 'Facture'}
+                {doc.type === 'quote' ? t('doc.quote') : t('doc.invoice')}
               </span>
               <span className="block font-mono text-[11px] text-[color:var(--color-muted-foreground)]">
                 {doc.number}
@@ -1055,13 +1082,13 @@ function QuoteDetail({
           <div className="grid grid-cols-3 gap-2 py-4 text-xs">
             <span>
               <span className="block font-mono text-[9px] tracking-[0.14em] text-[color:var(--color-muted-foreground)] uppercase">
-                Client
+                {t('cols.client')}
               </span>
               <span className="text-[color:var(--color-foreground)]">{doc.clientName}</span>
             </span>
             <span className="text-center">
               <span className="block font-mono text-[9px] tracking-[0.14em] text-[color:var(--color-muted-foreground)] uppercase">
-                Émis
+                {t('doc.issued')}
               </span>
               <span className="text-[color:var(--color-foreground)]">
                 {formatDateFr(doc.issueDate)}
@@ -1069,7 +1096,7 @@ function QuoteDetail({
             </span>
             <span className="text-right">
               <span className="block font-mono text-[9px] tracking-[0.14em] text-[color:var(--color-muted-foreground)] uppercase">
-                {doc.type === 'quote' ? 'Validité' : 'Échéance'}
+                {doc.type === 'quote' ? t('cols.validity') : t('cols.dueDate')}
               </span>
               <span className="text-[color:var(--color-foreground)]">
                 {formatDateFr(doc.dueDate)}
@@ -1079,10 +1106,10 @@ function QuoteDetail({
           <table className="w-full border-collapse text-sm">
             <thead>
               <tr className="border-b border-[color:var(--color-border)] text-left font-mono text-[9px] tracking-[0.12em] text-[color:var(--color-muted-foreground)] uppercase">
-                <th className="py-2">Désignation</th>
-                <th className="py-2 text-right">Qté</th>
-                <th className="py-2 text-right">P.U.</th>
-                <th className="py-2 text-right">Total</th>
+                <th className="py-2">{t('doc.designation')}</th>
+                <th className="py-2 text-right">{t('builder.colQty')}</th>
+                <th className="py-2 text-right">{t('builder.colUnitPrice')}</th>
+                <th className="py-2 text-right">{t('builder.colTotal')}</th>
               </tr>
             </thead>
             <tbody>
@@ -1103,11 +1130,11 @@ function QuoteDetail({
             </tbody>
           </table>
           <div className="mt-3 flex flex-col gap-1.5 border-t border-[color:var(--color-border)] pt-3">
-            <TotalRow label="Total" value={formatEurMinor(total)} grand />
+            <TotalRow label={t('builder.total')} value={formatEurMinor(total)} grand />
             {doc.schedule?.length ? (
               <>
-                <TotalRow label="Payé" value={formatEurMinor(paid)} />
-                <TotalRow label="Restant" value={formatEurMinor(rem)} />
+                <TotalRow label={t('detail.paid')} value={formatEurMinor(paid)} />
+                <TotalRow label={t('detail.remaining')} value={formatEurMinor(rem)} />
               </>
             ) : null}
           </div>
@@ -1116,7 +1143,7 @@ function QuoteDetail({
           {doc.schedule?.length ? (
             <div className="mt-4 flex flex-col gap-2 border-t border-[color:var(--color-border)] pt-4">
               <span className="font-mono text-[9px] tracking-[0.14em] text-[color:var(--color-muted-foreground)] uppercase">
-                Échéances · encaissement manuel
+                {t('detail.scheduleHeading')}
               </span>
               {doc.schedule.map((s, i) => (
                 <div
@@ -1128,7 +1155,9 @@ function QuoteDetail({
                       {s.label}
                     </b>
                     <span className="font-mono text-[10px] text-[color:var(--color-muted-foreground)]">
-                      {s.dueDate ? `échéance ${formatDateFr(s.dueDate)}` : 'à réception'}
+                      {s.dueDate
+                        ? t('detail.scheduleDue', { date: formatDateFr(s.dueDate) })
+                        : t('detail.onReceipt')}
                     </span>
                   </span>
                   <span className="font-mono text-sm text-[color:var(--color-foreground)] tabular-nums">
@@ -1137,7 +1166,7 @@ function QuoteDetail({
                   {s.paid ? (
                     <span className="inline-flex items-center gap-1 rounded-full bg-[color:var(--color-sage-500)]/15 px-2 py-0.5 text-[11px] font-medium text-[color:var(--color-sage-500)]">
                       <CircleCheck className="h-3 w-3" strokeWidth={2.2} aria-hidden />
-                      Encaissé
+                      {t('detail.collected')}
                     </span>
                   ) : canWrite ? (
                     <div className="flex flex-wrap items-center justify-end gap-1.5">
@@ -1156,19 +1185,18 @@ function QuoteDetail({
                         className="focus-ring inline-flex items-center gap-1 rounded-lg border border-[color:var(--color-border-strong)] px-2.5 py-1 text-[11px] font-medium text-[color:var(--color-foreground)] transition-colors hover:border-[color:var(--color-sage-500)] hover:text-[color:var(--color-sage-500)] disabled:opacity-50"
                       >
                         <CircleCheck className="h-3.5 w-3.5" strokeWidth={1.9} aria-hidden />
-                        Marquer payé
+                        {t('detail.markPaid')}
                       </button>
                     </div>
                   ) : (
                     <span className="text-[11px] text-[color:var(--color-muted-foreground)]">
-                      En attente
+                      {t('detail.awaiting')}
                     </span>
                   )}
                 </div>
               ))}
               <p className="text-[11px] text-[color:var(--color-muted-foreground)]">
-                Enregistrez les versements reçus (virement, espèces, chèque…) — suivi indépendant de
-                Wedillybird Pay.
+                {t('detail.manualNote')}
               </p>
             </div>
           ) : null}
@@ -1179,7 +1207,7 @@ function QuoteDetail({
           <div className="rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-5">
             <div className="mb-3 flex items-center justify-between">
               <span className="font-display text-base text-[color:var(--color-foreground)] italic">
-                Statut
+                {t('cols.status')}
               </span>
               <StatusPill type={doc.type} status={doc.status} />
             </div>
@@ -1193,7 +1221,7 @@ function QuoteDetail({
                   onClick={() => setStatus('sent')}
                 >
                   <Send className="h-4 w-4" strokeWidth={1.9} aria-hidden />
-                  Relancer
+                  {t('detail.followUp')}
                 </Button>
                 {doc.type === 'quote' ? (
                   <Button
@@ -1209,7 +1237,7 @@ function QuoteDetail({
                     }
                   >
                     <FileCheck className="h-4 w-4" strokeWidth={1.8} aria-hidden />
-                    Convertir en facture
+                    {t('convertToInvoice')}
                   </Button>
                 ) : (
                   <Button
@@ -1220,12 +1248,12 @@ function QuoteDetail({
                     onClick={() => setStatus('paid')}
                   >
                     <CircleCheck className="h-4 w-4" strokeWidth={1.8} aria-hidden />
-                    Marquer payé
+                    {t('detail.markPaid')}
                   </Button>
                 )}
                 <Button type="button" variant="ghost" size="md" onClick={onEdit}>
                   <Pencil className="h-4 w-4" strokeWidth={1.8} aria-hidden />
-                  Modifier
+                  {t('detail.edit')}
                 </Button>
               </div>
             ) : null}
@@ -1241,17 +1269,20 @@ function QuoteDetail({
 function DetailTimeline({ docId, issueDate }: { docId: string; issueDate: number }) {
   // La timeline détaillée est rechargée à l'ouverture du détail via le serveur ;
   // ici on affiche au minimum la création (les events s'ajoutent côté Convex).
+  const t = useTranslations('Pro.quotesBoard');
   return (
     <div className="rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-5">
       <span className="mb-3 block font-mono text-[10px] tracking-[0.16em] text-[color:var(--color-muted-foreground)] uppercase">
-        Historique
+        {t('detail.history')}
       </span>
       <div className="flex items-start gap-3">
         <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-[color:var(--color-surface-elevated)] text-[color:var(--color-blush-300)]">
           <FileText className="h-3.5 w-3.5" strokeWidth={1.8} aria-hidden />
         </span>
         <span className="flex flex-col">
-          <span className="text-sm text-[color:var(--color-foreground)]">Document créé</span>
+          <span className="text-sm text-[color:var(--color-foreground)]">
+            {t('detail.documentCreated')}
+          </span>
           <span className="font-mono text-[10px] text-[color:var(--color-muted-foreground)]">
             {formatDateFr(issueDate)}
           </span>

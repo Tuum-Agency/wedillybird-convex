@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl';
 import { Check, Sparkles, Star } from 'lucide-react';
 import { Link } from '@/i18n/navigation';
 import { buttonVariants } from '@/components/ui/button';
+import { analytics } from '@/lib/analytics/posthog-client';
 import {
   PAYG_PRO_PRICE,
   SUBSCRIPTION_TIER_ANNUAL_PRICES,
@@ -70,8 +71,8 @@ type LandingPricingProsProps = {
   defaultCurrency?: Currency;
   /**
    * Libellé de l'eyebrow de section. Défaut = numérotation de la landing
-   * ("CHAPITRE 06B…") ; la page `/pros` passe un libellé autonome. Optionnel
-   * pour que l'usage landing reste strictement inchangé.
+   * (clé i18n `pricing.prosChapter`) ; la page `/pros` passe un libellé
+   * autonome. Optionnel pour que l'usage landing reste strictement inchangé.
    */
   eyebrow?: string;
 };
@@ -89,11 +90,13 @@ type LandingPricingProsProps = {
  */
 export function LandingPricingPros({
   defaultCurrency = 'EUR',
-  eyebrow = 'CHAPITRE 06B — FORFAITS PROS',
+  eyebrow,
 }: LandingPricingProsProps = {}) {
   const t = useTranslations('Landing');
   const tPlans = useTranslations('Plans');
   const currency = useEffectiveCurrency(defaultCurrency);
+
+  const resolvedEyebrow = eyebrow ?? t('pricing.prosChapter');
 
   const [billing, setBilling] = useState<Billing>('monthly');
 
@@ -137,7 +140,7 @@ export function LandingPricingPros({
           viewport={inViewOnce}
           className="mb-12 inline-block font-mono text-[11px] tracking-[0.32em] text-[color:var(--color-ink-500)] uppercase"
         >
-          {eyebrow}
+          {resolvedEyebrow}
         </motion.span>
 
         <motion.div
@@ -181,7 +184,11 @@ export function LandingPricingPros({
             <button
               role="radio"
               aria-checked={billing === 'monthly'}
-              onClick={() => setBilling('monthly')}
+              onClick={() => {
+                // Tracking : bascule facturation (nouvelle valeur).
+                analytics.pricingBillingToggled({ billing: 'monthly', audience: 'pro' });
+                setBilling('monthly');
+              }}
               className={cn(
                 'rounded-full px-5 py-2 text-sm font-medium transition-all duration-200',
                 billing === 'monthly'
@@ -194,7 +201,11 @@ export function LandingPricingPros({
             <button
               role="radio"
               aria-checked={billing === 'annual'}
-              onClick={() => setBilling('annual')}
+              onClick={() => {
+                // Tracking : bascule facturation (nouvelle valeur).
+                analytics.pricingBillingToggled({ billing: 'annual', audience: 'pro' });
+                setBilling('annual');
+              }}
               className={cn(
                 'rounded-full px-5 py-2 text-sm font-medium transition-all duration-200',
                 billing === 'annual'
@@ -337,6 +348,17 @@ export function LandingPricingPros({
               {/* CTA */}
               <Link
                 href={`/sign-up?plan=${tier}&billing=${billing}` as never}
+                // Tracking : sélection forfait pro + clic CTA (billing courant).
+                onClick={() => {
+                  analytics.pricingPlanSelected({ tier, audience: 'pro', billing });
+                  analytics.ctaClicked({
+                    source: `pricing_pro_${tier}`,
+                    plan: tier,
+                    billing,
+                    audience: 'pro',
+                    destination: '/sign-up',
+                  });
+                }}
                 className={cn(
                   buttonVariants({
                     variant: recommended ? 'primary' : 'outline',
@@ -412,9 +434,17 @@ export function LandingPricingPros({
               {/* Lien texte */}
               <Link
                 href="/forfaits-pros"
+                // Tracking : clic « voir le détail » du Pay-as-you-go.
+                onClick={() =>
+                  analytics.ctaClicked({
+                    source: 'payg_detail',
+                    destination: '/forfaits-pros',
+                    audience: 'pro',
+                  })
+                }
                 className="flex-shrink-0 text-sm font-medium text-[color:var(--color-primary)] underline-offset-4 hover:underline"
               >
-                Voir le détail
+                {t('pricing.prosSeeDetail')}
               </Link>
             </div>
           </div>

@@ -175,6 +175,7 @@ export default async function ProBillingPage({
 
   const locale = await getLocale();
   const tBilling = await getTranslations('Billing');
+  const tp = await getTranslations('ProPages');
 
   const convex = getConvexServerClient();
   const org = await convex.query(convexApi.myOrganization, { userId: session.userId });
@@ -319,29 +320,35 @@ export default async function ProBillingPage({
                   <span className="font-display text-3xl text-[color:var(--color-foreground)] italic tabular-nums">
                     {formatPrice(SUBSCRIPTION_TIER_PRICES[currentTier].amountMinor, locale)}
                   </span>
-                  <span className="text-sm text-[color:var(--color-muted-foreground)]">/ mois</span>
+                  <span className="text-sm text-[color:var(--color-muted-foreground)]">
+                    {tp('billingPerMonth')}
+                  </span>
                 </span>
               </div>
               <span className="font-mono text-[10px] tracking-[0.18em] text-[color:var(--color-muted-foreground)] uppercase">
-                Abonnement agence
+                {tp('billingAgencySubscription')}
               </span>
             </div>
 
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <BillingCell Icon={RefreshCw} k="Cycle de facturation" v="Mensuel" />
+              <BillingCell
+                Icon={RefreshCw}
+                k={tp('billingCellBillingCycle')}
+                v={tp('billingCellMonthly')}
+              />
               <BillingCell
                 Icon={Calendar}
-                k="Prochaine échéance"
+                k={tp('billingCellNextRenewal')}
                 v={hasActive && periodEndLabel ? periodEndLabel : '—'}
               />
               <BillingCell
                 Icon={CreditCard}
-                k="Moyen de paiement"
-                v={org.stripeCustomerId ? 'Carte · via Stripe' : 'Aucun'}
+                k={tp('billingCellPaymentMethod')}
+                v={org.stripeCustomerId ? tp('billingCellCardViaStripe') : tp('billingCellNone')}
               />
               <BillingCell
                 Icon={ShieldCheck}
-                k="Forfait"
+                k={tp('billingCellPlan')}
                 v={`${SUBSCRIPTION_TIER_PRICES[currentTier].label}`}
               />
             </div>
@@ -359,13 +366,13 @@ export default async function ProBillingPage({
                 className="focus-ring inline-flex items-center gap-1.5 rounded-lg border border-[color:var(--color-border-strong)] px-4 py-2 text-sm text-[color:var(--color-foreground)] transition-colors hover:border-[color:var(--color-blush-400)]"
               >
                 <RefreshCw className="h-4 w-4" strokeWidth={1.9} aria-hidden />
-                Changer de formule
+                {tp('billingChangePlan')}
               </a>
               <span className="flex-1" />
               {org.stripeCustomerId && hasActive && org.myRole === 'owner' ? (
                 <CancelSubscriptionButton
                   planLabel={SUBSCRIPTION_TIER_PRICES[currentTier].label}
-                  renewalLabel={periodEndLabel ?? 'la fin de la période'}
+                  renewalLabel={periodEndLabel ?? tp('billingEndOfPeriod')}
                   action={openBillingPortalAction}
                 />
               ) : null}
@@ -380,7 +387,8 @@ export default async function ProBillingPage({
               href="#plans"
               className="inline-flex items-center gap-1.5 text-sm text-[color:var(--color-blush-300)] hover:underline"
             >
-              Choisir un forfait <ArrowRight className="h-4 w-4" strokeWidth={2} aria-hidden />
+              {tp('billingChoosePlan')}{' '}
+              <ArrowRight className="h-4 w-4" strokeWidth={2} aria-hidden />
             </a>
           </section>
         )}
@@ -522,7 +530,7 @@ export default async function ProBillingPage({
           <header className="mb-4 flex flex-wrap items-end justify-between gap-3">
             <div className="flex flex-col gap-1">
               <span className="font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-muted-foreground)] uppercase">
-                Abonnement
+                {tp('billingSubscriptionEyebrow')}
               </span>
               <h3
                 className="font-display italic"
@@ -532,12 +540,12 @@ export default async function ProBillingPage({
                   color: 'var(--color-foreground)',
                 }}
               >
-                Factures
+                {tp('billingInvoicesHeading')}
               </h3>
             </div>
             {subscriptionInvoices.length > 0 ? (
               <span className="font-mono text-[11px] text-[color:var(--color-muted-foreground)]">
-                Total payé{' '}
+                {tp('billingTotalPaid')}{' '}
                 <b className="text-[color:var(--color-foreground)]">
                   {formatPrice(
                     subscriptionInvoices
@@ -556,20 +564,23 @@ export default async function ProBillingPage({
               data-testid="invoices-empty"
             >
               <Receipt className="h-5 w-5 flex-shrink-0" strokeWidth={1.6} aria-hidden />
-              Vos factures d’abonnement apparaîtront ici dès le premier prélèvement. Elles restent
-              téléchargeables depuis le portail Stripe.
+              {tp('billingInvoicesEmpty')}
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full min-w-[680px] border-collapse text-sm">
                 <thead>
                   <tr className="border-b border-[color:var(--color-border)] text-left font-mono text-[9px] tracking-[0.18em] text-[color:var(--color-muted-foreground)] uppercase">
-                    <th className="px-3 py-2.5 font-medium">N° facture</th>
-                    <th className="px-3 py-2.5 font-medium">Date</th>
-                    <th className="px-3 py-2.5 font-medium">Période</th>
-                    <th className="px-3 py-2.5 text-right font-medium">Montant</th>
-                    <th className="px-3 py-2.5 font-medium">Statut</th>
-                    <th className="px-3 py-2.5 text-right font-medium">Document</th>
+                    <th className="px-3 py-2.5 font-medium">{tp('billingInvoiceNumber')}</th>
+                    <th className="px-3 py-2.5 font-medium">{tp('billingInvoiceDate')}</th>
+                    <th className="px-3 py-2.5 font-medium">{tp('billingInvoicePeriod')}</th>
+                    <th className="px-3 py-2.5 text-right font-medium">
+                      {tp('billingInvoiceAmount')}
+                    </th>
+                    <th className="px-3 py-2.5 font-medium">{tp('billingInvoiceStatus')}</th>
+                    <th className="px-3 py-2.5 text-right font-medium">
+                      {tp('billingInvoiceDocument')}
+                    </th>
                   </tr>
                 </thead>
                 <tbody>

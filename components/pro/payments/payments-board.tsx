@@ -31,7 +31,7 @@ import {
   ExternalLink,
   type LucideIcon,
 } from 'lucide-react';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { cn } from '@/lib/cn';
 import { formatEurMinor, formatDateFr } from '@/lib/pro/format';
 import { toast } from '@/components/ui/toast';
@@ -72,7 +72,7 @@ import {
   getConnectedFinancesAction,
   refundConnectedChargeAction,
 } from '@/app/[locale]/(app)/pro/payments/actions';
-import { PayLinkButton, linkErr } from './pay-link-button';
+import { PayLinkButton, useLinkErr } from './pay-link-button';
 import {
   Dialog,
   DialogClose,
@@ -94,11 +94,11 @@ interface Account {
 
 type SubTab = 'dashboard' | 'plan' | 'disputes' | 'settings';
 
-const SUBTABS: { k: SubTab; label: string; Icon: LucideIcon }[] = [
-  { k: 'dashboard', label: 'Tableau de bord', Icon: LayoutDashboard },
-  { k: 'plan', label: 'Échéancier', Icon: ListChecks },
-  { k: 'disputes', label: 'Litiges', Icon: Scale },
-  { k: 'settings', label: 'Réglages', Icon: Settings },
+const SUBTABS: { k: SubTab; labelKey: `subtabs.${SubTab}`; Icon: LucideIcon }[] = [
+  { k: 'dashboard', labelKey: 'subtabs.dashboard', Icon: LayoutDashboard },
+  { k: 'plan', labelKey: 'subtabs.plan', Icon: ListChecks },
+  { k: 'disputes', labelKey: 'subtabs.disputes', Icon: Scale },
+  { k: 'settings', labelKey: 'subtabs.settings', Icon: Settings },
 ];
 
 /* ------------------------------ tons de pastilles ------------------------------ */
@@ -134,10 +134,11 @@ function PayStatusPill({ status }: { status: MilestoneStatus }) {
 }
 
 function StripeBadge() {
+  const t = useTranslations('Pro.payments');
   return (
     <span className="inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.08em] text-[color:var(--color-muted-foreground)]">
       <Lock className="h-3 w-3 text-[color:var(--color-sage-500)]" strokeWidth={2} aria-hidden />
-      Paiements sécurisés par{' '}
+      {t('stripeBadge.securedBy')}{' '}
       <b className="font-semibold tracking-normal text-[color:var(--color-foreground)]">Stripe</b>
     </span>
   );
@@ -166,28 +167,40 @@ function FeeBreakdown({
   amountMinor,
   country,
   approx,
-  title = 'Détail des frais',
+  title,
 }: {
   amountMinor: number;
   country: 'FR';
   approx?: boolean;
+  /** Titre custom ; `undefined` → titre par défaut ; `null` → pas de titre. */
   title?: string | null;
 }) {
+  const t = useTranslations('Pro.payments');
   const f = computeFee(amountMinor, country);
   const a = approx ? '~ ' : '';
+  const resolvedTitle = title === undefined ? t('feeBreakdown.title') : title;
   return (
     <div className="flex flex-col gap-0.5 rounded-xl border border-[color:var(--color-border-strong)] bg-[color:var(--color-surface-elevated)] px-4 py-3.5">
-      {title ? (
+      {resolvedTitle ? (
         <div className="mb-2 font-mono text-[9px] tracking-[0.18em] text-[color:var(--color-muted-foreground)] uppercase">
-          {title}
+          {resolvedTitle}
         </div>
       ) : null}
-      <FeeRow label="Le couple paie" value={formatEurMinor(f.clientPaysMinor)} strong />
-      <FeeRow op="−" label="Frais Stripe" value={`${a}${formatEurMinor(f.stripeFeeMinor)}`} sub />
+      <FeeRow
+        label={t('feeBreakdown.couplePays')}
+        value={formatEurMinor(f.clientPaysMinor)}
+        strong
+      />
+      <FeeRow
+        op="−"
+        label={t('feeBreakdown.stripeFees')}
+        value={`${a}${formatEurMinor(f.stripeFeeMinor)}`}
+        sub
+      />
       <div className="mt-1.5 flex items-center justify-between gap-3 border-t border-[color:var(--color-border)] pt-2.5 font-mono text-sm">
         <span className="inline-flex items-center gap-2 font-medium text-[color:var(--color-foreground)]">
-          <span className="inline-block w-3 text-[color:var(--color-muted-foreground)]">=</span>Vous
-          recevez
+          <span className="inline-block w-3 text-[color:var(--color-muted-foreground)]">=</span>
+          {t('feeBreakdown.youReceive')}
         </span>
         <span className="font-semibold text-[color:var(--color-blush-300)] tabular-nums">
           {a}
@@ -195,7 +208,7 @@ function FeeBreakdown({
         </span>
       </div>
       <div className="mt-2 font-mono text-[10px] leading-relaxed text-[color:var(--color-muted-foreground)]">
-        Vous encaissez sur votre propre compte Stripe.
+        {t('feeBreakdown.note')}
       </div>
     </div>
   );
@@ -278,6 +291,7 @@ function MoneyHero({
   nextDue: Milestone | null;
   account: Account;
 }) {
+  const t = useTranslations('Pro.payments');
   const modeMeta = PAYMENT_MODE_META[account.mode];
   return (
     <div
@@ -292,7 +306,7 @@ function MoneyHero({
         <div className="flex flex-col gap-1.5">
           <span className="inline-flex items-center gap-2 font-mono text-[9.5px] tracking-[0.2em] text-[color:var(--color-muted-foreground)] uppercase">
             <Wallet className="h-3 w-3" strokeWidth={1.9} aria-hidden />
-            Encaissé · suivi
+            {t('moneyHero.eyebrow')}
           </span>
           <span
             className="font-mono font-medium text-[color:var(--color-foreground)] tabular-nums"
@@ -315,16 +329,20 @@ function MoneyHero({
         </div>
       </div>
       <div className="grid grid-cols-1 gap-px overflow-hidden rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-border)] sm:grid-cols-3">
-        <HeroTile Icon={Hourglass} label="À venir" value={formatEurMinor(upcomingMinor)} />
+        <HeroTile
+          Icon={Hourglass}
+          label={t('moneyHero.upcoming')}
+          value={formatEurMinor(upcomingMinor)}
+        />
         <HeroTile
           Icon={CircleAlert}
-          label="En retard"
+          label={t('moneyHero.overdue')}
           value={formatEurMinor(overdueMinor)}
           danger={overdueMinor > 0}
         />
         <HeroTile
           Icon={Calendar}
-          label="Prochaine échéance"
+          label={t('moneyHero.nextDue')}
           value={nextDue?.dueDate ? formatDateFr(nextDue.dueDate) : '—'}
           accent
         />
@@ -369,17 +387,21 @@ function HeroTile({
   );
 }
 
-const FINANCES_ERR: Record<string, string> = {
-  NOT_CONNECTED: 'Connectez votre compte Stripe pour suivre votre solde et vos virements ici.',
-};
-const financesErr = (c: string) =>
-  FINANCES_ERR[c] ?? 'Impossible de récupérer vos données Stripe pour le moment.';
+const FINANCES_ERR_CODES = new Set(['NOT_CONNECTED']);
+/** Hook : traduit un code d'erreur de récupération des finances connectées. */
+function useFinancesErr() {
+  const t = useTranslations('Pro.payments');
+  return (c: string) =>
+    FINANCES_ERR_CODES.has(c) ? t(`financesErrors.${c}` as const) : t('financesErrors.generic');
+}
 
-const REFUND_ERR: Record<string, string> = {
-  FORBIDDEN: 'Seuls le propriétaire et les admins peuvent rembourser.',
-  NOT_CONNECTED: 'Aucun compte Stripe connecté.',
-};
-const refundErr = (c: string) => REFUND_ERR[c] ?? 'Remboursement impossible. Réessayez.';
+const REFUND_ERR_CODES = new Set(['FORBIDDEN', 'NOT_CONNECTED']);
+/** Hook : traduit un code d'erreur de remboursement. */
+function useRefundErr() {
+  const t = useTranslations('Pro.payments');
+  return (c: string) =>
+    REFUND_ERR_CODES.has(c) ? t(`refundErrors.${c}` as const) : t('refundErrors.generic');
+}
 
 /**
  * Solde + virements RÉELS lus sur le compte Stripe connecté de l'agence (Lot B) —
@@ -393,6 +415,9 @@ function ConnectedFinancesSection({
   connected: boolean;
   canManage: boolean;
 }) {
+  const t = useTranslations('Pro.payments');
+  const financesErr = useFinancesErr();
+  const refundErr = useRefundErr();
   const [loading, setLoading] = useState(connected);
   const [data, setData] = useState<ConnectedFinances | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -410,7 +435,7 @@ function ConnectedFinancesSection({
         setRefundError(refundErr(res.error));
         return;
       }
-      toast.success('Remboursement effectué');
+      toast.success(t('toasts.refundDone'));
       setRefundTarget(null);
       const fresh = await getConnectedFinancesAction();
       if (fresh.ok) setData(fresh.data);
@@ -437,15 +462,15 @@ function ConnectedFinancesSection({
 
   return (
     <section className="flex flex-col gap-3">
-      <SectionHead title="Solde & versements" count="Votre compte Stripe" />
+      <SectionHead title={t('finances.title')} count={t('finances.count')} />
       {!connected ? (
         <div className="flex items-center gap-3 rounded-2xl border border-dashed border-[color:var(--color-border-strong)] bg-[color:var(--color-surface)]/40 px-6 py-7 text-sm text-[color:var(--color-muted-foreground)]">
           <Landmark className="h-5 w-5 flex-shrink-0" strokeWidth={1.6} aria-hidden />
-          Connectez votre compte Stripe pour suivre votre solde et vos virements directement ici.
+          {t('finances.notConnected')}
         </div>
       ) : loading ? (
         <div className="rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-6 py-7 text-sm text-[color:var(--color-muted-foreground)]">
-          Chargement de votre solde Stripe…
+          {t('finances.loading')}
         </div>
       ) : error ? (
         <div className="flex items-center gap-2 rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-6 py-5 text-sm text-[color:var(--color-muted-foreground)]">
@@ -462,7 +487,7 @@ function ConnectedFinancesSection({
                   strokeWidth={1.9}
                   aria-hidden
                 />
-                Disponible
+                {t('finances.available')}
               </span>
               <span className="font-mono text-[19px] text-[color:var(--color-foreground)] tabular-nums">
                 {formatEurMinor(data.balance.availableMinor)}
@@ -475,7 +500,7 @@ function ConnectedFinancesSection({
                   strokeWidth={1.9}
                   aria-hidden
                 />
-                En attente
+                {t('finances.pending')}
               </span>
               <span className="font-mono text-[19px] text-[color:var(--color-foreground)] tabular-nums">
                 {formatEurMinor(data.balance.pendingMinor)}
@@ -496,7 +521,9 @@ function ConnectedFinancesSection({
                       strokeWidth={1.7}
                       aria-hidden
                     />
-                    Virement{p.arrivalDate ? ` · ${formatDateFr(p.arrivalDate)}` : ''}
+                    {p.arrivalDate
+                      ? t('finances.payoutWithDate', { date: formatDateFr(p.arrivalDate) })
+                      : t('finances.payout')}
                   </span>
                   <span className="flex items-center gap-2.5">
                     <span className="font-mono text-sm text-[color:var(--color-foreground)] tabular-nums">
@@ -516,15 +543,14 @@ function ConnectedFinancesSection({
             </div>
           ) : (
             <p className="px-1 text-xs text-[color:var(--color-muted-foreground)]">
-              Aucun virement pour l’instant. Vos versements apparaîtront ici dès le premier
-              encaissement.
+              {t('finances.payoutsEmpty')}
             </p>
           )}
 
           {data.payments.length > 0 ? (
             <div className="flex flex-col gap-2">
               <span className="px-1 font-mono text-[9px] tracking-[0.18em] text-[color:var(--color-muted-foreground)] uppercase">
-                Encaissements récents
+                {t('finances.recentCharges')}
               </span>
               <div className="overflow-hidden rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)]">
                 {data.payments.map((p) => (
@@ -534,11 +560,11 @@ function ConnectedFinancesSection({
                   >
                     <div className="flex min-w-0 flex-col">
                       <span className="truncate text-sm text-[color:var(--color-foreground)]">
-                        {p.description ?? p.customerEmail ?? 'Encaissement'}
+                        {p.description ?? p.customerEmail ?? t('finances.chargeFallback')}
                       </span>
                       <span className="font-mono text-[11px] text-[color:var(--color-muted-foreground)]">
                         {p.created ? formatDateFr(p.created) : ''}
-                        {p.refunded ? ' · remboursé' : ''}
+                        {p.refunded ? ` · ${t('finances.refundedSuffix')}` : ''}
                       </span>
                     </div>
                     <div className="flex flex-shrink-0 items-center gap-2.5">
@@ -553,7 +579,7 @@ function ConnectedFinancesSection({
                           className="inline-flex items-center gap-1.5 rounded-lg border border-[color:var(--color-border-strong)] bg-[color:var(--color-surface)] px-2.5 py-1.5 text-xs text-[color:var(--color-ink-700)] hover:text-[color:var(--color-foreground)]"
                         >
                           <Download className="h-3 w-3" strokeWidth={1.9} aria-hidden />
-                          Reçu
+                          {t('finances.receipt')}
                         </a>
                       ) : null}
                       {canManage && isChargeRefundable(p) ? (
@@ -565,7 +591,7 @@ function ConnectedFinancesSection({
                           }}
                           className="inline-flex items-center gap-1.5 rounded-lg border border-[color:var(--color-border-strong)] bg-[color:var(--color-surface)] px-2.5 py-1.5 text-xs text-[color:var(--color-ink-700)] hover:border-[color:var(--color-danger)] hover:text-[color:var(--color-foreground)]"
                         >
-                          Rembourser
+                          {t('finances.refund')}
                         </button>
                       ) : null}
                     </div>
@@ -576,8 +602,7 @@ function ConnectedFinancesSection({
           ) : null}
 
           <p className="px-1 font-mono text-[10px] leading-relaxed text-[color:var(--color-muted-foreground)]">
-            Données lues en direct sur votre compte Stripe — la fréquence des virements se règle
-            dans votre dashboard Stripe.
+            {t('finances.liveNote')}
           </p>
         </div>
       ) : null}
@@ -593,10 +618,12 @@ function ConnectedFinancesSection({
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Rembourser cet encaissement ?</DialogTitle>
+            <DialogTitle>{t('refundDialog.title')}</DialogTitle>
             <DialogDescription>
               {refundTarget
-                ? `${formatEurMinor(refundTarget.amountMinor)} seront renvoyés au client depuis votre compte Stripe. Cette action est irréversible.`
+                ? t('refundDialog.description', {
+                    amount: formatEurMinor(refundTarget.amountMinor),
+                  })
                 : ''}
             </DialogDescription>
           </DialogHeader>
@@ -608,7 +635,7 @@ function ConnectedFinancesSection({
           <DialogFooter>
             <DialogClose asChild>
               <Button type="button" variant="outline" size="md">
-                Annuler
+                {t('actions.cancel')}
               </Button>
             </DialogClose>
             <Button
@@ -618,7 +645,7 @@ function ConnectedFinancesSection({
               disabled={refunding}
               onClick={confirmRefund}
             >
-              {refunding ? 'Remboursement…' : 'Confirmer le remboursement'}
+              {refunding ? t('refundDialog.refunding') : t('refundDialog.confirm')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -648,6 +675,7 @@ function DashboardScreen({
   onRow: (m: Milestone) => void;
   canManage: boolean;
 }) {
+  const t = useTranslations('Pro.payments');
   return (
     <div className="flex flex-col gap-5">
       {!account.connected ? (
@@ -657,12 +685,10 @@ function DashboardScreen({
           </span>
           <div className="flex min-w-0 flex-1 flex-col gap-0.5">
             <b className="text-[13.5px] font-semibold text-[color:var(--color-foreground)]">
-              Connectez votre compte Stripe pour encaisser en ligne
+              {t('dashboard.connectBannerTitle')}
             </b>
             <span className="text-[12.5px] text-[color:var(--color-ink-700)]">
-              Reliez votre propre compte Stripe (carte de connexion en haut de page) : les paiements
-              par carte arrivent directement sur votre compte. En attendant, vous gardez le suivi
-              manuel.
+              {t('dashboard.connectBannerBody')}
             </span>
           </div>
           <button
@@ -671,7 +697,7 @@ function DashboardScreen({
             className="focus-ring inline-flex flex-shrink-0 items-center gap-1.5 rounded-lg bg-[color:var(--color-blush-400)] px-3.5 py-2 text-xs font-medium text-[oklch(20%_0.02_28)] hover:brightness-105"
           >
             <Settings className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />
-            Réglages
+            {t('actions.settings')}
           </button>
         </div>
       ) : null}
@@ -687,26 +713,24 @@ function DashboardScreen({
       {/* Transactions */}
       <section className="flex flex-col gap-3">
         <SectionHead
-          title="Transactions"
-          count={`${milestones.length} échéance${milestones.length > 1 ? 's' : ''}`}
+          title={t('dashboard.transactionsTitle')}
+          count={t('dashboard.milestoneCount', { count: milestones.length })}
         />
         {milestones.length === 0 ? (
-          <EmptyBlock>
-            Aucune transaction pour l’instant. Les échéances de vos factures apparaîtront ici.
-          </EmptyBlock>
+          <EmptyBlock>{t('dashboard.transactionsEmpty')}</EmptyBlock>
         ) : (
           <div className="overflow-hidden rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)]">
             <div className="overflow-x-auto">
               <table className="w-full min-w-[820px] border-collapse text-sm">
                 <thead>
                   <tr className="border-b border-[color:var(--color-border)] text-left font-mono text-[9px] tracking-[0.18em] text-[color:var(--color-muted-foreground)] uppercase">
-                    <th className="px-4 py-3 font-medium">Couple</th>
-                    <th className="px-4 py-3 font-medium">Type</th>
-                    <th className="px-4 py-3 font-medium">Échéance</th>
-                    <th className="px-4 py-3 text-right font-medium">Montant</th>
-                    <th className="px-4 py-3 text-right font-medium">Frais Stripe</th>
-                    <th className="px-4 py-3 text-right font-medium">Net reçu</th>
-                    <th className="px-4 py-3 font-medium">Statut</th>
+                    <th className="px-4 py-3 font-medium">{t('table.couple')}</th>
+                    <th className="px-4 py-3 font-medium">{t('table.type')}</th>
+                    <th className="px-4 py-3 font-medium">{t('table.dueDate')}</th>
+                    <th className="px-4 py-3 text-right font-medium">{t('table.amount')}</th>
+                    <th className="px-4 py-3 text-right font-medium">{t('table.stripeFees')}</th>
+                    <th className="px-4 py-3 text-right font-medium">{t('table.netReceived')}</th>
+                    <th className="px-4 py-3 font-medium">{t('table.status')}</th>
                     <th className="px-4 py-3" />
                   </tr>
                 </thead>
@@ -756,8 +780,7 @@ function DashboardScreen({
             <div className="border-t border-[color:var(--color-border)] px-4 py-3">
               <p className="flex items-start gap-2 text-[11.5px] leading-relaxed text-[color:var(--color-muted-foreground)]">
                 <Info className="mt-0.5 h-3.5 w-3.5 flex-shrink-0" strokeWidth={1.8} aria-hidden />
-                Net reçu = montant encaissé − frais Stripe. Les paiements en ligne vont directement
-                sur votre propre compte Stripe.
+                {t('dashboard.netNote')}
               </p>
             </div>
           </div>
@@ -792,6 +815,8 @@ function FreePayLinkDialog({
   onOpenChange: (v: boolean) => void;
   connected: boolean;
 }) {
+  const t = useTranslations('Pro.payments');
+  const linkErr = useLinkErr();
   const locale = useLocale();
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
@@ -822,14 +847,14 @@ function FreePayLinkDialog({
     >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Nouveau lien de paiement</DialogTitle>
-          <DialogDescription>Encaissé directement sur votre compte Stripe.</DialogDescription>
+          <DialogTitle>{t('freeLink.title')}</DialogTitle>
+          <DialogDescription>{t('freeLink.subtitle')}</DialogDescription>
         </DialogHeader>
 
         {link ? (
           <div className="flex flex-col gap-3">
             <p className="text-sm text-[color:var(--color-foreground)]">
-              Lien créé et copié. Partagez-le avec votre client :
+              {t('freeLink.createdShare')}
             </p>
             <div className="flex items-center gap-2 rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface-elevated)] px-3.5 py-3">
               <Link2
@@ -844,7 +869,7 @@ function FreePayLinkDialog({
                 href={link.url}
                 target="_blank"
                 rel="noreferrer"
-                aria-label="Ouvrir le lien"
+                aria-label={t('freeLink.openLinkAria')}
                 className="focus-ring rounded-md p-1 text-[color:var(--color-muted-foreground)] hover:text-[color:var(--color-foreground)]"
               >
                 <ExternalLink className="h-3.5 w-3.5" strokeWidth={1.8} aria-hidden />
@@ -857,11 +882,11 @@ function FreePayLinkDialog({
                 size="md"
                 onClick={() => {
                   void navigator.clipboard?.writeText(link.url);
-                  toast.success('Lien copié');
+                  toast.success(t('toasts.linkCopied'));
                 }}
               >
                 <Copy className="h-4 w-4" strokeWidth={1.9} aria-hidden />
-                Copier le lien
+                {t('actions.copyLink')}
               </Button>
               <Button
                 type="button"
@@ -876,11 +901,11 @@ function FreePayLinkDialog({
                       url: link.url,
                     }),
                   );
-                  toast.success('Message prêt à envoyer copié');
+                  toast.success(t('toasts.messageCopied'));
                 }}
               >
                 <MessageSquare className="h-4 w-4" strokeWidth={1.9} aria-hidden />
-                Copier le message
+                {t('actions.copyMessage')}
               </Button>
             </div>
           </div>
@@ -888,7 +913,7 @@ function FreePayLinkDialog({
           <div className="flex flex-col gap-3">
             <label className="flex flex-col gap-1.5">
               <span className="font-mono text-[9px] tracking-[0.18em] text-[color:var(--color-muted-foreground)] uppercase">
-                Montant (€)
+                {t('freeLink.amountLabel')}
               </span>
               <Input
                 inputMode="decimal"
@@ -899,17 +924,17 @@ function FreePayLinkDialog({
             </label>
             <label className="flex flex-col gap-1.5">
               <span className="font-mono text-[9px] tracking-[0.18em] text-[color:var(--color-muted-foreground)] uppercase">
-                Libellé du service
+                {t('freeLink.serviceLabel')}
               </span>
               <Input
-                placeholder="Acompte prestation mariage"
+                placeholder={t('freeLink.servicePlaceholder')}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
               />
             </label>
             <label className="flex flex-col gap-1.5">
               <span className="font-mono text-[9px] tracking-[0.18em] text-[color:var(--color-muted-foreground)] uppercase">
-                Client (optionnel)
+                {t('freeLink.clientLabel')}
               </span>
               <Input
                 placeholder="Awa & Karim"
@@ -919,7 +944,7 @@ function FreePayLinkDialog({
             </label>
             {!connected ? (
               <p className="text-xs text-[color:var(--color-muted-foreground)]">
-                Connectez d’abord votre compte Stripe (carte en haut de la page).
+                {t('freeLink.connectFirst')}
               </p>
             ) : null}
             {error ? (
@@ -934,14 +959,14 @@ function FreePayLinkDialog({
           {link ? (
             <DialogClose asChild>
               <Button type="button" variant="outline" size="md">
-                Fermer
+                {t('actions.close')}
               </Button>
             </DialogClose>
           ) : (
             <>
               <DialogClose asChild>
                 <Button type="button" variant="outline" size="md">
-                  Annuler
+                  {t('actions.cancel')}
                 </Button>
               </DialogClose>
               <Button
@@ -967,11 +992,11 @@ function FreePayLinkDialog({
                       description: res.description,
                     });
                     void navigator.clipboard?.writeText(res.url);
-                    toast.success('Lien de paiement créé et copié');
+                    toast.success(t('toasts.linkCreated'));
                   });
                 }}
               >
-                {pending ? 'Création…' : 'Créer le lien'}
+                {pending ? t('actions.creating') : t('freeLink.createCta')}
               </Button>
             </>
           )}
@@ -996,17 +1021,13 @@ function PlanScreen({
   onMarkPaid: (docId: string, index: number) => void;
   pending: boolean;
 }) {
+  const t = useTranslations('Pro.payments');
   const [selected, setSelected] = useState(plans[0]?.docId ?? '');
   const [term, setTerm] = useState<TermType>('arrhes');
   const plan = plans.find((p) => p.docId === selected) ?? plans[0] ?? null;
 
   if (!plan) {
-    return (
-      <EmptyBlock>
-        Aucun échéancier. Créez une facture avec échéancier dans Devis &amp; Factures pour suivre
-        les paiements ici.
-      </EmptyBlock>
-    );
+    return <EmptyBlock>{t('plan.empty')}</EmptyBlock>;
   }
 
   const next = plan.milestones.find((m) => !m.paid) ?? null;
@@ -1016,7 +1037,7 @@ function PlanScreen({
       {plans.length > 1 ? (
         <label className="flex flex-col gap-1.5">
           <span className="font-mono text-[9px] tracking-[0.18em] text-[color:var(--color-muted-foreground)] uppercase">
-            Échéancier
+            {t('plan.scheduleLabel')}
           </span>
           <Select value={selected} onValueChange={setSelected}>
             <SelectTrigger className="focus-ring rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-3.5 py-2.5 text-sm text-[color:var(--color-foreground)]">
@@ -1044,7 +1065,7 @@ function PlanScreen({
       >
         <div className="flex flex-col gap-1.5">
           <span className="font-mono text-[9.5px] tracking-[0.2em] text-[color:var(--color-muted-foreground)] uppercase">
-            Échéancier · <CoupleName name={plan.clientName} />
+            {t('plan.heroEyebrow')} · <CoupleName name={plan.clientName} />
           </span>
           <span
             className="font-mono text-[32px] font-medium text-[color:var(--color-foreground)] tabular-nums"
@@ -1060,13 +1081,13 @@ function PlanScreen({
           )}
         >
           <span className="h-1.5 w-1.5 rounded-full bg-current opacity-90" aria-hidden />
-          {plan.paidCount} / {plan.totalCount} réglé
+          {t('plan.settledCount', { paid: plan.paidCount, total: plan.totalCount })}
         </span>
       </div>
 
       {/* jalons */}
       <section className="flex flex-col gap-3">
-        <SectionHead title="Jalons de paiement" />
+        <SectionHead title={t('plan.milestonesTitle')} />
         <div className="flex flex-col gap-2.5">
           {plan.milestones.map((m, i) => (
             <div
@@ -1101,7 +1122,9 @@ function PlanScreen({
                   <span className="inline-flex items-center gap-1.5">
                     <Calendar className="h-3 w-3" strokeWidth={1.8} aria-hidden />
                     <span className="font-mono text-[color:var(--color-ink-700)]">
-                      {m.dueDate ? `Échéance ${formatDateFr(m.dueDate)}` : 'Sans date'}
+                      {m.dueDate
+                        ? t('plan.dueOn', { date: formatDateFr(m.dueDate) })
+                        : t('plan.noDate')}
                     </span>
                   </span>
                   <PayStatusPill status={m.status} />
@@ -1126,7 +1149,7 @@ function PlanScreen({
                       className="inline-flex items-center gap-1.5 rounded-lg border border-[color:var(--color-border-strong)] bg-[color:var(--color-surface)] px-2.5 py-1.5 text-xs text-[color:var(--color-ink-700)] hover:border-[color:var(--color-sage-500)] hover:text-[color:var(--color-foreground)]"
                     >
                       <Check className="h-3 w-3" strokeWidth={2.2} aria-hidden />
-                      Marquer payé
+                      {t('plan.markPaid')}
                     </button>
                   </div>
                 ) : null}
@@ -1139,7 +1162,7 @@ function PlanScreen({
       {/* terme localisé */}
       <section className="flex flex-col gap-3.5 rounded-3xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-5">
         <span className="font-display text-lg text-[color:var(--color-foreground)] italic">
-          Type d’engagement (France)
+          {t('plan.termTitle')}
         </span>
         <div className="flex flex-wrap gap-2">
           {(['arrhes', 'acompte'] as const).map((k) => (
@@ -1186,7 +1209,7 @@ function PlanScreen({
       {/* prochaine demande */}
       <section className="flex flex-col gap-3.5 rounded-3xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-5">
         <span className="font-display text-lg text-[color:var(--color-foreground)] italic">
-          Prochaine demande · {next ? next.label : 'Aucune'}
+          {t('plan.nextRequestTitle')} · {next ? next.label : t('plan.none')}
         </span>
         {next ? (
           <>
@@ -1194,7 +1217,7 @@ function PlanScreen({
               amountMinor={next.amountMinor}
               country={account.country}
               approx
-              title="Aperçu pour le couple"
+              title={t('plan.couplePreview')}
             />
             {canWrite ? (
               <div className="flex flex-col items-start gap-2 rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface-elevated)] px-3.5 py-3">
@@ -1205,15 +1228,14 @@ function PlanScreen({
                   clientName={next.clientName}
                 />
                 <p className="font-mono text-[10px] leading-relaxed text-[color:var(--color-muted-foreground)]">
-                  Le lien est encaissé directement sur votre compte Stripe. Copiez-le pour l’envoyer
-                  par WhatsApp, email…
+                  {t('plan.linkNote')}
                 </p>
               </div>
             ) : null}
           </>
         ) : (
           <p className="text-[13px] text-[color:var(--color-muted-foreground)]">
-            Toutes les échéances de cet échéancier sont réglées. 🎉
+            {t('plan.allSettled')}
           </p>
         )}
       </section>
@@ -1224,6 +1246,7 @@ function PlanScreen({
 /* ============================ LITIGES ============================ */
 
 function DisputesScreen() {
+  const t = useTranslations('Pro.payments');
   return (
     <div className="flex max-w-3xl flex-col gap-5">
       <div
@@ -1240,11 +1263,9 @@ function DisputesScreen() {
         />
         <p className="text-[13px] leading-relaxed text-[color:var(--color-ink-700)]">
           <b className="font-semibold text-[color:var(--color-foreground)]">
-            Vos litiges, votre compte Stripe.
+            {t('disputes.bannerTitle')}
           </b>{' '}
-          Les paiements en ligne sont encaissés directement sur votre propre compte Stripe : en cas
-          de contestation, tout se gère depuis votre tableau de bord Stripe (notification, preuves,
-          décision de la banque). Wedillybird n’intervient jamais dans vos fonds.
+          {t('disputes.bannerBody')}
         </p>
       </div>
 
@@ -1253,24 +1274,26 @@ function DisputesScreen() {
           <ShieldCheck className="h-6 w-6" strokeWidth={1.6} aria-hidden />
         </span>
         <h3 className="font-display text-xl text-[color:var(--color-foreground)] italic">
-          Litiges gérés dans Stripe
+          {t('disputes.emptyTitle')}
         </h3>
         <p className="max-w-md text-[13px] leading-relaxed text-[color:var(--color-muted-foreground)]">
-          Les éventuelles contestations de paiement apparaissent dans votre tableau de bord Stripe,
-          avec la marche à suivre et les délais. Wedillybird n’est pas dans le flux des fonds.
+          {t('disputes.emptyBody')}
         </p>
       </div>
 
       <section className="flex flex-col gap-3">
-        <SectionHead title="Comment ça se passe" />
+        <SectionHead title={t('disputes.howTitle')} />
         <div className="grid grid-cols-1 gap-px overflow-hidden rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-border)] sm:grid-cols-2">
-          <PolicyCell label="Qui est notifié" value="Vous, directement depuis Stripe." />
           <PolicyCell
-            label="Qui fournit les preuves"
-            value="Vous (contrat, échanges, livrables), depuis Stripe."
+            label={t('disputes.whoNotifiedLabel')}
+            value={t('disputes.whoNotifiedValue')}
           />
-          <PolicyCell label="Qui décide" value="La banque du couple, pas Wedillybird ni Stripe." />
-          <PolicyCell label="Où" value="Votre tableau de bord Stripe — vous gardez la main." />
+          <PolicyCell
+            label={t('disputes.whoEvidenceLabel')}
+            value={t('disputes.whoEvidenceValue')}
+          />
+          <PolicyCell label={t('disputes.whoDecidesLabel')} value={t('disputes.whoDecidesValue')} />
+          <PolicyCell label={t('disputes.whereLabel')} value={t('disputes.whereValue')} />
         </div>
       </section>
     </div>
@@ -1301,14 +1324,19 @@ function SettingsScreen({
   onMode: (m: PaymentMode) => void;
   canWrite: boolean;
 }) {
+  const t = useTranslations('Pro.payments');
   return (
     <div className="flex max-w-3xl flex-col gap-5">
       {/* mode */}
       <div className="flex flex-col gap-4 rounded-3xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-5 sm:p-6">
         <span className="font-display text-lg text-[color:var(--color-foreground)] italic">
-          Mode d’encaissement
+          {t('settings.modeTitle')}
         </span>
-        <div className="flex flex-col gap-2.5" role="radiogroup" aria-label="Mode d’encaissement">
+        <div
+          className="flex flex-col gap-2.5"
+          role="radiogroup"
+          aria-label={t('settings.modeTitle')}
+        >
           {PAYMENT_MODE_ORDER.map((k) => {
             const meta = PAYMENT_MODE_META[k];
             const on = mode === k;
@@ -1349,7 +1377,7 @@ function SettingsScreen({
                     {meta.recommended ? (
                       <span className="inline-flex items-center gap-1 rounded-full border border-[color:var(--color-gold-300)]/30 bg-[color:var(--color-accent-soft)] px-2 py-0.5 font-mono text-[9px] tracking-[0.1em] text-[color:var(--color-gold-300)] uppercase">
                         <Sparkles className="h-2.5 w-2.5" strokeWidth={2} aria-hidden />
-                        Recommandé
+                        {t('settings.recommended')}
                       </span>
                     ) : null}
                   </span>
@@ -1362,19 +1390,19 @@ function SettingsScreen({
           })}
         </div>
         <p className="text-[12px] leading-relaxed text-[color:var(--color-muted-foreground)]">
-          Conséquence : {PAYMENT_MODE_META[mode].consequence}
+          {t('settings.consequencePrefix')} {PAYMENT_MODE_META[mode].consequence}
         </p>
       </div>
 
       {/* frais */}
       <div className="flex flex-col gap-3.5 rounded-3xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-5 sm:p-6">
         <span className="font-display text-lg text-[color:var(--color-foreground)] italic">
-          Frais
+          {t('settings.feesTitle')}
         </span>
         <FeeBreakdown
           amountMinor={630000}
           country={account.country}
-          title="Ce que vous recevez · exemple 6 300 €"
+          title={t('settings.feesExampleTitle')}
         />
       </div>
 
@@ -1392,10 +1420,9 @@ function SettingsScreen({
         />
         <p className="text-[13px] leading-relaxed text-[color:var(--color-ink-700)]">
           <b className="font-semibold text-[color:var(--color-foreground)]">
-            Votre argent, votre compte.
+            {t('settings.ownMoneyTitle')}
           </b>{' '}
-          Les paiements en ligne sont encaissés directement sur votre propre compte Stripe —
-          Wedillybird ne détient jamais vos fonds. <StripeBadge />
+          {t('settings.ownMoneyBody')} <StripeBadge />
         </p>
       </div>
     </div>
@@ -1413,12 +1440,13 @@ function TxDetailSheet({
   account: Account;
   onClose: () => void;
 }) {
+  const t = useTranslations('Pro.payments');
   return (
     <div
       className="fixed inset-0 z-50 flex justify-end"
       role="dialog"
       aria-modal="true"
-      aria-label={`Transaction ${tx.clientName}`}
+      aria-label={t('txDetail.dialogAria', { client: tx.clientName })}
     >
       <div className="absolute inset-0 bg-black/50" onClick={onClose} aria-hidden />
       <div className="relative flex h-full w-full max-w-md flex-col border-l border-[color:var(--color-border)] bg-[color:var(--color-surface)] shadow-[var(--shadow-popover)]">
@@ -1428,7 +1456,7 @@ function TxDetailSheet({
           </span>
           <div className="flex min-w-0 flex-1 flex-col gap-1">
             <span className="font-mono text-[9px] tracking-[0.18em] text-[color:var(--color-muted-foreground)] uppercase">
-              Transaction · {TX_TYPE_LABEL[milestoneTypeFor(tx)]}
+              {t('txDetail.eyebrow')} · {TX_TYPE_LABEL[milestoneTypeFor(tx)]}
             </span>
             <h2 className="font-display text-xl text-[color:var(--color-foreground)] italic">
               <CoupleName name={tx.clientName} />
@@ -1440,7 +1468,7 @@ function TxDetailSheet({
           <button
             type="button"
             onClick={onClose}
-            aria-label="Fermer"
+            aria-label={t('actions.close')}
             className="focus-ring rounded-lg p-1.5 text-[color:var(--color-muted-foreground)] hover:bg-[color:var(--color-surface-elevated)] hover:text-[color:var(--color-foreground)]"
           >
             <X className="h-4 w-4" strokeWidth={2} aria-hidden />
@@ -1449,24 +1477,33 @@ function TxDetailSheet({
         <div className="flex flex-1 flex-col gap-5 overflow-y-auto p-5">
           <div className="flex flex-col gap-2.5">
             <span className="font-mono text-[9px] tracking-[0.18em] text-[color:var(--color-muted-foreground)] uppercase">
-              Détail des frais
+              {t('feeBreakdown.title')}
             </span>
             <FeeBreakdown amountMinor={tx.amountMinor} country={account.country} title={null} />
           </div>
           <div className="flex flex-col gap-2.5">
             <span className="font-mono text-[9px] tracking-[0.18em] text-[color:var(--color-muted-foreground)] uppercase">
-              Informations
+              {t('txDetail.infoTitle')}
             </span>
             <div className="flex flex-col divide-y divide-[color:var(--color-border)] rounded-xl border border-[color:var(--color-border)]">
-              <KvRow Icon={Tag} label="Type" value={TX_TYPE_LABEL[milestoneTypeFor(tx)]} />
-              <KvRow Icon={CreditCard} label="Facture" value={tx.docNumber} mono />
+              <KvRow
+                Icon={Tag}
+                label={t('txDetail.type')}
+                value={TX_TYPE_LABEL[milestoneTypeFor(tx)]}
+              />
+              <KvRow Icon={CreditCard} label={t('txDetail.invoice')} value={tx.docNumber} mono />
               <KvRow
                 Icon={Calendar}
-                label="Échéance"
+                label={t('txDetail.dueDate')}
                 value={tx.dueDate ? formatDateFr(tx.dueDate) : '—'}
                 mono
               />
-              <KvRow Icon={Hash} label="Référence" value={`${tx.docNumber}-${tx.index + 1}`} mono />
+              <KvRow
+                Icon={Hash}
+                label={t('txDetail.reference')}
+                value={`${tx.docNumber}-${tx.index + 1}`}
+                mono
+              />
             </div>
           </div>
         </div>
@@ -1476,7 +1513,7 @@ function TxDetailSheet({
             onClick={onClose}
             className="rounded-lg px-3.5 py-2 text-xs text-[color:var(--color-muted-foreground)] hover:text-[color:var(--color-foreground)]"
           >
-            Fermer
+            {t('actions.close')}
           </button>
         </div>
       </div>
@@ -1533,6 +1570,7 @@ export function PaymentsBoard({
   canManage: boolean;
   now: number;
 }) {
+  const t = useTranslations('Pro.payments');
   const router = useRouter();
   const [invoices, setInvoices] = useState<InvoiceLike[]>(initialInvoices);
   const [tab, setTab] = useState<SubTab>('dashboard');
@@ -1558,7 +1596,7 @@ export function PaymentsBoard({
           : inv,
       ),
     );
-    toast.success('Échéance marquée encaissée');
+    toast.success(t('toasts.milestoneMarked'));
     start(async () => {
       await recordPaymentAction(docId, index);
       router.refresh();
@@ -1568,7 +1606,7 @@ export function PaymentsBoard({
   function changeMode(m: PaymentMode) {
     if (!canWrite) return;
     setMode(m);
-    toast.success(`Mode : ${PAYMENT_MODE_META[m].label}`);
+    toast.success(t('toasts.modeChanged', { mode: PAYMENT_MODE_META[m].label }));
     start(async () => {
       await setPaymentsSettingsAction({ mode: m });
       router.refresh();
@@ -1581,7 +1619,7 @@ export function PaymentsBoard({
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div className="flex flex-col gap-1.5">
             <span className="font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-muted-foreground)] uppercase">
-              Finances · Paiements
+              {t('header.eyebrow')}
             </span>
             <h1
               className="font-display italic"
@@ -1592,11 +1630,10 @@ export function PaymentsBoard({
                 color: 'var(--color-foreground)',
               }}
             >
-              Paiements
+              {t('header.title')}
             </h1>
             <p className="max-w-[60ch] text-[13.5px] leading-relaxed text-[color:var(--color-muted-foreground)]">
-              Suivez vos encaissements et échéanciers, envoyez des liens de paiement — encaissés
-              directement sur votre propre compte Stripe.
+              {t('header.subtitle')}
             </p>
           </div>
           <div className="flex flex-wrap gap-2.5">
@@ -1607,7 +1644,7 @@ export function PaymentsBoard({
                 className="inline-flex items-center gap-1.5 rounded-lg border border-[color:var(--color-border-strong)] px-3.5 py-2 text-xs text-[color:var(--color-ink-700)] hover:text-[color:var(--color-foreground)]"
               >
                 <Plus className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />
-                Nouveau lien
+                {t('header.newLink')}
               </button>
             ) : null}
             <button
@@ -1616,7 +1653,7 @@ export function PaymentsBoard({
               className="inline-flex items-center gap-1.5 rounded-lg border border-[color:var(--color-border-strong)] px-3.5 py-2 text-xs text-[color:var(--color-ink-700)] hover:text-[color:var(--color-foreground)]"
             >
               <Send className="h-3.5 w-3.5" strokeWidth={1.9} aria-hidden />
-              Demande de paiement
+              {t('header.paymentRequest')}
             </button>
             <button
               type="button"
@@ -1624,7 +1661,7 @@ export function PaymentsBoard({
               className="inline-flex items-center gap-1.5 rounded-lg bg-[color:var(--color-blush-400)] px-3.5 py-2 text-xs font-medium text-[oklch(20%_0.02_28)] hover:brightness-105"
             >
               <Settings className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />
-              Réglages
+              {t('actions.settings')}
             </button>
           </div>
         </div>
@@ -1633,24 +1670,24 @@ export function PaymentsBoard({
         <div
           className="flex items-center gap-1 self-start overflow-x-auto rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-1"
           role="tablist"
-          aria-label="Sections paiements"
+          aria-label={t('subtabs.groupAria')}
         >
-          {SUBTABS.map((t) => (
+          {SUBTABS.map((st) => (
             <button
-              key={t.k}
+              key={st.k}
               type="button"
               role="tab"
-              aria-selected={tab === t.k}
-              onClick={() => setTab(t.k)}
+              aria-selected={tab === st.k}
+              onClick={() => setTab(st.k)}
               className={cn(
                 'inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm whitespace-nowrap transition-colors',
-                tab === t.k
+                tab === st.k
                   ? 'bg-[color:var(--color-surface-elevated)] font-medium text-[color:var(--color-foreground)] shadow-[var(--shadow-soft)]'
                   : 'text-[color:var(--color-muted-foreground)] hover:text-[color:var(--color-foreground)]',
               )}
             >
-              <t.Icon className="h-4 w-4" strokeWidth={1.9} aria-hidden />
-              {t.label}
+              <st.Icon className="h-4 w-4" strokeWidth={1.9} aria-hidden />
+              {t(st.labelKey)}
             </button>
           ))}
         </div>

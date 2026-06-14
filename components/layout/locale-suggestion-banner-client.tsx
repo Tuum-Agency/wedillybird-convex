@@ -6,44 +6,6 @@ import { usePathname, useRouter } from '@/i18n/navigation';
 import type { Locale } from '@/i18n/routing';
 import { cn } from '@/lib/cn';
 
-const SUGGESTION_LABELS: Record<Locale, { suggestion: string; accept: string; dismiss: string }> = {
-  fr: {
-    suggestion: 'On dirait que vous parlez français.',
-    accept: 'Voir en français',
-    dismiss: 'Fermer la suggestion de langue',
-  },
-  en: {
-    suggestion: 'It looks like you speak English.',
-    accept: 'View in English',
-    dismiss: 'Dismiss language suggestion',
-  },
-  es: {
-    suggestion: 'Parece que hablas español.',
-    accept: 'Ver en español',
-    dismiss: 'Cerrar sugerencia de idioma',
-  },
-  it: {
-    suggestion: 'Sembra che tu parli italiano.',
-    accept: 'Vedi in italiano',
-    dismiss: 'Chiudi suggerimento lingua',
-  },
-  pt: {
-    suggestion: 'Parece que você fala português.',
-    accept: 'Ver em português',
-    dismiss: 'Fechar sugestão de idioma',
-  },
-  de: {
-    suggestion: 'Es scheint, dass Sie Deutsch sprechen.',
-    accept: 'Auf Deutsch ansehen',
-    dismiss: 'Sprachvorschlag schließen',
-  },
-  ar: {
-    suggestion: 'يبدو أنك تتحدث العربية.',
-    accept: 'عرض بالعربية',
-    dismiss: 'إغلاق اقتراح اللغة',
-  },
-};
-
 const ONE_YEAR_SECONDS = 60 * 60 * 24 * 365;
 
 function setDismissCookie(name: string) {
@@ -52,24 +14,25 @@ function setDismissCookie(name: string) {
 }
 
 export function LocaleSuggestionBannerClient({
-  currentLocale,
   suggestedLocale,
-  suggestedLabel,
   suggestedFlag,
   dismissCookieName,
+  suggestionLabel,
+  acceptLabel,
+  dismissLabel,
 }: {
-  currentLocale: Locale;
   suggestedLocale: Locale;
-  suggestedLabel: string;
   suggestedFlag: string;
   dismissCookieName: string;
+  /** Texte affiché dans la locale suggérée (résolu côté serveur). */
+  suggestionLabel: string;
+  acceptLabel: string;
+  dismissLabel: string;
 }) {
   const router = useRouter();
   const pathname = usePathname();
   const [hidden, setHidden] = useState(false);
   const [isPending, startTransition] = useTransition();
-
-  const labels = SUGGESTION_LABELS[suggestedLocale] ?? SUGGESTION_LABELS.en;
 
   function handleAccept() {
     setDismissCookie(dismissCookieName);
@@ -89,7 +52,7 @@ export function LocaleSuggestionBannerClient({
   return (
     <div
       role="region"
-      aria-label={labels.suggestion}
+      aria-label={suggestionLabel}
       className="border-b border-[color:var(--color-border)] bg-[color:var(--color-ivory-100)]"
     >
       <div className="container-page flex flex-col items-stretch gap-3 py-3 sm:flex-row sm:items-center sm:justify-between">
@@ -97,7 +60,7 @@ export function LocaleSuggestionBannerClient({
           <span aria-hidden className="text-base leading-none">
             {suggestedFlag}
           </span>
-          <span>{labels.suggestion}</span>
+          <span>{suggestionLabel}</span>
         </p>
         <div className="flex items-center justify-end gap-2">
           <button
@@ -111,12 +74,12 @@ export function LocaleSuggestionBannerClient({
             )}
           >
             <span aria-hidden>{suggestedFlag}</span>
-            {labels.accept}
+            {acceptLabel}
           </button>
           <button
             type="button"
             onClick={handleDismiss}
-            aria-label={labels.dismiss}
+            aria-label={dismissLabel}
             className="focus-ring inline-flex h-9 w-9 items-center justify-center rounded-full text-[color:var(--color-ink-700)] [@media(hover:hover)]:hover:bg-[color:var(--color-ivory-200)]"
           >
             <X className="h-4 w-4" strokeWidth={1.75} aria-hidden />

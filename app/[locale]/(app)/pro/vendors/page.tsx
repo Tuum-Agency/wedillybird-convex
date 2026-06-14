@@ -1,12 +1,15 @@
 import type { Metadata } from 'next';
-import { setRequestLocale } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { requireProContext } from '@/lib/pro/require-pro-context';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
 import { ProSidebarShell } from '@/components/pro/pro-sidebar-shell';
 import { VendorsBoard } from '@/components/pro/vendors/vendors-board';
 import { PRO_TIER_LIMITS } from '@/lib/payments/entitlements';
 
-export const metadata: Metadata = { title: 'Prestataires — Wedillybird Pro' };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('ProPages');
+  return { title: t('vendorsMetaTitle') };
+}
 
 export default async function ProVendorsPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;

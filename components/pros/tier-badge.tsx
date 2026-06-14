@@ -1,4 +1,7 @@
-import { TIER_BADGE, type Tier } from './content';
+'use client';
+
+import { useTranslations } from 'next-intl';
+import { type Tier } from './content';
 
 /**
  * Badge de disponibilité d'une fonctionnalité. Rien pour `all` (l'appelant
@@ -6,6 +9,8 @@ import { TIER_BADGE, type Tier } from './content';
  * Agency = gold, Option = neutre.
  */
 export function TierBadge({ tier, className }: { tier: Tier; className?: string }) {
+  const t = useTranslations('Pros');
+
   if (tier === 'all') return null;
 
   const style: Record<Exclude<Tier, 'all'>, string> = {
@@ -25,7 +30,7 @@ export function TierBadge({ tier, className }: { tier: Tier; className?: string 
         className ?? '',
       ].join(' ')}
     >
-      {TIER_BADGE[tier]}
+      {t(`tierBadge.${tier}` as Parameters<typeof t>[0])}
     </span>
   );
 }

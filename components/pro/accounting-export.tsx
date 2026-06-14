@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { FileSpreadsheet, Download, Sparkles } from 'lucide-react';
 import {
   Select,
@@ -16,6 +17,7 @@ import {
  * `/api/pro/billing-export` qui génère le fichier à la volée.
  */
 export function AccountingExport({ months }: { months: { value: string; label: string }[] }) {
+  const t = useTranslations('Pro.main');
   const [month, setMonth] = useState(months[0]?.value ?? '');
   const href = `/api/pro/billing-export?month=${encodeURIComponent(month)}&format=csv`;
 
@@ -32,17 +34,16 @@ export function AccountingExport({ months }: { months: { value: string; label: s
         <div className="flex flex-col gap-1">
           <span className="inline-flex w-fit items-center gap-1 rounded-full bg-[color:var(--color-accent-soft)] px-2 py-0.5 font-mono text-[9px] tracking-[0.12em] text-[color:var(--color-gold-300)] uppercase">
             <Sparkles className="h-2.5 w-2.5" strokeWidth={2} aria-hidden />
-            Nouveau
+            {t('accountingExport.badgeNew')}
           </span>
           <h3
             id="bl-export-h"
             className="font-display text-lg text-[color:var(--color-foreground)] italic"
           >
-            Export comptable mensuel
+            {t('accountingExport.title')}
           </h3>
           <p className="max-w-md text-[13px] leading-relaxed text-[color:var(--color-muted-foreground)]">
-            Générez un relevé des factures d’abonnement et crédits pay-as-you-go du mois — prêt pour
-            votre comptable (CSV).
+            {t('accountingExport.description')}
           </p>
         </div>
       </div>
@@ -50,11 +51,11 @@ export function AccountingExport({ months }: { months: { value: string; label: s
       <div className="flex flex-shrink-0 items-end gap-2.5">
         <label className="flex flex-col gap-1">
           <span className="font-mono text-[9px] tracking-[0.14em] text-[color:var(--color-muted-foreground)] uppercase">
-            Mois
+            {t('accountingExport.monthLabel')}
           </span>
           <Select value={month} onValueChange={setMonth}>
             <SelectTrigger
-              aria-label="Mois à exporter"
+              aria-label={t('accountingExport.monthAria')}
               className="focus-ring h-10 rounded-lg border border-[color:var(--color-border-strong)] bg-[color:var(--color-surface-elevated)] px-3 text-sm text-[color:var(--color-foreground)]"
             >
               <SelectValue />
@@ -75,7 +76,7 @@ export function AccountingExport({ months }: { months: { value: string; label: s
           className="focus-ring inline-flex h-10 items-center gap-1.5 rounded-lg bg-[color:var(--color-blush-400)] px-4 text-sm font-medium text-[oklch(20%_0.02_28)] transition-[filter] hover:brightness-105"
         >
           <Download className="h-4 w-4" strokeWidth={2} aria-hidden />
-          Exporter
+          {t('accountingExport.exportCta')}
         </a>
       </div>
     </section>

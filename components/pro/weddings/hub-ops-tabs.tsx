@@ -13,6 +13,7 @@
  */
 
 import { useCallback, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useFormatter, useLocale, useTranslations } from 'next-intl';
 import {
   AlertTriangle,
   ArrowUpRight,
@@ -73,8 +74,6 @@ interface Rsvp {
 /* -------------------------------------------------------------------------- */
 /*  Primitives partagées                                                      */
 /* -------------------------------------------------------------------------- */
-
-const hNum = (n: number) => n.toLocaleString('fr-FR').replace(/\s/g, ' ');
 
 function hueFromName(name: string): number {
   let h = 0;
@@ -207,12 +206,16 @@ function Toaster({ items }: { items: ToastItem[] }) {
 /*  ONGLET · INVITÉS                                                          */
 /* -------------------------------------------------------------------------- */
 
-const RSVP_PILL: Record<HubGuestRow['rsvpStatus'], { label: string; bg: string; fg: string }> = {
-  attending: { label: 'Présent', bg: 'oklch(26% 0.04 145)', fg: 'oklch(82% 0.07 145)' },
-  declined: { label: 'Absent', bg: 'oklch(28% 0.04 25)', fg: 'oklch(82% 0.07 22)' },
-  pending: { label: 'En attente', bg: 'oklch(28% 0.022 78)', fg: 'oklch(85% 0.04 78)' },
+const RSVP_PILL: Record<HubGuestRow['rsvpStatus'], { labelKey: string; bg: string; fg: string }> = {
+  attending: {
+    labelKey: 'rsvpPill.attending',
+    bg: 'oklch(26% 0.04 145)',
+    fg: 'oklch(82% 0.07 145)',
+  },
+  declined: { labelKey: 'rsvpPill.declined', bg: 'oklch(28% 0.04 25)', fg: 'oklch(82% 0.07 22)' },
+  pending: { labelKey: 'rsvpPill.pending', bg: 'oklch(28% 0.022 78)', fg: 'oklch(85% 0.04 78)' },
   maybe: {
-    label: 'Peut-être',
+    labelKey: 'rsvpPill.maybe',
     bg: 'var(--color-surface-elevated)',
     fg: 'var(--color-muted-foreground)',
   },
@@ -229,6 +232,7 @@ export function InvitesTab({
   guestCap: number | null;
   eventHref: (sub: string) => string;
 }) {
+  const t = useTranslations('Pro.weddings');
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<'all' | HubGuestRow['rsvpStatus']>('all');
   const total = guests.length;
@@ -249,10 +253,10 @@ export function InvitesTab({
   }, [guests, query, filter]);
 
   const FILTERS: ReadonlyArray<{ key: 'all' | HubGuestRow['rsvpStatus']; label: string }> = [
-    { key: 'all', label: 'Tous' },
-    { key: 'attending', label: 'Présents' },
-    { key: 'pending', label: 'En attente' },
-    { key: 'declined', label: 'Absents' },
+    { key: 'all', label: t('invites.filterAll') },
+    { key: 'attending', label: t('invites.filterAttending') },
+    { key: 'pending', label: t('invites.filterPending') },
+    { key: 'declined', label: t('invites.filterDeclined') },
   ];
 
   return (
@@ -261,14 +265,14 @@ export function InvitesTab({
       <div className="flex flex-col gap-3 rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-5">
         <div className="flex items-center justify-between">
           <span className="font-mono text-[10px] tracking-[0.16em] text-[color:var(--color-muted-foreground)] uppercase">
-            {total} invité{total > 1 ? 's' : ''}
-            {guestCap != null ? ` · cap ${guestCap}` : ''}
+            {t('invites.guestCount', { count: total })}
+            {guestCap != null ? t('invites.capSuffix', { cap: guestCap }) : ''}
           </span>
           <Link
             href={eventHref('guests') as never}
             className="font-mono text-[10px] tracking-[0.12em] text-[color:var(--color-blush-300)] uppercase hover:text-[color:var(--color-foreground)]"
           >
-            Gérer les invités →
+            {t('invites.manageGuests')}
           </Link>
         </div>
         <div className="flex h-2 w-full overflow-hidden rounded-full bg-[color:var(--color-surface-elevated)]">
@@ -290,23 +294,23 @@ export function InvitesTab({
           ) : null}
         </div>
         <div className="flex items-center gap-4 font-mono text-[11px]">
-          <RsvpMini color={SAGE} n={rsvp.confirmed} label="présents" />
-          <RsvpMini color={RED} n={rsvp.declined} label="absents" />
-          <RsvpMini color={AMBER} n={rsvp.pending} label="en attente" />
+          <RsvpMini color={SAGE} n={rsvp.confirmed} label={t('rsvp.attendingShort')} />
+          <RsvpMini color={RED} n={rsvp.declined} label={t('rsvp.declinedShort')} />
+          <RsvpMini color={AMBER} n={rsvp.pending} label={t('rsvp.pendingShort')} />
         </div>
       </div>
 
       {total === 0 ? (
         <EmptyState
           icon={Users}
-          title="Aucun invité pour l’instant"
-          body="Importez votre liste ou ajoutez des invités pour suivre les réponses RSVP ici."
+          title={t('invites.emptyTitle')}
+          body={t('invites.emptyBody')}
           cta={
             <Link
               href={eventHref('guests') as never}
               className="text-[color:var(--color-blush-300)] hover:underline"
             >
-              Ajouter des invités
+              {t('invites.emptyCta')}
             </Link>
           }
         />
@@ -322,8 +326,8 @@ export function InvitesTab({
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Rechercher un invité…"
-                aria-label="Rechercher un invité"
+                placeholder={t('invites.searchPlaceholder')}
+                aria-label={t('invites.searchAria')}
                 className="w-full bg-transparent text-sm text-[color:var(--color-foreground)] outline-none placeholder:text-[color:var(--color-muted-foreground)]"
               />
             </label>
@@ -350,10 +354,10 @@ export function InvitesTab({
             <table className="w-full min-w-[560px] border-collapse text-sm">
               <thead>
                 <tr className="border-b border-[color:var(--color-border)] text-left font-mono text-[9px] tracking-[0.18em] text-[color:var(--color-muted-foreground)] uppercase">
-                  <th className="px-4 py-3 font-medium">Invité</th>
-                  <th className="px-4 py-3 font-medium">Catégorie</th>
-                  <th className="px-4 py-3 font-medium">Accompagnants</th>
-                  <th className="px-4 py-3 font-medium">RSVP</th>
+                  <th className="px-4 py-3 font-medium">{t('invites.colGuest')}</th>
+                  <th className="px-4 py-3 font-medium">{t('invites.colCategory')}</th>
+                  <th className="px-4 py-3 font-medium">{t('invites.colPlusOnes')}</th>
+                  <th className="px-4 py-3 font-medium">{t('invites.colRsvp')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -385,7 +389,7 @@ export function InvitesTab({
                       colSpan={4}
                       className="px-4 py-8 text-center text-sm text-[color:var(--color-muted-foreground)]"
                     >
-                      Aucun invité ne correspond.
+                      {t('invites.noMatch')}
                     </td>
                   </tr>
                 ) : null}
@@ -399,6 +403,7 @@ export function InvitesTab({
 }
 
 function RsvpPill({ status }: { status: HubGuestRow['rsvpStatus'] }) {
+  const t = useTranslations('Pro.weddings');
   const p = RSVP_PILL[status];
   return (
     <span
@@ -406,7 +411,7 @@ function RsvpPill({ status }: { status: HubGuestRow['rsvpStatus'] }) {
       style={{ background: p.bg, color: p.fg }}
     >
       <span className="h-1.5 w-1.5 rounded-full bg-current opacity-80" aria-hidden />
-      {p.label}
+      {t(p.labelKey)}
     </span>
   );
 }
@@ -440,58 +445,58 @@ function EmptyState({
 
 interface MsgTemplate {
   id: string;
-  name: string;
-  desc: string;
+  nameKey: string;
+  descKey: string;
   swatch: [string, string];
-  header: string;
-  body: string;
+  headerKey: string;
+  bodyKey: string;
   hasImage: boolean;
 }
 
 const MSG_TEMPLATES: ReadonlyArray<MsgTemplate> = [
   {
     id: 'classic',
-    name: 'Classique',
-    desc: 'Élégant et intemporel',
+    nameKey: 'messaging.tpl.classic.name',
+    descKey: 'messaging.tpl.classic.desc',
     swatch: ['oklch(34% 0.03 80)', 'oklch(78% 0.1 80)'],
-    header: 'Vous êtes conviés',
-    body: '{{prénom}}, c’est avec joie que nous vous invitons à célébrer notre mariage.',
+    headerKey: 'messaging.tpl.classic.header',
+    bodyKey: 'messaging.tpl.classic.body',
     hasImage: false,
   },
   {
     id: 'photo',
-    name: 'Photo',
-    desc: 'Avec visuel du couple',
+    nameKey: 'messaging.tpl.photo.name',
+    descKey: 'messaging.tpl.photo.desc',
     swatch: ['oklch(34% 0.05 25)', 'oklch(76% 0.12 25)'],
-    header: 'Save the date',
-    body: '{{prénom}}, réservez la date ! Retrouvez tous les détails sur notre page d’invitation.',
+    headerKey: 'messaging.tpl.photo.header',
+    bodyKey: 'messaging.tpl.photo.body',
     hasImage: true,
   },
   {
     id: 'modern',
-    name: 'Moderne',
-    desc: 'Épuré, typographique',
+    nameKey: 'messaging.tpl.modern.name',
+    descKey: 'messaging.tpl.modern.desc',
     swatch: ['oklch(34% 0.04 250)', 'oklch(76% 0.1 250)'],
-    header: 'On se marie',
-    body: '{{prénom}}, nous serions honorés de votre présence pour ce grand jour.',
+    headerKey: 'messaging.tpl.modern.header',
+    bodyKey: 'messaging.tpl.modern.body',
     hasImage: false,
   },
   {
     id: 'festive',
-    name: 'Festif',
-    desc: 'Chaleureux et coloré',
+    nameKey: 'messaging.tpl.festive.name',
+    descKey: 'messaging.tpl.festive.desc',
     swatch: ['oklch(36% 0.06 330)', 'oklch(78% 0.12 330)'],
-    header: 'La fête approche',
-    body: '{{prénom}}, préparez vos plus beaux habits — la célébration arrive !',
+    headerKey: 'messaging.tpl.festive.header',
+    bodyKey: 'messaging.tpl.festive.body',
     hasImage: true,
   },
   {
     id: 'sober',
-    name: 'Sobre',
-    desc: 'Formel, sans fioritures',
+    nameKey: 'messaging.tpl.sober.name',
+    descKey: 'messaging.tpl.sober.desc',
     swatch: ['oklch(32% 0.012 80)', 'oklch(72% 0.03 80)'],
-    header: 'Faire-part',
-    body: '{{prénom}}, nous avons l’honneur de vous convier à notre mariage.',
+    headerKey: 'messaging.tpl.sober.header',
+    bodyKey: 'messaging.tpl.sober.body',
     hasImage: false,
   },
 ];
@@ -509,11 +514,11 @@ function WaPreview({
   coupleA: string;
   coupleB: string;
 }) {
-  const body = template.body.split(/(\{\{prénom\}\})/g);
+  const t = useTranslations('Pro.weddings');
   return (
     <aside
       className="flex flex-col gap-3 self-start rounded-3xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-4"
-      aria-label="Aperçu de l’invitation WhatsApp"
+      aria-label={t('messaging.previewAria')}
     >
       <div className="flex items-center gap-2.5 border-b border-[color:var(--color-border)] pb-3">
         <Avatar name={`${coupleA} ${coupleB}`} size={36} />
@@ -522,8 +527,8 @@ function WaPreview({
             {coupleA} <span style={{ color: 'var(--color-gold-500)' }}>&amp;</span> {coupleB}
           </b>
           <span className="inline-flex items-center gap-1 font-mono text-[10px] text-[color:var(--color-muted-foreground)]">
-            <ShieldCheck className="h-3 w-3" strokeWidth={2} aria-hidden /> Compte vérifié ·
-            WhatsApp
+            <ShieldCheck className="h-3 w-3" strokeWidth={2} aria-hidden />{' '}
+            {t('messaging.verifiedAccount')}
           </span>
         </div>
       </div>
@@ -534,29 +539,25 @@ function WaPreview({
           </div>
         ) : null}
         <div className="font-display mb-1 text-base text-[color:var(--color-foreground)] italic">
-          {template.header}
+          {t(template.headerKey)}
         </div>
         <p className="text-sm leading-relaxed text-[color:var(--color-foreground)]/90">
-          {body.map((p, i) =>
-            p === '{{prénom}}' ? (
-              <span
-                key={i}
-                className="rounded bg-[color:var(--color-blush-500)]/25 px-1 font-medium text-[color:var(--color-blush-300)]"
-              >
-                Prénom
+          {t.rich(template.bodyKey, {
+            name: () => (
+              <span className="rounded bg-[color:var(--color-blush-500)]/25 px-1 font-medium text-[color:var(--color-blush-300)]">
+                {t('messaging.firstNameToken')}
               </span>
-            ) : (
-              <span key={i}>{p}</span>
             ),
-          )}
+          })}
         </p>
         {perso.trim() ? (
           <p className="mt-2 border-l-2 border-[color:var(--color-gold-500)]/50 pl-2 text-sm text-[color:var(--color-muted-foreground)] italic">
-            « {perso.trim()} »
+            {t('messaging.persoQuote', { text: perso.trim() })}
           </p>
         ) : null}
         <div className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-[color:var(--color-surface)] px-3 py-1.5 text-xs font-medium text-[color:var(--color-blush-300)]">
-          <Globe className="h-3.5 w-3.5" strokeWidth={2} aria-hidden /> Voir l’invitation
+          <Globe className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />{' '}
+          {t('messaging.viewInvitation')}
         </div>
         <div className="mt-1.5 text-right font-mono text-[9px] text-[color:var(--color-muted-foreground)]">
           14:32
@@ -580,11 +581,19 @@ const DELIVERY_ORDER = [
   'read',
   'sent',
 ] as const;
-const DELIVERY_STATUS: Record<string, { label: string; Icon: LucideIcon; color: string }> = {
-  replied: { label: 'Répondu', Icon: CheckCheck, color: SAGE },
-  read: { label: 'Lu', Icon: CheckCheck, color: 'oklch(72% 0.09 250)' },
-  delivered: { label: 'Délivré', Icon: CheckCheck, color: 'var(--color-muted-foreground)' },
-  sent: { label: 'Envoyé', Icon: Check, color: 'var(--color-muted-foreground)' },
+const DELIVERY_STATUS: Record<string, { labelKey: string; Icon: LucideIcon; color: string }> = {
+  replied: { labelKey: 'messaging.delivery.replied', Icon: CheckCheck, color: SAGE },
+  read: { labelKey: 'messaging.delivery.read', Icon: CheckCheck, color: 'oklch(72% 0.09 250)' },
+  delivered: {
+    labelKey: 'messaging.delivery.delivered',
+    Icon: CheckCheck,
+    color: 'var(--color-muted-foreground)',
+  },
+  sent: {
+    labelKey: 'messaging.delivery.sent',
+    Icon: Check,
+    color: 'var(--color-muted-foreground)',
+  },
 };
 
 export function MessagingTab({
@@ -604,6 +613,9 @@ export function MessagingTab({
   coupleA: string;
   coupleB: string;
 }) {
+  const t = useTranslations('Pro.weddings');
+  const format = useFormatter();
+  const hNum = (n: number) => format.number(n);
   const { items, toast } = useToast();
   const [tplId, setTplId] = useState(MSG_TEMPLATES[0]!.id);
   const [perso, setPerso] = useState('');
@@ -614,17 +626,18 @@ export function MessagingTab({
   const [rem7, setRem7] = useState(true);
   const [rem1, setRem1] = useState(true);
 
-  const template = MSG_TEMPLATES.find((t) => t.id === tplId) ?? MSG_TEMPLATES[0]!;
+  const template = MSG_TEMPLATES.find((tpl) => tpl.id === tplId) ?? MSG_TEMPLATES[0]!;
   const [used, cap] = messageQuota;
+  const otherCategory = t('messaging.otherCategory');
 
   const catCounts = useMemo(() => {
     const m = new Map<string, number>();
     for (const g of guests) {
-      const k = g.category?.trim() || 'Autre';
+      const k = g.category?.trim() || otherCategory;
       m.set(k, (m.get(k) ?? 0) + 1);
     }
     return [...m.entries()].sort((a, b) => b[1] - a[1]);
-  }, [guests]);
+  }, [guests, otherCategory]);
 
   const recipients = useMemo(() => {
     if (audience === 'all') return guestTotal;
@@ -639,8 +652,8 @@ export function MessagingTab({
     return (
       <EmptyState
         icon={Megaphone}
-        title="Publiez d’abord l’événement"
-        body="La diffusion des invitations WhatsApp est disponible une fois l’événement publié. Repassez sur l’onglet Aperçu pour publier — vos invités recevront alors leur invitation."
+        title={t('messaging.notPublishedTitle')}
+        body={t('messaging.notPublishedBody')}
       />
     );
   }
@@ -651,12 +664,22 @@ export function MessagingTab({
     sub: string;
     count: number;
   }> = [
-    { value: 'all', title: 'Tous les invités', sub: 'Toute la liste', count: guestTotal },
-    { value: 'pending', title: 'Non répondus', sub: 'En attente de réponse', count: rsvp.pending },
+    {
+      value: 'all',
+      title: t('messaging.audAllTitle'),
+      sub: t('messaging.audAllSub'),
+      count: guestTotal,
+    },
+    {
+      value: 'pending',
+      title: t('messaging.audPendingTitle'),
+      sub: t('messaging.audPendingSub'),
+      count: rsvp.pending,
+    },
     {
       value: 'category',
-      title: 'Par catégorie',
-      sub: 'Cibler des groupes',
+      title: t('messaging.audCategoryTitle'),
+      sub: t('messaging.audCategorySub'),
       count: catCounts.filter(([k]) => cats.has(k)).reduce((s, [, n]) => s + n, 0),
     },
   ];
@@ -664,12 +687,7 @@ export function MessagingTab({
   function doSend() {
     setConfirm(false);
     setSent(true);
-    toast(
-      Megaphone,
-      <span>
-        Diffusion lancée · <b>{recipients}</b> invité{recipients > 1 ? 's' : ''}
-      </span>,
-    );
+    toast(Megaphone, <span>{t('messaging.broadcastStarted', { count: recipients })}</span>);
   }
 
   return (
@@ -684,7 +702,7 @@ export function MessagingTab({
             aria-hidden
           />
           <span className="text-sm text-[color:var(--color-muted-foreground)]">
-            Messages ce mois{' '}
+            {t('messaging.messagesThisMonth')}{' '}
             <b className="font-mono text-[color:var(--color-foreground)] tabular-nums">
               {hNum(used)} / {hNum(cap)}
             </b>
@@ -699,26 +717,30 @@ export function MessagingTab({
             href="/pro/billing"
             className="inline-flex items-center gap-0.5 font-mono text-[10px] tracking-[0.12em] text-[color:var(--color-blush-300)] uppercase hover:text-[color:var(--color-foreground)]"
           >
-            Facturation <ArrowUpRight className="h-3 w-3" strokeWidth={2} aria-hidden />
+            {t('messaging.billing')}{' '}
+            <ArrowUpRight className="h-3 w-3" strokeWidth={2} aria-hidden />
           </Link>
         </div>
 
         {/* templates */}
-        <Panel title="Style d’invitation" sub={`${MSG_TEMPLATES.length} modèles`}>
+        <Panel
+          title={t('messaging.styleTitle')}
+          sub={t('messaging.templatesCount', { count: MSG_TEMPLATES.length })}
+        >
           <div
             className="grid grid-cols-2 gap-2.5 sm:grid-cols-3"
             role="radiogroup"
-            aria-label="Style d’invitation"
+            aria-label={t('messaging.styleTitle')}
           >
-            {MSG_TEMPLATES.map((t) => {
-              const on = t.id === tplId;
+            {MSG_TEMPLATES.map((tpl) => {
+              const on = tpl.id === tplId;
               return (
                 <button
-                  key={t.id}
+                  key={tpl.id}
                   type="button"
                   role="radio"
                   aria-checked={on}
-                  onClick={() => setTplId(t.id)}
+                  onClick={() => setTplId(tpl.id)}
                   className={cn(
                     'relative flex flex-col gap-2 rounded-xl border p-3 text-left transition-colors',
                     on
@@ -733,19 +755,21 @@ export function MessagingTab({
                   ) : null}
                   <span
                     className="flex h-8 items-center gap-1.5 rounded-md px-2"
-                    style={{ background: t.swatch[0] }}
+                    style={{ background: tpl.swatch[0] }}
                   >
-                    <span className="h-2 w-2 rounded-full" style={{ background: t.swatch[1] }} />
+                    <span className="h-2 w-2 rounded-full" style={{ background: tpl.swatch[1] }} />
                     <span
                       className="h-1 flex-1 rounded-full"
-                      style={{ background: `color-mix(in oklab, ${t.swatch[1]} 55%, transparent)` }}
+                      style={{
+                        background: `color-mix(in oklab, ${tpl.swatch[1]} 55%, transparent)`,
+                      }}
                     />
                   </span>
                   <span className="text-sm font-medium text-[color:var(--color-foreground)]">
-                    {t.name}
+                    {t(tpl.nameKey)}
                   </span>
                   <span className="text-[11px] text-[color:var(--color-muted-foreground)]">
-                    {t.desc}
+                    {t(tpl.descKey)}
                   </span>
                 </button>
               );
@@ -755,8 +779,10 @@ export function MessagingTab({
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center justify-between">
               <label htmlFor="m-perso" className="text-sm text-[color:var(--color-foreground)]">
-                Message personnel{' '}
-                <span className="text-[color:var(--color-muted-foreground)]">(optionnel)</span>
+                {t('messaging.personalMessage')}{' '}
+                <span className="text-[color:var(--color-muted-foreground)]">
+                  {t('messaging.optional')}
+                </span>
               </label>
               <span
                 className={cn(
@@ -774,7 +800,7 @@ export function MessagingTab({
               maxLength={PERSO_MAX}
               value={perso}
               onChange={(e) => setPerso(e.target.value)}
-              placeholder="Un mot des mariés, ajouté sous l’invitation…"
+              placeholder={t('messaging.personalPlaceholder')}
               rows={2}
               className="resize-none rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface-elevated)] px-3 py-2.5 text-sm text-[color:var(--color-foreground)] outline-none placeholder:text-[color:var(--color-muted-foreground)] focus:border-[color:var(--color-blush-400)]"
             />
@@ -782,8 +808,15 @@ export function MessagingTab({
         </Panel>
 
         {/* audience */}
-        <Panel title="Destinataires" sub={`${recipients} invités`}>
-          <div className="flex flex-col gap-2" role="radiogroup" aria-label="Audience">
+        <Panel
+          title={t('messaging.recipientsTitle')}
+          sub={t('messaging.recipientsCount', { count: recipients })}
+        >
+          <div
+            className="flex flex-col gap-2"
+            role="radiogroup"
+            aria-label={t('messaging.audienceAria')}
+          >
             {AUD.map((a) => {
               const on = audience === a.value;
               return (
@@ -821,7 +854,7 @@ export function MessagingTab({
                     <span className="font-mono text-sm text-[color:var(--color-foreground)] tabular-nums">
                       {a.count}
                       <span className="ml-1 text-[10px] text-[color:var(--color-muted-foreground)]">
-                        inv.
+                        {t('messaging.guestUnitAbbr')}
                       </span>
                     </span>
                   </button>
@@ -829,7 +862,7 @@ export function MessagingTab({
                     <div className="flex flex-wrap gap-1.5 pl-1">
                       {catCounts.length === 0 ? (
                         <span className="text-xs text-[color:var(--color-muted-foreground)]">
-                          Aucune catégorie renseignée sur les invités.
+                          {t('messaging.noCategories')}
                         </span>
                       ) : (
                         catCounts.map(([k, n]) => {
@@ -876,12 +909,18 @@ export function MessagingTab({
         <div className="flex flex-col gap-3 rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-col">
             <b className="text-sm text-[color:var(--color-foreground)]">
-              <span className="font-mono tabular-nums">{recipients}</span> message
-              {recipients > 1 ? 's' : ''} à envoyer
+              {t.rich('messaging.messagesToSend', {
+                count: recipients,
+                n: (chunks) => <span className="font-mono tabular-nums">{chunks}</span>,
+              })}
             </b>
             <span className="text-xs text-[color:var(--color-muted-foreground)]">
-              Impact quota : {hNum(used)} → {hNum(afterUse)} / {hNum(cap)}
-              {overQuota ? ' · dépassement' : ''}
+              {t('messaging.quotaImpact', {
+                used: hNum(used),
+                after: hNum(afterUse),
+                cap: hNum(cap),
+              })}
+              {overQuota ? t('messaging.overQuotaSuffix') : ''}
             </span>
           </div>
           <button
@@ -890,25 +929,26 @@ export function MessagingTab({
             onClick={() => setConfirm(true)}
             className="focus-ring inline-flex flex-shrink-0 items-center justify-center gap-2 rounded-lg bg-[color:var(--color-primary)] px-5 py-2.5 text-sm font-semibold text-[color:var(--color-primary-foreground)] transition-colors hover:bg-[color:var(--color-primary-hover)] disabled:opacity-50"
           >
-            <Megaphone className="h-4 w-4" strokeWidth={1.9} aria-hidden /> Diffuser maintenant
+            <Megaphone className="h-4 w-4" strokeWidth={1.9} aria-hidden />{' '}
+            {t('messaging.broadcastNow')}
           </button>
         </div>
 
         {/* table de livraison */}
         {sent ? (
           <Panel
-            title="Statut de livraison"
-            sub="Dernière diffusion · 14:32"
+            title={t('messaging.deliveryStatus')}
+            sub={t('messaging.lastBroadcast', { time: '14:32' })}
             className="p-0 sm:p-0"
           >
             <div className="overflow-x-auto">
               <table className="w-full min-w-[520px] border-collapse text-sm">
                 <thead>
                   <tr className="border-y border-[color:var(--color-border)] text-left font-mono text-[9px] tracking-[0.18em] text-[color:var(--color-muted-foreground)] uppercase">
-                    <th className="px-5 py-3 font-medium">Invité</th>
-                    <th className="px-5 py-3 font-medium">Canal</th>
-                    <th className="px-5 py-3 font-medium">Statut</th>
-                    <th className="px-5 py-3 font-medium">Horodatage</th>
+                    <th className="px-5 py-3 font-medium">{t('messaging.colGuest')}</th>
+                    <th className="px-5 py-3 font-medium">{t('messaging.colChannel')}</th>
+                    <th className="px-5 py-3 font-medium">{t('messaging.colStatus')}</th>
+                    <th className="px-5 py-3 font-medium">{t('messaging.colTimestamp')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -931,7 +971,7 @@ export function MessagingTab({
                         <td className="px-5 py-3 text-xs text-[color:var(--color-muted-foreground)]">
                           <span className="inline-flex items-center gap-1.5">
                             <MessageCircle className="h-3.5 w-3.5" strokeWidth={1.9} aria-hidden />{' '}
-                            WhatsApp
+                            {t('messaging.channelWhatsApp')}
                           </span>
                         </td>
                         <td className="px-5 py-3">
@@ -940,7 +980,7 @@ export function MessagingTab({
                             style={{ color: d.color }}
                           >
                             <d.Icon className="h-3.5 w-3.5" strokeWidth={2.2} aria-hidden />{' '}
-                            {d.label}
+                            {t(d.labelKey)}
                           </span>
                         </td>
                         <td className="px-5 py-3 font-mono text-xs text-[color:var(--color-muted-foreground)] tabular-nums">
@@ -956,23 +996,35 @@ export function MessagingTab({
         ) : null}
 
         {/* relances */}
-        <Panel title="Relances automatiques">
+        <Panel title={t('messaging.autoReminders')}>
           <div className="flex flex-col gap-2.5">
             <ReminderRow
-              label="Relance J-7"
+              label={t('messaging.reminderD7')}
               on={rem7}
               setOn={setRem7}
-              next="5 sept. 2026 · 10:00"
+              next={format.dateTime(new Date('2026-09-05T10:00:00'), {
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+              })}
             />
             <ReminderRow
-              label="Relance J-1"
+              label={t('messaging.reminderD1')}
               on={rem1}
               setOn={setRem1}
-              next="11 sept. 2026 · 18:00"
+              next={format.dateTime(new Date('2026-09-11T18:00:00'), {
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+              })}
             />
           </div>
           <p className="text-xs text-[color:var(--color-muted-foreground)]">
-            Les relances ne sont envoyées qu’aux invités encore en attente de réponse.
+            {t('messaging.remindersNote')}
           </p>
         </Panel>
       </div>
@@ -982,32 +1034,40 @@ export function MessagingTab({
 
       {confirm ? (
         <ConfirmDialog
-          eyebrow="Diffusion WhatsApp"
+          eyebrow={t('messaging.confirmEyebrow')}
           Icon={Megaphone}
-          title="Diffuser les invitations ?"
+          title={t('messaging.confirmTitle')}
           onClose={() => setConfirm(false)}
-          confirmLabel={`Diffuser à ${recipients} invités`}
+          confirmLabel={t('messaging.confirmCta', { count: recipients })}
           confirmIcon={Send}
           onConfirm={doSend}
         >
           <p className="text-sm text-[color:var(--color-muted-foreground)]">
-            Le style <b className="text-[color:var(--color-foreground)]">{template.name}</b> sera
-            envoyé à <b className="text-[color:var(--color-foreground)]">{recipients} invités</b>.
-            Cette action est immédiate.
+            {t.rich('messaging.confirmBody', {
+              count: recipients,
+              style: t(template.nameKey),
+              b: (chunks) => <b className="text-[color:var(--color-foreground)]">{chunks}</b>,
+            })}
           </p>
           <div className="flex flex-col gap-2 rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface-elevated)] p-3.5 text-sm">
-            <Recap k="Destinataires" v={`${recipients} invités`} />
-            <Recap k="Messages consommés" v={`${recipients}`} />
-            <Recap k="Quota après envoi" v={`${hNum(afterUse)} / ${hNum(cap)}`} hl />
+            <Recap
+              k={t('messaging.recapRecipients')}
+              v={t('messaging.recipientsCount', { count: recipients })}
+            />
+            <Recap k={t('messaging.recapConsumed')} v={`${recipients}`} />
+            <Recap k={t('messaging.recapQuotaAfter')} v={`${hNum(afterUse)} / ${hNum(cap)}`} hl />
           </div>
           {overQuota ? (
             <p className="inline-flex items-center gap-1.5 text-xs text-[color:var(--color-warning)]">
-              <AlertTriangle className="h-3.5 w-3.5" strokeWidth={2} aria-hidden /> Cet envoi
-              dépasse votre quota mensuel — facturation au dépassement.
+              <AlertTriangle className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />{' '}
+              {t('messaging.overQuotaWarning')}
             </p>
           ) : (
             <p className="text-xs text-[color:var(--color-muted-foreground)]">
-              Il vous restera {hNum(cap - afterUse)} messages ce mois.
+              {t('messaging.remainingThisMonth', {
+                count: cap - afterUse,
+                n: hNum(cap - afterUse),
+              })}
             </p>
           )}
         </ConfirmDialog>
@@ -1027,6 +1087,7 @@ function ReminderRow({
   setOn: (v: boolean) => void;
   next: string;
 }) {
+  const t = useTranslations('Pro.weddings');
   return (
     <div
       className={cn(
@@ -1049,7 +1110,7 @@ function ReminderRow({
               : 'text-[color:var(--color-muted-foreground)]',
           )}
         >
-          {on ? `Prochaine exécution : ${next}` : 'Désactivée'}
+          {on ? t('messaging.nextRun', { next }) : t('messaging.disabled')}
         </span>
       </div>
       <Switch on={on} onChange={setOn} label={label} />
@@ -1136,6 +1197,7 @@ function ConfirmDialog({
   confirmIcon?: LucideIcon;
   danger?: boolean;
 }) {
+  const t = useTranslations('Pro.weddings');
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
@@ -1145,7 +1207,7 @@ function ConfirmDialog({
     >
       <button
         type="button"
-        aria-label="Fermer"
+        aria-label={t('common.close')}
         onClick={onClose}
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
       />
@@ -1177,7 +1239,7 @@ function ConfirmDialog({
             onClick={onClose}
             className="rounded-lg px-4 py-2 text-sm text-[color:var(--color-muted-foreground)] transition-colors hover:text-[color:var(--color-foreground)]"
           >
-            Annuler
+            {t('common.cancel')}
           </button>
           <button
             type="button"
@@ -1213,6 +1275,7 @@ function ProgressRing({
   size?: number;
   stroke?: number;
 }) {
+  const t = useTranslations('Pro.weddings');
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;
   const pct = total ? value / total : 0;
@@ -1221,7 +1284,7 @@ function ProgressRing({
       className="relative flex flex-shrink-0 items-center justify-center"
       style={{ width: size, height: size }}
       role="img"
-      aria-label={`${value} arrivés sur ${total}`}
+      aria-label={t('checkin.arrivedOf', { value, total })}
     >
       <svg
         width={size}
@@ -1255,7 +1318,7 @@ function ProgressRing({
           {Math.round(pct * 100)}%
         </b>
         <span className="font-mono text-[9px] tracking-[0.16em] text-[color:var(--color-muted-foreground)] uppercase">
-          arrivés
+          {t('checkin.arrivedLabel')}
         </span>
       </span>
     </div>
@@ -1272,6 +1335,8 @@ interface ArrivalFeed {
 const CHECKIN_STAFF = ['Camille F.', 'Yann M.', 'Noé B.'];
 
 export function CheckinTab({ guests, guestTotal }: { guests: HubGuestRow[]; guestTotal: number }) {
+  const t = useTranslations('Pro.weddings');
+  const locale = useLocale();
   const { items, toast } = useToast();
   const [checkedIn, setCheckedIn] = useState<Set<string>>(() => new Set());
   const [offline, setOffline] = useState(false);
@@ -1285,8 +1350,10 @@ export function CheckinTab({ guests, guestTotal }: { guests: HubGuestRow[]; gues
   const total = Math.max(guestTotal, eligible.length);
   const arrived = checkedIn.size;
 
-  const nowTime = () =>
-    new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  const nowTime = useCallback(
+    () => new Date().toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' }),
+    [locale],
+  );
 
   const doCheckin = useCallback(
     (g: HubGuestRow, viaScan?: boolean) => {
@@ -1299,13 +1366,17 @@ export function CheckinTab({ guests, guestTotal }: { guests: HubGuestRow[]; gues
       toast(
         CircleCheck,
         <span>
-          <b>{g.fullName}</b> · arrivé{g.plusOnesAllowed ? ` +${g.plusOnesAllowed}` : ''}
-          {offline ? ' (en file)' : ''}
+          {t.rich('checkin.arrivedToast', {
+            name: g.fullName,
+            plusOnes: g.plusOnesAllowed,
+            queued: String(offline),
+            b: (chunks) => <b>{chunks}</b>,
+          })}
         </span>,
       );
       if (viaScan) setScanResult({ name: g.fullName, plusOnes: g.plusOnesAllowed });
     },
-    [checkedIn, offline, toast, arrived],
+    [checkedIn, offline, toast, arrived, nowTime, t],
   );
 
   const undo = useCallback((id: string) => {
@@ -1321,12 +1392,12 @@ export function CheckinTab({ guests, guestTotal }: { guests: HubGuestRow[]; gues
   const simulateScan = useCallback(() => {
     const next = eligible.find((g) => !checkedIn.has(g._id));
     if (!next) {
-      toast(CircleCheck, <span>Tous les invités sont arrivés</span>);
+      toast(CircleCheck, <span>{t('checkin.allArrived')}</span>);
       return;
     }
     doCheckin(next, true);
     setTimeout(() => setScanResult(null), 2400);
-  }, [eligible, checkedIn, doCheckin, toast]);
+  }, [eligible, checkedIn, doCheckin, toast, t]);
 
   const toggleNet = useCallback(() => {
     if (offline) {
@@ -1338,7 +1409,10 @@ export function CheckinTab({ guests, guestTotal }: { guests: HubGuestRow[]; gues
           toast(
             RefreshCw,
             <span>
-              <b>{n}</b> arrivée{n > 1 ? 's' : ''} synchronisée{n > 1 ? 's' : ''}
+              {t.rich('checkin.syncedToast', {
+                count: n,
+                b: (chunks) => <b>{chunks}</b>,
+              })}
             </span>,
           );
         }, 600);
@@ -1348,11 +1422,13 @@ export function CheckinTab({ guests, guestTotal }: { guests: HubGuestRow[]; gues
       toast(
         WifiOff,
         <span>
-          Mode <b>hors-ligne</b> — synchro au retour du réseau
+          {t.rich('checkin.offlineToast', {
+            b: (chunks) => <b>{chunks}</b>,
+          })}
         </span>,
       );
     }
-  }, [offline, queue.length, toast]);
+  }, [offline, queue.length, toast, t]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -1363,11 +1439,7 @@ export function CheckinTab({ guests, guestTotal }: { guests: HubGuestRow[]; gues
 
   if (eligible.length === 0) {
     return (
-      <EmptyState
-        icon={UserCheck}
-        title="Aucun invité à accueillir"
-        body="Le check-in jour J listera ici vos invités confirmés. Ajoutez des invités et publiez l’événement pour préparer l’accueil."
-      />
+      <EmptyState icon={UserCheck} title={t('checkin.emptyTitle')} body={t('checkin.emptyBody')} />
     );
   }
 
@@ -1379,12 +1451,17 @@ export function CheckinTab({ guests, guestTotal }: { guests: HubGuestRow[]; gues
         <ProgressRing value={arrived} total={total} />
         <div className="flex flex-1 flex-col gap-2">
           <h2 className="font-display text-xl text-[color:var(--color-foreground)] italic">
-            <span className="font-mono not-italic tabular-nums">{arrived}</span> /{' '}
-            <span className="font-mono not-italic tabular-nums">{total}</span> arrivés
+            {t.rich('checkin.arrivedHeading', {
+              arrived,
+              total,
+              n: (chunks) => <span className="font-mono not-italic tabular-nums">{chunks}</span>,
+            })}
           </h2>
           <p className="text-sm text-[color:var(--color-muted-foreground)]">
-            {total - arrived} invités encore attendus ·{' '}
-            {feed.length ? `dernière arrivée ${feed[0]!.time}` : 'aucune arrivée'}
+            {t('checkin.stillExpected', { count: total - arrived })} ·{' '}
+            {feed.length
+              ? t('checkin.lastArrival', { time: feed[0]!.time })
+              : t('checkin.noArrival')}
           </p>
           <div className="h-1.5 w-full overflow-hidden rounded-full bg-[color:var(--color-surface-elevated)]">
             <span
@@ -1405,13 +1482,16 @@ export function CheckinTab({ guests, guestTotal }: { guests: HubGuestRow[]; gues
           >
             {offline ? (
               <>
-                <WifiOff className="h-3.5 w-3.5" strokeWidth={1.9} aria-hidden /> Hors-ligne —{' '}
-                <b className="tabular-nums">{queue.length}</b> en attente
+                <WifiOff className="h-3.5 w-3.5" strokeWidth={1.9} aria-hidden />{' '}
+                {t.rich('checkin.offlinePending', {
+                  count: queue.length,
+                  b: (chunks) => <b className="tabular-nums">{chunks}</b>,
+                })}
               </>
             ) : (
               <>
-                <Wifi className="h-3.5 w-3.5" strokeWidth={1.9} aria-hidden /> En ligne ·
-                synchronisé
+                <Wifi className="h-3.5 w-3.5" strokeWidth={1.9} aria-hidden />{' '}
+                {t('checkin.onlineSynced')}
               </>
             )}
           </span>
@@ -1425,18 +1505,18 @@ export function CheckinTab({ guests, guestTotal }: { guests: HubGuestRow[]; gues
             ) : (
               <CloudOff className="h-3.5 w-3.5" strokeWidth={1.9} aria-hidden />
             )}
-            {offline ? 'Repasser en ligne' : 'Simuler hors-ligne'}
+            {offline ? t('checkin.backOnline') : t('checkin.simulateOffline')}
           </button>
         </div>
       </div>
 
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
         {/* scanner QR */}
-        <Panel title="Scanner QR">
+        <Panel title={t('checkin.qrScanner')}>
           <div
             className="relative flex aspect-[4/3] items-center justify-center overflow-hidden rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-ink-700)]"
             role="img"
-            aria-label="Viseur du scanner QR"
+            aria-label={t('checkin.qrViewfinder')}
           >
             <div className="relative h-2/3 w-2/3">
               <span className="absolute top-0 left-0 h-6 w-6 rounded-tl-lg border-t-2 border-l-2 border-[color:var(--color-blush-300)]" />
@@ -1457,8 +1537,10 @@ export function CheckinTab({ guests, guestTotal }: { guests: HubGuestRow[]; gues
                   aria-hidden
                 />
                 <span className="text-sm font-semibold text-[color:var(--color-foreground)]">
-                  {scanResult.name}
-                  {scanResult.plusOnes ? ` · +${scanResult.plusOnes}` : ''} — arrivé
+                  {t('checkin.scanResultArrived', {
+                    name: scanResult.name,
+                    plusOnes: scanResult.plusOnes,
+                  })}
                 </span>
               </div>
             ) : null}
@@ -1468,10 +1550,10 @@ export function CheckinTab({ guests, guestTotal }: { guests: HubGuestRow[]; gues
             onClick={simulateScan}
             className="focus-ring inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[color:var(--color-primary)] px-5 py-2.5 text-sm font-semibold text-[color:var(--color-primary-foreground)] transition-colors hover:bg-[color:var(--color-primary-hover)]"
           >
-            <ScanLine className="h-4 w-4" strokeWidth={2} aria-hidden /> Simuler un scan QR
+            <ScanLine className="h-4 w-4" strokeWidth={2} aria-hidden /> {t('checkin.simulateScan')}
           </button>
           <p className="text-center text-xs text-[color:var(--color-muted-foreground)]">
-            Présentez le QR de l’invitation devant la caméra
+            {t('checkin.scannerHint')}
           </p>
         </Panel>
 
@@ -1486,15 +1568,15 @@ export function CheckinTab({ guests, guestTotal }: { guests: HubGuestRow[]; gues
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Rechercher par nom ou téléphone…"
-              aria-label="Rechercher un invité"
+              placeholder={t('checkin.searchPlaceholder')}
+              aria-label={t('invites.searchAria')}
               className="w-full bg-transparent text-sm text-[color:var(--color-foreground)] outline-none placeholder:text-[color:var(--color-muted-foreground)]"
             />
             {search ? (
               <button
                 type="button"
                 onClick={() => setSearch('')}
-                aria-label="Effacer"
+                aria-label={t('common.clear')}
                 className="text-[color:var(--color-muted-foreground)] hover:text-[color:var(--color-foreground)]"
               >
                 <X className="h-4 w-4" strokeWidth={2} aria-hidden />
@@ -1504,7 +1586,7 @@ export function CheckinTab({ guests, guestTotal }: { guests: HubGuestRow[]; gues
           <div className="flex max-h-[360px] flex-col gap-2 overflow-y-auto pr-1">
             {filtered.length === 0 ? (
               <div className="py-8 text-center text-sm text-[color:var(--color-muted-foreground)]">
-                Aucun invité ne correspond.
+                {t('invites.noMatch')}
               </div>
             ) : (
               filtered.map((g) => {
@@ -1525,7 +1607,7 @@ export function CheckinTab({ guests, guestTotal }: { guests: HubGuestRow[]; gues
                         {g.phone ?? '—'}
                         {g.plusOnesAllowed ? (
                           <span className="ml-1.5 text-[color:var(--color-blush-300)]">
-                            +{g.plusOnesAllowed} accomp.
+                            {t('checkin.plusOnesAbbr', { count: g.plusOnesAllowed })}
                           </span>
                         ) : null}
                       </span>
@@ -1533,25 +1615,28 @@ export function CheckinTab({ guests, guestTotal }: { guests: HubGuestRow[]; gues
                     {inHere ? (
                       <>
                         <span className="inline-flex items-center gap-1 text-xs font-medium text-[color:var(--color-sage-500)]">
-                          <Check className="h-3.5 w-3.5" strokeWidth={2.4} aria-hidden /> Arrivé
+                          <Check className="h-3.5 w-3.5" strokeWidth={2.4} aria-hidden />{' '}
+                          {t('checkin.arrivedTag')}
                         </span>
                         <button
                           type="button"
                           onClick={() => undo(g._id)}
-                          aria-label={`Annuler l’arrivée de ${g.fullName}`}
+                          aria-label={t('checkin.undoArrivalAria', { name: g.fullName })}
                           className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-[color:var(--color-muted-foreground)] transition-colors hover:text-[color:var(--color-foreground)]"
                         >
-                          <RotateCcw className="h-3.5 w-3.5" strokeWidth={2} aria-hidden /> Annuler
+                          <RotateCcw className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />{' '}
+                          {t('common.cancel')}
                         </button>
                       </>
                     ) : (
                       <button
                         type="button"
                         onClick={() => doCheckin(g)}
-                        aria-label={`Marquer ${g.fullName} arrivé`}
+                        aria-label={t('checkin.markArrivedAria', { name: g.fullName })}
                         className="inline-flex items-center gap-1.5 rounded-lg border border-[color:var(--color-border-strong)] bg-[color:var(--color-surface-elevated)] px-3 py-1.5 text-xs font-medium text-[color:var(--color-foreground)] transition-colors hover:border-[color:var(--color-blush-400)]"
                       >
-                        <UserCheck className="h-4 w-4" strokeWidth={2} aria-hidden /> Marquer arrivé
+                        <UserCheck className="h-4 w-4" strokeWidth={2} aria-hidden />{' '}
+                        {t('checkin.markArrived')}
                       </button>
                     )}
                   </div>
@@ -1563,10 +1648,10 @@ export function CheckinTab({ guests, guestTotal }: { guests: HubGuestRow[]; gues
       </div>
 
       {/* arrivées récentes */}
-      <Panel title="Arrivées récentes" sub={`${arrived} via cette session`}>
+      <Panel title={t('checkin.recentArrivals')} sub={t('checkin.viaSession', { count: arrived })}>
         {feed.length === 0 ? (
           <p className="text-sm text-[color:var(--color-muted-foreground)]">
-            Les arrivées que vous enregistrez apparaîtront ici, les plus récentes en premier.
+            {t('checkin.recentArrivalsEmpty')}
           </p>
         ) : (
           <div className="flex flex-col gap-2">
@@ -1581,7 +1666,7 @@ export function CheckinTab({ guests, guestTotal }: { guests: HubGuestRow[]; gues
                 <div className="flex flex-1 flex-col">
                   <b className="text-sm text-[color:var(--color-foreground)]">{f.name}</b>
                   <span className="text-xs text-[color:var(--color-muted-foreground)]">
-                    par {f.by}
+                    {t('checkin.byStaff', { by: f.by })}
                   </span>
                 </div>
                 <span className="font-mono text-xs text-[color:var(--color-muted-foreground)] tabular-nums">
@@ -1611,6 +1696,7 @@ export function SeatingTab({
   guestTotal: number;
   eventHref: (sub: string) => string;
 }) {
+  const t = useTranslations('Pro.weddings');
   const eligible = useMemo(() => guests.filter((g) => g.rsvpStatus !== 'declined'), [guests]);
   // Placement en session : map invité -> index de table.
   const [seats, setSeats] = useState<Record<string, number>>({});
@@ -1619,11 +1705,11 @@ export function SeatingTab({
     () =>
       SEAT_CAPS.map((capacity, i) => ({
         id: i,
-        label: i === 6 ? 'Table d’honneur' : `Table ${i + 1}`,
+        label: i === 6 ? t('seating.headTable') : t('seating.tableN', { n: i + 1 }),
         capacity,
         occupants: eligible.filter((g) => seats[g._id] === i),
       })),
-    [eligible, seats],
+    [eligible, seats, t],
   );
 
   const unassigned = eligible.filter((g) => seats[g._id] === undefined);
@@ -1631,7 +1717,7 @@ export function SeatingTab({
   const totalUnits = Math.max(guestTotal, eligible.length);
 
   function assign(id: string) {
-    const table = tables.find((t) => t.occupants.length < t.capacity);
+    const table = tables.find((tbl) => tbl.occupants.length < tbl.capacity);
     if (!table) return;
     setSeats((s) => ({ ...s, [id]: table.id }));
   }
@@ -1645,11 +1731,7 @@ export function SeatingTab({
 
   if (eligible.length === 0) {
     return (
-      <EmptyState
-        icon={Users}
-        title="Aucun invité à placer"
-        body="Le plan de table se construit à partir de vos invités confirmés. Ajoutez des invités pour commencer le placement."
-      />
+      <EmptyState icon={Users} title={t('seating.emptyTitle')} body={t('seating.emptyBody')} />
     );
   }
 
@@ -1658,11 +1740,14 @@ export function SeatingTab({
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-5">
         <div className="flex flex-col">
           <span className="font-mono text-[10px] tracking-[0.16em] text-[color:var(--color-muted-foreground)] uppercase">
-            {tables.length} tables
+            {t('seating.tablesCount', { count: tables.length })}
           </span>
           <b className="font-display text-xl text-[color:var(--color-foreground)] italic">
-            <span className="font-mono not-italic tabular-nums">{placedUnits}</span> / {totalUnits}{' '}
-            placés
+            {t.rich('seating.placedHeading', {
+              placed: placedUnits,
+              total: totalUnits,
+              n: (chunks) => <span className="font-mono not-italic tabular-nums">{chunks}</span>,
+            })}
           </b>
         </div>
         <div className="flex items-center gap-3">
@@ -1676,7 +1761,7 @@ export function SeatingTab({
             href={eventHref('seating') as never}
             className="inline-flex items-center gap-1 font-mono text-[10px] tracking-[0.12em] text-[color:var(--color-blush-300)] uppercase hover:text-[color:var(--color-foreground)]"
           >
-            Plan complet <ArrowUpRight className="h-3 w-3" strokeWidth={2} aria-hidden />
+            {t('seating.fullPlan')} <ArrowUpRight className="h-3 w-3" strokeWidth={2} aria-hidden />
           </Link>
         </div>
       </div>
@@ -1684,15 +1769,15 @@ export function SeatingTab({
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_300px]">
         {/* tables */}
         <div className="grid grid-cols-2 gap-3 self-start sm:grid-cols-3">
-          {tables.map((t) => {
-            const full = t.occupants.length >= t.capacity;
+          {tables.map((tbl) => {
+            const full = tbl.occupants.length >= tbl.capacity;
             return (
               <div
-                key={t.id}
+                key={tbl.id}
                 className="flex flex-col gap-2 rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-3.5"
               >
                 <div className="flex items-center justify-between">
-                  <b className="text-sm text-[color:var(--color-foreground)]">{t.label}</b>
+                  <b className="text-sm text-[color:var(--color-foreground)]">{tbl.label}</b>
                   <span
                     className={cn(
                       'font-mono text-[11px] tabular-nums',
@@ -1701,19 +1786,19 @@ export function SeatingTab({
                         : 'text-[color:var(--color-muted-foreground)]',
                     )}
                   >
-                    {t.occupants.length}/{t.capacity}
+                    {tbl.occupants.length}/{tbl.capacity}
                   </span>
                 </div>
                 <div className="flex flex-wrap gap-1">
-                  {Array.from({ length: t.capacity }).map((_, i) => {
-                    const occ = t.occupants[i];
+                  {Array.from({ length: tbl.capacity }).map((_, i) => {
+                    const occ = tbl.occupants[i];
                     return occ ? (
                       <button
                         key={i}
                         type="button"
                         onClick={() => unassign(occ._id)}
-                        title={`${occ.fullName} — retirer`}
-                        aria-label={`Retirer ${occ.fullName}`}
+                        title={t('seating.removeTitle', { name: occ.fullName })}
+                        aria-label={t('seating.removeAria', { name: occ.fullName })}
                       >
                         <Avatar name={occ.fullName} size={22} />
                       </button>
@@ -1735,7 +1820,7 @@ export function SeatingTab({
         <div className="flex flex-col gap-3 self-start rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-4">
           <div className="flex items-center justify-between">
             <h3 className="font-display text-base text-[color:var(--color-foreground)] italic">
-              Non placés
+              {t('seating.unassigned')}
             </h3>
             <span className="font-mono text-[11px] text-[color:var(--color-muted-foreground)] tabular-nums">
               {unassigned.length}
@@ -1743,7 +1828,7 @@ export function SeatingTab({
           </div>
           {unassigned.length === 0 ? (
             <p className="text-sm text-[color:var(--color-muted-foreground)]">
-              Tous les invités confirmés sont placés. 🎉
+              {t('seating.allPlaced')}
             </p>
           ) : (
             <div className="flex max-h-[420px] flex-col gap-1.5 overflow-y-auto pr-1">
@@ -1761,7 +1846,7 @@ export function SeatingTab({
                     onClick={() => assign(g._id)}
                     className="rounded-lg border border-[color:var(--color-border-strong)] px-2 py-1 text-xs text-[color:var(--color-muted-foreground)] transition-colors hover:text-[color:var(--color-foreground)]"
                   >
-                    Placer
+                    {t('seating.place')}
                   </button>
                 </div>
               ))}
@@ -1783,46 +1868,60 @@ interface HubPhoto {
   album: string;
   status: 'pending' | 'approved' | 'rejected';
   by: string;
-  flag?: string;
-  reason?: string;
+  flagKey?: string;
+  reasonKey?: string;
 }
 
-const GAL_ALBUMS = ['Cérémonie', 'Cocktail', 'Soirée'];
+/** Albums internes : id stable + clé i18n du libellé affiché. */
+const GAL_ALBUMS = ['ceremony', 'cocktail', 'evening'] as const;
+const GAL_ALBUM_LABEL_KEY: Record<string, string> = {
+  ceremony: 'gallery.albumCeremony',
+  cocktail: 'gallery.albumCocktail',
+  evening: 'gallery.albumEvening',
+};
 function photoBg(seed: number): string {
   const h1 = (seed * 47) % 360;
   const h2 = (seed * 47 + 40) % 360;
   return `linear-gradient(135deg, oklch(42% 0.07 ${h1}), oklch(28% 0.05 ${h2}))`;
 }
 const GAL_SEED: ReadonlyArray<HubPhoto> = [
-  { id: 'p1', seed: 1, album: 'Cérémonie', status: 'pending', by: 'Aminata D.' },
+  { id: 'p1', seed: 1, album: 'ceremony', status: 'pending', by: 'Aminata D.' },
   {
     id: 'p2',
     seed: 2,
-    album: 'Cérémonie',
+    album: 'ceremony',
     status: 'pending',
     by: 'Hugo L.',
-    flag: 'Visage non détecté',
+    flagKey: 'gallery.flagNoFace',
   },
-  { id: 'p3', seed: 3, album: 'Cocktail', status: 'pending', by: 'Sophie M.' },
-  { id: 'p4', seed: 4, album: 'Soirée', status: 'pending', by: 'Mehdi H.' },
+  { id: 'p3', seed: 3, album: 'cocktail', status: 'pending', by: 'Sophie M.' },
+  { id: 'p4', seed: 4, album: 'evening', status: 'pending', by: 'Mehdi H.' },
   {
     id: 'p5',
     seed: 5,
-    album: 'Cocktail',
+    album: 'cocktail',
     status: 'pending',
     by: 'Awa T.',
-    flag: 'Contenu sensible',
+    flagKey: 'gallery.flagSensitive',
   },
-  { id: 'p6', seed: 6, album: 'Cérémonie', status: 'pending', by: 'Camille B.' },
-  { id: 'p7', seed: 7, album: 'Soirée', status: 'pending', by: 'Yacine M.' },
-  { id: 'p8', seed: 8, album: 'Cocktail', status: 'pending', by: 'Fatou S.' },
-  { id: 'p11', seed: 11, album: 'Cérémonie', status: 'approved', by: 'Aminata D.' },
-  { id: 'p12', seed: 12, album: 'Cocktail', status: 'approved', by: 'Sophie M.' },
-  { id: 'p13', seed: 13, album: 'Soirée', status: 'approved', by: 'Mehdi H.' },
-  { id: 'p16', seed: 16, album: 'Cérémonie', status: 'rejected', by: 'Hugo L.', reason: 'Flou' },
+  { id: 'p6', seed: 6, album: 'ceremony', status: 'pending', by: 'Camille B.' },
+  { id: 'p7', seed: 7, album: 'evening', status: 'pending', by: 'Yacine M.' },
+  { id: 'p8', seed: 8, album: 'cocktail', status: 'pending', by: 'Fatou S.' },
+  { id: 'p11', seed: 11, album: 'ceremony', status: 'approved', by: 'Aminata D.' },
+  { id: 'p12', seed: 12, album: 'cocktail', status: 'approved', by: 'Sophie M.' },
+  { id: 'p13', seed: 13, album: 'evening', status: 'approved', by: 'Mehdi H.' },
+  {
+    id: 'p16',
+    seed: 16,
+    album: 'ceremony',
+    status: 'rejected',
+    by: 'Hugo L.',
+    reasonKey: 'gallery.reasonBlurry',
+  },
 ];
 
 export function GalleryTab() {
+  const t = useTranslations('Pro.weddings');
   const { items, toast } = useToast();
   const [photos, setPhotos] = useState<HubPhoto[]>(() => GAL_SEED.map((p) => ({ ...p })));
   const [sub, setSub] = useState<HubPhoto['status']>('pending');
@@ -1845,12 +1944,16 @@ export function GalleryTab() {
     [photos, sub, album],
   );
 
-  const setStatus = useCallback((ids: string[], status: HubPhoto['status'], reason?: string) => {
+  const setStatus = useCallback((ids: string[], status: HubPhoto['status'], reasonKey?: string) => {
     const set = new Set(ids);
     setPhotos((ps) =>
       ps.map((p) =>
         set.has(p.id)
-          ? { ...p, status, reason: status === 'rejected' ? (reason ?? 'Rejet manuel') : undefined }
+          ? {
+              ...p,
+              status,
+              reasonKey: status === 'rejected' ? (reasonKey ?? 'gallery.reasonManual') : undefined,
+            }
           : p,
       ),
     );
@@ -1863,11 +1966,11 @@ export function GalleryTab() {
 
   const approve = (id: string) => {
     setStatus([id], 'approved');
-    toast(ThumbsUp, <span>Photo approuvée</span>);
+    toast(ThumbsUp, <span>{t('gallery.photoApproved')}</span>);
   };
   const reject = (id: string) => {
-    setStatus([id], 'rejected', 'Rejet manuel');
-    toast(ThumbsDown, <span>Photo rejetée</span>);
+    setStatus([id], 'rejected', 'gallery.reasonManual');
+    toast(ThumbsDown, <span>{t('gallery.photoRejected')}</span>);
   };
   const bulkApprove = () => {
     const ids = [...selected];
@@ -1875,17 +1978,23 @@ export function GalleryTab() {
     toast(
       ThumbsUp,
       <span>
-        <b>{ids.length}</b> photos approuvées
+        {t.rich('gallery.photosApproved', {
+          count: ids.length,
+          b: (chunks) => <b>{chunks}</b>,
+        })}
       </span>,
     );
   };
   const bulkReject = () => {
     const ids = [...selected];
-    setStatus(ids, 'rejected', 'Rejet groupé');
+    setStatus(ids, 'rejected', 'gallery.reasonBulk');
     toast(
       ThumbsDown,
       <span>
-        <b>{ids.length}</b> photos rejetées
+        {t.rich('gallery.photosRejected', {
+          count: ids.length,
+          b: (chunks) => <b>{chunks}</b>,
+        })}
       </span>,
     );
   };
@@ -1898,9 +2007,9 @@ export function GalleryTab() {
     });
 
   const SUBS: ReadonlyArray<[HubPhoto['status'], string, number]> = [
-    ['pending', 'En attente', counts.pending],
-    ['approved', 'Approuvées', counts.approved],
-    ['rejected', 'Rejetées', counts.rejected],
+    ['pending', t('gallery.subPending'), counts.pending],
+    ['approved', t('gallery.subApproved'), counts.approved],
+    ['rejected', t('gallery.subRejected'), counts.rejected],
   ];
 
   return (
@@ -1910,7 +2019,7 @@ export function GalleryTab() {
       <div
         className="flex items-center gap-1 self-start rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-1"
         role="tablist"
-        aria-label="Modération photos"
+        aria-label={t('gallery.moderationAria')}
       >
         {SUBS.map(([k, l, c]) => (
           <button
@@ -1949,7 +2058,7 @@ export function GalleryTab() {
                   : 'text-[color:var(--color-muted-foreground)] hover:text-[color:var(--color-foreground)]',
               )}
             >
-              {a === 'all' ? 'Tous les albums' : a}
+              {a === 'all' ? t('gallery.allAlbums') : t(GAL_ALBUM_LABEL_KEY[a] ?? '')}
             </button>
           ))}
         </div>
@@ -1957,44 +2066,46 @@ export function GalleryTab() {
         {sub === 'pending' && selected.size > 0 ? (
           <>
             <span className="font-mono text-xs text-[color:var(--color-muted-foreground)]">
-              <b className="text-[color:var(--color-foreground)]">{selected.size}</b> sélectionnées
+              {t.rich('gallery.selectedCount', {
+                count: selected.size,
+                b: (chunks) => <b className="text-[color:var(--color-foreground)]">{chunks}</b>,
+              })}
             </span>
             <button
               type="button"
               onClick={bulkApprove}
               className="inline-flex items-center gap-1.5 rounded-lg border border-[color:var(--color-border-strong)] px-3 py-1.5 text-xs text-[color:var(--color-foreground)] transition-colors hover:border-[color:var(--color-sage-500)]"
             >
-              <ThumbsUp className="h-3.5 w-3.5" strokeWidth={1.85} aria-hidden /> Tout approuver
+              <ThumbsUp className="h-3.5 w-3.5" strokeWidth={1.85} aria-hidden />{' '}
+              {t('gallery.approveAll')}
             </button>
             <button
               type="button"
               onClick={bulkReject}
               className="inline-flex items-center gap-1.5 rounded-lg border border-[color:var(--color-border-strong)] px-3 py-1.5 text-xs text-[color:var(--color-danger)] transition-colors hover:border-[color:var(--color-danger)]"
             >
-              <ThumbsDown className="h-3.5 w-3.5" strokeWidth={1.85} aria-hidden /> Tout rejeter
+              <ThumbsDown className="h-3.5 w-3.5" strokeWidth={1.85} aria-hidden />{' '}
+              {t('gallery.rejectAll')}
             </button>
           </>
         ) : null}
         <button
           type="button"
           onClick={() =>
-            toast(Download, <span>Archive ZIP de {counts.approved} photos en préparation</span>)
+            toast(Download, <span>{t('gallery.zipPreparing', { count: counts.approved })}</span>)
           }
           className="inline-flex items-center gap-1.5 rounded-lg border border-[color:var(--color-border)] px-3 py-1.5 text-xs text-[color:var(--color-foreground)] transition-colors hover:border-[color:var(--color-border-strong)]"
         >
-          <Download className="h-3.5 w-3.5" strokeWidth={1.9} aria-hidden /> Tout télécharger
+          <Download className="h-3.5 w-3.5" strokeWidth={1.9} aria-hidden />{' '}
+          {t('gallery.downloadAll')}
         </button>
       </div>
 
       {list.length === 0 ? (
         <EmptyState
           icon={sub === 'pending' ? CircleCheck : Images}
-          title={sub === 'pending' ? 'Aucune photo à modérer' : 'Rien à afficher'}
-          body={
-            sub === 'pending'
-              ? 'Toutes les photos déposées par les invités ont été traitées. Les nouvelles arrivées apparaîtront ici avant publication.'
-              : 'Aucune photo dans cet album pour ce statut.'
-          }
+          title={sub === 'pending' ? t('gallery.emptyPendingTitle') : t('gallery.emptyOtherTitle')}
+          body={sub === 'pending' ? t('gallery.emptyPendingBody') : t('gallery.emptyOtherBody')}
         />
       ) : (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
@@ -2019,17 +2130,17 @@ export function GalleryTab() {
                       type="checkbox"
                       checked={selected.has(p.id)}
                       onChange={() => toggleSel(p.id)}
-                      aria-label={`Sélectionner la photo de ${p.by}`}
+                      aria-label={t('gallery.selectPhotoAria', { by: p.by })}
                       className="accent-[color:var(--color-blush-400)]"
                     />
                   </label>
                 ) : null}
-                {p.flag && sub === 'pending' ? (
+                {p.flagKey && sub === 'pending' ? (
                   <span
                     className="absolute top-2 right-2 inline-flex items-center gap-1 rounded-full bg-[color:var(--color-warning)]/90 px-2 py-0.5 text-[10px] font-medium text-[color:var(--color-ink-700)]"
-                    title={`Signalé : ${p.flag}`}
+                    title={t('gallery.flaggedTitle', { flag: t(p.flagKey) })}
                   >
-                    <ShieldAlert className="h-3 w-3" strokeWidth={2} aria-hidden /> {p.flag}
+                    <ShieldAlert className="h-3 w-3" strokeWidth={2} aria-hidden /> {t(p.flagKey)}
                   </span>
                 ) : null}
                 {sub !== 'pending' ? (
@@ -2042,7 +2153,7 @@ export function GalleryTab() {
                     }
                   >
                     <span className="h-1.5 w-1.5 rounded-full bg-current" aria-hidden />{' '}
-                    {sub === 'approved' ? 'Approuvée' : 'Rejetée'}
+                    {sub === 'approved' ? t('gallery.statusApproved') : t('gallery.statusRejected')}
                   </span>
                 ) : null}
                 <div className="absolute inset-0 flex items-center justify-center gap-2 bg-black/55 opacity-0 transition-opacity group-hover:opacity-100">
@@ -2051,7 +2162,7 @@ export function GalleryTab() {
                       <button
                         type="button"
                         onClick={() => approve(p.id)}
-                        aria-label="Approuver"
+                        aria-label={t('gallery.approve')}
                         className="flex h-9 w-9 items-center justify-center rounded-full bg-[color:var(--color-sage-500)] text-[color:var(--color-ink-700)]"
                       >
                         <Check className="h-5 w-5" strokeWidth={2.4} aria-hidden />
@@ -2059,7 +2170,7 @@ export function GalleryTab() {
                       <button
                         type="button"
                         onClick={() => setLightbox(p)}
-                        aria-label="Agrandir"
+                        aria-label={t('gallery.zoom')}
                         className="flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-[color:var(--color-ink-700)]"
                       >
                         <ZoomIn className="h-[18px] w-[18px]" strokeWidth={2} aria-hidden />
@@ -2067,7 +2178,7 @@ export function GalleryTab() {
                       <button
                         type="button"
                         onClick={() => reject(p.id)}
-                        aria-label="Rejeter"
+                        aria-label={t('gallery.reject')}
                         className="flex h-9 w-9 items-center justify-center rounded-full bg-[color:var(--color-danger)] text-white"
                       >
                         <X className="h-5 w-5" strokeWidth={2.4} aria-hidden />
@@ -2077,7 +2188,7 @@ export function GalleryTab() {
                     <button
                       type="button"
                       onClick={() => setLightbox(p)}
-                      aria-label="Agrandir"
+                      aria-label={t('gallery.zoom')}
                       className="flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-[color:var(--color-ink-700)]"
                     >
                       <ZoomIn className="h-[18px] w-[18px]" strokeWidth={2} aria-hidden />
@@ -2088,12 +2199,13 @@ export function GalleryTab() {
               <div className="flex items-center justify-between px-3 py-2">
                 <span className="text-xs text-[color:var(--color-foreground)]">{p.by}</span>
                 <span className="font-mono text-[10px] text-[color:var(--color-muted-foreground)]">
-                  {p.album}
+                  {t(GAL_ALBUM_LABEL_KEY[p.album] ?? '')}
                 </span>
               </div>
-              {sub === 'rejected' && p.reason ? (
+              {sub === 'rejected' && p.reasonKey ? (
                 <div className="flex items-center gap-1 border-t border-[color:var(--color-border)] px-3 py-1.5 text-[11px] text-[color:var(--color-danger)]">
-                  <X className="h-3 w-3" strokeWidth={2.2} aria-hidden /> Motif : {p.reason}
+                  <X className="h-3 w-3" strokeWidth={2.2} aria-hidden />{' '}
+                  {t('gallery.reasonLabel', { reason: t(p.reasonKey) })}
                 </div>
               ) : null}
             </div>
@@ -2103,9 +2215,9 @@ export function GalleryTab() {
 
       {/* stats */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-        <GalStat label="Approuvées" value={counts.approved} />
-        <GalStat label="En attente" value={counts.pending} />
-        <GalStat label="Rejetées" value={counts.rejected} />
+        <GalStat label={t('gallery.statApproved')} value={counts.approved} />
+        <GalStat label={t('gallery.statPending')} value={counts.pending} />
+        <GalStat label={t('gallery.statRejected')} value={counts.rejected} />
       </div>
 
       {lightbox ? (
@@ -2113,13 +2225,13 @@ export function GalleryTab() {
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-6"
           role="dialog"
           aria-modal="true"
-          aria-label={`Photo de ${lightbox.by}`}
+          aria-label={t('gallery.lightboxAria', { by: lightbox.by })}
           onClick={() => setLightbox(null)}
         >
           <button
             type="button"
             onClick={() => setLightbox(null)}
-            aria-label="Fermer"
+            aria-label={t('common.close')}
             className="absolute top-5 right-5 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white"
           >
             <X className="h-5 w-5" strokeWidth={2} aria-hidden />
@@ -2154,27 +2266,29 @@ function GalStat({ label, value }: { label: string; value: number }) {
 /*  ONGLET · FACTURE (registre de facturation de l'événement)                */
 /* -------------------------------------------------------------------------- */
 
-function facEur(n: number): string {
+function facEur(n: number, locale: string): string {
   const hasDec = Math.round(n) !== n;
-  const s = n.toLocaleString(
-    'fr-FR',
-    hasDec ? { minimumFractionDigits: 2, maximumFractionDigits: 2 } : {},
-  );
-  return s.replace(/\s/g, ' ') + ' €';
+  return new Intl.NumberFormat(locale, {
+    style: 'currency',
+    currency: 'EUR',
+    minimumFractionDigits: hasDec ? 2 : 0,
+    maximumFractionDigits: hasDec ? 2 : 0,
+  }).format(n);
 }
 
 interface BillingPayment {
   id: string;
-  date: string;
+  /** Timestamp (ms) du mouvement — formaté côté composant selon la locale. */
+  dateMs: number;
   label: string;
   amount: number;
   status: 'paid' | 'pending' | 'failed';
 }
 
-const FAC_STATUS: Record<BillingPayment['status'], { label: string; color: string }> = {
-  paid: { label: 'Payé', color: SAGE },
-  pending: { label: 'En attente', color: AMBER },
-  failed: { label: 'Échoué', color: RED },
+const FAC_STATUS: Record<BillingPayment['status'], { labelKey: string; color: string }> = {
+  paid: { labelKey: 'invoice.statusPaid', color: SAGE },
+  pending: { labelKey: 'invoice.statusPending', color: AMBER },
+  failed: { labelKey: 'invoice.statusFailed', color: RED },
 };
 
 export function FactureTab({
@@ -2186,66 +2300,86 @@ export function FactureTab({
   eventNo: number;
   eventCap: number | null;
 }) {
+  const t = useTranslations('Pro.weddings');
+  const locale = useLocale();
+  const format = useFormatter();
   const { items, toast } = useToast();
   const [mode, setMode] = useState<'subscription' | 'payg'>('subscription');
   const isSub = mode === 'subscription';
+  const dayMonthYear = { day: 'numeric', month: 'short', year: 'numeric' } as const;
+  const eventCapLabel = eventCap != null ? String(eventCap) : '—';
 
   const data = isSub
     ? {
-        title: `Couvert par l’abonnement ${plan}`,
-        desc: `Ce mariage est l’un des ${eventCap ?? '—'} événements actifs inclus dans votre forfait. Aucun coût supplémentaire — les dépassements éventuels (messages, stockage) sont facturés sur votre relevé mensuel.`,
+        title: t('invoice.subTitle', { plan }),
+        desc: t('invoice.subDesc', { cap: eventCapLabel }),
         line: {
-          label: `Événement inclus · forfait ${plan}`,
+          label: t('invoice.subLineLabel', { plan }),
           amount: 0,
-          note: eventCap ? `${eventNo}ᵉ / ${eventCap} événements` : `${eventNo}ᵉ événement`,
+          note: eventCap
+            ? t('invoice.subLineNoteCap', { no: eventNo, cap: eventCap })
+            : t('invoice.subLineNote', { no: eventNo }),
         },
         payments: [
           {
             id: 'ev1',
-            date: '1ᵉʳ juin 2026',
-            label: 'Activation événement · abonnement',
+            dateMs: Date.UTC(2026, 5, 1),
+            label: t('invoice.payActivation'),
             amount: 0,
             status: 'paid' as const,
           },
           {
             id: 'ev2',
-            date: '14 juin 2026',
-            label: 'Dépassement messages (320 × 0,06 €)',
+            dateMs: Date.UTC(2026, 5, 14),
+            label: t('invoice.payMessageOverage', {
+              count: 320,
+              rate: format.number(0.06, { style: 'currency', currency: 'EUR' }),
+            }),
             amount: 19.2,
             status: 'paid' as const,
           },
           {
             id: 'ev3',
-            date: '2 juil. 2026',
-            label: 'Stockage galerie (12 Go au-delà du cap)',
+            dateMs: Date.UTC(2026, 6, 2),
+            label: t('invoice.payStorageOverage', { gb: 12 }),
             amount: 0.36,
             status: 'pending' as const,
           },
         ],
       }
     : {
-        title: 'Payé à l’usage (Pay-as-you-go)',
-        desc: 'Ce mariage a été réglé à l’unité, sans abonnement. Un crédit événement couvre l’accès complet — invitations, RSVP, check-in, galerie et plan de table.',
-        line: { label: '1 crédit événement (PAYG)', amount: 79, note: 'sans abonnement' },
+        title: t('invoice.paygTitle'),
+        desc: t('invoice.paygDesc'),
+        line: {
+          label: t('invoice.paygLineLabel'),
+          amount: 79,
+          note: t('invoice.paygLineNote'),
+        },
         payments: [
           {
             id: 'pv1',
-            date: '12 mai 2026',
-            label: 'Crédit événement · Pay-as-you-go',
+            dateMs: Date.UTC(2026, 4, 12),
+            label: t('invoice.payCredit'),
             amount: 79,
             status: 'paid' as const,
           },
           {
             id: 'pv2',
-            date: '14 juin 2026',
-            label: 'Dépassement messages (210 × 0,06 €)',
+            dateMs: Date.UTC(2026, 5, 14),
+            label: t('invoice.payMessageOverage', {
+              count: 210,
+              rate: format.number(0.06, { style: 'currency', currency: 'EUR' }),
+            }),
             amount: 12.6,
             status: 'paid' as const,
           },
           {
             id: 'pv3',
-            date: '28 juin 2026',
-            label: 'Invités au-delà du cap (8 × 0,25 €)',
+            dateMs: Date.UTC(2026, 5, 28),
+            label: t('invoice.payGuestOverage', {
+              count: 8,
+              rate: format.number(0.25, { style: 'currency', currency: 'EUR' }),
+            }),
             amount: 2,
             status: 'failed' as const,
           },
@@ -2257,7 +2391,10 @@ export function FactureTab({
     toast(
       Download,
       <span>
-        Facture <b>{p.label.split('·')[0]!.trim()}</b> — téléchargement PDF lancé
+        {t.rich('invoice.downloadToast', {
+          label: p.label.split('\u00b7')[0]!.trim(),
+          b: (chunks) => <b>{chunks}</b>,
+        })}
       </span>,
     );
   }
@@ -2269,15 +2406,15 @@ export function FactureTab({
       <div
         className="flex items-center gap-1 self-start rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-1"
         role="group"
-        aria-label="Mode de facturation"
+        aria-label={t('invoice.modeAria')}
       >
         <span className="px-2 font-mono text-[9px] tracking-[0.16em] text-[color:var(--color-muted-foreground)] uppercase">
-          Facturation
+          {t('invoice.billing')}
         </span>
         {(
           [
-            ['subscription', 'Abonnement'],
-            ['payg', 'Pay-as-you-go'],
+            ['subscription', t('invoice.subscription')],
+            ['payg', t('invoice.payg')],
           ] as const
         ).map(([k, l]) => (
           <button
@@ -2308,7 +2445,7 @@ export function FactureTab({
         </span>
         <div className="flex flex-1 flex-col gap-2">
           <span className="font-mono text-[10px] tracking-[0.16em] text-[color:var(--color-muted-foreground)] uppercase">
-            Facturation de l’événement
+            {t('invoice.eventBilling')}
           </span>
           <h2 className="font-display text-xl text-[color:var(--color-foreground)] italic">
             {data.title}
@@ -2329,7 +2466,7 @@ export function FactureTab({
                   : 'text-[color:var(--color-foreground)]',
               )}
             >
-              {data.line.amount === 0 ? 'Inclus' : facEur(data.line.amount)}
+              {data.line.amount === 0 ? t('invoice.included') : facEur(data.line.amount, locale)}
             </span>
           </div>
         </div>
@@ -2337,19 +2474,19 @@ export function FactureTab({
 
       {/* paiements */}
       <Panel
-        title="Paiements de l’événement"
-        sub={`${data.payments.length} mouvements`}
+        title={t('invoice.paymentsTitle')}
+        sub={t('invoice.movementsCount', { count: data.payments.length })}
         className="p-0 sm:p-0"
       >
         <div className="overflow-x-auto">
           <table className="w-full min-w-[640px] border-collapse text-sm">
             <thead>
               <tr className="border-y border-[color:var(--color-border)] text-left font-mono text-[9px] tracking-[0.18em] text-[color:var(--color-muted-foreground)] uppercase">
-                <th className="px-5 py-3 font-medium">Date</th>
-                <th className="px-5 py-3 font-medium">Libellé</th>
-                <th className="px-5 py-3 text-right font-medium">Montant</th>
-                <th className="px-5 py-3 font-medium">Statut</th>
-                <th className="px-5 py-3 text-right font-medium">Facture</th>
+                <th className="px-5 py-3 font-medium">{t('invoice.colDate')}</th>
+                <th className="px-5 py-3 font-medium">{t('invoice.colLabel')}</th>
+                <th className="px-5 py-3 text-right font-medium">{t('invoice.colAmount')}</th>
+                <th className="px-5 py-3 font-medium">{t('invoice.colStatus')}</th>
+                <th className="px-5 py-3 text-right font-medium">{t('invoice.colInvoice')}</th>
               </tr>
             </thead>
             <tbody>
@@ -2361,15 +2498,17 @@ export function FactureTab({
                     className="border-b border-[color:var(--color-border)] last:border-0"
                   >
                     <td className="px-5 py-3 font-mono text-xs text-[color:var(--color-muted-foreground)]">
-                      {p.date}
+                      {format.dateTime(p.dateMs, dayMonthYear)}
                     </td>
                     <td className="px-5 py-3 text-[color:var(--color-foreground)]">{p.label}</td>
                     <td className="px-5 py-3 text-right font-mono tabular-nums">
                       {p.amount === 0 ? (
-                        <span className="text-[color:var(--color-sage-500)]">Inclus</span>
+                        <span className="text-[color:var(--color-sage-500)]">
+                          {t('invoice.included')}
+                        </span>
                       ) : (
                         <span className="text-[color:var(--color-foreground)]">
-                          {facEur(p.amount)}
+                          {facEur(p.amount, locale)}
                         </span>
                       )}
                     </td>
@@ -2379,7 +2518,7 @@ export function FactureTab({
                         style={{ color: st.color }}
                       >
                         <span className="h-1.5 w-1.5 rounded-full bg-current" aria-hidden />{' '}
-                        {st.label}
+                        {t(st.labelKey)}
                       </span>
                     </td>
                     <td className="px-5 py-3 text-right">
@@ -2387,9 +2526,7 @@ export function FactureTab({
                         type="button"
                         onClick={() => download(p)}
                         disabled={p.status !== 'paid'}
-                        title={
-                          p.status !== 'paid' ? 'Disponible une fois le paiement abouti' : undefined
-                        }
+                        title={p.status !== 'paid' ? t('invoice.availableWhenPaid') : undefined}
                         className="inline-flex items-center gap-1.5 rounded-lg border border-[color:var(--color-border)] px-2.5 py-1.5 text-xs text-[color:var(--color-foreground)] transition-colors hover:border-[color:var(--color-border-strong)] disabled:opacity-40"
                       >
                         <Download className="h-3.5 w-3.5" strokeWidth={1.9} aria-hidden /> PDF
@@ -2410,17 +2547,18 @@ export function FactureTab({
           aria-hidden
         />
         <p>
-          Ceci est le{' '}
-          <b className="text-[color:var(--color-foreground)]">
-            registre de facturation Wedillybird
-          </b>{' '}
-          pour cet événement ({isSub ? 'couvert par votre abonnement' : 'réglé à l’usage'}) —
-          distinct de la facturation que votre agence émet à ses propres clients. Retrouvez
-          l’ensemble de vos paiements dans{' '}
-          <Link href="/pro/billing" className="text-[color:var(--color-blush-300)] hover:underline">
-            Facturation
-          </Link>
-          .
+          {t.rich('invoice.ledgerNote', {
+            context: isSub ? t('invoice.ledgerCoveredSub') : t('invoice.ledgerCoveredPayg'),
+            strong: (chunks) => <b className="text-[color:var(--color-foreground)]">{chunks}</b>,
+            link: (chunks) => (
+              <Link
+                href="/pro/billing"
+                className="text-[color:var(--color-blush-300)] hover:underline"
+              >
+                {chunks}
+              </Link>
+            ),
+          })}
         </p>
       </div>
     </div>

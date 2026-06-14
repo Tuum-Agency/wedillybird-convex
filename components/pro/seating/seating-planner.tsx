@@ -16,6 +16,7 @@
 
 import { useCallback, useMemo, useRef, useState, useTransition, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import {
   AlertTriangle,
   Armchair,
@@ -91,6 +92,7 @@ export function SeatingPlanner({
   dateLabel: string;
 }) {
   const router = useRouter();
+  const t = useTranslations('Pro.seatingBoard');
   const [board, setBoard] = useState<BoardState>({
     tables: initialPlan.tables,
     unassigned: initialPlan.unassigned,
@@ -389,20 +391,20 @@ export function SeatingPlanner({
             {coupleA} <span style={{ color: 'var(--color-gold-500)' }}>&amp;</span> {coupleB}
           </span>
           <span className="font-mono text-[10px] tracking-[0.14em] text-[color:var(--color-muted-foreground)] uppercase">
-            {dateLabel} · {totals.total} convives
+            {dateLabel} · {t('guestCount', { count: totals.total })}
           </span>
         </div>
         <span className="flex-1" />
         <span className="hidden items-center gap-1.5 rounded-lg border border-[color:var(--color-border)] px-3 py-1.5 font-mono text-xs text-[color:var(--color-muted-foreground)] sm:inline-flex">
           <b className="text-[color:var(--color-foreground)] tabular-nums">{totals.seated}</b>/
-          {totals.total} placés
+          {totals.total} {t('seatedSuffix')}
         </span>
         <button
           type="button"
           onClick={() => setAddOpen(true)}
           className="inline-flex items-center gap-1.5 rounded-lg border border-[color:var(--color-border)] px-3 py-1.5 text-sm text-[color:var(--color-foreground)] transition-colors hover:border-[color:var(--color-border-strong)]"
         >
-          <Plus className="h-4 w-4" strokeWidth={2.2} aria-hidden /> Ajouter une table
+          <Plus className="h-4 w-4" strokeWidth={2.2} aria-hidden /> {t('addTable')}
         </button>
         <div className="relative">
           <button
@@ -417,7 +419,7 @@ export function SeatingPlanner({
               strokeWidth={1.9}
               aria-hidden
             />{' '}
-            Auto-placer
+            {t('autoPlace')}
           </button>
           {autoOpen ? (
             <AutoPlacePopover
@@ -502,7 +504,7 @@ export function SeatingPlanner({
               type="button"
               onPointerDown={(e) => e.stopPropagation()}
               onClick={() => zoom(-0.1)}
-              aria-label="Dézoomer"
+              aria-label={t('zoomOut')}
               className="grid h-7 w-7 place-items-center rounded-lg text-[color:var(--color-muted-foreground)] hover:text-[color:var(--color-foreground)]"
             >
               <ZoomOut className="h-4 w-4" strokeWidth={1.9} aria-hidden />
@@ -514,7 +516,7 @@ export function SeatingPlanner({
               type="button"
               onPointerDown={(e) => e.stopPropagation()}
               onClick={() => zoom(0.1)}
-              aria-label="Zoomer"
+              aria-label={t('zoomIn')}
               className="grid h-7 w-7 place-items-center rounded-lg text-[color:var(--color-muted-foreground)] hover:text-[color:var(--color-foreground)]"
             >
               <ZoomIn className="h-4 w-4" strokeWidth={1.9} aria-hidden />
@@ -523,7 +525,7 @@ export function SeatingPlanner({
               type="button"
               onPointerDown={(e) => e.stopPropagation()}
               onClick={() => setView({ x: 24, y: 16, k: 0.8 })}
-              aria-label="Réinitialiser la vue"
+              aria-label={t('resetView')}
               className="grid h-7 w-7 place-items-center rounded-lg text-[color:var(--color-muted-foreground)] hover:text-[color:var(--color-foreground)]"
             >
               <Maximize2 className="h-[14px] w-[14px]" strokeWidth={1.9} aria-hidden />
@@ -604,11 +606,12 @@ function PoolPanel({
   onChipDown: (unitId: string, e: React.PointerEvent) => void;
   dropping: boolean;
 }) {
+  const t = useTranslations('Pro.seatingBoard');
   return (
     <div className="flex max-h-[clamp(420px,62vh,760px)] flex-col gap-3 rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-4">
       <div className="flex items-baseline justify-between">
         <h2 className="font-display text-base text-[color:var(--color-foreground)] italic">
-          Invités à placer
+          {t('poolTitle')}
         </h2>
         <span className="font-mono text-[11px] text-[color:var(--color-muted-foreground)] tabular-nums">
           <b className="text-[color:var(--color-foreground)]">{totals.seated}</b>/{totals.total}
@@ -623,8 +626,8 @@ function PoolPanel({
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Rechercher…"
-          aria-label="Rechercher un invité"
+          placeholder={t('searchPlaceholder')}
+          aria-label={t('searchAria')}
           className="w-full bg-transparent text-sm text-[color:var(--color-foreground)] outline-none placeholder:text-[color:var(--color-muted-foreground)]"
         />
       </label>
@@ -669,7 +672,7 @@ function PoolPanel({
               aria-hidden
             />
             <p className="text-sm text-[color:var(--color-muted-foreground)]">
-              {poolCountAll === 0 ? 'Tous les invités sont placés.' : 'Aucun invité ne correspond.'}
+              {poolCountAll === 0 ? t('poolAllSeated') : t('poolNoMatch')}
             </p>
           </div>
         ) : (
@@ -689,13 +692,14 @@ function GuestChip({
   guest: SeatGuest;
   onPointerDown: (e: React.PointerEvent) => void;
 }) {
+  const t = useTranslations('Pro.seatingBoard');
   const m = categoryMeta(guest.category);
   return (
     <div
       onPointerDown={onPointerDown}
       role="button"
       tabIndex={0}
-      aria-label={`${guest.fullName}, ${guest.seats} place${guest.seats > 1 ? 's' : ''}. Glisser pour placer.`}
+      aria-label={t('guestChipAria', { name: guest.fullName, seats: guest.seats })}
       className="group flex cursor-grab items-center gap-2.5 rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface-elevated)] px-2.5 py-2 transition-colors hover:border-[color:var(--color-border-strong)] active:cursor-grabbing"
       style={{ borderLeftWidth: 3, borderLeftColor: m.color }}
     >
@@ -794,6 +798,7 @@ function TableNode({
   onMoveStart: (e: React.PointerEvent) => void;
   onSeatDown: (unitId: string, e: React.PointerEvent) => void;
 }) {
+  const t = useTranslations('Pro.seatingBoard');
   const shape = table.shape ?? 'round';
   const dims = tableDims(shape, table.capacity);
   const st = occState(table.occupancy, table.capacity);
@@ -836,8 +841,8 @@ function TableNode({
             e.stopPropagation();
             onMoveStart(e);
           }}
-          aria-label={`Déplacer ${table.name}`}
-          title="Déplacer"
+          aria-label={t('moveTableAria', { name: table.name })}
+          title={t('moveTable')}
           className="absolute top-1.5 left-1.5 grid h-6 w-6 cursor-grab place-items-center rounded-lg text-[color:var(--color-muted-foreground)] hover:text-[color:var(--color-foreground)] active:cursor-grabbing"
         >
           <Maximize2 className="h-3.5 w-3.5" strokeWidth={1.8} aria-hidden />
@@ -900,6 +905,7 @@ function TableNode({
 }
 
 function EmptyCanvas({ onAdd, onAuto }: { onAdd: () => void; onAuto: () => void }) {
+  const t = useTranslations('Pro.seatingBoard');
   return (
     <div className="absolute inset-0 grid place-items-center p-6">
       <div className="flex max-w-sm flex-col items-center gap-3 text-center">
@@ -907,11 +913,10 @@ function EmptyCanvas({ onAdd, onAuto }: { onAdd: () => void; onAuto: () => void 
           <Armchair className="h-6 w-6" strokeWidth={1.6} aria-hidden />
         </span>
         <h3 className="font-display text-lg text-[color:var(--color-foreground)] italic">
-          Aucune table
+          {t('emptyTitle')}
         </h3>
         <p className="text-sm text-[color:var(--color-muted-foreground)]">
-          Ajoutez vos tables, ou laissez l’auto-placement les créer et asseoir vos invités par
-          groupes.
+          {t('emptyDescription')}
         </p>
         <div className="mt-1 flex gap-2">
           <button
@@ -919,14 +924,14 @@ function EmptyCanvas({ onAdd, onAuto }: { onAdd: () => void; onAuto: () => void 
             onClick={onAuto}
             className="focus-ring inline-flex items-center gap-1.5 rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-semibold text-[color:var(--color-primary-foreground)] hover:bg-[color:var(--color-primary-hover)]"
           >
-            <Wand2 className="h-4 w-4" strokeWidth={1.9} aria-hidden /> Auto-placer
+            <Wand2 className="h-4 w-4" strokeWidth={1.9} aria-hidden /> {t('autoPlace')}
           </button>
           <button
             type="button"
             onClick={onAdd}
             className="inline-flex items-center gap-1.5 rounded-lg border border-[color:var(--color-border)] px-4 py-2 text-sm text-[color:var(--color-foreground)] hover:border-[color:var(--color-border-strong)]"
           >
-            <Plus className="h-4 w-4" strokeWidth={2.2} aria-hidden /> Ajouter une table
+            <Plus className="h-4 w-4" strokeWidth={2.2} aria-hidden /> {t('addTable')}
           </button>
         </div>
       </div>
@@ -954,11 +959,12 @@ function Inspector({
   onDelete: () => void;
   onSeatDown: (unitId: string, e: React.PointerEvent) => void;
 }) {
+  const t = useTranslations('Pro.seatingBoard');
   const st = occState(table.occupancy, table.capacity);
   const free = table.capacity - table.occupancy;
   const SHAPES: ReadonlyArray<[Shape, string, LucideIcon]> = [
-    ['round', 'Ronde', Circle],
-    ['rect', 'Rect.', RectangleHorizontal],
+    ['round', t('shapeRound'), Circle],
+    ['rect', t('shapeRectShort'), RectangleHorizontal],
   ];
   return (
     <aside className="flex max-h-[clamp(420px,62vh,760px)] flex-col gap-4 overflow-y-auto rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-4">
@@ -971,20 +977,20 @@ function Inspector({
             {table.name}
           </h3>
           <span className="font-mono text-[10px] text-[color:var(--color-muted-foreground)]">
-            {table.occupancy}/{table.capacity} personnes
+            {t('peopleCount', { occupancy: table.occupancy, capacity: table.capacity })}
           </span>
         </div>
         <button
           type="button"
           onClick={onClose}
-          aria-label="Fermer"
+          aria-label={t('close')}
           className="text-[color:var(--color-muted-foreground)] hover:text-[color:var(--color-foreground)]"
         >
           <X className="h-4 w-4" strokeWidth={2} aria-hidden />
         </button>
       </div>
 
-      <Field label="Nom de la table">
+      <Field label={t('tableNameLabel')}>
         <input
           value={table.name}
           onChange={(e) => onRename(e.target.value)}
@@ -992,7 +998,7 @@ function Inspector({
         />
       </Field>
 
-      <Field label="Forme">
+      <Field label={t('shapeLabel')}>
         <div className="grid grid-cols-2 gap-2">
           {SHAPES.map(([k, l, Ic]) => (
             <button
@@ -1013,7 +1019,7 @@ function Inspector({
         </div>
       </Field>
 
-      <Field label="Capacité (personnes)">
+      <Field label={t('capacityLabel')}>
         <div className="flex items-center gap-3">
           <Stepper value={table.capacity} min={1} onChange={onCap} />
           <span
@@ -1027,18 +1033,18 @@ function Inspector({
             )}
           >
             {st === 'over'
-              ? `Dépassée : ${table.occupancy}/${table.capacity}`
+              ? t('capacityOver', { occupancy: table.occupancy, capacity: table.capacity })
               : st === 'full'
-                ? 'Complète'
-                : `${free} place${free > 1 ? 's' : ''} libre${free > 1 ? 's' : ''}`}
+                ? t('capacityFull')
+                : t('capacityFree', { free })}
           </span>
         </div>
       </Field>
 
-      <Field label={`Invités placés (${table.assigned.length})`}>
+      <Field label={t('placedGuestsLabel', { count: table.assigned.length })}>
         {table.assigned.length === 0 ? (
           <div className="rounded-lg border border-dashed border-[color:var(--color-border-strong)] px-3 py-4 text-center text-xs text-[color:var(--color-muted-foreground)]">
-            Glissez des invités depuis le panneau de gauche.
+            {t('placedGuestsEmpty')}
           </div>
         ) : (
           <div className="flex flex-col gap-1.5">
@@ -1058,7 +1064,7 @@ function Inspector({
                     type="button"
                     onPointerDown={(e) => e.stopPropagation()}
                     onClick={() => onRemoveGuest(g._id)}
-                    aria-label={`Retirer ${g.fullName}`}
+                    aria-label={t('removeGuestAria', { name: g.fullName })}
                     className="text-[color:var(--color-muted-foreground)] hover:text-[color:var(--color-danger)]"
                   >
                     <X className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />
@@ -1075,7 +1081,7 @@ function Inspector({
         onClick={onDelete}
         className="mt-auto inline-flex items-center justify-center gap-1.5 rounded-lg border border-[color:var(--color-danger)]/40 px-3 py-2 text-sm text-[color:var(--color-danger)] transition-colors hover:bg-[color:var(--color-danger)]/10"
       >
-        <Trash2 className="h-4 w-4" strokeWidth={1.8} aria-hidden /> Supprimer la table
+        <Trash2 className="h-4 w-4" strokeWidth={1.8} aria-hidden /> {t('deleteTable')}
       </button>
     </aside>
   );
@@ -1101,12 +1107,13 @@ function Stepper({
   min?: number;
   onChange: (v: number) => void;
 }) {
+  const t = useTranslations('Pro.seatingBoard');
   return (
     <div className="inline-flex items-center rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-surface-elevated)]">
       <button
         type="button"
         onClick={() => onChange(Math.max(min, value - 1))}
-        aria-label="Diminuer"
+        aria-label={t('decrease')}
         className="grid h-8 w-8 place-items-center text-[color:var(--color-muted-foreground)] hover:text-[color:var(--color-foreground)]"
       >
         <Minus className="h-4 w-4" strokeWidth={2} aria-hidden />
@@ -1117,7 +1124,7 @@ function Stepper({
       <button
         type="button"
         onClick={() => onChange(value + 1)}
-        aria-label="Augmenter"
+        aria-label={t('increase')}
         className="grid h-8 w-8 place-items-center text-[color:var(--color-muted-foreground)] hover:text-[color:var(--color-foreground)]"
       >
         <Plus className="h-4 w-4" strokeWidth={2} aria-hidden />
@@ -1127,27 +1134,11 @@ function Stepper({
 }
 
 /* ============================ AUTO-PLACE POPOVER ============================ */
-const AUTO_OPTIONS: ReadonlyArray<{ key: keyof AutoPlaceSettings; label: string; hint: string }> = [
-  {
-    key: 'groupByCategory',
-    label: 'Regrouper par catégorie',
-    hint: 'Asseoir ensemble Famille, Amis, Collègues…',
-  },
-  {
-    key: 'keepGroupsTogether',
-    label: 'Garder les groupes ensemble',
-    hint: 'Un même groupe sur le moins de tables possible',
-  },
-  {
-    key: 'balanceTables',
-    label: 'Équilibrer les tables',
-    hint: 'Répartir équitablement plutôt que tasser',
-  },
-  {
-    key: 'createTables',
-    label: 'Créer des tables au besoin',
-    hint: 'Ouvrir de nouvelles tables s’il manque de place',
-  },
+const AUTO_OPTION_KEYS: ReadonlyArray<keyof AutoPlaceSettings> = [
+  'groupByCategory',
+  'keepGroupsTogether',
+  'balanceTables',
+  'createTables',
 ];
 
 function AutoPlacePopover({
@@ -1159,13 +1150,14 @@ function AutoPlacePopover({
   onRun: (settings: AutoPlaceSettings, mode: 'unplaced' | 'all') => void;
   poolCount: number;
 }) {
+  const t = useTranslations('Pro.seatingBoard');
   const [settings, setSettings] = useState<AutoPlaceSettings>(AUTO_PLACE_PRESET);
   const [mode, setMode] = useState<'unplaced' | 'all'>('unplaced');
   return (
     <>
       <button
         type="button"
-        aria-label="Fermer"
+        aria-label={t('close')}
         onClick={onClose}
         className="fixed inset-0 z-40 cursor-default"
       />
@@ -1177,31 +1169,33 @@ function AutoPlacePopover({
             aria-hidden
           />
           <span className="font-mono text-[10px] tracking-[0.16em] text-[color:var(--color-muted-foreground)] uppercase">
-            Réglages du placement
+            {t('autoSettingsTitle')}
           </span>
         </div>
         <div className="flex flex-col gap-1">
-          {AUTO_OPTIONS.map((o) => (
+          {AUTO_OPTION_KEYS.map((key) => (
             <button
-              key={o.key}
+              key={key}
               type="button"
-              onClick={() => setSettings((s) => ({ ...s, [o.key]: !s[o.key] }))}
+              onClick={() => setSettings((s) => ({ ...s, [key]: !s[key] }))}
               className="flex items-start gap-3 rounded-xl px-2 py-2 text-left transition-colors hover:bg-[color:var(--color-surface-elevated)]"
             >
               <span
                 className={cn(
                   'mt-0.5 grid h-4 w-4 flex-shrink-0 place-items-center rounded border transition-colors',
-                  settings[o.key]
+                  settings[key]
                     ? 'border-[color:var(--color-blush-400)] bg-[color:var(--color-blush-400)] text-[color:var(--color-ink-700)]'
                     : 'border-[color:var(--color-border-strong)]',
                 )}
               >
-                {settings[o.key] ? <Check className="h-3 w-3" strokeWidth={3} aria-hidden /> : null}
+                {settings[key] ? <Check className="h-3 w-3" strokeWidth={3} aria-hidden /> : null}
               </span>
               <span className="flex flex-col">
-                <span className="text-sm text-[color:var(--color-foreground)]">{o.label}</span>
+                <span className="text-sm text-[color:var(--color-foreground)]">
+                  {t(`autoOption.${key}.label`)}
+                </span>
                 <span className="text-[11px] text-[color:var(--color-muted-foreground)]">
-                  {o.hint}
+                  {t(`autoOption.${key}.hint`)}
                 </span>
               </span>
             </button>
@@ -1209,12 +1203,7 @@ function AutoPlacePopover({
         </div>
 
         <div className="mt-3 flex items-center gap-1 rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface-elevated)] p-1">
-          {(
-            [
-              ['unplaced', `Non placés (${poolCount})`],
-              ['all', 'Tout replacer'],
-            ] as const
-          ).map(([k, l]) => (
+          {(['unplaced', 'all'] as const).map((k) => (
             <button
               key={k}
               type="button"
@@ -1227,7 +1216,7 @@ function AutoPlacePopover({
                   : 'text-[color:var(--color-muted-foreground)] hover:text-[color:var(--color-foreground)]',
               )}
             >
-              {l}
+              {k === 'unplaced' ? t('modeUnplaced', { count: poolCount }) : t('modeAll')}
             </button>
           ))}
         </div>
@@ -1237,7 +1226,7 @@ function AutoPlacePopover({
           onClick={() => onRun(settings, mode)}
           className="focus-ring mt-3 inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-semibold text-[color:var(--color-primary-foreground)] transition-colors hover:bg-[color:var(--color-primary-hover)]"
         >
-          <Wand2 className="h-4 w-4" strokeWidth={1.9} aria-hidden /> Lancer le placement
+          <Wand2 className="h-4 w-4" strokeWidth={1.9} aria-hidden /> {t('runPlacement')}
         </button>
       </div>
     </>
@@ -1252,22 +1241,23 @@ function AddTableDialog({
   onClose: () => void;
   onAdd: (shape: Shape, cap: number) => void;
 }) {
+  const t = useTranslations('Pro.seatingBoard');
   const [shape, setShape] = useState<Shape>('round');
   const [cap, setCap] = useState(10);
   const SHAPES: ReadonlyArray<[Shape, string, LucideIcon]> = [
-    ['round', 'Ronde', Circle],
-    ['rect', 'Rectangulaire', RectangleHorizontal],
+    ['round', t('shapeRound'), Circle],
+    ['rect', t('shapeRect'), RectangleHorizontal],
   ];
   return (
     <div
       className="fixed inset-0 z-50 grid place-items-center p-4"
       role="dialog"
       aria-modal="true"
-      aria-label="Ajouter une table"
+      aria-label={t('addTable')}
     >
       <button
         type="button"
-        aria-label="Fermer"
+        aria-label={t('close')}
         onClick={onClose}
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
       />
@@ -1275,22 +1265,22 @@ function AddTableDialog({
         <div className="flex items-start justify-between">
           <div className="flex flex-col gap-0.5">
             <span className="font-mono text-[10px] tracking-[0.18em] text-[color:var(--color-muted-foreground)] uppercase">
-              Nouvelle table
+              {t('newTableEyebrow')}
             </span>
             <h2 className="font-display text-xl text-[color:var(--color-foreground)] italic">
-              Ajouter une table
+              {t('addTable')}
             </h2>
           </div>
           <button
             type="button"
             onClick={onClose}
-            aria-label="Fermer"
+            aria-label={t('close')}
             className="text-[color:var(--color-muted-foreground)] hover:text-[color:var(--color-foreground)]"
           >
             <X className="h-5 w-5" strokeWidth={2} aria-hidden />
           </button>
         </div>
-        <Field label="Forme">
+        <Field label={t('shapeLabel')}>
           <div className="grid grid-cols-2 gap-2">
             {SHAPES.map(([k, l, Ic]) => (
               <button
@@ -1310,7 +1300,7 @@ function AddTableDialog({
             ))}
           </div>
         </Field>
-        <Field label="Capacité (personnes)">
+        <Field label={t('capacityLabel')}>
           <Stepper value={cap} min={1} onChange={setCap} />
         </Field>
         <div className="flex justify-end gap-2">
@@ -1319,14 +1309,14 @@ function AddTableDialog({
             onClick={onClose}
             className="rounded-lg px-4 py-2 text-sm text-[color:var(--color-muted-foreground)] hover:text-[color:var(--color-foreground)]"
           >
-            Annuler
+            {t('cancel')}
           </button>
           <button
             type="button"
             onClick={() => onAdd(shape, cap)}
             className="focus-ring inline-flex items-center gap-1.5 rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-semibold text-[color:var(--color-primary-foreground)] hover:bg-[color:var(--color-primary-hover)]"
           >
-            <Plus className="h-4 w-4" strokeWidth={2.2} aria-hidden /> Ajouter
+            <Plus className="h-4 w-4" strokeWidth={2.2} aria-hidden /> {t('add')}
           </button>
         </div>
       </div>

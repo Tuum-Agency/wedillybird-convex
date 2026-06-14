@@ -22,6 +22,7 @@ export default async function AcceptInvitePage({
   }
 
   const t = await getTranslations('Pro');
+  const tp = await getTranslations('ProPages');
 
   return (
     <ProShell>
@@ -34,7 +35,7 @@ export default async function AcceptInvitePage({
         </span>
         <header className="flex flex-col items-center gap-3 text-center">
           <span className="font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-blush-300)] uppercase">
-            Invitation
+            {tp('inviteEyebrow')}
           </span>
           <h1
             className="font-display text-balance italic"

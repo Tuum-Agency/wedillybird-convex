@@ -1,14 +1,17 @@
 'use client';
 
 import { motion } from 'motion/react';
+import { useTranslations } from 'next-intl';
 import { inViewOnce, scrollReveal, scrollRevealParent } from '@/lib/motion/presets';
-import { JOURNEY } from './content';
+import { JOURNEY_STEPS } from './content';
 
 /**
  * Constat → promesse : le parcours « de A à Z » en 6 étapes. Pose le récit de
  * valeur avant le détail des 11 piliers.
  */
 export function ProsJourney() {
+  const t = useTranslations('Pros');
+
   return (
     <section className="relative bg-[color:var(--color-background)] py-28">
       <div className="container-page">
@@ -23,7 +26,7 @@ export function ProsJourney() {
             variants={scrollReveal}
             className="font-mono text-[11px] tracking-[0.32em] text-[color:var(--color-ink-500)] uppercase"
           >
-            Le constat
+            {t('journey.eyebrow')}
           </motion.span>
           <motion.h2
             variants={scrollReveal}
@@ -35,14 +38,13 @@ export function ProsJourney() {
               color: 'var(--color-ink-900)',
             }}
           >
-            Vos mariages vivent dans dix outils. Réunissez-les.
+            {t('journey.title')}
           </motion.h2>
           <motion.p
             variants={scrollReveal}
             className="max-w-xl text-base leading-relaxed text-[color:var(--color-ink-500)]"
           >
-            CRM ici, devis là, WhatsApp pour les invités, un Drive pour les photos. Wedillybird
-            tient le mariage entier, du premier message au dernier cliché.
+            {t('journey.subtitle')}
           </motion.p>
         </motion.div>
 
@@ -54,9 +56,9 @@ export function ProsJourney() {
           variants={scrollRevealParent}
           className="grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3"
         >
-          {JOURNEY.map((s) => (
+          {JOURNEY_STEPS.map((step) => (
             <motion.li
-              key={s.step}
+              key={step}
               variants={scrollReveal}
               className="relative flex flex-col gap-2.5"
             >
@@ -66,7 +68,7 @@ export function ProsJourney() {
                   style={{ letterSpacing: '0.04em' }}
                   aria-hidden
                 >
-                  {s.step}
+                  {step}
                 </span>
                 <span aria-hidden className="h-px flex-1 bg-[color:var(--color-border)]" />
               </div>
@@ -74,10 +76,10 @@ export function ProsJourney() {
                 className="font-display text-xl text-[color:var(--color-ink-900)] italic"
                 style={{ letterSpacing: '-0.018em' }}
               >
-                {s.title}
+                {t(`journey.steps.${step}.title` as Parameters<typeof t>[0])}
               </h3>
               <p className="text-sm leading-relaxed text-[color:var(--color-ink-500)]">
-                {s.detail}
+                {t(`journey.steps.${step}.detail` as Parameters<typeof t>[0])}
               </p>
             </motion.li>
           ))}

@@ -1,19 +1,20 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { Check, Menu, X } from 'lucide-react';
 import { Link, usePathname, useRouter } from '@/i18n/navigation';
 import { Drawer, DrawerContent, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer';
 import { LOCALE_NATIVE_NAMES, routing, type Locale } from '@/i18n/routing';
 import { cn } from '@/lib/cn';
+import { analytics } from '@/lib/analytics/posthog-client';
 
-const SECTION_ITEMS: ReadonlyArray<{ id: string; label: string }> = [
-  { id: 'features', label: 'Piliers' },
-  { id: 'testimonials', label: 'Témoignages' },
-  { id: 'pricing', label: 'Tarifs' },
-  { id: 'pricing-pros', label: 'Pros' },
-  { id: 'faq', label: 'FAQ' },
+const SECTION_ITEMS: ReadonlyArray<{ id: string; key: string }> = [
+  { id: 'features', key: 'features' },
+  { id: 'testimonials', key: 'testimonials' },
+  { id: 'pricing', key: 'pricing' },
+  { id: 'pricing-pros', key: 'pricingPros' },
+  { id: 'faq', key: 'faq' },
 ];
 
 const LOCALE_FLAGS: Record<Locale, string> = {
@@ -34,6 +35,8 @@ const LOCALE_FLAGS: Record<Locale, string> = {
  * rendu invisible.
  */
 export function MobileMenu() {
+  const t = useTranslations('Landing.mobileMenu');
+  const tNav = useTranslations('Landing.sectionNav');
   const [open, setOpen] = useState(false);
   const currentLocale = useLocale() as Locale;
   const pathname = usePathname();
@@ -55,43 +58,50 @@ export function MobileMenu() {
     <Drawer open={open} onOpenChange={setOpen}>
       <DrawerTrigger
         className="focus-ring -mr-2 inline-flex h-11 w-11 items-center justify-center rounded-full text-[color:var(--color-ink-900)] [@media(hover:hover)]:hover:bg-[color:var(--color-ivory-200)]"
-        aria-label="Ouvrir le menu"
+        aria-label={t('open')}
       >
         <Menu className="h-6 w-6" strokeWidth={1.5} aria-hidden />
       </DrawerTrigger>
       <DrawerContent>
         <div className="flex items-center justify-between pb-2">
           <DrawerTitle className="font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-ink-500)] uppercase not-italic">
-            Menu
+            {t('title')}
           </DrawerTitle>
           <button
             type="button"
             onClick={() => setOpen(false)}
             className="focus-ring inline-flex h-9 w-9 items-center justify-center rounded-full text-[color:var(--color-ink-900)] [@media(hover:hover)]:hover:bg-[color:var(--color-ivory-200)]"
-            aria-label="Fermer le menu"
+            aria-label={t('close')}
           >
             <X className="h-5 w-5" strokeWidth={1.5} aria-hidden />
           </button>
         </div>
 
-        <nav aria-label="Navigation principale" className="flex flex-col gap-1 pt-2 pb-2">
+        <nav aria-label={t('navAriaLabel')} className="flex flex-col gap-1 pt-2 pb-2">
           {SECTION_ITEMS.map((item) => (
             <Link
               key={item.id}
               href={`/#${item.id}` as never}
-              onClick={() => setOpen(false)}
+              onClick={() => {
+                analytics.ctaClicked({
+                  source: 'nav',
+                  destination: `#${item.id}`,
+                  label: tNav(item.key),
+                });
+                setOpen(false);
+              }}
               className="focus-ring font-display rounded-2xl px-4 py-4 text-2xl text-[color:var(--color-ink-900)] italic [@media(hover:hover)]:hover:bg-[color:var(--color-ivory-200)]"
             >
-              {item.label}
+              {tNav(item.key)}
             </Link>
           ))}
         </nav>
 
         <div className="mt-4 border-t border-[color:var(--color-border)] pt-5 pb-2">
           <span className="mb-3 inline-block font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-ink-500)] uppercase">
-            Langue
+            {t('language')}
           </span>
-          <ul role="listbox" aria-label="Choisir la langue" className="grid grid-cols-2 gap-2">
+          <ul role="listbox" aria-label={t('languageAriaLabel')} className="grid grid-cols-2 gap-2">
             {routing.locales.map((loc) => {
               const isCurrent = loc === currentLocale;
               return (

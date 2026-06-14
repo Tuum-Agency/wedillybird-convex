@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { setRequestLocale } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { ListChecks } from 'lucide-react';
 import { requireProContext } from '@/lib/pro/require-pro-context';
 import { nowMs } from '@/lib/pro/format';
@@ -7,7 +7,10 @@ import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
 import { ProSidebarShell } from '@/components/pro/pro-sidebar-shell';
 import { PlanningBoard } from '@/components/pro/planning/planning-board';
 
-export const metadata: Metadata = { title: 'Rétroplanning — Wedillybird Pro' };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('ProPages');
+  return { title: t('planningMetaTitle') };
+}
 
 export default async function ProPlanningPage({
   params,
@@ -20,6 +23,7 @@ export default async function ProPlanningPage({
   const sp = await searchParams;
   setRequestLocale(locale);
   const { session, org, user } = await requireProContext(locale);
+  const t = await getTranslations('ProPages');
   const shellOrg = {
     name: org.name,
     primaryColor: org.primaryColor,
@@ -52,11 +56,11 @@ export default async function ProPlanningPage({
                 color: 'var(--color-foreground)',
               }}
             >
-              Rétroplanning
+              {t('planningTitle')}
             </h1>
           </header>
           <div className="rounded-3xl border border-dashed border-[color:var(--color-border-strong)] bg-[color:var(--color-surface)]/40 px-8 py-16 text-center text-sm text-[color:var(--color-muted-foreground)]">
-            Aucun mariage pour l’instant. Créez un mariage pour planifier ses tâches.
+            {t('planningEmpty')}
           </div>
         </div>
       </ProSidebarShell>
@@ -90,7 +94,10 @@ export default async function ProPlanningPage({
   ]);
   const members = rawMembers
     .filter((m) => m.status === 'active' && m.userId)
-    .map((m) => ({ userId: m.userId as string, name: m.fullName ?? m.email ?? 'Membre' }));
+    .map((m) => ({
+      userId: m.userId as string,
+      name: m.fullName ?? m.email ?? t('memberFallback'),
+    }));
 
   return (
     <ProSidebarShell current="planning" org={shellOrg} user={{ name: user?.fullName }}>

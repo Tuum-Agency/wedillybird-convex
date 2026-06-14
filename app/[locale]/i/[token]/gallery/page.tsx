@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { Link } from '@/i18n/navigation';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
 import { GuestGallery } from '@/components/gallery/guest-gallery';
+import { TrackOnMount } from '@/components/analytics/track-on-mount';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,6 +25,8 @@ export default async function GuestGalleryPage({
 
   return (
     <main className="container-page flex min-h-screen flex-1 flex-col gap-6 px-4 py-10">
+      {/* Vue galerie publique (boucle virale invité). */}
+      <TrackOnMount event="gallery_viewed" />
       <header className="flex flex-col gap-2">
         <Link
           href={`/i/${token}`}

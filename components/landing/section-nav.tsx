@@ -1,23 +1,26 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { cn } from '@/lib/cn';
+import { analytics } from '@/lib/analytics/posthog-client';
 
 type SectionItem = {
   id: string;
-  label: string;
+  /** Clé i18n sous `Landing.sectionNav`. */
+  key: string;
 };
 
 // Ordre = ordre d'apparition au scroll dans la page. Déroger à cet ordre fait
 // sauter l'underline en arrière quand l'utilisateur scrolle, ce qui casse la
 // perception de progression.
 const ITEMS: readonly SectionItem[] = [
-  { id: 'features', label: 'Piliers' },
-  { id: 'testimonials', label: 'Témoignages' },
-  { id: 'pricing', label: 'Tarifs' },
-  { id: 'pricing-pros', label: 'Pros' },
-  { id: 'faq', label: 'FAQ' },
+  { id: 'features', key: 'features' },
+  { id: 'testimonials', key: 'testimonials' },
+  { id: 'pricing', key: 'pricing' },
+  { id: 'pricing-pros', key: 'pricingPros' },
+  { id: 'faq', key: 'faq' },
 ];
 
 /**
@@ -28,6 +31,7 @@ const ITEMS: readonly SectionItem[] = [
  * les sections longues et pour la FAQ située près de la fin de page.
  */
 export function SectionNav() {
+  const t = useTranslations('Landing.sectionNav');
   const [activeId, setActiveId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -85,6 +89,13 @@ export function SectionNav() {
             key={item.id}
             href={`/#${item.id}` as never}
             aria-current={isActive ? 'true' : undefined}
+            onClick={() =>
+              analytics.ctaClicked({
+                source: 'nav',
+                destination: `#${item.id}`,
+                label: t(item.key),
+              })
+            }
             className={cn(
               'relative font-mono text-[10px] tracking-[0.24em] uppercase transition-colors',
               isActive
@@ -92,7 +103,7 @@ export function SectionNav() {
                 : 'text-[color:var(--color-ink-500)] hover:text-[color:var(--color-ink-900)]',
             )}
           >
-            {item.label}
+            {t(item.key)}
             <span
               aria-hidden
               className={cn(

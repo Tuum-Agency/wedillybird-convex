@@ -2,9 +2,10 @@
 
 import { useState } from 'react';
 import { motion } from 'motion/react';
+import { useTranslations } from 'next-intl';
 import { Plus } from 'lucide-react';
 import { inViewOnce, scrollReveal, scrollRevealParent } from '@/lib/motion/presets';
-import { FAQ } from './content';
+import { FAQ_KEYS } from './content';
 
 /**
  * FAQ pros — objections classiques des agences (vs HoneyBook, où va l'argent,
@@ -12,6 +13,7 @@ import { FAQ } from './content';
  * via la transition CSS `grid-template-rows` (0fr → 1fr), sans dépendance.
  */
 export function ProsFaq() {
+  const t = useTranslations('Pros');
   const [open, setOpen] = useState<number | null>(0);
 
   return (
@@ -28,7 +30,7 @@ export function ProsFaq() {
             variants={scrollReveal}
             className="font-mono text-[11px] tracking-[0.32em] text-[color:var(--color-ink-500)] uppercase"
           >
-            Questions fréquentes
+            {t('faq.eyebrow')}
           </motion.span>
           <motion.h2
             variants={scrollReveal}
@@ -39,15 +41,15 @@ export function ProsFaq() {
               color: 'var(--color-ink-900)',
             }}
           >
-            Ce que les agences nous demandent.
+            {t('faq.title')}
           </motion.h2>
         </motion.div>
 
         <dl className="flex flex-col divide-y divide-[color:var(--color-border)] border-t border-[color:var(--color-border)]">
-          {FAQ.map((item, i) => {
+          {FAQ_KEYS.map((key, i) => {
             const isOpen = open === i;
             return (
-              <div key={item.q}>
+              <div key={key}>
                 <dt>
                   <button
                     type="button"
@@ -56,7 +58,7 @@ export function ProsFaq() {
                     className="focus-ring flex w-full items-center justify-between gap-4 py-5 text-left"
                   >
                     <span className="font-display text-lg text-[color:var(--color-ink-900)] italic sm:text-xl">
-                      {item.q}
+                      {t(`faq.items.${key}.q` as Parameters<typeof t>[0])}
                     </span>
                     <Plus
                       className={[
@@ -74,7 +76,7 @@ export function ProsFaq() {
                 >
                   <div className="overflow-hidden">
                     <p className="pb-6 text-sm leading-relaxed text-[color:var(--color-ink-500)] sm:text-base">
-                      {item.a}
+                      {t(`faq.items.${key}.a` as Parameters<typeof t>[0])}
                     </p>
                   </div>
                 </dd>

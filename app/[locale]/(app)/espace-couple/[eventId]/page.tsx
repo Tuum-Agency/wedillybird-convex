@@ -1,4 +1,4 @@
-import { setRequestLocale } from 'next-intl/server';
+import { getFormatter, getTranslations, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { Calendar, MapPin, Users, CreditCard, ExternalLink, CheckCircle2 } from 'lucide-react';
 import { getSession } from '@/lib/auth/session';
@@ -8,17 +8,14 @@ import { AppShell } from '@/components/app/app-shell';
 import { GuestsManager } from '@/components/guests/guests-manager';
 import { nowMs } from '@/lib/pro/format';
 
-const eur = (minor: number) => `${(minor / 100).toFixed(2).replace('.', ',')} €`;
-
 const PAY_TONE = {
-  pending: { label: 'À régler', bg: 'var(--color-accent-soft)', fg: 'var(--color-gold-500)' },
+  pending: { bg: 'var(--color-accent-soft)', fg: 'var(--color-gold-500)' },
   succeeded: {
-    label: 'Réglé',
     bg: 'color-mix(in oklch, var(--color-sage-500) 16%, transparent)',
     fg: 'var(--color-sage-500)',
   },
-  failed: { label: 'Échec', bg: 'var(--color-surface-elevated)', fg: 'var(--color-danger)' },
-} satisfies Record<string, { label: string; bg: string; fg: string }>;
+  failed: { bg: 'var(--color-surface-elevated)', fg: 'var(--color-danger)' },
+} satisfies Record<string, { bg: string; fg: string }>;
 
 /**
  * Espace couple — vue d'un mariage géré par une agence, accessible au couple rattaché
@@ -53,8 +50,19 @@ export default async function CoupleEventPage({
     convex.query(convexApi.currentUser, { userId: session!.userId }),
   ]);
 
+  const t = await getTranslations('CoupleSpace');
+  const format = await getFormatter();
+
+  const eur = (minor: number) => format.number(minor / 100, { style: 'currency', currency: 'EUR' });
+
+  const payStatusLabel: Record<keyof typeof PAY_TONE, string> = {
+    pending: t('payPending'),
+    succeeded: t('paySucceeded'),
+    failed: t('payFailed'),
+  };
+
   const days = Math.ceil((overview.eventDate - nowMs()) / 86_400_000);
-  const dateStr = new Date(overview.eventDate).toLocaleDateString('fr-FR', {
+  const dateStr = format.dateTime(new Date(overview.eventDate), {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
@@ -79,7 +87,7 @@ export default async function CoupleEventPage({
         {/* En-tête mariage */}
         <header className="flex flex-col gap-3">
           <span className="font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-ink-500)] uppercase">
-            Votre espace mariage
+            {t('eventEyebrow')}
           </span>
           <h1
             className="font-display text-balance italic"
@@ -105,7 +113,7 @@ export default async function CoupleEventPage({
             ) : null}
             {days >= 0 ? (
               <span className="inline-flex items-center gap-1.5 font-medium text-[color:var(--color-ink-900)]">
-                {days === 0 ? "C'est aujourd'hui !" : `J‑${days}`}
+                {days === 0 ? t('today') : t('daysUntil', { days })}
               </span>
             ) : null}
           </div>
@@ -113,10 +121,10 @@ export default async function CoupleEventPage({
 
         {/* Suivi (capacité 1) */}
         <section className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {stat('Invités', s.total)}
-          {stat('Confirmés', s.attending)}
-          {stat('En attente', s.pending)}
-          {stat('Personnes attendues', s.expectedHeadcount)}
+          {stat(t('statGuests'), s.total)}
+          {stat(t('statConfirmed'), s.attending)}
+          {stat(t('statPending'), s.pending)}
+          {stat(t('statExpected'), s.expectedHeadcount)}
         </section>
 
         {/* Invités (capacité 2) — composant partagé */}
@@ -128,13 +136,10 @@ export default async function CoupleEventPage({
               aria-hidden
             />
             <h2 className="font-display text-xl text-[color:var(--color-ink-900)] italic">
-              Votre liste d’invités
+              {t('guestsTitle')}
             </h2>
           </div>
-          <p className="max-w-prose text-sm text-[color:var(--color-ink-500)]">
-            Ajoutez vos invités et leur numéro de téléphone — votre agence les voit en temps réel
-            pour préparer les invitations WhatsApp.
-          </p>
+          <p className="max-w-prose text-sm text-[color:var(--color-ink-500)]">{t('guestsHint')}</p>
           <GuestsManager eventId={eventId} initialGuests={guests} />
         </section>
 
@@ -147,18 +152,18 @@ export default async function CoupleEventPage({
               aria-hidden
             />
             <h2 className="font-display text-xl text-[color:var(--color-ink-900)] italic">
-              Paiements
+              {t('paymentsTitle')}
             </h2>
           </div>
           {payments.length === 0 ? (
-            <p className="text-sm text-[color:var(--color-ink-500)]">
-              Aucun paiement à régler pour le moment. Votre agence vous enverra un lien ici le cas
-              échéant.
-            </p>
+            <p className="text-sm text-[color:var(--color-ink-500)]">{t('paymentsEmpty')}</p>
           ) : (
             <ul className="flex flex-col gap-2.5">
               {payments.map((p) => {
-                const tone = PAY_TONE[p.status as keyof typeof PAY_TONE] ?? PAY_TONE.pending;
+                const statusKey = (
+                  p.status in PAY_TONE ? p.status : 'pending'
+                ) as keyof typeof PAY_TONE;
+                const tone = PAY_TONE[statusKey];
                 return (
                   <li
                     key={p._id}
@@ -180,14 +185,14 @@ export default async function CoupleEventPage({
                         {p.status === 'succeeded' ? (
                           <CheckCircle2 className="h-3 w-3" strokeWidth={2.2} aria-hidden />
                         ) : null}
-                        {tone.label}
+                        {payStatusLabel[statusKey]}
                       </span>
                       {p.status === 'pending' && p.checkoutUrl ? (
                         <a
                           href={p.checkoutUrl}
                           className="focus-ring inline-flex items-center gap-1.5 rounded-full bg-[color:var(--color-ink-900)] px-4 py-2 text-sm font-medium text-[color:var(--color-ivory-50)] transition-opacity hover:opacity-90"
                         >
-                          Payer
+                          {t('payCta')}
                           <ExternalLink className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />
                         </a>
                       ) : p.receiptUrl ? (
@@ -197,7 +202,7 @@ export default async function CoupleEventPage({
                           rel="noreferrer"
                           className="focus-ring inline-flex items-center gap-1.5 rounded-full border border-[color:var(--color-border-strong)] px-3.5 py-1.5 text-xs text-[color:var(--color-ink-700)] hover:text-[color:var(--color-ink-900)]"
                         >
-                          Reçu
+                          {t('receiptCta')}
                           <ExternalLink className="h-3 w-3" strokeWidth={2} aria-hidden />
                         </a>
                       ) : null}

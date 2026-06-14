@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { useTranslations } from 'next-intl';
 import { ChevronDown } from 'lucide-react';
+import { analytics } from '@/lib/analytics/posthog-client';
 import { inViewOnce, scrollReveal, scrollRevealParent } from '@/lib/motion/presets';
 
 const FAQ_KEYS = [
@@ -75,7 +76,11 @@ export function LandingFaqAccordion() {
                   type="button"
                   className="focus-ring flex w-full cursor-pointer items-center justify-between gap-4 px-6 py-5 text-left transition-colors hover:bg-[color:var(--color-ivory-100)]"
                   aria-expanded={isOpen}
-                  onClick={() => setOpenKey(isOpen ? null : key)}
+                  onClick={() => {
+                    // Ne tracker qu'à l'ouverture (signal d'objection), pas à la fermeture.
+                    if (!isOpen) analytics.faqOpened({ question: key, source: 'landing' });
+                    setOpenKey(isOpen ? null : key);
+                  }}
                 >
                   <span className="text-base font-semibold text-[color:var(--color-ink-900)] sm:text-lg">
                     {t(`items.${key}.q`)}

@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Link } from '@/i18n/navigation';
+import { CONSENT_STORAGE_KEY, setAnalyticsConsent } from '@/lib/analytics/posthog-client';
 
 /**
  * CookieConsent — Bannière de consentement RGPD.
@@ -11,6 +12,10 @@ import { Link } from '@/i18n/navigation';
  * - Informations claires sur la finalité des cookies.
  * - Bouton "Continuer sans accepter" visible et au même niveau que "Accepter".
  * - Lien vers la politique de confidentialité / cookies.
+ *
+ * Pilote PostHog (analytics produit & marketing) : tant que l'utilisateur n'a
+ * pas accepté, PostHog est en opt-out (aucune capture ni cookie de tracking).
+ * Le choix est propagé immédiatement via `setAnalyticsConsent` — pas de reload.
  */
 export function CookieConsent() {
   const t = useTranslations('CookieConsent');
@@ -19,7 +24,7 @@ export function CookieConsent() {
   useEffect(() => {
     // Délai pour une apparition plus fluide (ne pas bloquer le LCP)
     const timer = setTimeout(() => {
-      const consent = localStorage.getItem('wedillybird-cookie-consent');
+      const consent = localStorage.getItem(CONSENT_STORAGE_KEY);
       if (!consent) {
         setShow(true);
       }
@@ -28,12 +33,14 @@ export function CookieConsent() {
   }, []);
 
   const handleAccept = () => {
-    localStorage.setItem('wedillybird-cookie-consent', 'accepted');
+    localStorage.setItem(CONSENT_STORAGE_KEY, 'accepted');
+    setAnalyticsConsent(true);
     setShow(false);
   };
 
   const handleDecline = () => {
-    localStorage.setItem('wedillybird-cookie-consent', 'declined');
+    localStorage.setItem(CONSENT_STORAGE_KEY, 'declined');
+    setAnalyticsConsent(false);
     setShow(false);
   };
 

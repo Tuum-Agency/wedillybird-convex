@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { setRequestLocale } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { redirect } from '@/i18n/navigation';
 import { requireProContext } from '@/lib/pro/require-pro-context';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
@@ -9,7 +9,10 @@ import { CoupleLinkCard } from '@/components/pro/couple-link-card';
 import { PRO_TIER_LIMITS } from '@/lib/payments/entitlements';
 import { nowMs } from '@/lib/pro/format';
 
-export const metadata: Metadata = { title: 'Mariage — Wedillybird Pro' };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('ProPages');
+  return { title: t('weddingHubMetaTitle') };
+}
 
 const DAY = 86_400_000;
 const TIER_LABEL: Record<'starter' | 'business' | 'agency', string> = {
@@ -69,7 +72,7 @@ export default async function ProWeddingHubPage({
   ).length;
   const activeCount = orgEvents.filter((e) => e.status === 'active').length;
 
-  const dateLabel = new Intl.DateTimeFormat('fr-FR', {
+  const dateLabel = new Intl.DateTimeFormat(locale, {
     day: 'numeric',
     month: 'long',
     year: 'numeric',

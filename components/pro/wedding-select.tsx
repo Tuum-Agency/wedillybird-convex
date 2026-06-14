@@ -8,6 +8,7 @@
  */
 
 import { useState } from 'react';
+import { useLocale, useTranslations } from 'next-intl';
 import { Calendar, Check, ChevronsUpDown, MapPin } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { nowMs } from '@/lib/pro/format';
@@ -58,26 +59,11 @@ function CoupleAvatar({ a, b, size = 40 }: { a: string; b: string; size?: number
   );
 }
 
-function formatDateFr(ms: number, timeZone?: string): string {
-  return new Intl.DateTimeFormat('fr-FR', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-    timeZone: timeZone || 'UTC',
-  }).format(new Date(ms));
-}
-
-function jLabel(ms: number, now: number): string {
-  const d = Math.ceil((ms - now) / 86_400_000);
-  if (d < 0) return `J+${-d}`;
-  return `J−${d}`;
-}
-
 export function WeddingSelect({
   events,
   value,
   onChange,
-  label = 'Mariage',
+  label,
   now,
   showVenue = false,
 }: {
@@ -89,16 +75,32 @@ export function WeddingSelect({
   /** Affiche le lieu du mariage sélectionné sous le sélecteur (cohérence cross-pages). */
   showVenue?: boolean;
 }) {
+  const t = useTranslations('Pro.main');
+  const locale = useLocale();
   const [open, setOpen] = useState(false);
   const ref = now ?? nowMs();
   const sel = events.find((e) => e._id === value) ?? events[0];
+
+  const fieldLabel = label ?? t('weddingSelect.label');
+  const formatDate = (ms: number, timeZone?: string): string =>
+    new Intl.DateTimeFormat(locale, {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      timeZone: timeZone || 'UTC',
+    }).format(new Date(ms));
+  const jLabel = (ms: number, nowRef: number): string => {
+    const d = Math.ceil((ms - nowRef) / 86_400_000);
+    return d < 0 ? t('weddingSelect.jPast', { n: -d }) : t('weddingSelect.jUntil', { n: d });
+  };
+
   if (!sel) return null;
 
   return (
     <div className="flex flex-col gap-1.5">
-      {label ? (
+      {fieldLabel ? (
         <span className="font-mono text-[9px] tracking-[0.18em] text-[color:var(--color-muted-foreground)] uppercase">
-          {label}
+          {fieldLabel}
         </span>
       ) : null}
       <div className="relative">
@@ -107,7 +109,7 @@ export function WeddingSelect({
           onClick={() => setOpen((o) => !o)}
           aria-haspopup="listbox"
           aria-expanded={open}
-          aria-label="Choisir le mariage"
+          aria-label={t('weddingSelect.chooseAria')}
           className="focus-ring inline-flex min-w-[240px] cursor-pointer items-center gap-3 rounded-2xl border border-[color:var(--color-border-strong)] bg-[color:var(--color-surface-elevated)] px-3 py-2 text-left transition-colors hover:border-[color:var(--color-blush-400)]"
         >
           <CoupleAvatar a={sel.partnerA} b={sel.partnerB} />
@@ -118,7 +120,7 @@ export function WeddingSelect({
             </span>
             <span className="inline-flex items-center gap-1.5 font-mono text-[10px] text-[color:var(--color-muted-foreground)] tabular-nums">
               <Calendar className="h-3 w-3" strokeWidth={1.9} aria-hidden />
-              {formatDateFr(sel.eventDate, sel.timezone)}
+              {formatDate(sel.eventDate, sel.timezone)}
               <span className="text-[color:var(--color-border-strong)]">·</span>
               <span className="text-[color:var(--color-blush-300)]">
                 {jLabel(sel.eventDate, ref)}
@@ -143,7 +145,7 @@ export function WeddingSelect({
             />
             <ul
               role="listbox"
-              aria-label="Mariages"
+              aria-label={t('weddingSelect.listAria')}
               className="absolute top-full left-0 z-40 mt-2 flex max-h-[340px] w-[clamp(280px,100%,360px)] flex-col gap-0.5 overflow-y-auto rounded-2xl border border-[color:var(--color-border-strong)] bg-[color:var(--color-surface)] p-1.5 shadow-[var(--shadow-popover)]"
             >
               {events.map((ev) => {
@@ -173,7 +175,7 @@ export function WeddingSelect({
                           {ev.partnerB}
                         </span>
                         <span className="truncate font-mono text-[10px] text-[color:var(--color-muted-foreground)] tabular-nums">
-                          {formatDateFr(ev.eventDate, ev.timezone)}
+                          {formatDate(ev.eventDate, ev.timezone)}
                           {ev.venue ? ` · ${ev.venue}` : ''}
                         </span>
                       </span>
@@ -218,7 +220,7 @@ export function WeddingSelect({
         ) : (
           <span className="inline-flex items-center gap-1.5 text-sm text-[color:var(--color-muted-foreground)]/60">
             <MapPin className="h-4 w-4 flex-shrink-0" strokeWidth={1.9} aria-hidden />
-            Lieu à renseigner
+            {t('weddingSelect.venueToFill')}
           </span>
         )
       ) : null}

@@ -1,8 +1,16 @@
 import type { Metadata } from 'next';
-import { setRequestLocale } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { CheckCircle2 } from 'lucide-react';
 
-export const metadata: Metadata = { title: 'Paiement confirmé — Wedillybird' };
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: 'Pay' });
+  return { title: t('success.metaTitle') };
+}
 
 /**
  * Page de confirmation après un paiement en ligne (Wedillybird Pay). Affichée au
@@ -17,6 +25,7 @@ export default async function PaymentSuccessPage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
+  const t = await getTranslations('Pay');
   return (
     <main className="flex min-h-dvh items-center justify-center bg-[color:var(--color-background)] px-6 py-16">
       <div className="flex max-w-md flex-col items-center gap-5 rounded-3xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-8 py-12 text-center shadow-[var(--shadow-popover)]">
@@ -38,11 +47,10 @@ export default async function PaymentSuccessPage({
             color: 'var(--color-foreground)',
           }}
         >
-          Paiement confirmé
+          {t('success.title')}
         </h1>
         <p className="text-sm leading-relaxed text-[color:var(--color-muted-foreground)]">
-          Merci, votre paiement a bien été reçu. Un reçu vous a été envoyé par e-mail et votre
-          organisateur est automatiquement informé. Vous pouvez fermer cette page.
+          {t('success.body')}
         </p>
         <span className="font-mono text-[10px] tracking-[0.22em] text-[color:var(--color-muted-foreground)] uppercase">
           Wedillybird

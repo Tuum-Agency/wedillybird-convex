@@ -30,6 +30,7 @@ import {
   type DragEndEvent,
   type DragStartEvent,
 } from '@dnd-kit/core';
+import { useFormatter, useTranslations } from 'next-intl';
 import { useRouter as useIntlRouter } from '@/i18n/navigation';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -44,19 +45,24 @@ import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/u
 import { cn } from '@/lib/cn';
 import {
   CLIENT_STAGES,
-  CLIENT_STAGE_LABEL,
-  CLIENT_STAGE_PLURAL,
   CLIENT_SOURCES,
   groupByStage,
   pipelineTotals,
   isClientStage,
   coupleInitials,
   coupleHue,
-  relativeFr,
   daysUntil,
   type ClientStage,
 } from '@/lib/pro/clients';
-import { formatEurMinor, formatDateFr, parseEurToMinor } from '@/lib/pro/format';
+import { parseEurToMinor } from '@/lib/pro/format';
+import {
+  useStageLabel,
+  useStagePluralLabel,
+  useSourceLabel,
+  useEurFormat,
+  useDateFormat,
+  useRelative,
+} from '@/components/pro/clients/format-i18n';
 import { STAGE_PILL } from '@/components/pro/clients/stage-colors';
 import { ClientDetail } from '@/components/pro/clients/client-detail';
 import type { ClientRow, MemberOption } from '@/components/pro/clients/types';
@@ -70,25 +76,19 @@ import {
 
 export type { ClientRow } from '@/components/pro/clients/types';
 
-const ERROR_LABEL: Record<string, string> = {
-  INVALID_PARTNER_A: 'Le nom du couple est requis.',
-  INVALID_BUDGET: 'Budget invalide.',
-  FEATURE_NOT_IN_PLAN: 'Le CRM est réservé aux forfaits Business et Agency.',
-  FORBIDDEN: 'Vous n’avez pas les droits requis.',
-  NEEDS_FUTURE_DATE: 'Renseignez une date de mariage future pour convertir ce lead.',
-  NO_ORG: 'Organisation introuvable.',
-  UNAUTHENTICATED: 'Session expirée, reconnectez-vous.',
+/** Codes d'erreur serveur connus → clé i18n `Pro.clientsBoard.errors.*`. */
+const ERROR_KEY: Record<string, string> = {
+  INVALID_PARTNER_A: 'invalidPartnerA',
+  INVALID_BUDGET: 'invalidBudget',
+  FEATURE_NOT_IN_PLAN: 'featureNotInPlan',
+  FORBIDDEN: 'forbidden',
+  NEEDS_FUTURE_DATE: 'needsFutureDate',
+  NO_ORG: 'noOrg',
+  UNAUTHENTICATED: 'unauthenticated',
 };
-const errLabel = (c: string) => ERROR_LABEL[c] ?? 'Une erreur est survenue. Réessayez.';
 
-const SORT_OPTS = [
-  { key: 'couple', label: 'Client (A→Z)' },
-  { key: 'stage', label: 'Étape du pipeline' },
-  { key: 'date', label: 'Date du mariage' },
-  { key: 'budget', label: 'Budget estimé' },
-  { key: 'contact', label: 'Dernier contact' },
-] as const;
-type SortKey = (typeof SORT_OPTS)[number]['key'];
+const SORT_KEYS = ['couple', 'stage', 'date', 'budget', 'contact'] as const;
+type SortKey = (typeof SORT_KEYS)[number];
 
 const STAGE_ORDER: Record<ClientStage, number> = {
   lead: 0,
@@ -128,6 +128,7 @@ function MiniAvatar({ name, size = 28 }: { name: string; size?: number }) {
 }
 
 function StagePill({ stage }: { stage: ClientStage }) {
+  const stageLabel = useStageLabel();
   const s = STAGE_PILL[stage];
   return (
     <span
@@ -135,7 +136,7 @@ function StagePill({ stage }: { stage: ClientStage }) {
       style={{ background: s.bg, color: s.fg }}
     >
       <span className="h-1.5 w-1.5 rounded-full" style={{ background: s.dot }} aria-hidden />
-      {CLIENT_STAGE_LABEL[stage]}
+      {stageLabel(stage)}
     </span>
   );
 }
@@ -154,6 +155,7 @@ function CoupleName({ name }: { name: string }) {
 
 /** Pastille de compte à rebours (« J−42 », ou « Livré » si la date est passée). */
 function JChip({ days }: { days: number }) {
+  const t = useTranslations('Pro.clientsBoard');
   const past = days < 0;
   const deliv = STAGE_PILL.delivered;
   return (
@@ -169,10 +171,11 @@ function JChip({ days }: { days: number }) {
       }
     >
       {past ? (
-        'Livré'
+        t('delivered')
       ) : (
         <>
-          J−<b className="text-[12px] font-semibold">{days}</b>
+          {t('countdownPrefix')}
+          <b className="text-[12px] font-semibold">{days}</b>
         </>
       )}
     </span>
@@ -190,11 +193,14 @@ function PipelineColumn({
   budgetMinor: number;
   children: React.ReactNode;
 }) {
+  const t = useTranslations('Pro.clientsBoard');
+  const stagePlural = useStagePluralLabel();
+  const formatEur = useEurFormat();
   const { setNodeRef, isOver } = useDroppable({ id: stage });
   return (
     <section
       ref={setNodeRef}
-      aria-label={CLIENT_STAGE_PLURAL[stage]}
+      aria-label={stagePlural(stage)}
       className={cn(
         'flex min-w-0 flex-col gap-[11px] rounded-[14px] border p-3 transition-colors',
         isOver
@@ -211,7 +217,7 @@ function PipelineColumn({
             aria-hidden
           />
           <span className="min-w-0 truncate text-[13px] font-semibold text-[color:var(--color-foreground)]">
-            {CLIENT_STAGE_PLURAL[stage]}
+            {stagePlural(stage)}
           </span>
           <span className="ml-auto rounded-full border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-2 py-0.5 font-mono text-[11px] text-[color:var(--color-muted-foreground)] tabular-nums">
             {count}
@@ -219,7 +225,7 @@ function PipelineColumn({
         </div>
         <span className="font-mono text-[11px] tracking-[-0.01em] text-[color:var(--color-ink-700)] tabular-nums">
           {budgetMinor > 0 ? (
-            formatEurMinor(budgetMinor)
+            formatEur(budgetMinor)
           ) : (
             <span className="text-[color:var(--color-muted-foreground)]">—</span>
           )}
@@ -228,7 +234,7 @@ function PipelineColumn({
       <div className="flex min-h-10 flex-col gap-2.5">
         {count === 0 ? (
           <div className="rounded-[10px] border border-dashed border-[color:var(--color-border)] px-4 py-[18px] text-center font-mono text-[10px] tracking-[0.1em] text-[color:var(--color-muted-foreground)] uppercase">
-            Déposez ici
+            {t('dropHere')}
           </div>
         ) : (
           children
@@ -249,6 +255,8 @@ function PipelineCard({
   onOpen: () => void;
   now: number;
 }) {
+  const t = useTranslations('Pro.clientsBoard');
+  const stageLabel = useStageLabel();
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: client._id,
     disabled: !draggable,
@@ -261,7 +269,10 @@ function PipelineCard({
       onClick={onOpen}
       role="button"
       tabIndex={0}
-      aria-label={`${coupleLabel(client)}, étape ${CLIENT_STAGE_LABEL[client.stage]}. Entrée pour ouvrir la fiche.`}
+      aria-label={t('cardAria', {
+        couple: coupleLabel(client),
+        stage: stageLabel(client.stage),
+      })}
       onKeyDown={(e) => {
         if (e.key === 'Enter') onOpen();
       }}
@@ -288,6 +299,11 @@ function CardFace({
   showGrip?: boolean;
   now: number;
 }) {
+  const t = useTranslations('Pro.clientsBoard');
+  const format = useFormatter();
+  const formatEur = useEurFormat();
+  const formatDate = useDateFormat();
+  const relative = useRelative();
   const dleft = daysUntil(client.weddingDate, now);
   const active = client.stage === 'booked' || client.stage === 'in_progress';
   const booked = client.budgetBookedMinor ?? 0;
@@ -327,12 +343,12 @@ function CardFace({
           {client.weddingDate ? (
             <>
               <span className="font-mono text-[12px] whitespace-nowrap">
-                {formatDateFr(client.weddingDate)}
+                {formatDate(client.weddingDate)}
               </span>
               {dleft != null ? <JChip days={dleft} /> : null}
             </>
           ) : (
-            <span className="text-[color:var(--color-muted-foreground)]">Date à définir</span>
+            <span className="text-[color:var(--color-muted-foreground)]">{t('dateTbd')}</span>
           )}
         </div>
         <div className="flex min-h-[18px] items-center gap-2 text-[12.5px] leading-[1.3] text-[color:var(--color-ink-700)]">
@@ -342,10 +358,10 @@ function CardFace({
             aria-hidden
           />
           <span className="min-w-0 flex-1 truncate text-[color:var(--color-muted-foreground)]">
-            {client.budgetMinor ? 'Budget estimé' : 'Budget à estimer'}
+            {client.budgetMinor ? t('budgetEstimated') : t('budgetToEstimate')}
           </span>
           <span className="ml-auto flex-none font-mono whitespace-nowrap text-[color:var(--color-foreground)]">
-            {formatEurMinor(client.budgetMinor)}
+            {formatEur(client.budgetMinor)}
           </span>
         </div>
       </div>
@@ -355,8 +371,10 @@ function CardFace({
         {active && client.budgetMinor ? (
           <div className="flex min-w-0 flex-1 flex-col gap-[5px]">
             <div className="flex justify-between font-mono text-[9.5px] whitespace-nowrap text-[color:var(--color-muted-foreground)]">
-              <span>Réservé</span>
-              <b className="font-medium text-[color:var(--color-ink-700)]">{pct} %</b>
+              <span>{t('booked')}</span>
+              <b className="font-medium text-[color:var(--color-ink-700)]">
+                {format.number(pct / 100, { style: 'percent' })}
+              </b>
             </div>
             <div className="h-1 overflow-hidden rounded-full bg-[color:var(--color-border)]">
               <span
@@ -368,7 +386,7 @@ function CardFace({
           </div>
         ) : (
           <span className="font-mono text-[10px] text-[color:var(--color-muted-foreground)]">
-            {relativeFr(client.lastContactAt, now)}
+            {relative(client.lastContactAt, now)}
           </span>
         )}
         {client.assigneeName ? (
@@ -377,7 +395,7 @@ function CardFace({
           </span>
         ) : (
           <span
-            title="Non assigné"
+            title={t('unassigned')}
             aria-hidden
             className="flex h-[26px] w-[26px] flex-none items-center justify-center rounded-full border border-dashed border-[color:var(--color-border-strong)] text-[10px] text-[color:var(--color-muted-foreground)]"
           >
@@ -404,6 +422,15 @@ export function ClientsBoard({
   /** Ouvre directement le tiroir « Nouveau client » au montage (deep-link ?new=1). */
   autoCreate?: boolean;
 }) {
+  const t = useTranslations('Pro.clientsBoard');
+  const stageLabel = useStageLabel();
+  const formatEur = useEurFormat();
+  const formatDate = useDateFormat();
+  const relative = useRelative();
+  const errLabel = (code: string) => {
+    const key = ERROR_KEY[code];
+    return key ? t(`errors.${key}`) : t('errors.generic');
+  };
   const router = useRouter();
   const intlRouter = useIntlRouter();
   const [clients, setClients] = useState<ClientRow[]>(initialClients);
@@ -589,7 +616,7 @@ export function ClientsBoard({
   }
   function bulkDelete() {
     const ids = [...selected];
-    if (!confirm(`Supprimer ${ids.length} client${ids.length > 1 ? 's' : ''} ?`)) return;
+    if (!confirm(t('bulkDeleteConfirm', { count: ids.length }))) return;
     setClients((prev) => prev.filter((c) => !selected.has(c._id)));
     setSelected(new Set());
     startTransition(async () => {
@@ -606,8 +633,7 @@ export function ClientsBoard({
       <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div className="flex flex-col gap-1.5">
           <span className="font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-muted-foreground)] uppercase">
-            CRM · {totals.count} dossier{totals.count > 1 ? 's' : ''} ·{' '}
-            {formatEurMinor(totals.budgetMinor)} en pipeline
+            {t('eyebrow', { count: totals.count, budget: formatEur(totals.budgetMinor) })}
           </span>
           <h1
             className="font-display italic"
@@ -618,7 +644,7 @@ export function ClientsBoard({
               color: 'var(--color-foreground)',
             }}
           >
-            Clients
+            {t('title')}
           </h1>
         </div>
         {canWrite ? (
@@ -633,7 +659,7 @@ export function ClientsBoard({
             data-testid="new-client"
           >
             <Plus className="h-4 w-4" strokeWidth={2.2} aria-hidden />
-            Nouveau client
+            {t('newClient')}
           </Button>
         ) : null}
       </header>
@@ -659,7 +685,7 @@ export function ClientsBoard({
               ) : (
                 <LayoutGrid className="h-3.5 w-3.5" strokeWidth={2} />
               )}
-              {v === 'table' ? 'Table' : 'Pipeline'}
+              {v === 'table' ? t('viewTable') : t('viewPipeline')}
             </button>
           ))}
         </div>
@@ -674,8 +700,8 @@ export function ClientsBoard({
             type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Rechercher un client…"
-            aria-label="Rechercher un client"
+            placeholder={t('searchPlaceholder')}
+            aria-label={t('searchAria')}
             className="focus-ring h-9 w-full rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-surface)] pr-3 pl-9 text-sm text-[color:var(--color-foreground)] placeholder:text-[color:var(--color-muted-foreground)]"
           />
         </label>
@@ -685,7 +711,7 @@ export function ClientsBoard({
           open={openMenu === 'stage'}
           onToggle={() => setOpenMenu(openMenu === 'stage' ? null : 'stage')}
           Icon={Filter}
-          label="Étape"
+          label={t('filterStage')}
           count={stageF.length}
         >
           {CLIENT_STAGES.map((s) => (
@@ -695,7 +721,7 @@ export function ClientsBoard({
               onClick={() => toggleArr(stageF, setStageF, s)}
               dot={STAGE_PILL[s].dot}
             >
-              {CLIENT_STAGE_LABEL[s]}
+              {stageLabel(s)}
             </CheckItem>
           ))}
         </FilterPopover>
@@ -705,7 +731,7 @@ export function ClientsBoard({
           open={openMenu === 'assignee'}
           onToggle={() => setOpenMenu(openMenu === 'assignee' ? null : 'assignee')}
           Icon={UserCheck}
-          label="Assigné·e"
+          label={t('filterAssignee')}
           count={assigneeF.length}
         >
           {members.map((m) => (
@@ -721,7 +747,7 @@ export function ClientsBoard({
             checked={assigneeF.includes('__none')}
             onClick={() => toggleArr(assigneeF, setAssigneeF, '__none')}
           >
-            Non assigné
+            {t('unassigned')}
           </CheckItem>
         </FilterPopover>
 
@@ -735,33 +761,33 @@ export function ClientsBoard({
             aria-expanded={openMenu === 'sort'}
           >
             <ArrowUpDown className="h-3.5 w-3.5" strokeWidth={1.8} aria-hidden />
-            Trier
+            {t('sort')}
             <ChevronDown className="h-3 w-3" strokeWidth={2} aria-hidden />
           </button>
           {openMenu === 'sort' ? (
             <div className="absolute top-full right-0 z-20 mt-1 flex w-52 flex-col rounded-xl border border-[color:var(--color-border-strong)] bg-[color:var(--color-surface-elevated)] p-1 shadow-[var(--shadow-popover)]">
               <span className="px-2 py-1 font-mono text-[9px] tracking-[0.18em] text-[color:var(--color-muted-foreground)] uppercase">
-                Trier par
+                {t('sortBy')}
               </span>
-              {SORT_OPTS.map((o) => (
+              {SORT_KEYS.map((key) => (
                 <button
-                  key={o.key}
+                  key={key}
                   type="button"
                   onClick={() =>
                     setSort({
-                      key: o.key,
-                      dir: o.key === 'couple' || o.key === 'stage' ? 'asc' : 'desc',
+                      key,
+                      dir: key === 'couple' || key === 'stage' ? 'asc' : 'desc',
                     })
                   }
                   className={cn(
                     'flex items-center justify-between rounded-lg px-2 py-1.5 text-left text-sm hover:bg-[color:var(--color-surface)]',
-                    sort.key === o.key
+                    sort.key === key
                       ? 'text-[color:var(--color-foreground)]'
                       : 'text-[color:var(--color-muted-foreground)]',
                   )}
                 >
-                  {o.label}
-                  {sort.key === o.key ? <Check className="h-3.5 w-3.5" strokeWidth={2.4} /> : null}
+                  {t(`sortOptions.${key}`)}
+                  {sort.key === key ? <Check className="h-3.5 w-3.5" strokeWidth={2.4} /> : null}
                 </button>
               ))}
               <span className="mx-1 my-1 h-px bg-[color:var(--color-border)]" />
@@ -770,7 +796,7 @@ export function ClientsBoard({
                 onClick={() => setSort((s) => ({ ...s, dir: s.dir === 'asc' ? 'desc' : 'asc' }))}
                 className="rounded-lg px-2 py-1.5 text-left text-sm text-[color:var(--color-muted-foreground)] hover:bg-[color:var(--color-surface)]"
               >
-                {sort.dir === 'asc' ? 'Ordre croissant ↑' : 'Ordre décroissant ↓'}
+                {sort.dir === 'asc' ? t('sortAsc') : t('sortDesc')}
               </button>
             </div>
           ) : null}
@@ -786,7 +812,7 @@ export function ClientsBoard({
             }}
             className="text-xs text-[color:var(--color-muted-foreground)] underline-offset-2 hover:text-[color:var(--color-foreground)] hover:underline"
           >
-            Réinitialiser
+            {t('reset')}
           </button>
         ) : null}
       </div>
@@ -795,12 +821,10 @@ export function ClientsBoard({
       {selected.size > 0 ? (
         <div className="flex flex-wrap items-center gap-3 rounded-xl border border-[color:var(--color-blush-400)] bg-[color:var(--color-surface)] px-4 py-2.5">
           <span className="text-sm font-medium text-[color:var(--color-foreground)]">
-            {selected.size} sélectionné{selected.size > 1 ? 's' : ''}
+            {t('selectedCount', { count: selected.size })}
           </span>
           <span className="h-4 w-px bg-[color:var(--color-border)]" />
-          <span className="text-xs text-[color:var(--color-muted-foreground)]">
-            Déplacer vers :
-          </span>
+          <span className="text-xs text-[color:var(--color-muted-foreground)]">{t('moveTo')}</span>
           {CLIENT_STAGES.map((s) => (
             <button
               key={s}
@@ -809,7 +833,7 @@ export function ClientsBoard({
               className="rounded-md px-2 py-1 font-mono text-[10px] tracking-[0.1em] uppercase hover:opacity-80"
               style={{ background: STAGE_PILL[s].bg, color: STAGE_PILL[s].fg }}
             >
-              {CLIENT_STAGE_LABEL[s]}
+              {stageLabel(s)}
             </button>
           ))}
           <span className="flex-1" />
@@ -818,12 +842,12 @@ export function ClientsBoard({
             onClick={bulkDelete}
             className="inline-flex items-center gap-1.5 text-xs text-[color:var(--color-danger)] hover:opacity-80"
           >
-            <Trash2 className="h-3.5 w-3.5" strokeWidth={1.9} /> Supprimer
+            <Trash2 className="h-3.5 w-3.5" strokeWidth={1.9} /> {t('delete')}
           </button>
           <button
             type="button"
             onClick={() => setSelected(new Set())}
-            aria-label="Annuler la sélection"
+            aria-label={t('cancelSelection')}
             className="text-[color:var(--color-muted-foreground)] hover:text-[color:var(--color-foreground)]"
           >
             <X className="h-4 w-4" strokeWidth={2} />
@@ -836,7 +860,7 @@ export function ClientsBoard({
         <EmptyState canWrite={canWrite} onCreate={() => setFormClient('new')} />
       ) : filtered.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-[color:var(--color-border-strong)] bg-[color:var(--color-surface)]/40 px-8 py-12 text-center text-sm text-[color:var(--color-muted-foreground)]">
-          Aucun client ne correspond à ces filtres.
+          {t('noMatch')}
         </div>
       ) : view === 'table' ? (
         <div className="overflow-x-auto rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)]">
@@ -844,12 +868,12 @@ export function ClientsBoard({
             <thead>
               <tr className="border-b border-[color:var(--color-border)] text-left font-mono text-[9px] tracking-[0.18em] text-[color:var(--color-muted-foreground)] uppercase">
                 {canWrite ? <th className="w-10 px-4 py-3" /> : null}
-                <th className="px-4 py-3 font-medium">Client</th>
-                <th className="px-4 py-3 font-medium">Étape</th>
-                <th className="px-4 py-3 font-medium">Mariage</th>
-                <th className="px-4 py-3 text-right font-medium">Budget</th>
-                <th className="px-4 py-3 font-medium">Assigné·e</th>
-                <th className="px-4 py-3 font-medium">Dernier contact</th>
+                <th className="px-4 py-3 font-medium">{t('cols.client')}</th>
+                <th className="px-4 py-3 font-medium">{t('cols.stage')}</th>
+                <th className="px-4 py-3 font-medium">{t('cols.wedding')}</th>
+                <th className="px-4 py-3 text-right font-medium">{t('cols.budget')}</th>
+                <th className="px-4 py-3 font-medium">{t('cols.assignee')}</th>
+                <th className="px-4 py-3 font-medium">{t('cols.lastContact')}</th>
               </tr>
             </thead>
             <tbody>
@@ -865,7 +889,7 @@ export function ClientsBoard({
                         type="checkbox"
                         checked={selected.has(c._id)}
                         onChange={() => toggleSelect(c._id)}
-                        aria-label={`Sélectionner ${coupleLabel(c)}`}
+                        aria-label={t('selectRow', { couple: coupleLabel(c) })}
                         className="h-4 w-4 accent-[color:var(--color-blush-500)]"
                       />
                     </td>
@@ -878,7 +902,7 @@ export function ClientsBoard({
                       </span>
                       {c.eventId ? (
                         <span className="font-mono text-[9px] tracking-[0.1em] text-[color:var(--color-sage-500)] uppercase">
-                          mariage
+                          {t('weddingBadge')}
                         </span>
                       ) : null}
                     </span>
@@ -891,7 +915,7 @@ export function ClientsBoard({
                         onValueChange={(v) => isClientStage(v) && changeStage(c._id, v)}
                       >
                         <SelectTrigger
-                          aria-label={`Étape de ${coupleLabel(c)}`}
+                          aria-label={t('stageOf', { couple: coupleLabel(c) })}
                           className="focus-ring rounded-md border border-[color:var(--color-border)] bg-[color:var(--color-surface-elevated)] px-2 py-1 text-xs text-[color:var(--color-foreground)]"
                         >
                           <SelectValue />
@@ -899,7 +923,7 @@ export function ClientsBoard({
                         <SelectContent>
                           {CLIENT_STAGES.map((s) => (
                             <SelectItem key={s} value={s}>
-                              {CLIENT_STAGE_LABEL[s]}
+                              {stageLabel(s)}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -909,10 +933,10 @@ export function ClientsBoard({
                     )}
                   </td>
                   <td className="px-4 py-3 font-mono text-xs text-[color:var(--color-muted-foreground)]">
-                    {formatDateFr(c.weddingDate)}
+                    {formatDate(c.weddingDate)}
                   </td>
                   <td className="px-4 py-3 text-right font-mono text-xs text-[color:var(--color-foreground)] tabular-nums">
-                    {c.budgetMinor != null ? formatEurMinor(c.budgetMinor) : '—'}
+                    {c.budgetMinor != null ? formatEur(c.budgetMinor) : '—'}
                   </td>
                   <td className="px-4 py-3">
                     {c.assigneeName ? (
@@ -922,12 +946,12 @@ export function ClientsBoard({
                       </span>
                     ) : (
                       <span className="text-xs text-[color:var(--color-muted-foreground)]/60">
-                        Non assigné
+                        {t('unassigned')}
                       </span>
                     )}
                   </td>
                   <td className="px-4 py-3 font-mono text-[11px] text-[color:var(--color-muted-foreground)]">
-                    {relativeFr(c.lastContactAt, now)}
+                    {relative(c.lastContactAt, now)}
                   </td>
                 </tr>
               ))}
@@ -989,7 +1013,7 @@ export function ClientsBoard({
       <Drawer open={formClient !== null} onOpenChange={(o) => !o && setFormClient(null)}>
         <DrawerContent className="mx-auto max-w-lg">
           <DrawerHeader>
-            <DrawerTitle>{editingClient ? 'Modifier le client' : 'Nouveau client'}</DrawerTitle>
+            <DrawerTitle>{editingClient ? t('editClient') : t('newClient')}</DrawerTitle>
           </DrawerHeader>
           <ClientForm
             key={editingClient?._id ?? 'new'}
@@ -1094,15 +1118,16 @@ function CheckItem({
 }
 
 function EmptyState({ canWrite, onCreate }: { canWrite: boolean; onCreate: () => void }) {
+  const t = useTranslations('Pro.clientsBoard');
   return (
     <div className="flex flex-col items-center gap-5 rounded-3xl border border-dashed border-[color:var(--color-border-strong)] bg-[color:var(--color-surface)]/40 px-8 py-16 text-center">
       <p className="max-w-sm text-sm text-[color:var(--color-muted-foreground)]">
-        Aucun client pour l’instant. Ajoutez votre premier couple pour démarrer le pipeline.
+        {t('emptyState')}
       </p>
       {canWrite ? (
         <Button type="button" variant="primary" size="md" onClick={onCreate}>
           <Plus className="h-4 w-4" strokeWidth={2.2} aria-hidden />
-          Nouveau client
+          {t('newClient')}
         </Button>
       ) : null}
     </div>
@@ -1138,37 +1163,52 @@ function ClientForm({
   onSubmit: (e: FormEvent<HTMLFormElement>) => void;
   onCancel: () => void;
 }) {
+  const t = useTranslations('Pro.clientsBoard');
+  const stageLabel = useStageLabel();
+  const sourceLabel = useSourceLabel();
   const [source, setSource] = useState(editing?.source ?? 'none');
   const [assigneeId, setAssigneeId] = useState(editing?.assigneeId ?? 'none');
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-4 pb-2">
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <Field label="Partenaire A *">
+        <Field label={t('form.partnerA')}>
           <Input
             name="partnerA"
             required
             defaultValue={editing?.partnerA ?? ''}
-            placeholder="Awa"
+            placeholder={t('form.partnerAPlaceholder')}
           />
         </Field>
-        <Field label="Partenaire B">
-          <Input name="partnerB" defaultValue={editing?.partnerB ?? ''} placeholder="Karim" />
+        <Field label={t('form.partnerB')}>
+          <Input
+            name="partnerB"
+            defaultValue={editing?.partnerB ?? ''}
+            placeholder={t('form.partnerBPlaceholder')}
+          />
         </Field>
-        <Field label="Téléphone">
-          <Input name="phone" defaultValue={editing?.phone ?? ''} placeholder="+33…" />
+        <Field label={t('form.phone')}>
+          <Input
+            name="phone"
+            defaultValue={editing?.phone ?? ''}
+            placeholder={t('form.phonePlaceholder')}
+          />
         </Field>
-        <Field label="WhatsApp">
-          <Input name="whatsapp" defaultValue={editing?.whatsapp ?? ''} placeholder="+33…" />
+        <Field label={t('form.whatsapp')}>
+          <Input
+            name="whatsapp"
+            defaultValue={editing?.whatsapp ?? ''}
+            placeholder={t('form.phonePlaceholder')}
+          />
         </Field>
-        <Field label="Email">
+        <Field label={t('form.email')}>
           <Input
             name="email"
             type="email"
             defaultValue={editing?.email ?? ''}
-            placeholder="couple@email.fr"
+            placeholder={t('form.emailPlaceholder')}
           />
         </Field>
-        <Field label="Source">
+        <Field label={t('form.source')}>
           <input type="hidden" name="source" value={source === 'none' ? '' : source} />
           <Select value={source} onValueChange={setSource}>
             <SelectTrigger className={selectClass}>
@@ -1178,13 +1218,13 @@ function ClientForm({
               <SelectItem value="none">—</SelectItem>
               {CLIENT_SOURCES.map((s) => (
                 <SelectItem key={s} value={s}>
-                  {s}
+                  {sourceLabel(s)}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </Field>
-        <Field label="Étape">
+        <Field label={t('form.stage')}>
           <Select name="stage" defaultValue={editing?.stage ?? 'lead'}>
             <SelectTrigger className={selectClass}>
               <SelectValue />
@@ -1192,20 +1232,20 @@ function ClientForm({
             <SelectContent>
               {CLIENT_STAGES.map((s) => (
                 <SelectItem key={s} value={s}>
-                  {CLIENT_STAGE_LABEL[s]}
+                  {stageLabel(s)}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </Field>
-        <Field label="Assigné·e">
+        <Field label={t('form.assignee')}>
           <input type="hidden" name="assigneeId" value={assigneeId === 'none' ? '' : assigneeId} />
           <Select value={assigneeId} onValueChange={setAssigneeId}>
             <SelectTrigger className={selectClass}>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="none">— Personne —</SelectItem>
+              <SelectItem value="none">{t('form.noOne')}</SelectItem>
               {members.map((m) => (
                 <SelectItem key={m._id} value={m._id}>
                   {m.name}
@@ -1214,13 +1254,17 @@ function ClientForm({
             </SelectContent>
           </Select>
         </Field>
-        <Field label="Date du mariage">
+        <Field label={t('form.weddingDate')}>
           <Input name="weddingDate" type="date" defaultValue={toDateInput(editing?.weddingDate)} />
         </Field>
-        <Field label="Lieu">
-          <Input name="venue" defaultValue={editing?.venue ?? ''} placeholder="Domaine…" />
+        <Field label={t('form.venue')}>
+          <Input
+            name="venue"
+            defaultValue={editing?.venue ?? ''}
+            placeholder={t('form.venuePlaceholder')}
+          />
         </Field>
-        <Field label="Budget prévu (€)">
+        <Field label={t('form.budgetPlanned')}>
           <Input
             name="budgetEur"
             inputMode="decimal"
@@ -1228,7 +1272,7 @@ function ClientForm({
             placeholder="18000"
           />
         </Field>
-        <Field label="Budget réservé (€)">
+        <Field label={t('form.budgetBooked')}>
           <Input
             name="budgetBookedEur"
             inputMode="decimal"
@@ -1240,12 +1284,12 @@ function ClientForm({
         </Field>
       </div>
       {!editing ? (
-        <Field label="Note initiale">
+        <Field label={t('form.initialNote')}>
           <textarea
             name="notes"
             rows={2}
             className="focus-ring rounded-lg border border-[color:var(--color-border-strong)] bg-[color:var(--color-surface-elevated)] px-3 py-2 text-sm text-[color:var(--color-foreground)]"
-            placeholder="Contexte du lead…"
+            placeholder={t('form.initialNotePlaceholder')}
           />
         </Field>
       ) : null}
@@ -1263,10 +1307,10 @@ function ClientForm({
           className={cn(buttonVariants({ variant: 'ghost', size: 'md' }))}
         >
           <X className="h-4 w-4" strokeWidth={2} aria-hidden />
-          Annuler
+          {t('form.cancel')}
         </button>
         <Button type="submit" variant="primary" size="md" disabled={pending}>
-          {pending ? 'Enregistrement…' : editing ? 'Enregistrer' : 'Créer le client'}
+          {pending ? t('form.saving') : editing ? t('form.save') : t('form.create')}
         </Button>
       </div>
     </form>

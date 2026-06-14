@@ -248,7 +248,7 @@ export default async function EventDetailPage({
     <section className="flex flex-col gap-5 rounded-3xl border border-[color:var(--color-border)] bg-white p-7 shadow-[var(--shadow-soft)]">
       <div className="flex flex-col gap-2">
         <span className="font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-gold-700)] uppercase">
-          Votre événement
+          {t('pilotEyebrow')}
         </span>
         <h2
           className="font-display italic"
@@ -259,7 +259,7 @@ export default async function EventDetailPage({
             color: 'var(--color-ink-900)',
           }}
         >
-          Pilotez votre mariage
+          {t('pilotTitle')}
         </h2>
         {(() => {
           // Hint à afficher en haut de la section "Pilotez votre mariage".
@@ -343,21 +343,21 @@ export default async function EventDetailPage({
           className={cn(buttonVariants({ variant: 'outline', size: 'md' }), 'w-full')}
         >
           <Eye className="h-4 w-4" strokeWidth={2} aria-hidden />
-          Aperçu de l&apos;invitation
+          {t('previewInvitation')}
         </Link>
         <Link
           href={`/events/${eventId}/messaging` as never}
           className={cn(buttonVariants({ variant: 'outline', size: 'md' }), 'w-full')}
         >
           <MessageCircle className="h-4 w-4" strokeWidth={2} aria-hidden />
-          Personnaliser le message
+          {t('customizeMessage')}
         </Link>
         <Link
           href={`/events/${eventId}/edit` as never}
           className={cn(buttonVariants({ variant: 'outline', size: 'md' }), 'w-full')}
         >
           <Settings className="h-4 w-4" strokeWidth={2} aria-hidden />
-          Modifier les détails
+          {t('editDetails')}
         </Link>
       </div>
     </section>
@@ -367,7 +367,7 @@ export default async function EventDetailPage({
     <section className="flex flex-col gap-5 rounded-3xl border border-[color:var(--color-border)] bg-white p-7 shadow-[var(--shadow-soft)]">
       <div className="flex flex-col gap-2">
         <span className="font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-blush-700)] uppercase">
-          Vos invités
+          {t('guestsEyebrow')}
         </span>
         <h2
           className="font-display italic"

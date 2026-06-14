@@ -89,17 +89,20 @@ export function generateStaticParams() {
 /**
  * JSON-LD Organization injecté en `<body>` — schema.org pour permettre à
  * Google de présenter Wedillybird comme entité (knowledge panel, sitelinks).
+ * `description` est traduite (Common.meta.organizationDescription) ; les autres
+ * champs (nom de marque, URLs) ne sont pas localisés.
  */
-const ORGANIZATION_JSON_LD = {
-  '@context': 'https://schema.org',
-  '@type': 'Organization',
-  name: 'Wedillybird',
-  url: BASE_URL,
-  logo: `${BASE_URL}/wedillybird-logo.png`,
-  description:
-    "Plateforme SaaS d'organisation de mariage WhatsApp-first : invitations, RSVP, check-in, galerie partagée. France et Afrique de l'Ouest francophone.",
-  sameAs: [],
-};
+function organizationJsonLd(description: string) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'Wedillybird',
+    url: BASE_URL,
+    logo: `${BASE_URL}/wedillybird-logo.png`,
+    description,
+    sameAs: [],
+  };
+}
 
 export default async function LocaleLayout({
   children,
@@ -118,6 +121,9 @@ export default async function LocaleLayout({
 
   const dir = isRtlLocale(locale as Locale) ? 'rtl' : 'ltr';
 
+  const tMeta = await getTranslations({ locale, namespace: 'Common.meta' });
+  const organizationLd = organizationJsonLd(tMeta('organizationDescription'));
+
   return (
     <html
       lang={locale}
@@ -127,7 +133,7 @@ export default async function LocaleLayout({
       <body className="bg-background text-foreground flex min-h-full flex-col font-sans">
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(ORGANIZATION_JSON_LD) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationLd) }}
         />
         <NextIntlClientProvider>
           <ConvexClientProvider convexUrl={process.env.NEXT_PUBLIC_CONVEX_URL}>

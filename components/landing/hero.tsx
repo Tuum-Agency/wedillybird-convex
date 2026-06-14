@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { motion, useReducedMotion } from 'motion/react';
 import { useTranslations } from 'next-intl';
 import { ArrowRight } from 'lucide-react';
+import { analytics } from '@/lib/analytics/posthog-client';
 import { InvitationCard3D } from './invitation-card-3d';
 import { MagneticCta } from './magnetic-cta';
 
@@ -129,6 +130,9 @@ export function LandingHero() {
               className="w-full justify-center sm:w-auto sm:min-w-60"
               wrapperClassName="block w-full sm:inline-block sm:w-auto"
               withConfetti
+              onClick={() =>
+                analytics.ctaClicked({ source: 'hero_primary', destination: '/sign-up' })
+              }
             >
               {t('ctaPrimary')}
               <ArrowRight
@@ -142,6 +146,9 @@ export function LandingHero() {
               size="xl"
               className="w-full justify-center sm:w-auto sm:min-w-52"
               wrapperClassName="block w-full sm:inline-block sm:w-auto"
+              onClick={() =>
+                analytics.ctaClicked({ source: 'hero_secondary', destination: '#pricing' })
+              }
             >
               {t('ctaSecondary')}
             </MagneticCta>

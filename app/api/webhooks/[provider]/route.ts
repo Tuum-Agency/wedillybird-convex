@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
+import { captureServer, EVENTS } from '@/lib/analytics/posthog-server';
 import { getPaymentDriver } from '@/lib/payments';
 import type { ProviderName } from '@/lib/payments/country';
 import {
@@ -223,6 +224,33 @@ export async function POST(
         providerSessionId: event.providerSessionId,
         providerEventId: event.providerEventId,
       });
+
+      // Analytics serveur : event de revenu `purchase_completed`. On ne le tire
+      // QUE pour un paiement réellement confirmé pour la 1re fois — `alreadyApplied`
+      // garde contre les renvois (retries) de webhook Stripe. On exclut `mock`
+      // pour ne pas polluer l'analytics avec les paiements de test.
+      if (provider === 'stripe' && !result.alreadyApplied) {
+        const payment = await convex.query(convexApi.findPaymentBySession, {
+          provider,
+          providerSessionId: event.providerSessionId,
+        });
+        if (payment) {
+          await captureServer({
+            distinctId: payment.userId,
+            event: EVENTS.purchaseCompleted,
+            properties: {
+              plan: payment.plan,
+              currency: payment.currency,
+              amount_minor: payment.amountMinor,
+              revenue: payment.amountMinor / 100,
+              event_id: payment.eventId,
+              provider,
+              $set: { plan_tier: payment.plan },
+            },
+          });
+        }
+      }
+
       return NextResponse.json({ ok: true, alreadyApplied: result.alreadyApplied });
     }
     const result = await convex.mutation(convexApi.markPaymentFailed, {

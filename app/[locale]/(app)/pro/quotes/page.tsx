@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { setRequestLocale } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { FileText } from 'lucide-react';
 import { requireProContext } from '@/lib/pro/require-pro-context';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
@@ -8,12 +8,16 @@ import { ModulePlaceholder } from '@/components/pro/module-placeholder';
 import { QuotesBoard } from '@/components/pro/quotes/quotes-board';
 import { tierHasFeature } from '@/lib/payments/entitlements';
 
-export const metadata: Metadata = { title: 'Devis & Factures — Wedillybird Pro' };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('ProPages');
+  return { title: t('quotesMetaTitle') };
+}
 
 export default async function ProQuotesPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   setRequestLocale(locale);
   const { session, org, user } = await requireProContext(locale);
+  const t = await getTranslations('ProPages');
   const tier = org.subscriptionTier ?? null;
   const locked = !tierHasFeature(tier, 'documentsEsign');
 
@@ -23,17 +27,17 @@ export default async function ProQuotesPage({ params }: { params: Promise<{ loca
     return (
       <ProSidebarShell current="quotes" org={shellOrg} user={{ name: user?.fullName }}>
         <ModulePlaceholder
-          eyebrow="Finances"
-          title="Devis & Factures"
+          eyebrow={t('quotesLockedEyebrow')}
+          title={t('quotesTitle')}
           Icon={FileText}
-          description="Émettez des devis et des factures à vos couples, suivez les acomptes et soldes, relancez en un clic — le tout depuis le back-office."
+          description={t('quotesLockedDescription')}
           capabilities={[
-            'Devis et factures numérotés (DEV-/FAC-), PDF de marque',
-            'Lignes, remises, TVA optionnelle, totaux automatiques',
-            'Échéancier acompte + solde, suivi payé / restant',
-            'Conversion d’un devis accepté en facture',
-            'Statuts (envoyé, accepté, payé, en retard) et relances',
-            'Historique d’activité par document',
+            t('quotesCap1'),
+            t('quotesCap2'),
+            t('quotesCap3'),
+            t('quotesCap4'),
+            t('quotesCap5'),
+            t('quotesCap6'),
           ]}
           lockedUntil="business"
         />

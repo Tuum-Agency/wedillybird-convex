@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { Badge } from '@/components/ui/badge';
 import {
   Select,
@@ -35,6 +35,7 @@ const ROLE_VARIANT: Record<string, 'neutral' | 'primary' | 'accent' | 'warning' 
 };
 
 export function AdminUsersTable({ users }: { users: User[] }) {
+  const t = useTranslations('Admin');
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('all');
 
@@ -53,7 +54,7 @@ export function AdminUsersTable({ users }: { users: User[] }) {
       <div className="flex flex-wrap items-center gap-3">
         <input
           type="text"
-          placeholder="Rechercher un utilisateur…"
+          placeholder={t('users.searchPlaceholder')}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-3 py-2 text-sm text-[color:var(--color-foreground)] placeholder:text-[color:var(--color-muted-foreground)] focus:ring-1 focus:ring-[color:var(--color-border-strong)] focus:outline-none"
@@ -63,15 +64,15 @@ export function AdminUsersTable({ users }: { users: User[] }) {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Tous les rôles</SelectItem>
-            <SelectItem value="couple">Couple</SelectItem>
-            <SelectItem value="pro">Pro</SelectItem>
-            <SelectItem value="guest">Invité</SelectItem>
-            <SelectItem value="admin">Admin</SelectItem>
+            <SelectItem value="all">{t('users.roleFilterAll')}</SelectItem>
+            <SelectItem value="couple">{t('roles.couple')}</SelectItem>
+            <SelectItem value="pro">{t('roles.pro')}</SelectItem>
+            <SelectItem value="guest">{t('roles.guest')}</SelectItem>
+            <SelectItem value="admin">{t('roles.admin')}</SelectItem>
           </SelectContent>
         </Select>
         <span className="font-mono text-xs text-[color:var(--color-muted-foreground)]">
-          {filtered.length} résultat{filtered.length > 1 ? 's' : ''}
+          {t('users.count', { count: filtered.length })}
         </span>
       </div>
 
@@ -79,12 +80,12 @@ export function AdminUsersTable({ users }: { users: User[] }) {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-[color:var(--color-border)] bg-[color:var(--color-surface)]">
-              <Th>Nom</Th>
-              <Th>Contact</Th>
-              <Th>Rôle</Th>
-              <Th>Plan</Th>
-              <Th>Inscrit le</Th>
-              <Th>Actions</Th>
+              <Th>{t('users.colName')}</Th>
+              <Th>{t('users.colContact')}</Th>
+              <Th>{t('users.colRole')}</Th>
+              <Th>{t('users.colPlan')}</Th>
+              <Th>{t('users.colRegisteredAt')}</Th>
+              <Th>{t('common.colActions')}</Th>
             </tr>
           </thead>
           <tbody>
@@ -107,6 +108,7 @@ function Th({ children }: { children: React.ReactNode }) {
 }
 
 function UserRow({ user }: { user: User }) {
+  const t = useTranslations('Admin');
   const locale = useLocale();
   const { execute: suspend, loading: suspending } = useServerAction(adminSuspendUserAction);
   const { execute: changeRole, loading: changing } = useServerAction(adminChangeUserRoleAction);
@@ -134,14 +136,20 @@ function UserRow({ user }: { user: User }) {
           {user.role !== 'admin' && user.role !== 'guest' ? (
             <button
               onClick={() => {
-                if (confirm(`Suspendre ${user.fullName ?? user.email ?? user._id} ?`)) {
+                if (
+                  confirm(
+                    t('users.confirmSuspend', {
+                      name: user.fullName ?? user.email ?? user._id,
+                    }),
+                  )
+                ) {
                   suspend(user._id);
                 }
               }}
               disabled={suspending}
               className="rounded-md px-2 py-1 text-xs font-medium text-red-400 transition-colors hover:bg-red-400/10 disabled:opacity-50"
             >
-              Suspendre
+              {t('users.suspend')}
             </button>
           ) : null}
           {user.role !== 'admin' ? (
@@ -150,19 +158,19 @@ function UserRow({ user }: { user: User }) {
               disabled={changing}
               onValueChange={(v) => {
                 const newRole = v as User['role'];
-                if (confirm(`Changer le rôle en "${newRole}" ?`)) {
+                if (confirm(t('users.confirmChangeRole', { role: newRole }))) {
                   changeRole(user._id, newRole);
                 }
               }}
             >
               <SelectTrigger className="rounded-md border border-[color:var(--color-border)] bg-transparent px-2 py-1 text-xs text-[color:var(--color-muted-foreground)]">
-                <SelectValue placeholder="Rôle…" />
+                <SelectValue placeholder={t('users.rolePlaceholder')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="couple">Couple</SelectItem>
-                <SelectItem value="pro">Pro</SelectItem>
-                <SelectItem value="guest">Invité</SelectItem>
-                <SelectItem value="admin">Admin</SelectItem>
+                <SelectItem value="couple">{t('roles.couple')}</SelectItem>
+                <SelectItem value="pro">{t('roles.pro')}</SelectItem>
+                <SelectItem value="guest">{t('roles.guest')}</SelectItem>
+                <SelectItem value="admin">{t('roles.admin')}</SelectItem>
               </SelectContent>
             </Select>
           ) : null}

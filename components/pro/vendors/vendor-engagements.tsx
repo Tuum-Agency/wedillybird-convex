@@ -2,6 +2,7 @@
 
 import { useMemo, useState, useTransition, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Heart, Plus, Star, Trash2, X, Wallet, BadgeCheck, Users } from 'lucide-react';
 import { Button, buttonVariants } from '@/components/ui/button';
 import {
@@ -63,6 +64,7 @@ export function VendorEngagements({
   setEngagements: React.Dispatch<React.SetStateAction<EngagementRow[]>>;
   canWrite: boolean;
 }) {
+  const t = useTranslations('Pro.vendorsBoard');
   const router = useRouter();
   const [selectedEventId, setSelectedEventId] = useState<string>(events[0]?._id ?? '');
   const [attachOpen, setAttachOpen] = useState(false);
@@ -88,7 +90,7 @@ export function VendorEngagements({
   }
 
   function onDetach(row: EngagementRow) {
-    if (!confirm(`Détacher « ${row.vendorName} » de ce mariage ?`)) return;
+    if (!confirm(t('engagements.confirmDetach', { name: row.vendorName }))) return;
     setEngagements((list) => list.filter((e) => e._id !== row._id));
     startTransition(async () => {
       const res = await detachVendorAction(row._id);
@@ -99,7 +101,7 @@ export function VendorEngagements({
   if (events.length === 0) {
     return (
       <div className="rounded-3xl border border-dashed border-[color:var(--color-border-strong)] bg-[color:var(--color-surface)]/40 px-8 py-14 text-center text-sm text-[color:var(--color-muted-foreground)]">
-        Aucun mariage pour l’instant. Créez un mariage pour y rattacher des prestataires.
+        {t('engagements.noEvents')}
       </div>
     );
   }
@@ -110,10 +112,10 @@ export function VendorEngagements({
       <div className="flex flex-wrap items-end justify-between gap-3">
         <label className="flex flex-col gap-1">
           <span className="font-mono text-[9px] tracking-[0.18em] text-[color:var(--color-muted-foreground)] uppercase">
-            Mariage
+            {t('engagements.weddingLabel')}
           </span>
           <Select value={selectedEventId} onValueChange={setSelectedEventId}>
-            <SelectTrigger className={selectClass} aria-label="Choisir le mariage">
+            <SelectTrigger className={selectClass} aria-label={t('engagements.chooseWedding')}>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -126,8 +128,7 @@ export function VendorEngagements({
           </Select>
         </label>
         <span className="flex-1 text-sm text-[color:var(--color-muted-foreground)]">
-          {kpis.total} prestataire{kpis.total > 1 ? 's' : ''} rattaché{kpis.total > 1 ? 's' : ''} à
-          ce mariage
+          {t('engagements.attachedCount', { count: kpis.total })}
         </span>
         {canWrite ? (
           <Button
@@ -139,21 +140,25 @@ export function VendorEngagements({
             data-testid="attach-vendor"
           >
             <Plus className="h-4 w-4" strokeWidth={2.2} aria-hidden />
-            Rattacher un prestataire
+            {t('engagements.attach')}
           </Button>
         ) : null}
       </div>
 
       {/* KPIs */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <Kpi Icon={Users} label="Prestataires" value={`${kpis.total}`} />
+        <Kpi Icon={Users} label={t('engagements.kpiVendors')} value={`${kpis.total}`} />
         <Kpi
           Icon={BadgeCheck}
-          label="Confirmés"
+          label={t('engagements.kpiConfirmed')}
           value={`${kpis.confirmed}`}
           unit={`/${kpis.total}`}
         />
-        <Kpi Icon={Wallet} label="Budget rattaché" value={formatEurMinor(kpis.budgetMinor)} />
+        <Kpi
+          Icon={Wallet}
+          label={t('engagements.kpiBudget')}
+          value={formatEurMinor(kpis.budgetMinor)}
+        />
       </div>
 
       {/* Liste des engagements */}
@@ -163,13 +168,13 @@ export function VendorEngagements({
             <Heart className="h-6 w-6" strokeWidth={1.7} aria-hidden />
           </span>
           <p className="max-w-sm text-sm text-[color:var(--color-muted-foreground)]">
-            Aucun prestataire rattaché à ce mariage.
+            {t('engagements.emptyTitle')}
           </p>
           <ol className="flex flex-wrap items-center justify-center gap-2 text-left">
             {[
-              ['01', 'Choisir un prestataire de l’annuaire'],
-              ['02', 'Définir le statut d’engagement'],
-              ['03', 'Relier au budget du mariage'],
+              ['01', t('engagements.step1')],
+              ['02', t('engagements.step2')],
+              ['03', t('engagements.step3')],
             ].map(([n, label]) => (
               <li
                 key={n}
@@ -182,7 +187,7 @@ export function VendorEngagements({
           {canWrite && availableVendors.length > 0 ? (
             <Button type="button" variant="primary" size="md" onClick={() => setAttachOpen(true)}>
               <Plus className="h-4 w-4" strokeWidth={2.2} aria-hidden />
-              Rattacher un prestataire
+              {t('engagements.attach')}
             </Button>
           ) : null}
         </div>
@@ -191,10 +196,10 @@ export function VendorEngagements({
           <table className="w-full min-w-[640px] border-collapse text-sm">
             <thead>
               <tr className="border-b border-[color:var(--color-border)] text-left font-mono text-[9px] tracking-[0.18em] text-[color:var(--color-muted-foreground)] uppercase">
-                <th className="px-4 py-3 font-medium">Prestataire</th>
-                <th className="px-4 py-3 font-medium">Note</th>
-                <th className="px-4 py-3 font-medium">Budget lié</th>
-                <th className="px-4 py-3 font-medium">Statut</th>
+                <th className="px-4 py-3 font-medium">{t('cols.vendor')}</th>
+                <th className="px-4 py-3 font-medium">{t('cols.rating')}</th>
+                <th className="px-4 py-3 font-medium">{t('cols.linkedBudget')}</th>
+                <th className="px-4 py-3 font-medium">{t('cols.status')}</th>
                 <th className="px-4 py-3" />
               </tr>
             </thead>
@@ -238,7 +243,7 @@ export function VendorEngagements({
                         {formatEurMinor(row.plannedMinor)}
                         {row.budgetLineId ? (
                           <span
-                            title="Ligne budget liée"
+                            title={t('engagements.budgetLinked')}
                             className="h-1.5 w-1.5 rounded-full bg-[color:var(--color-sage-500)]"
                             aria-hidden
                           />
@@ -255,7 +260,7 @@ export function VendorEngagements({
                         onValueChange={(v) => onSetStatus(row, v as EngagementStatus)}
                       >
                         <SelectTrigger
-                          aria-label={`Statut de ${row.vendorName}`}
+                          aria-label={t('engagements.statusOf', { name: row.vendorName })}
                           className="focus-ring rounded-full border-0 px-2.5 py-1 text-[11px] font-medium"
                           style={{
                             background: ENGAGEMENT_STATUS_META[row.status].bg,
@@ -281,7 +286,7 @@ export function VendorEngagements({
                       <button
                         type="button"
                         onClick={() => onDetach(row)}
-                        aria-label={`Détacher ${row.vendorName}`}
+                        aria-label={t('engagements.detachNamed', { name: row.vendorName })}
                         className="focus-ring rounded-md p-1 text-[color:var(--color-muted-foreground)] hover:text-[color:var(--color-danger)]"
                       >
                         <Trash2 className="h-3.5 w-3.5" strokeWidth={1.85} />
@@ -325,6 +330,7 @@ function AttachDialog({
   onClose: () => void;
   onAttached: (row: EngagementRow) => void;
 }) {
+  const t = useTranslations('Pro.vendorsBoard');
   const [vendorId, setVendorId] = useState(vendors[0]?._id ?? '');
   const [status, setStatus] = useState<EngagementStatus>('contacted');
   const [linkBudget, setLinkBudget] = useState(false);
@@ -339,7 +345,7 @@ function AttachDialog({
       Number.isFinite(amountEur) && amountEur > 0 ? Math.round(amountEur * 100) : undefined;
     const vendor = vendors.find((v) => v._id === vendorId);
     if (!vendor) {
-      setError('Choisissez un prestataire.');
+      setError(t('attachDialog.errorChoose'));
       return;
     }
     setError(null);
@@ -354,8 +360,8 @@ function AttachDialog({
       if (!res.ok) {
         setError(
           res.error === 'ALREADY_ATTACHED'
-            ? 'Ce prestataire est déjà rattaché.'
-            : 'Une erreur est survenue. Réessayez.',
+            ? t('attachDialog.errorAlreadyAttached')
+            : t('errors.unknown'),
         );
         return;
       }
@@ -379,11 +385,11 @@ function AttachDialog({
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
       role="dialog"
       aria-modal="true"
-      aria-label="Rattacher un prestataire"
+      aria-label={t('engagements.attach')}
     >
       <button
         type="button"
-        aria-label="Fermer"
+        aria-label={t('actions.close')}
         onClick={onClose}
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
       />
@@ -396,13 +402,13 @@ function AttachDialog({
             <Heart className="h-5 w-5" strokeWidth={1.85} aria-hidden />
           </span>
           <h3 className="font-display text-xl text-[color:var(--color-foreground)] italic">
-            Rattacher un prestataire
+            {t('engagements.attach')}
           </h3>
         </div>
 
         <label className="flex flex-col gap-1.5">
           <span className="text-xs font-medium text-[color:var(--color-muted-foreground)]">
-            Prestataire
+            {t('attachDialog.vendorLabel')}
           </span>
           <Select value={vendorId} onValueChange={setVendorId} required>
             <SelectTrigger className={selectClass}>
@@ -411,7 +417,7 @@ function AttachDialog({
             <SelectContent>
               {vendors.map((v) => (
                 <SelectItem key={v._id} value={v._id}>
-                  {v.name} · {v.category}
+                  {t('attachDialog.vendorOption', { name: v.name, category: v.category })}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -420,7 +426,7 @@ function AttachDialog({
 
         <fieldset className="flex flex-col gap-1.5">
           <legend className="mb-1 text-xs font-medium text-[color:var(--color-muted-foreground)]">
-            Statut d’engagement
+            {t('attachDialog.statusLegend')}
           </legend>
           <div className="grid grid-cols-2 gap-2">
             {ENGAGEMENT_STATUSES.map((s) => {
@@ -458,10 +464,12 @@ function AttachDialog({
               onChange={(e) => setLinkBudget(e.target.checked)}
               className="h-4 w-4 accent-[color:var(--color-blush-400)]"
             />
-            Créer la ligne budget correspondante
+            {t('attachDialog.createBudgetLine')}
           </label>
           <label className="flex items-center justify-between gap-3 text-sm">
-            <span className="text-[color:var(--color-muted-foreground)]">Montant prévu (€)</span>
+            <span className="text-[color:var(--color-muted-foreground)]">
+              {t('attachDialog.plannedAmount')}
+            </span>
             <input
               name="plannedEur"
               type="number"
@@ -486,10 +494,11 @@ function AttachDialog({
             onClick={onClose}
             className={cn(buttonVariants({ variant: 'ghost', size: 'md' }))}
           >
-            <X className="h-4 w-4" strokeWidth={2} aria-hidden /> Annuler
+            <X className="h-4 w-4" strokeWidth={2} aria-hidden /> {t('actions.cancel')}
           </button>
           <Button type="submit" variant="primary" size="md" disabled={pending}>
-            <Plus className="h-4 w-4" strokeWidth={2.2} aria-hidden /> Rattacher
+            <Plus className="h-4 w-4" strokeWidth={2.2} aria-hidden />{' '}
+            {t('engagements.attachShort')}
           </Button>
         </div>
       </form>

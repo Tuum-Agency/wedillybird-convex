@@ -412,8 +412,18 @@ export default defineSchema({
       v.literal('succeeded'),
       v.literal('failed'),
       v.literal('cancelled'),
+      // Remboursé depuis l'admin (total) / partiellement remboursé. Le montant
+      // remboursé est dans `refundedAmountMinor` (≤ amountMinor).
+      v.literal('refunded'),
+      v.literal('partially_refunded'),
     ),
     failureReason: v.optional(v.string()),
+    /** Montant remboursé cumulé (unités mineures). Posé par l'admin via Stripe. */
+    refundedAmountMinor: v.optional(v.number()),
+    /** Date du dernier remboursement (ms). */
+    refundedAt: v.optional(v.number()),
+    /** Id du dernier refund Stripe (`re_…`) — traçabilité. */
+    stripeRefundId: v.optional(v.string()),
     createdAt: v.number(),
     updatedAt: v.number(),
   })
@@ -685,6 +695,7 @@ export default defineSchema({
       v.literal('event'),
       v.literal('payment'),
       v.literal('organization'),
+      v.literal('subscription'),
       v.literal('photo'),
       v.literal('template'),
       v.literal('newsletter'),

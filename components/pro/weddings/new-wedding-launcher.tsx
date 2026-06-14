@@ -9,12 +9,14 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Plus, X, Calendar, MapPin, Heart } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { buttonVariants } from '@/components/ui/button';
 import { createOrgWeddingAction } from '@/app/[locale]/(app)/pro/actions';
 
 export function NewWeddingLauncher({ autoOpen = false }: { autoOpen?: boolean }) {
+  const t = useTranslations('Pro.weddings');
   const router = useRouter();
   const [open, setOpen] = useState(autoOpen);
   const [pending, startTransition] = useTransition();
@@ -30,12 +32,12 @@ export function NewWeddingLauncher({ autoOpen = false }: { autoOpen?: boolean })
     const venueName = String(fd.get('venueName') ?? '').trim();
     const venueAddress = String(fd.get('venueAddress') ?? '').trim();
     if (!partnerA || !partnerB) {
-      setError('Indiquez les deux prénoms du couple.');
+      setError(t('launcher.errBothNames'));
       return;
     }
     const eventDate = dateStr ? new Date(`${dateStr}T12:00:00`).getTime() : NaN;
     if (!Number.isFinite(eventDate)) {
-      setError('Choisissez une date de mariage.');
+      setError(t('launcher.errDate'));
       return;
     }
     startTransition(async () => {
@@ -52,7 +54,7 @@ export function NewWeddingLauncher({ autoOpen = false }: { autoOpen?: boolean })
         router.refresh();
       } else {
         setError(
-          res.error === 'INVALID_NAMES' ? 'Prénoms invalides.' : 'La création a échoué. Réessayez.',
+          res.error === 'INVALID_NAMES' ? t('launcher.errInvalidNames') : t('launcher.errCreate'),
         );
       }
     });
@@ -66,7 +68,7 @@ export function NewWeddingLauncher({ autoOpen = false }: { autoOpen?: boolean })
         className={cn(buttonVariants({ variant: 'primary', size: 'md' }))}
       >
         <Plus className="h-4 w-4" strokeWidth={2} aria-hidden />
-        Nouveau mariage
+        {t('launcher.newWedding')}
       </button>
 
       {open ? (
@@ -74,11 +76,11 @@ export function NewWeddingLauncher({ autoOpen = false }: { autoOpen?: boolean })
           className="fixed inset-0 z-50 grid place-items-center p-4"
           role="dialog"
           aria-modal="true"
-          aria-label="Nouveau mariage"
+          aria-label={t('launcher.newWedding')}
         >
           <button
             type="button"
-            aria-label="Fermer"
+            aria-label={t('common.close')}
             onClick={() => setOpen(false)}
             className="absolute inset-0 bg-black/50 backdrop-blur-sm"
           />
@@ -93,17 +95,17 @@ export function NewWeddingLauncher({ autoOpen = false }: { autoOpen?: boolean })
                 </span>
                 <div className="flex flex-col gap-0.5">
                   <span className="font-mono text-[10px] tracking-[0.18em] text-[color:var(--color-muted-foreground)] uppercase">
-                    Back-office agence
+                    {t('launcher.eyebrow')}
                   </span>
                   <h2 className="font-display text-xl text-[color:var(--color-foreground)] italic">
-                    Nouveau mariage
+                    {t('launcher.newWedding')}
                   </h2>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                aria-label="Fermer"
+                aria-label={t('common.close')}
                 className="text-[color:var(--color-muted-foreground)] hover:text-[color:var(--color-foreground)]"
               >
                 <X className="h-5 w-5" strokeWidth={2} aria-hidden />
@@ -111,23 +113,42 @@ export function NewWeddingLauncher({ autoOpen = false }: { autoOpen?: boolean })
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-              <Field label="Partenaire A">
-                <input name="partnerA" autoFocus required placeholder="Awa" className={INPUT} />
+              <Field label={t('launcher.partnerA')}>
+                <input
+                  name="partnerA"
+                  autoFocus
+                  required
+                  placeholder={t('launcher.partnerAPlaceholder')}
+                  className={INPUT}
+                />
               </Field>
-              <Field label="Partenaire B">
-                <input name="partnerB" required placeholder="Karim" className={INPUT} />
+              <Field label={t('launcher.partnerB')}>
+                <input
+                  name="partnerB"
+                  required
+                  placeholder={t('launcher.partnerBPlaceholder')}
+                  className={INPUT}
+                />
               </Field>
             </div>
 
-            <Field label="Date du mariage" icon={Calendar}>
+            <Field label={t('launcher.weddingDate')} icon={Calendar}>
               <input name="eventDate" type="date" required className={INPUT} />
             </Field>
 
-            <Field label="Lieu de réception (optionnel)" icon={MapPin}>
-              <input name="venueName" placeholder="Domaine de la Roseraie" className={INPUT} />
+            <Field label={t('launcher.venueName')} icon={MapPin}>
+              <input
+                name="venueName"
+                placeholder={t('launcher.venueNamePlaceholder')}
+                className={INPUT}
+              />
             </Field>
-            <Field label="Ville / adresse (optionnel)">
-              <input name="venueAddress" placeholder="Aix-en-Provence" className={INPUT} />
+            <Field label={t('launcher.venueAddress')}>
+              <input
+                name="venueAddress"
+                placeholder={t('launcher.venueAddressPlaceholder')}
+                className={INPUT}
+              />
             </Field>
 
             {error ? <p className="text-sm text-[color:var(--color-danger)]">{error}</p> : null}
@@ -138,7 +159,7 @@ export function NewWeddingLauncher({ autoOpen = false }: { autoOpen?: boolean })
                 onClick={() => setOpen(false)}
                 className="rounded-lg px-4 py-2 text-sm text-[color:var(--color-muted-foreground)] hover:text-[color:var(--color-foreground)]"
               >
-                Annuler
+                {t('common.cancel')}
               </button>
               <button
                 type="submit"
@@ -148,7 +169,7 @@ export function NewWeddingLauncher({ autoOpen = false }: { autoOpen?: boolean })
                   'disabled:opacity-50',
                 )}
               >
-                {pending ? 'Création…' : 'Créer le mariage'}
+                {pending ? t('launcher.creating') : t('launcher.createWedding')}
               </button>
             </div>
           </form>

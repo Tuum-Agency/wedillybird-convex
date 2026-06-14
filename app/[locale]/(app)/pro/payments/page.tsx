@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { setRequestLocale } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { Banknote } from 'lucide-react';
 import { requireProContext } from '@/lib/pro/require-pro-context';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
@@ -10,12 +10,16 @@ import { StripeConnectCard } from '@/components/pro/stripe-connect-card';
 import { tierHasFeature } from '@/lib/payments/entitlements';
 import { nowMs } from '@/lib/pro/format';
 
-export const metadata: Metadata = { title: 'Paiements — Wedillybird Pro' };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('ProPages');
+  return { title: t('paymentsMetaTitle') };
+}
 
 export default async function ProPaymentsPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   setRequestLocale(locale);
   const { session, org, user } = await requireProContext(locale);
+  const t = await getTranslations('ProPages');
   const tier = org.subscriptionTier ?? null;
   const locked = !tierHasFeature(tier, 'documentsEsign');
   const shellOrg = { name: org.name, primaryColor: org.primaryColor, tier, role: org.myRole };
@@ -24,16 +28,16 @@ export default async function ProPaymentsPage({ params }: { params: Promise<{ lo
     return (
       <ProSidebarShell current="payments" org={shellOrg} user={{ name: user?.fullName }}>
         <ModulePlaceholder
-          eyebrow="Finances"
-          title="Paiements"
+          eyebrow={t('paymentsLockedEyebrow')}
+          title={t('paymentsTitle')}
           Icon={Banknote}
-          description="Encaissez vos couples en ligne via Stripe Connect : versements automatiques, échéanciers et suivi des statuts."
+          description={t('paymentsLockedDescription')}
           capabilities={[
-            'Connexion Stripe Connect (versements automatiques)',
-            'Encaissement carte des acomptes et soldes',
-            'Échéanciers de paiement par facture',
-            'Statuts en temps réel et relances automatiques',
-            'Rapprochement avec les factures émises',
+            t('paymentsCap1'),
+            t('paymentsCap2'),
+            t('paymentsCap3'),
+            t('paymentsCap4'),
+            t('paymentsCap5'),
           ]}
           lockedUntil="business"
         />

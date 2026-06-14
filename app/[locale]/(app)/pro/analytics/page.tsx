@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { setRequestLocale } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { BarChart3, Heart, Users, TrendingUp, Wallet } from 'lucide-react';
 import { requireProContext } from '@/lib/pro/require-pro-context';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
@@ -9,7 +9,10 @@ import { tierHasFeature } from '@/lib/payments/entitlements';
 import { formatEurMinor } from '@/lib/pro/format';
 import { CLIENT_STAGES, CLIENT_STAGE_LABEL } from '@/lib/pro/clients';
 
-export const metadata: Metadata = { title: 'Analytics — Wedillybird Pro' };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('ProPages');
+  return { title: t('analyticsMetaTitle') };
+}
 
 const NF = new Intl.NumberFormat('fr-FR');
 const PCT = new Intl.NumberFormat('fr-FR', { style: 'percent', maximumFractionDigits: 0 });
@@ -22,6 +25,7 @@ export default async function ProAnalyticsPage({
   const { locale } = await params;
   setRequestLocale(locale);
   const { session, org, user } = await requireProContext(locale);
+  const t = await getTranslations('ProPages');
   const tier = org.subscriptionTier ?? null;
   const shellOrg = { name: org.name, primaryColor: org.primaryColor, tier, role: org.myRole };
 
@@ -29,15 +33,15 @@ export default async function ProAnalyticsPage({
     return (
       <ProSidebarShell current="analytics" org={shellOrg} user={{ name: user?.fullName }}>
         <ModulePlaceholder
-          eyebrow="Pilotage"
-          title="Analytics"
+          eyebrow={t('analyticsLockedEyebrow')}
+          title={t('analyticsTitle')}
           Icon={BarChart3}
-          description="Le cockpit consolidé de votre agence : performance commerciale et opérationnelle agrégée sur tous vos mariages."
+          description={t('analyticsLockedDescription')}
           capabilities={[
-            'KPI agrégés multi-events : mariages actifs, budget en pipeline',
-            'Taux de conversion lead → réservé sur le pipeline',
-            'Répartition du pipeline par étape',
-            'Budget engagé consolidé (prévu / payé)',
+            t('analyticsCap1'),
+            t('analyticsCap2'),
+            t('analyticsCap3'),
+            t('analyticsCap4'),
           ]}
           lockedUntil="agency"
         />
@@ -65,7 +69,7 @@ export default async function ProAnalyticsPage({
       <div className="container-page flex flex-col gap-8 py-8 sm:py-10">
         <header className="flex flex-col gap-1.5">
           <span className="font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-muted-foreground)] uppercase">
-            Pilotage · {org.name}
+            {t('analyticsEyebrow', { name: org.name })}
           </span>
           <h1
             className="font-display italic"
@@ -76,41 +80,41 @@ export default async function ProAnalyticsPage({
               color: 'var(--color-foreground)',
             }}
           >
-            Analytics
+            {t('analyticsTitle')}
           </h1>
         </header>
 
         <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           <Kpi
             Icon={Heart}
-            label="Mariages actifs"
+            label={t('analyticsKpiActiveWeddings')}
             value={NF.format(a.events.active)}
-            note={`${NF.format(a.events.total)} au total`}
+            note={t('analyticsKpiActiveWeddingsNote', { count: NF.format(a.events.total) })}
           />
           <Kpi
             Icon={Users}
-            label="Clients"
+            label={t('analyticsKpiClients')}
             value={NF.format(a.clients.total)}
-            note={`${NF.format(a.clients.bookedCount)} réservés`}
+            note={t('analyticsKpiClientsNote', { count: NF.format(a.clients.bookedCount) })}
           />
           <Kpi
             Icon={TrendingUp}
-            label="Conversion"
+            label={t('analyticsKpiConversion')}
             value={PCT.format(a.clients.conversionRate)}
-            note="lead → réservé"
+            note={t('analyticsKpiConversionNote')}
           />
           <Kpi
             Icon={Wallet}
-            label="Budget en pipeline"
+            label={t('analyticsKpiPipelineBudget')}
             value={formatEurMinor(a.clients.pipelineBudgetMinor)}
-            note="estimé clients"
+            note={t('analyticsKpiPipelineBudgetNote')}
           />
         </section>
 
         <section className="grid grid-cols-1 gap-6 lg:grid-cols-[1.4fr_1fr]">
           <div className="flex flex-col gap-4 rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-6">
             <h2 className="font-mono text-[10px] tracking-[0.24em] text-[color:var(--color-muted-foreground)] uppercase">
-              Pipeline par étape
+              {t('analyticsPipelineByStage')}
             </h2>
             <div className="flex flex-col gap-2.5">
               {CLIENT_STAGES.map((s) => {
@@ -141,14 +145,16 @@ export default async function ProAnalyticsPage({
 
           <div className="flex flex-col gap-4 rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-6">
             <h2 className="font-mono text-[10px] tracking-[0.24em] text-[color:var(--color-muted-foreground)] uppercase">
-              Budget engagé (tous mariages)
+              {t('analyticsCommittedBudget')}
             </h2>
             <div className="flex flex-col gap-1">
               <span className="font-mono text-3xl font-medium text-[color:var(--color-foreground)] tabular-nums">
                 {formatEurMinor(a.budget.paidMinor)}
               </span>
               <span className="text-xs text-[color:var(--color-muted-foreground)]">
-                payé sur {formatEurMinor(a.budget.plannedMinor)} prévu
+                {t('analyticsPaidOfPlanned', {
+                  planned: formatEurMinor(a.budget.plannedMinor),
+                })}
               </span>
             </div>
             {a.budget.plannedMinor > 0 ? (
