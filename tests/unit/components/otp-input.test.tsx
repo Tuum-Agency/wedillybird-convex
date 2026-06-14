@@ -1,7 +1,20 @@
 import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { NextIntlClientProvider } from 'next-intl';
+import type { ComponentProps } from 'react';
+import frMessages from '@/messages/fr.json';
 import { OtpInput } from '@/components/auth/otp-input';
+
+// `OtpInput` consomme `useTranslations('Auth')` ; on l'enveloppe du vrai provider
+// chargé avec `messages/fr.json` pour fournir le contexte next-intl aux tests.
+function renderOtp(props: ComponentProps<typeof OtpInput> = {}) {
+  return render(
+    <NextIntlClientProvider locale="fr" messages={frMessages}>
+      <OtpInput {...props} />
+    </NextIntlClientProvider>,
+  );
+}
 
 function getCells() {
   return screen.getAllByRole('textbox') as HTMLInputElement[];
@@ -9,23 +22,23 @@ function getCells() {
 
 describe('OtpInput', () => {
   it('renders N cells (default 6)', () => {
-    render(<OtpInput />);
+    renderOtp();
     expect(getCells()).toHaveLength(6);
   });
 
   it('supports a custom length', () => {
-    render(<OtpInput length={4} />);
+    renderOtp({ length: 4 });
     expect(getCells()).toHaveLength(4);
   });
 
   it('focuses the first cell when autoFocus', () => {
-    render(<OtpInput />);
+    renderOtp();
     expect(getCells()[0]).toHaveFocus();
   });
 
   it('auto-advances focus after typing a digit', async () => {
     const user = userEvent.setup();
-    render(<OtpInput />);
+    renderOtp();
     const cells = getCells();
     await user.type(cells[0]!, '1');
     expect(cells[1]!).toHaveFocus();
@@ -33,7 +46,7 @@ describe('OtpInput', () => {
 
   it('goes back on backspace when empty', async () => {
     const user = userEvent.setup();
-    render(<OtpInput />);
+    renderOtp();
     const cells = getCells();
     await user.type(cells[0]!, '1');
     expect(cells[1]!).toHaveFocus();
@@ -44,7 +57,7 @@ describe('OtpInput', () => {
 
   it('supports arrow navigation', async () => {
     const user = userEvent.setup();
-    render(<OtpInput />);
+    renderOtp();
     const cells = getCells();
     cells[0]!.focus();
     await user.keyboard('{ArrowRight}');
@@ -55,7 +68,7 @@ describe('OtpInput', () => {
 
   it('strips non-digits from typed input', async () => {
     const user = userEvent.setup();
-    render(<OtpInput />);
+    renderOtp();
     const cells = getCells();
     await user.type(cells[0]!, 'a');
     expect(cells[0]!.value).toBe('');
@@ -64,7 +77,7 @@ describe('OtpInput', () => {
   it('fills multiple cells on paste', async () => {
     const user = userEvent.setup();
     const onComplete = vi.fn();
-    render(<OtpInput onComplete={onComplete} />);
+    renderOtp({ onComplete });
     const cells = getCells();
     cells[0]!.focus();
     await user.paste('123456');
@@ -75,7 +88,7 @@ describe('OtpInput', () => {
 
   it('exposes a hidden input with the aggregated value', async () => {
     const user = userEvent.setup();
-    render(<OtpInput name="code" />);
+    renderOtp({ name: 'code' });
     const cells = getCells();
     cells[0]!.focus();
     await user.paste('987654');
@@ -84,7 +97,7 @@ describe('OtpInput', () => {
   });
 
   it('marks cells invalid and shows the error message', () => {
-    render(<OtpInput error="Code invalide" />);
+    renderOtp({ error: 'Code invalide' });
     for (const cell of getCells()) {
       expect(cell).toHaveAttribute('aria-invalid', 'true');
     }

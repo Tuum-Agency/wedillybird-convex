@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { setRequestLocale } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { Calendar, Users, ArrowUpRight, MapPin } from 'lucide-react';
 import { Link, redirect } from '@/i18n/navigation';
 import { getSession } from '@/lib/auth/session';
@@ -9,35 +9,41 @@ import { ProSidebarShell } from '@/components/pro/pro-sidebar-shell';
 import { NewWeddingLauncher } from '@/components/pro/weddings/new-wedding-launcher';
 import { cn } from '@/lib/cn';
 
-export const metadata: Metadata = { title: 'Mariages — Wedillybird Pro' };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('ProPages');
+  return { title: t('weddingsMetaTitle') };
+}
 
 type EventStatus = 'draft' | 'active' | 'archived' | 'cancelled';
 
-const STATUS_CONFIG: Record<EventStatus, { label: string; bg: string; fg: string; dot: string }> = {
+const STATUS_STYLE: Record<EventStatus, { bg: string; fg: string; dot: string }> = {
   draft: {
-    label: 'Brouillon',
     bg: 'oklch(28% 0.022 78)',
     fg: 'oklch(85% 0.04 78)',
     dot: 'oklch(78% 0.075 78)',
   },
   active: {
-    label: 'Actif',
     bg: 'oklch(26% 0.04 145)',
     fg: 'oklch(82% 0.07 145)',
     dot: 'oklch(72% 0.08 145)',
   },
   archived: {
-    label: 'Archivé',
     bg: 'oklch(28% 0.012 78)',
     fg: 'oklch(72% 0.018 65)',
     dot: 'oklch(72% 0.018 65)',
   },
   cancelled: {
-    label: 'Annulé',
     bg: 'oklch(28% 0.04 25)',
     fg: 'oklch(82% 0.07 22)',
     dot: 'oklch(72% 0.09 20)',
   },
+};
+
+const STATUS_LABEL_KEY: Record<EventStatus, string> = {
+  draft: 'weddingsStatusDraft',
+  active: 'weddingsStatusActive',
+  archived: 'weddingsStatusArchived',
+  cancelled: 'weddingsStatusCancelled',
 };
 
 /**
@@ -56,6 +62,7 @@ export default async function ProWeddingsPage({
   const { locale } = await params;
   const sp = await searchParams;
   setRequestLocale(locale);
+  const t = await getTranslations('ProPages');
 
   const session = await getSession();
   if (!session) redirect({ href: '/sign-in', locale });
@@ -89,7 +96,7 @@ export default async function ProWeddingsPage({
         <header className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
           <div className="flex flex-col gap-1.5">
             <span className="font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-muted-foreground)] uppercase">
-              {events.length} mariage{events.length > 1 ? 's' : ''}
+              {t('weddingsCount', { count: events.length })}
             </span>
             <h1
               className="font-display italic"
@@ -100,7 +107,7 @@ export default async function ProWeddingsPage({
                 color: 'var(--color-foreground)',
               }}
             >
-              Mariages
+              {t('weddingsTitle')}
             </h1>
           </div>
           <NewWeddingLauncher autoOpen={sp.new === '1'} />
@@ -115,13 +122,14 @@ export default async function ProWeddingsPage({
               <Calendar className="h-6 w-6" strokeWidth={1.5} aria-hidden />
             </span>
             <p className="max-w-md text-sm leading-relaxed text-[color:var(--color-muted-foreground)] sm:text-base">
-              Aucun mariage pour l’instant. Créez le premier pour démarrer.
+              {t('weddingsEmpty')}
             </p>
           </div>
         ) : (
           <ul className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             {events.map((ev) => {
-              const cfg = STATUS_CONFIG[ev.status];
+              const cfg = STATUS_STYLE[ev.status];
+              const statusLabel = t(STATUS_LABEL_KEY[ev.status]);
               const dateFormatted = new Intl.DateTimeFormat(locale, {
                 dateStyle: 'long',
                 timeZone: ev.timezone ?? 'UTC',
@@ -155,7 +163,7 @@ export default async function ProWeddingsPage({
                           className="inline-block h-1.5 w-1.5 rounded-full"
                           style={{ background: cfg.dot }}
                         />
-                        {cfg.label}
+                        {statusLabel}
                       </span>
                     </div>
                     <p className="text-sm text-[color:var(--color-muted-foreground)]">{ev.title}</p>
@@ -184,7 +192,7 @@ export default async function ProWeddingsPage({
                           strokeWidth={2}
                           aria-hidden
                         />
-                        {ev.maxGuests} invitations max
+                        {t('weddingsMaxInvitations', { count: ev.maxGuests })}
                       </p>
                     </div>
                     <span

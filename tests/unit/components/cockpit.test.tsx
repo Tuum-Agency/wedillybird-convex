@@ -1,5 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import { createTranslator } from 'next-intl';
+import frMessages from '@/messages/fr.json';
 
 // Link de next-intl tire la navigation react-client (next/navigation) que
 // vitest ne résout pas — on le remplace par une simple ancre.
@@ -7,6 +9,19 @@ vi.mock('@/i18n/navigation', () => ({
   Link: ({ href, children }: { href: unknown; children: React.ReactNode }) => (
     <a href={typeof href === 'string' ? href : '#'}>{children}</a>
   ),
+}));
+
+// `Cockpit` est un Server Component qui consomme `getTranslations` ; vitest n'a
+// pas le contexte de requête next-intl, donc on adosse `getTranslations` aux
+// vraies clés FR (`messages/fr.json`) via `createTranslator`. Les assertions
+// portent ainsi sur la copie réelle, pas sur des clés brutes.
+vi.mock('next-intl/server', () => ({
+  // `namespace` du vrai `getTranslations` est une union littérale stricte ; côté
+  // mock on le forwarde via `never` (toujours assignable) puisque la valeur
+  // réelle passée par le composant (`'Pro.main'`) est une clé valide.
+  getTranslations: async (namespace?: string) =>
+    createTranslator({ locale: 'fr', messages: frMessages, namespace: namespace as never }),
+  getLocale: async () => 'fr',
 }));
 
 import { Cockpit, type CockpitData } from '@/components/pro/cockpit';
@@ -84,8 +99,8 @@ const baseData: CockpitData = {
 };
 
 describe('Cockpit — rendu agence (Business, abonnement actif)', () => {
-  it('rend l’en-tête, les KPIs et les sections', () => {
-    render(<Cockpit {...baseData} />);
+  it('rend l’en-tête, les KPIs et les sections', async () => {
+    render(await Cockpit(baseData));
     expect(screen.getByText('Tableau de bord')).toBeTruthy();
     expect(screen.getByText(/Cockpit · Studio Lumière/)).toBeTruthy();
     expect(screen.getByText(/Bonjour Camille/)).toBeTruthy();
@@ -96,23 +111,23 @@ describe('Cockpit — rendu agence (Business, abonnement actif)', () => {
     expect(screen.getByText('Consommation du forfait')).toBeTruthy();
   });
 
-  it('affiche les 4 jauges de quota', () => {
-    render(<Cockpit {...baseData} />);
+  it('affiche les 4 jauges de quota', async () => {
+    render(await Cockpit(baseData));
     expect(screen.getByText('Messages ce mois')).toBeTruthy();
     expect(screen.getByText('Stockage')).toBeTruthy();
     expect(screen.getByText('Sièges équipe')).toBeTruthy();
   });
 
-  it('affiche le flux d’activité récente', () => {
-    render(<Cockpit {...baseData} />);
+  it('affiche le flux d’activité récente', async () => {
+    render(await Cockpit(baseData));
     expect(screen.getByText('Activité récente')).toBeTruthy();
     expect(screen.getByText('Nouveau client · Léa & Tom')).toBeTruthy();
     expect(screen.getByText("aujourd'hui")).toBeTruthy();
     expect(screen.getByText('il y a 2 j')).toBeTruthy();
   });
 
-  it('affiche les 4 KPIs du design (échéances 7 j + CA encaissé)', () => {
-    render(<Cockpit {...baseData} />);
+  it('affiche les 4 KPIs du design (échéances 7 j + CA encaissé)', async () => {
+    render(await Cockpit(baseData));
     // « Mariages actifs » sert de label KPI ET de jauge → on cible les KPI uniques.
     expect(screen.getByText('Échéances · 7 j')).toBeTruthy();
     expect(screen.getByText('CA encaissé')).toBeTruthy();
@@ -120,22 +135,22 @@ describe('Cockpit — rendu agence (Business, abonnement actif)', () => {
     expect(screen.getByText(/réponses · 7 j/)).toBeTruthy();
   });
 
-  it('liste le prochain mariage avec sa progression RSVP', () => {
-    render(<Cockpit {...baseData} />);
+  it('liste le prochain mariage avec sa progression RSVP', async () => {
+    render(await Cockpit(baseData));
     // « Awa » apparaît dans la carte mariage ET dans la tâche (couple) → getAllByText.
     expect(screen.getAllByText(/Awa/).length).toBeGreaterThan(0);
     expect(screen.getByText(/RSVP 186\/240/)).toBeTruthy(); // unique à la carte mariage
   });
 
-  it('Business : le bouton « Nouveau client » est présent (CRM inclus)', () => {
-    render(<Cockpit {...baseData} />);
+  it('Business : le bouton « Nouveau client » est présent (CRM inclus)', async () => {
+    render(await Cockpit(baseData));
     expect(screen.getByText('Nouveau client')).toBeTruthy();
     // Deadlines & tâches : la tâche seedée est listée avec son couple.
     expect(screen.getByText('Valider le traiteur')).toBeTruthy();
   });
 
-  it('abonnement actif → pas de bandeau d’alerte', () => {
-    render(<Cockpit {...baseData} />);
+  it('abonnement actif → pas de bandeau d’alerte', async () => {
+    render(await Cockpit(baseData));
     expect(screen.queryByText('Choisir un forfait')).toBeNull();
   });
 });
@@ -146,14 +161,14 @@ describe('Cockpit — sans abonnement', () => {
     org: { ...baseData.org, subscriptionTier: null, subscriptionStatus: null },
   };
 
-  it('affiche le bandeau « Choisir un forfait » et l’état quotas vide', () => {
-    render(<Cockpit {...noSub} />);
+  it('affiche le bandeau « Choisir un forfait » et l’état quotas vide', async () => {
+    render(await Cockpit(noSub));
     expect(screen.getByText('Choisir un forfait')).toBeTruthy();
-    expect(screen.getByText(/vos quotas s’afficheront/)).toBeTruthy();
+    expect(screen.getByText(/vos quotas s['’]afficheront/)).toBeTruthy();
   });
 
-  it('sans CRM : pas de bouton « Nouveau client »', () => {
-    render(<Cockpit {...noSub} />);
+  it('sans CRM : pas de bouton « Nouveau client »', async () => {
+    render(await Cockpit(noSub));
     expect(screen.queryByText('Nouveau client')).toBeNull();
   });
 });
@@ -164,8 +179,8 @@ describe('Cockpit — Starter (CRM verrouillé)', () => {
     org: { ...baseData.org, subscriptionTier: 'starter' },
   };
 
-  it('sans CRM (Starter) : pas de bouton « Nouveau client »', () => {
-    render(<Cockpit {...starter} />);
+  it('sans CRM (Starter) : pas de bouton « Nouveau client »', async () => {
+    render(await Cockpit(starter));
     expect(screen.queryByText('Nouveau client')).toBeNull();
     // Le tableau de bord reste rendu (mariages, quotas).
     expect(screen.getByText('Prochains mariages')).toBeTruthy();
@@ -173,12 +188,12 @@ describe('Cockpit — Starter (CRM verrouillé)', () => {
 });
 
 describe('Cockpit — past_due', () => {
-  it('affiche un bandeau de paiement échoué', () => {
+  it('affiche un bandeau de paiement échoué', async () => {
     const pastDue: CockpitData = {
       ...baseData,
       org: { ...baseData.org, subscriptionStatus: 'past_due' },
     };
-    render(<Cockpit {...pastDue} />);
+    render(await Cockpit(pastDue));
     expect(screen.getByText(/Paiement échoué/)).toBeTruthy();
   });
 });

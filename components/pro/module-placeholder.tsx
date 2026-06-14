@@ -1,3 +1,4 @@
+import { getTranslations } from 'next-intl/server';
 import { Check, Lock, ArrowUpRight, Hammer, type LucideIcon } from 'lucide-react';
 import { Link } from '@/i18n/navigation';
 import { cn } from '@/lib/cn';
@@ -32,7 +33,7 @@ export interface ModulePlaceholderProps {
   lockedUntil?: SubscriptionTier | null;
 }
 
-export function ModulePlaceholder({
+export async function ModulePlaceholder({
   eyebrow,
   title,
   Icon,
@@ -40,6 +41,7 @@ export function ModulePlaceholder({
   capabilities,
   lockedUntil = null,
 }: ModulePlaceholderProps) {
+  const t = await getTranslations('Pro.main');
   const locked = lockedUntil != null;
 
   return (
@@ -86,11 +88,10 @@ export function ModulePlaceholder({
             </span>
             <div className="flex flex-col gap-1">
               <p className="text-sm font-medium text-[color:var(--color-foreground)]">
-                Inclus à partir du forfait {TIER_LABEL[lockedUntil!]}
+                {t('modulePlaceholder.includedFrom', { tier: TIER_LABEL[lockedUntil!] })}
               </p>
               <p className="max-w-md text-sm text-[color:var(--color-muted-foreground)]">
-                Ce module n’est pas compris dans votre forfait actuel. Passez à un palier supérieur
-                pour le débloquer.
+                {t('modulePlaceholder.lockedDescription')}
               </p>
             </div>
           </div>
@@ -98,20 +99,20 @@ export function ModulePlaceholder({
             href="/pro/billing"
             className={cn(buttonVariants({ variant: 'primary', size: 'md' }), 'flex-shrink-0')}
           >
-            Voir les forfaits
+            {t('modulePlaceholder.seePlans')}
             <ArrowUpRight className="h-4 w-4" strokeWidth={2} aria-hidden />
           </Link>
         </div>
       ) : (
         <div className="inline-flex w-fit items-center gap-2 rounded-full border border-[color:var(--color-border-strong)] bg-[color:var(--color-surface)] px-3.5 py-1.5 font-mono text-[10px] tracking-[0.16em] text-[color:var(--color-gold-500)] uppercase">
           <Hammer className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />
-          Bientôt disponible
+          {t('modulePlaceholder.comingSoon')}
         </div>
       )}
 
       <section className="flex flex-col gap-4 rounded-3xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-6 sm:p-7">
         <h2 className="font-mono text-[10px] tracking-[0.24em] text-[color:var(--color-muted-foreground)] uppercase">
-          Ce que ce module apportera
+          {t('modulePlaceholder.whatItBrings')}
         </h2>
         <ul className="grid gap-x-8 gap-y-2.5 sm:grid-cols-2">
           {capabilities.map((cap) => (

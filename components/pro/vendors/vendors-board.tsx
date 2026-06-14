@@ -2,6 +2,7 @@
 
 import { useMemo, useState, useTransition, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import {
   Plus,
   Pencil,
@@ -68,18 +69,17 @@ export interface VendorRow {
 const selectClass =
   'focus-ring h-10 rounded-lg border border-[color:var(--color-border-strong)] bg-[color:var(--color-surface-elevated)] px-3 text-sm text-[color:var(--color-foreground)]';
 
-const ERROR_LABEL: Record<string, string> = {
-  INVALID_NAME: 'Le nom est requis.',
-  VENDOR_LIMIT_REACHED:
-    'Annuaire plein (25 fiches en Starter). Passez à Business pour un annuaire illimité.',
-  FORBIDDEN: 'Vous n’avez pas les droits requis.',
+const ERROR_KEY: Record<string, string> = {
+  INVALID_NAME: 'errors.invalidName',
+  VENDOR_LIMIT_REACHED: 'errors.vendorLimitReached',
+  FORBIDDEN: 'errors.forbidden',
 };
-const errLabel = (c: string) => ERROR_LABEL[c] ?? 'Une erreur est survenue. Réessayez.';
 
 function Stars({ rating, showValue }: { rating: number | undefined; showValue?: boolean }) {
+  const t = useTranslations('Pro.vendorsBoard');
   const r = Math.round(rating ?? 0);
   return (
-    <span className="inline-flex items-center gap-0.5" aria-label={`Note ${r}/5`}>
+    <span className="inline-flex items-center gap-0.5" aria-label={t('rating.ariaValue', { r })}>
       {[1, 2, 3, 4, 5].map((i) => (
         <Star
           key={i}
@@ -155,27 +155,32 @@ function CategoryTint({ category }: { category: string }) {
 }
 
 function QuickContacts({ v }: { v: VendorRow }) {
-  const items: Array<{ href: string; Icon: typeof Phone; label: string }> = [];
-  if (v.phone) items.push({ href: `tel:${v.phone}`, Icon: Phone, label: 'Téléphone' });
+  const t = useTranslations('Pro.vendorsBoard');
+  const items: Array<{ id: string; href: string; Icon: typeof Phone; label: string }> = [];
+  if (v.phone)
+    items.push({ id: 'phone', href: `tel:${v.phone}`, Icon: Phone, label: t('contact.phone') });
   if (v.whatsapp)
     items.push({
+      id: 'whatsapp',
       href: `https://wa.me/${v.whatsapp.replace(/[^\d]/g, '')}`,
       Icon: MessageCircle,
-      label: 'WhatsApp',
+      label: t('contact.whatsapp'),
     });
-  if (v.email) items.push({ href: `mailto:${v.email}`, Icon: Mail, label: 'Email' });
+  if (v.email)
+    items.push({ id: 'email', href: `mailto:${v.email}`, Icon: Mail, label: t('contact.email') });
   if (v.website)
     items.push({
+      id: 'website',
       href: v.website.startsWith('http') ? v.website : `https://${v.website}`,
       Icon: Globe,
-      label: 'Site web',
+      label: t('contact.website'),
     });
   if (!items.length) return null;
   return (
     <span className="flex items-center gap-1.5">
-      {items.map(({ href, Icon, label }) => (
+      {items.map(({ id, href, Icon, label }) => (
         <a
-          key={label}
+          key={id}
           href={href}
           target="_blank"
           rel="noopener noreferrer"
@@ -203,6 +208,7 @@ export function VendorsBoard({
   events?: ReadonlyArray<{ _id: string; label: string }>;
   engagements?: EngagementRow[];
 }) {
+  const t = useTranslations('Pro.vendorsBoard');
   const router = useRouter();
   const [vendors, setVendors] = useState<VendorRow[]>(initialVendors);
   const [engagements, setEngagements] = useState<EngagementRow[]>(initialEngagements);
@@ -269,7 +275,8 @@ export function VendorsBoard({
         ? await updateVendorAction(editing._id, fd)
         : await createVendorAction(fd);
       if (!res.ok) {
-        setFormError(errLabel(res.error));
+        const key = ERROR_KEY[res.error] ?? 'errors.unknown';
+        setFormError(t(key));
         return;
       }
       if (editing) {
@@ -284,7 +291,7 @@ export function VendorsBoard({
   }
 
   function onRemove(v: VendorRow) {
-    if (!confirm(`Supprimer le prestataire « ${v.name} » ?`)) return;
+    if (!confirm(t('confirmRemove', { name: v.name }))) return;
     setVendors((prev) => prev.filter((x) => x._id !== v._id));
     startTransition(async () => {
       const res = await removeVendorAction(v._id);
@@ -297,8 +304,9 @@ export function VendorsBoard({
       <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div className="flex flex-col gap-1.5">
           <span className="font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-muted-foreground)] uppercase">
-            Annuaire · {vendors.length}
-            {cap !== null ? `/${cap}` : ' fiches'}
+            {cap !== null
+              ? t('header.eyebrowCapped', { count: vendors.length, cap })
+              : t('header.eyebrow', { count: vendors.length })}
           </span>
           <h1
             className="font-display italic"
@@ -309,7 +317,7 @@ export function VendorsBoard({
               color: 'var(--color-foreground)',
             }}
           >
-            Prestataires
+            {t('header.title')}
           </h1>
         </div>
         {surface === 'annuaire' ? (
@@ -319,7 +327,7 @@ export function VendorsBoard({
                 type="button"
                 onClick={() => setView('grid')}
                 aria-pressed={view === 'grid'}
-                aria-label="Vue grille"
+                aria-label={t('view.grid')}
                 className={cn(
                   'rounded-md p-1.5',
                   view === 'grid'
@@ -333,7 +341,7 @@ export function VendorsBoard({
                 type="button"
                 onClick={() => setView('table')}
                 aria-pressed={view === 'table'}
-                aria-label="Vue table"
+                aria-label={t('view.table')}
                 className={cn(
                   'rounded-md p-1.5',
                   view === 'table'
@@ -354,7 +362,7 @@ export function VendorsBoard({
                 data-testid="new-vendor"
               >
                 <Plus className="h-4 w-4" strokeWidth={2.2} aria-hidden />
-                Ajouter
+                {t('actions.add')}
               </Button>
             ) : null}
           </div>
@@ -365,7 +373,7 @@ export function VendorsBoard({
         <div
           className="flex items-center gap-1 self-start rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-1"
           role="tablist"
-          aria-label="Vue prestataires"
+          aria-label={t('tabs.ariaLabel')}
         >
           <button
             type="button"
@@ -379,7 +387,7 @@ export function VendorsBoard({
                 : 'text-[color:var(--color-muted-foreground)] hover:text-[color:var(--color-foreground)]',
             )}
           >
-            <Store className="h-4 w-4" strokeWidth={1.85} aria-hidden /> Annuaire{' '}
+            <Store className="h-4 w-4" strokeWidth={1.85} aria-hidden /> {t('tabs.directory')}{' '}
             <span className="font-mono text-[10px] tabular-nums opacity-70">{vendors.length}</span>
           </button>
           <button
@@ -394,7 +402,7 @@ export function VendorsBoard({
                 : 'text-[color:var(--color-muted-foreground)] hover:text-[color:var(--color-foreground)]',
             )}
           >
-            <Heart className="h-4 w-4" strokeWidth={1.85} aria-hidden /> Par mariage
+            <Heart className="h-4 w-4" strokeWidth={1.85} aria-hidden /> {t('tabs.byWedding')}
           </button>
         </div>
       ) : null}
@@ -411,7 +419,7 @@ export function VendorsBoard({
         <>
           {atCap ? (
             <p className="font-mono text-[10px] tracking-[0.12em] text-[color:var(--color-warning)] uppercase">
-              Annuaire plein ({cap} fiches). Passez à Business pour un annuaire illimité.
+              {t('capWarning', { cap: cap ?? 0 })}
             </p>
           ) : null}
 
@@ -427,17 +435,17 @@ export function VendorsBoard({
                 type="search"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Rechercher un prestataire…"
-                aria-label="Rechercher"
+                placeholder={t('toolbar.searchPlaceholder')}
+                aria-label={t('toolbar.searchAria')}
                 className="focus-ring h-10 w-full rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-surface)] pr-3 pl-9 text-sm text-[color:var(--color-foreground)] placeholder:text-[color:var(--color-muted-foreground)]"
               />
             </label>
             <Select value={category} onValueChange={setCategory}>
-              <SelectTrigger className={selectClass} aria-label="Filtrer par catégorie">
+              <SelectTrigger className={selectClass} aria-label={t('toolbar.filterAria')}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Toutes catégories</SelectItem>
+                <SelectItem value="all">{t('toolbar.allCategories')}</SelectItem>
                 {categories.map((c) => (
                   <SelectItem key={c} value={c}>
                     {c}
@@ -447,7 +455,7 @@ export function VendorsBoard({
             </Select>
             {vendors.length > 0 ? (
               <span className="font-mono text-[10px] tracking-[0.16em] whitespace-nowrap text-[color:var(--color-muted-foreground)] uppercase">
-                {filtered.length} résultat{filtered.length > 1 ? 's' : ''}
+                {t('toolbar.results', { count: filtered.length })}
               </span>
             ) : null}
           </div>
@@ -455,19 +463,19 @@ export function VendorsBoard({
           {vendors.length === 0 ? (
             <div className="flex flex-col items-center gap-4 rounded-3xl border border-dashed border-[color:var(--color-border-strong)] bg-[color:var(--color-surface)]/40 px-8 py-14 text-center">
               <p className="max-w-sm text-sm text-[color:var(--color-muted-foreground)]">
-                Aucun prestataire. {canWrite ? 'Ajoutez votre premier contact.' : ''}
+                {canWrite ? t('empty.directoryWritable') : t('empty.directory')}
               </p>
               {canWrite ? (
                 <Button type="button" variant="primary" size="md" onClick={openCreate}>
                   <Plus className="h-4 w-4" strokeWidth={2.2} aria-hidden />
-                  Ajouter un prestataire
+                  {t('actions.addVendor')}
                 </Button>
               ) : null}
             </div>
           ) : filtered.length === 0 ? (
             <div className="flex flex-col items-center gap-3 rounded-3xl border border-dashed border-[color:var(--color-border-strong)] bg-[color:var(--color-surface)]/40 px-8 py-12 text-center">
               <p className="text-sm text-[color:var(--color-muted-foreground)]">
-                Aucun prestataire ne correspond à ces filtres.
+                {t('empty.noMatch')}
               </p>
               <button
                 type="button"
@@ -477,7 +485,7 @@ export function VendorsBoard({
                 }}
                 className="text-xs text-[color:var(--color-blush-300)] underline-offset-2 hover:underline"
               >
-                Réinitialiser les filtres
+                {t('actions.resetFilters')}
               </button>
             </div>
           ) : view === 'grid' ? (
@@ -512,7 +520,7 @@ export function VendorsBoard({
                         <button
                           type="button"
                           onClick={() => openEdit(v)}
-                          aria-label={`Modifier ${v.name}`}
+                          aria-label={t('actions.editNamed', { name: v.name })}
                           className="focus-ring rounded-md p-1.5 text-[color:var(--color-muted-foreground)] hover:text-[color:var(--color-foreground)]"
                         >
                           <Pencil className="h-3.5 w-3.5" strokeWidth={1.85} />
@@ -520,7 +528,7 @@ export function VendorsBoard({
                         <button
                           type="button"
                           onClick={() => onRemove(v)}
-                          aria-label={`Supprimer ${v.name}`}
+                          aria-label={t('actions.removeNamed', { name: v.name })}
                           className="focus-ring rounded-md p-1.5 text-[color:var(--color-muted-foreground)] hover:text-[color:var(--color-danger)]"
                         >
                           <Trash2 className="h-3.5 w-3.5" strokeWidth={1.85} />
@@ -547,12 +555,12 @@ export function VendorsBoard({
               <table className="w-full min-w-[640px] border-collapse text-sm">
                 <thead>
                   <tr className="border-b border-[color:var(--color-border)] text-left font-mono text-[9px] tracking-[0.18em] text-[color:var(--color-muted-foreground)] uppercase">
-                    <th className="px-4 py-3 font-medium">Prestataire</th>
-                    <th className="px-4 py-3 font-medium">Catégorie</th>
-                    <th className="px-4 py-3 font-medium">Localisation</th>
-                    <th className="px-4 py-3 font-medium">Note</th>
-                    <th className="px-4 py-3 font-medium">Prix</th>
-                    <th className="px-4 py-3 text-right font-medium">Actions</th>
+                    <th className="px-4 py-3 font-medium">{t('cols.vendor')}</th>
+                    <th className="px-4 py-3 font-medium">{t('cols.category')}</th>
+                    <th className="px-4 py-3 font-medium">{t('cols.location')}</th>
+                    <th className="px-4 py-3 font-medium">{t('cols.rating')}</th>
+                    <th className="px-4 py-3 font-medium">{t('cols.price')}</th>
+                    <th className="px-4 py-3 text-right font-medium">{t('cols.actions')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -589,7 +597,7 @@ export function VendorsBoard({
                             <button
                               type="button"
                               onClick={() => openEdit(v)}
-                              aria-label={`Modifier ${v.name}`}
+                              aria-label={t('actions.editNamed', { name: v.name })}
                               className="focus-ring rounded-md p-1.5 text-[color:var(--color-muted-foreground)] hover:text-[color:var(--color-foreground)]"
                             >
                               <Pencil className="h-3.5 w-3.5" strokeWidth={1.85} />
@@ -597,7 +605,7 @@ export function VendorsBoard({
                             <button
                               type="button"
                               onClick={() => onRemove(v)}
-                              aria-label={`Supprimer ${v.name}`}
+                              aria-label={t('actions.removeNamed', { name: v.name })}
                               className="focus-ring rounded-md p-1.5 text-[color:var(--color-muted-foreground)] hover:text-[color:var(--color-danger)]"
                             >
                               <Trash2 className="h-3.5 w-3.5" strokeWidth={1.85} />
@@ -617,7 +625,7 @@ export function VendorsBoard({
       <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
         <DrawerContent className="mx-auto max-w-lg">
           <DrawerHeader>
-            <DrawerTitle>{editing ? 'Modifier le prestataire' : 'Nouveau prestataire'}</DrawerTitle>
+            <DrawerTitle>{editing ? t('form.editTitle') : t('form.createTitle')}</DrawerTitle>
           </DrawerHeader>
           <form
             key={editing?._id ?? 'new'}
@@ -627,18 +635,18 @@ export function VendorsBoard({
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <label className="flex flex-col gap-1.5 sm:col-span-2">
                 <span className="text-xs font-medium text-[color:var(--color-muted-foreground)]">
-                  Nom *
+                  {t('form.name')} *
                 </span>
                 <Input
                   name="name"
                   required
                   defaultValue={editing?.name ?? ''}
-                  placeholder="Domaine de Bellevue"
+                  placeholder={t('form.namePlaceholder')}
                 />
               </label>
               <label className="flex flex-col gap-1.5">
                 <span className="text-xs font-medium text-[color:var(--color-muted-foreground)]">
-                  Catégorie
+                  {t('form.category')}
                 </span>
                 <Select name="category" defaultValue={editing?.category ?? 'Lieu'}>
                   <SelectTrigger className={selectClass}>
@@ -655,12 +663,12 @@ export function VendorsBoard({
               </label>
               <label className="flex flex-col gap-1.5">
                 <span className="text-xs font-medium text-[color:var(--color-muted-foreground)]">
-                  Localisation
+                  {t('form.location')}
                 </span>
                 <Input
                   name="location"
                   defaultValue={editing?.location ?? ''}
-                  placeholder="Provence"
+                  placeholder={t('form.locationPlaceholder')}
                 />
               </label>
               <div className="sm:col-span-2">
@@ -668,23 +676,23 @@ export function VendorsBoard({
               </div>
               <label className="flex flex-col gap-1.5">
                 <span className="text-xs font-medium text-[color:var(--color-muted-foreground)]">
-                  Email
+                  {t('form.email')}
                 </span>
                 <Input name="email" type="email" defaultValue={editing?.email ?? ''} />
               </label>
               <label className="flex flex-col gap-1.5">
                 <span className="text-xs font-medium text-[color:var(--color-muted-foreground)]">
-                  Site web
+                  {t('form.website')}
                 </span>
                 <Input
                   name="website"
                   defaultValue={editing?.website ?? ''}
-                  placeholder="exemple.fr"
+                  placeholder={t('form.websitePlaceholder')}
                 />
               </label>
               <label className="flex flex-col gap-1.5">
                 <span className="text-xs font-medium text-[color:var(--color-muted-foreground)]">
-                  Gamme de prix
+                  {t('form.priceRange')}
                 </span>
                 <PriceRangeField
                   defaultValue={editing?.priceRange ? String(editing.priceRange) : ''}
@@ -692,13 +700,13 @@ export function VendorsBoard({
               </label>
               <label className="flex flex-col gap-1.5">
                 <span className="text-xs font-medium text-[color:var(--color-muted-foreground)]">
-                  Note (0–5)
+                  {t('form.ratingLabel')}
                 </span>
                 <RatingField defaultValue={editing?.rating != null ? String(editing.rating) : ''} />
               </label>
               <label className="flex flex-col gap-1.5 sm:col-span-2">
                 <span className="text-xs font-medium text-[color:var(--color-muted-foreground)]">
-                  Notes internes
+                  {t('form.notes')}
                 </span>
                 <textarea
                   name="notes"
@@ -720,10 +728,10 @@ export function VendorsBoard({
                 className={cn(buttonVariants({ variant: 'ghost', size: 'md' }))}
               >
                 <X className="h-4 w-4" strokeWidth={2} aria-hidden />
-                Annuler
+                {t('actions.cancel')}
               </button>
               <Button type="submit" variant="primary" size="md" disabled={pending}>
-                {pending ? 'Enregistrement…' : editing ? 'Enregistrer' : 'Ajouter'}
+                {pending ? t('actions.saving') : editing ? t('actions.save') : t('actions.add')}
               </Button>
             </div>
           </form>
@@ -734,7 +742,9 @@ export function VendorsBoard({
       <Drawer open={detailVendor !== null} onOpenChange={(o) => !o && setDetailVendor(null)}>
         <DrawerContent className="mx-auto max-w-lg">
           <DrawerHeader>
-            <DrawerTitle className="sr-only">{detailVendor?.name ?? 'Prestataire'}</DrawerTitle>
+            <DrawerTitle className="sr-only">
+              {detailVendor?.name ?? t('detail.fallbackName')}
+            </DrawerTitle>
           </DrawerHeader>
           {detailVendor ? (
             <div className="flex flex-col gap-5 pb-2">
@@ -754,25 +764,25 @@ export function VendorsBoard({
               <QuickContacts v={detailVendor} />
               <div className="flex flex-col gap-2 rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-4">
                 <span className="font-mono text-[10px] tracking-[0.16em] text-[color:var(--color-muted-foreground)] uppercase">
-                  Coordonnées
+                  {t('detail.contactSection')}
                 </span>
-                <Kv label="Localisation" value={detailVendor.location} />
-                <Kv label="Téléphone" value={detailVendor.phone} mono />
-                <Kv label="WhatsApp" value={detailVendor.whatsapp} mono />
-                <Kv label="Email" value={detailVendor.email} />
-                <Kv label="Site web" value={detailVendor.website} />
-                <Kv label="Gamme" value={priceWord(detailVendor.priceRange)} />
+                <Kv label={t('detail.location')} value={detailVendor.location} />
+                <Kv label={t('detail.phone')} value={detailVendor.phone} mono />
+                <Kv label={t('detail.whatsapp')} value={detailVendor.whatsapp} mono />
+                <Kv label={t('detail.email')} value={detailVendor.email} />
+                <Kv label={t('detail.website')} value={detailVendor.website} />
+                <Kv label={t('detail.priceRange')} value={priceWord(detailVendor.priceRange)} />
               </div>
               <div className="flex flex-col gap-2 rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-4">
                 <span className="font-mono text-[10px] tracking-[0.16em] text-[color:var(--color-muted-foreground)] uppercase">
-                  Mariages — historique
+                  {t('detail.weddingsSection')}
                 </span>
                 {(() => {
                   const vendorEngs = engagements.filter((e) => e.vendorId === detailVendor._id);
                   if (vendorEngs.length === 0) {
                     return (
                       <p className="text-sm text-[color:var(--color-muted-foreground)]">
-                        Aucun mariage rattaché pour l’instant.
+                        {t('detail.noWeddings')}
                       </p>
                     );
                   }
@@ -780,7 +790,9 @@ export function VendorsBoard({
                     <div className="flex flex-col gap-2">
                       {vendorEngs.map((e) => {
                         const meta = ENGAGEMENT_STATUS_META[e.status];
-                        const label = events.find((ev) => ev._id === e.eventId)?.label ?? 'Mariage';
+                        const label =
+                          events.find((ev) => ev._id === e.eventId)?.label ??
+                          t('detail.weddingFallback');
                         return (
                           <div
                             key={e._id}
@@ -817,7 +829,7 @@ export function VendorsBoard({
               {detailVendor.notes ? (
                 <div className="flex flex-col gap-1.5 rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-4">
                   <span className="font-mono text-[10px] tracking-[0.16em] text-[color:var(--color-muted-foreground)] uppercase">
-                    Notes internes
+                    {t('form.notes')}
                   </span>
                   <p className="text-sm whitespace-pre-wrap text-[color:var(--color-ink-700)]">
                     {detailVendor.notes}
@@ -837,7 +849,7 @@ export function VendorsBoard({
                     }}
                   >
                     <Pencil className="h-4 w-4" strokeWidth={1.8} aria-hidden />
-                    Modifier
+                    {t('actions.edit')}
                   </Button>
                 </div>
               ) : null}

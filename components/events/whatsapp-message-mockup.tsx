@@ -1,6 +1,7 @@
 'use client';
 
 import { motion } from 'motion/react';
+import { useFormatter, useTranslations } from 'next-intl';
 import { Check, ChevronLeft, MoreVertical, Phone, Video } from 'lucide-react';
 import { type InvitationStyleId, renderInvitationPreview } from '@/lib/whatsapp/templates';
 
@@ -29,6 +30,8 @@ export function WhatsAppMessageMockup({
   invitationUrl: string;
   personalMessage: string;
 }) {
+  const t = useTranslations('Events');
+  const format = useFormatter();
   const renderedText = renderInvitationPreview(styleId, {
     guestFirstName,
     coupleNames,
@@ -37,14 +40,13 @@ export function WhatsAppMessageMockup({
     personalMessage,
   });
 
-  // Heure courante formatée HH:mm pour le timestamp
-  const now = new Date();
-  const timestamp = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+  // Heure courante localisée pour le timestamp de la bulle
+  const timestamp = format.dateTime(new Date(), { hour: '2-digit', minute: '2-digit' });
 
   return (
     <div className="flex flex-col items-center gap-3">
       <span className="font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-ink-500)] uppercase">
-        Aperçu côté invité
+        {t('mockupGuestPreview')}
       </span>
 
       {/* Phone frame */}
@@ -65,7 +67,7 @@ export function WhatsAppMessageMockup({
             </div>
             <div className="flex flex-1 flex-col leading-tight">
               <span className="text-sm font-semibold">Wedillybird</span>
-              <span className="text-[10px] opacity-80">en ligne</span>
+              <span className="text-[10px] opacity-80">{t('mockupOnline')}</span>
             </div>
             <Video className="h-4 w-4 opacity-90" strokeWidth={2} aria-hidden />
             <Phone className="h-4 w-4 opacity-90" strokeWidth={2} aria-hidden />
@@ -80,7 +82,7 @@ export function WhatsAppMessageMockup({
                 className="rounded-md px-2.5 py-1 text-[10px] font-medium tracking-wide text-[color:var(--color-ink-500)]"
                 style={{ background: 'rgba(255, 255, 255, 0.85)' }}
               >
-                AUJOURD&apos;HUI
+                {t('mockupToday')}
               </span>
             </div>
 
@@ -124,8 +126,7 @@ export function WhatsAppMessageMockup({
       </div>
 
       <p className="max-w-[340px] text-center text-xs text-[color:var(--color-ink-500)]">
-        Aperçu indicatif — le rendu réel dépend de la version WhatsApp et du téléphone de votre
-        invité.
+        {t('mockupDisclaimer')}
       </p>
     </div>
   );

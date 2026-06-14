@@ -1,4 +1,210 @@
 {
+  "Admin": {
+    "shell": {
+      "brand": "Admin",
+      "signOut": "Sign out"
+    },
+    "nav": {
+      "overview": "Overview",
+      "analytics": "Analytics",
+      "users": "Users",
+      "events": "Events",
+      "payments": "Payments",
+      "invoices": "Invoices",
+      "subscriptions": "Subscriptions",
+      "moderation": "Moderation",
+      "newsletter": "Newsletter",
+      "auditLog": "Audit log"
+    },
+    "common": {
+      "back": "Back",
+      "cancel": "Cancel",
+      "close": "Close",
+      "colActions": "Actions",
+      "delete": "Delete",
+      "loading": "Loading…"
+    },
+    "charts": {
+      "noData": "No data available",
+      "revenue": "Revenue",
+      "couples": "Couples",
+      "pros": "Pros",
+      "guests": "Guests"
+    },
+    "roles": {
+      "admin": "Admin",
+      "couple": "Couple",
+      "guest": "Guest",
+      "pro": "Pro"
+    },
+    "eventStatuses": {
+      "draft": "Draft",
+      "active": "Active",
+      "archived": "Archived",
+      "cancelled": "Cancelled"
+    },
+    "paymentStatuses": {
+      "succeeded": "Succeeded",
+      "pending": "Pending",
+      "failed": "Failed",
+      "cancelled": "Cancelled",
+      "refunded": "Refunded",
+      "partially_refunded": "Partially refunded"
+    },
+    "invoiceStatuses": {
+      "succeeded": "Paid",
+      "refunded": "Refunded",
+      "partially_refunded": "Partially refunded"
+    },
+    "stripeInvoiceStatuses": {
+      "paid": "Paid",
+      "open": "Open",
+      "draft": "Draft",
+      "void": "Void",
+      "uncollectible": "Uncollectible"
+    },
+    "auditActions": {
+      "suspend_user": "User suspension",
+      "change_role": "Role change",
+      "update_event_status": "Event status change",
+      "delete_event": "Event deletion",
+      "moderate_photo": "Photo moderation"
+    },
+    "auditLog": {
+      "colDate": "Date",
+      "colAdmin": "Admin",
+      "colAction": "Action",
+      "colTarget": "Target",
+      "colDetails": "Details",
+      "empty": "No action recorded"
+    },
+    "users": {
+      "searchPlaceholder": "Search a user…",
+      "roleFilterAll": "All roles",
+      "count": "{count, plural, one {# result} other {# results}}",
+      "colName": "Name",
+      "colContact": "Contact",
+      "colRole": "Role",
+      "colPlan": "Plan",
+      "colRegisteredAt": "Registered on",
+      "confirmSuspend": "Suspend {name}?",
+      "suspend": "Suspend",
+      "confirmChangeRole": "Change role to “{role}”?",
+      "rolePlaceholder": "Role…"
+    },
+    "events": {
+      "searchPlaceholder": "Search an event…",
+      "statusFilterAll": "All statuses",
+      "count": "{count, plural, one {# result} other {# results}}",
+      "colCouple": "Couple",
+      "colTitle": "Title",
+      "colDate": "Date",
+      "colStatus": "Status",
+      "colPlan": "Plan",
+      "colOwner": "Owner",
+      "confirmChangeStatus": "Change status to “{status}”?",
+      "statusPlaceholder": "Status…",
+      "confirmDelete": "Delete the event “{title}”?"
+    },
+    "moderation": {
+      "photosHeading": "Pending photos ({count})",
+      "photosEmpty": "No photo pending moderation",
+      "templatesHeading": "WhatsApp templates ({count})",
+      "colName": "Name",
+      "colBody": "Body",
+      "colCta": "CTA",
+      "colStatus": "Status",
+      "colSubmittedAt": "Submitted on",
+      "photoAlt": "Pending photo",
+      "noPreview": "No preview",
+      "anonymous": "Anonymous",
+      "sizeKb": "{size} KB",
+      "approve": "Approve",
+      "reject": "Reject"
+    },
+    "newsletter": {
+      "searchPlaceholder": "Search by email…",
+      "statusFilterAll": "All",
+      "statusFilterActive": "Active",
+      "statusFilterUnsubscribed": "Unsubscribed",
+      "count": "{count, plural, one {# subscriber} other {# subscribers}}",
+      "colEmail": "Email",
+      "colStatus": "Status",
+      "colSource": "Source",
+      "colSubscribedAt": "Subscribed on",
+      "colUnsubscribedAt": "Unsubscribed on",
+      "statusActive": "Active",
+      "statusUnsubscribed": "Unsubscribed"
+    },
+    "payments": {
+      "statusFilterAll": "All statuses",
+      "currencyFilterAll": "All currencies",
+      "count": "{count, plural, one {# transaction} other {# transactions}}",
+      "colClient": "Client",
+      "colPlan": "Plan",
+      "colAmount": "Amount",
+      "colProvider": "Provider",
+      "colStatus": "Status",
+      "colDate": "Date",
+      "invoice": "Invoice",
+      "clientFallback": "Client",
+      "refund": {
+        "trigger": "Refund",
+        "title": "Refund the payment",
+        "description": "Refund of <mono>{client}</mono> · {plan} — remaining amount <mono>{amount}</mono>.",
+        "providerNoteMock": "Test payment: no Stripe call will be made.",
+        "providerNoteStripe": "The refund is processed by Stripe and credited within a few days.",
+        "partialLabel": "Partial refund",
+        "errorInvalidAmount": "Invalid amount.",
+        "errorExceedsRemaining": "The amount exceeds the refundable balance.",
+        "submitting": "Refunding…",
+        "submitPartial": "Refund the entered amount",
+        "submitFull": "Refund {amount}"
+      }
+    },
+    "invoices": {
+      "searchPlaceholder": "Search by client…",
+      "count": "{count, plural, one {# invoice} other {# invoices}}",
+      "colClient": "Client",
+      "colPlan": "Plan",
+      "colAmount": "Amount",
+      "colStatus": "Status",
+      "colDate": "Date",
+      "colInvoice": "Invoice",
+      "downloadPdf": "PDF"
+    },
+    "subscriptions": {
+      "searchPlaceholder": "Search an organization…",
+      "count": "{count, plural, one {# organization} other {# organizations}}",
+      "colOrg": "Organization",
+      "colOwner": "Owner",
+      "colTier": "Tier",
+      "colStatus": "Status",
+      "colRenewal": "Renewal",
+      "colPaygCredits": "PAYG credits",
+      "cancel": {
+        "title": "Cancel the subscription",
+        "description": "Cancel {name}'s {tier} subscription?",
+        "tierFallback": "—",
+        "periodEndTitle": "At the end of the period",
+        "periodEndDescription": "The organization keeps access until the end of the paid period, then the subscription stops.",
+        "immediateTitle": "Immediately",
+        "immediateDescription": "The subscription is cancelled at once; access is cut off immediately.",
+        "submitting": "Cancelling…",
+        "submit": "Cancel"
+      },
+      "reactivate": {
+        "submitting": "Reactivating…",
+        "submit": "Reactivate"
+      },
+      "invoices": {
+        "trigger": "Invoices",
+        "title": "Invoices · {name}",
+        "description": "Stripe subscription invoices for this organization.",
+        "empty": "No invoice for this organization."
+      }
+    }
+  },
   "Common": {
     "appName": "Wedillybird",
     "tagline": "Your wedding, organised stress-free",
@@ -16,7 +222,10 @@
     "error": "Something went wrong",
     "retry": "Try again",
     "skipToContent": "Skip to main content",
-    "home": "Home"
+    "home": "Home",
+    "meta": {
+      "organizationDescription": "WhatsApp-first wedding-planning SaaS platform: invitations, RSVP, check-in, shared gallery. France and French-speaking West Africa."
+    }
   },
   "Footer": {
     "allRightsReserved": "All rights reserved",
@@ -325,7 +534,10 @@
       "subtitle": "When your guest opens their link, the envelope unfolds, the wax seal cracks, the card slides out, your names are written in calligraphy. Three seconds, and the emotion is set.",
       "stepEnvelope": "Sealed envelope",
       "stepCard": "The seal cracks",
-      "stepFlourish": "Your names appear"
+      "stepFlourish": "Your names appear",
+      "srLabel": "Animation of a wedding envelope opening to reveal an invitation card",
+      "cardKicker": "WE'RE GETTING MARRIED",
+      "cardDate": "8 JUNE 2026"
     },
     "testimonials": {
       "chapter": "CHAPTER 05 — THE VOICES",
@@ -381,7 +593,9 @@
       "prosSubtitle": "Subscribe by the month: one plan, multiple weddings, your brand.",
       "prosCtaSeeAll": "See all pro plans",
       "prosRecommended": "Most popular",
-      "prosCheckCta": "Choose this plan"
+      "prosCheckCta": "Choose this plan",
+      "prosChapter": "CHAPTER 06 — FOR PROS",
+      "prosSeeDetail": "See the details"
     },
     "forfaitsPros": {
       "eyebrow": "PRO PLANS",
@@ -535,6 +749,21 @@
           "desc": "Seats, roles and invitations for your collaborators."
         }
       }
+    },
+    "sectionNav": {
+      "features": "Features",
+      "testimonials": "Testimonials",
+      "pricing": "Pricing",
+      "pricingPros": "For pros",
+      "faq": "FAQ"
+    },
+    "mobileMenu": {
+      "open": "Open menu",
+      "close": "Close menu",
+      "title": "Menu",
+      "navAriaLabel": "Main navigation",
+      "language": "Language",
+      "languageAriaLabel": "Choose language"
     }
   },
   "Auth": {
@@ -586,7 +815,9 @@
     },
     "tagline": "Prepare your big day",
     "stepOneEyebrow": "STEP 01 — IDENTITY",
-    "stepTwoEyebrow": "STEP 02 — VERIFICATION"
+    "stepTwoEyebrow": "STEP 02 — VERIFICATION",
+    "otpGroupLabel": "Verification code",
+    "otpDigitLabel": "Digit {position} of {total}"
   },
   "Onboarding": {
     "stepProfile": "Your profile",
@@ -676,7 +907,13 @@
     "activatePlan": "Activate a plan",
     "publishLockedHint": "Activate your plan to publish your invitation and send RSVPs. One-shot payment, no subscription.",
     "publishLockedHintPayg": "You have no Pay-as-you-go credit left. Buy one on /pro/billing or activate a subscription.",
-    "publishLockedHintQuota": "Active event quota reached ({quota} simultaneous on your plan). Archive a finished event or upgrade to publish a new one."
+    "publishLockedHintQuota": "Active event quota reached ({quota} simultaneous on your plan). Archive a finished event or upgrade to publish a new one.",
+    "pilotEyebrow": "Your event",
+    "pilotTitle": "Steer your wedding",
+    "previewInvitation": "Preview the invitation",
+    "customizeMessage": "Customise the message",
+    "editDetails": "Edit details",
+    "guestsEyebrow": "Your guests"
   },
   "Guests": {
     "title": "Invitation list",
@@ -922,6 +1159,629 @@
       "invite_not_found": "Invitation not found",
       "invite_already_used": "This invitation has already been used",
       "unknown": "Something went wrong. Try again."
+    },
+    "main": {
+      "accountingExport": {
+        "badgeNew": "New",
+        "title": "Monthly accounting export",
+        "description": "Generate a statement of the month's subscription invoices and pay-as-you-go credits — ready for your accountant (CSV).",
+        "monthLabel": "Month",
+        "monthAria": "Month to export",
+        "exportCta": "Export"
+      },
+      "billing": {
+        "close": "Close",
+        "buyCreditTitle": "Buy an event credit",
+        "buyCreditIntro": "A credit unlocks <b>one extra event</b>, on top of your plan quota. One-time charge, no subscription.",
+        "cancel": "Cancel",
+        "pay": "Pay {price}",
+        "oneEventCredit": "1 event credit",
+        "total": "Total",
+        "securePaymentNote": "Secure payment via Stripe. The credit is added as soon as the payment is confirmed.",
+        "cancelSubscription": "Cancel",
+        "cancelEyebrow": "Cancel the subscription",
+        "cancelTitle": "Cancel the {plan} plan?",
+        "cancelIntro": "Your subscription stays active until <b>{renewal}</b>. Cancellation is finalized in Stripe's secure portal; no further charge will be made afterwards.",
+        "keepSubscription": "Keep my subscription",
+        "cancelViaStripe": "Cancel via Stripe",
+        "accessUntil": "Access kept until",
+        "weddingsAndData": "Weddings & data",
+        "kept": "Kept",
+        "nextCharge": "Next charge",
+        "cancelled": "Cancelled",
+        "paygUnaffectedNote": "Your remaining pay-as-you-go credits are not affected by the cancellation."
+      },
+      "coupleLink": {
+        "toastAlreadyLinked": "This couple is already linked.",
+        "toastInvited": "Couple invited — they access their space by signing in with this number.",
+        "genericError": "Error",
+        "toastUnlinked": "Couple unlinked.",
+        "title": "Couple space",
+        "description": "Give the couple access to their space: they track progress, complete their guest list (with phone numbers) and pay online.",
+        "linkedEyebrow": "Linked couple",
+        "detach": "Detach",
+        "emptyLinked": "No couple linked yet.",
+        "phoneAria": "Couple's phone",
+        "sending": "Sending…",
+        "inviteCta": "Invite the couple"
+      },
+      "danger": {
+        "ownerOnly": "The <b>danger zone</b> is reserved for the organization owner.",
+        "exportTitle": "Export the organization's data",
+        "exportDesc": "Download a full export (weddings, guests, documents) in JSON / CSV format.",
+        "exportPreparing": "Export in preparation…",
+        "exportCta": "Export",
+        "transferTitle": "Transfer ownership",
+        "transferDesc": "Designate another member as the organization owner.",
+        "transferCta": "Transfer",
+        "deleteTitle": "Delete the organization",
+        "deleteDesc": "Permanently deletes the agency and all its data.",
+        "deleteCta": "Delete",
+        "transferError": "The transfer failed. Try again.",
+        "sensitiveAction": "Sensitive action",
+        "transferModalBody": "The new owner will have all rights, including deletion. You will become an <b>administrator</b>.",
+        "newOwnerLabel": "New owner",
+        "memberFallback": "Member",
+        "cancel": "Cancel",
+        "transferring": "Transferring…",
+        "deleteNameMismatch": "The name does not match.",
+        "deleteError": "The deletion failed.",
+        "irreversibleAction": "Irreversible action",
+        "deleteModalTitle": "Delete “{orgName}”",
+        "deleteModalBody": "All weddings, guests, documents and data will be <b>permanently deleted</b>. This action cannot be undone.",
+        "deleteConfirmLabel": "Type “{orgName}” to confirm",
+        "deleting": "Deleting…",
+        "deletePermanently": "Delete permanently",
+        "close": "Close"
+      },
+      "messaging": {
+        "saveError": "Could not save. Try again.",
+        "channelCardTitle": "Channel & sender",
+        "channelCardSub": "How your invitations go out by default.",
+        "defaultChannel": "Default channel",
+        "defaultChannelDesc": "WhatsApp first, SMS as automatic fallback.",
+        "senderName": "Sender name",
+        "templateCardTitle": "Default invitation template",
+        "templateCardSub": "Applied to new weddings.",
+        "remindersCardTitle": "Automatic reminders",
+        "remindersCardSub": "RSVP reminders before the big day.",
+        "reminderJ7": "Reminder at D−7",
+        "reminderJ7Desc": "A reminder one week before to guests who haven't replied.",
+        "reminderJ7Aria": "Reminder D-7",
+        "reminderJ1": "Reminder at D−1",
+        "reminderJ1Desc": "Last reminder the day before.",
+        "reminderJ1Aria": "Reminder D-1",
+        "saving": "Saving…",
+        "save": "Save",
+        "saved": "Saved"
+      },
+      "modulePlaceholder": {
+        "includedFrom": "Included from the {tier} plan",
+        "lockedDescription": "This module is not included in your current plan. Upgrade to a higher tier to unlock it.",
+        "seePlans": "See plans",
+        "comingSoon": "Coming soon",
+        "whatItBrings": "What this module will bring"
+      },
+      "notifications": {
+        "saveError": "Could not save. Try again.",
+        "title": "Notification preferences",
+        "subtitle": "By event type · email and in-app.",
+        "colType": "Type",
+        "colEmail": "Email",
+        "colInApp": "In-app",
+        "toggleEmailAria": "{type} by email",
+        "toggleInAppAria": "{type} in-app",
+        "saving": "Saving…",
+        "save": "Save",
+        "saved": "Saved"
+      },
+      "security": {
+        "twoFaTitle": "Two-factor authentication (2FA)",
+        "twoFaSub": "An extra layer of security via a TOTP app.",
+        "twoFaLabel": "Two-factor authentication",
+        "inactive": "Inactive",
+        "soon": "Soon",
+        "sessionsTitle": "Active sessions",
+        "sessionsSub": "Devices connected to your account.",
+        "thisDevice": "This device",
+        "sessionActive": "Active session",
+        "journalTitle": "Activity log",
+        "journalSub": "Recent actions on the organization.",
+        "journalBody": "Find recent activity (clients, tasks, weddings) on the <link>dashboard</link>."
+      },
+      "phoneFieldPair": {
+        "phoneLabel": "Phone",
+        "whatsappLabel": "WhatsApp",
+        "sameNumber": "{label} = same number as the phone"
+      },
+      "quotaGauges": {
+        "goValue": "{value} GB",
+        "activeWeddings": "Active weddings",
+        "messagesThisMonth": "Messages this month",
+        "storage": "Storage",
+        "teamSeats": "Team seats",
+        "consumptionThisMonth": "Usage this month",
+        "unlimited": "unlimited",
+        "overage": "Overage: {value}"
+      },
+      "cockpit": {
+        "relToday": "today",
+        "relYesterday": "yesterday",
+        "relDaysAgo": "{n} d ago",
+        "goValue": "{value} GB",
+        "greetingWithName": "{date} · Hello {name}",
+        "kpiActiveWeddings": "Active weddings",
+        "kpiThisMonth": "this month",
+        "kpiTotalCount": "{count} in total",
+        "kpiPendingRsvp": "Pending RSVP",
+        "kpiResponses7d": "responses · 7 d",
+        "kpiDeadlines7d": "Deadlines · 7 d",
+        "kpiOverdue": "overdue",
+        "kpiUpToDate": "up to date",
+        "kpiRevenue": "Revenue collected",
+        "kpiPaidInvoices": "invoices collected",
+        "eyebrow": "Cockpit · {org}",
+        "heading": "Dashboard",
+        "newClient": "New client",
+        "newWedding": "New wedding",
+        "kpiSectionAria": "Key indicators",
+        "upcomingWeddings": "Upcoming weddings",
+        "seeAll": "See all",
+        "planConsumption": "Plan usage",
+        "noSubscriptionQuotas": "No active subscription — your quotas will appear here once a plan is chosen.",
+        "deadlinesTitle": "Deadlines & tasks",
+        "overdueCount": "{count} overdue",
+        "retroPlanning": "schedule",
+        "noDeadlines": "No deadline planned.",
+        "late": "Overdue",
+        "today": "Today",
+        "jUntil": "D−{n}",
+        "stageLeads": "Leads",
+        "stageQuotes": "Quotes sent",
+        "stageBooked": "Booked",
+        "pipelineTitle": "Client pipeline",
+        "seeCrm": "View CRM",
+        "emptyPipeline": "No client in the pipeline yet.",
+        "bookingRate": "Booking rate <b>{rate} %</b>",
+        "fileCount": "{count} files",
+        "recentActivity": "Recent activity",
+        "bannerNoSubscription": "No active subscription — choose a plan to unlock the back office.",
+        "bannerChoosePlan": "Choose a plan",
+        "bannerPaymentFailed": "Payment failed — update your payment method to avoid suspension.",
+        "bannerManage": "Manage the subscription",
+        "bannerCancelledUntil": "Subscription cancelled — active until {date}.",
+        "bannerCancelled": "Subscription cancelled — reactivate it to regain full access.",
+        "bannerReactivate": "Reactivate",
+        "gaugeActiveWeddings": "Active weddings",
+        "overageEvent": "beyond: {price}/month",
+        "gaugeMessages": "Messages this month",
+        "overageMessage": "beyond: {price}/message",
+        "gaugeStorage": "Storage",
+        "overageStorage": "beyond: {price}/GB/month",
+        "gaugeSeats": "Team seats",
+        "overageSeat": "beyond: {price}/seat/month",
+        "unlimited": "unlimited",
+        "overageLabel": "Overage: {value} — {note}",
+        "statusActive": "Active",
+        "statusDraft": "Draft",
+        "statusArchived": "Archived",
+        "statusCancelled": "Cancelled",
+        "rsvpCount": "RSVP {attending}/{total}",
+        "noGuests": "no guest",
+        "past": "past",
+        "emptyUpcoming": "No wedding yet. Create the first one to get started."
+      },
+      "team": {
+        "errors": {
+          "SEAT_LIMIT_REACHED": "Seat limit reached for your plan.",
+          "ALREADY_MEMBER": "This person is already a member.",
+          "NO_CONTACT": "Enter an email or a WhatsApp number.",
+          "INVALID_PHONE": "Invalid number (with country code, e.g. +33…).",
+          "FORBIDDEN": "Reserved for the owner and admins.",
+          "generic": "An error occurred."
+        },
+        "tabsAria": "Team sections",
+        "tabMembers": "Members",
+        "tabRoles": "Roles & permissions",
+        "readOnlyBanner": "You are viewing the team as {role}. Inviting, changing roles and revoking are reserved for the owner and admins.",
+        "memberCount": "{count, plural, one {# member} other {# members}}",
+        "activeCount": "{count, plural, one {# active} other {# active}}",
+        "freeSeats": "{count, plural, one {# free seat} other {# free seats}}",
+        "unlimitedSeats": "unlimited seats",
+        "inviteMember": "Invite a member",
+        "pendingInvites": "Pending invitations · {count}",
+        "invitationFallback": "Invitation",
+        "invitedOn": "Invited on {date}",
+        "resend": "Resend",
+        "confirmCancelInvite": "Cancel this invitation?",
+        "cancel": "Cancel",
+        "colMember": "Member",
+        "colContact": "Contact",
+        "colRole": "Role",
+        "colStatus": "Status",
+        "memberFallback": "Member",
+        "you": "You",
+        "ownerHoldsOrgAria": "The owner holds the organization",
+        "confirmRevoke": "Revoke {name}'s access?",
+        "ownerCannotBeRevokedAria": "The owner cannot be revoked",
+        "actionsAria": "Actions",
+        "revokeAccess": "Revoke access",
+        "reactivateAccess": "Reactivate access",
+        "inviteSent": "It's sent!",
+        "shareInviteLink": "Share this invitation link (valid for 7 days):",
+        "copyLink": "Copy the link",
+        "inviteSomeoneElse": "Invite someone else",
+        "done": "Done",
+        "channelEmail": "Email",
+        "emailPlaceholder": "colleague@studio.com",
+        "whatsappNumberAria": "WhatsApp number",
+        "roleAria": "Role",
+        "inviteValidNote": "Invitation valid for 7 days.",
+        "sending": "Sending…",
+        "sendInvite": "Send the invitation",
+        "uniqueSuffix": " · unique",
+        "permissionMatrix": "Permission matrix",
+        "capabilitiesCount": "{count} capabilities",
+        "capability": "Capability",
+        "allowed": "Allowed",
+        "denied": "Denied",
+        "inheritanceNote": "Permissions are inherited: an Admin can do everything a Planner can, and a Planner everything a Viewer can."
+      },
+      "planCards": {
+        "billingPeriodAria": "Billing period",
+        "monthly": "Monthly",
+        "annual": "Annual",
+        "discount20": "−20%",
+        "perYear": "/yr",
+        "perMonth": "/mo",
+        "eyebrowSubscribe": "Subscribe",
+        "eyebrowChangeCycle": "Change cycle",
+        "eyebrowUpgrade": "Upgrade",
+        "eyebrowDowngrade": "Downgrade",
+        "ctaSubscribe": "Subscribe to {plan}",
+        "ctaSwitchAnnual": "Switch to annual",
+        "ctaSwitchMonthly": "Switch to monthly",
+        "ctaUpgradeTo": "Upgrade to {plan}",
+        "ctaDowngradeTo": "Downgrade to {plan}",
+        "introSubscribe": "You are subscribing to the <b>{plan}</b> plan. Payment and billing are handled by Stripe.",
+        "introChangeCycle": "You are switching your <b>{plan}</b> plan to {cycle} billing.",
+        "introUpgrade": "You are moving from <b>{current}</b> to <b>{target}</b>. The new plan is active immediately; the difference is prorated by Stripe.",
+        "introDowngrade": "You are downgrading from <b>{current}</b> to <b>{target}</b>. The change takes effect at the next renewal.",
+        "cycleAnnual": "annual (−20%)",
+        "cycleMonthly": "monthly",
+        "cancel": "Cancel",
+        "recapCurrentPlan": "Current plan · {plan}",
+        "recapNewPlan": "New plan · {plan}",
+        "recapNextCycle": "From the next renewal",
+        "recapPayViaStripe": "To pay via Stripe",
+        "recapActiveEvents": "Active events",
+        "recapMessagesIncluded": "Messages/month included",
+        "recapStorage": "Storage",
+        "recapStorageValue": "{from} → {to} GB"
+      },
+      "proShell": {
+        "navAria": "Pro navigation"
+      },
+      "sidebar": {
+        "groupGeneral": "General",
+        "navDashboard": "Dashboard",
+        "navClients": "Clients",
+        "navWeddings": "Weddings",
+        "groupOrganization": "Organization",
+        "navPlanning": "Schedule",
+        "navBudget": "Budget",
+        "navVendors": "Vendors",
+        "navTeam": "Team",
+        "groupFinances": "Finances",
+        "navQuotes": "Quotes & Invoices",
+        "navPayments": "Payments",
+        "navContracts": "Contracts",
+        "groupPilotage": "Insights",
+        "navAnalytics": "Analytics",
+        "navIntegrations": "Integrations",
+        "navBilling": "Billing",
+        "navSettings": "Settings",
+        "roleOwner": "Owner",
+        "roleAdmin": "Admin",
+        "rolePlanner": "Planner",
+        "roleViewer": "Viewer",
+        "planLabel": "{tier} plan",
+        "noPlan": "No subscription",
+        "expandMenu": "Expand the menu",
+        "collapseMenu": "Collapse the menu",
+        "closeMenu": "Close the menu",
+        "mainNavAria": "Main navigation",
+        "lockedFeatureAria": "Included in a higher plan",
+        "signOut": "Sign out",
+        "openMenu": "Open the menu",
+        "searchPlaceholder": "Search a wedding, a client…",
+        "searchAria": "Global search",
+        "weddingsUnit": "weddings"
+      },
+      "settings": {
+        "roleOwner": "Owner",
+        "roleAdmin": "Admin",
+        "rolePlanner": "Planner",
+        "roleViewer": "Viewer",
+        "profilTitle": "Organization profile",
+        "profilSub": "Identity, public address and role.",
+        "brandingTitle": "White label",
+        "brandingSub": "Customize the couple space with your colors.",
+        "integrationsTitle": "Integrations",
+        "integrationsSub": "CRM, data import and connectors.",
+        "messagingTitle": "Messaging & templates",
+        "messagingSub": "Default channels, invitations and reminders.",
+        "notificationsTitle": "Notifications",
+        "notificationsSub": "Choose what alerts you, and how.",
+        "securityTitle": "Security",
+        "securitySub": "Session, two-factor authentication and log.",
+        "dangerTitle": "Danger zone",
+        "dangerSub": "Export, transfer and deletion of the organization.",
+        "groupOrganization": "Organization",
+        "navProfil": "Profile",
+        "navBranding": "White label",
+        "navIntegrations": "Integrations",
+        "groupCommunication": "Communication",
+        "navMessaging": "Messaging",
+        "navNotifications": "Notifications",
+        "groupAccount": "Account",
+        "navSecurity": "Security",
+        "navDanger": "Danger zone",
+        "sectionsNavAria": "Settings sections",
+        "agencyOptionsAria": "Agency options",
+        "linkedModules": "Linked modules",
+        "teamAndRoles": "Team & roles",
+        "billingAndPlan": "Billing & plan",
+        "eyebrow": "Settings · {org}",
+        "readOnlyBanner": "You are viewing the settings in <b>read-only</b>. Request an Admin or Owner role to make changes.",
+        "noPlan": "No subscription",
+        "webBrowser": "Web browser",
+        "orgIdentityTitle": "Organization identity",
+        "orgIdentitySub": "Visible to your team and on documents.",
+        "agencyNameLabel": "Agency name",
+        "publicAddressLabel": "Public address",
+        "planLabel": "Plan",
+        "yourRoleLabel": "Your role",
+        "brandingHint": "Custom logo, colors and domain are configured in the <b>White label</b> tab.",
+        "yourAccountTitle": "Your account",
+        "yourAccountSub": "Your personal information.",
+        "nameLabel": "Name",
+        "emailLabel": "Email",
+        "roleLabel": "Role",
+        "integrationsPanelTitle": "Integrations & import",
+        "integrationsPanelSub": "Import your clients and plug in your tools.",
+        "integrationsPanelBody": "CSV import of your clients, and soon CRM, calendar and payment connectors. Full configuration is done from the dedicated module.",
+        "openIntegrations": "Open integrations"
+      },
+      "stripeConnect": {
+        "errors": {
+          "PAYMENTS_NOT_CONFIGURED": "Online payment is not yet enabled on the platform.",
+          "CONNECT_NOT_ENABLED": "The Stripe connection is not finalized on the platform side. Try again later.",
+          "FORBIDDEN": "Only the owner and admins can manage the Stripe connection.",
+          "NO_ORG": "Organization not found.",
+          "UNAUTHORIZED": "Session expired. Please sign in again."
+        },
+        "errorGeneric": "An error occurred. Try again.",
+        "returnError": "The Stripe connection failed. Try again.",
+        "returnIncomplete": "Stripe setup not completed — continue to enable collection.",
+        "title": "Online payments",
+        "descActive": "Your Stripe account is connected. Payment links are collected directly into your account — Wedillybird never touches your funds.",
+        "descIncomplete": "Your Stripe setup is not complete. Continue Stripe onboarding to enable online collection.",
+        "descNotConnected": "Connect your own Stripe account to collect from your couples (card, transfer). The money goes directly to your account.",
+        "pillConnected": "Connected",
+        "pillToComplete": "To complete",
+        "redirecting": "Redirecting…",
+        "connectCta": "Connect my Stripe account",
+        "disconnecting": "Disconnecting…",
+        "confirmDisconnect": "Confirm disconnection",
+        "cancel": "Cancel",
+        "continueSetup": "Continue setup",
+        "disconnect": "Disconnect",
+        "manageRestricted": "Managing the Stripe connection is reserved for the owner and admins."
+      },
+      "weddingSelect": {
+        "label": "Wedding",
+        "jPast": "D+{n}",
+        "jUntil": "D−{n}",
+        "chooseAria": "Choose the wedding",
+        "listAria": "Weddings",
+        "venueToFill": "Venue to fill in"
+      },
+      "whiteLabel": {
+        "errorInvalidDomain": "Invalid domain (e.g. weddings.myagency.com).",
+        "errorInvalidEmail": "Invalid sender email address.",
+        "errorFeatureNotInPlan": "Full white label requires the Agency plan.",
+        "errorGeneric": "An error occurred. Try again.",
+        "title": "Domain & white label",
+        "description": "Send your invitations under your own domain and email, with no Wedillybird mention.",
+        "includedAddressLabel": "Wedillybird address (included)",
+        "customDomainLabel": "Custom domain",
+        "customDomainPlaceholder": "weddings.myagency.com",
+        "cnameNote": "Add a CNAME record pointing to <host>cname.wedillybird.fr</host>.",
+        "senderEmailLabel": "Sender email",
+        "senderEmailPlaceholder": "contact@myagency.com",
+        "removeBadgeTitle": "Remove the “Powered by Wedillybird” mention",
+        "removeBadgeSub": "On invitation pages and emails.",
+        "removeBadgeAria": "Remove the Wedillybird badge",
+        "agencyUpsell": "Full white label included in the Agency plan.",
+        "upgradeToAgency": "Upgrade to Agency",
+        "saving": "Saving…",
+        "save": "Save",
+        "saved": "Saved"
+      }
+    },
+    "payments": {
+      "subtabs": {
+        "dashboard": "Dashboard",
+        "plan": "Schedule",
+        "disputes": "Disputes",
+        "settings": "Settings",
+        "groupAria": "Payment sections"
+      },
+      "header": {
+        "eyebrow": "Finances · Payments",
+        "title": "Payments",
+        "subtitle": "Track your collections and payment schedules, send payment links — collected directly on your own Stripe account.",
+        "newLink": "New link",
+        "paymentRequest": "Payment request"
+      },
+      "stripeBadge": {
+        "securedBy": "Secure payments by"
+      },
+      "feeBreakdown": {
+        "title": "Fee breakdown",
+        "couplePays": "The couple pays",
+        "stripeFees": "Stripe fees",
+        "youReceive": "You receive",
+        "note": "You collect on your own Stripe account."
+      },
+      "moneyHero": {
+        "eyebrow": "Collected · tracked",
+        "upcoming": "Upcoming",
+        "overdue": "Overdue",
+        "nextDue": "Next due date"
+      },
+      "finances": {
+        "title": "Balance & payouts",
+        "count": "Your Stripe account",
+        "notConnected": "Connect your Stripe account to track your balance and payouts right here.",
+        "loading": "Loading your Stripe balance…",
+        "available": "Available",
+        "pending": "Pending",
+        "payout": "Payout",
+        "payoutWithDate": "Payout · {date}",
+        "payoutsEmpty": "No payouts yet. Your payouts will appear here as soon as you make your first collection.",
+        "recentCharges": "Recent charges",
+        "chargeFallback": "Charge",
+        "refundedSuffix": "refunded",
+        "receipt": "Receipt",
+        "refund": "Refund",
+        "liveNote": "Data read live from your Stripe account — payout frequency is set in your Stripe dashboard."
+      },
+      "financesErrors": {
+        "NOT_CONNECTED": "Connect your Stripe account to track your balance and payouts here.",
+        "generic": "Couldn't retrieve your Stripe data at the moment."
+      },
+      "refundErrors": {
+        "FORBIDDEN": "Only the owner and admins can issue refunds.",
+        "NOT_CONNECTED": "No Stripe account connected.",
+        "generic": "Refund failed. Try again."
+      },
+      "refundDialog": {
+        "title": "Refund this charge?",
+        "description": "{amount} will be returned to the customer from your Stripe account. This action is irreversible.",
+        "refunding": "Refunding…",
+        "confirm": "Confirm the refund"
+      },
+      "dashboard": {
+        "connectBannerTitle": "Connect your Stripe account to collect online",
+        "connectBannerBody": "Link your own Stripe account (connection card at the top of the page): card payments land directly on your account. In the meantime, you keep manual tracking.",
+        "transactionsTitle": "Transactions",
+        "milestoneCount": "{count, plural, =0 {0 milestone} one {# milestone} other {# milestones}}",
+        "transactionsEmpty": "No transactions yet. Your invoice milestones will appear here.",
+        "netNote": "Net received = amount collected − Stripe fees. Online payments go directly to your own Stripe account."
+      },
+      "table": {
+        "couple": "Couple",
+        "type": "Type",
+        "dueDate": "Due date",
+        "amount": "Amount",
+        "stripeFees": "Stripe fees",
+        "netReceived": "Net received",
+        "status": "Status"
+      },
+      "freeLink": {
+        "title": "New payment link",
+        "subtitle": "Collected directly on your Stripe account.",
+        "createdShare": "Link created and copied. Share it with your customer:",
+        "openLinkAria": "Open the link",
+        "amountLabel": "Amount (€)",
+        "serviceLabel": "Service label",
+        "servicePlaceholder": "Wedding service deposit",
+        "clientLabel": "Customer (optional)",
+        "connectFirst": "Connect your Stripe account first (card at the top of the page).",
+        "createCta": "Create the link"
+      },
+      "plan": {
+        "empty": "No payment schedule. Create an invoice with a schedule in Quotes & Invoices to track payments here.",
+        "scheduleLabel": "Schedule",
+        "heroEyebrow": "Schedule",
+        "settledCount": "{paid} / {total} settled",
+        "milestonesTitle": "Payment milestones",
+        "dueOn": "Due {date}",
+        "noDate": "No date",
+        "markPaid": "Mark paid",
+        "termTitle": "Type of commitment (France)",
+        "nextRequestTitle": "Next request",
+        "none": "None",
+        "couplePreview": "Preview for the couple",
+        "linkNote": "The link is collected directly on your Stripe account. Copy it to send by WhatsApp, email…",
+        "allSettled": "Every milestone in this schedule is settled. 🎉"
+      },
+      "disputes": {
+        "bannerTitle": "Your disputes, your Stripe account.",
+        "bannerBody": "Online payments are collected directly on your own Stripe account: in case of a dispute, everything is handled from your Stripe dashboard (notification, evidence, the bank's decision). Wedillybird never touches your funds.",
+        "emptyTitle": "Disputes handled in Stripe",
+        "emptyBody": "Any payment disputes appear in your Stripe dashboard, along with the steps to follow and the deadlines. Wedillybird is not in the flow of funds.",
+        "howTitle": "How it works",
+        "whoNotifiedLabel": "Who is notified",
+        "whoNotifiedValue": "You, directly from Stripe.",
+        "whoEvidenceLabel": "Who provides the evidence",
+        "whoEvidenceValue": "You (contract, correspondence, deliverables), from Stripe.",
+        "whoDecidesLabel": "Who decides",
+        "whoDecidesValue": "The couple's bank, not Wedillybird or Stripe.",
+        "whereLabel": "Where",
+        "whereValue": "Your Stripe dashboard — you stay in control."
+      },
+      "settings": {
+        "modeTitle": "Collection mode",
+        "recommended": "Recommended",
+        "consequencePrefix": "Consequence:",
+        "feesTitle": "Fees",
+        "feesExampleTitle": "What you receive · example €6,300",
+        "ownMoneyTitle": "Your money, your account.",
+        "ownMoneyBody": "Online payments are collected directly on your own Stripe account — Wedillybird never holds your funds."
+      },
+      "txDetail": {
+        "dialogAria": "Transaction {client}",
+        "eyebrow": "Transaction",
+        "infoTitle": "Information",
+        "type": "Type",
+        "invoice": "Invoice",
+        "dueDate": "Due date",
+        "reference": "Reference"
+      },
+      "payLink": {
+        "connectPrompt": "Connect your Stripe to generate a link",
+        "cta": "Payment link"
+      },
+      "linkErrors": {
+        "STRIPE_NOT_CONNECTED": "Connect your Stripe account first.",
+        "PAYMENTS_NOT_CONFIGURED": "Online payment is not configured yet.",
+        "FEATURE_NOT_IN_PLAN": "Reserved for the Business plan.",
+        "ALREADY_PAID": "This milestone is already settled.",
+        "INVALID_AMOUNT": "Invalid amount.",
+        "INVALID_DESCRIPTION": "Enter a label.",
+        "INVALID_SCHEDULE": "Milestone not found.",
+        "generic": "Couldn't create the link. Try again."
+      },
+      "actions": {
+        "copyLink": "Copy the link",
+        "copyMessage": "Copy the message",
+        "open": "Open",
+        "close": "Close",
+        "cancel": "Cancel",
+        "settings": "Settings",
+        "creating": "Creating…"
+      },
+      "toasts": {
+        "linkCopied": "Link copied",
+        "messageCopied": "Ready-to-send message copied",
+        "linkCreated": "Payment link created and copied",
+        "refundDone": "Refund completed",
+        "milestoneMarked": "Milestone marked as collected",
+        "modeChanged": "Mode: {mode}"
+      }
     }
   },
   "Branding": {
@@ -953,6 +1813,592 @@
       "invalid_logo_size": "Image too large (2 MB maximum).",
       "upload_failed": "Upload failed. Try again.",
       "unknown": "Something went wrong. Try again."
+    }
+  },
+  "Pros": {
+    "cta": {
+      "title": "Take your agency to the next level",
+      "subtitle": "One tool for your quotes, your weddings, your guests and your brand. Start today, no commitment.",
+      "button": "Get started",
+      "footnote": "No card required to explore. Cancel anytime."
+    },
+    "hero": {
+      "eyebrow": "For agencies & wedding planners",
+      "title": "The operating system for your wedding agency",
+      "subtitle": "Run every wedding in one place: CRM, quotes, budget, vendors, guests on the big day — under your own brand.",
+      "ctaPrimary": "Get started",
+      "ctaSecondary": "See plans",
+      "chips": {
+        "scale": "Multiple weddings at once",
+        "rsvp": "RSVP & day-of guests",
+        "whiteLabel": "White label",
+        "payments": "Built-in payments"
+      }
+    },
+    "journey": {
+      "eyebrow": "End to end",
+      "title": "From the first message to the last shared memory",
+      "subtitle": "One continuous thread, without re-entering a single detail. The lead becomes a wedding, the wedding becomes a memory.",
+      "steps": {
+        "01": {
+          "title": "The lead comes in",
+          "detail": "A request lands from Instagram, your website or word of mouth. You qualify it in seconds."
+        },
+        "02": {
+          "title": "The quote goes out",
+          "detail": "Branded quote, online signature, deposit collected. The couple is reassured, you're booked."
+        },
+        "03": {
+          "title": "The wedding takes shape",
+          "detail": "Timeline, budget, vendors: everything converges in a space dedicated to the couple."
+        },
+        "04": {
+          "title": "Guests reply",
+          "detail": "Animated invitation sent via WhatsApp, centralised RSVPs, automatic reminders."
+        },
+        "05": {
+          "title": "The big day runs smoothly",
+          "detail": "Offline check-in at the door, seating plan, live photo gallery. You stay in control."
+        },
+        "06": {
+          "title": "The memory is shared",
+          "detail": "HD gallery sorted by face, archived. The couple relives the day, you collect the reviews."
+        }
+      }
+    },
+    "wedge": {
+      "eyebrow": "The differentiator",
+      "title": "On the day, where other tools stop",
+      "subtitle": "HoneyBook handles your contracts. Nobody handles your guests on the wedding day. We do.",
+      "items": {
+        "rsvp": {
+          "title": "RSVP over WhatsApp",
+          "detail": "Your guests reply where they already read. Response rate up, zero manual chasing."
+        },
+        "gallery": {
+          "title": "Gallery by face",
+          "detail": "Each guest finds their own photos automatically, thanks to facial recognition."
+        },
+        "checkin": {
+          "title": "Offline check-in",
+          "detail": "At the door, you scan even without signal. The remote countryside venue won't stop you."
+        },
+        "seating": {
+          "title": "Seating plan",
+          "detail": "Drag and drop your guests, manage constraints, print. One headache gone."
+        }
+      },
+      "footnote": "Your competitors don't have these. <strong>That's what turns a vendor into a conductor.</strong>"
+    },
+    "pillars": {
+      "eyebrow": "The 11 pillars",
+      "title": "Everything a wedding agency uses every day",
+      "subtitle": "Eleven modules built for the trade, from first contact to the last memory. Detailed feature by feature, plan by plan.",
+      "legend": {
+        "all": "Included everywhere",
+        "business": "From Business",
+        "agency": "Agency",
+        "addon": "Add-on"
+      },
+      "items": {
+        "cockpit": {
+          "name": "Cockpit",
+          "summary": "Your control tower: every wedding, your KPIs and your activity at a glance.",
+          "features": {
+            "aggregated": {
+              "name": "Aggregated view",
+              "detail": "All your weddings together on a single dashboard."
+            },
+            "trendKpis": {
+              "name": "Trend KPIs",
+              "detail": "Bookings, RSVPs, deadlines, revenue — with their evolution."
+            },
+            "quotaGauges": {
+              "name": "Quota gauges",
+              "detail": "Events, messages, storage: your usage in real time."
+            },
+            "globalSearch": {
+              "name": "Global search",
+              "detail": "Find a couple, a quote or a vendor in a single keystroke."
+            },
+            "activityFeed": {
+              "name": "Activity feed",
+              "detail": "Deposits, RSVPs, accepted quotes: the agency's pulse, live."
+            },
+            "multiEventAnalytics": {
+              "name": "Multi-event analytics",
+              "detail": "Compare your weddings and read your season's performance."
+            }
+          }
+        },
+        "crm": {
+          "name": "CRM",
+          "summary": "From the Instagram lead to the signed wedding: a pipeline that loses no request.",
+          "features": {
+            "clientCards": {
+              "name": "Client cards",
+              "detail": "Contacts, history, documents: the whole couple on one card."
+            },
+            "kanban": {
+              "name": "Kanban pipeline",
+              "detail": "Drag your opportunities from “lead” to “booked”."
+            },
+            "bulkActions": {
+              "name": "Bulk actions",
+              "detail": "Follow up, tag, move several leads in one move."
+            },
+            "leadSources": {
+              "name": "Lead sources",
+              "detail": "Know where your contacts come from to invest in the right place."
+            },
+            "leadToWedding": {
+              "name": "Lead → wedding",
+              "detail": "Turn an opportunity into a wedding without re-entering a line."
+            },
+            "teamAssignment": {
+              "name": "Team assignment",
+              "detail": "Hand each file to the right team member."
+            }
+          }
+        },
+        "planning": {
+          "name": "Planning",
+          "summary": "Phased timeline, three views, and your vendors within reach.",
+          "features": {
+            "phasedPlanning": {
+              "name": "Phased planning",
+              "detail": "Break the prep down from 12 months out to the big day."
+            },
+            "threeViews": {
+              "name": "Three views",
+              "detail": "List, kanban or calendar — whichever way you work."
+            },
+            "templates": {
+              "name": "Task templates",
+              "detail": "Start from a proven blueprint for every new wedding."
+            },
+            "subtasks": {
+              "name": "Subtasks",
+              "detail": "Break a complex step into concrete actions."
+            },
+            "vendorDirectory": {
+              "name": "Vendor directory",
+              "detail": "Your address book: caterers, photographers, venues."
+            },
+            "vendorLink": {
+              "name": "Vendor link",
+              "detail": "Attach a vendor to a task or a wedding."
+            }
+          }
+        },
+        "budget": {
+          "name": "Budget",
+          "summary": "The couple's budget, tracked to the penny, from estimate to payment.",
+          "features": {
+            "tracking": {
+              "name": "Budget tracking",
+              "detail": "Estimated, committed, paid: your headroom at a glance."
+            },
+            "lineEditing": {
+              "name": "Line editing",
+              "detail": "Adjust every item, add your own categories."
+            },
+            "vendorToBudget": {
+              "name": "Vendor → budget",
+              "detail": "Push a vendor quote straight into the budget."
+            },
+            "pdfExport": {
+              "name": "PDF export",
+              "detail": "A clean summary to present to the couple."
+            },
+            "csvExport": {
+              "name": "CSV export",
+              "detail": "Pull your figures out for your accountant or spreadsheet."
+            }
+          }
+        },
+        "finance": {
+          "name": "Quotes & invoices",
+          "summary": "Branded quotes, online signature, payment schedules and collection.",
+          "features": {
+            "brandedDocs": {
+              "name": "Branded documents",
+              "detail": "Quotes and invoices in your colours, your logo, your terms."
+            },
+            "schedules": {
+              "name": "Payment schedules",
+              "detail": "Deposit, balances: plan payments over time."
+            },
+            "eSign": {
+              "name": "E-signature",
+              "detail": "The couple signs online, you're booked without a meeting."
+            },
+            "bookingFile": {
+              "name": "Booking file",
+              "detail": "Contract, deposit and terms gathered in one place."
+            },
+            "tracking": {
+              "name": "Payment tracking",
+              "detail": "See at a glance what's paid, pending or overdue."
+            },
+            "stripeCollect": {
+              "name": "Stripe collection",
+              "detail": "Collect straight to your own Stripe account, no commission."
+            }
+          }
+        },
+        "execution": {
+          "name": "Day-of execution",
+          "summary": "Animated invitation, RSVP, check-in, seating, gallery: the whole day.",
+          "features": {
+            "tabbedHub": {
+              "name": "Tabbed hub",
+              "detail": "Guests, RSVP, table, gallery: the big day on a single screen."
+            },
+            "cinematicInvite": {
+              "name": "Cinematic invitation",
+              "detail": "An envelope that opens, a card that comes to life. The wow effect."
+            },
+            "rsvpWhatsApp": {
+              "name": "RSVP over WhatsApp",
+              "detail": "Your guests reply where they already read their messages."
+            },
+            "offlineCheckin": {
+              "name": "Offline check-in",
+              "detail": "Scan at the door even without signal, data synced afterwards."
+            },
+            "seating": {
+              "name": "Seating plan",
+              "detail": "Place your guests by drag and drop, manage constraints."
+            },
+            "faceGallery": {
+              "name": "Gallery by face",
+              "detail": "Each guest finds their photos through facial recognition."
+            }
+          }
+        },
+        "whitelabel": {
+          "name": "White label",
+          "summary": "Your brand everywhere: colours, subdomain, couple portal, emails in your name.",
+          "features": {
+            "brandColor": {
+              "name": "Brand colour",
+              "detail": "The whole interface adopts your identity's hue."
+            },
+            "subdomainLogo": {
+              "name": "Subdomain & logo",
+              "detail": "your-agency.wedillybird.com, your logo up top."
+            },
+            "couplePortal": {
+              "name": "Couple portal",
+              "detail": "A white-label space where the couple follows their wedding."
+            },
+            "coupleSignature": {
+              "name": "Couple signature",
+              "detail": "The couple co-signs documents from their portal."
+            },
+            "domainEmail": {
+              "name": "Emails from your domain",
+              "detail": "Notifications go out from your own domain name."
+            },
+            "removeBranding": {
+              "name": "No Wedillybird mention",
+              "detail": "Remove every trace of our brand. It's all yours."
+            }
+          }
+        },
+        "team": {
+          "name": "Team & roles",
+          "summary": "Invite your team, assign roles, keep control over access.",
+          "features": {
+            "rbac": {
+              "name": "Roles & permissions",
+              "detail": "Each member sees and does exactly what they should."
+            },
+            "permissionMatrix": {
+              "name": "Permission matrix",
+              "detail": "Fine-tune who accesses what, module by module."
+            },
+            "invitations": {
+              "name": "Invitations",
+              "detail": "Add a collaborator with a single email."
+            },
+            "seats": {
+              "name": "Seats",
+              "detail": "Manage your seats by plan, add on demand."
+            },
+            "ownershipTransfer": {
+              "name": "Ownership transfer",
+              "detail": "Hand over an account or a wedding securely."
+            }
+          }
+        },
+        "integrations": {
+          "name": "Integrations",
+          "summary": "Import what you have, connect your tools, automate with the API.",
+          "features": {
+            "csvImport": {
+              "name": "CSV import",
+              "detail": "Bring in your contacts and weddings from a file."
+            },
+            "honeybook": {
+              "name": "HoneyBook import",
+              "detail": "Migrate your data without starting from scratch."
+            },
+            "zapier": {
+              "name": "Zapier",
+              "detail": "Connect Wedillybird to thousands of apps."
+            },
+            "apiWebhooks": {
+              "name": "API & webhooks",
+              "detail": "Plug in your systems and trigger your automations."
+            },
+            "fieldSource": {
+              "name": "Field source",
+              "detail": "Trace the origin of every imported piece of data."
+            },
+            "ownCrmMode": {
+              "name": "“My CRM” mode",
+              "detail": "Keep your CRM, use Wedillybird where it shines."
+            }
+          }
+        },
+        "billing": {
+          "name": "Billing & plan",
+          "summary": "Manage your subscription, track your overages, export your receipts.",
+          "features": {
+            "manage": {
+              "name": "Manage subscription",
+              "detail": "Plan, payment method, invoices: it's all self-service."
+            },
+            "changePlan": {
+              "name": "Change plan",
+              "detail": "Move up or down a tier when your season demands it."
+            },
+            "overageTracking": {
+              "name": "Overage tracking",
+              "detail": "Messages, guests, storage beyond the bundle: no surprises."
+            },
+            "paygCredits": {
+              "name": "Pay-as-you-go credits",
+              "detail": "Pay for a one-off wedding without taking out a subscription."
+            },
+            "monthlyExport": {
+              "name": "Monthly export",
+              "detail": "Get your usage statement every month."
+            },
+            "stripePortal": {
+              "name": "Stripe portal",
+              "detail": "Your invoices and receipts, managed via the secure Stripe portal."
+            }
+          }
+        },
+        "settings": {
+          "name": "Settings",
+          "summary": "Profile, identity, messaging, notifications and account security.",
+          "features": {
+            "profile": {
+              "name": "Profile",
+              "detail": "Your agency details, up to date in an instant."
+            },
+            "branding": {
+              "name": "Visual identity",
+              "detail": "Logo, colours, subdomain: your brand, centralised."
+            },
+            "messaging": {
+              "name": "Messaging",
+              "detail": "Set your email and WhatsApp message templates."
+            },
+            "notifications": {
+              "name": "Notifications",
+              "detail": "Choose what alerts you and how."
+            },
+            "accountSecurity": {
+              "name": "Account security",
+              "detail": "Sessions, access, traceability: you stay in charge."
+            },
+            "dangerZone": {
+              "name": "Danger zone",
+              "detail": "Deletion, transfer: the critical actions, kept in check."
+            }
+          }
+        }
+      }
+    },
+    "whiteLabel": {
+      "eyebrow": "White label",
+      "title": "Your brand up front, ours invisible",
+      "subtitle": "Three levels of customisation, from a simple subdomain to erasing Wedillybird entirely.",
+      "levelLabel": "Level {n}",
+      "fromStarter": "From Starter",
+      "levels": {
+        "visible": {
+          "title": "Your brand visible",
+          "points": {
+            "0": "Subdomain in your name",
+            "1": "Logo and brand colour",
+            "2": "Interface in the agency's colours"
+          }
+        },
+        "branded": {
+          "title": "Couple portal in your brand",
+          "points": {
+            "0": "Dedicated couple space, in your brand",
+            "1": "Co-signed documents and signature",
+            "2": "Guest journey in your image"
+          }
+        },
+        "total": {
+          "title": "Full white label",
+          "points": {
+            "0": "Emails from your own domain",
+            "1": "No Wedillybird mention",
+            "2": "The experience is entirely yours"
+          }
+        }
+      }
+    },
+    "pricing": {
+      "eyebrowChapter": "Pro pricing",
+      "eyebrow": "Capacity & options",
+      "title": "What each plan covers, clearly",
+      "capacityColumn": "Capacity",
+      "capacities": {
+        "concurrentWeddings": "Weddings in parallel",
+        "guestsPerWedding": "Guests per wedding",
+        "messagesPerMonth": "Messages included / month",
+        "galleryStorage": "Gallery storage",
+        "teamSeats": "Team seats"
+      },
+      "capacityValues": {
+        "unlimited": "Unlimited"
+      },
+      "addonsTitle": "Options",
+      "addons": {
+        "stripe": {
+          "label": "Stripe collection",
+          "detail": "Direct charge to your account, no Wedillybird commission.",
+          "price": "Included"
+        },
+        "hdUpsell": {
+          "label": "Perpetual HD gallery",
+          "detail": "HD archive with no time limit, offered to the couple.",
+          "price": "+€29"
+        },
+        "extraSeat": {
+          "label": "Extra seat",
+          "detail": "Beyond the seats included in your plan.",
+          "price": "On request"
+        },
+        "concurrentEvent": {
+          "label": "Extra simultaneous wedding",
+          "detail": "Beyond the number of parallel weddings included.",
+          "price": "€19 / month"
+        }
+      },
+      "overagesTitle": "Overages",
+      "overages": {
+        "message": {
+          "label": "SMS / WhatsApp",
+          "detail": "Beyond the included message bundle.",
+          "price": "€0.06 / msg"
+        },
+        "guest": {
+          "label": "Guest beyond the cap",
+          "detail": "Per extra guest above the limit.",
+          "price": "€0.25 / guest"
+        },
+        "storage": {
+          "label": "Storage",
+          "detail": "Beyond the storage included in the plan.",
+          "price": "€0.03 / GB / month"
+        }
+      },
+      "overagesNote": "No hidden fees: overages are billed only as used, beyond what's included.",
+      "compareNote": "Need the consumer details? <link>See all plans</link>."
+    },
+    "faq": {
+      "eyebrow": "Frequently asked",
+      "title": "What agencies ask us",
+      "items": {
+        "difference": {
+          "q": "How are you different from HoneyBook?",
+          "a": "HoneyBook handles your quotes and contracts. So do we — but we go all the way to the big day: animated invitations, RSVP over WhatsApp, check-in at the door, seating plan and photo gallery. The wedding doesn't end at the signature, and neither does your tool."
+        },
+        "money": {
+          "q": "Where does the money I collect go?",
+          "a": "Straight to your own Stripe account. You connect yours, your couples' payments land with you, with no Wedillybird commission and no middleman."
+        },
+        "data": {
+          "q": "Who owns my data?",
+          "a": "You do. Your couples, your vendors, your documents stay yours. You can export everything to CSV whenever you like, without asking our permission."
+        },
+        "cancel": {
+          "q": "Can I cancel whenever I want?",
+          "a": "Yes, no commitment. Your subscription stays active until the end of the paid period, then stops. No penalty, no notice."
+        },
+        "overage": {
+          "q": "What happens if I exceed my quotas?",
+          "a": "Nothing blocking. Overages (messages, guests, storage) are billed as used, at the transparent rates shown above. You stay in control, with no nasty surprises."
+        },
+        "beginner": {
+          "q": "I'm just starting out — is this too much for me?",
+          "a": "No. The Starter plan covers five weddings in parallel and all the essentials. You move up a tier when your business grows — never before."
+        }
+      }
+    },
+    "tierBadge": {
+      "business": "Business",
+      "agency": "Agency",
+      "addon": "Add-on"
+    },
+    "preview": {
+      "cockpit": {
+        "title": "Cockpit",
+        "newWedding": "New wedding",
+        "kpi": {
+          "activeWeddings": "Active weddings",
+          "pendingRsvp": "Pending RSVP",
+          "deadlines": "Deadlines",
+          "overdue": "{n} overdue",
+          "monthlyRevenue": "Revenue this month"
+        },
+        "upcomingWeddings": "Upcoming weddings",
+        "quota": {
+          "events": "Events",
+          "messages": "Messages",
+          "storage": "Storage"
+        },
+        "activity": {
+          "title": "Activity",
+          "deposit": "Deposit received",
+          "rsvp": "New RSVP",
+          "quoteAccepted": "Quote accepted",
+          "newLead": "New lead",
+          "minutesAgo": "{n} min ago",
+          "hoursAgo": "{n}h ago",
+          "yesterday": "yesterday"
+        }
+      },
+      "crm": {
+        "columns": {
+          "lead": "Lead",
+          "quoteSent": "Quote sent",
+          "booked": "Booked"
+        },
+        "bookedPercent": "{n}% paid"
+      },
+      "budget": {
+        "segments": {
+          "venue": "Venue",
+          "catering": "Catering",
+          "photo": "Photo",
+          "other": "Other"
+        },
+        "envelope": "Envelope",
+        "committed": "Committed",
+        "paid": "Paid"
+      }
     }
   },
   "Plans": {
@@ -1506,5 +2952,323 @@
     "shapeToggle": "Toggle shape (round/rectangular)",
     "clickToUnassign": "Click to remove from table",
     "guestOf": "guest of {host}"
+  },
+  "Marketing": {
+    "guide": {
+      "back": "Back",
+      "eyebrow": "Step by Step",
+      "title": "The Perfect Wedding Guide",
+      "subtitle": "A clear, structured checklist to plan your wedding with peace of mind, step by step, making the most of everything Wedillybird can do.",
+      "step1": {
+        "timeline": "12–10 months out",
+        "title": "The wedding foundations",
+        "item1": "Set the date and the overall budget",
+        "item2": "Draw up a preliminary guest list",
+        "item3": "Choose the venue and the main caterer",
+        "item4": "Create your Wedillybird space to centralise contacts"
+      },
+      "step2": {
+        "timeline": "9–6 months out",
+        "title": "Building the team",
+        "item1": "Book the photographer and videographer",
+        "item2": "Choose the décor and the florist",
+        "item3": "Start fittings for the dress/suit",
+        "item4": "Contact the DJ or the band"
+      },
+      "step3": {
+        "timeline": "5–3 months out",
+        "title": "Invitations & Logistics",
+        "item1": "Finalise the guest list",
+        "item2": "Create the digital invitation on Wedillybird",
+        "item3": "Send the invitations via WhatsApp",
+        "item4": "Arrange accommodation bookings for guests travelling from afar"
+      },
+      "step4": {
+        "timeline": "2–1 months out",
+        "title": "Final adjustments",
+        "item1": "Follow up with guests who haven't replied through the app",
+        "item2": "Finalise the seating plan with the confirmed RSVPs",
+        "item3": "Do the final outfit fittings",
+        "item4": "Review the running order of the day with all the vendors"
+      },
+      "step5": {
+        "timeline": "The big day",
+        "title": "Celebration & Peace of Mind",
+        "item1": "Use the app to check guests in at the entrance",
+        "item2": "Delegate coordination to a loved one or a planner",
+        "item3": "Enjoy every moment",
+        "item4": "Let guests share their photos in the shared space"
+      }
+    },
+    "templates": {
+      "back": "Back",
+      "title": "Template Gallery",
+      "subtitle": "Discover our collection of WhatsApp invitation templates. Pick the one that perfectly matches the mood of your wedding.",
+      "cta": "Create my invitation for free",
+      "tpl1": {
+        "name": "Minimalist Elegance",
+        "description": "Clean lines and chic typography, perfect for a modern wedding.",
+        "tag1": "Popular",
+        "tag2": "Modern"
+      },
+      "tpl2": {
+        "name": "Country Romance",
+        "description": "Delicate floral patterns and pastel tones for a soft, natural feel.",
+        "tag1": "Floral",
+        "tag2": "Classic"
+      },
+      "tpl3": {
+        "name": "Oriental Night",
+        "description": "Subtle geometric patterns and gold accents for a majestic celebration.",
+        "tag1": "Premium",
+        "tag2": "Luxury"
+      },
+      "tpl4": {
+        "name": "Traditional Purity",
+        "description": "A timeless design that highlights the very essence of your union.",
+        "tag1": "Tradition"
+      },
+      "tpl5": {
+        "name": "Sunset",
+        "description": "Warm, vibrant tones for a festive wedding in the tropics.",
+        "tag1": "Festive",
+        "tag2": "New"
+      },
+      "tpl6": {
+        "name": "Black & Gold Signature",
+        "description": "Strong contrast and absolute elegance for a prestigious reception.",
+        "tag1": "Premium",
+        "tag2": "Chic"
+      }
+    },
+    "blog": {
+      "back": "Back to home",
+      "title": "The Wedding Journal",
+      "subtitle": "Inspiration, practical advice and stories to guide you through planning the most beautiful day of your life.",
+      "readArticle": "Read the article",
+      "article1": {
+        "title": "The big wedding trends in 2026",
+        "excerpt": "Discover the colours, themes and reception formats that will define the wedding seasons ahead.",
+        "date": "15 May 2026",
+        "category": "Inspiration"
+      },
+      "article2": {
+        "title": "How to nail your WhatsApp invitations?",
+        "excerpt": "No more paper invitations that get lost. Here's how to create an elegant, effective digital invitation.",
+        "date": "02 May 2026",
+        "category": "Planning"
+      },
+      "article3": {
+        "title": "Top 10 wedding venues in Senegal",
+        "excerpt": "From Dakar to Saly, our exclusive selection of the best venues for an unforgettable wedding.",
+        "date": "28 April 2026",
+        "category": "Venues"
+      },
+      "article4": {
+        "title": "Managing your wedding budget without stress",
+        "excerpt": "Our expert tips to spread your spending wisely and avoid nasty surprises.",
+        "date": "10 April 2026",
+        "category": "Budget"
+      }
+    },
+    "pros": {
+      "metaTitle": "Wedillybird for pros — the OS for wedding agencies",
+      "metaDescription": "From lead to the big day: CRM, quotes, signed contracts, budget, vendors, WhatsApp RSVP, face-recognition gallery and check-in — under your brand. Starter, Business and Agency plans.",
+      "logoHome": "Wedillybird — home",
+      "navAriaLabel": "Pros page navigation",
+      "nav": {
+        "features": "Features",
+        "pricing": "Pricing",
+        "faq": "FAQ"
+      },
+      "cta": "Create my space"
+    },
+    "legal": {
+      "eyebrow": "LEGAL DOCUMENT"
+    },
+    "faq": {
+      "eyebrow": "Frequently asked questions"
+    },
+    "forfaitsPros": {
+      "faqEyebrow": "Frequently asked questions"
+    },
+    "landing": {
+      "navAriaLabel": "Main navigation"
+    }
+  },
+  "ProPages": {
+    "analyticsMetaTitle": "Analytics — Wedillybird Pro",
+    "analyticsTitle": "Analytics",
+    "analyticsEyebrow": "Dashboard · {name}",
+    "analyticsLockedEyebrow": "Dashboard",
+    "analyticsLockedDescription": "Your agency's consolidated cockpit: commercial and operational performance aggregated across all your weddings.",
+    "analyticsCap1": "Aggregated multi-event KPIs: active weddings, pipeline budget",
+    "analyticsCap2": "Lead → booked conversion rate across the pipeline",
+    "analyticsCap3": "Pipeline breakdown by stage",
+    "analyticsCap4": "Consolidated committed budget (planned / paid)",
+    "analyticsKpiActiveWeddings": "Active weddings",
+    "analyticsKpiActiveWeddingsNote": "{count} in total",
+    "analyticsKpiClients": "Clients",
+    "analyticsKpiClientsNote": "{count} booked",
+    "analyticsKpiConversion": "Conversion",
+    "analyticsKpiConversionNote": "lead → booked",
+    "analyticsKpiPipelineBudget": "Pipeline budget",
+    "analyticsKpiPipelineBudgetNote": "estimated clients",
+    "analyticsPipelineByStage": "Pipeline by stage",
+    "analyticsCommittedBudget": "Committed budget (all weddings)",
+    "analyticsPaidOfPlanned": "paid of {planned} planned",
+    "quotesMetaTitle": "Quotes & Invoices — Wedillybird Pro",
+    "quotesTitle": "Quotes & Invoices",
+    "quotesLockedEyebrow": "Finances",
+    "quotesLockedDescription": "Issue quotes and invoices to your couples, track deposits and balances, and follow up in one click — all from the back office.",
+    "quotesCap1": "Numbered quotes and invoices (DEV-/FAC-), branded PDF",
+    "quotesCap2": "Line items, discounts, optional VAT, automatic totals",
+    "quotesCap3": "Deposit + balance schedule, paid / outstanding tracking",
+    "quotesCap4": "Convert an accepted quote into an invoice",
+    "quotesCap5": "Statuses (sent, accepted, paid, overdue) and follow-ups",
+    "quotesCap6": "Activity history per document",
+    "integrationsMetaTitle": "Integrations — Wedillybird Pro",
+    "integrationsTitle": "CRM integrations",
+    "integrationsLockedEyebrow": "Dashboard",
+    "integrationsLockedDescription": "Keep the CRM you already use. Wedillybird handles wedding execution and syncs with your tool.",
+    "integrationsCap1": "CSV client import with column mapping and duplicate handling",
+    "integrationsCap2": "HoneyBook, Zapier / Make, API & Webhooks connectors",
+    "integrationsCap3": "Inbound sync (your CRM → Wedillybird, read-only)",
+    "integrationsCap4": "\"I use my own CRM\" mode that hides the native pipeline",
+    "integrationsCap5": "Idempotent sync log with retry of failures",
+    "integrationsConnectorHoneybookDesc": "Inbound sync of your projects (read-only).",
+    "integrationsConnectorZapierDesc": "Automate your workflows with 6,000+ apps.",
+    "integrationsConnectorApiDesc": "API key, outbound events, HMAC-signed payloads.",
+    "integrationsHeaderEyebrow": "Dashboard · Integrations",
+    "integrationsHeaderTitle": "Integrations",
+    "integrationsConnectorsHeading": "Connectors",
+    "integrationsSoonBadge": "Soon",
+    "integrationsConnectorsFootnote": "External connectors are coming; CSV import is available right now.",
+    "contractsMetaTitle": "Contracts — Wedillybird Pro",
+    "contractsTitle": "Contracts",
+    "contractsLockedEyebrow": "Finances",
+    "contractsLockedDescription": "Contract templates, electronic signature and lifecycle tracking — from accepted quote to signed contract.",
+    "contractsCap1": "Reusable contract templates",
+    "contractsCap2": "Electronic signature by the couple",
+    "contractsCap3": "Status tracking (sent, signed, counter-signed, active)",
+    "contractsCap4": "Linked to the wedding and the quote",
+    "contractsCap5": "Time-stamped audit log",
+    "clientsMetaTitle": "Clients — Wedillybird Pro",
+    "clientsTitle": "Clients",
+    "clientsLockedEyebrow": "CRM",
+    "clientsLockedDescription": "Your sales pipeline: follow every couple from first contact to wedding delivery, without leaving the back office.",
+    "clientsCap1": "6-stage pipeline: Lead → Contacted → Quote → Booked → In progress → Delivered",
+    "clientsCap2": "Drag-and-drop kanban view + a dense, filterable and sortable table",
+    "clientsCap3": "Convert a lead into a wedding in one click",
+    "clientsCap4": "Lead sources and activity timeline per client",
+    "clientsCap5": "Bulk actions (change status, assign, delete)",
+    "clientsCap6": "Client record: contact details, budget, notes, documents",
+    "paymentsMetaTitle": "Payments — Wedillybird Pro",
+    "paymentsTitle": "Payments",
+    "paymentsLockedEyebrow": "Finances",
+    "paymentsLockedDescription": "Collect from your couples online via Stripe Connect: automatic payouts, payment schedules and status tracking.",
+    "paymentsCap1": "Stripe Connect connection (automatic payouts)",
+    "paymentsCap2": "Card collection of deposits and balances",
+    "paymentsCap3": "Payment schedules per invoice",
+    "paymentsCap4": "Real-time statuses and automatic follow-ups",
+    "paymentsCap5": "Reconciliation with the invoices issued",
+    "weddingsMetaTitle": "Weddings — Wedillybird Pro",
+    "weddingsTitle": "Weddings",
+    "weddingsCount": "{count, plural, one {# wedding} other {# weddings}}",
+    "weddingsEmpty": "No weddings yet. Create the first one to get started.",
+    "weddingsMaxInvitations": "{count} invitations max",
+    "weddingsStatusDraft": "Draft",
+    "weddingsStatusActive": "Active",
+    "weddingsStatusArchived": "Archived",
+    "weddingsStatusCancelled": "Cancelled",
+    "weddingHubMetaTitle": "Wedding — Wedillybird Pro",
+    "planningMetaTitle": "Backward planning — Wedillybird Pro",
+    "planningTitle": "Backward planning",
+    "planningEmpty": "No weddings yet. Create a wedding to plan its tasks.",
+    "memberFallback": "Member",
+    "budgetMetaTitle": "Budget — Wedillybird Pro",
+    "budgetTitle": "Budget",
+    "budgetEmpty": "No weddings yet. Create a wedding to track its budget.",
+    "settingsMetaTitle": "Settings — Wedillybird Pro",
+    "settingsEyebrow": "Dashboard · Settings",
+    "settingsTitle": "Settings",
+    "dashboardMetaTitle": "Cockpit — Wedillybird Pro",
+    "vendorsMetaTitle": "Vendors — Wedillybird Pro",
+    "inviteEyebrow": "Invitation",
+    "onboardingEyebrow": "Setup · Step 01",
+    "billingPerMonth": "/ month",
+    "billingAgencySubscription": "Agency subscription",
+    "billingCellBillingCycle": "Billing cycle",
+    "billingCellMonthly": "Monthly",
+    "billingCellNextRenewal": "Next renewal",
+    "billingCellPaymentMethod": "Payment method",
+    "billingCellCardViaStripe": "Card · via Stripe",
+    "billingCellNone": "None",
+    "billingCellPlan": "Plan",
+    "billingChangePlan": "Change plan",
+    "billingEndOfPeriod": "the end of the period",
+    "billingChoosePlan": "Choose a plan",
+    "billingSubscriptionEyebrow": "Subscription",
+    "billingInvoicesHeading": "Invoices",
+    "billingTotalPaid": "Total paid",
+    "billingInvoicesEmpty": "Your subscription invoices will appear here from the first charge. They remain downloadable from the Stripe portal.",
+    "billingInvoiceNumber": "Invoice no.",
+    "billingInvoiceDate": "Date",
+    "billingInvoicePeriod": "Period",
+    "billingInvoiceAmount": "Amount",
+    "billingInvoiceStatus": "Status",
+    "billingInvoiceDocument": "Document"
+  },
+  "CoupleSpace": {
+    "eyebrow": "Couple space",
+    "weddingsTitle": "Your weddings",
+    "empty": "No wedding is linked to your account yet. Your agency will give you access — you'll see it appear here.",
+    "openMySpace": "Open my space",
+    "eventEyebrow": "Your wedding space",
+    "today": "It's today!",
+    "daysUntil": "{days} days to go",
+    "statGuests": "Guests",
+    "statConfirmed": "Confirmed",
+    "statPending": "Pending",
+    "statExpected": "People expected",
+    "guestsTitle": "Your guest list",
+    "guestsHint": "Add your guests and their phone numbers — your agency sees them in real time to prepare the WhatsApp invitations.",
+    "paymentsTitle": "Payments",
+    "paymentsEmpty": "Nothing to pay right now. Your agency will send you a link here if needed.",
+    "payPending": "To pay",
+    "paySucceeded": "Paid",
+    "payFailed": "Failed",
+    "payCta": "Pay",
+    "receiptCta": "Receipt",
+    "portalMetaTitle": "Couple space",
+    "docInvoice": "Invoice",
+    "docQuote": "Quote",
+    "docContract": "Contract",
+    "backToEvent": "Back to event",
+    "editEyebrow": "Edit",
+    "editTitle": "Your wedding details",
+    "editSubtitle": "Update the information that will appear on the invitation and the dashboard.",
+    "messagingEyebrow": "Customise",
+    "messagingTitle": "The invitation message",
+    "messagingSubtitle": "Choose the style of the message that will go out on WhatsApp to each of your guests. You can add a personal note that will be slipped into the text. The preview on the right updates in real time.",
+    "previewBanner": "Invitation preview",
+    "previewBack": "Back",
+    "previewAddressing": "Dear <name>guest's first name</name>, we'd be delighted to have you with us.",
+    "previewRsvpEyebrow": "RSVP form",
+    "previewRsvpTitle": "Your guests will confirm their attendance here.",
+    "previewRsvpHint": "3 buttons (I'll be there · I can't make it · Maybe) + plus-ones + dietary needs + a note for the couple.",
+    "previewGalleryCaption": "Photos shared by guests"
+  },
+  "Pay": {
+    "success": {
+      "metaTitle": "Payment confirmed — Wedillybird",
+      "title": "Payment confirmed",
+      "body": "Thank you, your payment has been received. A receipt has been emailed to you and your organiser is notified automatically. You can close this page."
+    },
+    "cancel": {
+      "metaTitle": "Payment cancelled — Wedillybird",
+      "title": "Payment cancelled",
+      "body": "No amount was charged. You can try again from the payment link that was sent to you."
+    }
   }
 }

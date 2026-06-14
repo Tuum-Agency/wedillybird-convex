@@ -3,6 +3,7 @@
 import { Fragment, useState, useTransition, type FormEvent } from 'react';
 import type { Route } from 'next';
 import { useRouter } from 'next/navigation';
+import { useTranslations, useFormatter } from 'next-intl';
 import {
   Plus,
   Pencil,
@@ -43,18 +44,16 @@ import {
   lineStatus,
   summarizeBudget,
   envelopeState,
-  ENVELOPE_STATE_LABEL,
   donutSegments,
   budgetAlerts,
   categoryHue,
   PAYMENT_METHODS,
-  PAYMENT_METHOD_LABEL,
   type LineStatus,
   type CategoryGroup,
   type PaymentMethod,
   type PaymentStatus,
 } from '@/lib/pro/budget';
-import { formatEurMinor, formatDateFr, parseEurToMinor, nowMs } from '@/lib/pro/format';
+import { parseEurToMinor, nowMs } from '@/lib/pro/format';
 import {
   createBudgetLineAction,
   updateBudgetLineAction,
@@ -92,24 +91,91 @@ export interface BudgetLineRow {
   payments: BudgetPaymentRow[];
 }
 
-const STATUS_PILL: Record<LineStatus, { label: string; bg: string; fg: string }> = {
-  todo: { label: 'À faire', bg: 'oklch(28% 0.015 60)', fg: 'oklch(80% 0.02 60)' },
-  partial: { label: 'Partiel', bg: 'oklch(30% 0.05 85)', fg: 'oklch(88% 0.08 85)' },
-  paid: { label: 'Payé', bg: 'oklch(27% 0.05 145)', fg: 'oklch(83% 0.08 145)' },
-  overdue: { label: 'En retard', bg: 'oklch(28% 0.06 25)', fg: 'oklch(85% 0.08 25)' },
+/** Catégories canoniques → sous-clé i18n stable (libellé localisé en UI). */
+const CATEGORY_KEY: Record<string, string> = {
+  Lieu: 'venue',
+  Traiteur: 'catering',
+  'Photo / Vidéo': 'photoVideo',
+  'Décoration & Fleurs': 'decorFlowers',
+  Tenues: 'attire',
+  'Musique / DJ': 'musicDj',
+  Papeterie: 'stationery',
+  Transport: 'transport',
+  Divers: 'misc',
 };
 
-const ERROR_LABEL: Record<string, string> = {
-  INVALID_LABEL: 'Le libellé est requis.',
-  INVALID_AMOUNT: 'Montant invalide.',
-  FEATURE_NOT_IN_PLAN: 'L’édition du budget est réservée aux forfaits Business et Agency.',
-  FORBIDDEN: 'Vous n’avez pas les droits requis.',
-  INVALID_PROOF_TYPE: 'Justificatif refusé : formats acceptés PDF, JPG, PNG, WebP.',
-  INVALID_PROOF_SIZE: 'Justificatif trop lourd (10 Mo maximum).',
-  UPLOAD_FAILED: 'Échec de l’envoi du justificatif. Réessayez.',
-  PAYMENTS_NOT_CONFIGURED: 'Le paiement en ligne n’est pas encore activé sur ce compte.',
+/**
+ * Hook : libellé de catégorie localisé. Les catégories canoniques sont
+ * traduites ; une catégorie libre (custom) est affichée telle quelle.
+ */
+function useCategoryLabel() {
+  const t = useTranslations('Pro.budgetBoard');
+  return (category: string) => {
+    const key = CATEGORY_KEY[category];
+    return key ? t(`categories.${key}` as const) : category;
+  };
+}
+
+/** Couleurs des pastilles de statut (les libellés viennent de l'i18n). */
+const STATUS_PILL_TONE: Record<LineStatus, { bg: string; fg: string }> = {
+  todo: { bg: 'oklch(28% 0.015 60)', fg: 'oklch(80% 0.02 60)' },
+  partial: { bg: 'oklch(30% 0.05 85)', fg: 'oklch(88% 0.08 85)' },
+  paid: { bg: 'oklch(27% 0.05 145)', fg: 'oklch(83% 0.08 145)' },
+  overdue: { bg: 'oklch(28% 0.06 25)', fg: 'oklch(85% 0.08 25)' },
 };
-const errLabel = (c: string) => ERROR_LABEL[c] ?? 'Une erreur est survenue. Réessayez.';
+
+/** Codes d'erreur serveur disposant d'un libellé dédié (sinon message générique). */
+const KNOWN_ERROR_CODES = new Set([
+  'INVALID_LABEL',
+  'INVALID_AMOUNT',
+  'FEATURE_NOT_IN_PLAN',
+  'FORBIDDEN',
+  'INVALID_PROOF_TYPE',
+  'INVALID_PROOF_SIZE',
+  'UPLOAD_FAILED',
+  'PAYMENTS_NOT_CONFIGURED',
+]);
+
+/** Hook : traduit un code d'erreur serveur en message FR (fallback générique). */
+function useErrorLabel() {
+  const t = useTranslations('Pro.budgetBoard');
+  return (code: string) =>
+    KNOWN_ERROR_CODES.has(code) ? t(`errors.${code}` as const) : t('errors.generic');
+}
+
+/**
+ * Hook de formatage monétaire localisé (centimes → « 18 000 € »). Reproduit la
+ * logique FR partagée mais via la locale active (pas de `fr-FR` codé en dur).
+ */
+function useEurFormat() {
+  const format = useFormatter();
+  return (minor: number | null | undefined) => {
+    if (minor == null) return '—';
+    const eur = minor / 100;
+    return format.number(eur, {
+      style: 'currency',
+      currency: 'EUR',
+      maximumFractionDigits: Number.isInteger(eur) ? 0 : 2,
+    });
+  };
+}
+
+/**
+ * Hook de formatage de date localisé (ms → « 12 sept. 2026 »), UTC pour éviter
+ * les décalages SSR.
+ */
+function useDateFormat() {
+  const format = useFormatter();
+  return (ms: number | null | undefined) => {
+    if (ms == null) return '—';
+    return format.dateTime(new Date(ms), {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      timeZone: 'UTC',
+    });
+  };
+}
 
 function toDateInput(ms: number | undefined): string {
   if (!ms) return '';
@@ -138,6 +204,7 @@ function VendorPicker({
   defaultValue?: string;
   category: string;
 }) {
+  const t = useTranslations('Pro.budgetBoard');
   const [vendors, setVendors] = useState(initialVendors);
   const [value, setValue] = useState(defaultValue ?? '');
   const [open, setOpen] = useState(false);
@@ -170,7 +237,7 @@ function VendorPicker({
         }}
         onFocus={() => setOpen(true)}
         autoComplete="off"
-        placeholder="Maison Diop"
+        placeholder={t('vendorPicker.placeholder')}
         className={VENDOR_INPUT_CLASS}
       />
       {open ? (
@@ -216,17 +283,19 @@ function VendorPicker({
                 >
                   <Plus className="h-3.5 w-3.5 flex-shrink-0" strokeWidth={2.2} aria-hidden />
                   <span className="flex-1 truncate">
-                    {creating ? 'Création…' : `Créer « ${value.trim()} »`}
+                    {creating
+                      ? t('vendorPicker.creating')
+                      : t('vendorPicker.create', { name: value.trim() })}
                   </span>
                   <span className="font-mono text-[10px] text-[color:var(--color-muted-foreground)]">
-                    nouveau prestataire
+                    {t('vendorPicker.newVendor')}
                   </span>
                 </button>
               </li>
             ) : null}
             {matches.length === 0 && !q ? (
               <li className="px-2 py-1.5 text-xs text-[color:var(--color-muted-foreground)]">
-                Tapez pour chercher ou créer un prestataire…
+                {t('vendorPicker.hint')}
               </li>
             ) : null}
           </ul>
@@ -249,6 +318,7 @@ function EnvelopeEditor({
   onSave: (eur: string) => void;
   onCancel: () => void;
 }) {
+  const t = useTranslations('Pro.budgetBoard');
   const [digits, setDigits] = useState(
     initialMinor > 0 ? String(Math.round(initialMinor / 100)) : '',
   );
@@ -270,7 +340,7 @@ function EnvelopeEditor({
             if (e.key === 'Escape') onCancel();
           }}
           placeholder="18 000"
-          aria-label="Enveloppe (€)"
+          aria-label={t('envelope.fieldAria')}
           className="font-display w-full min-w-0 bg-transparent text-2xl text-[color:var(--color-foreground)] italic tabular-nums outline-none placeholder:text-[color:var(--color-muted-foreground)] placeholder:not-italic"
         />
         <span className="font-display text-xl text-[color:var(--color-muted-foreground)] italic">
@@ -279,7 +349,7 @@ function EnvelopeEditor({
       </div>
       <button
         type="submit"
-        aria-label="Enregistrer l’enveloppe"
+        aria-label={t('envelope.saveAria')}
         className="focus-ring grid h-8 w-8 flex-shrink-0 cursor-pointer place-items-center rounded-md text-[color:var(--color-sage-500)] transition-colors hover:bg-[color:var(--color-surface-elevated)]"
       >
         <Check className="h-4 w-4" strokeWidth={2.2} />
@@ -307,10 +377,15 @@ export function BudgetBoard({
   vendors: ReadonlyArray<{ name: string; category?: string }>;
 }) {
   const router = useRouter();
+  const t = useTranslations('Pro.budgetBoard');
+  const fmtEur = useEurFormat();
+  const fmtDate = useDateFormat();
+  const errLabel = useErrorLabel();
+  const catLabel = useCategoryLabel();
   const selectedEvent = events.find((e) => e._id === selectedEventId) ?? events[0];
   const coupleLabel = selectedEvent
     ? `${selectedEvent.partnerA}${selectedEvent.partnerB ? ` & ${selectedEvent.partnerB}` : ''}`
-    : 'mariage';
+    : t('coupleFallback');
   const [lines, setLines] = useState<BudgetLineRow[]>(initialLines);
   const [envelopeMinor, setEnvelope] = useState(initialEnvelope);
   const [envEditing, setEnvEditing] = useState(false);
@@ -339,7 +414,26 @@ export function BudgetBoard({
       ? Math.min(100, Math.round((summary.paidMinor / summary.plannedMinor) * 100))
       : 0;
   const envState = envelopeState(summary.plannedMinor, envelopeMinor);
-  const alerts = budgetAlerts(lines, summary, envelopeMinor, now);
+  // On garde `budgetAlerts` pour décider QUELLES alertes afficher (kind/tone) ;
+  // titres et corps sont (re)traduits côté UI à partir des données dérivées.
+  const overrunCount = lines.filter((l) => l.paidMinor > l.plannedMinor).length;
+  const overdueCount = lines.filter(
+    (l) => l.dueDate != null && l.dueDate < now && l.paidMinor < l.plannedMinor,
+  ).length;
+  const alerts = budgetAlerts(lines, summary, envelopeMinor, now).map((a) => {
+    const body =
+      a.kind === 'envelope'
+        ? t('alerts.envelope.body', { amount: fmtEur(summary.plannedMinor - envelopeMinor) })
+        : a.kind === 'overrun'
+          ? t('alerts.overrun.body', { count: overrunCount })
+          : t('alerts.overdue.body', { count: overdueCount });
+    return {
+      kind: a.kind,
+      tone: a.tone,
+      title: t(`alerts.${a.kind}.title` as const),
+      body,
+    };
+  });
   const donut = donutSegments(groups);
 
   function saveEnvelope(eur: string) {
@@ -411,7 +505,7 @@ export function BudgetBoard({
   }
 
   function onRemove(line: BudgetLineRow) {
-    if (!confirm(`Supprimer la ligne « ${line.label} » ?`)) return;
+    if (!confirm(t('confirmRemoveLine', { label: line.label }))) return;
     setLines((prev) => prev.filter((l) => l._id !== line._id));
     startTransition(async () => {
       const res = await removeBudgetLineAction(line._id);
@@ -533,7 +627,7 @@ export function BudgetBoard({
   }
 
   function onRemovePayment(line: BudgetLineRow, payment: BudgetPaymentRow) {
-    if (!confirm(`Supprimer ce paiement de ${formatEurMinor(payment.amountMinor)} ?`)) return;
+    if (!confirm(t('confirmRemovePayment', { amount: fmtEur(payment.amountMinor) }))) return;
     setLines((prev) =>
       prev.map((l) =>
         l._id === line._id
@@ -560,10 +654,10 @@ export function BudgetBoard({
       <header className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="flex flex-col gap-2.5">
           <span className="font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-muted-foreground)] uppercase">
-            Budget · {orgName}
-            {!canEdit ? ' · lecture seule' : ''}
+            {t('eyebrow', { org: orgName })}
+            {!canEdit ? t('readOnlySuffix') : ''}
           </span>
-          <h1 className="sr-only">Budget — {coupleLabel}</h1>
+          <h1 className="sr-only">{t('srTitle', { couple: coupleLabel })}</h1>
           <WeddingSelect
             events={events}
             value={selectedEventId}
@@ -584,7 +678,7 @@ export function BudgetBoard({
               data-testid="header-new-line"
             >
               <Plus className="h-4 w-4" strokeWidth={2.2} aria-hidden />
-              Ajouter une ligne
+              {t('addLine')}
             </Button>
           ) : null}
         </div>
@@ -600,14 +694,14 @@ export function BudgetBoard({
                 strokeWidth={1.9}
                 aria-hidden
               />
-              Enveloppe
+              {t('kpi.envelope')}
             </span>
             {canEdit && !envEditing ? (
               <button
                 type="button"
                 onClick={() => setEnvEditing(true)}
-                aria-label="Modifier l’enveloppe"
-                title="Modifier l’enveloppe"
+                aria-label={t('envelope.editAria')}
+                title={t('envelope.editAria')}
                 className="focus-ring cursor-pointer text-[color:var(--color-muted-foreground)] transition-colors hover:text-[color:var(--color-foreground)]"
               >
                 <Pencil className="h-3 w-3" strokeWidth={1.9} />
@@ -622,33 +716,33 @@ export function BudgetBoard({
             />
           ) : (
             <span className="font-display text-2xl text-[color:var(--color-foreground)] italic tabular-nums">
-              {envelopeMinor > 0 ? formatEurMinor(envelopeMinor) : '—'}
+              {envelopeMinor > 0 ? fmtEur(envelopeMinor) : '—'}
             </span>
           )}
         </div>
         <Kpi
           Icon={PieChart}
-          label="Prévu"
-          value={formatEurMinor(summary.plannedMinor)}
+          label={t('kpi.planned')}
+          value={fmtEur(summary.plannedMinor)}
           tone={envState === 'over' ? 'danger' : 'default'}
           sub={
             envState === 'over'
-              ? `+${formatEurMinor(summary.plannedMinor - envelopeMinor)} vs enveloppe`
-              : `${groups.length} poste${groups.length > 1 ? 's' : ''} · ${summary.lineCount} ligne${summary.lineCount > 1 ? 's' : ''}`
+              ? t('kpi.plannedOverSub', { amount: fmtEur(summary.plannedMinor - envelopeMinor) })
+              : t('kpi.plannedSub', { posts: groups.length, lines: summary.lineCount })
           }
         />
         <Kpi
           Icon={Banknote}
-          label="Payé"
-          value={formatEurMinor(summary.paidMinor)}
-          sub={`${paidPct} % du prévu réglé`}
+          label={t('kpi.paid')}
+          value={fmtEur(summary.paidMinor)}
+          sub={t('kpi.paidSub', { pct: paidPct })}
         />
         <Kpi
           Icon={Wallet}
-          label="Reste à payer"
-          value={formatEurMinor(summary.remainingMinor)}
+          label={t('kpi.remaining')}
+          value={fmtEur(summary.remainingMinor)}
           tone={summary.remainingMinor < 0 ? 'danger' : 'default'}
-          sub={`sur ${summary.lineCount} ligne${summary.lineCount > 1 ? 's' : ''}`}
+          sub={t('kpi.remainingSub', { lines: summary.lineCount })}
         />
       </section>
 
@@ -657,11 +751,14 @@ export function BudgetBoard({
         <div className="flex flex-col gap-2 rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-4">
           <div className="flex items-center justify-between text-xs">
             <span className="text-[color:var(--color-muted-foreground)]">
-              Avancement des paiements
+              {t('health.progress')}
             </span>
             <span className="font-mono text-[color:var(--color-foreground)] tabular-nums">
-              {paidPct} % payé · {formatEurMinor(summary.paidMinor)} /{' '}
-              {formatEurMinor(summary.plannedMinor)}
+              {t('health.progressStat', {
+                pct: paidPct,
+                paid: fmtEur(summary.paidMinor),
+                planned: fmtEur(summary.plannedMinor),
+              })}
             </span>
           </div>
           <div className="relative h-2 w-full overflow-hidden rounded-full bg-[color:var(--color-surface-elevated)]">
@@ -692,10 +789,10 @@ export function BudgetBoard({
                         : 'var(--color-sage-500)',
                 }}
               >
-                {ENVELOPE_STATE_LABEL[envState]}
+                {t(`envelopeState.${envState}` as const)}
               </span>
               <span className="text-[color:var(--color-muted-foreground)]">
-                Enveloppe {formatEurMinor(envelopeMinor)}
+                {t('health.envelopeAmount', { amount: fmtEur(envelopeMinor) })}
               </span>
             </div>
           ) : null}
@@ -743,7 +840,7 @@ export function BudgetBoard({
 
       {!canEdit ? (
         <p className="font-mono text-[10px] tracking-[0.12em] text-[color:var(--color-muted-foreground)] uppercase">
-          Édition des lignes disponible à partir du forfait Business.
+          {t('readOnlyNote')}
         </p>
       ) : null}
 
@@ -751,12 +848,12 @@ export function BudgetBoard({
       {lines.length === 0 ? (
         <div className="flex flex-col items-center gap-4 rounded-3xl border border-dashed border-[color:var(--color-border-strong)] bg-[color:var(--color-surface)]/40 px-8 py-14 text-center">
           <p className="max-w-sm text-sm text-[color:var(--color-muted-foreground)]">
-            Aucune ligne de budget. {canEdit ? 'Ajoutez votre premier poste.' : ''}
+            {t('empty.text')} {canEdit ? t('empty.cta') : ''}
           </p>
           {canEdit ? (
             <Button type="button" variant="primary" size="md" onClick={() => openCreate('Lieu')}>
               <Plus className="h-4 w-4" strokeWidth={2.2} aria-hidden />
-              Ajouter une ligne
+              {t('addLine')}
             </Button>
           ) : null}
         </div>
@@ -769,10 +866,10 @@ export function BudgetBoard({
             >
               <div className="flex items-center justify-between border-b border-[color:var(--color-border)] px-4 py-3">
                 <h2 className="font-display text-base text-[color:var(--color-foreground)] italic">
-                  {g.category}
+                  {catLabel(g.category)}
                 </h2>
                 <span className="font-mono text-[11px] text-[color:var(--color-muted-foreground)] tabular-nums">
-                  {formatEurMinor(g.paidMinor)} / {formatEurMinor(g.plannedMinor)}
+                  {fmtEur(g.paidMinor)} / {fmtEur(g.plannedMinor)}
                 </span>
               </div>
               <div className="overflow-x-auto">
@@ -780,32 +877,32 @@ export function BudgetBoard({
                   <thead>
                     <tr className="border-b border-[color:var(--color-border)] text-left font-mono text-[9px] tracking-[0.16em] text-[color:var(--color-muted-foreground)] uppercase">
                       <th scope="col" className="px-4 py-2 font-medium">
-                        Poste
+                        {t('cols.item')}
                       </th>
                       <th scope="col" className="px-4 py-2 text-right font-medium">
-                        Prévu
+                        {t('cols.planned')}
                       </th>
                       <th scope="col" className="px-4 py-2 text-right font-medium">
-                        Payé
+                        {t('cols.paid')}
                       </th>
                       <th scope="col" className="px-4 py-2 text-right font-medium">
-                        Reste
+                        {t('cols.remaining')}
                       </th>
                       <th scope="col" className="px-4 py-2 font-medium">
-                        Échéance
+                        {t('cols.dueDate')}
                       </th>
                       <th scope="col" className="px-4 py-2 font-medium">
-                        Statut
+                        {t('cols.status')}
                       </th>
                       <th scope="col" className="px-4 py-2 text-right font-medium">
-                        <span className="sr-only">Actions</span>
+                        <span className="sr-only">{t('cols.actions')}</span>
                       </th>
                     </tr>
                   </thead>
                   <tbody>
                     {g.items.map((l) => {
                       const st = lineStatus(l, now);
-                      const pill = STATUS_PILL[st];
+                      const pill = STATUS_PILL_TONE[st];
                       const isOpen = expanded.has(l._id);
                       const payCount = l.payments.length;
                       return (
@@ -822,8 +919,8 @@ export function BudgetBoard({
                                     onClick={() => toggleExpanded(l._id)}
                                     aria-label={
                                       isOpen
-                                        ? `Masquer les paiements de ${l.label}`
-                                        : `Afficher les paiements de ${l.label}`
+                                        ? t('row.hidePaymentsAria', { label: l.label })
+                                        : t('row.showPaymentsAria', { label: l.label })
                                     }
                                     aria-expanded={isOpen}
                                     className="focus-ring -ml-1 inline-flex flex-shrink-0 items-center gap-0.5 rounded-md px-1 py-0.5 font-mono text-[10px] text-[color:var(--color-muted-foreground)] transition-colors hover:text-[color:var(--color-foreground)]"
@@ -850,23 +947,23 @@ export function BudgetBoard({
                               ) : null}
                             </td>
                             <td className="px-4 py-2.5 text-right font-mono text-xs text-[color:var(--color-muted-foreground)] tabular-nums">
-                              {formatEurMinor(l.plannedMinor)}
+                              {fmtEur(l.plannedMinor)}
                             </td>
                             <td className="px-4 py-2.5 text-right font-mono text-xs text-[color:var(--color-foreground)] tabular-nums">
-                              {formatEurMinor(l.paidMinor)}
+                              {fmtEur(l.paidMinor)}
                             </td>
                             <td className="px-4 py-2.5 text-right font-mono text-xs text-[color:var(--color-muted-foreground)] tabular-nums">
-                              {formatEurMinor(l.plannedMinor - l.paidMinor)}
+                              {fmtEur(l.plannedMinor - l.paidMinor)}
                             </td>
                             <td className="px-4 py-2.5 font-mono text-[11px] text-[color:var(--color-muted-foreground)]">
-                              {formatDateFr(l.dueDate)}
+                              {fmtDate(l.dueDate)}
                             </td>
                             <td className="px-4 py-2.5">
                               <span
                                 className="inline-flex items-center rounded-full px-2 py-0.5 font-mono text-[9px] tracking-[0.12em] uppercase"
                                 style={{ background: pill.bg, color: pill.fg }}
                               >
-                                {pill.label}
+                                {t(`status.${st}` as const)}
                               </span>
                             </td>
                             <td className="px-4 py-2.5">
@@ -876,18 +973,18 @@ export function BudgetBoard({
                                     <button
                                       type="button"
                                       onClick={() => openPayment(l)}
-                                      aria-label={`Enregistrer un paiement pour ${l.label}`}
-                                      title="Enregistrer un paiement"
+                                      aria-label={t('row.recordPaymentAria', { label: l.label })}
+                                      title={t('row.recordPaymentTitle')}
                                       className="focus-ring inline-flex items-center gap-1 rounded-md px-2 py-1.5 text-[11px] font-medium text-[color:var(--color-muted-foreground)] transition-colors hover:bg-[color:var(--color-surface-elevated)] hover:text-[color:var(--color-sage-500)]"
                                     >
                                       <Banknote className="h-3.5 w-3.5" strokeWidth={2} />
-                                      Paiement
+                                      {t('row.payment')}
                                     </button>
                                   ) : null}
                                   <button
                                     type="button"
                                     onClick={() => openEdit(l)}
-                                    aria-label={`Modifier ${l.label}`}
+                                    aria-label={t('row.editAria', { label: l.label })}
                                     className="focus-ring rounded-md p-1.5 text-[color:var(--color-muted-foreground)] hover:bg-[color:var(--color-surface-elevated)] hover:text-[color:var(--color-foreground)]"
                                   >
                                     <Pencil className="h-3.5 w-3.5" strokeWidth={1.85} />
@@ -895,7 +992,7 @@ export function BudgetBoard({
                                   <button
                                     type="button"
                                     onClick={() => onRemove(l)}
-                                    aria-label={`Supprimer ${l.label}`}
+                                    aria-label={t('row.removeAria', { label: l.label })}
                                     className="focus-ring rounded-md p-1.5 text-[color:var(--color-muted-foreground)] hover:bg-[color:var(--color-surface-elevated)] hover:text-[color:var(--color-danger)]"
                                   >
                                     <Trash2 className="h-3.5 w-3.5" strokeWidth={1.85} />
@@ -931,7 +1028,7 @@ export function BudgetBoard({
                   className="focus-ring flex w-full items-center gap-2 border-t border-[color:var(--color-border)] px-4 py-2.5 text-left text-xs text-[color:var(--color-muted-foreground)] transition-colors hover:bg-[color:var(--color-surface-elevated)] hover:text-[color:var(--color-foreground)]"
                 >
                   <Plus className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />
-                  Ajouter une ligne dans {g.category}
+                  {t('addLineInCategory', { category: catLabel(g.category) })}
                 </button>
               ) : null}
             </section>
@@ -946,7 +1043,7 @@ export function BudgetBoard({
                 data-testid="new-budget-line"
               >
                 <Plus className="h-4 w-4" strokeWidth={2.2} aria-hidden />
-                Nouvelle ligne
+                {t('newLine')}
               </Button>
             </div>
           ) : null}
@@ -956,7 +1053,9 @@ export function BudgetBoard({
       <Dialog open={drawerOpen} onOpenChange={setDrawerOpen}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>{editing ? 'Modifier la ligne' : 'Nouvelle ligne de budget'}</DialogTitle>
+            <DialogTitle>
+              {editing ? t('lineDialog.editTitle') : t('lineDialog.createTitle')}
+            </DialogTitle>
           </DialogHeader>
           <form
             key={editing?._id ?? `new-${presetCategory}`}
@@ -966,27 +1065,27 @@ export function BudgetBoard({
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <label className="flex flex-col gap-1.5 sm:col-span-2">
                 <span className="text-xs font-medium text-[color:var(--color-muted-foreground)]">
-                  Libellé *
+                  {t('lineDialog.labelLabel')}
                 </span>
                 <Input
                   name="label"
                   required
                   defaultValue={editing?.label ?? ''}
-                  placeholder="Acompte traiteur"
+                  placeholder={t('lineDialog.labelPlaceholder')}
                 />
               </label>
               <div className="flex flex-col gap-1.5">
                 <span className="text-xs font-medium text-[color:var(--color-muted-foreground)]">
-                  Catégorie
+                  {t('lineDialog.categoryLabel')}
                 </span>
                 <Select name="category" defaultValue={editing?.category ?? presetCategory}>
-                  <SelectTrigger aria-label="Catégorie">
+                  <SelectTrigger aria-label={t('lineDialog.categoryLabel')}>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     {BUDGET_CATEGORIES.map((c) => (
                       <SelectItem key={c} value={c}>
-                        {c}
+                        {catLabel(c)}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -994,7 +1093,7 @@ export function BudgetBoard({
               </div>
               <label className="flex flex-col gap-1.5">
                 <span className="text-xs font-medium text-[color:var(--color-muted-foreground)]">
-                  Prestataire
+                  {t('lineDialog.vendorLabel')}
                 </span>
                 <VendorPicker
                   vendors={vendors}
@@ -1004,7 +1103,7 @@ export function BudgetBoard({
               </label>
               <label className="flex flex-col gap-1.5">
                 <span className="text-xs font-medium text-[color:var(--color-muted-foreground)]">
-                  Prévu (€)
+                  {t('lineDialog.plannedLabel')}
                 </span>
                 <Input
                   name="plannedEur"
@@ -1015,17 +1114,17 @@ export function BudgetBoard({
               </label>
               <label className="flex flex-col gap-1.5">
                 <span className="text-xs font-medium text-[color:var(--color-muted-foreground)]">
-                  Échéance
+                  {t('lineDialog.dueDateLabel')}
                 </span>
                 <Input name="dueDate" type="date" defaultValue={toDateInput(editing?.dueDate)} />
               </label>
               {editing ? (
                 <p className="text-xs text-[color:var(--color-muted-foreground)] sm:col-span-2">
-                  Payé :{' '}
+                  {t('lineDialog.paidNotePrefix')}{' '}
                   <b className="text-[color:var(--color-foreground)]">
-                    {formatEurMinor(editing.paidMinor)}
+                    {fmtEur(editing.paidMinor)}
                   </b>{' '}
-                  — géré via les paiements (bouton « Paiement » sur la ligne).
+                  {t('lineDialog.paidNoteSuffix')}
                 </p>
               ) : null}
             </div>
@@ -1043,10 +1142,10 @@ export function BudgetBoard({
                 className={cn(buttonVariants({ variant: 'ghost', size: 'md' }))}
               >
                 <X className="h-4 w-4" strokeWidth={2} aria-hidden />
-                Annuler
+                {t('actions.cancel')}
               </button>
               <Button type="submit" variant="primary" size="md" disabled={pending}>
-                {pending ? 'Enregistrement…' : editing ? 'Enregistrer' : 'Ajouter'}
+                {pending ? t('actions.saving') : editing ? t('actions.save') : t('actions.add')}
               </Button>
             </div>
           </form>
@@ -1056,15 +1155,16 @@ export function BudgetBoard({
       <Dialog open={payingLine !== null} onOpenChange={(o) => !o && setPayingLine(null)}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Paiement</DialogTitle>
+            <DialogTitle>{t('paymentDialog.title')}</DialogTitle>
           </DialogHeader>
           {payingLine ? (
             <div className="flex flex-col gap-4 pb-2">
               <p className="text-xs text-[color:var(--color-muted-foreground)]">
                 {payingLine.label}
-                {payingLine.vendorName ? ` · ${payingLine.vendorName}` : ''} — reste{' '}
+                {payingLine.vendorName ? ` · ${payingLine.vendorName}` : ''}{' '}
+                {t('paymentDialog.remainingPrefix')}{' '}
                 <b className="text-[color:var(--color-foreground)]">
-                  {formatEurMinor(Math.max(0, payingLine.plannedMinor - payingLine.paidMinor))}
+                  {fmtEur(Math.max(0, payingLine.plannedMinor - payingLine.paidMinor))}
                 </b>
               </p>
 
@@ -1072,8 +1172,8 @@ export function BudgetBoard({
               <div className="flex gap-1 rounded-lg border border-[color:var(--color-border-strong)] bg-[color:var(--color-surface-elevated)] p-1">
                 {(
                   [
-                    { k: 'manual', label: 'J’ai reçu un paiement', Icon: Banknote },
-                    { k: 'online', label: 'Lien de paiement', Icon: Link2 },
+                    { k: 'manual', label: t('paymentDialog.modeManual'), Icon: Banknote },
+                    { k: 'online', label: t('paymentDialog.modeOnline'), Icon: Link2 },
                   ] as const
                 ).map(({ k, label, Icon }) => (
                   <button
@@ -1107,7 +1207,7 @@ export function BudgetBoard({
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     <label className="flex flex-col gap-1.5">
                       <span className="text-xs font-medium text-[color:var(--color-muted-foreground)]">
-                        Montant reçu (€) *
+                        {t('paymentDialog.amountReceivedLabel')}
                       </span>
                       <Input
                         name="amountEur"
@@ -1121,16 +1221,16 @@ export function BudgetBoard({
                     </label>
                     <div className="flex flex-col gap-1.5">
                       <span className="text-xs font-medium text-[color:var(--color-muted-foreground)]">
-                        Moyen
+                        {t('paymentDialog.methodLabel')}
                       </span>
                       <Select name="method" defaultValue="transfer">
-                        <SelectTrigger aria-label="Moyen de paiement">
+                        <SelectTrigger aria-label={t('paymentDialog.methodSelectAria')}>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
                           {PAYMENT_METHODS.filter((m) => m !== 'online').map((m) => (
                             <SelectItem key={m} value={m}>
-                              {PAYMENT_METHOD_LABEL[m]}
+                              {t(`methods.${m}` as const)}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -1138,20 +1238,20 @@ export function BudgetBoard({
                     </div>
                     <label className="flex flex-col gap-1.5">
                       <span className="text-xs font-medium text-[color:var(--color-muted-foreground)]">
-                        Date
+                        {t('paymentDialog.dateLabel')}
                       </span>
                       <Input name="paidAt" type="date" defaultValue={toDateInput(now)} />
                     </label>
                     <label className="flex flex-col gap-1.5">
                       <span className="text-xs font-medium text-[color:var(--color-muted-foreground)]">
-                        Note
+                        {t('paymentDialog.noteLabel')}
                       </span>
-                      <Input name="note" placeholder="Acompte, solde…" />
+                      <Input name="note" placeholder={t('paymentDialog.notePlaceholder')} />
                     </label>
                     <label className="flex flex-col gap-1.5 sm:col-span-2">
                       <span className="flex items-center gap-1.5 text-xs font-medium text-[color:var(--color-muted-foreground)]">
                         <Paperclip className="h-3 w-3" strokeWidth={2} aria-hidden />
-                        Justificatif (optionnel)
+                        {t('paymentDialog.proofLabel')}
                       </span>
                       <input
                         name="proof"
@@ -1160,7 +1260,7 @@ export function BudgetBoard({
                         className="block w-full cursor-pointer rounded-lg border border-[color:var(--color-border-strong)] bg-[color:var(--color-surface-elevated)] text-xs text-[color:var(--color-muted-foreground)] file:mr-3 file:cursor-pointer file:border-0 file:bg-[color:var(--color-surface)] file:px-3 file:py-2 file:text-xs file:font-medium file:text-[color:var(--color-foreground)]"
                       />
                       <span className="font-mono text-[10px] text-[color:var(--color-muted-foreground)]">
-                        PDF, JPG, PNG ou WebP · 10 Mo max
+                        {t('paymentDialog.proofHint')}
                       </span>
                     </label>
                   </div>
@@ -1178,11 +1278,11 @@ export function BudgetBoard({
                       className={cn(buttonVariants({ variant: 'ghost', size: 'md' }))}
                     >
                       <X className="h-4 w-4" strokeWidth={2} aria-hidden />
-                      Annuler
+                      {t('actions.cancel')}
                     </button>
                     <Button type="submit" variant="primary" size="md" disabled={pending}>
                       <Banknote className="h-4 w-4" strokeWidth={2} aria-hidden />
-                      {pending ? 'Enregistrement…' : 'Enregistrer le paiement'}
+                      {pending ? t('actions.saving') : t('paymentDialog.savePayment')}
                     </Button>
                   </div>
                 </form>
@@ -1195,10 +1295,11 @@ export function BudgetBoard({
                       aria-hidden
                     />
                     <span className="flex flex-col gap-0.5">
-                      <b className="text-[color:var(--color-foreground)]">Lien prêt à partager</b>
+                      <b className="text-[color:var(--color-foreground)]">
+                        {t('paymentDialog.linkReadyTitle')}
+                      </b>
                       <span className="text-[color:var(--color-muted-foreground)]">
-                        Envoyez-le au couple. Le paiement sera encaissé et le reçu attaché
-                        automatiquement.
+                        {t('paymentDialog.linkReadyBody')}
                       </span>
                     </span>
                   </div>
@@ -1206,7 +1307,7 @@ export function BudgetBoard({
                     <input
                       readOnly
                       value={generatedLink}
-                      aria-label="Lien de paiement"
+                      aria-label={t('paymentDialog.linkFieldAria')}
                       onFocus={(e) => e.currentTarget.select()}
                       className="h-10 w-full flex-1 rounded-lg border border-[color:var(--color-border-strong)] bg-[color:var(--color-surface-elevated)] px-3 font-mono text-xs text-[color:var(--color-foreground)] outline-none"
                     />
@@ -1221,7 +1322,7 @@ export function BudgetBoard({
                       ) : (
                         <Copy className="h-4 w-4" strokeWidth={2} aria-hidden />
                       )}
-                      {copied ? 'Copié' : 'Copier'}
+                      {copied ? t('actions.copied') : t('actions.copy')}
                     </Button>
                   </div>
                   <div className="mt-1 flex items-center justify-end">
@@ -1231,7 +1332,7 @@ export function BudgetBoard({
                       size="md"
                       onClick={() => setPayingLine(null)}
                     >
-                      Terminé
+                      {t('actions.done')}
                     </Button>
                   </div>
                 </div>
@@ -1239,7 +1340,7 @@ export function BudgetBoard({
                 <div className="flex flex-col gap-4">
                   <label className="flex flex-col gap-1.5">
                     <span className="text-xs font-medium text-[color:var(--color-muted-foreground)]">
-                      Montant à demander (€) *
+                      {t('paymentDialog.amountToRequestLabel')}
                     </span>
                     <Input
                       inputMode="decimal"
@@ -1255,8 +1356,7 @@ export function BudgetBoard({
                       strokeWidth={1.9}
                       aria-hidden
                     />
-                    Génère un lien de paiement sécurisé (carte). À l’encaissement, le paiement et
-                    son reçu sont ajoutés automatiquement à cette ligne.
+                    {t('paymentDialog.onlineHint')}
                   </p>
 
                   {formError ? (
@@ -1272,7 +1372,7 @@ export function BudgetBoard({
                       className={cn(buttonVariants({ variant: 'ghost', size: 'md' }))}
                     >
                       <X className="h-4 w-4" strokeWidth={2} aria-hidden />
-                      Annuler
+                      {t('actions.cancel')}
                     </button>
                     <Button
                       type="button"
@@ -1282,7 +1382,7 @@ export function BudgetBoard({
                       onClick={onGenerateLink}
                     >
                       <Link2 className="h-4 w-4" strokeWidth={2} aria-hidden />
-                      {pending ? 'Génération…' : 'Générer le lien'}
+                      {pending ? t('paymentDialog.generating') : t('paymentDialog.generateLink')}
                     </Button>
                   </div>
                 </div>
@@ -1297,6 +1397,7 @@ export function BudgetBoard({
 
 /** Bouton « copier le lien » avec retour visuel, autonome (état local). */
 function CopyLinkButton({ url }: { url: string }) {
+  const t = useTranslations('Pro.budgetBoard');
   const [done, setDone] = useState(false);
   return (
     <button
@@ -1317,7 +1418,7 @@ function CopyLinkButton({ url }: { url: string }) {
       ) : (
         <Copy className="h-3 w-3" strokeWidth={1.9} aria-hidden />
       )}
-      {done ? 'Lien copié' : 'Copier le lien'}
+      {done ? t('payHistory.linkCopied') : t('payHistory.copyLink')}
     </button>
   );
 }
@@ -1332,10 +1433,13 @@ function PaymentHistory({
   canEdit: boolean;
   onRemovePayment: (line: BudgetLineRow, payment: BudgetPaymentRow) => void;
 }) {
+  const t = useTranslations('Pro.budgetBoard');
+  const fmtEur = useEurFormat();
+  const fmtDate = useDateFormat();
   if (line.payments.length === 0) {
     return (
       <p className="py-1 text-xs text-[color:var(--color-muted-foreground)]">
-        Aucun paiement enregistré.
+        {t('payHistory.empty')}
       </p>
     );
   }
@@ -1350,10 +1454,10 @@ function PaymentHistory({
             className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg px-2 py-1.5 text-xs hover:bg-[color:var(--color-surface)]"
           >
             <span className="font-mono text-[11px] text-[color:var(--color-muted-foreground)] tabular-nums">
-              {formatDateFr(p.paidAt)}
+              {fmtDate(p.paidAt)}
             </span>
             <span className="text-[color:var(--color-foreground)]">
-              {PAYMENT_METHOD_LABEL[p.method]}
+              {t(`methods.${p.method}` as const)}
             </span>
             <span
               className={cn(
@@ -1363,7 +1467,7 @@ function PaymentHistory({
                   : 'text-[color:var(--color-foreground)]',
               )}
             >
-              {formatEurMinor(p.amountMinor)}
+              {fmtEur(p.amountMinor)}
             </span>
             {pendingOnline ? (
               <span
@@ -1371,7 +1475,7 @@ function PaymentHistory({
                 style={{ background: 'oklch(30% 0.05 85)', color: 'oklch(88% 0.08 85)' }}
               >
                 <Clock className="h-2.5 w-2.5" strokeWidth={2} aria-hidden />
-                En attente
+                {t('payHistory.pending')}
               </span>
             ) : null}
             {failed ? (
@@ -1379,7 +1483,7 @@ function PaymentHistory({
                 className="inline-flex items-center rounded-full px-2 py-0.5 font-mono text-[9px] tracking-[0.1em] uppercase"
                 style={{ background: 'oklch(28% 0.06 25)', color: 'oklch(85% 0.08 25)' }}
               >
-                Échec
+                {t('payHistory.failed')}
               </span>
             ) : null}
             {p.note ? (
@@ -1395,12 +1499,14 @@ function PaymentHistory({
                 className="focus-ring inline-flex items-center gap-1 rounded-md text-[color:var(--color-blush-300)] hover:underline"
               >
                 <Receipt className="h-3 w-3" strokeWidth={1.9} aria-hidden />
-                {p.method === 'online' ? 'Reçu' : (p.proofFileName ?? 'Justificatif')}
+                {p.method === 'online'
+                  ? t('payHistory.receipt')
+                  : (p.proofFileName ?? t('payHistory.proof'))}
                 <ExternalLink className="h-2.5 w-2.5" strokeWidth={2} aria-hidden />
               </a>
             ) : !pendingOnline && !failed ? (
               <span className="font-mono text-[10px] text-[color:var(--color-muted-foreground)]/70">
-                sans justificatif
+                {t('payHistory.noProof')}
               </span>
             ) : null}
             {canEdit ? (
@@ -1409,10 +1515,12 @@ function PaymentHistory({
                 onClick={() => onRemovePayment(line, p)}
                 aria-label={
                   pendingOnline
-                    ? `Annuler le lien de ${formatEurMinor(p.amountMinor)}`
-                    : `Supprimer le paiement de ${formatEurMinor(p.amountMinor)}`
+                    ? t('payHistory.cancelLinkAria', { amount: fmtEur(p.amountMinor) })
+                    : t('payHistory.removePaymentAria', { amount: fmtEur(p.amountMinor) })
                 }
-                title={pendingOnline ? 'Annuler le lien' : 'Supprimer'}
+                title={
+                  pendingOnline ? t('payHistory.cancelLinkTitle') : t('payHistory.removeTitle')
+                }
                 className="focus-ring ml-auto rounded-md p-1 text-[color:var(--color-muted-foreground)] transition-colors hover:bg-[color:var(--color-surface)] hover:text-[color:var(--color-danger)]"
               >
                 <Trash2 className="h-3 w-3" strokeWidth={1.85} />
@@ -1454,29 +1562,32 @@ function BudgetExportMenu({
   coupleLabel: string;
   now: number;
 }) {
+  const t = useTranslations('Pro.budgetBoard');
+  const catLabel = useCategoryLabel();
+  const fmtDate = useDateFormat();
   const [open, setOpen] = useState(false);
   const disabled = lines.length === 0;
 
   function downloadCsv() {
     const header = [
-      'Catégorie',
-      'Poste',
-      'Prestataire',
-      'Prévu (€)',
-      'Payé (€)',
-      'Reste (€)',
-      'Échéance',
-      'Statut',
+      t('csv.category'),
+      t('csv.item'),
+      t('csv.vendor'),
+      t('csv.planned'),
+      t('csv.paid'),
+      t('csv.remaining'),
+      t('csv.dueDate'),
+      t('csv.status'),
     ];
     const rows = lines.map((l) => [
-      l.category,
+      catLabel(l.category),
       l.label,
       l.vendorName ?? '',
       String(Math.round(l.plannedMinor / 100)),
       String(Math.round(l.paidMinor / 100)),
       String(Math.round((l.plannedMinor - l.paidMinor) / 100)),
-      l.dueDate ? formatDateFr(l.dueDate) : '',
-      STATUS_PILL[lineStatus(l, now)].label,
+      l.dueDate ? fmtDate(l.dueDate) : '',
+      t(`status.${lineStatus(l, now)}` as const),
     ]);
     const csv = [header, ...rows].map((r) => r.map(csvCell).join(';')).join('\r\n');
     // BOM pour qu'Excel détecte l'UTF-8 (accents).
@@ -1498,7 +1609,7 @@ function BudgetExportMenu({
         disabled={disabled}
         aria-haspopup="menu"
         aria-expanded={open}
-        title={disabled ? 'Aucune ligne à exporter' : 'Exporter le budget'}
+        title={disabled ? t('export.disabledTitle') : t('export.title')}
         className={cn(
           buttonVariants({ variant: 'outline', size: 'md' }),
           'gap-2',
@@ -1507,7 +1618,7 @@ function BudgetExportMenu({
         data-testid="budget-export"
       >
         <Download className="h-4 w-4" strokeWidth={1.9} aria-hidden />
-        Exporter
+        {t('export.button')}
         <ChevronDown
           className={cn(
             'h-3.5 w-3.5 text-[color:var(--color-muted-foreground)] transition-transform',
@@ -1542,9 +1653,9 @@ function BudgetExportMenu({
                 aria-hidden
               />
               <span className="flex flex-1 flex-col">
-                Exporter en CSV
+                {t('export.csv')}
                 <span className="font-mono text-[10px] text-[color:var(--color-muted-foreground)]">
-                  {lines.length} ligne{lines.length > 1 ? 's' : ''}
+                  {t('export.lineCount', { count: lines.length })}
                 </span>
               </span>
             </button>
@@ -1596,6 +1707,9 @@ function DonutCard({
   segments: ReturnType<typeof donutSegments>;
   totalMinor: number;
 }) {
+  const t = useTranslations('Pro.budgetBoard');
+  const fmtEur = useEurFormat();
+  const catLabel = useCategoryLabel();
   const R = 80;
   const C = 2 * Math.PI * R;
   const arcs = segments.map((s, i) => {
@@ -1606,7 +1720,7 @@ function DonutCard({
   return (
     <div className="flex flex-col gap-4 rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-6">
       <span className="font-mono text-[10px] tracking-[0.16em] text-[color:var(--color-muted-foreground)] uppercase">
-        Répartition du prévu
+        {t('donut.title')}
       </span>
       <div className="flex flex-col items-center gap-6 sm:flex-row">
         <div className="relative h-56 w-56 flex-shrink-0">
@@ -1636,10 +1750,10 @@ function DonutCard({
           </svg>
           <span className="absolute inset-0 flex flex-col items-center justify-center text-center">
             <span className="font-display text-2xl text-[color:var(--color-foreground)] italic tabular-nums">
-              {formatEurMinor(totalMinor)}
+              {fmtEur(totalMinor)}
             </span>
             <span className="font-mono text-[9px] tracking-[0.14em] text-[color:var(--color-muted-foreground)] uppercase">
-              {segments.length} poste{segments.length > 1 ? 's' : ''}
+              {t('postsCount', { count: segments.length })}
             </span>
           </span>
         </div>
@@ -1652,10 +1766,10 @@ function DonutCard({
                 aria-hidden
               />
               <span className="min-w-0 flex-1 truncate text-[color:var(--color-ink-700)]">
-                {s.category}
+                {catLabel(s.category)}
               </span>
               <span className="font-mono font-medium text-[color:var(--color-foreground)] tabular-nums">
-                {Math.round(s.pct * 100)} %
+                {t('percent', { pct: Math.round(s.pct * 100) })}
               </span>
             </div>
           ))}
@@ -1666,13 +1780,16 @@ function DonutCard({
 }
 
 function BarsCard({ groups }: { groups: CategoryGroup<BudgetLineRow>[] }) {
+  const t = useTranslations('Pro.budgetBoard');
+  const fmtEur = useEurFormat();
+  const catLabel = useCategoryLabel();
   const max = Math.max(1, ...groups.map((g) => g.plannedMinor));
   const sorted = [...groups].sort((a, b) => b.plannedMinor - a.plannedMinor);
   return (
     <div className="flex flex-col gap-4 rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-6">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <span className="font-mono text-[10px] tracking-[0.16em] text-[color:var(--color-muted-foreground)] uppercase">
-          Prévu vs payé par poste
+          {t('bars.title')}
         </span>
         <span className="flex items-center gap-3 font-mono text-[10px] text-[color:var(--color-muted-foreground)]">
           <span className="inline-flex items-center gap-1.5">
@@ -1680,11 +1797,11 @@ function BarsCard({ groups }: { groups: CategoryGroup<BudgetLineRow>[] }) {
               className="h-2 w-3 rounded-sm bg-[color:var(--color-border-strong)]"
               aria-hidden
             />
-            Prévu
+            {t('bars.legendPlanned')}
           </span>
           <span className="inline-flex items-center gap-1.5">
             <span className="h-2 w-3 rounded-sm bg-[color:var(--color-blush-400)]" aria-hidden />
-            Payé
+            {t('bars.legendPaid')}
           </span>
         </span>
       </div>
@@ -1701,7 +1818,7 @@ function BarsCard({ groups }: { groups: CategoryGroup<BudgetLineRow>[] }) {
                     style={{ background: `oklch(66% 0.14 ${categoryHue(g.category)})` }}
                     aria-hidden
                   />
-                  {g.category}
+                  {catLabel(g.category)}
                 </span>
                 <span className="font-mono text-[11px] tabular-nums">
                   <b
@@ -1711,11 +1828,11 @@ function BarsCard({ groups }: { groups: CategoryGroup<BudgetLineRow>[] }) {
                         : 'text-[color:var(--color-foreground)]'
                     }
                   >
-                    {formatEurMinor(g.paidMinor)}
+                    {fmtEur(g.paidMinor)}
                   </b>
                   <span className="text-[color:var(--color-muted-foreground)]">
                     {' '}
-                    / {formatEurMinor(g.plannedMinor)} · {pct}%
+                    / {fmtEur(g.plannedMinor)} · {t('percent', { pct })}
                   </span>
                 </span>
               </div>

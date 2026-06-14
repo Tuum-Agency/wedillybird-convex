@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Heart, UserPlus, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,6 +27,7 @@ export function CoupleLinkCard({
   eventId: string;
   initialLinks: CoupleLink[];
 }) {
+  const t = useTranslations('Pro.main');
   const router = useRouter();
   const [phone, setPhone] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -40,9 +42,7 @@ export function CoupleLinkCard({
         return;
       }
       toast.success(
-        res.alreadyLinked
-          ? 'Ce couple est déjà rattaché.'
-          : 'Couple invité — il accède à son espace en se connectant avec ce numéro.',
+        res.alreadyLinked ? t('coupleLink.toastAlreadyLinked') : t('coupleLink.toastInvited'),
       );
       setPhone('');
       router.refresh();
@@ -54,10 +54,10 @@ export function CoupleLinkCard({
     start(async () => {
       const res = await unlinkCoupleAction(eventId);
       if (!res.ok) {
-        setError(res.error ?? 'Erreur');
+        setError(res.error ?? t('coupleLink.genericError'));
         return;
       }
-      toast.success('Couple détaché.');
+      toast.success(t('coupleLink.toastUnlinked'));
       router.refresh();
     });
   }
@@ -77,11 +77,10 @@ export function CoupleLinkCard({
         </span>
         <div className="flex flex-col gap-1">
           <h2 className="font-display text-lg text-[color:var(--color-foreground)] italic">
-            Espace couple
+            {t('coupleLink.title')}
           </h2>
           <p className="max-w-prose text-sm text-[color:var(--color-muted-foreground)]">
-            Donnez au couple l’accès à son espace : il suit l’avancement, complète sa liste
-            d’invités (avec les numéros) et règle ses paiements en ligne.
+            {t('coupleLink.description')}
           </p>
         </div>
       </div>
@@ -90,19 +89,19 @@ export function CoupleLinkCard({
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[color:var(--color-border-strong)] bg-[color:var(--color-surface-elevated)] px-3.5 py-3">
           <div className="flex flex-col gap-0.5">
             <span className="font-mono text-[9px] tracking-[0.16em] text-[color:var(--color-muted-foreground)] uppercase">
-              Couple rattaché
+              {t('coupleLink.linkedEyebrow')}
             </span>
             <span className="font-mono text-sm text-[color:var(--color-foreground)]">
               {initialLinks.map((l) => l.phone).join(', ')}
             </span>
           </div>
           <Button type="button" variant="outline" size="sm" onClick={unlinkAll} disabled={pending}>
-            Détacher
+            {t('coupleLink.detach')}
           </Button>
         </div>
       ) : (
         <p className="text-xs text-[color:var(--color-muted-foreground)]">
-          Aucun couple rattaché pour l’instant.
+          {t('coupleLink.emptyLinked')}
         </p>
       )}
 
@@ -113,7 +112,7 @@ export function CoupleLinkCard({
           placeholder="+33 6 12 34 56 78"
           inputMode="tel"
           className="max-w-xs flex-1"
-          aria-label="Téléphone du couple"
+          aria-label={t('coupleLink.phoneAria')}
         />
         <Button
           type="button"
@@ -123,7 +122,7 @@ export function CoupleLinkCard({
           disabled={pending || !phone.trim()}
         >
           <UserPlus className="h-4 w-4" strokeWidth={2} aria-hidden />
-          {pending ? 'Envoi…' : 'Inviter le couple'}
+          {pending ? t('coupleLink.sending') : t('coupleLink.inviteCta')}
         </Button>
       </div>
 

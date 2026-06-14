@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Lock, Download, Repeat, TriangleAlert, X } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { Button } from '@/components/ui/button';
@@ -34,6 +35,7 @@ export function DangerZone({
   isOwner: boolean;
   members: MemberOpt[];
 }) {
+  const t = useTranslations('Pro.main');
   const router = useRouter();
   const [transferOpen, setTransferOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -46,8 +48,9 @@ export function DangerZone({
           <Lock className="h-4 w-4" strokeWidth={1.85} aria-hidden />
         </span>
         <p className="text-sm text-[color:var(--color-muted-foreground)]">
-          La <b className="text-[color:var(--color-foreground)]">zone de danger</b> est réservée au
-          propriétaire de l’organisation.
+          {t.rich('danger.ownerOnly', {
+            b: (chunks) => <b className="text-[color:var(--color-foreground)]">{chunks}</b>,
+          })}
         </p>
       </section>
     );
@@ -60,18 +63,18 @@ export function DangerZone({
   return (
     <section className="flex flex-col divide-y divide-[color:var(--color-border)] overflow-hidden rounded-2xl border border-[color:var(--color-danger)]/40 bg-[color:var(--color-surface)]">
       <DangerRow
-        title="Exporter les données de l’organisation"
-        desc="Téléchargez un export complet (mariages, invités, documents) au format JSON / CSV."
+        title={t('danger.exportTitle')}
+        desc={t('danger.exportDesc')}
         action={
           <Button type="button" variant="outline" size="md" onClick={() => setExported(true)}>
             <Download className="h-4 w-4" strokeWidth={1.8} aria-hidden />
-            {exported ? 'Export en préparation…' : 'Exporter'}
+            {exported ? t('danger.exportPreparing') : t('danger.exportCta')}
           </Button>
         }
       />
       <DangerRow
-        title="Transférer la propriété"
-        desc="Désignez un autre membre comme propriétaire de l’organisation."
+        title={t('danger.transferTitle')}
+        desc={t('danger.transferDesc')}
         action={
           <Button
             type="button"
@@ -82,13 +85,13 @@ export function DangerZone({
             data-testid="open-transfer"
           >
             <Repeat className="h-4 w-4" strokeWidth={1.8} aria-hidden />
-            Transférer
+            {t('danger.transferCta')}
           </Button>
         }
       />
       <DangerRow
-        title="Supprimer l’organisation"
-        desc="Supprime définitivement l’agence et toutes ses données."
+        title={t('danger.deleteTitle')}
+        desc={t('danger.deleteDesc')}
         action={
           <button
             type="button"
@@ -97,7 +100,7 @@ export function DangerZone({
             className="focus-ring inline-flex items-center gap-2 rounded-lg bg-[color:var(--color-danger)] px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90"
           >
             <TriangleAlert className="h-4 w-4" strokeWidth={1.9} aria-hidden />
-            Supprimer
+            {t('danger.deleteCta')}
           </button>
         }
       />
@@ -152,6 +155,7 @@ function TransferDialog({
   onClose: () => void;
   onDone: () => void;
 }) {
+  const t = useTranslations('Pro.main');
   const [userId, setUserId] = useState(members[0]?.userId ?? '');
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -162,7 +166,7 @@ function TransferDialog({
     startTransition(async () => {
       const res = await transferOwnershipAction(userId);
       if (!res.ok) {
-        setError('Le transfert a échoué. Réessayez.');
+        setError(t('danger.transferError'));
         return;
       }
       onDone();
@@ -171,19 +175,20 @@ function TransferDialog({
 
   return (
     <Modal
-      label="Transférer la propriété"
-      eyebrow="Action sensible"
+      label={t('danger.transferTitle')}
+      eyebrow={t('danger.sensitiveAction')}
       eyebrowColor="var(--color-warning)"
-      title="Transférer la propriété"
+      title={t('danger.transferTitle')}
       onClose={onClose}
     >
       <p className="text-sm text-[color:var(--color-muted-foreground)]">
-        Le nouveau propriétaire aura tous les droits, y compris la suppression. Vous deviendrez{' '}
-        <b className="text-[color:var(--color-foreground)]">administrateur</b>.
+        {t.rich('danger.transferModalBody', {
+          b: (chunks) => <b className="text-[color:var(--color-foreground)]">{chunks}</b>,
+        })}
       </p>
       <label className="flex flex-col gap-1.5">
         <span className="text-xs font-medium text-[color:var(--color-muted-foreground)]">
-          Nouveau propriétaire
+          {t('danger.newOwnerLabel')}
         </span>
         <Select value={userId} onValueChange={setUserId}>
           <SelectTrigger className="focus-ring h-10 rounded-lg border border-[color:var(--color-border-strong)] bg-[color:var(--color-surface-elevated)] px-3 text-sm text-[color:var(--color-foreground)]">
@@ -192,7 +197,7 @@ function TransferDialog({
           <SelectContent>
             {members.map((m) => (
               <SelectItem key={m.userId} value={m.userId ?? ''}>
-                {m.fullName ?? m.email ?? 'Membre'}
+                {m.fullName ?? m.email ?? t('danger.memberFallback')}
               </SelectItem>
             ))}
           </SelectContent>
@@ -209,11 +214,11 @@ function TransferDialog({
           onClick={onClose}
           className="rounded-lg px-4 py-2 text-sm text-[color:var(--color-muted-foreground)] hover:text-[color:var(--color-foreground)]"
         >
-          Annuler
+          {t('danger.cancel')}
         </button>
         <Button type="button" variant="primary" size="md" onClick={confirm} disabled={pending}>
           <Repeat className="h-4 w-4" strokeWidth={2} aria-hidden />{' '}
-          {pending ? 'Transfert…' : 'Transférer'}
+          {pending ? t('danger.transferring') : t('danger.transferCta')}
         </Button>
       </div>
     </Modal>
@@ -229,6 +234,7 @@ function ConfirmDeleteDialog({
   onClose: () => void;
   onDeleted: () => void;
 }) {
+  const t = useTranslations('Pro.main');
   const [value, setValue] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -241,7 +247,7 @@ function ConfirmDeleteDialog({
       const res = await deleteOrganizationAction(orgName);
       if (!res.ok) {
         setError(
-          res.error === 'NAME_MISMATCH' ? 'Le nom ne correspond pas.' : 'La suppression a échoué.',
+          res.error === 'NAME_MISMATCH' ? t('danger.deleteNameMismatch') : t('danger.deleteError'),
         );
         return;
       }
@@ -251,21 +257,21 @@ function ConfirmDeleteDialog({
 
   return (
     <Modal
-      label="Supprimer l’organisation"
-      eyebrow="Action irréversible"
+      label={t('danger.deleteTitle')}
+      eyebrow={t('danger.irreversibleAction')}
       eyebrowColor="var(--color-danger)"
-      title={`Supprimer « ${orgName} »`}
+      title={t('danger.deleteModalTitle', { orgName })}
       onClose={onClose}
       danger
     >
       <p className="text-sm text-[color:var(--color-ink-700)]">
-        Tous les mariages, invités, documents et données seront{' '}
-        <b className="text-[color:var(--color-foreground)]">définitivement supprimés</b>. Cette
-        action ne peut pas être annulée.
+        {t.rich('danger.deleteModalBody', {
+          b: (chunks) => <b className="text-[color:var(--color-foreground)]">{chunks}</b>,
+        })}
       </p>
       <label className="flex flex-col gap-1.5">
         <span className="text-xs font-medium text-[color:var(--color-muted-foreground)]">
-          Saisissez « {orgName} » pour confirmer
+          {t('danger.deleteConfirmLabel', { orgName })}
         </span>
         <input
           value={value}
@@ -286,7 +292,7 @@ function ConfirmDeleteDialog({
           onClick={onClose}
           className="rounded-lg px-4 py-2 text-sm text-[color:var(--color-muted-foreground)] hover:text-[color:var(--color-foreground)]"
         >
-          Annuler
+          {t('danger.cancel')}
         </button>
         <button
           type="button"
@@ -296,7 +302,7 @@ function ConfirmDeleteDialog({
           className="focus-ring inline-flex items-center gap-2 rounded-lg bg-[color:var(--color-danger)] px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
         >
           <TriangleAlert className="h-4 w-4" strokeWidth={1.9} aria-hidden />{' '}
-          {pending ? 'Suppression…' : 'Supprimer définitivement'}
+          {pending ? t('danger.deleting') : t('danger.deletePermanently')}
         </button>
       </div>
     </Modal>
@@ -320,6 +326,7 @@ function Modal({
   onClose: () => void;
   danger?: boolean;
 }) {
+  const t = useTranslations('Pro.main');
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
@@ -329,7 +336,7 @@ function Modal({
     >
       <button
         type="button"
-        aria-label="Fermer"
+        aria-label={t('danger.close')}
         onClick={onClose}
         className="absolute inset-0 bg-black/55 backdrop-blur-sm"
       />
@@ -356,7 +363,7 @@ function Modal({
           <button
             type="button"
             onClick={onClose}
-            aria-label="Fermer"
+            aria-label={t('danger.close')}
             className="text-[color:var(--color-muted-foreground)] hover:text-[color:var(--color-foreground)]"
           >
             <X className="h-5 w-5" strokeWidth={2} aria-hidden />

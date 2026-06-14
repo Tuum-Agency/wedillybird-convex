@@ -125,6 +125,7 @@ function LandingShell({
   defaultCurrency: ReturnType<typeof defaultCurrencyForLocale>;
 }) {
   const tCommon = useTranslations('Common');
+  const tm = useTranslations('Marketing.landing');
 
   return (
     <LenisProvider>
@@ -148,7 +149,7 @@ function LandingShell({
 
           {/* Colonne centrale : navigation éditoriale */}
           <nav
-            aria-label="Navigation principale"
+            aria-label={tm('navAriaLabel')}
             className="hidden items-center justify-center gap-7 md:flex"
           >
             <SectionNav />

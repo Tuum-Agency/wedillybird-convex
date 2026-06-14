@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, type CSSProperties } from 'react';
+import { useFormatter, useTranslations } from 'next-intl';
 import {
   Home,
   ListChecks,
@@ -19,8 +20,21 @@ import {
 } from 'lucide-react';
 import { Link } from '@/i18n/navigation';
 import { cn } from '@/lib/cn';
-import { formatEurMinor } from '@/lib/pro/format';
-import { PLANNING_PHASES, PHASE_LABEL } from '@/lib/pro/planning';
+import { PLANNING_PHASES } from '@/lib/pro/planning';
+
+/** Centimes d'euro → montant localisé, ou tiret si absent (next-intl, pas de `fr-FR` figé). */
+function useEurMinor(): (minor: number | null | undefined) => string {
+  const format = useFormatter();
+  return (minor) => {
+    if (minor == null) return '—';
+    const eur = minor / 100;
+    return format.number(eur, {
+      style: 'currency',
+      currency: 'EUR',
+      maximumFractionDigits: Number.isInteger(eur) ? 0 : 2,
+    });
+  };
+}
 
 interface AgencyBrand {
   name: string;
@@ -52,14 +66,14 @@ interface CoupleTask {
 
 type NavKey = 'dashboard' | 'planning' | 'budget' | 'documents' | 'guests' | 'gallery' | 'messages';
 
-const NAV: ReadonlyArray<{ key: NavKey; label: string; Icon: LucideIcon }> = [
-  { key: 'dashboard', label: 'Accueil', Icon: Home },
-  { key: 'planning', label: 'Rétroplanning', Icon: ListChecks },
-  { key: 'budget', label: 'Budget', Icon: Wallet },
-  { key: 'documents', label: 'Documents', Icon: FileText },
-  { key: 'guests', label: 'Invités', Icon: Users },
-  { key: 'gallery', label: 'Galerie', Icon: ImageIcon },
-  { key: 'messages', label: 'Messages', Icon: MessageCircle },
+const NAV: ReadonlyArray<{ key: NavKey; Icon: LucideIcon }> = [
+  { key: 'dashboard', Icon: Home },
+  { key: 'planning', Icon: ListChecks },
+  { key: 'budget', Icon: Wallet },
+  { key: 'documents', Icon: FileText },
+  { key: 'guests', Icon: Users },
+  { key: 'gallery', Icon: ImageIcon },
+  { key: 'messages', Icon: MessageCircle },
 ];
 const TABS: NavKey[] = ['dashboard', 'planning', 'budget', 'documents', 'gallery'];
 
@@ -102,9 +116,11 @@ export function CouplePortal(props: {
   backHref: string;
 }) {
   const { agency } = props;
+  const t = useTranslations('CouplePortal');
   const [tab, setTab] = useState<NavKey>('dashboard');
   const brand = agency.brandColor ?? 'var(--color-gold-600, #b08a4f)';
   const rootStyle = { '--brand': brand } as CSSProperties;
+  const navLabel = (key: NavKey) => t(`nav.${key}`);
 
   return (
     <div
@@ -116,7 +132,7 @@ export function CouplePortal(props: {
         {/* Sidebar desktop */}
         <aside
           className="sticky top-0 hidden h-dvh w-60 flex-shrink-0 flex-col gap-1 py-7 lg:flex"
-          aria-label="Navigation"
+          aria-label={t('nav.ariaLabel')}
         >
           <Brand agency={agency} />
           <nav className="mt-6 flex flex-col gap-0.5">
@@ -124,6 +140,7 @@ export function CouplePortal(props: {
               <NavButton
                 key={n.key}
                 item={n}
+                label={navLabel(n.key)}
                 active={tab === n.key}
                 onClick={() => setTab(n.key)}
               />
@@ -134,8 +151,8 @@ export function CouplePortal(props: {
               href={props.backHref as never}
               className="inline-flex items-center gap-1.5 text-xs text-[color:var(--color-muted-foreground)] transition-colors hover:text-[color:var(--color-foreground)]"
             >
-              <ArrowLeft className="h-3.5 w-3.5" strokeWidth={1.9} aria-hidden /> Retour au
-              back-office
+              <ArrowLeft className="h-3.5 w-3.5" strokeWidth={1.9} aria-hidden />{' '}
+              {t('backToBackOffice')}
             </Link>
             {!agency.fullWhiteLabel ? <PoweredBy /> : null}
           </div>
@@ -148,7 +165,7 @@ export function CouplePortal(props: {
             <button
               type="button"
               onClick={() => setTab('messages')}
-              aria-label="Messages"
+              aria-label={t('nav.messages')}
               className="relative flex h-9 w-9 items-center justify-center rounded-full border border-[color:var(--color-border)]"
             >
               <MessageCircle className="h-[18px] w-[18px]" strokeWidth={1.85} aria-hidden />
@@ -157,7 +174,7 @@ export function CouplePortal(props: {
 
           <main
             className="flex flex-col gap-6 px-4 py-6 pb-28 sm:px-6 lg:px-0 lg:py-8 lg:pb-12"
-            aria-label={NAV.find((n) => n.key === tab)?.label}
+            aria-label={navLabel(tab)}
           >
             {tab === 'dashboard' ? (
               <Dashboard {...props} />
@@ -177,10 +194,7 @@ export function CouplePortal(props: {
             ) : tab === 'messages' ? (
               <PortalMessages planner={props.planner} couple={props.couple} />
             ) : (
-              <ComingSoon
-                label={NAV.find((n) => n.key === tab)?.label ?? ''}
-                backHref={props.backHref}
-              />
+              <ComingSoon label={navLabel(tab)} backHref={props.backHref} />
             )}
             {!agency.fullWhiteLabel ? (
               <div className="lg:hidden">
@@ -194,7 +208,7 @@ export function CouplePortal(props: {
       {/* Bottom tab bar mobile */}
       <nav
         className="fixed inset-x-0 bottom-0 z-30 flex items-stretch border-t border-[color:var(--color-border)] bg-[color:var(--color-surface)]/95 backdrop-blur lg:hidden"
-        aria-label="Navigation principale"
+        aria-label={t('nav.mobileAriaLabel')}
       >
         {TABS.map((k) => {
           const n = NAV.find((x) => x.key === k)!;
@@ -211,7 +225,7 @@ export function CouplePortal(props: {
               )}
             >
               <n.Icon className="h-5 w-5" strokeWidth={1.85} aria-hidden />
-              {n.label}
+              {navLabel(k)}
             </button>
           );
         })}
@@ -221,6 +235,7 @@ export function CouplePortal(props: {
 }
 
 function Brand({ agency, compact }: { agency: AgencyBrand; compact?: boolean }) {
+  const t = useTranslations('CouplePortal');
   return (
     <div className="flex items-center gap-2.5">
       <span
@@ -238,12 +253,12 @@ function Brand({ agency, compact }: { agency: AgencyBrand; compact?: boolean }) 
         <span className="flex flex-col leading-tight">
           <b className="text-sm text-[color:var(--color-foreground)]">{agency.name}</b>
           <span className="font-mono text-[10px] tracking-[0.14em] text-[color:var(--color-muted-foreground)] uppercase">
-            Espace mariés
+            {t('brandSubtitle')}
           </span>
         </span>
       ) : (
         <span className="font-mono text-[10px] tracking-[0.14em] text-[color:var(--color-muted-foreground)] uppercase">
-          Espace mariés
+          {t('brandSubtitle')}
         </span>
       )}
     </div>
@@ -252,10 +267,12 @@ function Brand({ agency, compact }: { agency: AgencyBrand; compact?: boolean }) 
 
 function NavButton({
   item,
+  label,
   active,
   onClick,
 }: {
-  item: { key: NavKey; label: string; Icon: LucideIcon };
+  item: { key: NavKey; Icon: LucideIcon };
+  label: string;
   active: boolean;
   onClick: () => void;
 }) {
@@ -279,15 +296,17 @@ function NavButton({
       >
         <item.Icon className="h-[18px] w-[18px]" strokeWidth={1.85} aria-hidden />
       </span>
-      {item.label}
+      {label}
     </button>
   );
 }
 
 function PoweredBy() {
+  const t = useTranslations('CouplePortal');
   return (
     <span className="inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.1em] text-[color:var(--color-muted-foreground)]">
-      <Heart className="h-3 w-3" strokeWidth={2} aria-hidden /> Propulsé par Wedillybird
+      <Heart className="h-3 w-3" strokeWidth={2} aria-hidden />{' '}
+      {t('poweredBy', { brand: 'Wedillybird' })}
     </span>
   );
 }
@@ -305,12 +324,14 @@ function Dashboard({
   planning: { progressPct: number; done: number; total: number };
   coupleTasks: CoupleTask[];
 }) {
+  const t = useTranslations('CouplePortal');
+  const fmtEur = useEurMinor();
   return (
     <div className="flex flex-col gap-6">
       {/* Hero */}
       <section className="flex flex-col items-center gap-3 rounded-3xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-6 py-10 text-center">
         <span className="font-mono text-[10px] tracking-[0.28em] text-[color:var(--color-muted-foreground)] uppercase">
-          Votre mariage
+          {t('eyebrow')}
         </span>
         <h1
           className="font-display italic"
@@ -337,10 +358,10 @@ function Dashboard({
           style={{ background: 'color-mix(in oklab, var(--brand) 12%, transparent)' }}
         >
           <span className="font-display text-3xl italic" style={{ color: 'var(--brand)' }}>
-            J−{couple.jminus}
+            {t('countdown', { days: couple.jminus })}
           </span>
           <span className="text-xs text-[color:var(--color-muted-foreground)]">
-            avant le grand jour
+            {t('beforeTheBigDay')}
           </span>
         </div>
       </section>
@@ -349,45 +370,45 @@ function Dashboard({
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <KpiCard
           Icon={Users}
-          label="RSVP confirmés"
+          label={t('kpi.rsvpConfirmed')}
           value={`${rsvp.confirmed}`}
           unit={`/${rsvp.total}`}
           bar={rsvp.total > 0 ? (rsvp.confirmed / rsvp.total) * 100 : 0}
         />
         <KpiCard
           Icon={Wallet}
-          label="Budget engagé"
+          label={t('kpi.budgetEngaged')}
           value={`${budget.engagedPct} %`}
-          sub={formatEurMinor(budget.paidMinor)}
+          sub={fmtEur(budget.paidMinor)}
           bar={budget.engagedPct}
         />
         <KpiCard
           Icon={ListChecks}
-          label="Préparatifs"
+          label={t('kpi.preparations')}
           value={`${planning.progressPct} %`}
-          sub={`${planning.done}/${planning.total} tâches`}
+          sub={t('kpi.tasksDone', { done: planning.done, total: planning.total })}
           bar={planning.progressPct}
         />
         <KpiCard
           Icon={CheckCircle2}
-          label="À faire"
+          label={t('kpi.todo')}
           value={`${coupleTasks.length}`}
-          sub="actions en attente"
+          sub={t('kpi.pendingActions')}
         />
       </div>
 
       {/* À vous de jouer */}
       <section className="flex flex-col gap-3 rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-6">
-        <h2 className="font-display text-lg italic">À vous de jouer</h2>
+        <h2 className="font-display text-lg italic">{t('yourTurn.title')}</h2>
         {coupleTasks.length === 0 ? (
           <p className="text-sm text-[color:var(--color-muted-foreground)]">
-            Tout est à jour — rien à faire de votre côté pour l’instant. ✨
+            {t('yourTurn.empty')}
           </p>
         ) : (
           <ul className="flex flex-col gap-2">
-            {coupleTasks.map((t) => (
+            {coupleTasks.map((task) => (
               <li
-                key={t._id}
+                key={task._id}
                 className="flex items-center gap-3 rounded-xl border border-[color:var(--color-border)] px-3.5 py-3"
               >
                 <span
@@ -399,23 +420,23 @@ function Dashboard({
                 >
                   <CheckCircle2 className="h-4 w-4" strokeWidth={1.9} aria-hidden />
                 </span>
-                <span className="flex-1 text-sm">{t.label}</span>
-                {t.daysUntil != null ? (
+                <span className="flex-1 text-sm">{task.label}</span>
+                {task.daysUntil != null ? (
                   <span
                     className={cn(
                       'font-mono text-[11px] tabular-nums',
-                      t.daysUntil < 0
+                      task.daysUntil < 0
                         ? 'text-[color:var(--color-danger)]'
-                        : t.daysUntil <= 7
+                        : task.daysUntil <= 7
                           ? 'text-[color:var(--color-warning)]'
                           : 'text-[color:var(--color-muted-foreground)]',
                     )}
                   >
-                    {t.daysUntil < 0
-                      ? `J+${-t.daysUntil}`
-                      : t.daysUntil === 0
-                        ? 'Jour J'
-                        : `J−${t.daysUntil}`}
+                    {task.daysUntil < 0
+                      ? t('dayBadge.past', { days: -task.daysUntil })
+                      : task.daysUntil === 0
+                        ? t('dayBadge.today')
+                        : t('dayBadge.future', { days: task.daysUntil })}
                   </span>
                 ) : null}
               </li>
@@ -488,22 +509,23 @@ function hueFor(s: string): number {
 }
 
 function PortalPlanning({ tasks, progressPct }: { tasks: PortalTask[]; progressPct: number }) {
+  const t = useTranslations('CouplePortal');
   const phases = PLANNING_PHASES.map((phase) => ({
     phase,
-    label: PHASE_LABEL[phase],
-    items: tasks.filter((t) => t.phase === phase),
+    label: t(`phases.${phase}`),
+    items: tasks.filter((task) => task.phase === phase),
   })).filter((p) => p.items.length > 0);
 
   return (
     <div className="flex flex-col gap-5">
-      <PageTitle eyebrow="Votre mariage" title="Rétroplanning" />
+      <PageTitle eyebrow={t('eyebrow')} title={t('planning.title')} />
       <div className="flex items-center gap-3 rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-5">
         <span className="font-display text-3xl italic" style={{ color: 'var(--brand)' }}>
           {progressPct} %
         </span>
         <div className="flex flex-1 flex-col gap-1.5">
           <span className="text-sm text-[color:var(--color-muted-foreground)]">
-            Avancement de vos préparatifs
+            {t('planning.progressLabel')}
           </span>
           <div className="h-1.5 w-full overflow-hidden rounded-full bg-[color:var(--color-surface-elevated)]">
             <span
@@ -564,26 +586,28 @@ function PortalBudget({
 }: {
   budget: { plannedMinor: number; paidMinor: number; engagedPct: number; lines: BudgetLine[] };
 }) {
+  const t = useTranslations('CouplePortal');
+  const fmtEur = useEurMinor();
   return (
     <div className="flex flex-col gap-5">
-      <PageTitle eyebrow="Votre mariage" title="Budget" />
+      <PageTitle eyebrow={t('eyebrow')} title={t('budget.title')} />
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-        <KpiCard Icon={Wallet} label="Budget prévu" value={formatEurMinor(budget.plannedMinor)} />
+        <KpiCard Icon={Wallet} label={t('budget.planned')} value={fmtEur(budget.plannedMinor)} />
         <KpiCard
           Icon={Wallet}
-          label="Déjà réglé"
-          value={formatEurMinor(budget.paidMinor)}
+          label={t('budget.paid')}
+          value={fmtEur(budget.paidMinor)}
           bar={budget.engagedPct}
         />
         <KpiCard
           Icon={Wallet}
-          label="Reste à payer"
-          value={formatEurMinor(Math.max(0, budget.plannedMinor - budget.paidMinor))}
+          label={t('budget.remaining')}
+          value={fmtEur(Math.max(0, budget.plannedMinor - budget.paidMinor))}
         />
       </div>
       {budget.lines.length === 0 ? (
         <p className="rounded-2xl border border-dashed border-[color:var(--color-border-strong)] bg-[color:var(--color-surface)]/50 px-8 py-12 text-center text-sm text-[color:var(--color-muted-foreground)]">
-          Le budget détaillé sera bientôt disponible ici.
+          {t('budget.empty')}
         </p>
       ) : (
         <div className="flex flex-col gap-2">
@@ -611,10 +635,8 @@ function PortalBudget({
                     </span>
                   </span>
                   <span className="text-right font-mono text-xs text-[color:var(--color-muted-foreground)] tabular-nums">
-                    <b className="text-[color:var(--color-foreground)]">
-                      {formatEurMinor(l.paidMinor)}
-                    </b>{' '}
-                    / {formatEurMinor(l.plannedMinor)}
+                    <b className="text-[color:var(--color-foreground)]">{fmtEur(l.paidMinor)}</b> /{' '}
+                    {fmtEur(l.plannedMinor)}
                   </span>
                 </div>
                 <div className="h-1 w-full overflow-hidden rounded-full bg-[color:var(--color-surface-elevated)]">
@@ -632,39 +654,37 @@ function PortalBudget({
   );
 }
 
-const PORTAL_RSVP_PILL: Record<
-  PortalGuest['rsvpStatus'],
-  { label: string; bg: string; fg: string }
-> = {
-  attending: { label: 'Confirmé', bg: 'oklch(94% 0.04 145)', fg: 'oklch(45% 0.1 145)' },
-  declined: { label: 'Absent', bg: 'oklch(95% 0.03 25)', fg: 'oklch(52% 0.13 25)' },
-  pending: { label: 'En attente', bg: 'oklch(95% 0.03 80)', fg: 'oklch(52% 0.1 80)' },
+const PORTAL_RSVP_PILL: Record<PortalGuest['rsvpStatus'], { bg: string; fg: string }> = {
+  attending: { bg: 'oklch(94% 0.04 145)', fg: 'oklch(45% 0.1 145)' },
+  declined: { bg: 'oklch(95% 0.03 25)', fg: 'oklch(52% 0.13 25)' },
+  pending: { bg: 'oklch(95% 0.03 80)', fg: 'oklch(52% 0.1 80)' },
   maybe: {
-    label: 'Peut-être',
     bg: 'var(--color-surface-elevated)',
     fg: 'var(--color-muted-foreground)',
   },
 };
 
 function PortalGuests({ guests, rsvp }: { guests: PortalGuest[]; rsvp: Rsvp }) {
+  const t = useTranslations('CouplePortal');
   const counted = rsvp.confirmed + rsvp.declined + rsvp.pending;
   return (
     <div className="flex flex-col gap-5">
-      <PageTitle eyebrow="Votre mariage" title="Invités" />
+      <PageTitle eyebrow={t('eyebrow')} title={t('guests.title')} />
       <div className="flex flex-col gap-3 rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-5">
         <div className="flex items-center justify-between font-mono text-[11px]">
           <span className="text-[color:var(--color-muted-foreground)]">
-            {guests.length} invité{guests.length > 1 ? 's' : ''}
+            {t('guests.count', { count: guests.length })}
           </span>
           <span className="flex items-center gap-3">
             <span>
-              <b style={{ color: 'oklch(50% 0.1 145)' }}>{rsvp.confirmed}</b> confirmés
+              <b style={{ color: 'oklch(50% 0.1 145)' }}>{rsvp.confirmed}</b>{' '}
+              {t('guests.confirmed')}
             </span>
             <span>
-              <b style={{ color: 'oklch(55% 0.13 25)' }}>{rsvp.declined}</b> absents
+              <b style={{ color: 'oklch(55% 0.13 25)' }}>{rsvp.declined}</b> {t('guests.declined')}
             </span>
             <span>
-              <b style={{ color: 'oklch(55% 0.1 80)' }}>{rsvp.pending}</b> en attente
+              <b style={{ color: 'oklch(55% 0.1 80)' }}>{rsvp.pending}</b> {t('guests.pending')}
             </span>
           </span>
         </div>
@@ -698,7 +718,7 @@ function PortalGuests({ guests, rsvp }: { guests: PortalGuest[]; rsvp: Rsvp }) {
       </div>
       {guests.length === 0 ? (
         <p className="rounded-2xl border border-dashed border-[color:var(--color-border-strong)] bg-[color:var(--color-surface)]/50 px-8 py-12 text-center text-sm text-[color:var(--color-muted-foreground)]">
-          Votre liste d’invités apparaîtra ici.
+          {t('guests.empty')}
         </p>
       ) : (
         <div className="overflow-hidden rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)]">
@@ -719,7 +739,7 @@ function PortalGuests({ guests, rsvp }: { guests: PortalGuest[]; rsvp: Rsvp }) {
                   <span className="flex flex-1 flex-col">
                     <b className="text-sm">{g.fullName}</b>
                     <span className="text-xs text-[color:var(--color-muted-foreground)]">
-                      {g.category ?? 'Invité'}
+                      {g.category ?? t('guests.defaultCategory')}
                       {g.plusOnesAllowed > 0 ? ` · +${g.plusOnesAllowed}` : ''}
                     </span>
                   </span>
@@ -727,7 +747,7 @@ function PortalGuests({ guests, rsvp }: { guests: PortalGuest[]; rsvp: Rsvp }) {
                     className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-medium"
                     style={{ background: p.bg, color: p.fg }}
                   >
-                    {p.label}
+                    {t(`rsvpPill.${g.rsvpStatus}`)}
                   </span>
                 </li>
               );
@@ -739,17 +759,18 @@ function PortalGuests({ guests, rsvp }: { guests: PortalGuest[]; rsvp: Rsvp }) {
   );
 }
 
-const DOC_STATUS: Record<PortalDoc['status'], { label: string; bg: string; fg: string }> = {
-  to_sign: { label: 'À signer', bg: 'oklch(95% 0.04 60)', fg: 'oklch(50% 0.12 50)' },
-  sent: { label: 'À consulter', bg: 'oklch(95% 0.03 80)', fg: 'oklch(52% 0.1 80)' },
-  signed: { label: 'Signé', bg: 'oklch(94% 0.04 145)', fg: 'oklch(45% 0.1 145)' },
+const DOC_STATUS: Record<PortalDoc['status'], { bg: string; fg: string }> = {
+  to_sign: { bg: 'oklch(95% 0.04 60)', fg: 'oklch(50% 0.12 50)' },
+  sent: { bg: 'oklch(95% 0.03 80)', fg: 'oklch(52% 0.1 80)' },
+  signed: { bg: 'oklch(94% 0.04 145)', fg: 'oklch(45% 0.1 145)' },
 };
 
 function PortalDocuments({ documents }: { documents: PortalDoc[] }) {
+  const t = useTranslations('CouplePortal');
   const pending = documents.filter((d) => d.status === 'to_sign').length;
   return (
     <div className="flex flex-col gap-5">
-      <PageTitle eyebrow="Votre mariage" title="Documents" />
+      <PageTitle eyebrow={t('eyebrow')} title={t('documents.title')} />
       {pending > 0 ? (
         <div
           className="flex items-center gap-3 rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-4"
@@ -765,18 +786,16 @@ function PortalDocuments({ documents }: { documents: PortalDoc[] }) {
             <FileText className="h-[18px] w-[18px]" strokeWidth={1.85} aria-hidden />
           </span>
           <p className="text-sm">
-            <b>
-              {pending} document{pending > 1 ? 's' : ''} à signer.
-            </b>{' '}
+            <b>{t('documents.pendingCount', { count: pending })}</b>{' '}
             <span className="text-[color:var(--color-muted-foreground)]">
-              Prenez un moment pour les valider.
+              {t('documents.pendingHint')}
             </span>
           </p>
         </div>
       ) : null}
       {documents.length === 0 ? (
         <p className="rounded-2xl border border-dashed border-[color:var(--color-border-strong)] bg-[color:var(--color-surface)]/50 px-8 py-12 text-center text-sm text-[color:var(--color-muted-foreground)]">
-          Aucun document partagé pour l’instant. Votre wedding planner les déposera ici.
+          {t('documents.empty')}
         </p>
       ) : (
         <div className="overflow-hidden rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)]">
@@ -801,7 +820,7 @@ function PortalDocuments({ documents }: { documents: PortalDoc[] }) {
                     {d.status === 'signed' ? (
                       <CheckCircle2 className="h-3.5 w-3.5" strokeWidth={2.2} aria-hidden />
                     ) : null}
-                    {s.label}
+                    {t(`docStatus.${d.status}`)}
                   </span>
                 </li>
               );
@@ -820,10 +839,11 @@ const GALLERY_TILES = Array.from({ length: 12 }, (_, i) => {
 });
 
 function PortalGallery({ jminus }: { jminus: number }) {
+  const t = useTranslations('CouplePortal');
   const before = jminus > 0;
   return (
     <div className="flex flex-col gap-5">
-      <PageTitle eyebrow="Votre mariage" title="Galerie" />
+      <PageTitle eyebrow={t('eyebrow')} title={t('gallery.title')} />
       {before ? (
         <div className="flex flex-col items-center gap-4 rounded-3xl border border-dashed border-[color:var(--color-border-strong)] bg-[color:var(--color-surface)]/50 px-8 py-16 text-center">
           <span
@@ -835,10 +855,9 @@ function PortalGallery({ jminus }: { jminus: number }) {
           >
             <ImageIcon className="h-6 w-6" strokeWidth={1.7} aria-hidden />
           </span>
-          <h2 className="font-display text-xl italic">Bientôt vos plus beaux souvenirs</h2>
+          <h2 className="font-display text-xl italic">{t('gallery.soonTitle')}</h2>
           <p className="max-w-sm text-sm text-[color:var(--color-muted-foreground)]">
-            Votre galerie partagée s’ouvrira après le mariage. Vos invités pourront y déposer leurs
-            photos, et votre planner les modèrera avant publication.
+            {t('gallery.soonBody')}
           </p>
         </div>
       ) : (
@@ -865,20 +884,22 @@ function PortalMessages({
   planner: { name: string; initials: string };
   couple: Couple;
 }) {
+  const t = useTranslations('CouplePortal');
+  const plannerFirstName = planner.name.split(' ')[0] ?? planner.name;
   return (
     <div className="flex flex-col gap-5">
-      <PageTitle eyebrow="Votre mariage" title="Messages" />
+      <PageTitle eyebrow={t('eyebrow')} title={t('messages.title')} />
       <div className="flex items-center gap-3 rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-4">
         <span
           className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full font-mono text-sm font-medium text-white"
           style={{ background: 'var(--brand)' }}
         >
-          {planner.initials || 'WP'}
+          {planner.initials || t('messages.plannerInitialsFallback')}
         </span>
         <span className="flex flex-col">
           <b className="text-sm">{planner.name}</b>
           <span className="text-xs text-[color:var(--color-muted-foreground)]">
-            Votre wedding planner
+            {t('messages.plannerRole')}
           </span>
         </span>
       </div>
@@ -893,21 +914,20 @@ function PortalMessages({
           <MessageCircle className="h-5 w-5" strokeWidth={1.7} aria-hidden />
         </span>
         <p className="max-w-sm text-sm text-[color:var(--color-muted-foreground)]">
-          Échangez directement avec votre planner pour toute question sur l’organisation de votre
-          mariage. La messagerie arrive très prochainement.
+          {t('messages.soonBody')}
         </p>
       </div>
       <div className="flex items-center gap-2 rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-2 opacity-60">
         <input
           disabled
-          placeholder={`Écrire à ${planner.name.split(' ')[0]}…`}
-          aria-label="Message"
+          placeholder={t('messages.inputPlaceholder', { name: plannerFirstName })}
+          aria-label={t('messages.inputAriaLabel')}
           className="h-9 flex-1 bg-transparent px-3 text-sm outline-none placeholder:text-[color:var(--color-muted-foreground)]"
         />
         <button
           type="button"
           disabled
-          aria-label="Envoyer"
+          aria-label={t('messages.sendAriaLabel')}
           className="flex h-9 w-9 items-center justify-center rounded-xl text-white"
           style={{ background: 'var(--brand)' }}
         >
@@ -922,6 +942,7 @@ function PortalMessages({
 }
 
 function ComingSoon({ label, backHref }: { label: string; backHref: string }) {
+  const t = useTranslations('CouplePortal');
   return (
     <div className="flex flex-col items-center gap-4 rounded-3xl border border-dashed border-[color:var(--color-border-strong)] bg-[color:var(--color-surface)]/50 px-8 py-16 text-center">
       <span
@@ -935,15 +956,15 @@ function ComingSoon({ label, backHref }: { label: string; backHref: string }) {
       </span>
       <h2 className="font-display text-xl italic">{label}</h2>
       <p className="max-w-sm text-sm text-[color:var(--color-muted-foreground)]">
-        Cette section de votre espace arrive très bientôt. En attendant, votre wedding planner gère
-        tout depuis le back-office.
+        {t('comingSoon.body')}
       </p>
       <Link
         href={backHref as never}
         className="inline-flex items-center gap-1.5 text-sm"
         style={{ color: 'var(--brand)' }}
       >
-        Voir côté agence <ArrowRight className="h-4 w-4" strokeWidth={2} aria-hidden />
+        {t('comingSoon.viewAgencySide')}{' '}
+        <ArrowRight className="h-4 w-4" strokeWidth={2} aria-hidden />
       </Link>
     </div>
   );

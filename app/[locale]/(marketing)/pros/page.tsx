@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { setRequestLocale } from 'next-intl/server';
+import { setRequestLocale, getTranslations } from 'next-intl/server';
 import { OG_DEFAULT_IMAGES, TWITTER_DEFAULT_IMAGES } from '@/lib/seo/og';
 import { toOgLocale } from '@/lib/i18n/locale-tags';
 import { Link } from '@/i18n/navigation';
@@ -19,14 +19,10 @@ import { defaultCurrencyForLocale } from '@/lib/payments/currency';
 import type { Locale } from '@/i18n/routing';
 import { cn } from '@/lib/cn';
 
-const TITLE = 'Wedillybird pour les pros — l’OS des agences de mariage';
-const DESCRIPTION =
-  'Du lead au jour J : CRM, devis, contrats signés, budget, prestataires, RSVP WhatsApp, galerie reconnaissance faciale et check-in — sous votre marque. Forfaits Starter, Business et Agency.';
-
 const NAV_LINKS = [
-  { href: '#fonctionnalites', label: 'Fonctionnalités' },
-  { href: '#tarifs', label: 'Tarifs' },
-  { href: '#faq', label: 'FAQ' },
+  { href: '#fonctionnalites', labelKey: 'nav.features' },
+  { href: '#tarifs', labelKey: 'nav.pricing' },
+  { href: '#faq', labelKey: 'nav.faq' },
 ] as const;
 
 export async function generateMetadata({
@@ -35,14 +31,17 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: 'Marketing.pros' });
+  const title = t('metaTitle');
+  const description = t('metaDescription');
   return {
-    title: TITLE,
-    description: DESCRIPTION,
+    title,
+    description,
     alternates: { canonical: '/pros' },
     openGraph: {
       type: 'website',
-      title: TITLE,
-      description: DESCRIPTION,
+      title,
+      description,
       url: '/pros',
       siteName: 'Wedillybird',
       locale: toOgLocale(locale),
@@ -50,8 +49,8 @@ export async function generateMetadata({
     },
     twitter: {
       card: 'summary_large_image',
-      title: TITLE,
-      description: DESCRIPTION,
+      title,
+      description,
       images: [...TWITTER_DEFAULT_IMAGES],
     },
   };
@@ -60,6 +59,7 @@ export async function generateMetadata({
 export default async function ProsPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   setRequestLocale(locale);
+  const t = await getTranslations('Marketing.pros');
   const defaultCurrency = defaultCurrencyForLocale(locale as Locale);
 
   return (
@@ -71,14 +71,14 @@ export default async function ProsPage({ params }: { params: Promise<{ locale: s
             <Link
               href="/"
               className="focus-ring inline-flex items-center"
-              aria-label="Wedillybird — accueil"
+              aria-label={t('logoHome')}
             >
               <WedillybirdLogo priority />
             </Link>
           </div>
 
           <nav
-            aria-label="Navigation page pros"
+            aria-label={t('navAriaLabel')}
             className="hidden items-center justify-center gap-7 md:flex"
           >
             {NAV_LINKS.map((item) => (
@@ -87,7 +87,7 @@ export default async function ProsPage({ params }: { params: Promise<{ locale: s
                 href={item.href}
                 className="font-mono text-[10px] tracking-[0.24em] text-[color:var(--color-ink-500)] uppercase transition-colors hover:text-[color:var(--color-ink-900)]"
               >
-                {item.label}
+                {t(item.labelKey)}
               </a>
             ))}
           </nav>
@@ -102,7 +102,7 @@ export default async function ProsPage({ params }: { params: Promise<{ locale: s
                 'whitespace-nowrap',
               )}
             >
-              Créer mon espace
+              {t('cta')}
             </Link>
           </div>
         </div>

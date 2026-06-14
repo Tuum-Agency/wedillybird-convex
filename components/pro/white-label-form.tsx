@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Globe, Mail, BadgeCheck, Lock, Check } from 'lucide-react';
 import { Link } from '@/i18n/navigation';
 import { cn } from '@/lib/cn';
@@ -22,6 +23,7 @@ export function WhiteLabelForm({
   initialWhiteLabelFull: boolean;
   isAgency: boolean;
 }) {
+  const t = useTranslations('Pro.main');
   const router = useRouter();
   const [domain, setDomain] = useState(initialCustomDomain);
   const [email, setEmail] = useState(initialSenderEmail);
@@ -35,11 +37,11 @@ export function WhiteLabelForm({
     setSaved(false);
     const cleanedDomain = domain.trim() ? cleanDomain(domain) : '';
     if (domain.trim() && !cleanedDomain) {
-      setError('Domaine invalide (ex. mariages.monagence.fr).');
+      setError(t('whiteLabel.errorInvalidDomain'));
       return;
     }
     if (email.trim() && !isLikelyEmail(email)) {
-      setError('Adresse e-mail expéditeur invalide.');
+      setError(t('whiteLabel.errorInvalidEmail'));
       return;
     }
     startTransition(async () => {
@@ -51,8 +53,8 @@ export function WhiteLabelForm({
       if (!res.ok) {
         setError(
           res.error === 'FEATURE_NOT_IN_PLAN'
-            ? 'La marque blanche totale nécessite le forfait Agency.'
-            : 'Une erreur est survenue. Réessayez.',
+            ? t('whiteLabel.errorFeatureNotInPlan')
+            : t('whiteLabel.errorGeneric'),
         );
         return;
       }
@@ -67,7 +69,7 @@ export function WhiteLabelForm({
       <div className="flex flex-col gap-1">
         <div className="flex items-center gap-2">
           <h2 className="font-display text-xl text-[color:var(--color-foreground)] italic">
-            Domaine &amp; marque blanche
+            {t('whiteLabel.title')}
           </h2>
           {!isAgency ? (
             <span className="inline-flex items-center gap-1 rounded-full bg-[color:var(--color-surface-elevated)] px-2 py-0.5 font-mono text-[9px] tracking-[0.16em] text-[color:var(--color-muted-foreground)] uppercase">
@@ -76,7 +78,7 @@ export function WhiteLabelForm({
           ) : null}
         </div>
         <p className="text-sm text-[color:var(--color-muted-foreground)]">
-          Diffusez vos invitations sous votre propre domaine et e-mail, sans mention Wedillybird.
+          {t('whiteLabel.description')}
         </p>
       </div>
 
@@ -84,7 +86,7 @@ export function WhiteLabelForm({
         {/* Sous-domaine (lecture seule) */}
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-medium text-[color:var(--color-muted-foreground)]">
-            Adresse Wedillybird (incluse)
+            {t('whiteLabel.includedAddressLabel')}
           </label>
           <div className="flex items-center gap-2 rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-surface-elevated)] px-3 py-2.5">
             <Globe
@@ -108,7 +110,7 @@ export function WhiteLabelForm({
               htmlFor="wl-domain"
               className="text-xs font-medium text-[color:var(--color-muted-foreground)]"
             >
-              Domaine sur mesure
+              {t('whiteLabel.customDomainLabel')}
             </label>
             <div className="flex items-center gap-2 rounded-lg border border-[color:var(--color-border-strong)] bg-[color:var(--color-surface)] px-3 py-2.5 focus-within:border-[color:var(--color-blush-400)]">
               <Globe
@@ -120,13 +122,14 @@ export function WhiteLabelForm({
                 id="wl-domain"
                 value={domain}
                 onChange={(e) => setDomain(e.target.value)}
-                placeholder="mariages.monagence.fr"
+                placeholder={t('whiteLabel.customDomainPlaceholder')}
                 className="w-full bg-transparent font-mono text-sm text-[color:var(--color-foreground)] outline-none placeholder:text-[color:var(--color-muted-foreground)]"
               />
             </div>
             <p className="text-[11px] text-[color:var(--color-muted-foreground)]">
-              Ajoutez un enregistrement CNAME vers{' '}
-              <span className="font-mono">cname.wedillybird.fr</span>.
+              {t.rich('whiteLabel.cnameNote', {
+                host: () => <span className="font-mono">cname.wedillybird.fr</span>,
+              })}
             </p>
           </div>
 
@@ -136,7 +139,7 @@ export function WhiteLabelForm({
               htmlFor="wl-email"
               className="text-xs font-medium text-[color:var(--color-muted-foreground)]"
             >
-              E-mail expéditeur
+              {t('whiteLabel.senderEmailLabel')}
             </label>
             <div className="flex items-center gap-2 rounded-lg border border-[color:var(--color-border-strong)] bg-[color:var(--color-surface)] px-3 py-2.5 focus-within:border-[color:var(--color-blush-400)]">
               <Mail
@@ -149,7 +152,7 @@ export function WhiteLabelForm({
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="contact@monagence.fr"
+                placeholder={t('whiteLabel.senderEmailPlaceholder')}
                 className="w-full bg-transparent text-sm text-[color:var(--color-foreground)] outline-none placeholder:text-[color:var(--color-muted-foreground)]"
               />
             </div>
@@ -165,10 +168,10 @@ export function WhiteLabelForm({
               />
               <span className="flex flex-col">
                 <b className="text-sm text-[color:var(--color-foreground)]">
-                  Retirer la mention « Propulsé par Wedillybird »
+                  {t('whiteLabel.removeBadgeTitle')}
                 </b>
                 <span className="text-xs text-[color:var(--color-muted-foreground)]">
-                  Sur les pages d’invitation et e-mails.
+                  {t('whiteLabel.removeBadgeSub')}
                 </span>
               </span>
             </span>
@@ -176,7 +179,7 @@ export function WhiteLabelForm({
               type="button"
               role="switch"
               aria-checked={full}
-              aria-label="Retirer le badge Wedillybird"
+              aria-label={t('whiteLabel.removeBadgeAria')}
               onClick={() => setFull((f) => !f)}
               className={cn(
                 'relative h-6 w-11 flex-shrink-0 rounded-full transition-colors',
@@ -197,13 +200,13 @@ export function WhiteLabelForm({
         {!isAgency ? (
           <div className="flex items-center justify-between gap-3 rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface-elevated)] px-4 py-3">
             <span className="text-sm text-[color:var(--color-muted-foreground)]">
-              Marque blanche totale incluse dans le forfait Agency.
+              {t('whiteLabel.agencyUpsell')}
             </span>
             <Link
               href="/pro/billing"
               className="focus-ring inline-flex items-center gap-1.5 rounded-lg border border-[color:var(--color-border-strong)] px-3 py-1.5 text-xs text-[color:var(--color-foreground)] transition-colors hover:border-[color:var(--color-blush-400)]"
             >
-              Passer à Agency
+              {t('whiteLabel.upgradeToAgency')}
             </Link>
           </div>
         ) : null}
@@ -224,11 +227,11 @@ export function WhiteLabelForm({
               disabled={pending}
               data-testid="save-white-label"
             >
-              {pending ? 'Enregistrement…' : 'Enregistrer'}
+              {pending ? t('whiteLabel.saving') : t('whiteLabel.save')}
             </Button>
             {saved ? (
               <span className="inline-flex items-center gap-1.5 text-sm text-[color:var(--color-sage-500)]">
-                <Check className="h-4 w-4" strokeWidth={2.4} aria-hidden /> Enregistré
+                <Check className="h-4 w-4" strokeWidth={2.4} aria-hidden /> {t('whiteLabel.saved')}
               </span>
             ) : null}
           </div>

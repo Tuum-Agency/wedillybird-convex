@@ -1,6 +1,20 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { NextIntlClientProvider } from 'next-intl';
+import type { ReactElement } from 'react';
+import frMessages from '@/messages/fr.json';
+
+// `TeamManager` consomme `useTranslations('Pro.main')` ; on l'enveloppe du vrai
+// provider chargé avec `messages/fr.json` pour que les assertions portent sur la
+// copie FR réelle (et non des clés brutes).
+function renderTeam(ui: ReactElement) {
+  return render(
+    <NextIntlClientProvider locale="fr" messages={frMessages}>
+      {ui}
+    </NextIntlClientProvider>,
+  );
+}
 
 const inviteMock = vi.fn();
 const revokeMock = vi.fn();
@@ -74,7 +88,7 @@ beforeEach(() => {
 
 describe('TeamManager', () => {
   it('cache l’invitation pour les non-managers, liste les membres', () => {
-    render(
+    renderTeam(
       <TeamManager
         {...BASE}
         canManage={false}
@@ -89,7 +103,7 @@ describe('TeamManager', () => {
   it('invite via le formulaire (e-mail + rôle) et affiche le lien', async () => {
     inviteMock.mockResolvedValue({ ok: true, inviteToken: 'TOKEN_ABC' });
     const user = userEvent.setup();
-    render(<TeamManager {...BASE} canManage initialMembers={[ownerMember]} />);
+    renderTeam(<TeamManager {...BASE} canManage initialMembers={[ownerMember]} />);
     await user.click(screen.getByTestId('open-invite'));
     await user.type(screen.getByLabelText('E-mail'), 'collegue@studio.fr');
     await user.click(screen.getByLabelText('Rôle'));
@@ -109,7 +123,7 @@ describe('TeamManager', () => {
   it('affiche une erreur quand l’invitation échoue', async () => {
     inviteMock.mockResolvedValue({ ok: false, error: 'INVALID_PHONE' });
     const user = userEvent.setup();
-    render(<TeamManager {...BASE} canManage initialMembers={[ownerMember]} />);
+    renderTeam(<TeamManager {...BASE} canManage initialMembers={[ownerMember]} />);
     await user.click(screen.getByTestId('open-invite'));
     await user.type(screen.getByLabelText('E-mail'), 'x@y.fr');
     await user.click(screen.getByTestId('submit-invite'));
@@ -118,7 +132,7 @@ describe('TeamManager', () => {
 
   it('le propriétaire n’a pas de menu d’actions ; le planner oui', async () => {
     const user = userEvent.setup();
-    render(<TeamManager {...BASE} canManage initialMembers={[ownerMember, plannerMember]} />);
+    renderTeam(<TeamManager {...BASE} canManage initialMembers={[ownerMember, plannerMember]} />);
     expect(screen.getAllByTestId('member-row')).toHaveLength(2);
     const actionBtns = screen.getAllByLabelText('Actions'); // owner = cadenas, planner = menu
     expect(actionBtns).toHaveLength(1);
@@ -129,7 +143,7 @@ describe('TeamManager', () => {
   it('révoque un membre (avec confirmation) et rafraîchit', async () => {
     revokeMock.mockResolvedValue({ ok: true });
     const user = userEvent.setup();
-    render(<TeamManager {...BASE} canManage initialMembers={[ownerMember, plannerMember]} />);
+    renderTeam(<TeamManager {...BASE} canManage initialMembers={[ownerMember, plannerMember]} />);
     await user.click(screen.getByLabelText('Actions'));
     await user.click(screen.getByTestId('revoke-member'));
     await waitFor(() => expect(revokeMock).toHaveBeenCalledWith('m_2'));
@@ -137,7 +151,7 @@ describe('TeamManager', () => {
   });
 
   it('liste les invitations en attente dans une section dédiée', () => {
-    render(<TeamManager {...BASE} canManage initialMembers={[ownerMember, pendingMember]} />);
+    renderTeam(<TeamManager {...BASE} canManage initialMembers={[ownerMember, pendingMember]} />);
     expect(screen.getByText(/Invitations en attente · 1/)).toBeInTheDocument();
     // la table ne contient que les membres actifs/révoqués → owner seul
     expect(screen.getAllByTestId('member-row')).toHaveLength(1);
@@ -145,7 +159,7 @@ describe('TeamManager', () => {
 
   it('affiche la matrice de permissions dans l’onglet Rôles', async () => {
     const user = userEvent.setup();
-    render(<TeamManager {...BASE} canManage initialMembers={[ownerMember]} />);
+    renderTeam(<TeamManager {...BASE} canManage initialMembers={[ownerMember]} />);
     await user.click(screen.getByRole('tab', { name: /Rôles & permissions/ }));
     expect(screen.getByText('Supprimer l’organisation')).toBeInTheDocument();
   });

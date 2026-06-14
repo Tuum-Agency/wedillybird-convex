@@ -2,6 +2,7 @@
 
 import { useEffect, type ReactNode } from 'react';
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Coins, AlertTriangle, X, ShieldCheck, Info, XCircle, type LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -31,6 +32,7 @@ export function BillingDialog({
   footer: ReactNode;
   onClose: () => void;
 }) {
+  const t = useTranslations('Pro.main');
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -74,7 +76,7 @@ export function BillingDialog({
           <button
             type="button"
             onClick={onClose}
-            aria-label="Fermer"
+            aria-label={t('billing.close')}
             className="focus-ring -mt-1 rounded-lg p-1.5 text-[color:var(--color-muted-foreground)] hover:bg-[color:var(--color-surface-elevated)] hover:text-[color:var(--color-foreground)]"
           >
             <X className="h-4 w-4" strokeWidth={2} aria-hidden />
@@ -147,6 +149,7 @@ export function BuyCreditButton({
   priceLabel: string;
   action: () => void | Promise<void>;
 }) {
+  const t = useTranslations('Pro.main');
   const [open, setOpen] = useState(false);
   return (
     <>
@@ -163,32 +166,28 @@ export function BuyCreditButton({
         <BillingDialog
           Icon={Coins}
           eyebrow="Pay-as-you-go"
-          title="Acheter un crédit événement"
-          intro={
-            <>
-              Un crédit débloque{' '}
-              <b className="text-[color:var(--color-foreground)]">un événement supplémentaire</b>,
-              hors quota de votre forfait. Facturation unique, sans abonnement.
-            </>
-          }
+          title={t('billing.buyCreditTitle')}
+          intro={t.rich('billing.buyCreditIntro', {
+            b: (chunks) => <b className="text-[color:var(--color-foreground)]">{chunks}</b>,
+          })}
           onClose={() => setOpen(false)}
           footer={
             <>
               <Button type="button" variant="ghost" size="md" onClick={() => setOpen(false)}>
-                Annuler
+                {t('billing.cancel')}
               </Button>
               <form action={action}>
                 <Button type="submit" variant="primary" size="md" data-testid="buy-payg-confirm">
                   <Coins className="h-4 w-4" strokeWidth={1.9} aria-hidden />
-                  Payer {priceLabel}
+                  {t('billing.pay', { price: priceLabel })}
                 </Button>
               </form>
             </>
           }
         >
           <RecapCard>
-            <RecapRow label="1 crédit événement" value={priceLabel} />
-            <RecapRow label="Total" value={priceLabel} total />
+            <RecapRow label={t('billing.oneEventCredit')} value={priceLabel} />
+            <RecapRow label={t('billing.total')} value={priceLabel} total />
           </RecapCard>
           <p className="flex items-start gap-1.5 text-[11px] leading-relaxed text-[color:var(--color-muted-foreground)]">
             <ShieldCheck
@@ -196,7 +195,7 @@ export function BuyCreditButton({
               strokeWidth={1.9}
               aria-hidden
             />
-            Paiement sécurisé par Stripe. Le crédit est ajouté dès la confirmation du paiement.
+            {t('billing.securePaymentNote')}
           </p>
         </BillingDialog>
       ) : null}
@@ -215,6 +214,7 @@ export function CancelSubscriptionButton({
   renewalLabel: string;
   action: () => void | Promise<void>;
 }) {
+  const t = useTranslations('Pro.main');
   const [open, setOpen] = useState(false);
   return (
     <>
@@ -225,27 +225,23 @@ export function CancelSubscriptionButton({
         className="focus-ring inline-flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-sm text-[color:var(--color-danger)]/80 transition-colors hover:text-[color:var(--color-danger)]"
       >
         <XCircle className="h-4 w-4" strokeWidth={1.9} aria-hidden />
-        Résilier
+        {t('billing.cancelSubscription')}
       </button>
       {open ? (
         <BillingDialog
           Icon={AlertTriangle}
           danger
-          eyebrow="Résilier l’abonnement"
-          title={`Résilier le forfait ${planLabel} ?`}
-          intro={
-            <>
-              Votre abonnement reste actif jusqu’au{' '}
-              <b className="text-[color:var(--color-foreground)]">{renewalLabel}</b>. La résiliation
-              se finalise dans le portail sécurisé Stripe ; aucun nouveau prélèvement ne sera
-              effectué ensuite.
-            </>
-          }
+          eyebrow={t('billing.cancelEyebrow')}
+          title={t('billing.cancelTitle', { plan: planLabel })}
+          intro={t.rich('billing.cancelIntro', {
+            renewal: renewalLabel,
+            b: (chunks) => <b className="text-[color:var(--color-foreground)]">{chunks}</b>,
+          })}
           onClose={() => setOpen(false)}
           footer={
             <>
               <Button type="button" variant="ghost" size="md" onClick={() => setOpen(false)}>
-                Garder mon abonnement
+                {t('billing.keepSubscription')}
               </Button>
               <form action={action}>
                 <Button
@@ -256,20 +252,20 @@ export function CancelSubscriptionButton({
                   style={{ background: 'var(--color-danger)', color: 'oklch(98% 0.01 25)' }}
                 >
                   <XCircle className="h-4 w-4" strokeWidth={2} aria-hidden />
-                  Résilier via Stripe
+                  {t('billing.cancelViaStripe')}
                 </Button>
               </form>
             </>
           }
         >
           <RecapCard>
-            <RecapRow label="Accès maintenu jusqu’au" value={renewalLabel} />
-            <RecapRow label="Mariages & données" value="Conservés" tone="ok" />
-            <RecapRow label="Prochain prélèvement" value="Annulé" />
+            <RecapRow label={t('billing.accessUntil')} value={renewalLabel} />
+            <RecapRow label={t('billing.weddingsAndData')} value={t('billing.kept')} tone="ok" />
+            <RecapRow label={t('billing.nextCharge')} value={t('billing.cancelled')} />
           </RecapCard>
           <p className="flex items-start gap-1.5 text-[11px] leading-relaxed text-[color:var(--color-muted-foreground)]">
             <Info className="mt-0.5 h-3 w-3 flex-shrink-0" strokeWidth={1.9} aria-hidden />
-            Vos crédits pay-as-you-go restants ne sont pas affectés par la résiliation.
+            {t('billing.paygUnaffectedNote')}
           </p>
         </BillingDialog>
       ) : null}

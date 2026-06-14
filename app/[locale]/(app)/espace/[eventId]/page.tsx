@@ -1,15 +1,23 @@
 import type { Metadata } from 'next';
-import { setRequestLocale } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { redirect } from '@/i18n/navigation';
 import { requireProContext } from '@/lib/pro/require-pro-context';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
 import { nowMs } from '@/lib/pro/format';
 import { CouplePortal } from '@/components/portal/couple-portal';
 
-export const metadata: Metadata = {
-  title: 'Espace mariés',
-  robots: { index: false, follow: false },
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: 'CoupleSpace' });
+  return {
+    title: t('portalMetaTitle'),
+    robots: { index: false, follow: false },
+  };
+}
 
 const DAY = 86_400_000;
 
@@ -27,6 +35,7 @@ export default async function EspaceMariesPage({
 }) {
   const { locale, eventId } = await params;
   setRequestLocale(locale);
+  const t = await getTranslations('CoupleSpace');
   const { session, org } = await requireProContext(locale);
   const convex = getConvexServerClient();
 
@@ -88,7 +97,7 @@ export default async function EspaceMariesPage({
   }> = [];
   for (const d of quotesRes?.docs ?? []) {
     if (d.eventId !== eventId) continue;
-    const kind = d.type === 'invoice' ? 'Facture' : 'Devis';
+    const kind = d.type === 'invoice' ? t('docInvoice') : t('docQuote');
     if (d.status === 'sent')
       documents.push({
         id: d._id,
@@ -113,23 +122,23 @@ export default async function EspaceMariesPage({
     if (cs === 'sent')
       documents.push({
         id: c._id,
-        name: `Contrat ${c.number}`,
-        kind: 'Contrat',
+        name: `${t('docContract')} ${c.number}`,
+        kind: t('docContract'),
         status: 'to_sign',
         signedAt: null,
       });
     else if (cs === 'signed_client' || cs === 'countersigned' || cs === 'active') {
       documents.push({
         id: c._id,
-        name: `Contrat ${c.number}`,
-        kind: 'Contrat',
+        name: `${t('docContract')} ${c.number}`,
+        kind: t('docContract'),
         status: 'signed',
         signedAt: c.signedAt ?? null,
       });
     }
   }
 
-  const dateLabel = new Intl.DateTimeFormat('fr-FR', {
+  const dateLabel = new Intl.DateTimeFormat(locale, {
     day: 'numeric',
     month: 'long',
     year: 'numeric',

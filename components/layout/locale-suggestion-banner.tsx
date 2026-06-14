@@ -1,6 +1,7 @@
 import { cookies, headers } from 'next/headers';
+import { getTranslations } from 'next-intl/server';
 import { detectPreferredLocale } from '@/lib/i18n/detect-preferred-locale';
-import { LOCALE_NATIVE_NAMES, type Locale } from '@/i18n/routing';
+import type { Locale } from '@/i18n/routing';
 import { LocaleSuggestionBannerClient } from './locale-suggestion-banner-client';
 
 /** Cookie défini quand l'utilisateur ferme la bannière ou accepte la suggestion. */
@@ -21,6 +22,10 @@ const LOCALE_FLAGS: Record<Locale, string> = {
  * locale courante diffère de la locale préférée par l'utilisateur (lue dans
  * `Accept-Language`). Pas de redirection forcée — l'utilisateur choisit.
  *
+ * Le texte est volontairement rendu dans la locale **suggérée** (et non la
+ * locale courante) : on résout donc les libellés côté serveur via
+ * `getTranslations({ locale: preferred })` puis on les passe au client.
+ *
  * Cachée si :
  *   - l'utilisateur a déjà fermé la bannière (cookie `wbb_locale_suggestion_dismissed`)
  *   - la locale courante = locale préférée
@@ -35,13 +40,16 @@ export async function LocaleSuggestionBanner({ currentLocale }: { currentLocale:
   const preferred = detectPreferredLocale(accept);
   if (!preferred || preferred === currentLocale) return null;
 
+  const t = await getTranslations({ locale: preferred, namespace: 'LocaleBanner' });
+
   return (
     <LocaleSuggestionBannerClient
-      currentLocale={currentLocale}
       suggestedLocale={preferred}
-      suggestedLabel={LOCALE_NATIVE_NAMES[preferred]}
       suggestedFlag={LOCALE_FLAGS[preferred]}
       dismissCookieName={LOCALE_SUGGESTION_DISMISS_COOKIE}
+      suggestionLabel={t('suggestion')}
+      acceptLabel={t('accept')}
+      dismissLabel={t('dismiss')}
     />
   );
 }

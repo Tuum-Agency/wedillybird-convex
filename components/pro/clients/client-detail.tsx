@@ -25,17 +25,18 @@ import {
   Inbox,
   type LucideIcon,
 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { cn } from '@/lib/cn';
+import { CLIENT_STAGES, coupleInitials, coupleHue, type ClientStage } from '@/lib/pro/clients';
+import { nowMs } from '@/lib/pro/format';
 import {
-  CLIENT_STAGES,
-  CLIENT_STAGE_LABEL,
-  coupleInitials,
-  coupleHue,
-  relativeFr,
-  type ClientStage,
-} from '@/lib/pro/clients';
-import { formatEurMinor, formatDateFr, nowMs } from '@/lib/pro/format';
+  useStageLabel,
+  useSourceLabel,
+  useEurFormat,
+  useDateFormat,
+  useRelative,
+} from '@/components/pro/clients/format-i18n';
 import { STAGE_PILL } from '@/components/pro/clients/stage-colors';
 import type { ClientRow } from '@/components/pro/clients/types';
 import {
@@ -88,6 +89,12 @@ export function ClientDetail({
   onEdit: () => void;
   onConvert: () => void;
 }) {
+  const t = useTranslations('Pro.clientsBoard');
+  const stageLabel = useStageLabel();
+  const sourceLabel = useSourceLabel();
+  const formatEur = useEurFormat();
+  const formatDate = useDateFormat();
+  const relative = useRelative();
   const [notes, setNotes] = useState<ClientNote[]>([]);
   const [loadingNotes, setLoadingNotes] = useState(true);
   const [noteText, setNoteText] = useState('');
@@ -143,7 +150,10 @@ export function ClientDetail({
     const optimistic: ClientNote = {
       _id: `tmp_${nowMs()}`,
       type: 'status',
-      text: `Statut passé de « ${CLIENT_STAGE_LABEL[client.stage]} » à « ${CLIENT_STAGE_LABEL[stage]} ».`,
+      text: t('statusChanged', {
+        from: stageLabel(client.stage),
+        to: stageLabel(stage),
+      }),
       createdAt: nowMs(),
     };
     setNotes((prev) => [optimistic, ...prev]);
@@ -164,11 +174,11 @@ export function ClientDetail({
       className="fixed inset-0 z-50 flex justify-end"
       role="dialog"
       aria-modal="true"
-      aria-label={`Fiche client ${coupleLabel(client)}`}
+      aria-label={t('detailAria', { couple: coupleLabel(client) })}
     >
       <button
         type="button"
-        aria-label="Fermer"
+        aria-label={t('close')}
         onClick={onClose}
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
       />
@@ -181,7 +191,9 @@ export function ClientDetail({
           <Avatar name={coupleLabel(client)} />
           <div className="flex min-w-0 flex-1 flex-col gap-1">
             <span className="font-mono text-[9px] tracking-[0.18em] text-[color:var(--color-muted-foreground)] uppercase">
-              Fiche client · {client.assigneeName ? `Suivi ${client.assigneeName}` : 'Non assigné'}
+              {client.assigneeName
+                ? t('detailEyebrowAssigned', { name: client.assigneeName })
+                : t('detailEyebrowUnassigned')}
             </span>
             <h2 className="font-display text-xl leading-tight text-[color:var(--color-foreground)] italic">
               {client.partnerA}{' '}
@@ -205,13 +217,13 @@ export function ClientDetail({
                   style={{ background: pill.dot }}
                   aria-hidden
                 />
-                {CLIENT_STAGE_LABEL[client.stage]}
+                {stageLabel(client.stage)}
                 <ChevronDown className="h-3 w-3" strokeWidth={2} aria-hidden />
               </button>
               {stageMenu ? (
                 <div className="absolute top-full left-0 z-10 mt-1 flex w-48 flex-col rounded-xl border border-[color:var(--color-border-strong)] bg-[color:var(--color-surface-elevated)] p-1 shadow-[var(--shadow-popover)]">
                   <span className="px-2 py-1 font-mono text-[9px] tracking-[0.18em] text-[color:var(--color-muted-foreground)] uppercase">
-                    Changer de statut
+                    {t('changeStatus')}
                   </span>
                   {CLIENT_STAGES.map((s) => (
                     <button
@@ -230,7 +242,7 @@ export function ClientDetail({
                         style={{ background: STAGE_PILL[s].dot }}
                         aria-hidden
                       />
-                      <span className="flex-1">{CLIENT_STAGE_LABEL[s]}</span>
+                      <span className="flex-1">{stageLabel(s)}</span>
                       {s === client.stage ? (
                         <Check className="h-3.5 w-3.5" strokeWidth={2.4} />
                       ) : null}
@@ -244,7 +256,7 @@ export function ClientDetail({
             type="button"
             ref={closeRef}
             onClick={onClose}
-            aria-label="Fermer la fiche"
+            aria-label={t('closeDetail')}
             className="focus-ring rounded-lg p-1.5 text-[color:var(--color-muted-foreground)] hover:bg-[color:var(--color-surface-elevated)] hover:text-[color:var(--color-foreground)]"
           >
             <X className="h-[18px] w-[18px]" strokeWidth={2} />
@@ -258,29 +270,51 @@ export function ClientDetail({
             <QuickContact
               href={client.phone ? `tel:${client.phone.replace(/\s/g, '')}` : undefined}
               Icon={Phone}
-              label="Appeler"
+              label={t('call')}
             />
-            <QuickContact href={waHref} Icon={MessageSquare} label="WhatsApp" external />
+            <QuickContact href={waHref} Icon={MessageSquare} label={t('whatsapp')} external />
             <QuickContact
               href={client.email ? `mailto:${client.email}` : undefined}
               Icon={Mail}
-              label="Email"
+              label={t('emailAction')}
             />
           </div>
 
           {/* Coordonnées */}
           <Section
-            title="Coordonnées"
-            action={{ label: 'Modifier', onClick: onEdit, Icon: SlidersHorizontal }}
+            title={t('contactInfo')}
+            action={{ label: t('edit'), onClick: onEdit, Icon: SlidersHorizontal }}
           >
-            <KvRow Icon={Phone} label="Téléphone" value={client.phone} mono />
-            <KvRow Icon={Mail} label="Email" value={client.email} />
-            <KvRow Icon={MessageSquare} label="WhatsApp" value={client.whatsapp} mono />
-            <KvRow Icon={Inbox} label="Source" value={client.source} />
+            <KvRow
+              Icon={Phone}
+              label={t('form.phone')}
+              value={client.phone}
+              emptyLabel={t('notProvided')}
+              mono
+            />
+            <KvRow
+              Icon={Mail}
+              label={t('form.email')}
+              value={client.email}
+              emptyLabel={t('notProvided')}
+            />
+            <KvRow
+              Icon={MessageSquare}
+              label={t('form.whatsapp')}
+              value={client.whatsapp}
+              emptyLabel={t('notProvided')}
+              mono
+            />
+            <KvRow
+              Icon={Inbox}
+              label={t('form.source')}
+              value={sourceLabel(client.source) || undefined}
+              emptyLabel={t('notProvided')}
+            />
           </Section>
 
           {/* Mariage lié */}
-          <Section title="Mariage lié">
+          <Section title={t('linkedWedding')}>
             {client.eventId ? (
               <div className="flex flex-col gap-3 rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface-elevated)] p-4">
                 <div className="flex items-start gap-3">
@@ -298,19 +332,20 @@ export function ClientDetail({
                       href={`/pro/weddings/${client.eventId}` as never}
                       className="inline-flex items-center gap-1 font-mono text-[10px] tracking-[0.14em] text-[color:var(--color-blush-300)] uppercase"
                     >
-                      Ouvrir le mariage <ArrowUpRight className="h-3 w-3" strokeWidth={2} />
+                      {t('openWedding')} <ArrowUpRight className="h-3 w-3" strokeWidth={2} />
                     </Link>
                   </div>
                   {client.weddingDate ? (
                     client.weddingDate >= now ? (
                       <span className="inline-flex items-center gap-1 font-mono text-[10px] text-[color:var(--color-muted-foreground)]">
                         <Hourglass className="h-3 w-3" strokeWidth={1.8} aria-hidden />
-                        J−{Math.ceil((client.weddingDate - now) / 86_400_000)}
+                        {t('countdownPrefix')}
+                        {Math.ceil((client.weddingDate - now) / 86_400_000)}
                       </span>
                     ) : (
                       <span className="inline-flex items-center gap-1 font-mono text-[10px] text-[color:var(--color-sage-500)]">
                         <CalendarCheck className="h-3 w-3" strokeWidth={1.8} aria-hidden />
-                        Passé
+                        {t('past')}
                       </span>
                     )
                   ) : null}
@@ -318,7 +353,7 @@ export function ClientDetail({
                 <div className="flex flex-col gap-1 border-t border-[color:var(--color-border)] pt-3 text-sm text-[color:var(--color-muted-foreground)]">
                   <span className="inline-flex items-center gap-2">
                     <Calendar className="h-3.5 w-3.5" strokeWidth={1.8} aria-hidden />
-                    {formatDateFr(client.weddingDate)}
+                    {formatDate(client.weddingDate)}
                   </span>
                   {client.venue ? (
                     <span className="inline-flex items-center gap-2">
@@ -337,8 +372,7 @@ export function ClientDetail({
                   <Heart className="h-5 w-5" strokeWidth={1.6} />
                 </span>
                 <p className="text-sm text-[color:var(--color-muted-foreground)]">
-                  Aucun mariage rattaché. Créez l’événement pour activer le rétroplanning, le RSVP
-                  et la galerie.
+                  {t('noLinkedWedding')}
                 </p>
                 <button
                   type="button"
@@ -347,38 +381,40 @@ export function ClientDetail({
                   className="focus-ring inline-flex items-center gap-2 rounded-lg bg-[color:var(--color-primary)] px-3.5 py-2 text-sm font-semibold text-[color:var(--color-primary-foreground)] hover:bg-[color:var(--color-primary-hover)] disabled:opacity-50"
                 >
                   <CalendarPlus className="h-4 w-4" strokeWidth={2} aria-hidden />
-                  Créer un mariage
+                  {t('createWedding')}
                 </button>
               </div>
             )}
           </Section>
 
           {/* Budget */}
-          <Section title="Budget">
+          <Section title={t('budget')}>
             {client.budgetMinor ? (
               <div className="flex flex-col gap-3 rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface-elevated)] p-4">
                 <div className="flex gap-6">
                   <div className="flex flex-col">
                     <span className="font-mono text-[9px] tracking-[0.18em] text-[color:var(--color-muted-foreground)] uppercase">
-                      Prévu
+                      {t('planned')}
                     </span>
                     <span className="font-mono text-lg text-[color:var(--color-foreground)] tabular-nums">
-                      {formatEurMinor(client.budgetMinor)}
+                      {formatEur(client.budgetMinor)}
                     </span>
                   </div>
                   <div className="flex flex-col">
                     <span className="font-mono text-[9px] tracking-[0.18em] text-[color:var(--color-blush-300)] uppercase">
-                      Réservé
+                      {t('booked')}
                     </span>
                     <span className="font-mono text-lg text-[color:var(--color-foreground)] tabular-nums">
-                      {formatEurMinor(booked)}
+                      {formatEur(booked)}
                     </span>
                   </div>
                 </div>
                 <div className="flex flex-col gap-1">
                   <div className="flex justify-between font-mono text-[10px] text-[color:var(--color-muted-foreground)]">
-                    <span>{pct} % engagé</span>
-                    <span>Reste {formatEurMinor(client.budgetMinor - booked)}</span>
+                    <span>{t('committed', { pct: pct / 100 })}</span>
+                    <span>
+                      {t('remaining', { amount: formatEur(client.budgetMinor - booked) })}
+                    </span>
                   </div>
                   <div className="h-1.5 w-full overflow-hidden rounded-full bg-[color:var(--color-surface)]">
                     <span
@@ -390,22 +426,19 @@ export function ClientDetail({
               </div>
             ) : (
               <p className="rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface-elevated)]/40 p-4 text-sm text-[color:var(--color-muted-foreground)]">
-                Budget non estimé — renseignez-le pour suivre l’engagement.
+                {t('budgetNotEstimated')}
               </p>
             )}
           </Section>
 
           {/* Notes & activité */}
-          <Section
-            title="Notes & activité"
-            meta={`${notes.length} entrée${notes.length > 1 ? 's' : ''}`}
-          >
+          <Section title={t('notesActivity')} meta={t('entryCount', { count: notes.length })}>
             <div className="flex items-end gap-2">
               <textarea
                 value={noteText}
                 onChange={(e) => setNoteText(e.target.value)}
-                placeholder="Ajouter une note…"
-                aria-label="Ajouter une note"
+                placeholder={t('addNotePlaceholder')}
+                aria-label={t('addNoteAria')}
                 rows={2}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) submitNote();
@@ -416,7 +449,7 @@ export function ClientDetail({
                 type="button"
                 onClick={submitNote}
                 disabled={pending || !noteText.trim()}
-                aria-label="Enregistrer la note"
+                aria-label={t('saveNote')}
                 className="focus-ring flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-[color:var(--color-primary)] text-[color:var(--color-primary-foreground)] hover:bg-[color:var(--color-primary-hover)] disabled:opacity-50"
               >
                 <Send className="h-4 w-4" strokeWidth={1.9} />
@@ -424,10 +457,10 @@ export function ClientDetail({
             </div>
             <div className="mt-3 flex flex-col gap-3">
               {loadingNotes ? (
-                <p className="text-sm text-[color:var(--color-muted-foreground)]">Chargement…</p>
+                <p className="text-sm text-[color:var(--color-muted-foreground)]">{t('loading')}</p>
               ) : notes.length === 0 ? (
                 <p className="text-sm text-[color:var(--color-muted-foreground)]">
-                  Aucune activité pour l’instant.
+                  {t('noActivity')}
                 </p>
               ) : (
                 notes.map((n) => {
@@ -445,7 +478,7 @@ export function ClientDetail({
                           {n.text}
                         </span>
                         <span className="font-mono text-[10px] text-[color:var(--color-muted-foreground)]">
-                          {relativeFr(n.createdAt, now)}
+                          {relative(n.createdAt, now)}
                         </span>
                       </div>
                     </div>
@@ -456,9 +489,9 @@ export function ClientDetail({
           </Section>
 
           {/* Documents */}
-          <Section title="Documents">
+          <Section title={t('documents')}>
             <p className="rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface-elevated)]/40 p-4 text-sm text-[color:var(--color-muted-foreground)]">
-              Aucun document — les devis et contrats apparaîtront ici.
+              {t('noDocuments')}
             </p>
           </Section>
         </div>
@@ -471,7 +504,7 @@ export function ClientDetail({
             className="focus-ring inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-[color:var(--color-muted-foreground)] hover:bg-[color:var(--color-surface-elevated)] hover:text-[color:var(--color-foreground)]"
           >
             <SlidersHorizontal className="h-4 w-4" strokeWidth={1.9} aria-hidden />
-            Modifier
+            {t('edit')}
           </button>
           <span className="flex-1" />
           {client.eventId ? (
@@ -480,7 +513,7 @@ export function ClientDetail({
               className="focus-ring inline-flex items-center gap-2 rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-semibold text-[color:var(--color-primary-foreground)] hover:bg-[color:var(--color-primary-hover)]"
             >
               <Heart className="h-4 w-4" strokeWidth={1.9} aria-hidden />
-              Ouvrir le mariage
+              {t('openWedding')}
             </Link>
           ) : (
             <button
@@ -490,7 +523,7 @@ export function ClientDetail({
               className="focus-ring inline-flex items-center gap-2 rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-semibold text-[color:var(--color-primary-foreground)] hover:bg-[color:var(--color-primary-hover)] disabled:opacity-50"
             >
               <CalendarPlus className="h-4 w-4" strokeWidth={2} aria-hidden />
-              Créer un mariage
+              {t('createWedding')}
             </button>
           )}
         </div>
@@ -541,11 +574,14 @@ function KvRow({
   Icon,
   label,
   value,
+  emptyLabel,
   mono,
 }: {
   Icon: LucideIcon;
   label: string;
   value?: string;
+  /** Texte affiché quand `value` est vide (« Non renseigné »). */
+  emptyLabel: string;
   mono?: boolean;
 }) {
   return (
@@ -563,7 +599,7 @@ function KvRow({
           mono && value && 'font-mono text-xs',
         )}
       >
-        {value || 'Non renseigné'}
+        {value || emptyLabel}
       </span>
     </div>
   );

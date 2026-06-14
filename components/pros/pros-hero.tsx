@@ -1,6 +1,7 @@
 'use client';
 
 import { motion } from 'motion/react';
+import { useTranslations } from 'next-intl';
 import { ArrowRight } from 'lucide-react';
 import { Link } from '@/i18n/navigation';
 import { buttonVariants } from '@/components/ui/button';
@@ -8,18 +9,15 @@ import { cn } from '@/lib/cn';
 import { EASE_OUT_QUINT } from '@/lib/motion/presets';
 import { BrowserFrame, CockpitMock } from './previews';
 
-const CHIPS = [
-  '5 → 50 mariages en parallèle',
-  'RSVP WhatsApp natif',
-  'Marque blanche',
-  'Paiements intégrés',
-] as const;
+const CHIP_KEYS = ['scale', 'rsvp', 'whiteLabel', 'payments'] as const;
 
 /**
  * Hero de la page Pros. Chrome light éditorial ; à droite, l'aperçu cockpit dark
  * encadré (artefact) qui montre l'outil « Linear-grade » que l'agence utilisera.
  */
 export function ProsHero() {
+  const t = useTranslations('Pros');
+
   return (
     <section className="paper-grain relative overflow-hidden bg-[color:var(--color-surface)] pt-16 pb-24 sm:pt-24">
       {/* Halo blush en fond, côté produit */}
@@ -40,7 +38,7 @@ export function ProsHero() {
               transition={{ duration: 0.5, ease: EASE_OUT_QUINT }}
               className="font-mono text-[11px] tracking-[0.32em] text-[color:var(--color-ink-500)] uppercase"
             >
-              Pour les agences & wedding planners
+              {t('hero.eyebrow')}
             </motion.span>
 
             <motion.h1
@@ -55,7 +53,7 @@ export function ProsHero() {
                 color: 'var(--color-ink-900)',
               }}
             >
-              Toute votre activité de mariage. Un seul endroit.
+              {t('hero.title')}
             </motion.h1>
 
             <motion.p
@@ -64,9 +62,7 @@ export function ProsHero() {
               transition={{ duration: 0.6, ease: EASE_OUT_QUINT, delay: 0.12 }}
               className="max-w-md text-base leading-relaxed text-[color:var(--color-ink-500)] sm:text-lg"
             >
-              Du lead au jour J : CRM, devis, contrats signés, budget, prestataires — et l’exécution
-              premium que vos concurrents ne savent pas faire. Sous votre marque, sans quitter le
-              cockpit.
+              {t('hero.subtitle')}
             </motion.p>
 
             <motion.div
@@ -79,7 +75,7 @@ export function ProsHero() {
                 href={'/sign-up?plan=business&billing=monthly' as never}
                 className={cn(buttonVariants({ variant: 'primary', size: 'lg' }), 'group')}
               >
-                Créer mon espace agence
+                {t('hero.ctaPrimary')}
                 <ArrowRight
                   className="ml-0.5 h-4 w-4 transition-transform [@media(hover:hover)]:group-hover:translate-x-0.5"
                   aria-hidden
@@ -89,7 +85,7 @@ export function ProsHero() {
                 href={'#tarifs' as never}
                 className={cn(buttonVariants({ variant: 'outline', size: 'lg' }))}
               >
-                Voir les tarifs
+                {t('hero.ctaSecondary')}
               </Link>
             </motion.div>
 
@@ -99,12 +95,12 @@ export function ProsHero() {
               transition={{ duration: 0.6, delay: 0.3 }}
               className="flex flex-wrap gap-2 pt-2"
             >
-              {CHIPS.map((chip) => (
+              {CHIP_KEYS.map((chip) => (
                 <li
                   key={chip}
                   className="rounded-full border border-[color:var(--color-border)] bg-white/70 px-3 py-1 text-xs text-[color:var(--color-ink-500)]"
                 >
-                  {chip}
+                  {t(`hero.chips.${chip}` as Parameters<typeof t>[0])}
                 </li>
               ))}
             </motion.ul>

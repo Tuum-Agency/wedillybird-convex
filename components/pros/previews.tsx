@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * Aperçus produit « Linear-grade » du back-office agence.
  *
@@ -9,10 +11,13 @@
  * En dark, les tokens `--color-ink-*` / `--color-ivory-*` sont inversés par
  * globals.css, donc on réutilise les mêmes conventions de tokens que partout.
  * Contenu purement décoratif → `aria-hidden` sur le cadre (le texte réel de la
- * fonctionnalité vit dans les sections, pas dans la maquette).
+ * fonctionnalité vit dans les sections, pas dans la maquette). Les libellés de
+ * la maquette restent traduits (namespace `Pros.preview.*`) pour les visiteurs
+ * voyants.
  */
 
 import { type ReactNode } from 'react';
+import { useFormatter, useTranslations } from 'next-intl';
 import { Search, Plus, TrendingUp, TrendingDown } from 'lucide-react';
 
 /* -------------------------------------------------------------------------- */
@@ -150,48 +155,82 @@ function QuotaBar({
 /* -------------------------------------------------------------------------- */
 
 export function CockpitMock() {
+  const t = useTranslations('Pros');
+
+  const upcoming = [
+    { c: 'Camille & Sami', d: 'J−42', r: 78 },
+    { c: 'Inès & Théo', d: 'J−61', r: 54 },
+    { c: 'Awa & Malik', d: 'J−96', r: 31 },
+  ];
+  const activity = [
+    {
+      key: 'deposit',
+      s: '1 200 €',
+      d: t('preview.cockpit.activity.minutesAgo', { n: 12 }),
+      c: 'oklch(68% 0.10 145)',
+    },
+    {
+      key: 'rsvp',
+      s: 'Camille & Sami',
+      d: t('preview.cockpit.activity.hoursAgo', { n: 1 }),
+      c: 'var(--color-primary)',
+    },
+    {
+      key: 'quoteAccepted',
+      s: 'Inès & Théo',
+      d: t('preview.cockpit.activity.hoursAgo', { n: 3 }),
+      c: 'var(--color-accent)',
+    },
+    {
+      key: 'newLead',
+      s: 'Instagram',
+      d: t('preview.cockpit.activity.yesterday'),
+      c: 'oklch(65% 0.11 220)',
+    },
+  ] as const;
+
   return (
     <div className="flex flex-col gap-4">
       {/* En-tête */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="font-display text-lg text-[color:var(--color-foreground)] italic">
-            Cockpit
+            {t('preview.cockpit.title')}
           </span>
           <span className="rounded-full border border-[color:var(--color-border)] px-2 py-0.5 font-mono text-[9px] tracking-wide text-[color:var(--color-accent)]">
             BUSINESS
           </span>
         </div>
         <span className="inline-flex items-center gap-1 rounded-lg bg-[color:var(--color-primary)] px-2.5 py-1 text-[10px] font-medium text-[color:var(--color-primary-foreground)]">
-          <Plus className="h-3 w-3" strokeWidth={2.5} /> Nouveau mariage
+          <Plus className="h-3 w-3" strokeWidth={2.5} /> {t('preview.cockpit.newWedding')}
         </span>
       </div>
 
       {/* KPI */}
       <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-4">
         <KpiTile
-          label="Mariages actifs"
+          label={t('preview.cockpit.kpi.activeWeddings')}
           value="7"
           trend="+2"
           up
           points="0,18 16,15 32,16 48,9 64,7 80,4"
         />
         <KpiTile
-          label="RSVP en attente"
+          label={t('preview.cockpit.kpi.pendingRsvp')}
           value="342"
           trend="−38"
           up={false}
           points="0,6 16,8 32,7 48,12 64,11 80,16"
         />
         <KpiTile
-          label="Deadlines"
+          label={t('preview.cockpit.kpi.deadlines')}
           value="5"
-          trend="2 en retard"
+          trend={t('preview.cockpit.kpi.overdue', { n: 2 })}
           up={false}
           points="0,12 16,10 32,13 48,8 64,11 80,9"
         />
         <KpiTile
-          label="CA du mois"
+          label={t('preview.cockpit.kpi.monthlyRevenue')}
           value="8,4 k€"
           trend="+12 %"
           up
@@ -203,14 +242,10 @@ export function CockpitMock() {
         {/* Prochains mariages */}
         <div className="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-3">
           <p className="mb-2.5 font-mono text-[9px] tracking-[0.18em] text-[color:var(--color-muted-foreground)] uppercase">
-            Prochains mariages
+            {t('preview.cockpit.upcomingWeddings')}
           </p>
           <div className="flex flex-col gap-2.5">
-            {[
-              { c: 'Camille & Sami', d: 'J−42', r: 78 },
-              { c: 'Inès & Théo', d: 'J−61', r: 54 },
-              { c: 'Awa & Malik', d: 'J−96', r: 31 },
-            ].map((m) => (
+            {upcoming.map((m) => (
               <div key={m.c} className="flex items-center gap-3">
                 <span className="font-display text-sm text-[color:var(--color-foreground)] italic">
                   {m.c}
@@ -231,30 +266,27 @@ export function CockpitMock() {
             ))}
           </div>
           <div className="mt-3 flex flex-col gap-2 border-t border-[color:var(--color-border)] pt-3">
-            <QuotaBar label="Événements" value="7 / 20" pct={35} />
-            <QuotaBar label="Messages" value="6 200 / 10 000" pct={62} />
-            <QuotaBar label="Stockage" value="84 / 200 Go" pct={42} />
+            <QuotaBar label={t('preview.cockpit.quota.events')} value="7 / 20" pct={35} />
+            <QuotaBar label={t('preview.cockpit.quota.messages')} value="6 200 / 10 000" pct={62} />
+            <QuotaBar label={t('preview.cockpit.quota.storage')} value="84 / 200 Go" pct={42} />
           </div>
         </div>
 
         {/* Activité */}
         <div className="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-3">
           <p className="mb-2.5 font-mono text-[9px] tracking-[0.18em] text-[color:var(--color-muted-foreground)] uppercase">
-            Activité
+            {t('preview.cockpit.activity.title')}
           </p>
           <div className="flex flex-col gap-2.5">
-            {[
-              { t: 'Acompte encaissé', s: '1 200 €', d: 'il y a 12 min', c: 'oklch(68% 0.10 145)' },
-              { t: 'RSVP reçu', s: 'Camille & Sami', d: 'il y a 1 h', c: 'var(--color-primary)' },
-              { t: 'Devis accepté', s: 'Inès & Théo', d: 'il y a 3 h', c: 'var(--color-accent)' },
-              { t: 'Nouveau lead', s: 'Instagram', d: 'hier', c: 'oklch(65% 0.11 220)' },
-            ].map((a) => (
-              <div key={a.t} className="flex items-center gap-2.5">
+            {activity.map((a) => (
+              <div key={a.key} className="flex items-center gap-2.5">
                 <span
                   className="h-1.5 w-1.5 flex-shrink-0 rounded-full"
                   style={{ background: a.c }}
                 />
-                <span className="text-[11px] text-[color:var(--color-foreground)]">{a.t}</span>
+                <span className="text-[11px] text-[color:var(--color-foreground)]">
+                  {t(`preview.cockpit.activity.${a.key}` as Parameters<typeof t>[0])}
+                </span>
                 <span className="truncate font-mono text-[9px] text-[color:var(--color-muted-foreground)]">
                   {a.s}
                 </span>
@@ -275,37 +307,49 @@ export function CockpitMock() {
 /* -------------------------------------------------------------------------- */
 
 export function CrmMock() {
+  const t = useTranslations('Pros');
+  const format = useFormatter();
+  // Dates de démo localisées : on part de `Date` réelles plutôt que de chaînes FR
+  // figées, pour que la maquette suive la locale active (cf. `format-i18n.ts`).
+  const day = (iso: string) =>
+    format.dateTime(new Date(iso), {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      timeZone: 'UTC',
+    });
+
   const columns = [
     {
-      name: 'Lead',
+      key: 'lead',
       count: 4,
       tint: 'oklch(65% 0.11 220)',
-      cards: [{ c: 'Léa & Noé', d: '14 juin 2026', b: '14 000 €', r: 0 }],
+      cards: [{ c: 'Léa & Noé', d: day('2026-06-14'), b: '14 000 €', r: 0 }],
     },
     {
-      name: 'Devis envoyé',
+      key: 'quoteSent',
       count: 2,
       tint: 'var(--color-accent)',
-      cards: [{ c: 'Inès & Théo', d: '5 sept. 2026', b: '22 500 €', r: 0 }],
+      cards: [{ c: 'Inès & Théo', d: day('2026-09-05'), b: '22 500 €', r: 0 }],
     },
     {
-      name: 'Réservé',
+      key: 'booked',
       count: 3,
       tint: 'oklch(68% 0.10 145)',
       cards: [
-        { c: 'Camille & Sami', d: '12 juil. 2026', b: '31 000 €', r: 40 },
-        { c: 'Awa & Malik', d: '3 oct. 2026', b: '18 000 €', r: 25 },
+        { c: 'Camille & Sami', d: day('2026-07-12'), b: '31 000 €', r: 40 },
+        { c: 'Awa & Malik', d: day('2026-10-03'), b: '18 000 €', r: 25 },
       ],
     },
-  ];
+  ] as const;
   return (
     <div className="grid grid-cols-3 gap-2.5">
       {columns.map((col) => (
-        <div key={col.name} className="flex flex-col gap-2">
+        <div key={col.key} className="flex flex-col gap-2">
           <div className="flex items-center justify-between">
             <span className="flex items-center gap-1.5 font-mono text-[9px] tracking-[0.14em] text-[color:var(--color-muted-foreground)] uppercase">
               <span className="h-1.5 w-1.5 rounded-full" style={{ background: col.tint }} />
-              {col.name}
+              {t(`preview.crm.columns.${col.key}` as Parameters<typeof t>[0])}
             </span>
             <span className="font-mono text-[9px] text-[color:var(--color-muted-foreground)] tabular-nums">
               {col.count}
@@ -328,7 +372,7 @@ export function CrmMock() {
                 </span>
                 {card.r > 0 && (
                   <span className="inline-flex w-fit items-center self-start rounded-full bg-[color:var(--color-primary-soft)] px-1.5 py-0.5 font-mono text-[8px] whitespace-nowrap text-[color:var(--color-primary)]">
-                    {card.r}% réservé
+                    {t('preview.crm.bookedPercent', { n: card.r })}
                   </span>
                 )}
               </div>
@@ -345,12 +389,34 @@ export function CrmMock() {
 /* -------------------------------------------------------------------------- */
 
 export function BudgetMock() {
+  const t = useTranslations('Pros');
+
   // Donut : 4 segments (circonférence 2πr, r=28 → ~175.9).
   const segments = [
-    { label: 'Lieu', pct: 38, color: 'var(--color-primary)' },
-    { label: 'Traiteur', pct: 30, color: 'var(--color-accent)' },
-    { label: 'Photo', pct: 18, color: 'oklch(65% 0.11 220)' },
-    { label: 'Autre', pct: 14, color: 'oklch(68% 0.10 145)' },
+    {
+      key: 'venue',
+      label: t('preview.budget.segments.venue'),
+      pct: 38,
+      color: 'var(--color-primary)',
+    },
+    {
+      key: 'catering',
+      label: t('preview.budget.segments.catering'),
+      pct: 30,
+      color: 'var(--color-accent)',
+    },
+    {
+      key: 'photo',
+      label: t('preview.budget.segments.photo'),
+      pct: 18,
+      color: 'oklch(65% 0.11 220)',
+    },
+    {
+      key: 'other',
+      label: t('preview.budget.segments.other'),
+      pct: 14,
+      color: 'oklch(68% 0.10 145)',
+    },
   ];
   const C = 175.9;
   let offset = 0;
@@ -370,7 +436,7 @@ export function BudgetMock() {
             const len = (s.pct / 100) * C;
             const el = (
               <circle
-                key={s.label}
+                key={s.key}
                 cx="32"
                 cy="32"
                 r="28"
@@ -388,7 +454,7 @@ export function BudgetMock() {
         <div className="flex flex-col gap-1.5">
           {segments.map((s) => (
             <span
-              key={s.label}
+              key={s.key}
               className="flex items-center gap-1.5 font-mono text-[9px] text-[color:var(--color-muted-foreground)]"
             >
               <span className="h-1.5 w-1.5 rounded-full" style={{ background: s.color }} />
@@ -400,19 +466,19 @@ export function BudgetMock() {
       <div className="flex flex-col gap-2.5">
         <div className="flex items-center justify-between rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-3 py-2">
           <span className="font-mono text-[9px] tracking-[0.14em] text-[color:var(--color-muted-foreground)] uppercase">
-            Enveloppe
+            {t('preview.budget.envelope')}
           </span>
           <span className="font-mono text-sm whitespace-nowrap text-[color:var(--color-foreground)] tabular-nums">
             31 000 €
           </span>
         </div>
         {[
-          { l: 'Engagé', v: '24 800 €', pct: 80, c: 'var(--color-primary)' },
-          { l: 'Payé', v: '12 400 €', pct: 40, c: 'oklch(68% 0.10 145)' },
+          { key: 'committed', v: '24 800 €', pct: 80, c: 'var(--color-primary)' },
+          { key: 'paid', v: '12 400 €', pct: 40, c: 'oklch(68% 0.10 145)' },
         ].map((row) => (
-          <div key={row.l} className="flex flex-col gap-1">
+          <div key={row.key} className="flex flex-col gap-1">
             <div className="flex items-center justify-between font-mono text-[10px] text-[color:var(--color-muted-foreground)]">
-              <span>{row.l}</span>
+              <span>{t(`preview.budget.${row.key}` as Parameters<typeof t>[0])}</span>
               <span className="text-[color:var(--color-foreground)] tabular-nums">{row.v}</span>
             </div>
             <div className="h-1.5 overflow-hidden rounded-full bg-[color:var(--color-surface-elevated)]">

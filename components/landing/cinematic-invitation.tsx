@@ -255,7 +255,7 @@ export function LandingCinematicInvitation() {
             <svg
               viewBox="-220 -280 440 560"
               className="h-[60vh] max-h-[520px] w-auto"
-              aria-label="Enveloppe et carte d'invitation animées scroll-driven"
+              aria-label={t('srLabel')}
               role="img"
               style={{ overflow: 'visible' }}
             >
@@ -388,7 +388,7 @@ export function LandingCinematicInvitation() {
                     fill="oklch(45% 0.022 28)"
                     letterSpacing="2"
                   >
-                    VOUS ÊTES INVITÉS
+                    {t('cardKicker')}
                   </text>
                   <text
                     x="0"
@@ -448,7 +448,7 @@ export function LandingCinematicInvitation() {
                     fill="oklch(45% 0.022 28)"
                     letterSpacing="2"
                   >
-                    8 JUIN 2026 · PROVENCE
+                    {t('cardDate')}
                   </text>
                 </g>
               </g>

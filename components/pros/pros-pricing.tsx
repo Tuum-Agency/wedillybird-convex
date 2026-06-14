@@ -1,11 +1,14 @@
 'use client';
 
 import { motion } from 'motion/react';
+import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { LandingPricingPros } from '@/components/landing/pricing-pros';
 import type { Currency } from '@/lib/payments/plans';
 import { inViewOnce, scrollReveal, scrollRevealParent } from '@/lib/motion/presets';
 import { ADDONS, CAPACITIES, OVERAGES } from './content';
+
+const CAPACITY_TIERS = ['starter', 'business', 'agency'] as const;
 
 /**
  * Section tarifs de la page Pros. Réutilise `LandingPricingPros` (toggle
@@ -13,9 +16,12 @@ import { ADDONS, CAPACITIES, OVERAGES } from './content';
  * comparatif de capacités et les options/dépassements transverses.
  */
 export function ProsPricing({ defaultCurrency }: { defaultCurrency: Currency }) {
+  const t = useTranslations('Pros');
+  const tPlans = useTranslations('Plans');
+
   return (
     <div id="tarifs" className="scroll-mt-20">
-      <LandingPricingPros defaultCurrency={defaultCurrency} eyebrow="Tarifs · annuel −20 %" />
+      <LandingPricingPros defaultCurrency={defaultCurrency} eyebrow={t('pricing.eyebrowChapter')} />
 
       {/* Comparatif capacités + options */}
       <section className="bg-[color:var(--color-ivory-100)] py-24">
@@ -31,7 +37,7 @@ export function ProsPricing({ defaultCurrency }: { defaultCurrency: Currency }) 
               variants={scrollReveal}
               className="font-mono text-[11px] tracking-[0.32em] text-[color:var(--color-ink-500)] uppercase"
             >
-              Capacités & options
+              {t('pricing.eyebrow')}
             </motion.span>
             <motion.h2
               variants={scrollReveal}
@@ -42,7 +48,7 @@ export function ProsPricing({ defaultCurrency }: { defaultCurrency: Currency }) 
                 color: 'var(--color-ink-900)',
               }}
             >
-              Le détail, sans surprise.
+              {t('pricing.title')}
             </motion.h2>
           </motion.div>
 
@@ -58,19 +64,19 @@ export function ProsPricing({ defaultCurrency }: { defaultCurrency: Currency }) 
                 <thead>
                   <tr className="border-b border-[color:var(--color-border)]">
                     <th className="px-5 py-4 text-left font-mono text-[10px] tracking-[0.2em] text-[color:var(--color-ink-500)] uppercase">
-                      Capacité
+                      {t('pricing.capacityColumn')}
                     </th>
-                    {['Starter', 'Business', 'Agency'].map((tier) => (
+                    {CAPACITY_TIERS.map((tier) => (
                       <th
                         key={tier}
                         className={[
                           'font-display px-5 py-4 text-right text-base italic',
-                          tier === 'Business'
+                          tier === 'business'
                             ? 'bg-[color:var(--color-blush-50)] text-[color:var(--color-blush-700)]'
                             : 'text-[color:var(--color-ink-900)]',
                         ].join(' ')}
                       >
-                        {tier}
+                        {tPlans(`pro.tiers.${tier}` as const)}
                       </th>
                     ))}
                   </tr>
@@ -78,11 +84,11 @@ export function ProsPricing({ defaultCurrency }: { defaultCurrency: Currency }) 
                 <tbody>
                   {CAPACITIES.map((row) => (
                     <tr
-                      key={row.label}
+                      key={row.key}
                       className="border-b border-[color:var(--color-border)] last:border-b-0"
                     >
                       <td className="px-5 py-3.5 text-left text-[color:var(--color-ink-700)]">
-                        {row.label}
+                        {t(`pricing.capacities.${row.key}` as Parameters<typeof t>[0])}
                       </td>
                       <td className="px-5 py-3.5 text-right font-mono text-[color:var(--color-ink-500)] tabular-nums">
                         {row.starter}
@@ -91,7 +97,9 @@ export function ProsPricing({ defaultCurrency }: { defaultCurrency: Currency }) 
                         {row.business}
                       </td>
                       <td className="px-5 py-3.5 text-right font-mono text-[color:var(--color-ink-500)] tabular-nums">
-                        {row.agency}
+                        {row.agencyIsKey
+                          ? t(`pricing.capacityValues.${row.agency}` as Parameters<typeof t>[0])
+                          : row.agency}
                       </td>
                     </tr>
                   ))}
@@ -109,21 +117,21 @@ export function ProsPricing({ defaultCurrency }: { defaultCurrency: Currency }) 
               className="rounded-3xl border border-[color:var(--color-border)] bg-white p-7 shadow-[var(--shadow-soft)]"
             >
               <h3 className="mb-5 font-mono text-[10px] tracking-[0.2em] text-[color:var(--color-ink-500)] uppercase">
-                Options transverses
+                {t('pricing.addonsTitle')}
               </h3>
               <ul className="flex flex-col divide-y divide-[color:var(--color-border)]">
                 {ADDONS.map((a) => (
-                  <li key={a.label} className="flex items-start justify-between gap-4 py-3">
+                  <li key={a.key} className="flex items-start justify-between gap-4 py-3">
                     <div className="flex flex-col gap-0.5">
                       <span className="text-sm font-medium text-[color:var(--color-ink-900)]">
-                        {a.label}
+                        {t(`pricing.addons.${a.key}.label` as Parameters<typeof t>[0])}
                       </span>
                       <span className="text-xs leading-relaxed text-[color:var(--color-ink-500)]">
-                        {a.detail}
+                        {t(`pricing.addons.${a.key}.detail` as Parameters<typeof t>[0])}
                       </span>
                     </div>
                     <span className="flex-shrink-0 font-mono text-sm text-[color:var(--color-blush-700)] tabular-nums">
-                      {a.price}
+                      {t(`pricing.addons.${a.key}.price` as Parameters<typeof t>[0])}
                     </span>
                   </li>
                 ))}
@@ -137,28 +145,27 @@ export function ProsPricing({ defaultCurrency }: { defaultCurrency: Currency }) 
               className="rounded-3xl border border-[color:var(--color-border)] bg-white p-7 shadow-[var(--shadow-soft)]"
             >
               <h3 className="mb-5 font-mono text-[10px] tracking-[0.2em] text-[color:var(--color-ink-500)] uppercase">
-                Dépassements (toujours au-dessus du coût)
+                {t('pricing.overagesTitle')}
               </h3>
               <ul className="flex flex-col divide-y divide-[color:var(--color-border)]">
                 {OVERAGES.map((o) => (
-                  <li key={o.label} className="flex items-start justify-between gap-4 py-3">
+                  <li key={o.key} className="flex items-start justify-between gap-4 py-3">
                     <div className="flex flex-col gap-0.5">
                       <span className="text-sm font-medium text-[color:var(--color-ink-900)]">
-                        {o.label}
+                        {t(`pricing.overages.${o.key}.label` as Parameters<typeof t>[0])}
                       </span>
                       <span className="text-xs leading-relaxed text-[color:var(--color-ink-500)]">
-                        {o.detail}
+                        {t(`pricing.overages.${o.key}.detail` as Parameters<typeof t>[0])}
                       </span>
                     </div>
                     <span className="flex-shrink-0 font-mono text-sm text-[color:var(--color-ink-700)] tabular-nums">
-                      {o.price}
+                      {t(`pricing.overages.${o.key}.price` as Parameters<typeof t>[0])}
                     </span>
                   </li>
                 ))}
               </ul>
               <p className="mt-4 text-xs leading-relaxed text-[color:var(--color-ink-400)]">
-                Compteur visible, alertes à 80 % et 100 %. Remboursé à 100 % sous 7 jours si le
-                mariage n’a pas été envoyé · report gratuit en cas d’annulation.
+                {t('pricing.overagesNote')}
               </p>
             </motion.div>
           </div>
@@ -169,14 +176,16 @@ export function ProsPricing({ defaultCurrency }: { defaultCurrency: Currency }) 
             viewport={inViewOnce}
             className="mt-8 text-center text-sm text-[color:var(--color-ink-500)]"
           >
-            Besoin de comparer ligne à ligne ?{' '}
-            <Link
-              href="/forfaits-pros"
-              className="font-medium text-[color:var(--color-primary)] underline-offset-4 hover:underline"
-            >
-              Voir la page forfaits
-            </Link>
-            .
+            {t.rich('pricing.compareNote', {
+              link: (chunks) => (
+                <Link
+                  href="/forfaits-pros"
+                  className="font-medium text-[color:var(--color-primary)] underline-offset-4 hover:underline"
+                >
+                  {chunks}
+                </Link>
+              ),
+            })}
           </motion.p>
         </div>
       </section>

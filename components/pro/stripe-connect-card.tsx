@@ -3,6 +3,7 @@
 import { useEffect, useState, useTransition } from 'react';
 import type { Route } from 'next';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { CreditCard, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -17,18 +18,13 @@ export interface ConnectStatus {
   detailsSubmitted: boolean;
 }
 
-const ERROR_LABEL: Record<string, string> = {
-  PAYMENTS_NOT_CONFIGURED: 'Le paiement en ligne n’est pas encore activé sur la plateforme.',
-  CONNECT_NOT_ENABLED:
-    'La connexion Stripe n’est pas finalisée côté plateforme. Réessayez plus tard.',
-  FORBIDDEN: 'Seuls le propriétaire et les admins peuvent gérer la connexion Stripe.',
-  NO_ORG: 'Organisation introuvable.',
-  UNAUTHORIZED: 'Session expirée. Reconnectez-vous.',
-};
-// Code connu → message FR ; sinon on affiche le message brut (court) pour ne pas
-// masquer la vraie cause derrière un générique.
-const errLabel = (c: string) =>
-  ERROR_LABEL[c] ?? (c && c.length < 200 ? c : 'Une erreur est survenue. Réessayez.');
+const KNOWN_ERROR_KEYS = new Set([
+  'PAYMENTS_NOT_CONFIGURED',
+  'CONNECT_NOT_ENABLED',
+  'FORBIDDEN',
+  'NO_ORG',
+  'UNAUTHORIZED',
+]);
 
 /**
  * Carte de connexion Stripe : l'agence connecte SON propre compte Stripe via
@@ -44,11 +40,21 @@ export function StripeConnectCard({
   status: ConnectStatus;
   canManage: boolean;
 }) {
+  const t = useTranslations('Pro.main');
   const router = useRouter();
   const searchParams = useSearchParams();
   const [error, setError] = useState<string | null>(null);
   const [confirmingDisconnect, setConfirmingDisconnect] = useState(false);
   const [pending, startTransition] = useTransition();
+
+  // Code connu → message FR localisé ; sinon on affiche le message brut (court)
+  // pour ne pas masquer la vraie cause derrière un générique.
+  const errLabel = (c: string) =>
+    KNOWN_ERROR_KEYS.has(c)
+      ? t(`stripeConnect.errors.${c}` as Parameters<typeof t>[0])
+      : c && c.length < 200
+        ? c
+        : t('stripeConnect.errorGeneric');
 
   const accountExists = status.accountId != null;
   const active = accountExists && status.chargesEnabled;
@@ -56,11 +62,8 @@ export function StripeConnectCard({
 
   const connectResult = searchParams.get('connect');
   // Messages de retour dérivés du paramètre d'URL (pas de setState dans l'effet).
-  const returnError = connectResult === 'error' ? 'La connexion Stripe a échoué. Réessayez.' : null;
-  const returnInfo =
-    connectResult === 'incomplete'
-      ? 'Configuration Stripe non terminée — continuez pour activer l’encaissement.'
-      : null;
+  const returnError = connectResult === 'error' ? t('stripeConnect.returnError') : null;
+  const returnInfo = connectResult === 'incomplete' ? t('stripeConnect.returnIncomplete') : null;
   const shownError = error ?? returnError;
 
   // Au retour d'un onboarding réussi, on nettoie le paramètre d'URL (navigation
@@ -126,14 +129,14 @@ export function StripeConnectCard({
           </span>
           <div className="flex flex-col gap-1">
             <h2 className="font-display text-lg text-[color:var(--color-foreground)] italic">
-              Paiements en ligne
+              {t('stripeConnect.title')}
             </h2>
             <p className="max-w-prose text-sm text-[color:var(--color-muted-foreground)]">
               {active
-                ? 'Votre compte Stripe est connecté. Les liens de paiement sont encaissés directement sur votre compte — Wedillybird ne touche jamais vos fonds.'
+                ? t('stripeConnect.descActive')
                 : incomplete
-                  ? 'Votre configuration Stripe n’est pas terminée. Continuez l’onboarding Stripe pour activer l’encaissement en ligne.'
-                  : 'Connectez votre propre compte Stripe pour encaisser vos couples (carte, virement). L’argent va directement sur votre compte.'}
+                  ? t('stripeConnect.descIncomplete')
+                  : t('stripeConnect.descNotConnected')}
             </p>
           </div>
         </div>
@@ -143,14 +146,15 @@ export function StripeConnectCard({
             style={{ background: 'oklch(27% 0.05 145)', color: 'oklch(83% 0.08 145)' }}
           >
             <CheckCircle2 className="h-3 w-3" strokeWidth={2.2} aria-hidden />
-            Connecté
+            {t('stripeConnect.pillConnected')}
           </span>
         ) : incomplete ? (
           <span
             className="inline-flex flex-shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 font-mono text-[10px] tracking-[0.12em] uppercase"
             style={{ background: 'oklch(29% 0.05 80)', color: 'oklch(87% 0.09 85)' }}
           >
-            <AlertTriangle className="h-3 w-3" strokeWidth={2.2} aria-hidden />À terminer
+            <AlertTriangle className="h-3 w-3" strokeWidth={2.2} aria-hidden />
+            {t('stripeConnect.pillToComplete')}
           </span>
         ) : null}
       </div>
@@ -187,7 +191,7 @@ export function StripeConnectCard({
               disabled={pending}
             >
               <CreditCard className="h-4 w-4" strokeWidth={2} aria-hidden />
-              {pending ? 'Redirection…' : 'Connecter mon compte Stripe'}
+              {pending ? t('stripeConnect.redirecting') : t('stripeConnect.connectCta')}
             </Button>
           ) : confirmingDisconnect ? (
             <>
@@ -198,7 +202,7 @@ export function StripeConnectCard({
                 onClick={onDisconnect}
                 disabled={pending}
               >
-                {pending ? 'Déconnexion…' : 'Confirmer la déconnexion'}
+                {pending ? t('stripeConnect.disconnecting') : t('stripeConnect.confirmDisconnect')}
               </Button>
               <Button
                 type="button"
@@ -207,7 +211,7 @@ export function StripeConnectCard({
                 onClick={() => setConfirmingDisconnect(false)}
                 disabled={pending}
               >
-                Annuler
+                {t('stripeConnect.cancel')}
               </Button>
             </>
           ) : incomplete ? (
@@ -220,7 +224,7 @@ export function StripeConnectCard({
                 disabled={pending}
               >
                 <CreditCard className="h-4 w-4" strokeWidth={2} aria-hidden />
-                {pending ? 'Redirection…' : 'Continuer la configuration'}
+                {pending ? t('stripeConnect.redirecting') : t('stripeConnect.continueSetup')}
               </Button>
               <Button
                 type="button"
@@ -229,7 +233,7 @@ export function StripeConnectCard({
                 onClick={() => setConfirmingDisconnect(true)}
                 disabled={pending}
               >
-                Déconnecter
+                {t('stripeConnect.disconnect')}
               </Button>
             </>
           ) : (
@@ -240,13 +244,13 @@ export function StripeConnectCard({
               onClick={() => setConfirmingDisconnect(true)}
               disabled={pending}
             >
-              Déconnecter
+              {t('stripeConnect.disconnect')}
             </Button>
           )}
         </div>
       ) : (
         <p className="font-mono text-[10px] tracking-[0.12em] text-[color:var(--color-muted-foreground)] uppercase">
-          Gestion de la connexion Stripe réservée au propriétaire et aux admins.
+          {t('stripeConnect.manageRestricted')}
         </p>
       )}
     </section>

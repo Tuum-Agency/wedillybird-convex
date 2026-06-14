@@ -1,4 +1,4 @@
-import { setRequestLocale } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import type { Metadata } from 'next';
 import { redirect } from '@/i18n/navigation';
 import { getSession } from '@/lib/auth/session';
@@ -6,7 +6,10 @@ import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
 import { ProSidebarShell } from '@/components/pro/pro-sidebar-shell';
 import { Cockpit } from '@/components/pro/cockpit';
 
-export const metadata: Metadata = { title: 'Cockpit — Wedillybird Pro' };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('ProPages');
+  return { title: t('dashboardMetaTitle') };
+}
 
 /**
  * Cockpit agence — tableau de bord du back-office pro (dark Linear-grade).

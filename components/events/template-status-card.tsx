@@ -1,11 +1,15 @@
+'use client';
+
 /**
  * Carte d'état d'un template WhatsApp custom soumis à Meta. Affiche le nom
  * (mono italique), un badge de status, la raison de refus si présente, et
  * un hint contextuel selon le canal de notification choisi par le couple.
  *
- * Côté server component pour pouvoir formater les dates avec Intl.DateTimeFormat
- * sans coût client.
+ * Rendue depuis `EventMessagingForm` (client). Les dates sont formatées avec
+ * `useFormatter` (next-intl) dans la locale active — jamais en `fr-FR` figé.
  */
+
+import { useFormatter, useTranslations } from 'next-intl';
 
 interface TemplateStatusCardProps {
   template: {
@@ -18,15 +22,6 @@ interface TemplateStatusCardProps {
   notifyChannel: 'whatsapp' | 'email' | 'both';
   locale: string;
 }
-
-const STATUS_LABEL: Record<TemplateStatusCardProps['template']['status'], string> = {
-  draft: 'Brouillon',
-  pending: 'En attente de validation',
-  approved: 'Validé',
-  rejected: 'Refusé',
-  paused: 'Suspendu',
-  disabled: 'Désactivé',
-};
 
 const STATUS_BG: Record<TemplateStatusCardProps['template']['status'], string> = {
   draft: 'oklch(94% 0.012 78)',
@@ -46,29 +41,23 @@ const STATUS_FG: Record<TemplateStatusCardProps['template']['status'], string> =
   disabled: 'var(--color-ink-500)',
 };
 
-function channelLabel(c: 'whatsapp' | 'email' | 'both'): string {
-  if (c === 'whatsapp') return 'WhatsApp';
-  if (c === 'email') return 'email';
-  return 'WhatsApp et email';
-}
+export function TemplateStatusCard({ template, notifyChannel }: TemplateStatusCardProps) {
+  const t = useTranslations('Events');
+  const format = useFormatter();
 
-function fmt(ts: number | undefined, locale: string): string | null {
-  if (!ts) return null;
-  return new Intl.DateTimeFormat(locale, { dateStyle: 'long', timeStyle: 'short' }).format(
-    new Date(ts),
-  );
-}
+  const fmt = (ts: number | undefined): string | null =>
+    ts == null ? null : format.dateTime(new Date(ts), { dateStyle: 'long', timeStyle: 'short' });
 
-export function TemplateStatusCard({ template, notifyChannel, locale }: TemplateStatusCardProps) {
-  const submitted = fmt(template.submittedAt, locale);
-  const reviewed = fmt(template.reviewedAt, locale);
+  const submitted = fmt(template.submittedAt);
+  const reviewed = fmt(template.reviewedAt);
+  const channel = t(`templateChannel.${notifyChannel}`);
 
   return (
     <div className="flex flex-col gap-4 rounded-2xl border border-[color:var(--color-border)] bg-white p-5 shadow-[var(--shadow-soft)]">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex flex-col gap-1">
           <span className="font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-ink-500)] uppercase">
-            Template Meta
+            {t('templateMetaLabel')}
           </span>
           <span className="font-mono text-sm [overflow-wrap:anywhere] text-[color:var(--color-ink-900)] italic">
             {template.name}
@@ -83,21 +72,17 @@ export function TemplateStatusCard({ template, notifyChannel, locale }: Template
             className="inline-block h-1.5 w-1.5 rounded-full"
             style={{ background: STATUS_FG[template.status] }}
           />
-          {STATUS_LABEL[template.status]}
+          {t(`templateStatus.${template.status}`)}
         </span>
       </div>
 
       {template.status === 'pending' ? (
         <p className="text-sm text-[color:var(--color-ink-500)]">
-          Validation Meta sous 24-48h. Vous serez prévenu·e par {channelLabel(notifyChannel)} dès la
-          décision.
+          {t('templatePendingHint', { channel })}
         </p>
       ) : null}
       {template.status === 'approved' ? (
-        <p className="text-sm text-[color:var(--color-ink-500)]">
-          ✓ Votre template est utilisable. Il sera envoyé à vos invités à la place du style
-          préfabriqué.
-        </p>
+        <p className="text-sm text-[color:var(--color-ink-500)]">{t('templateApprovedHint')}</p>
       ) : null}
       {(template.status === 'rejected' || template.status === 'disabled') &&
       template.rejectionReason ? (
@@ -109,21 +94,19 @@ export function TemplateStatusCard({ template, notifyChannel, locale }: Template
             borderLeft: '3px solid var(--color-blush-700)',
           }}
         >
-          <strong>Raison communiquée par WhatsApp :</strong>
+          <strong>{t('templateRejectionReason')}</strong>
           <br />
           {template.rejectionReason}
         </div>
       ) : null}
       {template.status === 'paused' ? (
-        <p className="text-sm text-[color:var(--color-ink-500)]">
-          WhatsApp a suspendu temporairement votre template suite à des signaux qualité.
-        </p>
+        <p className="text-sm text-[color:var(--color-ink-500)]">{t('templatePausedHint')}</p>
       ) : null}
 
       {(submitted || reviewed) && (
         <div className="flex flex-wrap gap-x-6 gap-y-1 border-t border-[color:var(--color-border)] pt-3 font-mono text-[10px] tracking-[0.18em] text-[color:var(--color-ink-500)] uppercase">
-          {submitted ? <span>Soumis : {submitted}</span> : null}
-          {reviewed ? <span>Décision : {reviewed}</span> : null}
+          {submitted ? <span>{t('templateSubmittedAt', { date: submitted })}</span> : null}
+          {reviewed ? <span>{t('templateReviewedAt', { date: reviewed })}</span> : null}
         </div>
       )}
     </div>

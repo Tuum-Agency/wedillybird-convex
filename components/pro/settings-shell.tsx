@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import {
   Building2,
   Palette,
@@ -56,24 +57,21 @@ const TIER_LABEL: Record<'starter' | 'business' | 'agency', string> = {
   business: 'Business',
   agency: 'Agency',
 };
-const ROLE_LABEL: Record<'owner' | 'admin' | 'planner' | 'viewer', string> = {
-  owner: 'Propriétaire',
-  admin: 'Admin',
-  planner: 'Planner',
-  viewer: 'Lecteur',
+const ROLE_LABEL_KEY: Record<'owner' | 'admin' | 'planner' | 'viewer', string> = {
+  owner: 'settings.roleOwner',
+  admin: 'settings.roleAdmin',
+  planner: 'settings.rolePlanner',
+  viewer: 'settings.roleViewer',
 };
 
-const SECTION_META: Record<Section, { title: string; sub: string }> = {
-  profil: { title: 'Profil de l’organisation', sub: 'Identité, adresse publique et rôle.' },
-  branding: { title: 'Marque blanche', sub: 'Personnalisez l’espace couple à vos couleurs.' },
-  integrations: { title: 'Intégrations', sub: 'CRM, import de données et connecteurs.' },
-  messaging: {
-    title: 'Messagerie & templates',
-    sub: 'Canaux, invitations et relances par défaut.',
-  },
-  notifications: { title: 'Notifications', sub: 'Choisissez ce qui vous alerte, et comment.' },
-  security: { title: 'Sécurité', sub: 'Session, double authentification et journal.' },
-  danger: { title: 'Zone de danger', sub: 'Export, transfert et suppression de l’organisation.' },
+const SECTION_META_KEY: Record<Section, { title: string; sub: string }> = {
+  profil: { title: 'settings.profilTitle', sub: 'settings.profilSub' },
+  branding: { title: 'settings.brandingTitle', sub: 'settings.brandingSub' },
+  integrations: { title: 'settings.integrationsTitle', sub: 'settings.integrationsSub' },
+  messaging: { title: 'settings.messagingTitle', sub: 'settings.messagingSub' },
+  notifications: { title: 'settings.notificationsTitle', sub: 'settings.notificationsSub' },
+  security: { title: 'settings.securityTitle', sub: 'settings.securitySub' },
+  danger: { title: 'settings.dangerTitle', sub: 'settings.dangerSub' },
 };
 
 export function SettingsShell({
@@ -98,10 +96,14 @@ export function SettingsShell({
   messagingDefaults?: Partial<MessagingDefaults> | null;
   members?: MemberOpt[];
 }) {
+  const t = useTranslations('Pro.main');
   const [section, setSection] = useState<Section>('profil');
   const isOwner = org.role === 'owner';
   const canManage = org.role === 'owner' || org.role === 'admin';
-  const meta = SECTION_META[section];
+  const meta = {
+    title: t(SECTION_META_KEY[section].title as Parameters<typeof t>[0]),
+    sub: t(SECTION_META_KEY[section].sub as Parameters<typeof t>[0]),
+  };
 
   const subnav: {
     grp: string;
@@ -114,31 +116,38 @@ export function SettingsShell({
     }[];
   }[] = [
     {
-      grp: 'Organisation',
+      grp: t('settings.groupOrganization'),
       items: [
-        { k: 'profil', label: 'Profil', Icon: Building2 },
+        { k: 'profil', label: t('settings.navProfil'), Icon: Building2 },
         {
           k: 'branding',
-          label: 'Marque blanche',
+          label: t('settings.navBranding'),
           Icon: Palette,
           agencyLock: org.tier !== 'agency',
         },
-        { k: 'integrations', label: 'Intégrations', Icon: Plug },
+        { k: 'integrations', label: t('settings.navIntegrations'), Icon: Plug },
       ],
     },
     {
-      grp: 'Communication',
+      grp: t('settings.groupCommunication'),
       items: [
-        { k: 'messaging', label: 'Messagerie', Icon: MessageSquare },
-        { k: 'notifications', label: 'Notifications', Icon: Bell },
+        { k: 'messaging', label: t('settings.navMessaging'), Icon: MessageSquare },
+        { k: 'notifications', label: t('settings.navNotifications'), Icon: Bell },
       ],
     },
     {
-      grp: 'Compte',
+      grp: t('settings.groupAccount'),
       items: [
-        { k: 'security', label: 'Sécurité', Icon: ShieldCheck },
+        { k: 'security', label: t('settings.navSecurity'), Icon: ShieldCheck },
         ...(isOwner
-          ? [{ k: 'danger' as const, label: 'Zone de danger', Icon: TriangleAlert, danger: true }]
+          ? [
+              {
+                k: 'danger' as const,
+                label: t('settings.navDanger'),
+                Icon: TriangleAlert,
+                danger: true,
+              },
+            ]
           : []),
       ],
     },
@@ -148,7 +157,7 @@ export function SettingsShell({
   return (
     <div className="grid gap-6 lg:grid-cols-[220px_1fr]">
       {/* Sous-nav desktop (groupée) + Modules liés */}
-      <nav aria-label="Sections des réglages" className="hidden flex-col gap-1 lg:flex">
+      <nav aria-label={t('settings.sectionsNavAria')} className="hidden flex-col gap-1 lg:flex">
         {subnav.map((g) => (
           <div key={g.grp} className="mb-2 flex flex-col gap-0.5">
             <p className="mb-1 px-2 font-mono text-[9px] tracking-[0.2em] text-[color:var(--color-muted-foreground)] uppercase">
@@ -177,7 +186,7 @@ export function SettingsShell({
                   <Lock
                     className="h-3 w-3 flex-shrink-0 text-[color:var(--color-muted-foreground)]"
                     strokeWidth={1.9}
-                    aria-label="Options Agency"
+                    aria-label={t('settings.agencyOptionsAria')}
                   />
                 ) : null}
               </button>
@@ -185,14 +194,14 @@ export function SettingsShell({
           </div>
         ))}
         <p className="mt-1 mb-1 px-2 font-mono text-[9px] tracking-[0.2em] text-[color:var(--color-muted-foreground)] uppercase">
-          Modules liés
+          {t('settings.linkedModules')}
         </p>
         <Link
           href="/pro/team"
           className="focus-ring flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-[color:var(--color-muted-foreground)] transition-colors hover:text-[color:var(--color-foreground)]"
         >
           <UsersRound className="h-4 w-4 flex-shrink-0" strokeWidth={1.85} aria-hidden />
-          <span className="flex-1 text-left">Équipe &amp; rôles</span>
+          <span className="flex-1 text-left">{t('settings.teamAndRoles')}</span>
           <ArrowUpRight
             className="h-3.5 w-3.5 flex-shrink-0 opacity-60"
             strokeWidth={1.9}
@@ -204,7 +213,7 @@ export function SettingsShell({
           className="focus-ring flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-[color:var(--color-muted-foreground)] transition-colors hover:text-[color:var(--color-foreground)]"
         >
           <CreditCard className="h-4 w-4 flex-shrink-0" strokeWidth={1.85} aria-hidden />
-          <span className="flex-1 text-left">Facturation &amp; plan</span>
+          <span className="flex-1 text-left">{t('settings.billingAndPlan')}</span>
           <ArrowUpRight
             className="h-3.5 w-3.5 flex-shrink-0 opacity-60"
             strokeWidth={1.9}
@@ -216,7 +225,7 @@ export function SettingsShell({
       <div className="min-w-0">
         {/* Select mobile */}
         <label className="mb-4 block lg:hidden">
-          <span className="sr-only">Section des réglages</span>
+          <span className="sr-only">{t('settings.sectionsNavAria')}</span>
           <Select value={section} onValueChange={(v) => setSection(v as Section)}>
             <SelectTrigger className="focus-ring h-10 w-full rounded-lg border border-[color:var(--color-border-strong)] bg-[color:var(--color-surface-elevated)] px-3 text-sm text-[color:var(--color-foreground)]">
               <SelectValue />
@@ -234,7 +243,7 @@ export function SettingsShell({
         {/* Panel head (eyebrow + titre + sous-titre) */}
         <div className="mb-5 flex flex-col gap-1">
           <span className="font-mono text-[10px] tracking-[0.2em] text-[color:var(--color-muted-foreground)] uppercase">
-            Réglages · {org.name}
+            {t('settings.eyebrow', { org: org.name })}
           </span>
           <h2
             className="font-display text-xl text-[color:var(--color-foreground)] italic"
@@ -254,9 +263,9 @@ export function SettingsShell({
               aria-hidden
             />
             <p className="text-[13px] leading-relaxed text-[color:var(--color-ink-700)]">
-              Vous consultez les réglages en{' '}
-              <b className="text-[color:var(--color-foreground)]">lecture seule</b>. Demandez un
-              rôle Admin ou Propriétaire pour modifier.
+              {t.rich('settings.readOnlyBanner', {
+                b: (chunks) => <b className="text-[color:var(--color-foreground)]">{chunks}</b>,
+              })}
             </p>
           </div>
         ) : null}
@@ -265,8 +274,8 @@ export function SettingsShell({
           <ProfilPanel
             name={org.name}
             slug={org.slug}
-            tierLabel={org.tier ? TIER_LABEL[org.tier] : 'Sans abonnement'}
-            roleLabel={ROLE_LABEL[org.role]}
+            tierLabel={org.tier ? TIER_LABEL[org.tier] : t('settings.noPlan')}
+            roleLabel={t(ROLE_LABEL_KEY[org.role] as Parameters<typeof t>[0])}
             userName={user.name ?? '—'}
             userEmail={user.email ?? '—'}
           />
@@ -296,7 +305,7 @@ export function SettingsShell({
         ) : section === 'notifications' ? (
           <NotificationsForm initialPrefs={notifPrefs} canWrite={canManage} />
         ) : section === 'security' ? (
-          <SecurityPanel deviceLabel="Navigateur web" />
+          <SecurityPanel deviceLabel={t('settings.webBrowser')} />
         ) : (
           <DangerZone orgName={org.name} isOwner={isOwner} members={members} />
         )}
@@ -320,47 +329,53 @@ function ProfilPanel({
   userName: string;
   userEmail: string;
 }) {
+  const t = useTranslations('Pro.main');
   return (
     <div className="flex flex-col gap-6">
       <SetCard
         Icon={Building2}
-        title="Identité de l’organisation"
-        sub="Visible par votre équipe et sur les documents."
+        title={t('settings.orgIdentityTitle')}
+        sub={t('settings.orgIdentitySub')}
       >
-        <Kv label="Nom de l’agence" value={name} />
-        <Kv label="Adresse publique" value={`${slug}.wedillybird.fr`} mono />
-        <Kv label="Forfait" value={tierLabel} />
-        <Kv label="Votre rôle" value={roleLabel} />
+        <Kv label={t('settings.agencyNameLabel')} value={name} />
+        <Kv label={t('settings.publicAddressLabel')} value={`${slug}.wedillybird.fr`} mono />
+        <Kv label={t('settings.planLabel')} value={tierLabel} />
+        <Kv label={t('settings.yourRoleLabel')} value={roleLabel} />
         <p className="pt-1 text-xs text-[color:var(--color-muted-foreground)]">
-          Logo, couleurs et domaine sur mesure se configurent dans l’onglet{' '}
-          <b className="text-[color:var(--color-foreground)]">Marque blanche</b>.
+          {t.rich('settings.brandingHint', {
+            b: (chunks) => <b className="text-[color:var(--color-foreground)]">{chunks}</b>,
+          })}
         </p>
       </SetCard>
-      <SetCard Icon={UserCircle} title="Votre compte" sub="Vos informations personnelles.">
-        <Kv label="Nom" value={userName} />
-        <Kv label="Email" value={userEmail} mono />
-        <Kv label="Rôle" value={roleLabel} />
+      <SetCard
+        Icon={UserCircle}
+        title={t('settings.yourAccountTitle')}
+        sub={t('settings.yourAccountSub')}
+      >
+        <Kv label={t('settings.nameLabel')} value={userName} />
+        <Kv label={t('settings.emailLabel')} value={userEmail} mono />
+        <Kv label={t('settings.roleLabel')} value={roleLabel} />
       </SetCard>
     </div>
   );
 }
 
 function IntegrationsPanel() {
+  const t = useTranslations('Pro.main');
   return (
     <SetCard
       Icon={Plug}
-      title="Intégrations & import"
-      sub="Importez vos clients et branchez vos outils."
+      title={t('settings.integrationsPanelTitle')}
+      sub={t('settings.integrationsPanelSub')}
     >
       <p className="text-sm leading-relaxed text-[color:var(--color-ink-700)]">
-        Import CSV de vos clients, et bientôt des connecteurs CRM, agenda et paiement. La
-        configuration complète se fait depuis le module dédié.
+        {t('settings.integrationsPanelBody')}
       </p>
       <Link
         href="/pro/integrations"
         className="focus-ring mt-1 inline-flex items-center gap-1.5 self-start rounded-lg border border-[color:var(--color-border-strong)] px-3.5 py-2 text-sm text-[color:var(--color-foreground)] transition-colors hover:border-[color:var(--color-blush-400)]"
       >
-        Ouvrir les intégrations
+        {t('settings.openIntegrations')}
         <ArrowRight className="h-4 w-4" strokeWidth={1.85} aria-hidden />
       </Link>
     </SetCard>

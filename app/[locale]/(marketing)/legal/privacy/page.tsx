@@ -29,8 +29,9 @@ export async function generateMetadata({
 
 export default async function PrivacyPage() {
   const t = await getTranslations('Legal.privacy');
+  const tm = await getTranslations('Marketing.legal');
   return (
-    <EditorialPage eyebrow="DOCUMENT JURIDIQUE" title={t('title')} lastUpdated={t('lastUpdated')}>
+    <EditorialPage eyebrow={tm('eyebrow')} title={t('title')} lastUpdated={t('lastUpdated')}>
       <EditorialSection title={t('controllerTitle')} body={t('controllerBody')} />
       <EditorialSection title={t('dataCollectedTitle')} body={t('dataCollectedBody')} />
       <EditorialSection title={t('purposesTitle')} body={t('purposesBody')} />

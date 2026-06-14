@@ -1,4 +1,4 @@
-import { setRequestLocale } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { Link, redirect } from '@/i18n/navigation';
@@ -36,6 +36,8 @@ export default async function EditEventPage({
   // local timezone du browser. On reconstruit côté client à partir d'ISO.
   const initialIsoDate = new Date(event.eventDate).toISOString().slice(0, 16);
 
+  const t = await getTranslations('CoupleSpace');
+
   return (
     <AppShell>
       <div className="container-page flex flex-col gap-12 py-12 sm:py-16">
@@ -45,11 +47,11 @@ export default async function EditEventPage({
             className="inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-ink-500)] uppercase transition-colors hover:text-[color:var(--color-ink-900)]"
           >
             <ArrowLeft className="h-3 w-3" strokeWidth={2} aria-hidden />
-            Retour à l&apos;événement
+            {t('backToEvent')}
           </Link>
           <header className="flex flex-col gap-2">
             <span className="font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-gold-700)] uppercase">
-              Modifier
+              {t('editEyebrow')}
             </span>
             <h1
               className="font-display text-balance italic"
@@ -60,12 +62,9 @@ export default async function EditEventPage({
                 color: 'var(--color-ink-900)',
               }}
             >
-              Détails de votre mariage
+              {t('editTitle')}
             </h1>
-            <p className="text-sm text-[color:var(--color-ink-500)]">
-              Mettez à jour les informations qui apparaîtront sur l&apos;invitation et le tableau de
-              bord.
-            </p>
+            <p className="text-sm text-[color:var(--color-ink-500)]">{t('editSubtitle')}</p>
           </header>
         </div>
 

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { setRequestLocale } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { Users } from 'lucide-react';
 import { requireProContext } from '@/lib/pro/require-pro-context';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
@@ -9,7 +9,10 @@ import { ClientsBoard } from '@/components/pro/clients/clients-board';
 import { tierHasFeature } from '@/lib/payments/entitlements';
 import { nowMs } from '@/lib/pro/format';
 
-export const metadata: Metadata = { title: 'Clients — Wedillybird Pro' };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('ProPages');
+  return { title: t('clientsMetaTitle') };
+}
 
 export default async function ProClientsPage({
   params,
@@ -22,6 +25,7 @@ export default async function ProClientsPage({
   const sp = await searchParams;
   setRequestLocale(locale);
   const { session, org, user } = await requireProContext(locale);
+  const t = await getTranslations('ProPages');
   const tier = org.subscriptionTier ?? null;
   const locked = !tierHasFeature(tier, 'crmPipeline');
 
@@ -36,17 +40,17 @@ export default async function ProClientsPage({
     return (
       <ProSidebarShell current="clients" org={shellOrg} user={{ name: user?.fullName }}>
         <ModulePlaceholder
-          eyebrow="CRM"
-          title="Clients"
+          eyebrow={t('clientsLockedEyebrow')}
+          title={t('clientsTitle')}
           Icon={Users}
-          description="Votre pipeline commercial : suivez chaque couple du premier contact à la livraison du mariage, sans quitter le back-office."
+          description={t('clientsLockedDescription')}
           capabilities={[
-            'Pipeline 6 étapes : Lead → Contacté → Devis → Réservé → En cours → Livré',
-            'Vue kanban drag-drop + table dense filtrable et triable',
-            'Conversion d’un lead en mariage en un clic',
-            'Sources de lead et timeline d’activité par client',
-            'Actions groupées (changer de statut, assigner, supprimer)',
-            'Fiche client : coordonnées, budget, notes, documents',
+            t('clientsCap1'),
+            t('clientsCap2'),
+            t('clientsCap3'),
+            t('clientsCap4'),
+            t('clientsCap5'),
+            t('clientsCap6'),
           ]}
           lockedUntil="business"
         />

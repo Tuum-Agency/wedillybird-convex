@@ -9,19 +9,23 @@
  */
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { PhoneInput } from '@/components/auth/phone-input';
 
 export function PhoneFieldPair({
   phone,
   whatsapp,
-  phoneLabel = 'Téléphone',
-  whatsappLabel = 'WhatsApp',
+  phoneLabel,
+  whatsappLabel,
 }: {
   phone?: string;
   whatsapp?: string;
   phoneLabel?: string;
   whatsappLabel?: string;
 }) {
+  const t = useTranslations('Pro.main');
+  const phoneLbl = phoneLabel ?? t('phoneFieldPair.phoneLabel');
+  const whatsappLbl = whatsappLabel ?? t('phoneFieldPair.whatsappLabel');
   const [phoneVal, setPhoneVal] = useState(phone ?? '');
   // Par défaut « même numéro » si pas de WhatsApp distinct enregistré.
   const [same, setSame] = useState(() => !whatsapp || whatsapp === phone);
@@ -30,7 +34,7 @@ export function PhoneFieldPair({
     <div className="flex flex-col gap-2.5">
       <label className="flex flex-col gap-1.5">
         <span className="text-xs font-medium text-[color:var(--color-muted-foreground)]">
-          {phoneLabel}
+          {phoneLbl}
         </span>
         <PhoneInput name="phone" defaultValue={phone} onValueChange={setPhoneVal} />
       </label>
@@ -42,7 +46,7 @@ export function PhoneFieldPair({
           onChange={(e) => setSame(e.target.checked)}
           className="h-4 w-4 accent-[color:var(--color-blush-400)]"
         />
-        {whatsappLabel} = même numéro que le téléphone
+        {t('phoneFieldPair.sameNumber', { label: whatsappLbl })}
       </label>
 
       {same ? (
@@ -50,7 +54,7 @@ export function PhoneFieldPair({
       ) : (
         <label className="flex flex-col gap-1.5">
           <span className="text-xs font-medium text-[color:var(--color-muted-foreground)]">
-            {whatsappLabel}
+            {whatsappLbl}
           </span>
           <PhoneInput name="whatsapp" defaultValue={whatsapp} />
         </label>

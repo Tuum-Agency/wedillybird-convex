@@ -1,6 +1,7 @@
 'use client';
 
 import { motion } from 'motion/react';
+import { useTranslations } from 'next-intl';
 import { inViewOnce, scrollReveal, scrollRevealParent } from '@/lib/motion/presets';
 import { WEDGE } from './content';
 
@@ -10,6 +11,8 @@ import { WEDGE } from './content';
  * avec les aperçus dark du back-office ailleurs sur la page.
  */
 export function ProsWedge() {
+  const t = useTranslations('Pros');
+
   return (
     <section className="paper-grain relative overflow-hidden bg-[color:var(--color-surface-warm)] py-28">
       <div className="container-page">
@@ -24,7 +27,7 @@ export function ProsWedge() {
             variants={scrollReveal}
             className="font-mono text-[11px] tracking-[0.32em] text-[color:var(--color-ink-500)] uppercase"
           >
-            La différence
+            {t('wedge.eyebrow')}
           </motion.span>
           <motion.h2
             variants={scrollReveal}
@@ -36,14 +39,13 @@ export function ProsWedge() {
               color: 'var(--color-ink-900)',
             }}
           >
-            Les autres gèrent le bureau. Nous gérons aussi le grand jour.
+            {t('wedge.title')}
           </motion.h2>
           <motion.p
             variants={scrollReveal}
             className="max-w-xl text-base leading-relaxed text-[color:var(--color-ink-500)]"
           >
-            HoneyBook, Dubsado, un tableur : ils s’arrêtent au devis. Wedillybird ajoute l’exécution
-            premium du jour J — celle que vos couples voient et dont ils se souviennent.
+            {t('wedge.subtitle')}
           </motion.p>
         </motion.div>
 
@@ -58,7 +60,7 @@ export function ProsWedge() {
             const Icon = item.icon;
             return (
               <motion.article
-                key={item.title}
+                key={item.key}
                 variants={scrollReveal}
                 className="group flex flex-col gap-4 rounded-3xl border border-[color:var(--color-border)] bg-white p-7 shadow-[var(--shadow-soft)] transition-[transform,box-shadow] duration-300 [@media(hover:hover)]:hover:-translate-y-1.5 [@media(hover:hover)]:hover:shadow-[var(--shadow-blush)]"
               >
@@ -72,10 +74,10 @@ export function ProsWedge() {
                   className="font-display text-xl text-[color:var(--color-ink-900)] italic"
                   style={{ letterSpacing: '-0.018em' }}
                 >
-                  {item.title}
+                  {t(`wedge.items.${item.key}.title` as Parameters<typeof t>[0])}
                 </h3>
                 <p className="text-sm leading-relaxed text-[color:var(--color-ink-500)]">
-                  {item.detail}
+                  {t(`wedge.items.${item.key}.detail` as Parameters<typeof t>[0])}
                 </p>
               </motion.article>
             );
@@ -88,8 +90,9 @@ export function ProsWedge() {
           viewport={inViewOnce}
           className="mx-auto mt-12 max-w-2xl text-center text-sm text-[color:var(--color-ink-500)]"
         >
-          Et tout cela porte <span className="text-[color:var(--color-ink-900)]">votre</span> marque
-          — du sous-domaine au portail couple, jusqu’à la marque blanche totale.
+          {t.rich('wedge.footnote', {
+            strong: (chunks) => <span className="text-[color:var(--color-ink-900)]">{chunks}</span>,
+          })}
         </motion.p>
       </div>
     </section>

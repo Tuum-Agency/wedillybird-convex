@@ -2,6 +2,7 @@
 
 import { useMemo, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Upload, ArrowRight, ArrowLeft, Check, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -17,14 +18,17 @@ import {
   autoMapColumns,
   buildClientRows,
   markDuplicates,
-  CLIENT_FIELD_LABEL,
   type ClientField,
 } from '@/lib/pro/csv';
 import { createClientAction } from '@/app/[locale]/(app)/pro/clients/actions';
 
 const FIELDS: ClientField[] = ['partnerA', 'partnerB', 'email', 'phone', 'ignore'];
 
+/** Étapes de l'assistant, dans l'ordre. La clé sert d'identifiant React stable. */
+const STEPS = ['upload', 'map', 'result'] as const;
+
 export function CsvImport({ existingNames }: { existingNames: string[] }) {
+  const t = useTranslations('Pro.integrations');
   const router = useRouter();
   const [step, setStep] = useState<'upload' | 'map' | 'result'>('upload');
   const [headers, setHeaders] = useState<string[]>([]);
@@ -95,20 +99,19 @@ export function CsvImport({ existingNames }: { existingNames: string[] }) {
         </span>
         <div className="flex flex-col">
           <span className="font-display text-base text-[color:var(--color-foreground)] italic">
-            Import CSV de clients
+            {t('title')}
           </span>
           <span className="text-xs text-[color:var(--color-muted-foreground)]">
-            Migrez votre carnet de couples vers le CRM — mapping de colonnes + détection de
-            doublons.
+            {t('subtitle')}
           </span>
         </div>
       </div>
 
       {/* Étapes */}
       <ol className="flex items-center gap-2 font-mono text-[10px] tracking-[0.12em] text-[color:var(--color-muted-foreground)] uppercase">
-        {(['Importer', 'Mapper', 'Résultat'] as const).map((s, i) => {
-          const active = ['upload', 'map', 'result'][i] === step;
-          const done = ['upload', 'map', 'result'].indexOf(step) > i;
+        {STEPS.map((s, i) => {
+          const active = s === step;
+          const done = STEPS.indexOf(step) > i;
           return (
             <li key={s} className="flex items-center gap-2">
               <span
@@ -123,8 +126,10 @@ export function CsvImport({ existingNames }: { existingNames: string[] }) {
               >
                 {done ? <Check className="h-3 w-3" strokeWidth={2.4} /> : `0${i + 1}`}
               </span>
-              {s}
-              {i < 2 ? <span className="text-[color:var(--color-border-strong)]">·</span> : null}
+              {t(`steps.${s}`)}
+              {i < STEPS.length - 1 ? (
+                <span className="text-[color:var(--color-border-strong)]">·</span>
+              ) : null}
             </li>
           );
         })}
@@ -138,9 +143,7 @@ export function CsvImport({ existingNames }: { existingNames: string[] }) {
               strokeWidth={1.6}
               aria-hidden
             />
-            <span className="text-sm text-[color:var(--color-foreground)]">
-              Déposez un fichier .csv ou cliquez pour choisir
-            </span>
+            <span className="text-sm text-[color:var(--color-foreground)]">{t('dropzone')}</span>
             <input
               type="file"
               accept=".csv,text/csv"
@@ -153,14 +156,14 @@ export function CsvImport({ existingNames }: { existingNames: string[] }) {
             />
           </label>
           <span className="text-center font-mono text-[10px] text-[color:var(--color-muted-foreground)]">
-            — ou collez les données —
+            {t('orPaste')}
           </span>
           <textarea
             value={paste}
             onChange={(e) => setPaste(e.target.value)}
             rows={4}
-            placeholder={'Partenaire A,Partenaire B,Email,Téléphone\nAwa,Karim,awa@mail.fr,+33…'}
-            aria-label="Coller un CSV"
+            placeholder={t('pastePlaceholder')}
+            aria-label={t('pasteAria')}
             data-testid="csv-paste"
             className="focus-ring rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-surface-elevated)] px-3 py-2 font-mono text-xs text-[color:var(--color-foreground)]"
           />
@@ -173,7 +176,7 @@ export function CsvImport({ existingNames }: { existingNames: string[] }) {
               onClick={() => ingest(paste)}
               data-testid="csv-parse"
             >
-              Analyser
+              {t('parse')}
               <ArrowRight className="h-4 w-4" strokeWidth={2} aria-hidden />
             </Button>
           </div>
@@ -191,7 +194,7 @@ export function CsvImport({ existingNames }: { existingNames: string[] }) {
                   className="min-w-0 flex-1 truncate text-[color:var(--color-foreground)]"
                   title={h}
                 >
-                  {h || `Colonne ${i + 1}`}
+                  {h || t('columnFallback', { n: i + 1 })}
                 </span>
                 <Select
                   value={mapping[i] ?? 'ignore'}
@@ -200,7 +203,7 @@ export function CsvImport({ existingNames }: { existingNames: string[] }) {
                   }
                 >
                   <SelectTrigger
-                    aria-label={`Mapper « ${h} »`}
+                    aria-label={t('mapColumn', { column: h || t('columnFallback', { n: i + 1 }) })}
                     className="focus-ring h-auto w-auto rounded-md border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-2 py-1 text-xs text-[color:var(--color-foreground)]"
                   >
                     <SelectValue />
@@ -208,7 +211,7 @@ export function CsvImport({ existingNames }: { existingNames: string[] }) {
                   <SelectContent>
                     {FIELDS.map((f) => (
                       <SelectItem key={f} value={f}>
-                        {CLIENT_FIELD_LABEL[f]}
+                        {t(`fields.${f}`)}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -219,12 +222,17 @@ export function CsvImport({ existingNames }: { existingNames: string[] }) {
           {/* preview */}
           <div className="flex items-center justify-between font-mono text-[11px] text-[color:var(--color-muted-foreground)]">
             <span>
-              <b className="text-[color:var(--color-foreground)]">{toImport.length}</b> à importer
+              {t.rich('toImport', {
+                count: toImport.length,
+                b: (chunks) => <b className="text-[color:var(--color-foreground)]">{chunks}</b>,
+              })}
             </span>
             {dupCount > 0 ? (
               <span>
-                <b className="text-[color:var(--color-warning)]">{dupCount}</b> doublon
-                {dupCount > 1 ? 's' : ''} ignoré{dupCount > 1 ? 's' : ''}
+                {t.rich('duplicatesSkipped', {
+                  count: dupCount,
+                  b: (chunks) => <b className="text-[color:var(--color-warning)]">{chunks}</b>,
+                })}
               </span>
             ) : null}
           </div>
@@ -249,7 +257,7 @@ export function CsvImport({ existingNames }: { existingNames: string[] }) {
                     <td className="px-3 py-1.5 text-right">
                       {r.duplicate ? (
                         <span className="font-mono text-[9px] text-[color:var(--color-warning)] uppercase">
-                          Doublon
+                          {t('duplicateBadge')}
                         </span>
                       ) : null}
                     </td>
@@ -261,7 +269,7 @@ export function CsvImport({ existingNames }: { existingNames: string[] }) {
           <div className="flex justify-between">
             <Button type="button" variant="ghost" size="md" onClick={reset}>
               <ArrowLeft className="h-4 w-4" strokeWidth={2} aria-hidden />
-              Retour
+              {t('back')}
             </Button>
             <Button
               type="button"
@@ -271,9 +279,7 @@ export function CsvImport({ existingNames }: { existingNames: string[] }) {
               onClick={runImport}
               data-testid="csv-import"
             >
-              {pending
-                ? 'Import…'
-                : `Importer ${toImport.length} client${toImport.length > 1 ? 's' : ''}`}
+              {pending ? t('importing') : t('importCta', { count: toImport.length })}
             </Button>
           </div>
         </div>
@@ -283,17 +289,15 @@ export function CsvImport({ existingNames }: { existingNames: string[] }) {
             <Check className="h-6 w-6" strokeWidth={2.2} aria-hidden />
           </span>
           <span className="font-display text-lg text-[color:var(--color-foreground)] italic">
-            {result.imported} client{result.imported > 1 ? 's' : ''} importé
-            {result.imported > 1 ? 's' : ''}
+            {t('resultImported', { count: result.imported })}
           </span>
           {result.skipped > 0 ? (
             <span className="text-xs text-[color:var(--color-muted-foreground)]">
-              {result.skipped} ligne{result.skipped > 1 ? 's' : ''} ignorée
-              {result.skipped > 1 ? 's' : ''} (doublons ou erreurs).
+              {t('resultSkipped', { count: result.skipped })}
             </span>
           ) : null}
           <Button type="button" variant="outline" size="md" onClick={reset}>
-            Importer un autre fichier
+            {t('importAnother')}
           </Button>
         </div>
       )}

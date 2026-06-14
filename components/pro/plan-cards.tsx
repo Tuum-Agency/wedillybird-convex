@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useTranslations } from 'next-intl';
 import { Check, Sparkles, RefreshCw, ArrowUpRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -30,8 +30,8 @@ function formatPrice(minor: number, locale: string): string {
   return `${(minor / 100).toLocaleString(locale, { minimumFractionDigits: 0 })} €`;
 }
 
-function fmtNum(n: number): string {
-  return n.toLocaleString('fr-FR');
+function fmtNum(n: number, locale: string): string {
+  return n.toLocaleString(locale);
 }
 
 /**
@@ -58,6 +58,7 @@ export function PlanCards({
 }) {
   const tBilling = useTranslations('Billing');
   const tPlans = useTranslations('Plans');
+  const tMain = useTranslations('Pro.main');
   const [billing, setBilling] = useState<'monthly' | 'annual'>('monthly');
   const [confirm, setConfirm] = useState<PlanCardData | null>(null);
 
@@ -70,7 +71,7 @@ export function PlanCards({
         <div
           className="inline-flex items-center gap-1 rounded-full border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-1"
           role="group"
-          aria-label="Période de facturation"
+          aria-label={tMain('planCards.billingPeriodAria')}
         >
           {(['monthly', 'annual'] as const).map((b) => (
             <button
@@ -84,10 +85,10 @@ export function PlanCards({
                   : 'text-[color:var(--color-muted-foreground)] hover:text-[color:var(--color-foreground)]'
               }`}
             >
-              {b === 'monthly' ? 'Mensuel' : 'Annuel'}
+              {b === 'monthly' ? tMain('planCards.monthly') : tMain('planCards.annual')}
               {b === 'annual' ? (
                 <span className="rounded-full bg-[color:var(--color-sage-500)]/15 px-1.5 py-0.5 font-mono text-[9px] tracking-[0.08em] text-[color:var(--color-sage-500)] uppercase">
-                  −20 %
+                  {tMain('planCards.discount20')}
                 </span>
               ) : null}
             </button>
@@ -156,7 +157,7 @@ export function PlanCards({
                   {formatPrice(amount, locale)}
                 </span>
                 <span className="text-sm text-[color:var(--color-muted-foreground)]">
-                  {billing === 'annual' ? '/an' : tBilling('perMonth')}
+                  {billing === 'annual' ? tMain('planCards.perYear') : tBilling('perMonth')}
                 </span>
               </p>
 
@@ -233,54 +234,54 @@ function ChangePlanDialog({
   subscribeAction: (formData: FormData) => void | Promise<void>;
   onClose: () => void;
 }) {
+  const tMain = useTranslations('Pro.main');
+  const bold = (chunks: ReactNode) => (
+    <b className="text-[color:var(--color-foreground)]">{chunks}</b>
+  );
   const priceOf = (p: PlanCardData) => (billing === 'annual' ? p.annualMinor : p.monthlyMinor);
   const newPrice = priceOf(target);
   const curPrice = current ? priceOf(current) : 0;
   const samePlan = current?.tier === target.tier;
   const isUp = current ? TIER_RANK[target.tier] > TIER_RANK[current.tier] : true;
-  const cycleSuffix = billing === 'annual' ? '/an' : '/mois';
+  const cycleSuffix =
+    billing === 'annual' ? tMain('planCards.perYear') : tMain('planCards.perMonth');
 
   const eyebrow = !current
-    ? 'Souscrire'
+    ? tMain('planCards.eyebrowSubscribe')
     : samePlan
-      ? 'Changer de cycle'
+      ? tMain('planCards.eyebrowChangeCycle')
       : isUp
-        ? 'Mettre à niveau'
-        : 'Rétrograder';
+        ? tMain('planCards.eyebrowUpgrade')
+        : tMain('planCards.eyebrowDowngrade');
   const cta = !current
-    ? `Souscrire ${target.label}`
+    ? tMain('planCards.ctaSubscribe', { plan: target.label })
     : samePlan
       ? billing === 'annual'
-        ? 'Passer en annuel'
-        : 'Passer en mensuel'
+        ? tMain('planCards.ctaSwitchAnnual')
+        : tMain('planCards.ctaSwitchMonthly')
       : isUp
-        ? `Passer à ${target.label}`
-        : `Rétrograder vers ${target.label}`;
-  const intro = !current ? (
-    <>
-      Vous souscrivez au forfait{' '}
-      <b className="text-[color:var(--color-foreground)]">{target.label}</b>. Le paiement et la
-      facturation sont gérés par Stripe.
-    </>
-  ) : samePlan ? (
-    <>
-      Vous passez votre forfait{' '}
-      <b className="text-[color:var(--color-foreground)]">{target.label}</b> en facturation{' '}
-      {billing === 'annual' ? 'annuelle (−20 %)' : 'mensuelle'}.
-    </>
-  ) : isUp ? (
-    <>
-      Vous passez de <b className="text-[color:var(--color-foreground)]">{current.label}</b> à{' '}
-      <b className="text-[color:var(--color-foreground)]">{target.label}</b>. Le nouveau forfait est
-      actif immédiatement ; la différence est calculée au prorata par Stripe.
-    </>
-  ) : (
-    <>
-      Vous rétrogradez de <b className="text-[color:var(--color-foreground)]">{current.label}</b> à{' '}
-      <b className="text-[color:var(--color-foreground)]">{target.label}</b>. Le changement prend
-      effet à la prochaine échéance.
-    </>
-  );
+        ? tMain('planCards.ctaUpgradeTo', { plan: target.label })
+        : tMain('planCards.ctaDowngradeTo', { plan: target.label });
+  const intro = !current
+    ? tMain.rich('planCards.introSubscribe', { plan: target.label, b: bold })
+    : samePlan
+      ? tMain.rich('planCards.introChangeCycle', {
+          plan: target.label,
+          cycle:
+            billing === 'annual' ? tMain('planCards.cycleAnnual') : tMain('planCards.cycleMonthly'),
+          b: bold,
+        })
+      : isUp
+        ? tMain.rich('planCards.introUpgrade', {
+            current: current.label,
+            target: target.label,
+            b: bold,
+          })
+        : tMain.rich('planCards.introDowngrade', {
+            current: current.label,
+            target: target.label,
+            b: bold,
+          });
 
   return (
     <BillingDialog
@@ -292,7 +293,7 @@ function ChangePlanDialog({
       footer={
         <>
           <Button type="button" variant="ghost" size="md" onClick={onClose}>
-            Annuler
+            {tMain('planCards.cancel')}
           </Button>
           <form action={subscribeAction}>
             <input type="hidden" name="tier" value={target.tier} />
@@ -312,16 +313,16 @@ function ChangePlanDialog({
       <RecapCard>
         {current ? (
           <RecapRow
-            label={`Forfait actuel · ${current.label}`}
+            label={tMain('planCards.recapCurrentPlan', { plan: current.label })}
             value={`${formatPrice(curPrice, locale)}${cycleSuffix}`}
           />
         ) : null}
         <RecapRow
-          label={`Nouveau forfait · ${target.label}`}
+          label={tMain('planCards.recapNewPlan', { plan: target.label })}
           value={`${formatPrice(newPrice, locale)}${cycleSuffix}`}
         />
         <RecapRow
-          label={current ? 'Dès la prochaine échéance' : 'À régler via Stripe'}
+          label={current ? tMain('planCards.recapNextCycle') : tMain('planCards.recapPayViaStripe')}
           value={`${formatPrice(newPrice, locale)}${cycleSuffix}`}
           total
         />
@@ -329,16 +330,19 @@ function ChangePlanDialog({
       {tierMeta && current && !samePlan ? (
         <RecapCard>
           <RecapRow
-            label="Événements actifs"
-            value={`${fmtNum(tierMeta[current.tier].events)} → ${fmtNum(tierMeta[target.tier].events)}`}
+            label={tMain('planCards.recapActiveEvents')}
+            value={`${fmtNum(tierMeta[current.tier].events, locale)} → ${fmtNum(tierMeta[target.tier].events, locale)}`}
           />
           <RecapRow
-            label="Messages/mois inclus"
-            value={`${fmtNum(tierMeta[current.tier].messages)} → ${fmtNum(tierMeta[target.tier].messages)}`}
+            label={tMain('planCards.recapMessagesIncluded')}
+            value={`${fmtNum(tierMeta[current.tier].messages, locale)} → ${fmtNum(tierMeta[target.tier].messages, locale)}`}
           />
           <RecapRow
-            label="Stockage"
-            value={`${fmtNum(tierMeta[current.tier].storageGo)} → ${fmtNum(tierMeta[target.tier].storageGo)} Go`}
+            label={tMain('planCards.recapStorage')}
+            value={tMain('planCards.recapStorageValue', {
+              from: fmtNum(tierMeta[current.tier].storageGo, locale),
+              to: fmtNum(tierMeta[target.tier].storageGo, locale),
+            })}
           />
         </RecapCard>
       ) : null}

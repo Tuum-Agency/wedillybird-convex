@@ -1,6 +1,7 @@
 'use client';
 
 import { motion } from 'motion/react';
+import { useTranslations } from 'next-intl';
 import { Check } from 'lucide-react';
 import { inViewOnce, scrollReveal, scrollRevealParent } from '@/lib/motion/presets';
 import { WHITE_LABEL } from './content';
@@ -10,6 +11,8 @@ import { TierBadge } from './tier-badge';
  * Marque blanche graduée en 3 niveaux (Starter → Business → Agency).
  */
 export function ProsWhiteLabel() {
+  const t = useTranslations('Pros');
+
   return (
     <section className="relative bg-[color:var(--color-background)] py-28">
       <div className="container-page">
@@ -24,7 +27,7 @@ export function ProsWhiteLabel() {
             variants={scrollReveal}
             className="font-mono text-[11px] tracking-[0.32em] text-[color:var(--color-ink-500)] uppercase"
           >
-            Sous votre marque
+            {t('whiteLabel.eyebrow')}
           </motion.span>
           <motion.h2
             variants={scrollReveal}
@@ -36,14 +39,13 @@ export function ProsWhiteLabel() {
               color: 'var(--color-ink-900)',
             }}
           >
-            Vos couples voient votre agence. Pas la nôtre.
+            {t('whiteLabel.title')}
           </motion.h2>
           <motion.p
             variants={scrollReveal}
             className="max-w-xl text-base leading-relaxed text-[color:var(--color-ink-500)]"
           >
-            La marque blanche se renforce avec votre forfait : du sous-domaine à votre couleur,
-            jusqu’au domaine personnalisé et au retrait total de toute mention Wedillybird.
+            {t('whiteLabel.subtitle')}
           </motion.p>
         </motion.div>
 
@@ -58,7 +60,7 @@ export function ProsWhiteLabel() {
             const highlight = i === WHITE_LABEL.length - 1;
             return (
               <motion.article
-                key={lvl.level}
+                key={lvl.key}
                 variants={scrollReveal}
                 className={[
                   'flex flex-col gap-4 rounded-3xl border bg-white p-7 shadow-[var(--shadow-soft)]',
@@ -69,11 +71,11 @@ export function ProsWhiteLabel() {
               >
                 <div className="flex items-center justify-between">
                   <span className="font-mono text-[10px] tracking-[0.24em] text-[color:var(--color-gold-700)] uppercase">
-                    {lvl.level}
+                    {t('whiteLabel.levelLabel', { n: lvl.levelNumber })}
                   </span>
                   {lvl.tier === 'all' ? (
                     <span className="font-mono text-[9px] tracking-[0.08em] text-[color:var(--color-ink-400)] uppercase">
-                      Dès Starter
+                      {t('whiteLabel.fromStarter')}
                     </span>
                   ) : (
                     <TierBadge tier={lvl.tier} />
@@ -83,12 +85,12 @@ export function ProsWhiteLabel() {
                   className="font-display text-2xl text-[color:var(--color-ink-900)] italic"
                   style={{ letterSpacing: '-0.02em' }}
                 >
-                  {lvl.title}
+                  {t(`whiteLabel.levels.${lvl.key}.title` as Parameters<typeof t>[0])}
                 </h3>
                 <ul className="mt-1 flex flex-col gap-2.5">
-                  {lvl.points.map((p) => (
+                  {Array.from({ length: lvl.pointCount }, (_, pi) => (
                     <li
-                      key={p}
+                      key={pi}
                       className="flex items-start gap-2.5 text-sm text-[color:var(--color-ink-700)]"
                     >
                       <Check
@@ -96,7 +98,7 @@ export function ProsWhiteLabel() {
                         strokeWidth={2}
                         aria-hidden
                       />
-                      {p}
+                      {t(`whiteLabel.levels.${lvl.key}.points.${pi}` as Parameters<typeof t>[0])}
                     </li>
                   ))}
                 </ul>

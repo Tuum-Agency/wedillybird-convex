@@ -55,6 +55,7 @@ export default async function ForfaitsProsPage({
 function ForfaitsProsShell({ defaultCurrency }: { defaultCurrency: Currency }) {
   const t = useTranslations('Landing.forfaitsPros');
   const tCommon = useTranslations('Common');
+  const tm = useTranslations('Marketing.forfaitsPros');
 
   return (
     <>
@@ -109,7 +110,7 @@ function ForfaitsProsShell({ defaultCurrency }: { defaultCurrency: Currency }) {
         <section className="bg-[color:var(--color-surface)] py-20">
           <div className="container-page mx-auto max-w-3xl">
             <span className="mb-8 inline-block font-mono text-[11px] tracking-[0.32em] text-[color:var(--color-ink-500)] uppercase">
-              Questions fréquentes
+              {tm('faqEyebrow')}
             </span>
             <dl className="flex flex-col divide-y divide-[color:var(--color-border)]">
               {(

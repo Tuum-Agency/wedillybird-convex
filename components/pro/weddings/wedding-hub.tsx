@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import { useFormatter, useTranslations } from 'next-intl';
 import {
   ChevronRight,
   Calendar,
@@ -25,7 +26,6 @@ import {
 } from 'lucide-react';
 import { Link } from '@/i18n/navigation';
 import { cn } from '@/lib/cn';
-import { formatEurMinor } from '@/lib/pro/format';
 import { togglePublishAction } from '@/app/[locale]/(app)/pro/weddings/actions';
 import {
   InvitesTab,
@@ -67,41 +67,42 @@ export interface WeddingHubData {
   seatingPlan?: SeatingPlan | null;
 }
 
-const STATUS_PILL: Record<EventStatus, { label: string; bg: string; fg: string; dot: string }> = {
-  active: {
-    label: 'Actif',
-    bg: 'oklch(26% 0.04 145)',
-    fg: 'oklch(82% 0.07 145)',
-    dot: 'oklch(72% 0.08 145)',
-  },
-  draft: {
-    label: 'Brouillon',
-    bg: 'oklch(28% 0.022 78)',
-    fg: 'oklch(85% 0.04 78)',
-    dot: 'oklch(78% 0.075 78)',
-  },
-  archived: {
-    label: 'Archivé',
-    bg: 'oklch(28% 0.012 78)',
-    fg: 'oklch(72% 0.018 65)',
-    dot: 'oklch(72% 0.018 65)',
-  },
-  cancelled: {
-    label: 'Annulé',
-    bg: 'oklch(28% 0.04 25)',
-    fg: 'oklch(82% 0.07 22)',
-    dot: 'oklch(72% 0.09 20)',
-  },
-};
+const STATUS_PILL: Record<EventStatus, { labelKey: string; bg: string; fg: string; dot: string }> =
+  {
+    active: {
+      labelKey: 'status.active',
+      bg: 'oklch(26% 0.04 145)',
+      fg: 'oklch(82% 0.07 145)',
+      dot: 'oklch(72% 0.08 145)',
+    },
+    draft: {
+      labelKey: 'status.draft',
+      bg: 'oklch(28% 0.022 78)',
+      fg: 'oklch(85% 0.04 78)',
+      dot: 'oklch(78% 0.075 78)',
+    },
+    archived: {
+      labelKey: 'status.archived',
+      bg: 'oklch(28% 0.012 78)',
+      fg: 'oklch(72% 0.018 65)',
+      dot: 'oklch(72% 0.018 65)',
+    },
+    cancelled: {
+      labelKey: 'status.cancelled',
+      bg: 'oklch(28% 0.04 25)',
+      fg: 'oklch(82% 0.07 22)',
+      dot: 'oklch(72% 0.09 20)',
+    },
+  };
 
-const TABS: ReadonlyArray<{ key: string; label: string; Icon: LucideIcon; sub?: string }> = [
-  { key: 'apercu', label: 'Aperçu', Icon: LayoutDashboard },
-  { key: 'invites', label: 'Invités', Icon: Users, sub: 'guests' },
-  { key: 'messaging', label: 'Diffusion', Icon: Megaphone, sub: 'messaging' },
-  { key: 'checkin', label: 'Check-in', Icon: QrCode, sub: 'check-in' },
-  { key: 'tables', label: 'Plan de table', Icon: LayoutGrid, sub: 'seating' },
-  { key: 'gallery', label: 'Galerie', Icon: ImageIcon, sub: 'gallery' },
-  { key: 'invoice', label: 'Facture', Icon: Receipt, sub: 'invoice' },
+const TABS: ReadonlyArray<{ key: string; labelKey: string; Icon: LucideIcon; sub?: string }> = [
+  { key: 'apercu', labelKey: 'tabs.overview', Icon: LayoutDashboard },
+  { key: 'invites', labelKey: 'tabs.guests', Icon: Users, sub: 'guests' },
+  { key: 'messaging', labelKey: 'tabs.messaging', Icon: Megaphone, sub: 'messaging' },
+  { key: 'checkin', labelKey: 'tabs.checkin', Icon: QrCode, sub: 'check-in' },
+  { key: 'tables', labelKey: 'tabs.seating', Icon: LayoutGrid, sub: 'seating' },
+  { key: 'gallery', labelKey: 'tabs.gallery', Icon: ImageIcon, sub: 'gallery' },
+  { key: 'invoice', labelKey: 'tabs.invoice', Icon: Receipt, sub: 'invoice' },
 ];
 
 export function WeddingHubClient({
@@ -124,6 +125,14 @@ function WeddingHubInner(
   },
 ) {
   const { eventId, status, setStatus, router } = props;
+  const t = useTranslations('Pro.weddings');
+  const format = useFormatter();
+  const budgetEur = props.budgetTotalMinor / 100;
+  const budgetLabel = format.number(budgetEur, {
+    style: 'currency',
+    currency: 'EUR',
+    maximumFractionDigits: Number.isInteger(budgetEur) ? 0 : 2,
+  });
   const [pending, startTransition] = useTransition();
   const [activeTab, setActiveTab] = useState<string>('apercu');
   // Tous les onglets opérationnels sont rendus DANS le hub (univers dark).
@@ -161,20 +170,18 @@ function WeddingHubInner(
         router.refresh();
       } else {
         const msg =
-          res.error === 'EVENT_QUOTA_EXCEEDED'
-            ? 'Quota d’événements actifs atteint pour votre forfait.'
-            : 'La publication a échoué. Réessayez.';
+          res.error === 'EVENT_QUOTA_EXCEEDED' ? t('hub.quotaExceeded') : t('hub.publishFailed');
         alert(msg);
       }
     });
   }
 
   const segments = [
-    { value: props.rsvp.confirmed, color: 'var(--color-sage-500)', label: 'Confirmés' },
-    { value: props.rsvp.declined, color: 'var(--color-danger)', label: 'Absents' },
-    { value: props.rsvp.pending, color: 'var(--color-warning)', label: 'En attente' },
+    { value: props.rsvp.confirmed, color: 'var(--color-sage-500)', label: t('rsvp.confirmed') },
+    { value: props.rsvp.declined, color: 'var(--color-danger)', label: t('rsvp.declined') },
+    { value: props.rsvp.pending, color: 'var(--color-warning)', label: t('rsvp.pending') },
     ...(maybe > 0
-      ? [{ value: maybe, color: 'var(--color-muted-foreground)', label: 'Peut-être' }]
+      ? [{ value: maybe, color: 'var(--color-muted-foreground)', label: t('rsvp.maybe') }]
       : []),
   ];
 
@@ -182,11 +189,11 @@ function WeddingHubInner(
     <div className="container-page flex flex-col gap-6 py-6 sm:py-8">
       {/* Breadcrumb */}
       <nav
-        aria-label="Fil d’ariane"
+        aria-label={t('hub.breadcrumb')}
         className="flex items-center gap-1.5 font-mono text-[10px] tracking-[0.18em] text-[color:var(--color-muted-foreground)] uppercase"
       >
         <Link href="/pro/weddings" className="hover:text-[color:var(--color-foreground)]">
-          Mariages
+          {t('hub.weddings')}
         </Link>
         <ChevronRight className="h-3 w-3" strokeWidth={2} aria-hidden />
         <span className="text-[color:var(--color-foreground)]">
@@ -219,7 +226,7 @@ function WeddingHubInner(
                 className="inline-block h-1.5 w-1.5 rounded-full"
                 style={{ background: pill.dot }}
               />
-              {pill.label}
+              {t(pill.labelKey)}
             </span>
           </div>
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-[11px] text-[color:var(--color-muted-foreground)]">
@@ -229,7 +236,8 @@ function WeddingHubInner(
             </span>
             <span className="inline-flex items-center gap-1">
               <Clock className="h-3 w-3" strokeWidth={1.9} aria-hidden />
-              J−<b className="text-[color:var(--color-foreground)]">{props.jminus}</b>
+              {t('hub.dayMinusPrefix')}
+              <b className="text-[color:var(--color-foreground)]">{props.jminus}</b>
             </span>
             {props.venue ? (
               <span className="inline-flex items-center gap-1.5">
@@ -245,18 +253,23 @@ function WeddingHubInner(
           <div className="flex items-center gap-3 rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-4 py-2.5">
             <span className="flex flex-col">
               <b className="text-sm text-[color:var(--color-foreground)]">
-                {published ? 'Invitations diffusées' : 'Brouillon — non publié'}
+                {published ? t('hub.invitationsSent') : t('hub.draftNotPublished')}
               </b>
               <span className="font-mono text-[10px] text-[color:var(--color-muted-foreground)]">
-                Événement {props.eventNo}
-                {props.eventCap != null ? `/${props.eventCap}` : ''} · forfait {props.plan}
+                {props.eventCap != null
+                  ? t('hub.eventNoCapPlan', {
+                      no: props.eventNo,
+                      cap: props.eventCap,
+                      plan: props.plan,
+                    })
+                  : t('hub.eventNoPlan', { no: props.eventNo, plan: props.plan })}
               </span>
             </span>
             <button
               type="button"
               role="switch"
               aria-checked={published}
-              aria-label={published ? 'Repasser en brouillon' : 'Publier l’événement'}
+              aria-label={published ? t('hub.backToDraft') : t('hub.publishEvent')}
               disabled={pending || status === 'archived'}
               onClick={() => togglePublish(!published)}
               className={cn(
@@ -277,26 +290,38 @@ function WeddingHubInner(
           </div>
           {/* RSVP mini */}
           <div className="flex items-center gap-3 font-mono text-[11px]">
-            <RsvpMini color="var(--color-sage-500)" n={props.rsvp.confirmed} label="confirmés" />
-            <RsvpMini color="var(--color-danger)" n={props.rsvp.declined} label="absents" />
-            <RsvpMini color="var(--color-warning)" n={props.rsvp.pending} label="en attente" />
+            <RsvpMini
+              color="var(--color-sage-500)"
+              n={props.rsvp.confirmed}
+              label={t('rsvp.confirmedShort')}
+            />
+            <RsvpMini
+              color="var(--color-danger)"
+              n={props.rsvp.declined}
+              label={t('rsvp.declinedShort')}
+            />
+            <RsvpMini
+              color="var(--color-warning)"
+              n={props.rsvp.pending}
+              label={t('rsvp.pendingShort')}
+            />
           </div>
         </div>
       </header>
 
       {/* Tabs (Aperçu inline ; autres = pages opérationnelles) */}
       <div className="-mx-1 flex gap-1 overflow-x-auto border-b border-[color:var(--color-border)] pb-px">
-        {TABS.map((t) => {
-          const active = t.key === activeTab;
+        {TABS.map((tab) => {
+          const active = tab.key === activeTab;
           return (
             <button
-              key={t.key}
+              key={tab.key}
               type="button"
               role="tab"
               aria-selected={active}
               onClick={() => {
-                if (IN_HUB_TABS.has(t.key)) setActiveTab(t.key);
-                else router.push(eventHref(t.sub!));
+                if (IN_HUB_TABS.has(tab.key)) setActiveTab(tab.key);
+                else router.push(eventHref(tab.sub!));
               }}
               className={cn(
                 'inline-flex flex-shrink-0 items-center gap-2 border-b-2 px-3 py-2.5 text-sm transition-colors',
@@ -305,8 +330,8 @@ function WeddingHubInner(
                   : 'border-transparent text-[color:var(--color-muted-foreground)] hover:text-[color:var(--color-foreground)]',
               )}
             >
-              <t.Icon className="h-4 w-4" strokeWidth={1.85} aria-hidden />
-              {t.label}
+              <tab.Icon className="h-4 w-4" strokeWidth={1.85} aria-hidden />
+              {t(tab.labelKey)}
             </button>
           );
         })}
@@ -338,12 +363,10 @@ function WeddingHubInner(
               </span>
               <div className="flex flex-col gap-1">
                 <h3 className="font-display text-lg text-[color:var(--color-foreground)] italic">
-                  {published ? 'Événement actif' : 'Prêt à publier'}
+                  {published ? t('hub.eventActive') : t('hub.readyToPublish')}
                 </h3>
                 <p className="max-w-md text-sm text-[color:var(--color-muted-foreground)]">
-                  {published
-                    ? 'Vos invitations sont diffusables.'
-                    : 'Publiez pour diffuser les invitations aux invités.'}
+                  {published ? t('hub.invitationsDistributable') : t('hub.publishToDistribute')}
                 </p>
               </div>
             </div>
@@ -355,7 +378,7 @@ function WeddingHubInner(
                 className="focus-ring inline-flex flex-shrink-0 items-center gap-2 rounded-lg bg-[color:var(--color-primary)] px-5 py-2.5 text-sm font-semibold text-[color:var(--color-primary-foreground)] transition-colors hover:bg-[color:var(--color-primary-hover)] disabled:opacity-50"
               >
                 <Rocket className="h-4 w-4" strokeWidth={2} aria-hidden />
-                {pending ? 'Publication…' : 'Publier l’événement'}
+                {pending ? t('hub.publishing') : t('hub.publishEvent')}
               </button>
             ) : null}
           </div>
@@ -366,17 +389,21 @@ function WeddingHubInner(
               <section className="flex flex-col gap-4 rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-6">
                 <div className="flex items-center justify-between">
                   <h2 className="font-display text-lg text-[color:var(--color-foreground)] italic">
-                    Réponses RSVP
+                    {t('hub.rsvpResponses')}
                   </h2>
                   <Link
                     href={eventHref('guests')}
                     className="inline-flex items-center gap-1 font-mono text-[10px] tracking-[0.16em] text-[color:var(--color-muted-foreground)] uppercase hover:text-[color:var(--color-foreground)]"
                   >
-                    Voir les invités <ArrowRight className="h-3 w-3" strokeWidth={2} />
+                    {t('hub.viewGuests')} <ArrowRight className="h-3 w-3" strokeWidth={2} />
                   </Link>
                 </div>
                 <div className="flex flex-col items-center gap-6 sm:flex-row">
-                  <Donut segments={segments} total={props.guestTotal} />
+                  <Donut
+                    segments={segments}
+                    total={props.guestTotal}
+                    unitLabel={t('hub.guestsUnit')}
+                  />
                   <div className="flex flex-1 flex-col gap-2 self-stretch">
                     {segments.map((s) => (
                       <div
@@ -391,17 +418,19 @@ function WeddingHubInner(
                         <span className="flex-1">{s.label}</span>
                         <span className="font-mono tabular-nums">{s.value}</span>
                         <span className="w-10 text-right font-mono text-xs text-[color:var(--color-muted-foreground)] tabular-nums">
-                          {props.guestTotal > 0
-                            ? Math.round((s.value / props.guestTotal) * 100)
-                            : 0}{' '}
-                          %
+                          {t('hub.percent', {
+                            n:
+                              props.guestTotal > 0
+                                ? Math.round((s.value / props.guestTotal) * 100)
+                                : 0,
+                          })}
                         </span>
                       </div>
                     ))}
                     <div className="mt-1 flex items-center justify-between border-t border-[color:var(--color-border)] pt-2.5 text-sm text-[color:var(--color-muted-foreground)]">
-                      Taux de réponse
+                      {t('hub.responseRate')}
                       <span className="font-mono text-[color:var(--color-foreground)] tabular-nums">
-                        {responseRate} %
+                        {t('hub.percent', { n: responseRate })}
                       </span>
                     </div>
                   </div>
@@ -410,29 +439,29 @@ function WeddingHubInner(
 
               <section className="flex flex-col gap-3 rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-6">
                 <h2 className="font-display text-lg text-[color:var(--color-foreground)] italic">
-                  Actions rapides
+                  {t('hub.quickActions')}
                 </h2>
                 <div className="grid grid-cols-2 gap-2.5">
                   <QuickAction
                     href={eventHref('messaging')}
                     Icon={Megaphone}
-                    label="Diffuser les invitations"
+                    label={t('hub.qaBroadcast')}
                     disabled={!published}
                   />
                   <QuickAction
                     href={eventHref('guests')}
                     Icon={UserPlus}
-                    label="Ajouter des invités"
+                    label={t('hub.qaAddGuests')}
                   />
                   <QuickAction
                     href={eventHref('check-in')}
                     Icon={QrCode}
-                    label="Ouvrir le check-in"
+                    label={t('hub.qaOpenCheckin')}
                   />
                   <QuickAction
                     href={eventHref('preview')}
                     Icon={Globe}
-                    label="Voir la page publique"
+                    label={t('hub.qaPublicPage')}
                   />
                 </div>
               </section>
@@ -442,13 +471,13 @@ function WeddingHubInner(
             <div className="grid grid-cols-2 gap-3 self-start">
               <KpiCard
                 Icon={Clock}
-                label="Compte à rebours"
-                value={`J−${props.jminus}`}
+                label={t('hub.kpiCountdown')}
+                value={t('hub.dayMinusValue', { n: props.jminus })}
                 sub={props.dateLabel}
               />
               <KpiCard
                 Icon={Users}
-                label="Invités"
+                label={t('hub.kpiGuests')}
                 value={`${props.guestTotal}`}
                 unit={`/${props.guestCap}`}
                 bar={Math.min(
@@ -459,18 +488,18 @@ function WeddingHubInner(
               <KpiLink
                 href={`/pro/budget?event=${eventId}`}
                 Icon={Wallet}
-                label="Budget"
-                value={formatEurMinor(props.budgetTotalMinor)}
-                sub={`${props.budgetEngagedPct} % engagé`}
-                linkLabel="Voir le budget"
+                label={t('hub.kpiBudget')}
+                value={budgetLabel}
+                sub={t('hub.budgetEngaged', { pct: props.budgetEngagedPct })}
+                linkLabel={t('hub.viewBudget')}
               />
               <KpiLink
                 href={`/pro/planning?event=${eventId}`}
                 Icon={ListChecks}
-                label="Tâches"
+                label={t('hub.kpiTasks')}
                 value={`${props.tasksDue}`}
-                sub="à échéance proche"
-                linkLabel="Rétroplanning"
+                sub={t('hub.tasksDueSoon')}
+                linkLabel={t('hub.backlog')}
               />
             </div>
           </div>
@@ -522,11 +551,13 @@ function WeddingHubInner(
 function Donut({
   segments,
   total,
+  unitLabel,
   size = 150,
   stroke = 17,
 }: {
   segments: ReadonlyArray<{ value: number; color: string; label: string }>;
   total: number;
+  unitLabel: string;
   size?: number;
   stroke?: number;
 }) {
@@ -578,7 +609,7 @@ function Donut({
           {total}
         </span>
         <span className="font-mono text-[9px] tracking-[0.18em] text-[color:var(--color-muted-foreground)] uppercase">
-          invités
+          {unitLabel}
         </span>
       </span>
     </div>

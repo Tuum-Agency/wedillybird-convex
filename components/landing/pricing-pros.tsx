@@ -70,8 +70,8 @@ type LandingPricingProsProps = {
   defaultCurrency?: Currency;
   /**
    * Libellé de l'eyebrow de section. Défaut = numérotation de la landing
-   * ("CHAPITRE 06B…") ; la page `/pros` passe un libellé autonome. Optionnel
-   * pour que l'usage landing reste strictement inchangé.
+   * (clé i18n `pricing.prosChapter`) ; la page `/pros` passe un libellé
+   * autonome. Optionnel pour que l'usage landing reste strictement inchangé.
    */
   eyebrow?: string;
 };
@@ -89,11 +89,13 @@ type LandingPricingProsProps = {
  */
 export function LandingPricingPros({
   defaultCurrency = 'EUR',
-  eyebrow = 'CHAPITRE 06B — FORFAITS PROS',
+  eyebrow,
 }: LandingPricingProsProps = {}) {
   const t = useTranslations('Landing');
   const tPlans = useTranslations('Plans');
   const currency = useEffectiveCurrency(defaultCurrency);
+
+  const resolvedEyebrow = eyebrow ?? t('pricing.prosChapter');
 
   const [billing, setBilling] = useState<Billing>('monthly');
 
@@ -137,7 +139,7 @@ export function LandingPricingPros({
           viewport={inViewOnce}
           className="mb-12 inline-block font-mono text-[11px] tracking-[0.32em] text-[color:var(--color-ink-500)] uppercase"
         >
-          {eyebrow}
+          {resolvedEyebrow}
         </motion.span>
 
         <motion.div
@@ -414,7 +416,7 @@ export function LandingPricingPros({
                 href="/forfaits-pros"
                 className="flex-shrink-0 text-sm font-medium text-[color:var(--color-primary)] underline-offset-4 hover:underline"
               >
-                Voir le détail
+                {t('pricing.prosSeeDetail')}
               </Link>
             </div>
           </div>
