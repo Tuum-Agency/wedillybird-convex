@@ -7,6 +7,7 @@
     "nav": {
       "overview": "Vista general",
       "analytics": "Analytics",
+      "acquisition": "Adquisición",
       "users": "Usuarios",
       "events": "Eventos",
       "payments": "Pagos",
@@ -14,7 +15,8 @@
       "subscriptions": "Suscripciones",
       "moderation": "Moderación",
       "newsletter": "Newsletter",
-      "auditLog": "Registro de auditoría"
+      "auditLog": "Registro de auditoría",
+      "promotions": "Promociones"
     },
     "common": {
       "back": "Volver",

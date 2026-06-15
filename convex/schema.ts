@@ -670,6 +670,22 @@ export default defineSchema({
     .index('by_status_subscribedAt', ['status', 'subscribedAt']),
 
   /**
+   * Campagnes newsletter envoyées depuis l'admin via SES. Une row par envoi
+   * « à tous ». Les envois de test (à soi-même) ne sont PAS enregistrés ici.
+   */
+  newsletterCampaigns: defineTable({
+    subject: v.string(),
+    bodyText: v.string(),
+    status: v.union(v.literal('sending'), v.literal('sent'), v.literal('failed')),
+    totalRecipients: v.number(),
+    sentCount: v.number(),
+    failedCount: v.number(),
+    createdBy: v.id('users'),
+    createdAt: v.number(),
+    sentAt: v.optional(v.number()),
+  }).index('by_createdAt', ['createdAt']),
+
+  /**
    * Buckets de rate-limit générique. Une row par couple (scope, key) — par ex.
    * (`face_search`, `<userId>`) ou (`face_search`, `<guestToken>`). Le compteur
    * se reset quand `windowStartedAt` est plus vieux que la fenêtre configurée
@@ -696,6 +712,8 @@ export default defineSchema({
       v.literal('payment'),
       v.literal('organization'),
       v.literal('subscription'),
+      v.literal('coupon'),
+      v.literal('discount'),
       v.literal('photo'),
       v.literal('template'),
       v.literal('newsletter'),

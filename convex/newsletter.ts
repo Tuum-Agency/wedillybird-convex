@@ -1,5 +1,15 @@
 import { v } from 'convex/values';
-import { mutation, query } from './_generated/server';
+import { internalMutation, internalQuery, mutation, query } from './_generated/server';
+import type { Id } from './_generated/dataModel';
+
+async function assertAdmin(
+  ctx: { db: { get: (id: Id<'users'>) => Promise<{ role: string } | null> } },
+  adminId: Id<'users'>,
+) {
+  const u = await ctx.db.get(adminId);
+  if (!u || u.role !== 'admin') throw new Error('FORBIDDEN: admin role required');
+  return u;
+}
 
 /**
  * Newsletter subscribers — store-first MVP.
@@ -119,5 +129,90 @@ export const countActive = query({
       .withIndex('by_status_subscribedAt', (q) => q.eq('status', 'active'))
       .collect();
     return { total: all.length };
+  },
+});
+
+/* -------------------------------------------------------------------------- */
+/*  Campagnes — composées et envoyées depuis l'admin via SES.                  */
+/*  L'envoi réel se fait dans l'action `emailActions:sendNewsletterCampaign`   */
+/*  (runtime node) ; ici on fournit le contexte + on enregistre le résultat.  */
+/* -------------------------------------------------------------------------- */
+
+/** Contexte d'envoi : email de l'admin (pour les tests) + emails actifs. Interne. */
+export const campaignContext = internalQuery({
+  args: { adminId: v.id('users') },
+  handler: async (ctx, { adminId }) => {
+    const admin = await assertAdmin(ctx, adminId);
+    const subscribers = await ctx.db
+      .query('newsletterSubscribers')
+      .withIndex('by_status_subscribedAt', (q) => q.eq('status', 'active'))
+      .collect();
+    return {
+      adminEmail: (admin as { email?: string }).email ?? null,
+      emails: subscribers.map((s) => s.email),
+    };
+  },
+});
+
+export const createCampaign = internalMutation({
+  args: {
+    adminId: v.id('users'),
+    subject: v.string(),
+    bodyText: v.string(),
+    totalRecipients: v.number(),
+  },
+  handler: async (ctx, { adminId, subject, bodyText, totalRecipients }) => {
+    await assertAdmin(ctx, adminId);
+    const id = await ctx.db.insert('newsletterCampaigns', {
+      subject,
+      bodyText,
+      status: 'sending',
+      totalRecipients,
+      sentCount: 0,
+      failedCount: 0,
+      createdBy: adminId,
+      createdAt: Date.now(),
+    });
+    return id;
+  },
+});
+
+export const finalizeCampaign = internalMutation({
+  args: {
+    campaignId: v.id('newsletterCampaigns'),
+    sentCount: v.number(),
+    failedCount: v.number(),
+  },
+  handler: async (ctx, { campaignId, sentCount, failedCount }) => {
+    await ctx.db.patch(campaignId, {
+      status: failedCount > 0 && sentCount === 0 ? 'failed' : 'sent',
+      sentCount,
+      failedCount,
+      sentAt: Date.now(),
+    });
+    return { ok: true };
+  },
+});
+
+/** Historique des campagnes pour l'admin (plus récentes d'abord). */
+export const listCampaigns = query({
+  args: { adminId: v.id('users') },
+  handler: async (ctx, { adminId }) => {
+    await assertAdmin(ctx, adminId);
+    const campaigns = await ctx.db
+      .query('newsletterCampaigns')
+      .withIndex('by_createdAt')
+      .order('desc')
+      .take(50);
+    return campaigns.map((c) => ({
+      _id: c._id,
+      subject: c.subject,
+      status: c.status,
+      totalRecipients: c.totalRecipients,
+      sentCount: c.sentCount,
+      failedCount: c.failedCount,
+      createdAt: c.createdAt,
+      sentAt: c.sentAt,
+    }));
   },
 });

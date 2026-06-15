@@ -234,6 +234,39 @@ export const listAllPayments = query({
 });
 
 // ---------------------------------------------------------------------------
+// Audit générique — pour les actions purement Stripe (coupons, codes promo,
+// remises) qui n'ont pas d'entité Convex. La server action appelle ceci après
+// l'opération Stripe pour tracer qui a fait quoi.
+// ---------------------------------------------------------------------------
+
+export const logAction = mutation({
+  args: {
+    adminId: v.id('users'),
+    action: v.string(),
+    targetType: v.union(
+      v.literal('coupon'),
+      v.literal('discount'),
+      v.literal('subscription'),
+      v.literal('organization'),
+    ),
+    targetId: v.string(),
+    details: v.optional(v.string()),
+  },
+  handler: async (ctx, { adminId, action, targetType, targetId, details }) => {
+    await assertAdmin(ctx, adminId);
+    await ctx.db.insert('adminAuditLog', {
+      adminId,
+      action,
+      targetType,
+      targetId,
+      details,
+      createdAt: Date.now(),
+    });
+    return { ok: true };
+  },
+});
+
+// ---------------------------------------------------------------------------
 // Refunds — un super admin peut rembourser un paiement plateforme (Essentiel /
 // Premium). L'appel Stripe se fait côté server action ; ici on n'expose que les
 // infos nécessaires + on enregistre le résultat (statut + montant + audit).
