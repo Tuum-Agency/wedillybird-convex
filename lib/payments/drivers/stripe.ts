@@ -97,6 +97,9 @@ export const stripeDriver: PaymentDriver = {
       },
       client_reference_id: `${input.userId}:${input.eventId}`,
       locale: 'auto',
+      // Permet aux couples de saisir un code promo (coupons plateforme) sur le
+      // checkout one-shot Essentiel/Premium — comme les abos pro et le PAYG.
+      allow_promotion_codes: true,
     });
 
     if (!session.url) throw new Error('STRIPE_NO_REDIRECT_URL');
@@ -1059,4 +1062,212 @@ export async function reactivatePlatformSubscription(
   const stripe = getStripe();
   const sub = await stripe.subscriptions.update(subscriptionId, { cancel_at_period_end: false });
   return { status: sub.status, cancelAtPeriodEnd: sub.cancel_at_period_end ?? false };
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Admin plateforme — coupons, codes promo & remises (gestes commerciaux)     */
+/*                                                                            */
+/*  Modèle Stripe : un **Coupon** définit la réduction (% ou montant fixe +    */
+/*  durée), un **Promotion Code** est le code lisible saisi au checkout qui    */
+/*  pointe vers un coupon. Tout sur le compte plateforme.                      */
+/* -------------------------------------------------------------------------- */
+
+export interface AdminCoupon {
+  id: string;
+  name: string | null;
+  percentOff: number | null;
+  amountOffMinor: number | null;
+  currency: string | null;
+  duration: 'once' | 'repeating' | 'forever';
+  durationInMonths: number | null;
+  maxRedemptions: number | null;
+  timesRedeemed: number;
+  redeemBy: number | null;
+  valid: boolean;
+  createdAt: number;
+}
+
+export interface AdminPromotionCode {
+  id: string;
+  code: string;
+  couponId: string;
+  couponLabel: string;
+  active: boolean;
+  maxRedemptions: number | null;
+  timesRedeemed: number;
+  expiresAt: number | null;
+  createdAt: number;
+}
+
+function mapCoupon(c: Stripe.Coupon): AdminCoupon {
+  return {
+    id: c.id,
+    name: c.name ?? null,
+    percentOff: c.percent_off ?? null,
+    amountOffMinor: c.amount_off ?? null,
+    currency: c.currency ? c.currency.toUpperCase() : null,
+    duration: c.duration,
+    durationInMonths: c.duration_in_months ?? null,
+    maxRedemptions: c.max_redemptions ?? null,
+    timesRedeemed: c.times_redeemed ?? 0,
+    redeemBy: c.redeem_by ? c.redeem_by * 1000 : null,
+    valid: c.valid,
+    createdAt: (c.created ?? 0) * 1000,
+  };
+}
+
+/**
+ * Crée un coupon plateforme. Exactement un de `percentOff` / `amountOffMinor`.
+ * `durationInMonths` requis si `duration === 'repeating'`. `currency` requis
+ * pour un montant fixe.
+ */
+export async function createCoupon(input: {
+  name: string;
+  percentOff?: number;
+  amountOffMinor?: number;
+  currency?: Currency;
+  duration: 'once' | 'repeating' | 'forever';
+  durationInMonths?: number;
+  maxRedemptions?: number;
+  redeemBy?: number; // ms epoch
+}): Promise<AdminCoupon> {
+  const stripe = getStripe();
+  if ((input.percentOff == null) === (input.amountOffMinor == null)) {
+    throw new Error('COUPON_NEEDS_PERCENT_XOR_AMOUNT');
+  }
+  if (input.amountOffMinor != null && !input.currency)
+    throw new Error('COUPON_AMOUNT_NEEDS_CURRENCY');
+  if (input.duration === 'repeating' && !input.durationInMonths) {
+    throw new Error('COUPON_REPEATING_NEEDS_MONTHS');
+  }
+
+  const params: Stripe.CouponCreateParams = {
+    name: input.name,
+    duration: input.duration,
+    ...(input.percentOff != null ? { percent_off: input.percentOff } : {}),
+    ...(input.amountOffMinor != null
+      ? { amount_off: input.amountOffMinor, currency: (input.currency ?? 'EUR').toLowerCase() }
+      : {}),
+    ...(input.duration === 'repeating' ? { duration_in_months: input.durationInMonths } : {}),
+    ...(input.maxRedemptions != null ? { max_redemptions: input.maxRedemptions } : {}),
+    ...(input.redeemBy != null ? { redeem_by: Math.floor(input.redeemBy / 1000) } : {}),
+  };
+  const coupon = await stripe.coupons.create(params);
+  return mapCoupon(coupon);
+}
+
+export async function listCoupons(limit = 100): Promise<AdminCoupon[]> {
+  const stripe = getStripe();
+  const res = await stripe.coupons.list({ limit });
+  return res.data.map(mapCoupon);
+}
+
+/** Supprime un coupon (les codes promo associés deviennent inutilisables). */
+export async function deleteCoupon(couponId: string): Promise<{ id: string; deleted: boolean }> {
+  const stripe = getStripe();
+  const res = await stripe.coupons.del(couponId);
+  return { id: res.id, deleted: Boolean(res.deleted) };
+}
+
+/**
+ * Crée un code promo (lisible) rattaché à un coupon. `code` optionnel — Stripe
+ * en génère un si omis. `restrictToFirstTime` limite aux nouveaux clients.
+ */
+export async function createPromotionCode(input: {
+  couponId: string;
+  code?: string;
+  maxRedemptions?: number;
+  expiresAt?: number; // ms epoch
+  restrictToFirstTime?: boolean;
+  minimumAmountMinor?: number;
+  currency?: Currency;
+}): Promise<AdminPromotionCode> {
+  const stripe = getStripe();
+  const params: Stripe.PromotionCodeCreateParams = {
+    promotion: { type: 'coupon', coupon: input.couponId },
+    ...(input.code ? { code: input.code } : {}),
+    ...(input.maxRedemptions != null ? { max_redemptions: input.maxRedemptions } : {}),
+    ...(input.expiresAt != null ? { expires_at: Math.floor(input.expiresAt / 1000) } : {}),
+    ...(input.restrictToFirstTime || input.minimumAmountMinor != null
+      ? {
+          restrictions: {
+            ...(input.restrictToFirstTime ? { first_time_transaction: true } : {}),
+            ...(input.minimumAmountMinor != null
+              ? {
+                  minimum_amount: input.minimumAmountMinor,
+                  minimum_amount_currency: (input.currency ?? 'EUR').toLowerCase(),
+                }
+              : {}),
+          },
+        }
+      : {}),
+  };
+  const pc = await stripe.promotionCodes.create(params);
+  return mapPromotionCode(pc);
+}
+
+function mapPromotionCode(pc: Stripe.PromotionCode): AdminPromotionCode {
+  // Stripe v22 : le coupon est sous `promotion.coupon` (string id ou objet Coupon expand).
+  const coupon = pc.promotion?.coupon ?? null;
+  const couponObj = coupon && typeof coupon === 'object' ? coupon : null;
+  const label = couponObj
+    ? couponObj.percent_off
+      ? `${couponObj.percent_off}%`
+      : couponObj.amount_off
+        ? `${(couponObj.amount_off / 100).toFixed(0)} ${(couponObj.currency ?? '').toUpperCase()}`
+        : (couponObj.name ?? couponObj.id)
+    : typeof coupon === 'string'
+      ? coupon
+      : '—';
+  return {
+    id: pc.id,
+    code: pc.code,
+    couponId: couponObj ? couponObj.id : typeof coupon === 'string' ? coupon : '',
+    couponLabel: label,
+    active: pc.active,
+    maxRedemptions: pc.max_redemptions ?? null,
+    timesRedeemed: pc.times_redeemed ?? 0,
+    expiresAt: pc.expires_at ? pc.expires_at * 1000 : null,
+    createdAt: (pc.created ?? 0) * 1000,
+  };
+}
+
+export async function listPromotionCodes(limit = 100): Promise<AdminPromotionCode[]> {
+  const stripe = getStripe();
+  const res = await stripe.promotionCodes.list({ limit });
+  return res.data.map(mapPromotionCode);
+}
+
+/** Active/désactive un code promo (sans le supprimer — l'historique est gardé). */
+export async function setPromotionCodeActive(
+  promotionCodeId: string,
+  active: boolean,
+): Promise<AdminPromotionCode> {
+  const stripe = getStripe();
+  const pc = await stripe.promotionCodes.update(promotionCodeId, { active });
+  return mapPromotionCode(pc);
+}
+
+/**
+ * Applique une remise (coupon) directement à un abonnement existant — geste
+ * commercial. La réduction s'applique aux prochaines factures selon la durée
+ * du coupon.
+ */
+export async function applyCouponToSubscription(
+  subscriptionId: string,
+  couponId: string,
+): Promise<{ id: string; discounted: boolean }> {
+  const stripe = getStripe();
+  // Stripe v22 : on passe par `discounts: [{ coupon }]` (remplace l'ancien `coupon`).
+  const sub = await stripe.subscriptions.update(subscriptionId, {
+    discounts: [{ coupon: couponId }],
+  });
+  return { id: sub.id, discounted: (sub.discounts?.length ?? 0) > 0 };
+}
+
+/** Retire la remise en cours d'un abonnement. */
+export async function removeSubscriptionDiscount(subscriptionId: string): Promise<{ id: string }> {
+  const stripe = getStripe();
+  await stripe.subscriptions.deleteDiscount(subscriptionId);
+  return { id: subscriptionId };
 }

@@ -1,0 +1,625 @@
+'use client';
+
+import { useState, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
+import { useLocale } from 'next-intl';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  adminCreateCouponAction,
+  adminDeleteCouponAction,
+  adminSetPromotionCodeActiveAction,
+  adminApplyDiscountToOrgAction,
+  adminRemoveOrgDiscountAction,
+  type CreateCouponInput,
+} from '@/app/[locale]/(app)/admin/actions';
+
+type Coupon = {
+  id: string;
+  name: string | null;
+  percentOff: number | null;
+  amountOffMinor: number | null;
+  currency: string | null;
+  duration: 'once' | 'repeating' | 'forever';
+  durationInMonths: number | null;
+  maxRedemptions: number | null;
+  timesRedeemed: number;
+  redeemBy: number | null;
+  valid: boolean;
+  createdAt: number;
+};
+
+type PromoCode = {
+  id: string;
+  code: string;
+  couponId: string;
+  couponLabel: string;
+  active: boolean;
+  maxRedemptions: number | null;
+  timesRedeemed: number;
+  expiresAt: number | null;
+  createdAt: number;
+};
+
+type SubscribedOrg = {
+  _id: string;
+  name: string;
+  subscriptionTier?: string;
+  subscriptionStatus?: string;
+};
+
+const DURATION_LABEL: Record<string, string> = {
+  once: 'Une fois',
+  repeating: 'Récurrent',
+  forever: 'Permanent',
+};
+
+function couponValue(c: Coupon): string {
+  if (c.percentOff != null) return `−${c.percentOff} %`;
+  if (c.amountOffMinor != null)
+    return `−${(c.amountOffMinor / 100).toFixed(0)} ${c.currency ?? 'EUR'}`;
+  return '—';
+}
+
+export function AdminPromotionsBoard({
+  coupons,
+  promoCodes,
+  subscribedOrgs = [],
+}: {
+  coupons: Coupon[];
+  promoCodes: PromoCode[];
+  subscribedOrgs?: SubscribedOrg[];
+}) {
+  const locale = useLocale();
+  const router = useRouter();
+
+  return (
+    <div className="flex flex-col gap-8">
+      {/* Remise directe sur un abonnement (geste commercial) */}
+      <DiscountSection coupons={coupons} orgs={subscribedOrgs} onDone={() => router.refresh()} />
+      {/* Coupons */}
+      <section className="flex flex-col gap-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="font-display text-lg italic">Coupons</h2>
+            <p className="text-sm text-[color:var(--color-muted-foreground)]">
+              Réductions réutilisables (% ou montant), applicables aux forfaits couples et aux
+              abonnements pros.
+            </p>
+          </div>
+          <CreateCouponDialog onDone={() => router.refresh()} />
+        </div>
+
+        <div className="overflow-x-auto rounded-xl border border-[color:var(--color-border)]">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-[color:var(--color-border)] bg-[color:var(--color-surface)]">
+                <Th>Nom</Th>
+                <Th>Réduction</Th>
+                <Th>Durée</Th>
+                <Th>Utilisations</Th>
+                <Th>Expire</Th>
+                <Th>Statut</Th>
+                <Th>Actions</Th>
+              </tr>
+            </thead>
+            <tbody>
+              {coupons.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={7}
+                    className="px-4 py-8 text-center text-[color:var(--color-muted-foreground)]"
+                  >
+                    Aucun coupon. Créez-en un pour lancer une promo ou faire un geste commercial.
+                  </td>
+                </tr>
+              ) : (
+                coupons.map((c) => (
+                  <tr
+                    key={c.id}
+                    className="border-b border-[color:var(--color-border)] last:border-0 hover:bg-[color:var(--color-surface-elevated)]/50"
+                  >
+                    <td className="px-4 py-3 font-medium">{c.name ?? c.id}</td>
+                    <td className="px-4 py-3 font-mono">{couponValue(c)}</td>
+                    <td className="px-4 py-3 text-[color:var(--color-muted-foreground)]">
+                      {DURATION_LABEL[c.duration]}
+                      {c.duration === 'repeating' && c.durationInMonths
+                        ? ` (${c.durationInMonths} mois)`
+                        : ''}
+                    </td>
+                    <td className="px-4 py-3 font-mono">
+                      {c.timesRedeemed}
+                      {c.maxRedemptions != null ? ` / ${c.maxRedemptions}` : ''}
+                    </td>
+                    <td className="px-4 py-3 text-[color:var(--color-muted-foreground)]">
+                      {c.redeemBy
+                        ? new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(
+                            new Date(c.redeemBy),
+                          )
+                        : '—'}
+                    </td>
+                    <td className="px-4 py-3">
+                      <Badge variant={c.valid ? 'success' : 'neutral'}>
+                        {c.valid ? 'Valide' : 'Expiré'}
+                      </Badge>
+                    </td>
+                    <td className="px-4 py-3">
+                      <DeleteCouponButton couponId={c.id} onDone={() => router.refresh()} />
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      {/* Codes promo */}
+      <section className="flex flex-col gap-4">
+        <div>
+          <h2 className="font-display text-lg italic">Codes promo</h2>
+          <p className="text-sm text-[color:var(--color-muted-foreground)]">
+            Codes saisissables par les clients au paiement (couples et pros). Générés depuis un
+            coupon.
+          </p>
+        </div>
+
+        <div className="overflow-x-auto rounded-xl border border-[color:var(--color-border)]">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-[color:var(--color-border)] bg-[color:var(--color-surface)]">
+                <Th>Code</Th>
+                <Th>Réduction</Th>
+                <Th>Utilisations</Th>
+                <Th>Expire</Th>
+                <Th>Statut</Th>
+                <Th>Actions</Th>
+              </tr>
+            </thead>
+            <tbody>
+              {promoCodes.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={6}
+                    className="px-4 py-8 text-center text-[color:var(--color-muted-foreground)]"
+                  >
+                    Aucun code promo.
+                  </td>
+                </tr>
+              ) : (
+                promoCodes.map((p) => (
+                  <tr
+                    key={p.id}
+                    className="border-b border-[color:var(--color-border)] last:border-0 hover:bg-[color:var(--color-surface-elevated)]/50"
+                  >
+                    <td className="px-4 py-3 font-mono font-medium">{p.code}</td>
+                    <td className="px-4 py-3 font-mono">{p.couponLabel}</td>
+                    <td className="px-4 py-3 font-mono">
+                      {p.timesRedeemed}
+                      {p.maxRedemptions != null ? ` / ${p.maxRedemptions}` : ''}
+                    </td>
+                    <td className="px-4 py-3 text-[color:var(--color-muted-foreground)]">
+                      {p.expiresAt
+                        ? new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(
+                            new Date(p.expiresAt),
+                          )
+                        : '—'}
+                    </td>
+                    <td className="px-4 py-3">
+                      <Badge variant={p.active ? 'success' : 'neutral'}>
+                        {p.active ? 'Actif' : 'Inactif'}
+                      </Badge>
+                    </td>
+                    <td className="px-4 py-3">
+                      <TogglePromoButton
+                        id={p.id}
+                        active={p.active}
+                        onDone={() => router.refresh()}
+                      />
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function DiscountSection({
+  coupons,
+  orgs,
+  onDone,
+}: {
+  coupons: Coupon[];
+  orgs: SubscribedOrg[];
+  onDone: () => void;
+}) {
+  const [orgId, setOrgId] = useState('');
+  const [couponId, setCouponId] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [ok, setOk] = useState<string | null>(null);
+  const [pending, startTransition] = useTransition();
+
+  function apply() {
+    setError(null);
+    setOk(null);
+    if (!orgId) return setError('Choisis une agence.');
+    if (!couponId) return setError('Choisis un coupon.');
+    startTransition(async () => {
+      const res = await adminApplyDiscountToOrgAction(orgId, couponId);
+      if (!res.ok) return setError(res.error);
+      setOk('Remise appliquée à l’abonnement.');
+      onDone();
+    });
+  }
+
+  function remove() {
+    setError(null);
+    setOk(null);
+    if (!orgId) return setError('Choisis une agence.');
+    startTransition(async () => {
+      const res = await adminRemoveOrgDiscountAction(orgId);
+      if (!res.ok) return setError(res.error);
+      setOk('Remise retirée.');
+      onDone();
+    });
+  }
+
+  return (
+    <section className="flex flex-col gap-4 rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-5">
+      <div>
+        <h2 className="font-display text-lg italic">Remise sur un abonnement</h2>
+        <p className="text-sm text-[color:var(--color-muted-foreground)]">
+          Geste commercial : applique un coupon directement à l&apos;abonnement d&apos;une agence
+          (effet sur les prochaines factures selon la durée du coupon).
+        </p>
+      </div>
+
+      {orgs.length === 0 ? (
+        <p className="text-sm text-[color:var(--color-muted-foreground)]">
+          Aucune agence avec un abonnement Stripe pour le moment.
+        </p>
+      ) : coupons.length === 0 ? (
+        <p className="text-sm text-[color:var(--color-muted-foreground)]">
+          Crée d&apos;abord un coupon ci-dessous pour pouvoir l&apos;appliquer.
+        </p>
+      ) : (
+        <>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+            <label className="flex flex-1 flex-col gap-1">
+              <span className="font-mono text-[10px] tracking-[0.16em] text-[color:var(--color-muted-foreground)] uppercase">
+                Agence
+              </span>
+              <Select value={orgId} onValueChange={setOrgId}>
+                <SelectTrigger className={inputCls}>
+                  <SelectValue placeholder="Choisir une agence…" />
+                </SelectTrigger>
+                <SelectContent>
+                  {orgs.map((o) => (
+                    <SelectItem key={o._id} value={o._id}>
+                      {o.name}
+                      {o.subscriptionTier ? ` · ${o.subscriptionTier}` : ''}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </label>
+            <label className="flex flex-1 flex-col gap-1">
+              <span className="font-mono text-[10px] tracking-[0.16em] text-[color:var(--color-muted-foreground)] uppercase">
+                Coupon
+              </span>
+              <Select value={couponId} onValueChange={setCouponId}>
+                <SelectTrigger className={inputCls}>
+                  <SelectValue placeholder="Choisir un coupon…" />
+                </SelectTrigger>
+                <SelectContent>
+                  {coupons.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {(c.name ?? c.id) + ' — ' + couponValue(c)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </label>
+            <div className="flex gap-2">
+              <Button variant="primary" size="sm" type="button" onClick={apply} disabled={pending}>
+                {pending ? '…' : 'Appliquer'}
+              </Button>
+              <Button variant="ghost" size="sm" type="button" onClick={remove} disabled={pending}>
+                Retirer
+              </Button>
+            </div>
+          </div>
+          {error ? <p className="text-sm text-red-400">{error}</p> : null}
+          {ok ? <p className="text-sm text-emerald-400">{ok}</p> : null}
+        </>
+      )}
+    </section>
+  );
+}
+
+function CreateCouponDialog({ onDone }: { onDone: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [pending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+
+  const [name, setName] = useState('');
+  const [kind, setKind] = useState<'percent' | 'amount'>('percent');
+  const [percentOff, setPercentOff] = useState('20');
+  const [amountOff, setAmountOff] = useState('10');
+  const [currency, setCurrency] = useState<'EUR' | 'USD' | 'MAD'>('EUR');
+  const [duration, setDuration] = useState<'once' | 'repeating' | 'forever'>('once');
+  const [durationInMonths, setDurationInMonths] = useState('3');
+  const [maxRedemptions, setMaxRedemptions] = useState('');
+  const [redeemBy, setRedeemBy] = useState('');
+  const [promoCode, setPromoCode] = useState('');
+
+  function submit() {
+    setError(null);
+    if (!name.trim()) {
+      setError('Le nom est requis.');
+      return;
+    }
+    const input: CreateCouponInput = {
+      name: name.trim(),
+      kind,
+      duration,
+      ...(kind === 'percent' ? { percentOff: Number(percentOff) } : {}),
+      ...(kind === 'amount'
+        ? { amountOffMajor: Number(amountOff.replace(',', '.')), currency }
+        : {}),
+      ...(duration === 'repeating' ? { durationInMonths: Number(durationInMonths) } : {}),
+      ...(maxRedemptions ? { maxRedemptions: Number(maxRedemptions) } : {}),
+      ...(redeemBy ? { redeemBy: new Date(redeemBy).getTime() } : {}),
+      ...(promoCode.trim() ? { promoCode: promoCode.trim().toUpperCase() } : {}),
+    };
+    startTransition(async () => {
+      const res = await adminCreateCouponAction(input);
+      if (!res.ok) {
+        setError(res.error);
+        return;
+      }
+      setOpen(false);
+      setName('');
+      setPromoCode('');
+      onDone();
+    });
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="primary" size="sm" type="button">
+          Créer un coupon
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Créer un coupon</DialogTitle>
+          <DialogDescription>
+            La réduction s&apos;applique au paiement (couple ou pro) qui utilise le code, ou
+            directement à un abonnement.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="flex flex-col gap-3">
+          <Field label="Nom interne">
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Ex. Lancement -20%"
+              className={inputCls}
+            />
+          </Field>
+
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Type">
+              <Select value={kind} onValueChange={(v) => setKind(v as 'percent' | 'amount')}>
+                <SelectTrigger className={inputCls}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="percent">Pourcentage</SelectItem>
+                  <SelectItem value="amount">Montant fixe</SelectItem>
+                </SelectContent>
+              </Select>
+            </Field>
+            {kind === 'percent' ? (
+              <Field label="Réduction (%)">
+                <input
+                  type="number"
+                  min={1}
+                  max={100}
+                  value={percentOff}
+                  onChange={(e) => setPercentOff(e.target.value)}
+                  className={inputCls}
+                />
+              </Field>
+            ) : (
+              <Field label="Montant">
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    value={amountOff}
+                    onChange={(e) => setAmountOff(e.target.value)}
+                    className={inputCls}
+                  />
+                  <Select value={currency} onValueChange={(v) => setCurrency(v as typeof currency)}>
+                    <SelectTrigger className={inputCls}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="EUR">EUR</SelectItem>
+                      <SelectItem value="USD">USD</SelectItem>
+                      <SelectItem value="MAD">MAD</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </Field>
+            )}
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Durée (abonnements)">
+              <Select value={duration} onValueChange={(v) => setDuration(v as typeof duration)}>
+                <SelectTrigger className={inputCls}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="once">Une fois</SelectItem>
+                  <SelectItem value="repeating">Récurrent</SelectItem>
+                  <SelectItem value="forever">Permanent</SelectItem>
+                </SelectContent>
+              </Select>
+            </Field>
+            {duration === 'repeating' ? (
+              <Field label="Nombre de mois">
+                <input
+                  type="number"
+                  min={1}
+                  value={durationInMonths}
+                  onChange={(e) => setDurationInMonths(e.target.value)}
+                  className={inputCls}
+                />
+              </Field>
+            ) : (
+              <div />
+            )}
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Max utilisations (optionnel)">
+              <input
+                type="number"
+                min={1}
+                value={maxRedemptions}
+                onChange={(e) => setMaxRedemptions(e.target.value)}
+                placeholder="illimité"
+                className={inputCls}
+              />
+            </Field>
+            <Field label="Expire le (optionnel)">
+              <input
+                type="date"
+                value={redeemBy}
+                onChange={(e) => setRedeemBy(e.target.value)}
+                className={inputCls}
+              />
+            </Field>
+          </div>
+
+          <Field label="Code promo (optionnel — généré sinon)">
+            <input
+              type="text"
+              value={promoCode}
+              onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+              placeholder="Ex. BIENVENUE20"
+              className={`${inputCls} font-mono`}
+            />
+          </Field>
+        </div>
+
+        {error ? <p className="mt-3 text-sm text-red-400">{error}</p> : null}
+
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button variant="ghost" size="sm" type="button" disabled={pending}>
+              Annuler
+            </Button>
+          </DialogClose>
+          <Button variant="primary" size="sm" type="button" onClick={submit} disabled={pending}>
+            {pending ? 'Création…' : 'Créer'}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function DeleteCouponButton({ couponId, onDone }: { couponId: string; onDone: () => void }) {
+  const [pending, startTransition] = useTransition();
+  return (
+    <button
+      onClick={() =>
+        startTransition(async () => {
+          const res = await adminDeleteCouponAction(couponId);
+          if (res.ok) onDone();
+        })
+      }
+      disabled={pending}
+      className="rounded-md px-2 py-1 text-xs font-medium text-red-400 transition-colors hover:bg-red-400/10 disabled:opacity-50"
+    >
+      {pending ? '…' : 'Supprimer'}
+    </button>
+  );
+}
+
+function TogglePromoButton({
+  id,
+  active,
+  onDone,
+}: {
+  id: string;
+  active: boolean;
+  onDone: () => void;
+}) {
+  const [pending, startTransition] = useTransition();
+  return (
+    <button
+      onClick={() =>
+        startTransition(async () => {
+          const res = await adminSetPromotionCodeActiveAction(id, !active);
+          if (res.ok) onDone();
+        })
+      }
+      disabled={pending}
+      className="rounded-md px-2 py-1 text-xs font-medium text-[color:var(--color-muted-foreground)] transition-colors hover:bg-[color:var(--color-surface-elevated)] hover:text-[color:var(--color-foreground)] disabled:opacity-50"
+    >
+      {pending ? '…' : active ? 'Désactiver' : 'Activer'}
+    </button>
+  );
+}
+
+const inputCls =
+  'w-full rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-3 py-2 text-sm text-[color:var(--color-foreground)] focus:ring-1 focus:ring-[color:var(--color-border-strong)] focus:outline-none';
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <label className="flex flex-col gap-1">
+      <span className="font-mono text-[10px] tracking-[0.16em] text-[color:var(--color-muted-foreground)] uppercase">
+        {label}
+      </span>
+      {children}
+    </label>
+  );
+}
+
+function Th({ children }: { children: React.ReactNode }) {
+  return (
+    <th className="px-4 py-3 text-left font-mono text-[10px] tracking-[0.2em] text-[color:var(--color-muted-foreground)] uppercase">
+      {children}
+    </th>
+  );
+}

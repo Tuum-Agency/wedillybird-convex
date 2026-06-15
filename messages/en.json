@@ -7,6 +7,7 @@
     "nav": {
       "overview": "Overview",
       "analytics": "Analytics",
+      "acquisition": "Acquisition",
       "users": "Users",
       "events": "Events",
       "payments": "Payments",
@@ -14,7 +15,8 @@
       "subscriptions": "Subscriptions",
       "moderation": "Moderation",
       "newsletter": "Newsletter",
-      "auditLog": "Audit log"
+      "auditLog": "Audit log",
+      "promotions": "Promotions"
     },
     "common": {
       "back": "Back",

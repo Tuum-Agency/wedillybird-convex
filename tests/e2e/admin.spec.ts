@@ -29,6 +29,7 @@ const SECTIONS: { path: string; heading: string }[] = [
   { path: '/admin/payments', heading: 'Paiements' },
   { path: '/admin/invoices', heading: 'Factures' },
   { path: '/admin/subscriptions', heading: 'Abonnements' },
+  { path: '/admin/promotions', heading: 'Promotions & remises' },
   { path: '/admin/users', heading: 'Utilisateurs' },
   { path: '/admin/events', heading: 'Événements' },
   { path: '/admin/moderation', heading: 'Modération' },
@@ -81,6 +82,26 @@ test.describe('Dashboard super admin', () => {
     await expect(page.getByText('Comptes couple')).toBeVisible();
     // Tendance 30 j + rush à venir.
     await expect(page.getByText('Rush à venir')).toBeVisible();
+  });
+
+  test('la section Promotions affiche coupons, codes promo + remise abonnement', async ({
+    page,
+  }) => {
+    await page.goto('/admin/promotions');
+    await expect(page.getByRole('heading', { name: 'Coupons' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Codes promo' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Créer un coupon' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Remise sur un abonnement' })).toBeVisible();
+  });
+
+  test('la section Newsletter affiche le composer + historique (sans envoyer)', async ({
+    page,
+  }) => {
+    await page.goto('/admin/newsletter');
+    await expect(page.getByRole('heading', { name: 'Composer une newsletter' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Campagnes envoyées' })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Envoyer à tous/ })).toBeVisible();
+    // On ne clique JAMAIS « Envoyer à tous » dans les tests (email réel).
   });
 
   test('un non-admin ne peut pas accéder à /admin', async ({ page }) => {

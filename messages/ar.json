@@ -7,6 +7,7 @@
     "nav": {
       "overview": "نظرة عامة",
       "analytics": "Analytics",
+      "acquisition": "الاكتساب",
       "users": "المستخدمون",
       "events": "الفعاليات",
       "payments": "المدفوعات",
@@ -14,7 +15,8 @@
       "subscriptions": "الاشتراكات",
       "moderation": "الإشراف",
       "newsletter": "النشرة الإخبارية",
-      "auditLog": "سجلّ التدقيق"
+      "auditLog": "سجلّ التدقيق",
+      "promotions": "العروض"
     },
     "common": {
       "back": "رجوع",

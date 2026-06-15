@@ -3,16 +3,19 @@
 import { v } from 'convex/values';
 import { SESv2Client, SendEmailCommand } from '@aws-sdk/client-sesv2';
 import { internal } from './_generated/api';
-import { internalAction } from './_generated/server';
+import type { Id } from './_generated/dataModel';
+import { action, internalAction } from './_generated/server';
 import {
   renderGuestReminder,
   renderLinkCode,
   renderMagicLink,
+  renderNewsletterCampaign,
   renderProNotification,
   renderStripeInvoice,
   type ProNotificationKind,
 } from '../lib/email/templates';
 import type { EmailRendered } from '../lib/email/types';
+import { signUnsubscribe } from '../lib/email/unsubscribe-token';
 import { getServerTranslator } from '../lib/i18n/server-translator';
 
 function requireEnv(name: string): string {
@@ -298,5 +301,102 @@ export const sendStripeInvoice = internalAction({
       );
     }
     return result;
+  },
+});
+
+/* -------------------------------------------------------------------------- */
+/*  Newsletter — envoi de campagne (admin)                                     */
+/* -------------------------------------------------------------------------- */
+
+function unsubscribeUrlFor(email: string): string {
+  const baseUrl = process.env.APP_BASE_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? '';
+  const token = signUnsubscribe(email);
+  return `${baseUrl.replace(/\/$/, '')}/api/newsletter/unsubscribe?email=${encodeURIComponent(
+    email,
+  )}&token=${token}`;
+}
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/**
+ * Envoie une campagne newsletter via SES.
+ *  - `testEmail` fourni → envoi de TEST à cette seule adresse (rien d'enregistré).
+ *  - sinon → envoi à tous les abonnés actifs, enregistré dans `newsletterCampaigns`.
+ *
+ * Garde-fous : l'admin est revérifié (campaignContext), `dispatch` respecte
+ * `E2E_MODE`/`EMAIL_DRIVER=mock` (aucun mail réel en test), throttle ~10/s pour
+ * rester sous la limite SES. Chaque mail porte un lien de désinscription signé
+ * + l'en-tête List-Unsubscribe (délivrabilité).
+ */
+type SendCampaignResult =
+  | { ok: true; test: true; recipient: string }
+  | {
+      ok: true;
+      test: false;
+      campaignId: Id<'newsletterCampaigns'>;
+      sentCount: number;
+      failedCount: number;
+    }
+  | { ok: false; error: string };
+
+export const sendNewsletterCampaign = action({
+  args: {
+    adminId: v.id('users'),
+    subject: v.string(),
+    bodyText: v.string(),
+    testEmail: v.optional(v.string()),
+  },
+  // Type de retour explicite : casse l'inférence circulaire action ↔ internal API.
+  handler: async (ctx, { adminId, subject, bodyText, testEmail }): Promise<SendCampaignResult> => {
+    if (subject.trim().length === 0 || bodyText.trim().length === 0) {
+      return { ok: false, error: 'EMPTY_CONTENT' };
+    }
+
+    // Revérifie le rôle admin + récupère le contexte (interne → non exposé).
+    const context: { adminEmail: string | null; emails: string[] } = await ctx.runQuery(
+      internal.newsletter.campaignContext,
+      { adminId },
+    );
+
+    // --- Mode TEST : une seule adresse, rien d'enregistré.
+    if (testEmail) {
+      const rendered = renderNewsletterCampaign({
+        subject,
+        bodyText,
+        unsubscribeUrl: unsubscribeUrlFor(testEmail),
+      });
+      const res = await dispatch(testEmail, rendered);
+      return res.ok
+        ? { ok: true, test: true, recipient: testEmail }
+        : { ok: false, error: res.error };
+    }
+
+    // --- Envoi RÉEL à tous les abonnés actifs.
+    const emails = context.emails;
+    if (emails.length === 0) return { ok: false, error: 'NO_SUBSCRIBERS' };
+
+    const campaignId: Id<'newsletterCampaigns'> = await ctx.runMutation(
+      internal.newsletter.createCampaign,
+      { adminId, subject, bodyText, totalRecipients: emails.length },
+    );
+
+    let sentCount = 0;
+    let failedCount = 0;
+    for (const email of emails) {
+      const url = unsubscribeUrlFor(email);
+      const rendered = renderNewsletterCampaign({ subject, bodyText, unsubscribeUrl: url });
+      const res = await dispatch(email, rendered);
+      if (res.ok) sentCount += 1;
+      else failedCount += 1;
+      await sleep(100); // ~10/s, sous la limite SES (14/s)
+    }
+
+    await ctx.runMutation(internal.newsletter.finalizeCampaign, {
+      campaignId,
+      sentCount,
+      failedCount,
+    });
+
+    return { ok: true, test: false, campaignId, sentCount, failedCount };
   },
 });

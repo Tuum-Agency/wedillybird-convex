@@ -8,8 +8,19 @@ import {
   cancelPlatformSubscription,
   reactivatePlatformSubscription,
   listSubscriptionInvoices,
+  createCoupon,
+  listCoupons,
+  deleteCoupon,
+  createPromotionCode,
+  listPromotionCodes,
+  setPromotionCodeActive,
+  applyCouponToSubscription,
+  removeSubscriptionDiscount,
   type SubscriptionInvoice,
+  type AdminCoupon,
+  type AdminPromotionCode,
 } from '@/lib/payments/drivers/stripe';
+import type { Currency } from '@/lib/payments/plans';
 
 type ActionResult = { ok: true } | { ok: false; error: string };
 
@@ -237,6 +248,269 @@ export async function adminListOrgInvoicesAction(
     if (!info.stripeCustomerId) return { ok: true, invoices: [], orgName: info.name };
     const invoices = await listSubscriptionInvoices(info.stripeCustomerId, 24);
     return { ok: true, invoices, orgName: info.name };
+  } catch (e: unknown) {
+    return { ok: false, error: msg(e) };
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Promotions — coupons, codes promo & remises (gestes commerciaux)           */
+/* -------------------------------------------------------------------------- */
+
+export type PromotionsResult =
+  | { ok: true; coupons: AdminCoupon[]; promoCodes: AdminPromotionCode[] }
+  | { ok: false; error: string };
+
+export async function adminListPromotionsAction(): Promise<PromotionsResult> {
+  try {
+    await requireAdmin();
+    const [coupons, promoCodes] = await Promise.all([listCoupons(), listPromotionCodes()]);
+    return { ok: true, coupons, promoCodes };
+  } catch (e: unknown) {
+    return { ok: false, error: msg(e) };
+  }
+}
+
+export type CreateCouponInput = {
+  name: string;
+  kind: 'percent' | 'amount';
+  percentOff?: number;
+  amountOffMajor?: number; // saisi en unité majeure (€), converti en minor
+  currency?: Currency;
+  duration: 'once' | 'repeating' | 'forever';
+  durationInMonths?: number;
+  maxRedemptions?: number;
+  redeemBy?: number; // ms epoch
+  // Génère aussi un code promo lisible rattaché au coupon.
+  promoCode?: string;
+};
+
+export async function adminCreateCouponAction(input: CreateCouponInput): Promise<ActionResult> {
+  try {
+    const adminId = await requireAdmin();
+    const convex = getConvexServerClient();
+
+    const amountOffMinor =
+      input.kind === 'amount' && input.amountOffMajor != null
+        ? Math.round(input.amountOffMajor * 100)
+        : undefined;
+
+    const coupon = await createCoupon({
+      name: input.name,
+      percentOff: input.kind === 'percent' ? input.percentOff : undefined,
+      amountOffMinor,
+      currency: input.currency,
+      duration: input.duration,
+      durationInMonths: input.durationInMonths,
+      maxRedemptions: input.maxRedemptions,
+      redeemBy: input.redeemBy,
+    });
+
+    let promoCode: string | undefined;
+    if (input.promoCode) {
+      const pc = await createPromotionCode({ couponId: coupon.id, code: input.promoCode });
+      promoCode = pc.code;
+    }
+
+    await convex.mutation(convexApi.adminLogAction, {
+      adminId,
+      action: 'create_coupon',
+      targetType: 'coupon',
+      targetId: coupon.id,
+      details: JSON.stringify({ name: input.name, kind: input.kind, promoCode }),
+    });
+    revalidatePath('/admin/promotions');
+    return { ok: true };
+  } catch (e: unknown) {
+    return { ok: false, error: msg(e) };
+  }
+}
+
+export async function adminDeleteCouponAction(couponId: string): Promise<ActionResult> {
+  try {
+    const adminId = await requireAdmin();
+    const convex = getConvexServerClient();
+    await deleteCoupon(couponId);
+    await convex.mutation(convexApi.adminLogAction, {
+      adminId,
+      action: 'delete_coupon',
+      targetType: 'coupon',
+      targetId: couponId,
+    });
+    revalidatePath('/admin/promotions');
+    return { ok: true };
+  } catch (e: unknown) {
+    return { ok: false, error: msg(e) };
+  }
+}
+
+export async function adminCreatePromotionCodeAction(input: {
+  couponId: string;
+  code?: string;
+  maxRedemptions?: number;
+  expiresAt?: number;
+  restrictToFirstTime?: boolean;
+}): Promise<ActionResult> {
+  try {
+    const adminId = await requireAdmin();
+    const convex = getConvexServerClient();
+    const pc = await createPromotionCode(input);
+    await convex.mutation(convexApi.adminLogAction, {
+      adminId,
+      action: 'create_promo_code',
+      targetType: 'coupon',
+      targetId: input.couponId,
+      details: JSON.stringify({ code: pc.code }),
+    });
+    revalidatePath('/admin/promotions');
+    return { ok: true };
+  } catch (e: unknown) {
+    return { ok: false, error: msg(e) };
+  }
+}
+
+export async function adminSetPromotionCodeActiveAction(
+  promotionCodeId: string,
+  active: boolean,
+): Promise<ActionResult> {
+  try {
+    const adminId = await requireAdmin();
+    const convex = getConvexServerClient();
+    await setPromotionCodeActive(promotionCodeId, active);
+    await convex.mutation(convexApi.adminLogAction, {
+      adminId,
+      action: active ? 'enable_promo_code' : 'disable_promo_code',
+      targetType: 'coupon',
+      targetId: promotionCodeId,
+    });
+    revalidatePath('/admin/promotions');
+    return { ok: true };
+  } catch (e: unknown) {
+    return { ok: false, error: msg(e) };
+  }
+}
+
+/** Applique une remise (coupon) à l'abonnement d'une organisation — geste commercial. */
+export async function adminApplyDiscountToOrgAction(
+  organizationId: string,
+  couponId: string,
+): Promise<ActionResult> {
+  try {
+    const adminId = await requireAdmin();
+    const convex = getConvexServerClient();
+    const info = await convex.query(convexApi.adminGetOrgSubscriptionInfo, {
+      adminId,
+      organizationId,
+    });
+    if (!info.stripeSubscriptionId) return { ok: false, error: 'NO_SUBSCRIPTION' };
+    await applyCouponToSubscription(info.stripeSubscriptionId, couponId);
+    await convex.mutation(convexApi.adminLogAction, {
+      adminId,
+      action: 'apply_discount',
+      targetType: 'discount',
+      targetId: organizationId,
+      details: JSON.stringify({ couponId }),
+    });
+    revalidatePath('/admin/subscriptions');
+    return { ok: true };
+  } catch (e: unknown) {
+    return { ok: false, error: msg(e) };
+  }
+}
+
+export async function adminRemoveOrgDiscountAction(organizationId: string): Promise<ActionResult> {
+  try {
+    const adminId = await requireAdmin();
+    const convex = getConvexServerClient();
+    const info = await convex.query(convexApi.adminGetOrgSubscriptionInfo, {
+      adminId,
+      organizationId,
+    });
+    if (!info.stripeSubscriptionId) return { ok: false, error: 'NO_SUBSCRIPTION' };
+    await removeSubscriptionDiscount(info.stripeSubscriptionId);
+    await convex.mutation(convexApi.adminLogAction, {
+      adminId,
+      action: 'remove_discount',
+      targetType: 'discount',
+      targetId: organizationId,
+    });
+    revalidatePath('/admin/subscriptions');
+    return { ok: true };
+  } catch (e: unknown) {
+    return { ok: false, error: msg(e) };
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Newsletter — campagnes (composer + envoyer via SES)                        */
+/* -------------------------------------------------------------------------- */
+
+export type NewsletterCampaign = {
+  _id: string;
+  subject: string;
+  status: 'sending' | 'sent' | 'failed';
+  totalRecipients: number;
+  sentCount: number;
+  failedCount: number;
+  createdAt: number;
+  sentAt?: number;
+};
+
+export async function adminListNewsletterCampaignsAction(): Promise<
+  { ok: true; campaigns: NewsletterCampaign[] } | { ok: false; error: string }
+> {
+  try {
+    const adminId = await requireAdmin();
+    const convex = getConvexServerClient();
+    const campaigns = await convex.query(convexApi.newsletterListCampaigns, { adminId });
+    return { ok: true, campaigns };
+  } catch (e: unknown) {
+    return { ok: false, error: msg(e) };
+  }
+}
+
+/** Envoi de TEST : envoie la campagne à l'email de l'admin connecté uniquement. */
+export async function adminSendNewsletterTestAction(
+  subject: string,
+  bodyText: string,
+): Promise<{ ok: true; recipient: string } | { ok: false; error: string }> {
+  try {
+    const adminId = await requireAdmin();
+    const convex = getConvexServerClient();
+    const me = await convex.query(convexApi.currentUser, { userId: adminId });
+    const testEmail = me?.email;
+    if (!testEmail) return { ok: false, error: 'NO_ADMIN_EMAIL' };
+
+    const res = await convex.action(convexApi.newsletterSendCampaign, {
+      adminId,
+      subject,
+      bodyText,
+      testEmail,
+    });
+    if (!res.ok) return { ok: false, error: res.error };
+    return { ok: true, recipient: res.test ? res.recipient : testEmail };
+  } catch (e: unknown) {
+    return { ok: false, error: msg(e) };
+  }
+}
+
+/** Envoi RÉEL à tous les abonnés actifs. Outward/irréversible — confirmé côté UI. */
+export async function adminSendNewsletterAction(
+  subject: string,
+  bodyText: string,
+): Promise<{ ok: true; sentCount: number; failedCount: number } | { ok: false; error: string }> {
+  try {
+    const adminId = await requireAdmin();
+    const convex = getConvexServerClient();
+    const res = await convex.action(convexApi.newsletterSendCampaign, {
+      adminId,
+      subject,
+      bodyText,
+    });
+    if (!res.ok) return { ok: false, error: res.error };
+    if (res.test) return { ok: false, error: 'UNEXPECTED_TEST_MODE' };
+    revalidatePath('/admin/newsletter');
+    return { ok: true, sentCount: res.sentCount, failedCount: res.failedCount };
   } catch (e: unknown) {
     return { ok: false, error: msg(e) };
   }
