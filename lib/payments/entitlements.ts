@@ -1,0 +1,231 @@
+/**
+ * Entitlements & quotas Pro — **source de vérité applicative** des limites par
+ * forfait agence, alignée sur `.context/livrables-wedillybird/Grille-Tarifaire-Pro-v3.md`
+ * (validée) et le CLAUDE.md projet.
+ *
+ * Deux familles de limites :
+ *
+ *  1. **Quotas chiffrés** (events / invités / messages / stockage / sièges) —
+ *     surfacés dans le cockpit (jauges) et la facturation. Certains sont
+ *     « durs » (sièges : on bloque l'invitation au-delà), d'autres « souples »
+ *     facturés en dépassement (messages 0,06 €, invités 0,25 €, stockage
+ *     0,03 €/Go/mois, event simultané 19 €/mois).
+ *  2. **Gating de fonctionnalités** (CRM pipeline, budget éditable, intégrations,
+ *     analytics multi-events, marque blanche totale…) — réservées à un palier.
+ *
+ * Volontairement **app-side** et pur (le bundler Convex ne suit pas ces imports ;
+ * la règle minimale de gating *par event* vit séparément dans
+ * `convex/lib/entitlements.ts`). Garder les deux cohérents.
+ */
+
+import type { SubscriptionTier } from './subscriptions';
+
+/** Octets par Go (décimal, cohérent avec l'affichage marketing « Go »). */
+export const BYTES_PER_GO = 1_000_000_000;
+
+export interface ProTierLimits {
+  /** Events actifs simultanés inclus dans le forfait. */
+  activeEvents: number;
+  /** Cap invités par event (au-delà : dépassement 0,25 €/invité). */
+  guestsPerEvent: number;
+  /** Stockage inclus, en **octets** (au-delà : 0,03 €/Go/mois). */
+  storageBytes: number;
+  /** Messages WhatsApp/SMS inclus par mois (au-delà : 0,06 €/message). */
+  whatsappMessagesPerMonth: number;
+  /** Sièges équipe inclus. `null` = illimité (Agency). */
+  seats: number | null;
+  /** Fiches annuaire prestataires. `null` = illimité (Business+). */
+  vendorDirectoryCap: number | null;
+}
+
+/** Grille v3 — capacités par tier (garde-fous marge ; le tiering se vend sur la profondeur back-office). */
+export const PRO_TIER_LIMITS: Record<SubscriptionTier, ProTierLimits> = {
+  starter: {
+    activeEvents: 5,
+    guestsPerEvent: 150,
+    storageBytes: 50 * BYTES_PER_GO,
+    whatsappMessagesPerMonth: 3000,
+    seats: 2,
+    vendorDirectoryCap: 25,
+  },
+  business: {
+    activeEvents: 20,
+    guestsPerEvent: 150,
+    storageBytes: 200 * BYTES_PER_GO,
+    whatsappMessagesPerMonth: 10000,
+    seats: 8,
+    vendorDirectoryCap: null,
+  },
+  agency: {
+    activeEvents: 50,
+    guestsPerEvent: 150,
+    storageBytes: 500 * BYTES_PER_GO,
+    whatsappMessagesPerMonth: 25000,
+    seats: null,
+    vendorDirectoryCap: null,
+  },
+};
+
+/** Tarifs de dépassement (en centimes d'euro), pour affichage et facturation. */
+export const PRO_OVERAGE_EUR_MINOR = {
+  /** Par message WhatsApp/SMS au-delà du bundle mensuel. */
+  whatsappMessage: 6,
+  /** Par invité au-delà du cap de 150/event. */
+  guest: 25,
+  /** Par Go/mois de stockage au-delà du quota. */
+  storageGoPerMonth: 3,
+  /** Par event simultané au-delà du quota du tier (prorata). */
+  extraEventPerMonth: 1900,
+  /** Par siège supplémentaire (Starter/Business uniquement). */
+  extraSeatPerMonth: 1900,
+} as const;
+
+/* -------------------------------------------------------------------------- */
+/*  Gating de fonctionnalités par palier                                       */
+/* -------------------------------------------------------------------------- */
+
+export type ProFeature =
+  /** CRM clients : pipeline kanban + table dense + conversion lead→mariage. */
+  | 'crmPipeline'
+  /** Budget mariage éditable (Starter = lecture/suivi seulement). */
+  | 'budgetEditing'
+  /** Devis / factures / contrats e-sign. */
+  | 'documentsEsign'
+  /** Rattachement prestataire→mariage + création auto de ligne budget. */
+  | 'vendorAttach'
+  /** Portail couple marque blanche (espace mariés OTP). */
+  | 'couplePortal'
+  /** Intégrations CRM live (HoneyBook / Zapier / API) + mode « propre CRM ». */
+  | 'integrations'
+  /** Analytics multi-events consolidé. */
+  | 'analyticsMulti'
+  /** Marque blanche totale (domaine custom + emails + retrait du badge). */
+  | 'whiteLabelTotal';
+
+const TIER_RANK: Record<SubscriptionTier, number> = { starter: 0, business: 1, agency: 2 };
+
+/** Palier minimum requis pour chaque fonctionnalité (grille v3). */
+export const FEATURE_MIN_TIER: Record<ProFeature, SubscriptionTier> = {
+  crmPipeline: 'business',
+  budgetEditing: 'business',
+  documentsEsign: 'business',
+  vendorAttach: 'business',
+  couplePortal: 'business',
+  integrations: 'agency',
+  analyticsMulti: 'agency',
+  whiteLabelTotal: 'agency',
+};
+
+/** Le tier donne-t-il accès à la fonctionnalité ? (un tier supérieur hérite). */
+export function tierHasFeature(
+  tier: SubscriptionTier | null | undefined,
+  feature: ProFeature,
+): boolean {
+  if (!tier) return false;
+  return TIER_RANK[tier] >= TIER_RANK[FEATURE_MIN_TIER[feature]];
+}
+
+/** Le tier `a` est-il ≥ au tier `b` ? (utile pour comparer des paliers). */
+export function tierAtLeast(a: SubscriptionTier | null | undefined, b: SubscriptionTier): boolean {
+  if (!a) return false;
+  return TIER_RANK[a] >= TIER_RANK[b];
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Quotas : statut d'usage (pur)                                              */
+/* -------------------------------------------------------------------------- */
+
+export type QuotaLevel = 'ok' | 'warning' | 'danger';
+
+export interface QuotaStatus {
+  used: number;
+  /** Quota inclus, ou `null` si illimité. */
+  included: number | null;
+  /** Restant avant dépassement, ou `null` si illimité. */
+  remaining: number | null;
+  /** Ratio usage/inclus (0 si illimité, ≥1 = dépassement). */
+  ratio: number;
+  /** Quantité consommée au-delà de l'inclus (0 si dans les clous / illimité). */
+  overage: number;
+  level: QuotaLevel;
+  unlimited: boolean;
+}
+
+/** Seuil d'alerte (warning) — aligné sur le design (marqueur 80 %). */
+export const QUOTA_WARNING_RATIO = 0.8;
+
+/**
+ * Calcule le statut d'un quota. `included = null` → illimité (jamais en alerte).
+ */
+export function quotaStatus(used: number, included: number | null): QuotaStatus {
+  const safeUsed = Number.isFinite(used) && used > 0 ? used : 0;
+  if (included === null) {
+    return {
+      used: safeUsed,
+      included: null,
+      remaining: null,
+      ratio: 0,
+      overage: 0,
+      level: 'ok',
+      unlimited: true,
+    };
+  }
+  const ratio = included <= 0 ? (safeUsed > 0 ? Number.POSITIVE_INFINITY : 0) : safeUsed / included;
+  const overage = Math.max(0, safeUsed - included);
+  const level: QuotaLevel = ratio >= 1 ? 'danger' : ratio >= QUOTA_WARNING_RATIO ? 'warning' : 'ok';
+  return {
+    used: safeUsed,
+    included,
+    remaining: Math.max(0, included - safeUsed),
+    ratio,
+    overage,
+    level,
+    unlimited: false,
+  };
+}
+
+/** Usage agrégé d'une organisation (calculé côté Convex). */
+export interface ProUsage {
+  activeEvents: number;
+  storageBytes: number;
+  whatsappMessagesThisMonth: number;
+  seatsUsed: number;
+}
+
+export interface ProQuotaGauges {
+  events: QuotaStatus;
+  storage: QuotaStatus;
+  messages: QuotaStatus;
+  seats: QuotaStatus;
+}
+
+/** Construit les 4 jauges de quota du cockpit/facturation depuis tier + usage. */
+export function buildQuotaGauges(tier: SubscriptionTier, usage: ProUsage): ProQuotaGauges {
+  const limits = PRO_TIER_LIMITS[tier];
+  return {
+    events: quotaStatus(usage.activeEvents, limits.activeEvents),
+    storage: quotaStatus(usage.storageBytes, limits.storageBytes),
+    messages: quotaStatus(usage.whatsappMessagesThisMonth, limits.whatsappMessagesPerMonth),
+    seats: quotaStatus(usage.seatsUsed, limits.seats),
+  };
+}
+
+/**
+ * Un siège supplémentaire peut-il être ajouté ? (invitation d'équipe).
+ * Agency (sièges illimités) → toujours `true`.
+ */
+export function canAddSeat(tier: SubscriptionTier, seatsUsed: number): boolean {
+  const { seats } = PRO_TIER_LIMITS[tier];
+  if (seats === null) return true;
+  return seatsUsed < seats;
+}
+
+/**
+ * Une fiche prestataire peut-elle être ajoutée ? Starter est plafonné à 25 ;
+ * Business/Agency illimité.
+ */
+export function canAddVendor(tier: SubscriptionTier, count: number): boolean {
+  const cap = PRO_TIER_LIMITS[tier].vendorDirectoryCap;
+  if (cap === null) return true;
+  return count < cap;
+}

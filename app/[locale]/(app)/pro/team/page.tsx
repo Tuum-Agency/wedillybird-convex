@@ -3,7 +3,7 @@ import { ArrowLeft } from 'lucide-react';
 import { Link, redirect } from '@/i18n/navigation';
 import { getSession } from '@/lib/auth/session';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
-import { ProShell, ProNav } from '@/components/pro/pro-shell';
+import { ProSidebarShell } from '@/components/pro/pro-sidebar-shell';
 import { TeamManager } from '@/components/pro/team-manager';
 
 export default async function ProTeamPage({ params }: { params: Promise<{ locale: string }> }) {
@@ -26,11 +26,15 @@ export default async function ProTeamPage({ params }: { params: Promise<{ locale
   const t = await getTranslations('Pro');
 
   return (
-    <ProShell
-      orgName={org!.name}
-      orgPrimaryColor={org!.primaryColor ?? undefined}
-      userName={user?.fullName}
-      nav={<ProNav current="team" />}
+    <ProSidebarShell
+      current="team"
+      org={{
+        name: org!.name,
+        primaryColor: org!.primaryColor,
+        tier: org!.subscriptionTier ?? null,
+        role: org!.myRole,
+      }}
+      user={{ name: user?.fullName }}
     >
       <div className="container-page flex flex-col gap-10 py-12 sm:py-16">
         <header className="flex flex-col gap-3">
@@ -60,9 +64,12 @@ export default async function ProTeamPage({ params }: { params: Promise<{ locale
         <TeamManager
           organizationId={org!._id}
           canManage={org!.myRole === 'owner' || org!.myRole === 'admin'}
+          currentUserId={session!.userId}
+          myRole={org!.myRole}
+          tier={org!.subscriptionTier ?? null}
           initialMembers={members}
         />
       </div>
-    </ProShell>
+    </ProSidebarShell>
   );
 }

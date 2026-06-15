@@ -14,7 +14,8 @@
  * 29 € converti pour tout le monde, partout. L'utilisateur peut overrider la
  * devise d'affichage via le sélecteur footer (cf. `stores/currency-store.ts`).
  *
- * Multi-devises : EUR + USD via Stripe, XOF via CinetPay, MAD/TND via Stripe.
+ * Multi-devises : EUR + USD + MAD réglés via Stripe. XOF/TND restent des
+ * devises d'affichage uniquement (pas de processeur de paiement).
  * Les Stripe Prices stables sont nommés `STRIPE_PRICE_<PLAN>_<CURRENCY>` (ex.
  * STRIPE_PRICE_ESSENTIAL_MAD, STRIPE_PRICE_PREMIUM_USD). Le suffix sans devise
  * (`STRIPE_PRICE_ESSENTIAL`) reste un alias EUR pour rétro-compat env.
@@ -197,10 +198,10 @@ export function priceFontSizeClamp(
  *   STRIPE_PRICE_<PLAN>_<CURRENCY>   (ex. STRIPE_PRICE_ESSENTIAL_MAD)
  *   STRIPE_PRICE_<PLAN>              (alias EUR pour rétro-compat env)
  *
- * Devises XOF et TND : non supportées par Stripe comme settlement currency.
- * Le routage CinetPay s'occupe de XOF et TND — la fonction renvoie `undefined`
- * pour ces devises (le driver Stripe ne devrait jamais être appelé avec XOF ou
- * TND, mais on conserve un comportement défensif).
+ * Devises XOF et TND : non supportées par Stripe comme settlement currency, et
+ * sans processeur de paiement dédié — la fonction renvoie `undefined` pour ces
+ * devises (le driver Stripe ne devrait jamais être appelé avec XOF ou TND, mais
+ * on conserve un comportement défensif).
  *
  * Optionnel — si l'env var n'est pas définie, le driver Stripe peut tomber
  * sur `price_data` à la volée. Préférer toujours les Price IDs stables pour

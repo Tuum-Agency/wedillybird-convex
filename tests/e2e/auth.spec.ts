@@ -21,11 +21,17 @@ test.describe('Auth — sign-in page', () => {
   });
 });
 
-test.describe('Auth — sign-up alias', () => {
-  test('redirects /sign-up → /sign-in', async ({ page }) => {
-    await page.goto('/sign-up');
-    await page.waitForURL((url) => url.pathname.endsWith('/sign-in'));
+test.describe('Auth — sign-up (entrée de tunnel)', () => {
+  test('renders the auth form directly and preserves plan/billing attribution', async ({
+    page,
+  }) => {
+    await page.goto('/sign-up?plan=business&billing=monthly');
+    // Pas de redirection vers /sign-in : /sign-up rend le formulaire (même UI)
+    // pour instrumenter l'entrée de tunnel (signup_started) et conserver les
+    // paramètres d'attribution plan/billing passés par les CTA pricing.
+    await expect(page).toHaveURL(/\/sign-up/);
     await expect(page.getByRole('heading', { level: 1 })).toContainText(/Bienvenue|Connexion/i);
+    await expect(page.getByLabel('Numéro WhatsApp')).toBeVisible();
   });
 });
 

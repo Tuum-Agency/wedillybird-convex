@@ -82,7 +82,13 @@ export const config = {
   // Exclut `opengraph-image` / `twitter-image` qui sont des routes Next.js
   // file convention (next/og). Sans ça, le middleware next-intl les redirige
   // vers /fr/opengraph-image qui n'existe pas → 404.
+  //
+  // `ingest` est exclu aussi : c'est le reverse proxy PostHog (cf. rewrites
+  // dans next.config.ts). Sans cette exclusion, next-intl interprète `ingest`
+  // comme une locale et renvoie 404 sur `/ingest/e/`, `/ingest/flags/`… →
+  // capture analytics cassée en prod (les requêtes avec extension comme
+  // `/ingest/static/array.js` passaient seulement grâce au filtre `.*\\..*`).
   matcher: [
-    '/((?!api|trpc|_next|_vercel|convex|opengraph-image|twitter-image|sitemap\\.xml|robots\\.txt|.*\\..*).*)',
+    '/((?!api|trpc|_next|_vercel|convex|ingest|opengraph-image|twitter-image|sitemap\\.xml|robots\\.txt|.*\\..*).*)',
   ],
 };

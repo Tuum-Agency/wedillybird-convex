@@ -57,7 +57,13 @@ export async function loginAsDevUser(page: Page): Promise<void> {
     .locator('form', { has: page.locator('input[value="+33612931779"]') })
     .getByRole('button', { name: /se connecter/i })
     .click();
-  await page.waitForURL((url) => /\/dashboard/.test(url.pathname));
+  // Après login, l'app route selon l'état de l'utilisateur : /dashboard
+  // (défaut), /events/{id} (couple possédant déjà un event), /onboarding
+  // (nouvel utilisateur) ou /pro. On attend une destination authentifiée,
+  // pas spécifiquement /dashboard (sinon timeout pour les owners d'event).
+  await page.waitForURL((url) =>
+    /\/(dashboard|events|onboarding|pro|espace-couple)(\/|$)/.test(url.pathname),
+  );
 }
 
 /**
@@ -69,7 +75,13 @@ export async function loginAsPhone(page: Page, phone: string): Promise<void> {
     .locator('form', { has: page.locator(`input[value="${phone}"]`) })
     .getByRole('button', { name: /se connecter/i })
     .click();
-  await page.waitForURL((url) => /\/dashboard/.test(url.pathname));
+  // Après login, l'app route selon l'état de l'utilisateur : /dashboard
+  // (défaut), /events/{id} (couple possédant déjà un event), /onboarding
+  // (nouvel utilisateur) ou /pro. On attend une destination authentifiée,
+  // pas spécifiquement /dashboard (sinon timeout pour les owners d'event).
+  await page.waitForURL((url) =>
+    /\/(dashboard|events|onboarding|pro|espace-couple)(\/|$)/.test(url.pathname),
+  );
 }
 
 /**
@@ -166,6 +178,14 @@ const seedTestUsersRef = makeFunctionReference<
 export interface TierFixtures {
   essential: { ownerPhone: string; eventId: string; slug: string };
   premium: { ownerPhone: string; eventId: string; slug: string };
+  business: {
+    ownerPhone: string;
+    organizationId: string;
+    slug: string;
+    eventId: string;
+    clientCount: number;
+    budgetLineCount: number;
+  };
   pro: {
     ownerPhone: string;
     organizationId: string;

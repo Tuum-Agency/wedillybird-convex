@@ -1,16 +1,20 @@
 import { NextResponse } from 'next/server';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
+import { captureServer, EVENTS } from '@/lib/analytics/posthog-server';
 import { getPaymentDriver } from '@/lib/payments';
 import type { ProviderName } from '@/lib/payments/country';
-import { verifyAndParseSubscriptionWebhook } from '@/lib/payments/drivers/stripe';
+import {
+  verifyAndParseSubscriptionWebhook,
+  parseBudgetPaymentWebhook,
+  parsePaymentLinkWebhook,
+} from '@/lib/payments/drivers/stripe';
 
 function isProviderName(value: string): value is ProviderName {
-  return value === 'stripe' || value === 'cinetpay' || value === 'mock';
+  return value === 'stripe' || value === 'mock';
 }
 
 function readSignatureHeader(headers: Headers, provider: ProviderName): string | null {
   if (provider === 'stripe') return headers.get('stripe-signature');
-  if (provider === 'cinetpay') return headers.get('x-token') ?? headers.get('x-signature');
   return headers.get('x-signature');
 }
 
@@ -98,7 +102,105 @@ export async function POST(
         return NextResponse.json({ error: message }, { status: 500 });
       }
     }
-    // Not a subscription event — fall through to the one-shot payment driver.
+    // Pas une souscription — paiement de budget (Wedillybird Pay) ?
+    let budgetEvent;
+    try {
+      budgetEvent = await parseBudgetPaymentWebhook(rawBody, signature);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'UNKNOWN';
+      return NextResponse.json({ error: message }, { status: 400 });
+    }
+
+    if (budgetEvent) {
+      const webhookSecret = process.env.CONVEX_WEBHOOK_SECRET;
+      if (!webhookSecret) {
+        return NextResponse.json({ error: 'WEBHOOK_SECRET_NOT_CONFIGURED' }, { status: 500 });
+      }
+      try {
+        const convex = getConvexServerClient();
+        if (budgetEvent.status === 'succeeded') {
+          const result = await convex.mutation(convexApi.markBudgetOnlinePaymentSucceeded, {
+            webhookSecret,
+            paymentId: budgetEvent.budgetPaymentId,
+            providerSessionId: budgetEvent.providerSessionId,
+            stripeConnectAccountId: budgetEvent.stripeAccountId ?? undefined,
+            receiptUrl: budgetEvent.receiptUrl,
+          });
+          return NextResponse.json({
+            ok: true,
+            kind: 'budget_payment',
+            alreadyApplied: result.alreadyApplied,
+          });
+        }
+        const result = await convex.mutation(convexApi.markBudgetOnlinePaymentFailed, {
+          webhookSecret,
+          paymentId: budgetEvent.budgetPaymentId,
+          providerSessionId: budgetEvent.providerSessionId,
+        });
+        return NextResponse.json({
+          ok: true,
+          kind: 'budget_payment',
+          alreadyApplied: result.alreadyApplied,
+        });
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'UNKNOWN';
+        if (message === 'PAYMENT_NOT_FOUND') {
+          return NextResponse.json({ error: message }, { status: 404 });
+        }
+        return NextResponse.json({ error: message }, { status: 500 });
+      }
+    }
+
+    // Pas un budget — lien de paiement générique (facture / libre) ?
+    let linkEvent;
+    try {
+      linkEvent = await parsePaymentLinkWebhook(rawBody, signature);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'UNKNOWN';
+      return NextResponse.json({ error: message }, { status: 400 });
+    }
+
+    if (linkEvent) {
+      const webhookSecret = process.env.CONVEX_WEBHOOK_SECRET;
+      if (!webhookSecret) {
+        return NextResponse.json({ error: 'WEBHOOK_SECRET_NOT_CONFIGURED' }, { status: 500 });
+      }
+      try {
+        const convex = getConvexServerClient();
+        if (linkEvent.status === 'succeeded') {
+          const result = await convex.mutation(convexApi.markPaymentLinkSucceeded, {
+            webhookSecret,
+            paymentLinkId: linkEvent.paymentLinkId,
+            providerSessionId: linkEvent.providerSessionId,
+            stripeConnectAccountId: linkEvent.stripeAccountId ?? undefined,
+            receiptUrl: linkEvent.receiptUrl,
+          });
+          return NextResponse.json({
+            ok: true,
+            kind: 'payment_link',
+            alreadyApplied: result.alreadyApplied,
+          });
+        }
+        const result = await convex.mutation(convexApi.markPaymentLinkFailed, {
+          webhookSecret,
+          paymentLinkId: linkEvent.paymentLinkId,
+          providerSessionId: linkEvent.providerSessionId,
+        });
+        return NextResponse.json({
+          ok: true,
+          kind: 'payment_link',
+          alreadyApplied: result.alreadyApplied,
+        });
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'UNKNOWN';
+        if (message === 'PAYMENT_NOT_FOUND') {
+          return NextResponse.json({ error: message }, { status: 404 });
+        }
+        return NextResponse.json({ error: message }, { status: 500 });
+      }
+    }
+
+    // Not a subscription/budget/payment-link event — fall through to the one-shot driver.
   }
 
   const driver = getPaymentDriver(provider);
@@ -122,6 +224,33 @@ export async function POST(
         providerSessionId: event.providerSessionId,
         providerEventId: event.providerEventId,
       });
+
+      // Analytics serveur : event de revenu `purchase_completed`. On ne le tire
+      // QUE pour un paiement réellement confirmé pour la 1re fois — `alreadyApplied`
+      // garde contre les renvois (retries) de webhook Stripe. On exclut `mock`
+      // pour ne pas polluer l'analytics avec les paiements de test.
+      if (provider === 'stripe' && !result.alreadyApplied) {
+        const payment = await convex.query(convexApi.findPaymentBySession, {
+          provider,
+          providerSessionId: event.providerSessionId,
+        });
+        if (payment) {
+          await captureServer({
+            distinctId: payment.userId,
+            event: EVENTS.purchaseCompleted,
+            properties: {
+              plan: payment.plan,
+              currency: payment.currency,
+              amount_minor: payment.amountMinor,
+              revenue: payment.amountMinor / 100,
+              event_id: payment.eventId,
+              provider,
+              $set: { plan_tier: payment.plan },
+            },
+          });
+        }
+      }
+
       return NextResponse.json({ ok: true, alreadyApplied: result.alreadyApplied });
     }
     const result = await convex.mutation(convexApi.markPaymentFailed, {

@@ -2,15 +2,25 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { createOrganizationAction } from '@/app/[locale]/(app)/pro/actions';
+import { currencyForLocale, currencyOptions } from '@/lib/currency';
 
 export function OrgOnboardingForm() {
   const t = useTranslations('Pro');
   const tCommon = useTranslations('Common');
+  const tCurrency = useTranslations('CurrencySwitcher');
+  const locale = useLocale();
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -53,6 +63,21 @@ export function OrgOnboardingForm() {
           <Label htmlFor="accentColor">{t('accentColorLabel')}</Label>
           <Input id="accentColor" name="accentColor" type="color" defaultValue="#c8a165" />
         </div>
+      </div>
+      <div className="flex flex-col gap-2">
+        <Label htmlFor="currency">{tCurrency('chooseLabel')}</Label>
+        <Select name="currency" defaultValue={currencyForLocale(locale)}>
+          <SelectTrigger id="currency">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {currencyOptions(locale).map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>
+                {opt.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
       {error ? (
         <p role="alert" className="text-sm text-[color:var(--color-destructive)]">

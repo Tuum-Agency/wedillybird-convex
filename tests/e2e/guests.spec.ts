@@ -20,7 +20,8 @@ test.describe('Guests — authenticated list page', () => {
       .locator('form', { has: page.locator('input[value="+33612931779"]') })
       .getByRole('button', { name: /se connecter/i })
       .click();
-    await page.waitForURL((url) => /\/dashboard/.test(url.pathname));
+    // Destination authentifiée variable selon l'état user (dashboard / events / onboarding / pro).
+    await page.waitForURL((url) => /\/(dashboard|events|onboarding|pro)(\/|$)/.test(url.pathname));
 
     const firstEvent = page.locator('ul li a').first();
     if ((await firstEvent.count()) === 0) {

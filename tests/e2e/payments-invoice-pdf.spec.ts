@@ -37,7 +37,8 @@ test.describe('Invoice PDF — happy path (avec session + payment seedé)', () =
       .locator('form', { has: page.locator('input[value="+33612931779"]') })
       .getByRole('button', { name: /se connecter/i })
       .click();
-    await page.waitForURL((url) => /\/dashboard/.test(url.pathname));
+    // Destination authentifiée variable selon l'état user (dashboard / events / onboarding / pro).
+    await page.waitForURL((url) => /\/(dashboard|events|onboarding|pro)(\/|$)/.test(url.pathname));
 
     const paymentId = process.env.E2E_INVOICE_PAYMENT_ID!;
     const response = await request.get(`/api/payments/${paymentId}/invoice.pdf`);

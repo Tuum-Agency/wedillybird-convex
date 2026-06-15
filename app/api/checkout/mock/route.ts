@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
 
 // Auto-success endpoint used by the mock driver in dev/E2E. The real
-// drivers (stripe, cinetpay) redirect users to their own checkout pages.
+// stripe driver redirects users to its own checkout page.
 //
 // **Fix sécurité F-10 (audit avril 2026)** : refuse explicitement les
 // requêtes en `NODE_ENV === 'production'` — pattern miroir de

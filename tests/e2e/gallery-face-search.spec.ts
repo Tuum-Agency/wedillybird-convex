@@ -30,7 +30,8 @@ test.describe('Gallery — face search modal (UI gate)', () => {
       .locator('form', { has: page.locator('input[value="+33612931779"]') })
       .getByRole('button', { name: /se connecter/i })
       .click();
-    await page.waitForURL((url) => /\/dashboard/.test(url.pathname));
+    // Destination authentifiée variable selon l'état user (dashboard / events / onboarding / pro).
+    await page.waitForURL((url) => /\/(dashboard|events|onboarding|pro)(\/|$)/.test(url.pathname));
 
     await page.goto(`/events/${eventId}/gallery`);
     const trigger = page.getByTestId('face-search-trigger');

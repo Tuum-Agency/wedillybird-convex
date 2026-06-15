@@ -26,7 +26,8 @@
  *     `.env.local` (Vercel Production + Preview à mettre à jour aussi).
  *
  * ⚠ XOF n'est PAS dans la liste des `supported_currencies` Stripe → aucun Price
- * XOF n'est créé ici. Le routage XOF passe par `lib/payments/drivers/cinetpay.ts`.
+ * XOF n'est créé ici. XOF reste une devise d'affichage uniquement (pas de
+ * processeur de paiement).
  *
  * ⚠ Les arrondis annual : convention figée "arrondi à l'euro supérieur"
  * (Math.ceil(month × 12 × 0.80)). Cf. `subscriptions.ts`.
@@ -71,9 +72,9 @@ const stripe = new Stripe(SECRET_KEY);
 /*  Devises Stripe-supportées                                                  */
 /* -------------------------------------------------------------------------- */
 
-// Devises gérées par Stripe pour notre grille. XOF **et TND** passent par
-// CinetPay (cf. `priceIdForPlan` qui renvoie undefined pour XOF/TND). USD
-// couvre la région americas (US + CA). Les montants USD/MAD sont dérivés de
+// Devises gérées par Stripe pour notre grille. XOF **et TND** n'ont pas de
+// processeur de paiement (cf. `priceIdForPlan` qui renvoie undefined pour
+// XOF/TND). USD couvre la région americas (US + CA). Les montants USD/MAD sont dérivés de
 // l'EUR via `convertFromEur` — donc strictement alignés sur ce que l'app
 // affiche/facture.
 type StripeCurrency = 'EUR' | 'USD' | 'MAD';
@@ -361,7 +362,7 @@ async function deactivateLegacyPrices(): Promise<void> {
 async function main(): Promise<void> {
   console.log(`${DRY_RUN ? '[DRY RUN] ' : ''}Sync Stripe Prices — grille canonique avril 2026`);
   console.log(`Stripe key: ${SECRET_KEY!.startsWith('sk_test_') ? 'TEST mode' : 'LIVE mode'}`);
-  console.log(`Devises Stripe : ${SUPPORTED_STRIPE_CURRENCIES.join(', ')} (XOF → CinetPay)`);
+  console.log(`Devises Stripe : ${SUPPORTED_STRIPE_CURRENCIES.join(', ')} (XOF non supporté)`);
 
   const results: SyncResult[] = [];
   for (const spec of PLANS_TO_SYNC) {
@@ -382,7 +383,9 @@ async function main(): Promise<void> {
   console.log(
     '# Stripe Prices — grille canonique multi-devises (cf. .context/redesign-direction.md)',
   );
-  console.log('# EUR via Stripe, MAD/TND via Stripe, XOF via CinetPay (non listé ici).');
+  console.log(
+    "# EUR/USD/MAD via Stripe. XOF/TND : devises d'affichage uniquement (non listé ici).",
+  );
   console.log(
     '# Les variantes sans suffix devise (STRIPE_PRICE_ESSENTIAL=…) restent des alias EUR.',
   );

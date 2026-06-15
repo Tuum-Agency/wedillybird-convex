@@ -3,6 +3,9 @@
 import { revalidatePath } from 'next/cache';
 import { getSession } from '@/lib/auth/session';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
+import { createConnectedAccount, createAccountOnboardingLink } from '@/lib/payments/drivers/stripe';
+import { appOrigin } from '@/lib/reminders/window';
+import { asBudgetCurrency } from '@/lib/currency';
 
 const E164 = /^\+[1-9]\d{6,14}$/;
 const HEX_COLOR_RE = /^#([0-9a-fA-F]{6}|[0-9a-fA-F]{3})$/;
@@ -22,6 +25,11 @@ export async function createOrganizationAction(formData: FormData): Promise<Crea
 
   const primary = (formData.get('primaryColor') as string | null)?.trim() || undefined;
   const accent = (formData.get('accentColor') as string | null)?.trim() || undefined;
+  const rawCurrency = formData.get('currency');
+  const currency =
+    typeof rawCurrency === 'string' && rawCurrency.length > 0
+      ? asBudgetCurrency(rawCurrency)
+      : undefined;
 
   try {
     const convex = getConvexServerClient();
@@ -30,6 +38,7 @@ export async function createOrganizationAction(formData: FormData): Promise<Crea
       name,
       primaryColor: primary,
       accentColor: accent,
+      ...(currency ? { currency } : {}),
     });
     revalidatePath('/pro/dashboard');
     return { ok: true, id, slug };
@@ -38,6 +47,53 @@ export async function createOrganizationAction(formData: FormData): Promise<Crea
     if (message === 'NOT_PRO') return { ok: false, error: 'NOT_PRO' };
     if (message === 'INVALID_NAME') return { ok: false, error: 'INVALID_NAME' };
     return { ok: false, error: 'UNKNOWN' };
+  }
+}
+
+export type CreateWeddingResult =
+  | { ok: true; id: string; slug: string }
+  | { ok: false; error: string };
+
+/**
+ * Crée un mariage **rattaché à l'organisation** de l'agent connecté (back-office
+ * pro), depuis le dialog « Nouveau mariage ». Distinct du parcours couple
+ * `/events/new` (obsolète côté agence).
+ */
+export async function createOrgWeddingAction(input: {
+  partnerA: string;
+  partnerB: string;
+  eventDate: number;
+  venueName?: string;
+  venueAddress?: string;
+}): Promise<CreateWeddingResult> {
+  const session = await getSession();
+  if (!session) return { ok: false, error: 'UNAUTHORIZED' };
+  const partnerA = input.partnerA.trim();
+  const partnerB = input.partnerB.trim();
+  if (!partnerA || !partnerB) return { ok: false, error: 'INVALID_NAMES' };
+  if (!Number.isFinite(input.eventDate)) return { ok: false, error: 'INVALID_DATE' };
+  try {
+    const convex = getConvexServerClient();
+    const org = await convex.query(convexApi.myOrganization, { userId: session.userId });
+    if (!org) return { ok: false, error: 'NOT_PRO' };
+    const venueName = input.venueName?.trim();
+    const res = await convex.mutation(convexApi.createEvent, {
+      ownerId: session.userId,
+      organizationId: org._id,
+      title: `${partnerA} & ${partnerB}`,
+      partnerA,
+      partnerB,
+      eventDate: input.eventDate,
+      timezone: 'Europe/Paris',
+      ...(venueName
+        ? { venue: { name: venueName, address: input.venueAddress?.trim() ?? '' } }
+        : {}),
+    });
+    revalidatePath('/pro/weddings');
+    revalidatePath('/pro/dashboard');
+    return { ok: true, id: res.id, slug: res.slug };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : 'UNKNOWN' };
   }
 }
 
@@ -102,6 +158,77 @@ export async function revokeMemberAction(
   try {
     const convex = getConvexServerClient();
     await convex.mutation(convexApi.revokeOrgMembership, {
+      membershipId,
+      requesterId: session.userId,
+    });
+    revalidatePath('/pro/team');
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : 'UNKNOWN' };
+  }
+}
+
+export async function changeMemberRoleAction(
+  membershipId: string,
+  role: 'admin' | 'planner' | 'viewer',
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const session = await getSession();
+  if (!session) return { ok: false, error: 'UNAUTHORIZED' };
+  try {
+    const convex = getConvexServerClient();
+    await convex.mutation(convexApi.updateMemberRole, {
+      membershipId,
+      requesterId: session.userId,
+      role,
+    });
+    revalidatePath('/pro/team');
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : 'UNKNOWN' };
+  }
+}
+
+export async function cancelInviteAction(
+  membershipId: string,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const session = await getSession();
+  if (!session) return { ok: false, error: 'UNAUTHORIZED' };
+  try {
+    const convex = getConvexServerClient();
+    await convex.mutation(convexApi.cancelOrgInvite, { membershipId, requesterId: session.userId });
+    revalidatePath('/pro/team');
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : 'UNKNOWN' };
+  }
+}
+
+export async function resendInviteAction(
+  membershipId: string,
+): Promise<{ ok: true; inviteToken: string } | { ok: false; error: string }> {
+  const session = await getSession();
+  if (!session) return { ok: false, error: 'UNAUTHORIZED' };
+  try {
+    const convex = getConvexServerClient();
+    const r = await convex.mutation(convexApi.resendOrgInvite, {
+      membershipId,
+      requesterId: session.userId,
+    });
+    revalidatePath('/pro/team');
+    return { ok: true, inviteToken: r.inviteToken };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : 'UNKNOWN' };
+  }
+}
+
+export async function reactivateMemberAction(
+  membershipId: string,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const session = await getSession();
+  if (!session) return { ok: false, error: 'UNAUTHORIZED' };
+  try {
+    const convex = getConvexServerClient();
+    await convex.mutation(convexApi.reactivateOrgMember, {
       membershipId,
       requesterId: session.userId,
     });
@@ -268,4 +395,293 @@ export async function updateOrgBrandingAction(formData: FormData): Promise<Updat
   revalidatePath('/pro/dashboard');
   revalidatePath('/pro/billing');
   return { ok: true };
+}
+
+export type DangerResult = { ok: true } | { ok: false; error: string };
+
+/** Zone de danger — transfère la propriété de l'organisation à un membre. */
+export async function transferOwnershipAction(newOwnerUserId: string): Promise<DangerResult> {
+  const session = await getSession();
+  if (!session) return { ok: false, error: 'UNAUTHORIZED' };
+  const convex = getConvexServerClient();
+  const org = await convex.query(convexApi.myOrganization, { userId: session.userId });
+  if (!org) return { ok: false, error: 'NO_ORG' };
+  try {
+    await convex.mutation(convexApi.transferOrgOwnership, {
+      organizationId: org._id,
+      requesterId: session.userId,
+      newOwnerUserId,
+    });
+    revalidatePath('/pro/settings');
+    revalidatePath('/pro/team');
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : 'UNKNOWN' };
+  }
+}
+
+/** Zone de danger — supprime définitivement l'organisation (saisie du nom requise). */
+export async function deleteOrganizationAction(confirmName: string): Promise<DangerResult> {
+  const session = await getSession();
+  if (!session) return { ok: false, error: 'UNAUTHORIZED' };
+  const convex = getConvexServerClient();
+  const org = await convex.query(convexApi.myOrganization, { userId: session.userId });
+  if (!org) return { ok: false, error: 'NO_ORG' };
+  try {
+    await convex.mutation(convexApi.deleteOrganization, {
+      organizationId: org._id,
+      requesterId: session.userId,
+      confirmName,
+    });
+    revalidatePath('/pro/dashboard');
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : 'UNKNOWN' };
+  }
+}
+
+type NotifChannel = { email: boolean; app: boolean };
+export type NotifPrefsResult = { ok: true } | { ok: false; error: string };
+
+/** Met à jour les préférences de notification de l'organisation. */
+export async function updateNotificationPrefsAction(
+  prefs: Record<'rsvp' | 'payment' | 'newLead' | 'taskDue' | 'weeklyDigest', NotifChannel>,
+): Promise<NotifPrefsResult> {
+  const session = await getSession();
+  if (!session) return { ok: false, error: 'UNAUTHORIZED' };
+  const convex = getConvexServerClient();
+  const org = await convex.query(convexApi.myOrganization, { userId: session.userId });
+  if (!org) return { ok: false, error: 'NO_ORG' };
+  try {
+    await convex.mutation(convexApi.updateNotificationPrefs, {
+      organizationId: org._id,
+      requesterId: session.userId,
+      prefs,
+    });
+    revalidatePath('/pro/settings');
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : 'UNKNOWN' };
+  }
+}
+
+export type MessagingDefaultsResult = { ok: true } | { ok: false; error: string };
+
+/** Met à jour les réglages messagerie par défaut de l'organisation. */
+export async function updateMessagingDefaultsAction(defaults: {
+  channel: 'whatsapp' | 'sms' | 'auto';
+  senderName: string;
+  defaultTemplate: 'editorial' | 'classic' | 'modern' | 'festive' | 'sober';
+  reminderJ7: boolean;
+  reminderJ1: boolean;
+}): Promise<MessagingDefaultsResult> {
+  const session = await getSession();
+  if (!session) return { ok: false, error: 'UNAUTHORIZED' };
+  const convex = getConvexServerClient();
+  const org = await convex.query(convexApi.myOrganization, { userId: session.userId });
+  if (!org) return { ok: false, error: 'NO_ORG' };
+  try {
+    await convex.mutation(convexApi.updateMessagingDefaults, {
+      organizationId: org._id,
+      requesterId: session.userId,
+      defaults,
+    });
+    revalidatePath('/pro/settings');
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : 'UNKNOWN' };
+  }
+}
+
+export type PaymentsSettingsResult = { ok: true } | { ok: false; error: string };
+
+/** Met à jour les réglages d'encaissement (mode + fréquence de versement). */
+export async function setPaymentsSettingsAction(input: {
+  mode?: 'byop' | 'manual';
+}): Promise<PaymentsSettingsResult> {
+  const session = await getSession();
+  if (!session) return { ok: false, error: 'UNAUTHORIZED' };
+  const convex = getConvexServerClient();
+  const org = await convex.query(convexApi.myOrganization, { userId: session.userId });
+  if (!org) return { ok: false, error: 'NO_ORG' };
+  try {
+    await convex.mutation(convexApi.setPaymentsSettings, {
+      organizationId: org._id,
+      requesterId: session.userId,
+      ...input,
+    });
+    revalidatePath('/pro/payments');
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : 'UNKNOWN' };
+  }
+}
+
+export type WhiteLabelResult = { ok: true } | { ok: false; error: string };
+
+/** Met à jour la marque blanche (domaine sur mesure / e-mail / badge) — Agency. */
+export async function updateWhiteLabelAction(input: {
+  customDomain?: string;
+  senderEmail?: string;
+  whiteLabelFull?: boolean;
+}): Promise<WhiteLabelResult> {
+  const session = await getSession();
+  if (!session) return { ok: false, error: 'UNAUTHORIZED' };
+  const convex = getConvexServerClient();
+  const org = await convex.query(convexApi.myOrganization, { userId: session.userId });
+  if (!org) return { ok: false, error: 'NO_ORG' };
+  try {
+    await convex.mutation(convexApi.updateWhiteLabel, {
+      organizationId: org._id,
+      requesterId: session.userId,
+      customDomain: input.customDomain,
+      senderEmail: input.senderEmail,
+      whiteLabelFull: input.whiteLabelFull,
+    });
+    revalidatePath('/pro/settings');
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : 'UNKNOWN' };
+  }
+}
+
+/* ------------------------------ Stripe Connect — onboarding hébergé (compte de l'agence) ------------------------------ */
+
+export type ConnectStartResult = { ok: true; url: string } | { ok: false; error: string };
+export type ConnectDisconnectResult = { ok: true } | { ok: false; error: string };
+
+/**
+ * Normalise les erreurs Connect en codes lisibles côté UI. Les messages bruts
+ * Stripe (anglais, longs) sont mappés sur des codes FR connus ; sinon on
+ * renvoie le message tel quel (au moins l'utilisateur voit la cause).
+ */
+function connectErr(m: string): string {
+  if (m === 'STRIPE_DRIVER_NOT_CONFIGURED') return 'PAYMENTS_NOT_CONFIGURED';
+  if (m === 'STRIPE_CONNECT_NOT_CONFIGURED') return 'CONNECT_NOT_ENABLED';
+  // Plateforme pas (encore) inscrite à Connect.
+  if (/sign(ed)? up for Connect|Connect.*dashboard\.stripe\.com\/connect/i.test(m)) {
+    return 'CONNECT_NOT_ENABLED';
+  }
+  return m;
+}
+
+/**
+ * Démarre l'onboarding Stripe hébergé : crée (ou réutilise) le compte connecté
+ * Standard de l'agence, puis renvoie l'URL d'onboarding hébergée par Stripe où
+ * l'agence configure / se connecte à son compte. Owner/admin uniquement. Dégrade
+ * proprement si Stripe/Connect non configuré.
+ */
+export async function startStripeConnectAction(): Promise<ConnectStartResult> {
+  const session = await getSession();
+  if (!session) return { ok: false, error: 'UNAUTHORIZED' };
+  const convex = getConvexServerClient();
+  const org = await convex.query(convexApi.myOrganization, { userId: session.userId });
+  if (!org) return { ok: false, error: 'NO_ORG' };
+  if (org.myRole !== 'owner' && org.myRole !== 'admin') return { ok: false, error: 'FORBIDDEN' };
+
+  try {
+    // Réutilise le compte connecté existant (onboarding repris) ou en crée un.
+    const status = await convex.query(convexApi.orgConnectStatus, {
+      organizationId: org._id,
+      requesterId: session.userId,
+    });
+    let accountId = status.accountId;
+    if (!accountId) {
+      const created = await createConnectedAccount({ businessName: org.name });
+      accountId = created.accountId;
+      await convex.mutation(convexApi.setConnectAccount, {
+        organizationId: org._id,
+        requesterId: session.userId,
+        stripeConnectAccountId: accountId,
+      });
+    }
+    const origin = appOrigin();
+    const { url } = await createAccountOnboardingLink({
+      accountId,
+      refreshUrl: `${origin}/api/stripe/connect/refresh`,
+      returnUrl: `${origin}/api/stripe/connect/return`,
+    });
+    return { ok: true, url };
+  } catch (err) {
+    console.error('[stripe-connect] start failed:', err);
+    return { ok: false, error: connectErr(err instanceof Error ? err.message : 'UNKNOWN') };
+  }
+}
+
+/**
+ * Déconnecte le compte Stripe de l'agence : oublie le compte connecté (repli en
+ * suivi manuel). Le compte Standard reste celui de l'agence sur Stripe. Owner/admin.
+ */
+export async function disconnectStripeConnectAction(): Promise<ConnectDisconnectResult> {
+  const session = await getSession();
+  if (!session) return { ok: false, error: 'UNAUTHORIZED' };
+  const convex = getConvexServerClient();
+  const org = await convex.query(convexApi.myOrganization, { userId: session.userId });
+  if (!org) return { ok: false, error: 'NO_ORG' };
+  if (org.myRole !== 'owner' && org.myRole !== 'admin') return { ok: false, error: 'FORBIDDEN' };
+
+  try {
+    await convex.mutation(convexApi.disconnectStripeAccount, {
+      organizationId: org._id,
+      requesterId: session.userId,
+    });
+    revalidatePath('/pro/payments');
+    return { ok: true };
+  } catch (err) {
+    console.error('[stripe-connect] disconnect failed:', err);
+    return { ok: false, error: connectErr(err instanceof Error ? err.message : 'UNKNOWN') };
+  }
+}
+
+/* ------------------------------ Espace couple (rattachement) ------------------------------ */
+
+export type LinkCoupleResult = { ok: true; alreadyLinked: boolean } | { ok: false; error: string };
+
+const LINK_COUPLE_ERR: Record<string, string> = {
+  INVALID_PHONE: 'Numéro invalide (format international, ex. +33 6 12 34 56 78).',
+  NOT_AN_ORG_EVENT: 'Ce mariage n’est pas géré par votre agence.',
+  FORBIDDEN: 'Action réservée au propriétaire et aux admins de l’agence.',
+  EVENT_NOT_FOUND: 'Mariage introuvable.',
+};
+
+/**
+ * Rattache un couple à un mariage de l'agence (par téléphone) : il accède ensuite à
+ * son espace couple en se connectant avec ce numéro. Autorisation (owner/admin de
+ * l'org) vérifiée côté Convex via `assertOrgWrite`.
+ */
+export async function linkCoupleAction(eventId: string, phone: string): Promise<LinkCoupleResult> {
+  const session = await getSession();
+  if (!session) return { ok: false, error: 'UNAUTHORIZED' };
+  try {
+    const convex = getConvexServerClient();
+    const res = await convex.mutation(convexApi.linkCouple, {
+      eventId,
+      requesterId: session.userId,
+      phone,
+    });
+    revalidatePath(`/pro/weddings/${eventId}`);
+    return { ok: true, alreadyLinked: res.alreadyLinked };
+  } catch (err) {
+    const m = err instanceof Error ? err.message : 'UNKNOWN';
+    return {
+      ok: false,
+      error: LINK_COUPLE_ERR[m] ?? 'Impossible de rattacher le couple. Réessayez.',
+    };
+  }
+}
+
+/** Détache le couple d'un mariage de l'agence. Owner/admin (vérifié côté Convex). */
+export async function unlinkCoupleAction(
+  eventId: string,
+): Promise<{ ok: boolean; error?: string }> {
+  const session = await getSession();
+  if (!session) return { ok: false, error: 'UNAUTHORIZED' };
+  try {
+    const convex = getConvexServerClient();
+    await convex.mutation(convexApi.unlinkCouple, { eventId, requesterId: session.userId });
+    revalidatePath(`/pro/weddings/${eventId}`);
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : 'UNKNOWN' };
+  }
 }

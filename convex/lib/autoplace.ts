@@ -1,15 +1,18 @@
 /**
  * Placement automatique des invités sur les tables (plan de table v2).
  *
- * Heuristique simple et déterministe :
- *  1. Regroupe les invités par catégorie (Famille, Amis, Travail…), en
- *     conservant l'ordre d'apparition. Les invités sans catégorie forment un
- *     groupe « autres ».
- *  2. Place chaque groupe en gardant ses invités ensemble : on privilégie une
- *     table vide (fraîche) pour démarrer un groupe, puis n'importe quelle table
- *     avec de la place, puis on crée une nouvelle table au besoin.
- *  3. Respecte la capacité : un invité occupe `seats` places (lui + ses
- *     accompagnants confirmés). On ne dépasse jamais la capacité restante.
+ * Heuristique déterministe, paramétrable par l'agence (réglages exposés dans
+ * l'UI « Auto-placer ») :
+ *
+ *  - **groupByCategory** : regroupe d'abord les personnes par catégorie
+ *    (Famille, Amis, Collègues, Prestataires…) — on assoit ensemble ceux qui
+ *    vont ensemble. Désactivé → un seul groupe (ordre d'arrivée).
+ *  - **keepGroupsTogether** : démarre chaque groupe sur une table fraîche et le
+ *    garde sur le moins de tables possible. Désactivé → simple remplissage.
+ *  - **balanceTables** : répartit pour équilibrer le remplissage (table la plus
+ *    vide d'abord). Désactivé → tasse les tables au maximum (remplissage serré).
+ *  - **createTables** : ouvre de nouvelles tables quand tout est plein.
+ *    Désactivé → laisse les surplus non placés (renvoyés dans `unplaced`).
  *
  * Pur (aucun accès DB) → testable unitairement. La mutation `autoAssignGuests`
  * matérialise le résultat (création des tables + assignations).
@@ -27,11 +30,20 @@ export interface AutoPlaceTable {
   remaining: number;
 }
 
+export interface AutoPlaceOptions {
+  groupByCategory?: boolean;
+  keepGroupsTogether?: boolean;
+  balanceTables?: boolean;
+  createTables?: boolean;
+}
+
 export interface AutoPlaceResult {
   /** Assignations vers des tables existantes. */
   assignments: Array<{ guestId: string; tableId: string }>;
   /** Nouvelles tables à créer, avec les invités à y placer. */
   newTables: Array<{ capacity: number; guestIds: string[] }>;
+  /** Personnes qui n'ont pas pu être placées (createTables désactivé, plus de place). */
+  unplaced: string[];
 }
 
 interface Bucket {
@@ -43,11 +55,20 @@ interface Bucket {
 
 const NO_CATEGORY = '__none__';
 
+export const AUTO_PLACE_DEFAULTS: Required<AutoPlaceOptions> = {
+  groupByCategory: true,
+  keepGroupsTogether: true,
+  balanceTables: false,
+  createTables: true,
+};
+
 export function autoPlace(
   unassigned: AutoPlaceGuest[],
   tables: AutoPlaceTable[],
   defaultCapacity: number,
+  options: AutoPlaceOptions = {},
 ): AutoPlaceResult {
+  const opts = { ...AUTO_PLACE_DEFAULTS, ...options };
   const cap = defaultCapacity > 0 ? defaultCapacity : 8;
   const buckets: Bucket[] = tables.map((t) => ({
     tableId: t._id,
@@ -56,13 +77,37 @@ export function autoPlace(
     guestIds: [],
   }));
 
-  // Groupe par catégorie en conservant l'ordre d'apparition.
+  // Groupe par catégorie (ordre d'apparition conservé) — ou un seul groupe.
   const groups = new Map<string, AutoPlaceGuest[]>();
   for (const g of unassigned) {
-    const key = g.category && g.category.trim() ? g.category.trim() : NO_CATEGORY;
+    const key =
+      opts.groupByCategory && g.category && g.category.trim() ? g.category.trim() : NO_CATEGORY;
     const arr = groups.get(key) ?? [];
     arr.push(g);
     groups.set(key, arr);
+  }
+
+  const unplaced: string[] = [];
+
+  /** Choisit la meilleure table parmi celles qui peuvent accueillir `seats`. */
+  function pickBucket(seats: number, preferEmpty: boolean): Bucket | null {
+    let candidates = buckets.filter((b) => b.remaining >= seats);
+    if (candidates.length === 0) return null;
+    if (preferEmpty) {
+      const empties = candidates.filter((b) => b.guestIds.length === 0);
+      if (empties.length) candidates = empties;
+    }
+    // balanceTables → la plus vide (max remaining) pour étaler ;
+    // sinon → la plus pleine qui rentre encore (min remaining) pour tasser.
+    return candidates.reduce((best, b) =>
+      opts.balanceTables
+        ? b.remaining > best.remaining
+          ? b
+          : best
+        : b.remaining < best.remaining
+          ? b
+          : best,
+    );
   }
 
   for (const guests of groups.values()) {
@@ -70,18 +115,21 @@ export function autoPlace(
     for (const guest of guests) {
       const seats = Math.max(1, guest.seats);
 
-      // 1) Continuer sur la table déjà entamée pour ce groupe si possible.
-      let target: Bucket | null = lastBucket && lastBucket.remaining >= seats ? lastBucket : null;
-      // 2) Sinon, privilégier une table vide (démarre proprement le groupe).
-      if (!target) {
-        target = buckets.find((b) => b.guestIds.length === 0 && b.remaining >= seats) ?? null;
+      let target: Bucket | null = null;
+      // 1) Continuer sur la table déjà entamée pour ce groupe (si on garde les groupes ensemble).
+      if (opts.keepGroupsTogether && lastBucket && lastBucket.remaining >= seats) {
+        target = lastBucket;
       }
-      // 3) Sinon, n'importe quelle table avec de la place.
+      // 2) Sinon, choisir une table existante (vide en priorité si on garde les groupes ensemble).
       if (!target) {
-        target = buckets.find((b) => b.remaining >= seats) ?? null;
+        target = pickBucket(seats, opts.keepGroupsTogether);
       }
-      // 4) Sinon, ouvrir une nouvelle table (dimensionnée pour le groupe).
+      // 3) Sinon, ouvrir une nouvelle table — ou laisser non placé.
       if (!target) {
+        if (!opts.createTables) {
+          unplaced.push(guest._id);
+          continue;
+        }
         const capacity = Math.max(cap, seats);
         target = { tableId: null, remaining: capacity, capacity, guestIds: [] };
         buckets.push(target);
@@ -103,5 +151,5 @@ export function autoPlace(
       newTables.push({ capacity: b.capacity, guestIds: b.guestIds });
     }
   }
-  return { assignments, newTables };
+  return { assignments, newTables, unplaced };
 }

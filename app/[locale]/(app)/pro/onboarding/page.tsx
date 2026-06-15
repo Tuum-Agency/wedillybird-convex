@@ -28,13 +28,14 @@ export default async function ProOnboardingPage({
   }
 
   const t = await getTranslations('Pro');
+  const tp = await getTranslations('ProPages');
 
   return (
     <ProShell userName={user!.fullName}>
       <div className="container-page mx-auto flex min-h-[60vh] max-w-md flex-col items-center justify-center gap-8 py-16">
         <header className="flex flex-col items-center gap-3 text-center">
           <span className="font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-blush-300)] uppercase">
-            Configuration · Étape 01
+            {tp('onboardingEyebrow')}
           </span>
           <h1
             className="font-display text-balance italic"

@@ -7,6 +7,7 @@ import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
 import { InvitationShell } from '@/components/invitation/invitation-shell';
 import { WeddingCountdown } from '@/components/invitation/wedding-countdown';
 import { RsvpFormV4 } from '@/components/invitation/rsvp-form-v4';
+import { TrackOnMount } from '@/components/analytics/track-on-mount';
 
 export const dynamic = 'force-dynamic';
 
@@ -59,6 +60,8 @@ export default async function PublicOrgInvitationPage({
       className="paper-grain relative flex min-h-screen flex-col bg-[color:var(--color-ivory-50)]"
       style={themeStyle}
     >
+      {/* Vue invitation publique sous marque blanche (sous-domaine orga). */}
+      <TrackOnMount event="invitation_viewed" properties={{ white_label: true }} />
       <InvitationShell
         token={token}
         partnerA={event.coupleNames.partnerA}

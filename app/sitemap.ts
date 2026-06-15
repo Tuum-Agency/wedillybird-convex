@@ -4,8 +4,8 @@ import { routing } from '@/i18n/routing';
 /**
  * Sitemap public — Next.js 16 file-based pattern, multilingue.
  *
- * Couvre uniquement les routes publiques indexables : landing, forfaits pros,
- * contact, FAQ, mentions légales. Les routes authentifiées (`/dashboard`,
+ * Couvre uniquement les routes publiques indexables : landing, page pros,
+ * forfaits pros, contact, FAQ, mentions légales. Les routes authentifiées (`/dashboard`,
  * `/pro/*`, `/onboarding`) et les routes personnelles à token (`/i/[token]`,
  * `/orgs/[slug]/event/*`) sont exclues — voir `app/robots.ts`.
  *
@@ -22,6 +22,7 @@ type RouteConfig = {
 
 const ROUTES: ReadonlyArray<RouteConfig> = [
   { path: '/', priority: 1.0, changeFrequency: 'weekly' },
+  { path: '/pros', priority: 0.9, changeFrequency: 'monthly' },
   { path: '/forfaits-pros', priority: 0.8, changeFrequency: 'monthly' },
   { path: '/contact', priority: 0.7, changeFrequency: 'monthly' },
   { path: '/faq', priority: 0.6, changeFrequency: 'monthly' },

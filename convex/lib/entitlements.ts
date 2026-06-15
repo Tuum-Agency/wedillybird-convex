@@ -62,3 +62,54 @@ export function eventQuotaForTier(
       return null;
   }
 }
+
+/**
+ * Sièges équipe inclus par tier Pro (grille v3 : 2 / 8 / illimité).
+ * `null` = illimité (Agency). Sans abonnement, on applique le plancher Starter
+ * (2 sièges) — un garde-fou raisonnable plutôt qu'illimité.
+ *
+ * Miroir de `lib/payments/entitlements.ts:PRO_TIER_LIMITS[...].seats` — garder
+ * en phase (le bundler Convex ne suit pas les imports app-side).
+ */
+export function seatLimitForTier(
+  tier: 'starter' | 'business' | 'agency' | undefined,
+): number | null {
+  switch (tier) {
+    case 'business':
+      return 8;
+    case 'agency':
+      return null;
+    case 'starter':
+    default:
+      return 2;
+  }
+}
+
+const PRO_TIER_RANK: Record<'starter' | 'business' | 'agency', number> = {
+  starter: 0,
+  business: 1,
+  agency: 2,
+};
+
+/**
+ * Le tier Pro de l'organisation atteint-il au moins `min` ? Utilisé pour gater
+ * les modules réservés à un palier (CRM/budget édition = business+, intégrations
+ * /analytics = agency). Miroir convex-local de `lib/payments/entitlements.ts`.
+ */
+export function proTierAtLeast(
+  tier: 'starter' | 'business' | 'agency' | undefined,
+  min: 'starter' | 'business' | 'agency',
+): boolean {
+  if (!tier) return false;
+  return PRO_TIER_RANK[tier] >= PRO_TIER_RANK[min];
+}
+
+/**
+ * Plafond de l'annuaire prestataires (grille v3 : Starter ≤ 25, Business/Agency
+ * illimité). `null` = illimité. Sans abonnement → plancher Starter (25).
+ */
+export function vendorCapForTier(
+  tier: 'starter' | 'business' | 'agency' | undefined,
+): number | null {
+  return tier === 'business' || tier === 'agency' ? null : 25;
+}

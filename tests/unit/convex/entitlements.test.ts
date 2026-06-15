@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   eventHasFeature,
   eventQuotaForTier,
+  seatLimitForTier,
   type GatedFeature,
 } from '../../../convex/lib/entitlements';
 
@@ -54,5 +55,24 @@ describe('eventQuotaForTier', () => {
 
   it('null quand pas de tier (pas de quota appliqué)', () => {
     expect(eventQuotaForTier(undefined)).toBeNull();
+  });
+});
+
+describe('seatLimitForTier — sièges équipe (grille v3)', () => {
+  it('mappe 2 / 8 / illimité', () => {
+    expect(seatLimitForTier('starter')).toBe(2);
+    expect(seatLimitForTier('business')).toBe(8);
+    expect(seatLimitForTier('agency')).toBeNull();
+  });
+
+  it('sans abonnement → plancher Starter (2 sièges)', () => {
+    expect(seatLimitForTier(undefined)).toBe(2);
+  });
+
+  it('cohérent avec la limite côté app (mêmes valeurs que PRO_TIER_LIMITS.seats)', () => {
+    // Garde-fou de duplication app/convex : 2 / 8 / illimité.
+    expect(seatLimitForTier('starter')).toBe(2);
+    expect(seatLimitForTier('business')).toBe(8);
+    expect(seatLimitForTier('agency')).toBeNull();
   });
 });

@@ -32,6 +32,17 @@ export const dispatchDailyGuestReminders = internalAction({
     const now = nowArg ?? Date.now();
     let scheduled = 0;
 
+    // Throttle d'envoi : SES plafonne le compte entier à 14 msg/s. On étale les
+    // sends via le scheduler Convex pour rester sous cette limite avec une marge
+    // (les notifs pro / factures transactionnelles partagent le même quota SES).
+    // Sans ça, un gros event programmait N actions à délai 0 → pics > 14/s →
+    // erreurs `Throttling` SES et rappels perdus (pas de retry). Les compteurs
+    // couvrent les deux tiers (d7 + d1) sur tout le run cron, pas par event.
+    const EMAIL_SPACING_MS = 100; // ~10 emails/s, marge sous le plafond SES 14/s
+    const WHATSAPP_SPACING_MS = 100; // pacing WhatsApp (limites Meta distinctes)
+    let emailScheduled = 0;
+    let whatsappScheduled = 0;
+
     for (const tier of ['d7', 'd1'] as const) {
       const days = tier === 'd7' ? 7 : 1;
       const window = reminderWindow(now, days);
@@ -103,17 +114,22 @@ export const dispatchDailyGuestReminders = internalAction({
           let dispatched = false;
 
           if (sendEmail && guest.email) {
-            await ctx.scheduler.runAfter(0, internal.emailActions.sendGuestReminder, {
-              guestId: guest._id as never,
-              to: guest.email,
-              guestName: guest.fullName,
-              eventTitle: event.title,
-              eventDate: eventDateLabel,
-              invitationUrl,
-              daysUntilEvent: days,
-              tier,
-              locale: event.ownerLocale,
-            });
+            await ctx.scheduler.runAfter(
+              emailScheduled * EMAIL_SPACING_MS,
+              internal.emailActions.sendGuestReminder,
+              {
+                guestId: guest._id as never,
+                to: guest.email,
+                guestName: guest.fullName,
+                eventTitle: event.title,
+                eventDate: eventDateLabel,
+                invitationUrl,
+                daysUntilEvent: days,
+                tier,
+                locale: event.ownerLocale,
+              },
+            );
+            emailScheduled += 1;
             dispatched = true;
           }
 
@@ -126,14 +142,19 @@ export const dispatchDailyGuestReminders = internalAction({
                 ? [guestFirstName, coupleNames, eventDateLabel, invitationUrl]
                 : [guestFirstName, coupleNames, venueLabel, invitationUrl];
 
-            await ctx.scheduler.runAfter(0, internal.reminderActions.sendGuestWhatsappReminder, {
-              guestId: guest._id as never,
-              to: guest.phone,
-              templateName: whatsappTemplateName!,
-              bodyParams,
-              urlButtonParam: guest.qrCodeToken,
-              tier,
-            });
+            await ctx.scheduler.runAfter(
+              whatsappScheduled * WHATSAPP_SPACING_MS,
+              internal.reminderActions.sendGuestWhatsappReminder,
+              {
+                guestId: guest._id as never,
+                to: guest.phone,
+                templateName: whatsappTemplateName!,
+                bodyParams,
+                urlButtonParam: guest.qrCodeToken,
+                tier,
+              },
+            );
+            whatsappScheduled += 1;
             dispatched = true;
           }
 

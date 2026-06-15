@@ -11,9 +11,11 @@ import {
 } from '@/lib/validators/auth';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
 import { clearSessionCookie, getSession, setSessionCookie } from '@/lib/auth/session';
+import { isAgencyRole, resolvePostAuthDestination } from '@/lib/auth/post-auth-destination';
+import { asBudgetCurrency } from '@/lib/currency';
 
 type ActionResult =
-  | { ok: true; phone?: string; email?: string }
+  | { ok: true; phone?: string; email?: string; isNewUser?: boolean }
   | { ok: false; error: string; fieldErrors?: Record<string, string[] | undefined> };
 
 export async function requestOtpAction(formData: FormData): Promise<ActionResult> {
@@ -73,7 +75,7 @@ export async function verifyOtpAction(formData: FormData): Promise<ActionResult>
       issuedAt: Date.now(),
     });
 
-    return { ok: true, phone: result.phone };
+    return { ok: true, phone: result.phone, isNewUser: result.isNewUser };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : 'UNKNOWN' };
   }
@@ -98,6 +100,11 @@ export async function completeOnboardingAction(formData: FormData): Promise<Acti
   }
 
   const convex = getConvexServerClient();
+  const rawCurrency = formData.get('currency');
+  const preferredCurrency =
+    typeof rawCurrency === 'string' && rawCurrency.length > 0
+      ? asBudgetCurrency(rawCurrency)
+      : undefined;
 
   try {
     await convex.mutation(convexApi.completeOnboarding, {
@@ -105,6 +112,7 @@ export async function completeOnboardingAction(formData: FormData): Promise<Acti
       fullName: parsed.data.fullName,
       role: parsed.data.role,
       email: parsed.data.email,
+      ...(preferredCurrency ? { preferredCurrency } : {}),
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'UNKNOWN';
@@ -118,8 +126,15 @@ export async function completeOnboardingAction(formData: FormData): Promise<Acti
     return { ok: false, error: message };
   }
 
+  // Aiguillage agence vs particulier : un pro fraîchement onboardé n'a pas
+  // encore d'organisation → /pro/onboarding ; un couple → /dashboard.
   const locale = await getLocale();
-  redirect({ href: '/dashboard', locale });
+  const onboardedUser = await convex.query(convexApi.currentUser, { userId: session.userId });
+  const hasActiveOrg = isAgencyRole(onboardedUser?.role)
+    ? Boolean(await convex.query(convexApi.myOrganization, { userId: session.userId }))
+    : false;
+  const destination = resolvePostAuthDestination(onboardedUser, hasActiveOrg);
+  redirect({ href: destination, locale });
   return { ok: true };
 }
 

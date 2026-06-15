@@ -6,6 +6,13 @@ import { Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { cn } from '@/lib/cn';
 import { createEventAction } from '@/app/[locale]/(app)/events/actions';
 import { PLANS, formatAmount } from '@/lib/payments/plans';
@@ -74,6 +81,7 @@ export function EventCreateWizard({ userRole = 'couple' }: Props) {
   const t = useTranslations('EventCreate');
   const tCommon = useTranslations('Common');
   const tPlans = useTranslations('Plans');
+  const tEvents = useTranslations('Events');
   const showPlanStep = userRole === 'couple';
   const totalSteps = showPlanStep ? 5 : 4;
   const [step, setStep] = useState<StepIndex>(0);
@@ -155,12 +163,11 @@ export function EventCreateWizard({ userRole = 'couple' }: Props) {
 
   return (
     <div className="flex flex-col gap-6">
-      <Progress current={step} total={totalSteps} />
-
-      <header className="flex flex-col gap-1.5">
-        <h1 className="font-display text-3xl font-semibold tracking-tight">{t('title')}</h1>
-        <p className="text-sm text-[color:var(--color-muted)]">{t('description')}</p>
-      </header>
+      <Progress
+        current={step}
+        total={totalSteps}
+        label={tEvents('wizardProgress', { current: step + 1, total: totalSteps })}
+      />
 
       {step === 0 ? (
         <section className="flex flex-col gap-5">
@@ -208,19 +215,25 @@ export function EventCreateWizard({ userRole = 'couple' }: Props) {
 
           <div className="flex flex-col gap-2">
             <Label htmlFor="timezone">{t('timezoneLabel')}</Label>
-            <select
-              id="timezone"
+            <Select
               name="timezone"
               value={form.timezone}
-              onChange={(e) => setForm({ ...form, timezone: e.target.value })}
-              className="focus-ring h-11 rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-3 text-sm"
+              onValueChange={(v) => setForm({ ...form, timezone: v })}
             >
-              {TIMEZONES.map((tz) => (
-                <option key={tz.id} value={tz.id}>
-                  {tz.label}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger
+                id="timezone"
+                className="focus-ring h-11 rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-3 text-sm"
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {TIMEZONES.map((tz) => (
+                  <SelectItem key={tz.id} value={tz.id}>
+                    {tz.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             {fieldErrors.timezone ? (
               <p className="text-xs text-[color:var(--color-destructive)]">
                 {fieldErrors.timezone}
@@ -274,19 +287,25 @@ export function EventCreateWizard({ userRole = 'couple' }: Props) {
 
           <div className="flex flex-col gap-2">
             <Label htmlFor="themeFont">{t('fontFamilyLabel')}</Label>
-            <select
-              id="themeFont"
+            <Select
               name="themeFont"
               value={form.themeFont}
-              onChange={(e) => setForm({ ...form, themeFont: e.target.value })}
-              className="focus-ring h-11 rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-3 text-sm"
+              onValueChange={(v) => setForm({ ...form, themeFont: v })}
             >
-              {FONT_OPTIONS.map((f) => (
-                <option key={f.id} value={f.id}>
-                  {f.label}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger
+                id="themeFont"
+                className="focus-ring h-11 rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-3 text-sm"
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {FONT_OPTIONS.map((f) => (
+                  <SelectItem key={f.id} value={f.id}>
+                    {f.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </section>
       ) : null}
@@ -458,9 +477,9 @@ function ColorField({
   );
 }
 
-function Progress({ current, total }: { current: number; total: number }) {
+function Progress({ current, total, label }: { current: number; total: number; label: string }) {
   return (
-    <div className="flex items-center gap-2" aria-label={`Étape ${current + 1} sur ${total}`}>
+    <div className="flex items-center gap-2" aria-label={label}>
       {Array.from({ length: total }).map((_, i) => (
         <span
           key={i}

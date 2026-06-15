@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
 const COLORS: Record<string, string> = {
@@ -8,11 +9,11 @@ const COLORS: Record<string, string> = {
   MAD: 'oklch(65% 0.08 250)',
   TND: 'oklch(65% 0.1 78)',
   stripe: 'oklch(60% 0.15 270)',
-  cinetpay: 'oklch(65% 0.12 145)',
   mock: 'oklch(55% 0.05 78)',
 };
 
 export function AdminCurrencyChart({ data }: { data: Record<string, number> }) {
+  const t = useTranslations('Admin');
   const chartData = Object.entries(data).map(([name, value]) => ({
     name,
     value: value / 100,
@@ -21,7 +22,7 @@ export function AdminCurrencyChart({ data }: { data: Record<string, number> }) {
   if (chartData.length === 0) {
     return (
       <div className="flex h-64 items-center justify-center text-sm text-[color:var(--color-muted-foreground)]">
-        Aucune donnée disponible
+        {t('charts.noData')}
       </div>
     );
   }

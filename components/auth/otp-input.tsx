@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import {
   useCallback,
   useEffect,
@@ -28,6 +29,7 @@ export function OtpInput({
   onChange,
   onComplete,
 }: OtpInputProps) {
+  const t = useTranslations('Auth');
   const [digits, setDigits] = useState<string[]>(() => Array.from({ length }, () => ''));
   const refs = useRef<Array<HTMLInputElement | null>>([]);
 
@@ -99,7 +101,7 @@ export function OtpInput({
       <input type="hidden" name={name} value={value} />
       <div
         role="group"
-        aria-label="Code de vérification"
+        aria-label={t('otpGroupLabel')}
         className="flex justify-center gap-2"
         onPaste={handlePaste}
       >
@@ -116,7 +118,7 @@ export function OtpInput({
             value={digit}
             onChange={(e: ChangeEvent<HTMLInputElement>) => setDigit(i, e.target.value)}
             onKeyDown={(e) => handleKeyDown(e, i)}
-            aria-label={`Chiffre ${i + 1} sur ${length}`}
+            aria-label={t('otpDigitLabel', { position: i + 1, total: length })}
             aria-invalid={!!error}
             className={cn(
               'focus-ring h-14 w-12 rounded-lg border bg-[color:var(--color-surface)] text-center font-mono text-xl',

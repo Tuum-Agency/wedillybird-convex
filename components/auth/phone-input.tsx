@@ -1,8 +1,10 @@
 'use client';
 
-import { forwardRef, useState, type InputHTMLAttributes } from 'react';
+import { forwardRef, useEffect, useState, type InputHTMLAttributes } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { cn } from '@/lib/cn';
+import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select';
+import { splitE164 } from '@/lib/phone';
 import type { Locale } from '@/i18n/routing';
 
 interface Country {
@@ -77,24 +79,52 @@ const LOCALE_TO_COUNTRY: Record<Locale, string> = {
   ar: 'SA',
 };
 
-interface PhoneInputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'type' | 'name'> {
+const DIAL_CODES = COUNTRIES.map((c) => c.dial);
+
+interface PhoneInputProps extends Omit<
+  InputHTMLAttributes<HTMLInputElement>,
+  'type' | 'name' | 'defaultValue'
+> {
   name?: string;
   error?: string;
   defaultCountry?: string;
+  /** Numéro E.164 initial (édition) — pré-remplit l'indicatif + le local. */
+  defaultValue?: string;
+  /** Notifié à chaque changement du numéro complet E.164 (ou '' si vide). */
+  onValueChange?: (value: string) => void;
 }
 
 export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(
-  ({ className, error, id = 'phone', name = 'phone', defaultCountry, ...props }, ref) => {
+  (
+    {
+      className,
+      error,
+      id = 'phone',
+      name = 'phone',
+      defaultCountry,
+      defaultValue,
+      onValueChange,
+      ...props
+    },
+    ref,
+  ) => {
     const locale = useLocale() as Locale;
     const t = useTranslations('Auth');
+    const parts = defaultValue ? splitE164(defaultValue, DIAL_CODES) : null;
     const fallbackCode = defaultCountry ?? LOCALE_TO_COUNTRY[locale] ?? FR.code;
-    const initial = COUNTRIES.find((c) => c.code === fallbackCode) ?? FR;
-    const [country, setCountry] = useState<Country>(initial);
-    const [local, setLocal] = useState('');
+    const initialCountry = parts
+      ? (COUNTRIES.find((c) => c.dial === parts.dial) ?? FR)
+      : (COUNTRIES.find((c) => c.code === fallbackCode) ?? FR);
+    const [country, setCountry] = useState<Country>(initialCountry);
+    const [local, setLocal] = useState(parts?.local ?? '');
 
     const describedBy = error ? `${id}-error` : undefined;
     const sanitizedLocal = local.replace(/[^\d]/g, '').replace(/^0+/, '');
     const fullPhone = sanitizedLocal ? `+${country.dial}${sanitizedLocal}` : '';
+
+    useEffect(() => {
+      onValueChange?.(fullPhone);
+    }, [fullPhone, onValueChange]);
 
     function handleChange(value: string) {
       const trimmed = value.trimStart();
@@ -120,27 +150,30 @@ export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(
             error ? 'border-[color:var(--color-destructive)]' : '',
           )}
         >
-          <div className="relative flex h-full items-center border-r border-[color:var(--color-border)]">
-            <span aria-hidden className="pr-1 pl-3 text-base">
-              {country.flag}
-            </span>
-            <span className="pr-2 text-sm text-[color:var(--color-muted)]">+{country.dial}</span>
-            <select
+          <Select
+            value={country.code}
+            onValueChange={(code) => {
+              const next = COUNTRIES.find((c) => c.code === code);
+              if (next) setCountry(next);
+            }}
+          >
+            <SelectTrigger
               aria-label={t('countryCodeLabel')}
-              value={country.code}
-              onChange={(e) => {
-                const next = COUNTRIES.find((c) => c.code === e.target.value);
-                if (next) setCountry(next);
-              }}
-              className="absolute inset-0 cursor-pointer opacity-0"
+              className="h-full w-auto gap-1 rounded-l-lg rounded-r-none border-0 border-r border-[color:var(--color-border)] bg-transparent pr-2 pl-3 hover:border-[color:var(--color-border)]"
             >
+              <span aria-hidden className="text-base leading-none">
+                {country.flag}
+              </span>
+              <span className="text-sm text-[color:var(--color-muted)]">+{country.dial}</span>
+            </SelectTrigger>
+            <SelectContent>
               {COUNTRIES.map((c) => (
-                <option key={c.code} value={c.code}>
+                <SelectItem key={c.code} value={c.code}>
                   {c.flag} {c.name} (+{c.dial})
-                </option>
+                </SelectItem>
               ))}
-            </select>
-          </div>
+            </SelectContent>
+          </Select>
           <input
             ref={ref}
             id={id}

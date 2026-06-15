@@ -89,6 +89,7 @@ export default async function FaqPage({ params }: { params: Promise<{ locale: st
 function FaqShell() {
   const tCommon = useTranslations('Common');
   const tMeta = useTranslations('Metadata.faq');
+  const tm = useTranslations('Marketing.faq');
 
   return (
     <>
@@ -116,7 +117,7 @@ function FaqShell() {
         <section className="paper-grain relative bg-[color:var(--color-surface)] pt-24 pb-0">
           <div className="container-page mx-auto flex max-w-3xl flex-col items-center gap-4 text-center">
             <span className="font-mono text-[11px] tracking-[0.32em] text-[color:var(--color-ink-500)] uppercase">
-              Foire aux questions
+              {tm('eyebrow')}
             </span>
             <h1
               className="font-display text-balance italic"

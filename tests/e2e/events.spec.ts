@@ -20,12 +20,13 @@ test.describe('Events — dev login + wizard (authenticated)', () => {
       .locator('form', { has: page.locator('input[value="+33612931779"]') })
       .getByRole('button', { name: /se connecter/i })
       .click();
-    await page.waitForURL((url) => /\/dashboard/.test(url.pathname));
+    // Destination authentifiée variable selon l'état user (dashboard / events / onboarding / pro).
+    await page.waitForURL((url) => /\/(dashboard|events|onboarding|pro)(\/|$)/.test(url.pathname));
 
-    await page
-      .getByRole('link', { name: /créer un événement/i })
-      .first()
-      .click();
+    // Navigation directe vers le wizard. Le user dev peut déjà posséder un event
+    // (état Convex dev partagé → redirigé sur /events/{id} au lieu du dashboard),
+    // donc on ne dépend pas de la présence du lien "Créer un événement".
+    await page.goto('/events/new');
     await page.waitForURL((url) => url.pathname.endsWith('/events/new'));
 
     await expect(page.getByRole('heading', { level: 1 })).toContainText('Créer');

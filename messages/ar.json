@@ -1,4 +1,212 @@
 {
+  "Admin": {
+    "shell": {
+      "brand": "المسؤول",
+      "signOut": "تسجيل الخروج"
+    },
+    "nav": {
+      "overview": "نظرة عامة",
+      "analytics": "Analytics",
+      "acquisition": "الاكتساب",
+      "users": "المستخدمون",
+      "events": "الفعاليات",
+      "payments": "المدفوعات",
+      "invoices": "الفواتير",
+      "subscriptions": "الاشتراكات",
+      "moderation": "الإشراف",
+      "newsletter": "النشرة الإخبارية",
+      "auditLog": "سجلّ التدقيق",
+      "promotions": "العروض"
+    },
+    "common": {
+      "back": "رجوع",
+      "cancel": "إلغاء",
+      "close": "إغلاق",
+      "colActions": "الإجراءات",
+      "delete": "حذف",
+      "loading": "جارٍ التحميل…"
+    },
+    "charts": {
+      "noData": "لا توجد بيانات متاحة",
+      "revenue": "الإيرادات",
+      "couples": "الثنائيات",
+      "pros": "المحترفون",
+      "guests": "المدعوون"
+    },
+    "roles": {
+      "admin": "مسؤول",
+      "couple": "ثنائي",
+      "guest": "مدعو",
+      "pro": "محترف"
+    },
+    "eventStatuses": {
+      "draft": "مسودة",
+      "active": "نشط",
+      "archived": "مؤرشف",
+      "cancelled": "ملغى"
+    },
+    "paymentStatuses": {
+      "succeeded": "ناجح",
+      "pending": "قيد الانتظار",
+      "failed": "فاشل",
+      "cancelled": "ملغى",
+      "refunded": "مُسترد",
+      "partially_refunded": "مُسترد جزئيًا"
+    },
+    "invoiceStatuses": {
+      "succeeded": "مدفوعة",
+      "refunded": "مُستردة",
+      "partially_refunded": "مُستردة جزئيًا"
+    },
+    "stripeInvoiceStatuses": {
+      "paid": "مدفوعة",
+      "open": "مفتوحة",
+      "draft": "مسودة",
+      "void": "ملغاة",
+      "uncollectible": "غير قابلة للتحصيل"
+    },
+    "auditActions": {
+      "suspend_user": "تعليق مستخدم",
+      "change_role": "تغيير الدور",
+      "update_event_status": "تغيير حالة الفعالية",
+      "delete_event": "حذف فعالية",
+      "moderate_photo": "الإشراف على صورة"
+    },
+    "auditLog": {
+      "colDate": "التاريخ",
+      "colAdmin": "المسؤول",
+      "colAction": "الإجراء",
+      "colTarget": "الهدف",
+      "colDetails": "التفاصيل",
+      "empty": "لم يُسجَّل أي إجراء"
+    },
+    "users": {
+      "searchPlaceholder": "ابحث عن مستخدم…",
+      "roleFilterAll": "كل الأدوار",
+      "count": "{count, plural, zero {# نتيجة} one {# نتيجة} two {# نتيجتان} few {# نتائج} many {# نتيجة} other {# نتيجة}}",
+      "colName": "الاسم",
+      "colContact": "التواصل",
+      "colRole": "الدور",
+      "colPlan": "الخطة",
+      "colRegisteredAt": "تاريخ التسجيل",
+      "confirmSuspend": "تعليق {name}؟",
+      "suspend": "تعليق",
+      "confirmChangeRole": "تغيير الدور إلى «{role}»؟",
+      "rolePlaceholder": "الدور…"
+    },
+    "events": {
+      "searchPlaceholder": "ابحث عن فعالية…",
+      "statusFilterAll": "كل الحالات",
+      "count": "{count, plural, zero {# نتيجة} one {# نتيجة} two {# نتيجتان} few {# نتائج} many {# نتيجة} other {# نتيجة}}",
+      "colCouple": "الثنائي",
+      "colTitle": "العنوان",
+      "colDate": "التاريخ",
+      "colStatus": "الحالة",
+      "colPlan": "الخطة",
+      "colOwner": "المالك",
+      "confirmChangeStatus": "تغيير الحالة إلى «{status}»؟",
+      "statusPlaceholder": "الحالة…",
+      "confirmDelete": "حذف الفعالية «{title}»؟"
+    },
+    "moderation": {
+      "photosHeading": "الصور المعلّقة ({count})",
+      "photosEmpty": "لا توجد صورة بانتظار الإشراف",
+      "templatesHeading": "قوالب WhatsApp ({count})",
+      "colName": "الاسم",
+      "colBody": "النص",
+      "colCta": "CTA",
+      "colStatus": "الحالة",
+      "colSubmittedAt": "تاريخ الإرسال",
+      "photoAlt": "صورة معلّقة",
+      "noPreview": "لا توجد معاينة",
+      "anonymous": "مجهول",
+      "sizeKb": "{size} ك.ب",
+      "approve": "موافقة",
+      "reject": "رفض"
+    },
+    "newsletter": {
+      "searchPlaceholder": "ابحث بالبريد الإلكتروني…",
+      "statusFilterAll": "الكل",
+      "statusFilterActive": "النشطون",
+      "statusFilterUnsubscribed": "الملغون اشتراكهم",
+      "count": "{count, plural, zero {# مشترك} one {# مشترك} two {# مشتركان} few {# مشتركين} many {# مشتركًا} other {# مشترك}}",
+      "colEmail": "البريد الإلكتروني",
+      "colStatus": "الحالة",
+      "colSource": "المصدر",
+      "colSubscribedAt": "تاريخ الاشتراك",
+      "colUnsubscribedAt": "تاريخ إلغاء الاشتراك",
+      "statusActive": "نشط",
+      "statusUnsubscribed": "ألغى الاشتراك"
+    },
+    "payments": {
+      "statusFilterAll": "كل الحالات",
+      "currencyFilterAll": "كل العملات",
+      "count": "{count, plural, zero {# معاملة} one {# معاملة} two {# معاملتان} few {# معاملات} many {# معاملة} other {# معاملة}}",
+      "colClient": "العميل",
+      "colPlan": "الخطة",
+      "colAmount": "المبلغ",
+      "colProvider": "المزوّد",
+      "colStatus": "الحالة",
+      "colDate": "التاريخ",
+      "invoice": "فاتورة",
+      "clientFallback": "العميل",
+      "refund": {
+        "trigger": "استرداد",
+        "title": "استرداد الدفعة",
+        "description": "استرداد لـ <mono>{client}</mono> · {plan} — المبلغ المتبقي <mono>{amount}</mono>.",
+        "providerNoteMock": "دفعة تجريبية: لن يتم أي اتصال بـ Stripe.",
+        "providerNoteStripe": "تتم معالجة الاسترداد بواسطة Stripe ويُضاف خلال بضعة أيام.",
+        "partialLabel": "استرداد جزئي",
+        "errorInvalidAmount": "مبلغ غير صالح.",
+        "errorExceedsRemaining": "المبلغ يتجاوز الرصيد القابل للاسترداد.",
+        "submitting": "جارٍ الاسترداد…",
+        "submitPartial": "استرداد المبلغ المُدخَل",
+        "submitFull": "استرداد {amount}"
+      }
+    },
+    "invoices": {
+      "searchPlaceholder": "ابحث بالعميل…",
+      "count": "{count, plural, zero {# فاتورة} one {# فاتورة} two {# فاتورتان} few {# فواتير} many {# فاتورة} other {# فاتورة}}",
+      "colClient": "العميل",
+      "colPlan": "الخطة",
+      "colAmount": "المبلغ",
+      "colStatus": "الحالة",
+      "colDate": "التاريخ",
+      "colInvoice": "الفاتورة",
+      "downloadPdf": "PDF"
+    },
+    "subscriptions": {
+      "searchPlaceholder": "ابحث عن مؤسسة…",
+      "count": "{count, plural, zero {# مؤسسة} one {# مؤسسة} two {# مؤسستان} few {# مؤسسات} many {# مؤسسة} other {# مؤسسة}}",
+      "colOrg": "المؤسسة",
+      "colOwner": "المالك",
+      "colTier": "المستوى",
+      "colStatus": "الحالة",
+      "colRenewal": "التجديد",
+      "colPaygCredits": "أرصدة PAYG",
+      "cancel": {
+        "title": "إلغاء الاشتراك",
+        "description": "إلغاء اشتراك {tier} الخاص بـ {name}؟",
+        "tierFallback": "—",
+        "periodEndTitle": "في نهاية الفترة",
+        "periodEndDescription": "تحتفظ المؤسسة بالوصول حتى نهاية الفترة المدفوعة، ثم يتوقف الاشتراك.",
+        "immediateTitle": "فورًا",
+        "immediateDescription": "يُلغى الاشتراك على الفور؛ ويُقطع الوصول فورًا.",
+        "submitting": "جارٍ الإلغاء…",
+        "submit": "إلغاء"
+      },
+      "reactivate": {
+        "submitting": "جارٍ إعادة التفعيل…",
+        "submit": "إعادة التفعيل"
+      },
+      "invoices": {
+        "trigger": "الفواتير",
+        "title": "الفواتير · {name}",
+        "description": "فواتير اشتراك Stripe لهذه المؤسسة.",
+        "empty": "لا توجد فاتورة لهذه المؤسسة."
+      }
+    }
+  },
   "Common": {
     "appName": "Wedillybird",
     "tagline": "زفافكما، منظَّم دون توتر",
@@ -16,7 +224,10 @@
     "error": "حدث خطأ ما",
     "retry": "إعادة المحاولة",
     "skipToContent": "الانتقال إلى المحتوى الرئيسي",
-    "home": "الرئيسية"
+    "home": "الرئيسية",
+    "meta": {
+      "organizationDescription": "منصّة SaaS لتنظيم حفلات الزفاف عبر واتساب أولًا: دعوات، تأكيد حضور، تسجيل وصول، ومعرض صور مشترك. فرنسا وغرب إفريقيا الناطقة بالفرنسية."
+    }
   },
   "Footer": {
     "allRightsReserved": "جميع الحقوق محفوظة",
@@ -38,7 +249,7 @@
       "article3Title": "3. الحساب والوصول",
       "article3Body": "يستوجب الوصول إلى الخدمة إنشاء حساب من خلال التحقق من رقم WhatsApp. يكون المستخدم مسؤولًا عن الحفاظ على سرية رقمه وعن أي إجراء يُنفَّذ من حسابه. يجب الإبلاغ فورًا عن أي استخدام غير مصرّح به.",
       "article4Title": "4. التسعير والدفع",
-      "article4Body": "تُقدَّم الخدمة دون أي صيغة مجانية. للأفراد الذين ينظّمون زفافًا: صيغتان بدفعة واحدة، Essentiel (29 €، الميزات الأساسية + معرض لمدة 30 يومًا) وPremium (59 €، Essentiel + معرض لمدة 6 أشهر + ألبوم PDF). تتيح إضافة ما بعد الزفاف (+29 €) تمديد المعرض إلى 5 سنوات وإضافة كتاب صور بدقة عالية. للمحترفين، اشتراك شهري أو سنوي (Starter 99 €/شهر، Business 219 €/شهر، Agency 449 €/شهر، خصم 20 % على الباقة السنوية) أو الدفع لكل حدث (79 €). تُعالَج المدفوعات عبر Stripe (أوروبا) أو CinetPay (غرب إفريقيا). استرداد كامل خلال 7 أيام إذا لم يكن الحدث قد أُرسل. في حال إلغاء الزفاف، يُمنح ترحيل مجاني إلى تاريخ آخر.",
+      "article4Body": "تُقدَّم الخدمة دون أي صيغة مجانية. للأفراد الذين ينظّمون زفافًا: صيغتان بدفعة واحدة، Essentiel (29 €، الميزات الأساسية + معرض لمدة 30 يومًا) وPremium (59 €، Essentiel + معرض لمدة 6 أشهر + ألبوم PDF). تتيح إضافة ما بعد الزفاف (+29 €) تمديد المعرض إلى 5 سنوات وإضافة كتاب صور بدقة عالية. للمحترفين، اشتراك شهري أو سنوي (Starter 99 €/شهر، Business 219 €/شهر، Agency 449 €/شهر، خصم 20 % على الباقة السنوية) أو الدفع لكل حدث (79 €). تُعالَج المدفوعات عبر Stripe. استرداد كامل خلال 7 أيام إذا لم يكن الحدث قد أُرسل. في حال إلغاء الزفاف، يُمنح ترحيل مجاني إلى تاريخ آخر.",
       "article5Title": "5. الملكية الفكرية",
       "article5Body": "يحتفظ المستخدم بملكية المحتوى الذي يرفعه، ويمنح Wedillybird ترخيصًا غير حصري لاستخدام هذا المحتوى لأغراض تشغيل الخدمة فقط. تحتفظ Wedillybird بملكية المنصة والشيفرة والعلامة التجارية.",
       "article6Title": "6. المسؤولية",
@@ -325,7 +536,10 @@
       "subtitle": "حين يفتح مدعوّك رابطه، ينفرد المظروف، وينكسر ختم الشمع، وتخرج البطاقة، وتُكتَب أسماؤكما بخط الكاليغرافيا. ثلاث ثوانٍ، وتغرس العاطفة.",
       "stepEnvelope": "مظروف مختوم",
       "stepCard": "ينكسر الختم",
-      "stepFlourish": "تظهر أسماؤكما"
+      "stepFlourish": "تظهر أسماؤكما",
+      "srLabel": "رسوم متحركة لظرف زفاف يُفتَح ليكشف عن بطاقة دعوة",
+      "cardKicker": "نحن نتزوّج",
+      "cardDate": "8 يونيو 2026"
     },
     "testimonials": {
       "chapter": "الفصل 05 — الأصوات",
@@ -381,7 +595,9 @@
       "prosSubtitle": "اشترك شهريًا في حلولك: اشتراك واحد، عدة حفلات، علامتك التجارية.",
       "prosCtaSeeAll": "عرض جميع باقات المحترفين",
       "prosRecommended": "الأكثر اختيارًا",
-      "prosCheckCta": "اختر هذه الباقة"
+      "prosCheckCta": "اختر هذه الباقة",
+      "prosChapter": "الفصل 06 — للمحترفين",
+      "prosSeeDetail": "عرض التفاصيل"
     },
     "forfaitsPros": {
       "eyebrow": "باقات المحترفين",
@@ -492,6 +708,64 @@
       },
       "payments": "مدفوعات آمنة عبر",
       "rights": "جميع الحقوق محفوظة"
+    },
+    "prosFeatures": {
+      "eyebrow": "للوكالات ومنظّمي الحفلات",
+      "title": "كل المكتب الخلفي لوكالتك",
+      "subtitle": "من أول عميل محتمل إلى آخر دفعة، بعلامتك التجارية.",
+      "items": {
+        "cockpit": {
+          "name": "لوحة القيادة",
+          "desc": "كل حفلاتك وتأكيدات الحضور والمواعيد النهائية والإيرادات على شاشة واحدة."
+        },
+        "crm": {
+          "name": "CRM ومسار العملاء",
+          "desc": "من العميل المحتمل إلى الحفل المُسلّم، بنظام كانبان وتحويل بنقرة واحدة."
+        },
+        "planning": {
+          "name": "التخطيط العكسي",
+          "desc": "مهام مرتبطة بيوم الزفاف، قوالب قابلة لإعادة الاستخدام، إسناد للفريق."
+        },
+        "budget": {
+          "name": "ميزانية لكل حفل",
+          "desc": "متابعة وتعديل وتصدير، جاهزة للعرض على الزوجين."
+        },
+        "docs": {
+          "name": "عروض الأسعار والفواتير والعقود",
+          "desc": "محرّر بعلامتك التجارية مع توقيع إلكتروني."
+        },
+        "vendors": {
+          "name": "دليل المورّدين",
+          "desc": "القاعات ومتعهدو الطعام والمصورون، مرتبطون بكل حفل."
+        },
+        "portal": {
+          "name": "بوابة الزوجين بعلامة بيضاء",
+          "desc": "يتابع الزوجان حفلهما باسمك."
+        },
+        "integrations": {
+          "name": "التكاملات",
+          "desc": "HoneyBook وZapier وAPI وWebhooks."
+        },
+        "team": {
+          "name": "الفريق والأدوار",
+          "desc": "مقاعد وأدوار ودعوات لمتعاونيك."
+        }
+      }
+    },
+    "sectionNav": {
+      "features": "المزايا",
+      "testimonials": "الشهادات",
+      "pricing": "الأسعار",
+      "pricingPros": "للمحترفين",
+      "faq": "الأسئلة"
+    },
+    "mobileMenu": {
+      "open": "فتح القائمة",
+      "close": "إغلاق القائمة",
+      "title": "القائمة",
+      "navAriaLabel": "التنقل الرئيسي",
+      "language": "اللغة",
+      "languageAriaLabel": "اختيار اللغة"
     }
   },
   "Auth": {
@@ -542,7 +816,10 @@
     },
     "tagline": "جهّز يومك الكبير",
     "stepOneEyebrow": "الخطوة 01 — الهوية",
-    "stepTwoEyebrow": "الخطوة 02 — التحقق"
+    "stepTwoEyebrow": "الخطوة 02 — التحقق",
+    "smsConsent": "بالمتابعة، فإنك توافق على تلقّي رمز تحقّق لمرّة واحدة عبر الرسائل القصيرة أو واتساب. قد تُطبَّق رسوم الرسائل والبيانات. أرسل STOP لإلغاء الاشتراك.",
+    "otpGroupLabel": "رمز التحقق",
+    "otpDigitLabel": "الرقم {position} من {total}"
   },
   "Onboarding": {
     "stepProfile": "ملفك الشخصي",
@@ -632,7 +909,13 @@
     "activatePlan": "تفعيل باقة",
     "publishLockedHint": "فعّل باقتك لنشر دعوتك وإرسال RSVP. الدفع لمرة واحدة، بلا اشتراك.",
     "publishLockedHintPayg": "لم يَعُد لديك رصيد Pay-as-you-go. اشترِ رصيدًا من /pro/billing أو فعّل اشتراكًا.",
-    "publishLockedHintQuota": "تم بلوغ حدّ الفعاليات النشطة ({quota} في آنٍ واحد ضمن باقتك). أرشِف فعالية منتهية أو قم بترقية باقتك لنشر فعالية جديدة."
+    "publishLockedHintQuota": "تم بلوغ حدّ الفعاليات النشطة ({quota} في آنٍ واحد ضمن باقتك). أرشِف فعالية منتهية أو قم بترقية باقتك لنشر فعالية جديدة.",
+    "pilotEyebrow": "فعاليتك",
+    "pilotTitle": "أدِر حفل زفافك",
+    "previewInvitation": "معاينة الدعوة",
+    "customizeMessage": "تخصيص الرسالة",
+    "editDetails": "تعديل التفاصيل",
+    "guestsEyebrow": "مدعووك"
   },
   "Guests": {
     "title": "قائمة الدعوات",
@@ -664,6 +947,7 @@
   },
   "Invitation": {
     "youreInvited": "أنتم مدعوون",
+    "scrollToDiscover": "مرّر للاكتشاف",
     "addressing": "عزيزي/عزيزتي {name}، يسعدنا حضوركم.",
     "willYouAttend": "هل ستكونون معنا؟",
     "status": {
@@ -874,9 +1158,633 @@
       "no_contact": "أدخل رقم هاتف أو بريدًا إلكترونيًا",
       "already_member": "هذا الشخص عضو في المنظّمة بالفعل",
       "cannot_assign_owner": "لا يمكن تعيين دور المالك",
+      "seat_limit_reached": "لقد بلغت حدّ المقاعد في باقتك. قم بترقية الباقة أو أزل أحد الأعضاء.",
       "invite_not_found": "الدعوة غير موجودة",
       "invite_already_used": "تم استخدام هذه الدعوة مسبقًا",
       "unknown": "حدث خطأ ما. حاول مجددًا."
+    },
+    "main": {
+      "accountingExport": {
+        "badgeNew": "جديد",
+        "title": "تصدير محاسبي شهري",
+        "description": "أنشئ كشفًا بفواتير الاشتراك وأرصدة الدفع حسب الاستخدام للشهر — جاهز لمحاسبك (CSV).",
+        "monthLabel": "الشهر",
+        "monthAria": "الشهر المراد تصديره",
+        "exportCta": "تصدير"
+      },
+      "billing": {
+        "close": "إغلاق",
+        "buyCreditTitle": "شراء رصيد فعالية",
+        "buyCreditIntro": "يفتح الرصيد <b>فعالية إضافية واحدة</b>، خارج حصة خطتك. فوترة لمرة واحدة، بدون اشتراك.",
+        "cancel": "إلغاء",
+        "pay": "ادفع {price}",
+        "oneEventCredit": "رصيد فعالية واحد",
+        "total": "الإجمالي",
+        "securePaymentNote": "دفع آمن عبر Stripe. يُضاف الرصيد بمجرد تأكيد الدفع.",
+        "cancelSubscription": "إلغاء",
+        "cancelEyebrow": "إلغاء الاشتراك",
+        "cancelTitle": "إلغاء خطة {plan}؟",
+        "cancelIntro": "يبقى اشتراكك نشطًا حتى <b>{renewal}</b>. يُستكمل الإلغاء في بوابة Stripe الآمنة؛ ولن يتم أي خصم جديد بعد ذلك.",
+        "keepSubscription": "الاحتفاظ باشتراكي",
+        "cancelViaStripe": "الإلغاء عبر Stripe",
+        "accessUntil": "الوصول محفوظ حتى",
+        "weddingsAndData": "حفلات الزفاف والبيانات",
+        "kept": "محفوظة",
+        "nextCharge": "الخصم التالي",
+        "cancelled": "ملغى",
+        "paygUnaffectedNote": "لا تتأثر أرصدة الدفع حسب الاستخدام المتبقية بالإلغاء."
+      },
+      "coupleLink": {
+        "toastAlreadyLinked": "هذا الثنائي مرتبط بالفعل.",
+        "toastInvited": "تمت دعوة الثنائي — يصل إلى مساحته بتسجيل الدخول بهذا الرقم.",
+        "genericError": "خطأ",
+        "toastUnlinked": "تم فصل الثنائي.",
+        "title": "مساحة الثنائي",
+        "description": "امنح الثنائي الوصول إلى مساحته: يتابع التقدم، ويكمل قائمة المدعوين (مع الأرقام) ويدفع عبر الإنترنت.",
+        "linkedEyebrow": "ثنائي مرتبط",
+        "detach": "فصل",
+        "emptyLinked": "لا يوجد ثنائي مرتبط حتى الآن.",
+        "phoneAria": "هاتف الثنائي",
+        "sending": "جارٍ الإرسال…",
+        "inviteCta": "دعوة الثنائي"
+      },
+      "danger": {
+        "ownerOnly": "<b>منطقة الخطر</b> مخصّصة لمالك المؤسسة.",
+        "exportTitle": "تصدير بيانات المؤسسة",
+        "exportDesc": "نزّل تصديرًا كاملاً (حفلات الزفاف، المدعوون، المستندات) بصيغة JSON / CSV.",
+        "exportPreparing": "جارٍ تحضير التصدير…",
+        "exportCta": "تصدير",
+        "transferTitle": "نقل الملكية",
+        "transferDesc": "عيّن عضوًا آخر مالكًا للمؤسسة.",
+        "transferCta": "نقل",
+        "deleteTitle": "حذف المؤسسة",
+        "deleteDesc": "يحذف الوكالة وجميع بياناتها نهائيًا.",
+        "deleteCta": "حذف",
+        "transferError": "فشل النقل. حاول مرة أخرى.",
+        "sensitiveAction": "إجراء حسّاس",
+        "transferModalBody": "سيحصل المالك الجديد على جميع الصلاحيات، بما في ذلك الحذف. وستصبح <b>مسؤولاً</b>.",
+        "newOwnerLabel": "المالك الجديد",
+        "memberFallback": "عضو",
+        "cancel": "إلغاء",
+        "transferring": "جارٍ النقل…",
+        "deleteNameMismatch": "الاسم غير مطابق.",
+        "deleteError": "فشل الحذف.",
+        "irreversibleAction": "إجراء لا رجعة فيه",
+        "deleteModalTitle": "حذف «{orgName}»",
+        "deleteModalBody": "سيتم <b>حذف</b> جميع حفلات الزفاف والمدعوين والمستندات والبيانات نهائيًا. لا يمكن التراجع عن هذا الإجراء.",
+        "deleteConfirmLabel": "اكتب «{orgName}» للتأكيد",
+        "deleting": "جارٍ الحذف…",
+        "deletePermanently": "حذف نهائي",
+        "close": "إغلاق"
+      },
+      "messaging": {
+        "saveError": "تعذّر الحفظ. حاول مرة أخرى.",
+        "channelCardTitle": "القناة والمُرسِل",
+        "channelCardSub": "كيف تُرسَل دعواتك افتراضيًا.",
+        "defaultChannel": "القناة الافتراضية",
+        "defaultChannelDesc": "WhatsApp أولاً، والرسائل القصيرة كبديل تلقائي.",
+        "senderName": "اسم المُرسِل",
+        "templateCardTitle": "قالب الدعوة الافتراضي",
+        "templateCardSub": "يُطبَّق على حفلات الزفاف الجديدة.",
+        "remindersCardTitle": "تذكيرات تلقائية",
+        "remindersCardSub": "تذكيرات تأكيد الحضور قبل اليوم الكبير.",
+        "reminderJ7": "تذكير في ي−7",
+        "reminderJ7Desc": "تذكير قبل أسبوع للمدعوين الذين لم يردّوا.",
+        "reminderJ7Aria": "تذكير ي-7",
+        "reminderJ1": "تذكير في ي−1",
+        "reminderJ1Desc": "آخر تذكير في اليوم السابق.",
+        "reminderJ1Aria": "تذكير ي-1",
+        "saving": "جارٍ الحفظ…",
+        "save": "حفظ",
+        "saved": "تم الحفظ"
+      },
+      "modulePlaceholder": {
+        "includedFrom": "مُضمَّن بدءًا من خطة {tier}",
+        "lockedDescription": "هذه الوحدة غير مُضمَّنة في خطتك الحالية. انتقل إلى مستوى أعلى لفتحها.",
+        "seePlans": "عرض الخطط",
+        "comingSoon": "قريبًا",
+        "whatItBrings": "ما ستقدّمه هذه الوحدة"
+      },
+      "notifications": {
+        "saveError": "تعذّر الحفظ. حاول مرة أخرى.",
+        "title": "تفضيلات الإشعارات",
+        "subtitle": "حسب نوع الحدث · البريد الإلكتروني وداخل التطبيق.",
+        "colType": "النوع",
+        "colEmail": "البريد الإلكتروني",
+        "colInApp": "داخل التطبيق",
+        "toggleEmailAria": "{type} عبر البريد الإلكتروني",
+        "toggleInAppAria": "{type} داخل التطبيق",
+        "saving": "جارٍ الحفظ…",
+        "save": "حفظ",
+        "saved": "تم الحفظ"
+      },
+      "security": {
+        "twoFaTitle": "المصادقة الثنائية (2FA)",
+        "twoFaSub": "طبقة أمان إضافية عبر تطبيق TOTP.",
+        "twoFaLabel": "المصادقة الثنائية",
+        "inactive": "غير مفعّلة",
+        "soon": "قريبًا",
+        "sessionsTitle": "الجلسات النشطة",
+        "sessionsSub": "الأجهزة المتصلة بحسابك.",
+        "thisDevice": "هذا الجهاز",
+        "sessionActive": "جلسة نشطة",
+        "journalTitle": "سجلّ النشاط",
+        "journalSub": "الإجراءات الأخيرة على المؤسسة.",
+        "journalBody": "اعثر على النشاط الأخير (العملاء، المهام، حفلات الزفاف) في <link>لوحة التحكم</link>."
+      },
+      "phoneFieldPair": {
+        "phoneLabel": "الهاتف",
+        "whatsappLabel": "WhatsApp",
+        "sameNumber": "{label} = نفس رقم الهاتف"
+      },
+      "quotaGauges": {
+        "goValue": "{value} غ.ب",
+        "activeWeddings": "حفلات زفاف نشطة",
+        "messagesThisMonth": "الرسائل هذا الشهر",
+        "storage": "التخزين",
+        "teamSeats": "مقاعد الفريق",
+        "consumptionThisMonth": "الاستهلاك هذا الشهر",
+        "unlimited": "غير محدود",
+        "overage": "تجاوز: {value}"
+      },
+      "cockpit": {
+        "relToday": "اليوم",
+        "relYesterday": "أمس",
+        "relDaysAgo": "قبل {n} ي",
+        "goValue": "{value} غ.ب",
+        "greetingWithName": "{date} · مرحبًا {name}",
+        "kpiActiveWeddings": "حفلات زفاف نشطة",
+        "kpiThisMonth": "هذا الشهر",
+        "kpiTotalCount": "{count} في المجموع",
+        "kpiPendingRsvp": "ردود الحضور المعلّقة",
+        "kpiResponses7d": "ردود · 7 ي",
+        "kpiDeadlines7d": "المواعيد النهائية · 7 ي",
+        "kpiOverdue": "متأخرة",
+        "kpiUpToDate": "محدّثة",
+        "kpiRevenue": "الإيرادات المحصّلة",
+        "kpiPaidInvoices": "فواتير محصّلة",
+        "eyebrow": "القُمرة · {org}",
+        "heading": "لوحة التحكم",
+        "newClient": "عميل جديد",
+        "newWedding": "زفاف جديد",
+        "kpiSectionAria": "المؤشرات الرئيسية",
+        "upcomingWeddings": "حفلات الزفاف القادمة",
+        "seeAll": "عرض الكل",
+        "planConsumption": "استهلاك الخطة",
+        "noSubscriptionQuotas": "لا يوجد اشتراك نشط — ستظهر حصصك هنا بمجرد اختيار خطة.",
+        "deadlinesTitle": "المواعيد النهائية والمهام",
+        "overdueCount": "{count} متأخرة",
+        "retroPlanning": "الجدول الزمني",
+        "noDeadlines": "لا يوجد موعد نهائي مُخطَّط.",
+        "late": "متأخر",
+        "today": "اليوم",
+        "jUntil": "ي−{n}",
+        "stageLeads": "العملاء المحتملون",
+        "stageQuotes": "عروض الأسعار المُرسَلة",
+        "stageBooked": "محجوزون",
+        "pipelineTitle": "مسار العملاء",
+        "seeCrm": "عرض CRM",
+        "emptyPipeline": "لا يوجد عميل في المسار حتى الآن.",
+        "bookingRate": "معدل الحجز <b>{rate} %</b>",
+        "fileCount": "{count} ملفات",
+        "recentActivity": "النشاط الأخير",
+        "bannerNoSubscription": "لا يوجد اشتراك نشط — اختر خطة لفتح المكتب الخلفي.",
+        "bannerChoosePlan": "اختيار خطة",
+        "bannerPaymentFailed": "فشل الدفع — حدّث وسيلة الدفع لتجنّب التعليق.",
+        "bannerManage": "إدارة الاشتراك",
+        "bannerCancelledUntil": "تم إلغاء الاشتراك — نشط حتى {date}.",
+        "bannerCancelled": "تم إلغاء الاشتراك — أعِد تفعيله لاستعادة الوصول الكامل.",
+        "bannerReactivate": "إعادة التفعيل",
+        "gaugeActiveWeddings": "حفلات زفاف نشطة",
+        "overageEvent": "بعد ذلك: {price}/شهر",
+        "gaugeMessages": "الرسائل هذا الشهر",
+        "overageMessage": "بعد ذلك: {price}/رسالة",
+        "gaugeStorage": "التخزين",
+        "overageStorage": "بعد ذلك: {price}/غ.ب/شهر",
+        "gaugeSeats": "مقاعد الفريق",
+        "overageSeat": "بعد ذلك: {price}/مقعد/شهر",
+        "unlimited": "غير محدود",
+        "overageLabel": "تجاوز: {value} — {note}",
+        "statusActive": "نشط",
+        "statusDraft": "مسودة",
+        "statusArchived": "مؤرشف",
+        "statusCancelled": "ملغى",
+        "rsvpCount": "تأكيد الحضور {attending}/{total}",
+        "noGuests": "لا يوجد مدعو",
+        "past": "ماضٍ",
+        "emptyUpcoming": "لا يوجد زفاف حتى الآن. أنشئ الأول للبدء."
+      },
+      "team": {
+        "errors": {
+          "SEAT_LIMIT_REACHED": "تم بلوغ حد المقاعد لخطتك.",
+          "ALREADY_MEMBER": "هذا الشخص عضو بالفعل.",
+          "NO_CONTACT": "أدخل بريدًا إلكترونيًا أو رقم WhatsApp.",
+          "INVALID_PHONE": "رقم غير صالح (مع رمز الدولة، مثال +33…).",
+          "FORBIDDEN": "مخصّص للمالك والمسؤولين.",
+          "generic": "حدث خطأ."
+        },
+        "tabsAria": "أقسام الفريق",
+        "tabMembers": "الأعضاء",
+        "tabRoles": "الأدوار والصلاحيات",
+        "readOnlyBanner": "أنت تعرض الفريق بصفتك {role}. الدعوة وتغيير الدور والإلغاء مخصّصة للمالك والمسؤولين.",
+        "memberCount": "{count, plural, zero {# عضو} one {# عضو} two {# عضوان} few {# أعضاء} many {# عضوًا} other {# عضو}}",
+        "activeCount": "{count, plural, zero {# نشط} one {# نشط} two {# نشطان} few {# نشطون} many {# نشطًا} other {# نشط}}",
+        "freeSeats": "{count, plural, zero {# مقعد حر} one {# مقعد حر} two {# مقعدان حران} few {# مقاعد حرة} many {# مقعدًا حرًا} other {# مقعد حر}}",
+        "unlimitedSeats": "مقاعد غير محدودة",
+        "inviteMember": "دعوة عضو",
+        "pendingInvites": "الدعوات المعلّقة · {count}",
+        "invitationFallback": "دعوة",
+        "invitedOn": "تمت الدعوة في {date}",
+        "resend": "إعادة الإرسال",
+        "confirmCancelInvite": "إلغاء هذه الدعوة؟",
+        "cancel": "إلغاء",
+        "colMember": "العضو",
+        "colContact": "بيانات التواصل",
+        "colRole": "الدور",
+        "colStatus": "الحالة",
+        "memberFallback": "عضو",
+        "you": "أنت",
+        "ownerHoldsOrgAria": "المالك يملك المؤسسة",
+        "confirmRevoke": "إلغاء وصول {name}؟",
+        "ownerCannotBeRevokedAria": "لا يمكن إلغاء المالك",
+        "actionsAria": "الإجراءات",
+        "revokeAccess": "إلغاء الوصول",
+        "reactivateAccess": "إعادة تفعيل الوصول",
+        "inviteSent": "تم الإرسال!",
+        "shareInviteLink": "شارك رابط الدعوة هذا (صالح لمدة 7 أيام):",
+        "copyLink": "نسخ الرابط",
+        "inviteSomeoneElse": "دعوة شخص آخر",
+        "done": "تم",
+        "channelEmail": "البريد الإلكتروني",
+        "emailPlaceholder": "colleague@studio.com",
+        "whatsappNumberAria": "رقم WhatsApp",
+        "roleAria": "الدور",
+        "inviteValidNote": "الدعوة صالحة لمدة 7 أيام.",
+        "sending": "جارٍ الإرسال…",
+        "sendInvite": "إرسال الدعوة",
+        "uniqueSuffix": " · فريد",
+        "permissionMatrix": "مصفوفة الصلاحيات",
+        "capabilitiesCount": "{count} إمكانات",
+        "capability": "الإمكانية",
+        "allowed": "مسموح",
+        "denied": "مرفوض",
+        "inheritanceNote": "الصلاحيات موروثة: يمكن للمسؤول كل ما يمكن للمنظِّم، ويمكن للمنظِّم كل ما يمكن للقارئ."
+      },
+      "planCards": {
+        "billingPeriodAria": "فترة الفوترة",
+        "monthly": "شهري",
+        "annual": "سنوي",
+        "discount20": "−20 %",
+        "perYear": "/سنة",
+        "perMonth": "/شهر",
+        "eyebrowSubscribe": "اشتراك",
+        "eyebrowChangeCycle": "تغيير الدورة",
+        "eyebrowUpgrade": "ترقية",
+        "eyebrowDowngrade": "تخفيض",
+        "ctaSubscribe": "الاشتراك في {plan}",
+        "ctaSwitchAnnual": "التحويل إلى سنوي",
+        "ctaSwitchMonthly": "التحويل إلى شهري",
+        "ctaUpgradeTo": "الانتقال إلى {plan}",
+        "ctaDowngradeTo": "التخفيض إلى {plan}",
+        "introSubscribe": "أنت تشترك في خطة <b>{plan}</b>. تتم إدارة الدفع والفوترة بواسطة Stripe.",
+        "introChangeCycle": "أنت تحوّل خطتك <b>{plan}</b> إلى فوترة {cycle}.",
+        "introUpgrade": "أنت تنتقل من <b>{current}</b> إلى <b>{target}</b>. الخطة الجديدة نشطة فورًا؛ ويُحسب الفرق تناسبيًا بواسطة Stripe.",
+        "introDowngrade": "أنت تخفّض من <b>{current}</b> إلى <b>{target}</b>. يسري التغيير عند التجديد التالي.",
+        "cycleAnnual": "سنوية (−20 %)",
+        "cycleMonthly": "شهرية",
+        "cancel": "إلغاء",
+        "recapCurrentPlan": "الخطة الحالية · {plan}",
+        "recapNewPlan": "الخطة الجديدة · {plan}",
+        "recapNextCycle": "بدءًا من التجديد التالي",
+        "recapPayViaStripe": "للدفع عبر Stripe",
+        "recapActiveEvents": "الفعاليات النشطة",
+        "recapMessagesIncluded": "الرسائل/الشهر المُضمَّنة",
+        "recapStorage": "التخزين",
+        "recapStorageValue": "{from} → {to} غ.ب"
+      },
+      "proShell": {
+        "navAria": "تنقّل المحترف"
+      },
+      "sidebar": {
+        "groupGeneral": "عام",
+        "navDashboard": "لوحة التحكم",
+        "navClients": "العملاء",
+        "navWeddings": "حفلات الزفاف",
+        "groupOrganization": "المؤسسة",
+        "navPlanning": "الجدول الزمني",
+        "navBudget": "الميزانية",
+        "navVendors": "المورّدون",
+        "navTeam": "الفريق",
+        "groupFinances": "المالية",
+        "navQuotes": "عروض الأسعار والفواتير",
+        "navPayments": "المدفوعات",
+        "navContracts": "العقود",
+        "groupPilotage": "التحليلات",
+        "navAnalytics": "Analytics",
+        "navIntegrations": "التكاملات",
+        "navBilling": "الفوترة",
+        "navSettings": "الإعدادات",
+        "roleOwner": "المالك",
+        "roleAdmin": "مسؤول",
+        "rolePlanner": "منظِّم",
+        "roleViewer": "قراءة",
+        "planLabel": "خطة {tier}",
+        "noPlan": "بدون اشتراك",
+        "expandMenu": "توسيع القائمة",
+        "collapseMenu": "طيّ القائمة",
+        "closeMenu": "إغلاق القائمة",
+        "mainNavAria": "التنقّل الرئيسي",
+        "lockedFeatureAria": "مُضمَّن في خطة أعلى",
+        "signOut": "تسجيل الخروج",
+        "openMenu": "فتح القائمة",
+        "searchPlaceholder": "ابحث عن زفاف، عن عميل…",
+        "searchAria": "بحث شامل",
+        "weddingsUnit": "حفلات زفاف"
+      },
+      "settings": {
+        "roleOwner": "المالك",
+        "roleAdmin": "مسؤول",
+        "rolePlanner": "منظِّم",
+        "roleViewer": "قارئ",
+        "profilTitle": "ملف المؤسسة",
+        "profilSub": "الهوية والعنوان العام والدور.",
+        "brandingTitle": "العلامة البيضاء",
+        "brandingSub": "خصّص مساحة الثنائي بألوانك.",
+        "integrationsTitle": "التكاملات",
+        "integrationsSub": "CRM واستيراد البيانات والموصّلات.",
+        "messagingTitle": "المراسلة والقوالب",
+        "messagingSub": "القنوات والدعوات والتذكيرات الافتراضية.",
+        "notificationsTitle": "الإشعارات",
+        "notificationsSub": "اختر ما يُنبّهك، وكيف.",
+        "securityTitle": "الأمان",
+        "securitySub": "الجلسة والمصادقة الثنائية والسجلّ.",
+        "dangerTitle": "منطقة الخطر",
+        "dangerSub": "تصدير المؤسسة ونقلها وحذفها.",
+        "groupOrganization": "المؤسسة",
+        "navProfil": "الملف",
+        "navBranding": "العلامة البيضاء",
+        "navIntegrations": "التكاملات",
+        "groupCommunication": "التواصل",
+        "navMessaging": "المراسلة",
+        "navNotifications": "الإشعارات",
+        "groupAccount": "الحساب",
+        "navSecurity": "الأمان",
+        "navDanger": "منطقة الخطر",
+        "sectionsNavAria": "أقسام الإعدادات",
+        "agencyOptionsAria": "خيارات Agency",
+        "linkedModules": "الوحدات المرتبطة",
+        "teamAndRoles": "الفريق والأدوار",
+        "billingAndPlan": "الفوترة والخطة",
+        "eyebrow": "الإعدادات · {org}",
+        "readOnlyBanner": "أنت تعرض الإعدادات في وضع <b>القراءة فقط</b>. اطلب دور مسؤول أو مالك للتعديل.",
+        "noPlan": "بدون اشتراك",
+        "webBrowser": "متصفّح الويب",
+        "orgIdentityTitle": "هوية المؤسسة",
+        "orgIdentitySub": "مرئية لفريقك وعلى المستندات.",
+        "agencyNameLabel": "اسم الوكالة",
+        "publicAddressLabel": "العنوان العام",
+        "planLabel": "الخطة",
+        "yourRoleLabel": "دورك",
+        "brandingHint": "يتم تكوين الشعار والألوان والنطاق المخصّص في علامة التبويب <b>العلامة البيضاء</b>.",
+        "yourAccountTitle": "حسابك",
+        "yourAccountSub": "معلوماتك الشخصية.",
+        "nameLabel": "الاسم",
+        "emailLabel": "البريد الإلكتروني",
+        "roleLabel": "الدور",
+        "integrationsPanelTitle": "التكاملات والاستيراد",
+        "integrationsPanelSub": "استورد عملاءك واربط أدواتك.",
+        "integrationsPanelBody": "استيراد CSV لعملائك، وقريبًا موصّلات CRM والتقويم والدفع. يتم التكوين الكامل من الوحدة المخصّصة.",
+        "openIntegrations": "فتح التكاملات"
+      },
+      "stripeConnect": {
+        "errors": {
+          "PAYMENTS_NOT_CONFIGURED": "الدفع عبر الإنترنت غير مفعّل بعد على المنصة.",
+          "CONNECT_NOT_ENABLED": "اتصال Stripe غير مكتمل من جانب المنصة. حاول لاحقًا.",
+          "FORBIDDEN": "يمكن للمالك والمسؤولين فقط إدارة اتصال Stripe.",
+          "NO_ORG": "المؤسسة غير موجودة.",
+          "UNAUTHORIZED": "انتهت الجلسة. أعِد تسجيل الدخول."
+        },
+        "errorGeneric": "حدث خطأ. حاول مرة أخرى.",
+        "returnError": "فشل اتصال Stripe. حاول مرة أخرى.",
+        "returnIncomplete": "إعداد Stripe غير مكتمل — تابع لتفعيل التحصيل.",
+        "title": "المدفوعات عبر الإنترنت",
+        "descActive": "حساب Stripe الخاص بك متصل. تُحصَّل روابط الدفع مباشرة في حسابك — لا تلمس Wedillybird أموالك أبدًا.",
+        "descIncomplete": "إعداد Stripe الخاص بك غير مكتمل. تابع إعداد Stripe لتفعيل التحصيل عبر الإنترنت.",
+        "descNotConnected": "اربط حساب Stripe الخاص بك لتحصيل المبالغ من ثنائياتك (بطاقة، تحويل). تذهب الأموال مباشرة إلى حسابك.",
+        "pillConnected": "متصل",
+        "pillToComplete": "للاستكمال",
+        "redirecting": "جارٍ إعادة التوجيه…",
+        "connectCta": "ربط حساب Stripe الخاص بي",
+        "disconnecting": "جارٍ قطع الاتصال…",
+        "confirmDisconnect": "تأكيد قطع الاتصال",
+        "cancel": "إلغاء",
+        "continueSetup": "متابعة الإعداد",
+        "disconnect": "قطع الاتصال",
+        "manageRestricted": "إدارة اتصال Stripe مخصّصة للمالك والمسؤولين."
+      },
+      "weddingSelect": {
+        "label": "زفاف",
+        "jPast": "ي+{n}",
+        "jUntil": "ي−{n}",
+        "chooseAria": "اختر الزفاف",
+        "listAria": "حفلات الزفاف",
+        "venueToFill": "المكان مطلوب إدخاله"
+      },
+      "whiteLabel": {
+        "errorInvalidDomain": "نطاق غير صالح (مثال weddings.myagency.com).",
+        "errorInvalidEmail": "عنوان بريد المُرسِل غير صالح.",
+        "errorFeatureNotInPlan": "تتطلب العلامة البيضاء الكاملة خطة Agency.",
+        "errorGeneric": "حدث خطأ. حاول مرة أخرى.",
+        "title": "النطاق والعلامة البيضاء",
+        "description": "انشر دعواتك تحت نطاقك وبريدك الخاص، دون ذكر Wedillybird.",
+        "includedAddressLabel": "عنوان Wedillybird (مُضمَّن)",
+        "customDomainLabel": "نطاق مخصّص",
+        "customDomainPlaceholder": "weddings.myagency.com",
+        "cnameNote": "أضف سجل CNAME يشير إلى <host>cname.wedillybird.fr</host>.",
+        "senderEmailLabel": "بريد المُرسِل",
+        "senderEmailPlaceholder": "contact@myagency.com",
+        "removeBadgeTitle": "إزالة عبارة «مُشغَّل بواسطة Wedillybird»",
+        "removeBadgeSub": "على صفحات الدعوة والبريد الإلكتروني.",
+        "removeBadgeAria": "إزالة شارة Wedillybird",
+        "agencyUpsell": "العلامة البيضاء الكاملة مُضمَّنة في خطة Agency.",
+        "upgradeToAgency": "الانتقال إلى Agency",
+        "saving": "جارٍ الحفظ…",
+        "save": "حفظ",
+        "saved": "تم الحفظ"
+      }
+    },
+    "payments": {
+      "subtabs": {
+        "dashboard": "لوحة التحكّم",
+        "plan": "جدول الدفعات",
+        "disputes": "النزاعات",
+        "settings": "الإعدادات",
+        "groupAria": "أقسام المدفوعات"
+      },
+      "header": {
+        "eyebrow": "المالية · المدفوعات",
+        "title": "المدفوعات",
+        "subtitle": "تابِع مقبوضاتك وجداول دفعاتك، وأرسِل روابط الدفع — تُحصَّل مباشرةً على حساب Stripe الخاص بك.",
+        "newLink": "رابط جديد",
+        "paymentRequest": "طلب دفع"
+      },
+      "stripeBadge": {
+        "securedBy": "مدفوعات مؤمَّنة بواسطة"
+      },
+      "feeBreakdown": {
+        "title": "تفصيل الرسوم",
+        "couplePays": "يدفع الثنائي",
+        "stripeFees": "رسوم Stripe",
+        "youReceive": "تستلم",
+        "note": "تُحصِّل على حساب Stripe الخاص بك."
+      },
+      "moneyHero": {
+        "eyebrow": "محصَّل · متابَع",
+        "upcoming": "قادمة",
+        "overdue": "متأخّرة",
+        "nextDue": "الاستحقاق التالي"
+      },
+      "finances": {
+        "title": "الرصيد والتحويلات",
+        "count": "حساب Stripe الخاص بك",
+        "notConnected": "اربط حساب Stripe الخاص بك لمتابعة رصيدك وتحويلاتك مباشرةً من هنا.",
+        "loading": "جارٍ تحميل رصيد Stripe الخاص بك…",
+        "available": "متاح",
+        "pending": "قيد الانتظار",
+        "payout": "تحويل",
+        "payoutWithDate": "تحويل · {date}",
+        "payoutsEmpty": "لا توجد تحويلات بعد. ستظهر تحويلاتك هنا فور أول عملية تحصيل.",
+        "recentCharges": "المقبوضات الأخيرة",
+        "chargeFallback": "تحصيل",
+        "refundedSuffix": "مُسترَد",
+        "receipt": "إيصال",
+        "refund": "استرداد",
+        "liveNote": "بيانات تُقرَأ مباشرةً من حساب Stripe الخاص بك — يُضبَط تواتر التحويلات من لوحة تحكّم Stripe لديك."
+      },
+      "financesErrors": {
+        "NOT_CONNECTED": "اربط حساب Stripe الخاص بك لمتابعة رصيدك وتحويلاتك هنا.",
+        "generic": "تعذّر استرجاع بيانات Stripe الخاصة بك في الوقت الحالي."
+      },
+      "refundErrors": {
+        "FORBIDDEN": "يمكن للمالك والمسؤولين فقط إجراء الاسترداد.",
+        "NOT_CONNECTED": "لا يوجد حساب Stripe مرتبط.",
+        "generic": "تعذّر الاسترداد. حاوِل مجدّدًا."
+      },
+      "refundDialog": {
+        "title": "هل تريد استرداد هذا التحصيل؟",
+        "description": "سيُعاد مبلغ {amount} إلى العميل من حساب Stripe الخاص بك. هذا الإجراء لا يمكن التراجع عنه.",
+        "refunding": "جارٍ الاسترداد…",
+        "confirm": "تأكيد الاسترداد"
+      },
+      "dashboard": {
+        "connectBannerTitle": "اربط حساب Stripe الخاص بك لتحصيل المدفوعات عبر الإنترنت",
+        "connectBannerBody": "اربط حساب Stripe الخاص بك (بطاقة الربط أعلى الصفحة): تصل مدفوعات البطاقة مباشرةً إلى حسابك. في انتظار ذلك، تحتفظ بالمتابعة اليدوية.",
+        "transactionsTitle": "المعاملات",
+        "milestoneCount": "{count, plural, zero {لا دفعات} one {دفعة واحدة} two {دفعتان} few {# دفعات} many {# دفعة} other {# دفعة}}",
+        "transactionsEmpty": "لا توجد معاملات بعد. ستظهر دفعات فواتيرك هنا.",
+        "netNote": "الصافي المستلَم = المبلغ المحصَّل − رسوم Stripe. تذهب المدفوعات عبر الإنترنت مباشرةً إلى حساب Stripe الخاص بك."
+      },
+      "table": {
+        "couple": "الثنائي",
+        "type": "النوع",
+        "dueDate": "الاستحقاق",
+        "amount": "المبلغ",
+        "stripeFees": "رسوم Stripe",
+        "netReceived": "الصافي المستلَم",
+        "status": "الحالة"
+      },
+      "freeLink": {
+        "title": "رابط دفع جديد",
+        "subtitle": "يُحصَّل مباشرةً على حساب Stripe الخاص بك.",
+        "createdShare": "تم إنشاء الرابط ونسخه. شارِكه مع عميلك:",
+        "openLinkAria": "فتح الرابط",
+        "amountLabel": "المبلغ (€)",
+        "serviceLabel": "وصف الخدمة",
+        "servicePlaceholder": "عربون خدمة زفاف",
+        "clientLabel": "العميل (اختياري)",
+        "connectFirst": "اربط أولًا حساب Stripe الخاص بك (البطاقة أعلى الصفحة).",
+        "createCta": "إنشاء الرابط"
+      },
+      "plan": {
+        "empty": "لا يوجد جدول دفعات. أنشئ فاتورة بجدول دفعات في «عروض الأسعار والفواتير» لمتابعة المدفوعات هنا.",
+        "scheduleLabel": "جدول الدفعات",
+        "heroEyebrow": "جدول الدفعات",
+        "settledCount": "{paid} / {total} مسدَّد",
+        "milestonesTitle": "مراحل الدفع",
+        "dueOn": "الاستحقاق {date}",
+        "noDate": "بلا تاريخ",
+        "markPaid": "وضع علامة مدفوع",
+        "termTitle": "نوع الالتزام (فرنسا)",
+        "nextRequestTitle": "الطلب التالي",
+        "none": "لا شيء",
+        "couplePreview": "معاينة للثنائي",
+        "linkNote": "يُحصَّل الرابط مباشرةً على حساب Stripe الخاص بك. انسخه لإرساله عبر واتساب أو البريد الإلكتروني…",
+        "allSettled": "جميع دفعات هذا الجدول مسدَّدة. 🎉"
+      },
+      "disputes": {
+        "bannerTitle": "نزاعاتك، حساب Stripe الخاص بك.",
+        "bannerBody": "تُحصَّل المدفوعات عبر الإنترنت مباشرةً على حساب Stripe الخاص بك: في حال وجود اعتراض، يُدار كل شيء من لوحة تحكّم Stripe لديك (الإشعار، الأدلّة، قرار البنك). لا تتدخّل Wedillybird أبدًا في أموالك.",
+        "emptyTitle": "تُدار النزاعات في Stripe",
+        "emptyBody": "تظهر أي اعتراضات على الدفع في لوحة تحكّم Stripe الخاصة بك، مع الخطوات الواجب اتّباعها والمهل. Wedillybird ليست ضمن مسار الأموال.",
+        "howTitle": "كيف تجري الأمور",
+        "whoNotifiedLabel": "مَن يُخطَر",
+        "whoNotifiedValue": "أنت، مباشرةً من Stripe.",
+        "whoEvidenceLabel": "مَن يقدّم الأدلّة",
+        "whoEvidenceValue": "أنت (العقد، المراسلات، التسليمات)، من Stripe.",
+        "whoDecidesLabel": "مَن يقرّر",
+        "whoDecidesValue": "بنك الثنائي، لا Wedillybird ولا Stripe.",
+        "whereLabel": "أين",
+        "whereValue": "لوحة تحكّم Stripe الخاصة بك — تبقى زمام الأمور بيدك."
+      },
+      "settings": {
+        "modeTitle": "وضع التحصيل",
+        "recommended": "موصى به",
+        "consequencePrefix": "النتيجة:",
+        "feesTitle": "الرسوم",
+        "feesExampleTitle": "ما تستلمه · مثال 6300 €",
+        "ownMoneyTitle": "أموالك، حسابك.",
+        "ownMoneyBody": "تُحصَّل المدفوعات عبر الإنترنت مباشرةً على حساب Stripe الخاص بك — لا تحتفظ Wedillybird بأموالك أبدًا."
+      },
+      "txDetail": {
+        "dialogAria": "معاملة {client}",
+        "eyebrow": "المعاملة",
+        "infoTitle": "المعلومات",
+        "type": "النوع",
+        "invoice": "الفاتورة",
+        "dueDate": "الاستحقاق",
+        "reference": "المرجع"
+      },
+      "payLink": {
+        "connectPrompt": "اربط حساب Stripe الخاص بك لإنشاء رابط",
+        "cta": "رابط دفع"
+      },
+      "linkErrors": {
+        "STRIPE_NOT_CONNECTED": "اربط أولًا حساب Stripe الخاص بك.",
+        "PAYMENTS_NOT_CONFIGURED": "لم تُهيَّأ المدفوعات عبر الإنترنت بعد.",
+        "FEATURE_NOT_IN_PLAN": "مخصّص لباقة Business.",
+        "ALREADY_PAID": "هذه الدفعة مسدَّدة بالفعل.",
+        "INVALID_AMOUNT": "مبلغ غير صالح.",
+        "INVALID_DESCRIPTION": "أدخِل وصفًا.",
+        "INVALID_SCHEDULE": "الدفعة غير موجودة.",
+        "generic": "تعذّر إنشاء الرابط. حاوِل مجدّدًا."
+      },
+      "actions": {
+        "copyLink": "نسخ الرابط",
+        "copyMessage": "نسخ الرسالة",
+        "open": "فتح",
+        "close": "إغلاق",
+        "cancel": "إلغاء",
+        "settings": "الإعدادات",
+        "creating": "جارٍ الإنشاء…"
+      },
+      "toasts": {
+        "linkCopied": "تم نسخ الرابط",
+        "messageCopied": "تم نسخ الرسالة الجاهزة للإرسال",
+        "linkCreated": "تم إنشاء رابط الدفع ونسخه",
+        "refundDone": "تم الاسترداد",
+        "milestoneMarked": "تمّ وضع علامة محصَّلة على الدفعة",
+        "modeChanged": "الوضع: {mode}"
+      }
     }
   },
   "Branding": {
@@ -908,6 +1816,592 @@
       "invalid_logo_size": "صورة كبيرة جدًا (الحد الأقصى 2 م.ب).",
       "upload_failed": "فشل الرفع. حاول مجددًا.",
       "unknown": "حدث خطأ ما. حاول مجددًا."
+    }
+  },
+  "Pros": {
+    "cta": {
+      "title": "ارتقِ بوكالتك إلى المستوى التالي",
+      "subtitle": "أداة واحدة لعروض أسعارك وحفلات زفافك وضيوفك وعلامتك التجارية. ابدأ اليوم، دون التزام.",
+      "button": "ابدأ الآن",
+      "footnote": "دون بطاقة للاستكشاف. يمكنك الإلغاء في أي وقت."
+    },
+    "hero": {
+      "eyebrow": "للوكالات ومنظّمي حفلات الزفاف",
+      "title": "نظام التشغيل لوكالة حفلات زفافك",
+      "subtitle": "أدِر كل حفل زفاف في مكان واحد: إدارة العملاء، عروض الأسعار، الميزانية، المورّدون، الضيوف في اليوم الكبير — تحت علامتك التجارية الخاصة.",
+      "ctaPrimary": "ابدأ الآن",
+      "ctaSecondary": "اطّلع على الباقات",
+      "chips": {
+        "scale": "عدة حفلات زفاف بالتوازي",
+        "rsvp": "تأكيد الحضور والضيوف يوم الزفاف",
+        "whiteLabel": "علامة بيضاء",
+        "payments": "مدفوعات مدمجة"
+      }
+    },
+    "journey": {
+      "eyebrow": "من البداية إلى النهاية",
+      "title": "من الرسالة الأولى إلى آخر ذكرى مشتركة",
+      "subtitle": "خيط متواصل، دون إعادة إدخال أي بيان. يتحوّل العميل المحتمل إلى حفل زفاف، ويتحوّل حفل الزفاف إلى ذكرى.",
+      "steps": {
+        "01": {
+          "title": "يصل العميل المحتمل",
+          "detail": "يأتي طلب عبر إنستغرام أو موقعك أو التوصية الشفهية. تؤهّله في ثوانٍ."
+        },
+        "02": {
+          "title": "يُرسَل عرض السعر",
+          "detail": "عرض سعر بعلامتك، توقيع إلكتروني، عربون محصّل. الثنائي مطمئن، وأنت محجوز."
+        },
+        "03": {
+          "title": "يتشكّل حفل الزفاف",
+          "detail": "جدول زمني عكسي، ميزانية، مورّدون: كل شيء يلتقي في مساحة مخصّصة للثنائي."
+        },
+        "04": {
+          "title": "يردّ الضيوف",
+          "detail": "دعوة متحرّكة تُرسَل عبر واتساب، تأكيدات حضور مركزية، تذكيرات تلقائية."
+        },
+        "05": {
+          "title": "يجري اليوم الكبير بسلاسة",
+          "detail": "تسجيل وصول دون اتصال عند المدخل، مخطط الجلوس، معرض صور مباشر. تبقى مُمسكًا بزمام الأمور."
+        },
+        "06": {
+          "title": "تُشارَك الذكرى",
+          "detail": "معرض عالي الدقة مرتّب حسب الوجوه، ومؤرشف. يعيش الثنائي يومه من جديد، وأنت تجمع التقييمات."
+        }
+      }
+    },
+    "wedge": {
+      "eyebrow": "عامل التميّز",
+      "title": "في اليوم الكبير، حيث تتوقف الأدوات الأخرى",
+      "subtitle": "يتولّى HoneyBook عقودك. لا أحد يتولّى ضيوفك يوم الزفاف. نحن نفعل.",
+      "items": {
+        "rsvp": {
+          "title": "تأكيد الحضور عبر واتساب",
+          "detail": "يردّ ضيوفك حيث يقرؤون أصلًا. معدّل ردّ أعلى، ودون متابعة يدوية."
+        },
+        "gallery": {
+          "title": "معرض حسب الوجه",
+          "detail": "يجد كل ضيف صوره تلقائيًا، بفضل التعرّف على الوجوه."
+        },
+        "checkin": {
+          "title": "تسجيل وصول دون اتصال",
+          "detail": "عند المدخل، تمسح الرمز حتى دون شبكة. المزرعة النائية في الريف لا توقفك."
+        },
+        "seating": {
+          "title": "مخطط الجلوس",
+          "detail": "اسحب ضيوفك وأفلتهم، أدِر القيود، اطبع. صداع أقل."
+        }
+      },
+      "footnote": "منافسوك لا يملكون هذه الميزات. <strong>وهذا ما يحوّل المورّد إلى قائد أوركسترا.</strong>"
+    },
+    "pillars": {
+      "eyebrow": "الركائز الـ11",
+      "title": "كل ما تستخدمه وكالة حفلات زفاف يوميًا",
+      "subtitle": "أحد عشر وحدة مصمّمة للمهنة، من أول تواصل إلى آخر ذكرى. مفصّلة ميزةً ميزة، باقةً باقة.",
+      "legend": {
+        "all": "مضمّن في كل مكان",
+        "business": "من Business",
+        "agency": "Agency",
+        "addon": "إضافة"
+      },
+      "items": {
+        "cockpit": {
+          "name": "لوحة القيادة",
+          "summary": "برج المراقبة الخاص بك: كل حفلات زفافك ومؤشراتك ونشاطك بنظرة واحدة.",
+          "features": {
+            "aggregated": {
+              "name": "عرض مجمّع",
+              "detail": "كل حفلات زفافك مجتمعة في لوحة واحدة."
+            },
+            "trendKpis": {
+              "name": "مؤشرات الاتجاه",
+              "detail": "الحجوزات، تأكيدات الحضور، المواعيد، الإيرادات — مع تطوّرها."
+            },
+            "quotaGauges": {
+              "name": "مقاييس الحصص",
+              "detail": "الفعاليات، الرسائل، التخزين: استهلاكك في الوقت الفعلي."
+            },
+            "globalSearch": {
+              "name": "بحث شامل",
+              "detail": "اعثر على ثنائي أو عرض سعر أو مورّد بضغطة واحدة."
+            },
+            "activityFeed": {
+              "name": "سجل النشاط",
+              "detail": "العرابين، تأكيدات الحضور، عروض الأسعار المقبولة: نبض الوكالة مباشرةً."
+            },
+            "multiEventAnalytics": {
+              "name": "تحليلات متعددة الفعاليات",
+              "detail": "قارن حفلات زفافك واقرأ أداء الموسم."
+            }
+          }
+        },
+        "crm": {
+          "name": "إدارة العملاء",
+          "summary": "من عميل إنستغرام المحتمل إلى حفل الزفاف الموقّع: مسار لا يفقد أي طلب.",
+          "features": {
+            "clientCards": {
+              "name": "بطاقات العملاء",
+              "detail": "جهات الاتصال، السجل، المستندات: الثنائي كله في بطاقة."
+            },
+            "kanban": {
+              "name": "مسار كانبان",
+              "detail": "اسحب فرصك من «محتمل» إلى «محجوز»."
+            },
+            "bulkActions": {
+              "name": "إجراءات جماعية",
+              "detail": "تابع، وسِم، انقل عدة عملاء بحركة واحدة."
+            },
+            "leadSources": {
+              "name": "مصادر العملاء",
+              "detail": "اعرف من أين يأتي عملاؤك لتستثمر في المكان الصحيح."
+            },
+            "leadToWedding": {
+              "name": "محتمل ← زفاف",
+              "detail": "حوّل فرصة إلى حفل زفاف دون إعادة إدخال سطر."
+            },
+            "teamAssignment": {
+              "name": "إسناد للفريق",
+              "detail": "أوكِل كل ملف إلى العضو المناسب في الفريق."
+            }
+          }
+        },
+        "planning": {
+          "name": "التخطيط",
+          "summary": "جدول زمني عكسي على مراحل، ثلاثة عروض، ومورّدوك في متناول يدك.",
+          "features": {
+            "phasedPlanning": {
+              "name": "تخطيط على مراحل",
+              "detail": "قسّم التحضير من 12 شهرًا قبل الموعد حتى اليوم الكبير."
+            },
+            "threeViews": {
+              "name": "ثلاثة عروض",
+              "detail": "قائمة أو كانبان أو تقويم — حسب طريقة عملك."
+            },
+            "templates": {
+              "name": "قوالب المهام",
+              "detail": "انطلق من مخطط مجرّب في كل حفل زفاف جديد."
+            },
+            "subtasks": {
+              "name": "مهام فرعية",
+              "detail": "فكّك خطوة معقّدة إلى إجراءات ملموسة."
+            },
+            "vendorDirectory": {
+              "name": "دليل المورّدين",
+              "detail": "دفتر عناوينك: التموين، المصوّرون، القاعات."
+            },
+            "vendorLink": {
+              "name": "ربط المورّد",
+              "detail": "اربط مورّدًا بمهمة أو بحفل زفاف."
+            }
+          }
+        },
+        "budget": {
+          "name": "الميزانية",
+          "summary": "ميزانية الثنائي، متتبَّعة إلى آخر قرش، من التقدير إلى الدفع.",
+          "features": {
+            "tracking": {
+              "name": "تتبّع الميزانية",
+              "detail": "مقدّر، ملتزَم، مدفوع: هامشك بنظرة واحدة."
+            },
+            "lineEditing": {
+              "name": "تحرير بالبند",
+              "detail": "اضبط كل بند، أضِف فئاتك المخصّصة."
+            },
+            "vendorToBudget": {
+              "name": "مورّد ← ميزانية",
+              "detail": "انقل عرض سعر مورّد مباشرةً إلى الميزانية."
+            },
+            "pdfExport": {
+              "name": "تصدير PDF",
+              "detail": "ملخّص أنيق لعرضه على الثنائي."
+            },
+            "csvExport": {
+              "name": "تصدير CSV",
+              "detail": "استخرج أرقامك لمحاسبتك أو جدولك."
+            }
+          }
+        },
+        "finance": {
+          "name": "عروض الأسعار والفواتير",
+          "summary": "عروض أسعار بعلامتك، توقيع إلكتروني، جداول دفع وتحصيل.",
+          "features": {
+            "brandedDocs": {
+              "name": "مستندات بعلامتك",
+              "detail": "عروض أسعار وفواتير بألوانك وشعارك وشروطك."
+            },
+            "schedules": {
+              "name": "جداول الدفع",
+              "detail": "عربون، أرصدة: خطّط المدفوعات عبر الزمن."
+            },
+            "eSign": {
+              "name": "توقيع إلكتروني",
+              "detail": "يوقّع الثنائي عبر الإنترنت، وتُحجَز دون اجتماع."
+            },
+            "bookingFile": {
+              "name": "ملف الحجز",
+              "detail": "العقد والعربون والشروط مجتمعة في مكان واحد."
+            },
+            "tracking": {
+              "name": "تتبّع المدفوعات",
+              "detail": "شاهد بنظرة واحدة ما هو مدفوع أو معلّق أو متأخر."
+            },
+            "stripeCollect": {
+              "name": "التحصيل عبر Stripe",
+              "detail": "حصّل مباشرةً إلى حساب Stripe الخاص بك، دون عمولة."
+            }
+          }
+        },
+        "execution": {
+          "name": "التنفيذ يوم الزفاف",
+          "summary": "دعوة متحرّكة، تأكيد حضور، تسجيل وصول، مخطط جلوس، معرض: اليوم بأكمله.",
+          "features": {
+            "tabbedHub": {
+              "name": "مركز بعلامات تبويب",
+              "detail": "الضيوف، تأكيد الحضور، الطاولة، المعرض: اليوم الكبير في شاشة واحدة."
+            },
+            "cinematicInvite": {
+              "name": "دعوة سينمائية",
+              "detail": "ظرف يُفتَح، وبطاقة تنبض بالحياة. أثر الإبهار."
+            },
+            "rsvpWhatsApp": {
+              "name": "تأكيد الحضور عبر واتساب",
+              "detail": "يردّ ضيوفك حيث يقرؤون رسائلهم أصلًا."
+            },
+            "offlineCheckin": {
+              "name": "تسجيل وصول دون اتصال",
+              "detail": "امسح عند المدخل حتى دون شبكة، والبيانات تُزامَن لاحقًا."
+            },
+            "seating": {
+              "name": "مخطط الجلوس",
+              "detail": "ضع ضيوفك بالسحب والإفلات، وأدِر القيود."
+            },
+            "faceGallery": {
+              "name": "معرض حسب الوجه",
+              "detail": "يجد كل ضيف صوره عبر التعرّف على الوجوه."
+            }
+          }
+        },
+        "whitelabel": {
+          "name": "العلامة البيضاء",
+          "summary": "علامتك في كل مكان: الألوان، النطاق الفرعي، بوابة الثنائي، رسائل بريد باسمك.",
+          "features": {
+            "brandColor": {
+              "name": "لون العلامة",
+              "detail": "تتبنّى الواجهة كلها لون هويتك."
+            },
+            "subdomainLogo": {
+              "name": "نطاق فرعي وشعار",
+              "detail": "your-agency.wedillybird.com، وشعارك في الأعلى."
+            },
+            "couplePortal": {
+              "name": "بوابة الثنائي",
+              "detail": "مساحة بعلامة بيضاء يتابع فيها الثنائي حفل زفافه."
+            },
+            "coupleSignature": {
+              "name": "توقيع الثنائي",
+              "detail": "يوقّع الثنائي مستنداته من بوابته."
+            },
+            "domainEmail": {
+              "name": "رسائل من نطاقك",
+              "detail": "تنطلق الإشعارات من اسم نطاقك الخاص."
+            },
+            "removeBranding": {
+              "name": "دون ذكر Wedillybird",
+              "detail": "أزِل كل أثر لعلامتنا. كل شيء لك."
+            }
+          }
+        },
+        "team": {
+          "name": "الفريق والأدوار",
+          "summary": "ادعُ فريقك، أسنِد الأدوار، وأبقِ السيطرة على الوصول.",
+          "features": {
+            "rbac": {
+              "name": "الأدوار والصلاحيات",
+              "detail": "يرى كل عضو ويفعل بالضبط ما ينبغي."
+            },
+            "permissionMatrix": {
+              "name": "مصفوفة الصلاحيات",
+              "detail": "اضبط بدقة من يصل إلى ماذا، وحدةً وحدة."
+            },
+            "invitations": {
+              "name": "الدعوات",
+              "detail": "أضِف متعاونًا برسالة بريد واحدة."
+            },
+            "seats": {
+              "name": "المقاعد",
+              "detail": "أدِر مقاعدك حسب باقتك، وأضِف عند الطلب."
+            },
+            "ownershipTransfer": {
+              "name": "نقل الملكية",
+              "detail": "سلّم حسابًا أو حفل زفاف بأمان تام."
+            }
+          }
+        },
+        "integrations": {
+          "name": "التكاملات",
+          "summary": "استورد ما لديك، اربط أدواتك، وأتمِت عبر واجهة البرمجة.",
+          "features": {
+            "csvImport": {
+              "name": "استيراد CSV",
+              "detail": "استرجع جهات اتصالك وحفلات زفافك من ملف."
+            },
+            "honeybook": {
+              "name": "استيراد من HoneyBook",
+              "detail": "انقل بياناتك دون البدء من الصفر."
+            },
+            "zapier": {
+              "name": "Zapier",
+              "detail": "اربط Wedillybird بآلاف التطبيقات."
+            },
+            "apiWebhooks": {
+              "name": "واجهة برمجة وويب هوكس",
+              "detail": "اربط أنظمتك وأطلِق أتمتتك."
+            },
+            "fieldSource": {
+              "name": "مصدر الحقول",
+              "detail": "تتبّع أصل كل بيان مستورَد."
+            },
+            "ownCrmMode": {
+              "name": "وضع «نظامي»",
+              "detail": "احتفظ بنظام إدارة العملاء لديك، واستخدم Wedillybird حيث يتفوّق."
+            }
+          }
+        },
+        "billing": {
+          "name": "الفوترة والباقة",
+          "summary": "أدِر اشتراكك، تابع تجاوزاتك، صدّر إيصالاتك.",
+          "features": {
+            "manage": {
+              "name": "إدارة الاشتراك",
+              "detail": "الباقة، وسيلة الدفع، الفواتير: كله بالخدمة الذاتية."
+            },
+            "changePlan": {
+              "name": "تغيير الباقة",
+              "detail": "ارتقِ أو انزل مستوى عندما يتطلّب موسمك ذلك."
+            },
+            "overageTracking": {
+              "name": "تتبّع التجاوزات",
+              "detail": "الرسائل، الضيوف، التخزين خارج الباقة: دون مفاجآت."
+            },
+            "paygCredits": {
+              "name": "أرصدة حسب الاستخدام",
+              "detail": "ادفع لحفل زفاف عابر دون الاشتراك في باقة."
+            },
+            "monthlyExport": {
+              "name": "تصدير شهري",
+              "detail": "احصل على كشف استهلاكك كل شهر."
+            },
+            "stripePortal": {
+              "name": "بوابة Stripe",
+              "detail": "فواتيرك وإيصالاتك، مُدارة عبر بوابة Stripe الآمنة."
+            }
+          }
+        },
+        "settings": {
+          "name": "الإعدادات",
+          "summary": "الملف الشخصي، الهوية، المراسلة، الإشعارات وأمان الحساب.",
+          "features": {
+            "profile": {
+              "name": "الملف الشخصي",
+              "detail": "بيانات وكالتك، محدَّثة في لحظة."
+            },
+            "branding": {
+              "name": "الهوية البصرية",
+              "detail": "الشعار، الألوان، النطاق الفرعي: علامتك، مركّزة."
+            },
+            "messaging": {
+              "name": "المراسلة",
+              "detail": "اضبط قوالب بريدك ورسائل واتساب لديك."
+            },
+            "notifications": {
+              "name": "الإشعارات",
+              "detail": "اختر ما ينبّهك وكيف."
+            },
+            "accountSecurity": {
+              "name": "أمان الحساب",
+              "detail": "الجلسات، الوصول، التتبّع: تبقى ممسكًا بالزمام."
+            },
+            "dangerZone": {
+              "name": "المنطقة الحسّاسة",
+              "detail": "الحذف، النقل: الإجراءات الحرجة، مضبوطة."
+            }
+          }
+        }
+      }
+    },
+    "whiteLabel": {
+      "eyebrow": "العلامة البيضاء",
+      "title": "علامتك في المقدمة، وعلامتنا غير مرئية",
+      "subtitle": "ثلاثة مستويات من التخصيص، من نطاق فرعي بسيط إلى محو Wedillybird بالكامل.",
+      "levelLabel": "المستوى {n}",
+      "fromStarter": "من Starter",
+      "levels": {
+        "visible": {
+          "title": "علامتك ظاهرة",
+          "points": {
+            "0": "نطاق فرعي باسمك",
+            "1": "الشعار ولون العلامة",
+            "2": "واجهة بألوان الوكالة"
+          }
+        },
+        "branded": {
+          "title": "بوابة الثنائي بعلامتك",
+          "points": {
+            "0": "مساحة مخصّصة للثنائي، بعلامتك",
+            "1": "مستندات وتوقيع موقّعان من الطرفين",
+            "2": "رحلة الضيف على صورتك"
+          }
+        },
+        "total": {
+          "title": "علامة بيضاء كاملة",
+          "points": {
+            "0": "رسائل بريد من نطاقك الخاص",
+            "1": "دون ذكر Wedillybird",
+            "2": "التجربة لك بالكامل"
+          }
+        }
+      }
+    },
+    "pricing": {
+      "eyebrowChapter": "أسعار المحترفين",
+      "eyebrow": "السعة والخيارات",
+      "title": "ما تغطّيه كل باقة، بوضوح",
+      "capacityColumn": "السعة",
+      "capacities": {
+        "concurrentWeddings": "حفلات زفاف بالتوازي",
+        "guestsPerWedding": "ضيوف لكل حفل زفاف",
+        "messagesPerMonth": "الرسائل المضمّنة / شهر",
+        "galleryStorage": "تخزين المعرض",
+        "teamSeats": "مقاعد الفريق"
+      },
+      "capacityValues": {
+        "unlimited": "غير محدودة"
+      },
+      "addonsTitle": "الخيارات",
+      "addons": {
+        "stripe": {
+          "label": "التحصيل عبر Stripe",
+          "detail": "خصم مباشر من حسابك، دون عمولة Wedillybird.",
+          "price": "مضمّن"
+        },
+        "hdUpsell": {
+          "label": "معرض عالي الدقة دائم",
+          "detail": "أرشيف عالي الدقة دون حدّ زمني، يُقترَح على الثنائي.",
+          "price": "+29 €"
+        },
+        "extraSeat": {
+          "label": "مقعد إضافي",
+          "detail": "أبعد من المقاعد المضمّنة في باقتك.",
+          "price": "حسب الطلب"
+        },
+        "concurrentEvent": {
+          "label": "حفل زفاف متزامن إضافي",
+          "detail": "أبعد من عدد حفلات الزفاف المتوازية المضمّنة.",
+          "price": "19 € / شهر"
+        }
+      },
+      "overagesTitle": "التجاوزات",
+      "overages": {
+        "message": {
+          "label": "رسائل SMS / واتساب",
+          "detail": "أبعد من حزمة الرسائل المضمّنة.",
+          "price": "0.06 € / رسالة"
+        },
+        "guest": {
+          "label": "ضيف يتجاوز الحدّ",
+          "detail": "لكل ضيف إضافي فوق الحدّ.",
+          "price": "0.25 € / ضيف"
+        },
+        "storage": {
+          "label": "التخزين",
+          "detail": "أبعد من التخزين المضمّن في الباقة.",
+          "price": "0.03 € / غ.ب / شهر"
+        }
+      },
+      "overagesNote": "دون رسوم خفية: تُحتسَب التجاوزات حسب الاستخدام فقط، أبعد مما هو مضمّن.",
+      "compareNote": "أتحتاج إلى تفاصيل الأفراد؟ <link>اطّلع على كل الباقات</link>."
+    },
+    "faq": {
+      "eyebrow": "الأسئلة الشائعة",
+      "title": "ما تسأله عنه الوكالات",
+      "items": {
+        "difference": {
+          "q": "بِمَ تختلفون عن HoneyBook؟",
+          "a": "يتولّى HoneyBook عروض أسعارك وعقودك. ونحن أيضًا — لكننا نمضي حتى اليوم الكبير: دعوات متحرّكة، تأكيد حضور عبر واتساب، تسجيل وصول عند المدخل، مخطط جلوس ومعرض صور. لا ينتهي حفل الزفاف عند التوقيع، وكذلك أداتك."
+        },
+        "money": {
+          "q": "إلى أين يذهب المال الذي أحصّله؟",
+          "a": "مباشرةً إلى حساب Stripe الخاص بك. تربط حسابك، وتصلك مدفوعات الأزواج، دون عمولة Wedillybird ودون وسيط."
+        },
+        "data": {
+          "q": "لمن تعود بياناتي؟",
+          "a": "لك. يبقى أزواجك ومورّدوك ومستنداتك ملكك. يمكنك تصدير كل شيء بصيغة CSV متى شئت، دون أن تطلب إذننا."
+        },
+        "cancel": {
+          "q": "هل يمكنني الإلغاء متى أردت؟",
+          "a": "نعم، دون التزام. يبقى اشتراكك نشطًا حتى نهاية الفترة المدفوعة، ثم يتوقف. دون غرامة ودون إشعار مسبق."
+        },
+        "overage": {
+          "q": "ماذا يحدث إن تجاوزت حصصي؟",
+          "a": "لا شيء يعيقك. تُحتسَب التجاوزات (الرسائل، الضيوف، التخزين) حسب الاستخدام، بالأسعار الشفافة المبيَّنة أعلاه. تبقى ممسكًا بالزمام، دون مفاجآت مزعجة."
+        },
+        "beginner": {
+          "q": "أنا في البداية، هل هذا كثير عليّ؟",
+          "a": "لا. تغطّي باقة Starter خمسة حفلات زفاف بالتوازي وكل الأساسيات. ترتقي مستوى عندما ينمو نشاطك — لا قبل ذلك."
+        }
+      }
+    },
+    "tierBadge": {
+      "business": "Business",
+      "agency": "Agency",
+      "addon": "إضافة"
+    },
+    "preview": {
+      "cockpit": {
+        "title": "لوحة القيادة",
+        "newWedding": "حفل زفاف جديد",
+        "kpi": {
+          "activeWeddings": "حفلات زفاف نشطة",
+          "pendingRsvp": "تأكيدات حضور معلّقة",
+          "deadlines": "المواعيد النهائية",
+          "overdue": "{n} متأخرة",
+          "monthlyRevenue": "إيرادات الشهر"
+        },
+        "upcomingWeddings": "حفلات الزفاف القادمة",
+        "quota": {
+          "events": "الفعاليات",
+          "messages": "الرسائل",
+          "storage": "التخزين"
+        },
+        "activity": {
+          "title": "النشاط",
+          "deposit": "عربون مستلَم",
+          "rsvp": "تأكيد حضور جديد",
+          "quoteAccepted": "عرض سعر مقبول",
+          "newLead": "عميل محتمل جديد",
+          "minutesAgo": "قبل {n} دقيقة",
+          "hoursAgo": "قبل {n} ساعة",
+          "yesterday": "أمس"
+        }
+      },
+      "crm": {
+        "columns": {
+          "lead": "محتمل",
+          "quoteSent": "عرض سعر مُرسَل",
+          "booked": "محجوز"
+        },
+        "bookedPercent": "{n} % مدفوع"
+      },
+      "budget": {
+        "segments": {
+          "venue": "القاعة",
+          "catering": "التموين",
+          "photo": "التصوير",
+          "other": "أخرى"
+        },
+        "envelope": "إجمالي الميزانية",
+        "committed": "ملتزَم",
+        "paid": "مدفوع"
+      }
     }
   },
   "Plans": {
@@ -978,12 +2472,46 @@
         "supportPriority24h": "دعم أولوية (ردّ خلال 24 ساعة)",
         "accountManager": "مدير حساب مخصَّص + SLA 99.9 %",
         "proDashboard": "لوحة تحكم مهنية كاملة",
-        "noCommitment": "بدون أي التزام"
+        "noCommitment": "بدون أي التزام",
+        "s_events": "5 حفلات بالتوازي",
+        "s_quota": "50 غيغابايت تخزين",
+        "s_execution": "يوم الزفاف بالكامل: تأكيد الحضور عبر واتساب، معرض بالبحث بالوجه، تسجيل الدخول، مخطط الطاولات",
+        "s_crm": "إدارة العملاء في عرض القائمة",
+        "s_budget": "ميزانية لكل حفل، للقراءة فقط",
+        "s_brand": "علامة بيضاء: نطاق فرعي وشعار",
+        "b_inherit": "كل ما في باقة Starter، بالإضافة إلى:",
+        "b_quota": "20 حفلًا بالتوازي",
+        "b_crm": "مسار CRM: كانبان وتحويل العميل المحتمل إلى حفل",
+        "b_docs": "عروض أسعار وفواتير وعقود موقّعة إلكترونيًا",
+        "b_budget": "ميزانية قابلة للتعديل، تصدير PDF ومحاسبي، مورّدون بلا حدود",
+        "b_portal": "بوابة الزوجين بعلامة بيضاء",
+        "a_inherit": "كل ما في باقة Business، بالإضافة إلى:",
+        "a_quota": "50 حفلًا بالتوازي",
+        "a_integrations": "تكاملات CRM: HoneyBook وZapier وAPI",
+        "a_analytics": "تحليلات متعددة الحفلات",
+        "a_brand": "علامة بيضاء كاملة: نطاق وبريد إلكتروني باسمك",
+        "a_am": "مدير حساب مخصّص، رد خلال أقل من 4 ساعات",
+        "p_exec": "حفل واحد في وضع التنفيذ",
+        "p_quota": "150 ضيفًا، 25 غيغابايت، معرض لمدة 12 شهرًا",
+        "p_nosub": "بدون اشتراك، الفوترة لكل حدث",
+        "s_guests": "150 ضيفًا لكل حفل",
+        "s_messages": "3000 رسالة واتساب/SMS شهريًا",
+        "s_seats": "مقعدان",
+        "b_storage": "200 غيغابايت تخزين",
+        "b_messages": "10000 رسالة شهريًا",
+        "b_seats": "8 مقاعد",
+        "a_storage": "500 غيغابايت تخزين",
+        "a_messages": "25000 رسالة شهريًا",
+        "a_seats": "مقاعد بلا حدود"
       },
       "overflow": {
-        "whatsapp": "بعد الحصة: 0.06 € لكل رسالة",
-        "storage": "تخزين المعرض: 0.03 € لكل غيغابايت شهريًا فيما بعد"
-      }
+        "whatsapp": "رسالة واتساب/SMS فوق الباقة: 0,06 € لكل رسالة",
+        "storage": "تخزين فوق الحصة: 0,03 € لكل غيغابايت شهريًا",
+        "title": "تجاوزات",
+        "guests": "ضيف فوق حد 150: 0,25 € لكل ضيف",
+        "event": "حفل متزامن إضافي: 19 €/شهر (بالتناسب)"
+      },
+      "addons": "خيارات: مدفوعات عبر حساب Stripe الخاص بك، مقعد إضافي +19 €/شهر، حفل إضافي +19 €/شهر."
     }
   },
   "Upgrade": {
@@ -1012,7 +2540,6 @@
       "forbidden": "ليس لديك صلاحيات على هذا الحدث",
       "payment_record_failed": "تعذّر تسجيل المعاملة",
       "stripe_driver_not_configured": "Stripe غير مُهيَّأ على هذه البيئة",
-      "cinetpay_driver_not_configured": "CinetPay غير مُهيَّأ على هذه البيئة",
       "reconciliation": "webhook الخاص بـStripe متأخر. تم استلام الدفع جيدًا وسيُطبَّق الترقية بعد بضع لحظات. حدّث الصفحة.",
       "network": "خطأ في الشبكة، حاول مجددًا",
       "unknown": "حدث خطأ ما. حاول مجددًا."
@@ -1428,5 +2955,876 @@
     "shapeToggle": "تغيير الشكل (دائري/مستطيل)",
     "clickToUnassign": "انقر للإزالة من الطاولة",
     "guestOf": "ضيف {host}"
+  },
+  "Marketing": {
+    "guide": {
+      "back": "رجوع",
+      "eyebrow": "خطوة بخطوة",
+      "title": "دليل الزفاف المثالي",
+      "subtitle": "قائمة تحقّق واضحة ومنظَّمة لتنظيم زفافك بهدوء، خطوة بخطوة، مع الاستفادة من كامل إمكانات Wedillybird.",
+      "step1": {
+        "timeline": "قبل 12 إلى 10 أشهر",
+        "title": "أُسس الزفاف",
+        "item1": "تحديد التاريخ والميزانية الإجمالية",
+        "item2": "إعداد قائمة المدعوّين المبدئية",
+        "item3": "اختيار قاعة الاستقبال ومتعهّد الطعام الرئيسي",
+        "item4": "إنشاء مساحتك على Wedillybird لتجميع جهات الاتصال"
+      },
+      "step2": {
+        "timeline": "قبل 9 إلى 6 أشهر",
+        "title": "تكوين الفريق",
+        "item1": "حجز المصوّر الفوتوغرافي ومصوّر الفيديو",
+        "item2": "اختيار الديكور ومنسّق الأزهار",
+        "item3": "بدء قياسات الفستان/البدلة",
+        "item4": "التواصل مع منسّق الموسيقى أو الفرقة"
+      },
+      "step3": {
+        "timeline": "قبل 5 إلى 3 أشهر",
+        "title": "الدعوات واللوجستيات",
+        "item1": "إنهاء قائمة المدعوّين",
+        "item2": "إنشاء الدعوة الرقمية على Wedillybird",
+        "item3": "إرسال بطاقات الدعوة عبر واتساب",
+        "item4": "تدبير حجوزات الإقامة للمدعوّين القادمين من بعيد"
+      },
+      "step4": {
+        "timeline": "قبل شهرين إلى شهر",
+        "title": "اللمسات الأخيرة",
+        "item1": "تذكير المدعوّين الذين لم يردّوا عبر التطبيق",
+        "item2": "إنهاء مخطّط الجلوس بناءً على تأكيدات الحضور النهائية",
+        "item3": "إجراء القياسات الأخيرة للأزياء",
+        "item4": "مراجعة برنامج اليوم مع جميع مزوّدي الخدمات"
+      },
+      "step5": {
+        "timeline": "يوم الزفاف",
+        "title": "احتفال وطمأنينة",
+        "item1": "استخدام التطبيق لتسجيل وصول المدعوّين عند المدخل",
+        "item2": "تفويض التنسيق إلى شخص قريب أو منسّق مناسبات",
+        "item3": "الاستمتاع بكل لحظة",
+        "item4": "ترك المدعوّين يشاركون صورهم على المساحة المشتركة"
+      }
+    },
+    "templates": {
+      "back": "رجوع",
+      "title": "معرض القوالب",
+      "subtitle": "اكتشِف مجموعتنا من قوالب دعوات واتساب. اختَر القالب الذي يناسب أجواء زفافك تمامًا.",
+      "cta": "أنشئ دعوتي مجّانًا",
+      "tpl1": {
+        "name": "الأناقة البسيطة",
+        "description": "خطوط نقيّة وطباعة أنيقة، مثالية لزفاف عصري.",
+        "tag1": "رائج",
+        "tag2": "عصري"
+      },
+      "tpl2": {
+        "name": "رومانسية ريفية",
+        "description": "زخارف زهرية رقيقة وألوان باستيل لأجواء ناعمة وطبيعية.",
+        "tag1": "زهري",
+        "tag2": "كلاسيكي"
+      },
+      "tpl3": {
+        "name": "ليلة شرقية",
+        "description": "زخارف هندسية رقيقة ولمسات ذهبية لاحتفال مهيب.",
+        "tag1": "بريميوم",
+        "tag2": "فخامة"
+      },
+      "tpl4": {
+        "name": "نقاء تقليدي",
+        "description": "تصميم خالد يُبرز جوهر اقترانكما.",
+        "tag1": "تقليد"
+      },
+      "tpl5": {
+        "name": "غروب الشمس",
+        "description": "ألوان دافئة ونابضة لزفاف احتفالي تحت أجواء استوائية.",
+        "tag1": "احتفالي",
+        "tag2": "جديد"
+      },
+      "tpl6": {
+        "name": "أسود وذهبي مميّز",
+        "description": "تباين قوي وأناقة مطلقة لاستقبال راقٍ.",
+        "tag1": "بريميوم",
+        "tag2": "أنيق"
+      }
+    },
+    "blog": {
+      "back": "العودة إلى الرئيسية",
+      "title": "مجلّة الزفاف",
+      "subtitle": "إلهامات ونصائح عملية وشهادات لمرافقتك في تنظيم أجمل يوم في حياتك.",
+      "readArticle": "قراءة المقال",
+      "article1": {
+        "title": "أبرز اتجاهات الزفاف في 2026",
+        "excerpt": "اكتشِف الألوان والثيمات وصيغ الاستقبال التي ستطبع مواسم الزفاف القادمة.",
+        "date": "15 مايو 2026",
+        "category": "إلهامات"
+      },
+      "article2": {
+        "title": "كيف تنجح في دعواتك عبر واتساب؟",
+        "excerpt": "وداعًا لبطاقات الدعوة الورقية التي تضيع. إليك كيفية إنشاء دعوة رقمية أنيقة وفعّالة.",
+        "date": "02 مايو 2026",
+        "category": "تنظيم"
+      },
+      "article3": {
+        "title": "أفضل 10 قاعات استقبال في السنغال",
+        "excerpt": "من داكار إلى سالي، اختيارنا الحصري لأفضل الأماكن لزفاف لا يُنسى.",
+        "date": "28 أبريل 2026",
+        "category": "أماكن"
+      },
+      "article4": {
+        "title": "إدارة ميزانية زفافك دون توتّر",
+        "excerpt": "نصائح خبرائنا لتوزيع نفقاتك بذكاء وتجنّب المفاجآت غير السارّة.",
+        "date": "10 أبريل 2026",
+        "category": "ميزانية"
+      }
+    },
+    "pros": {
+      "metaTitle": "Wedillybird للمحترفين — نظام تشغيل وكالات الزفاف",
+      "metaDescription": "من العميل المحتمل إلى يوم الزفاف: إدارة علاقات العملاء، عروض الأسعار، العقود الموقَّعة، الميزانية، مزوّدو الخدمات، تأكيد الحضور عبر واتساب، معرض بالتعرّف على الوجوه، وتسجيل الوصول — تحت علامتك التجارية. باقات Starter وBusiness وAgency.",
+      "logoHome": "Wedillybird — الرئيسية",
+      "navAriaLabel": "تنقّل صفحة المحترفين",
+      "nav": {
+        "features": "المزايا",
+        "pricing": "الأسعار",
+        "faq": "الأسئلة الشائعة"
+      },
+      "cta": "إنشاء مساحتي"
+    },
+    "legal": {
+      "eyebrow": "وثيقة قانونية"
+    },
+    "faq": {
+      "eyebrow": "الأسئلة الشائعة"
+    },
+    "forfaitsPros": {
+      "faqEyebrow": "أسئلة متكرّرة"
+    },
+    "landing": {
+      "navAriaLabel": "التنقّل الرئيسي"
+    }
+  },
+  "ProPages": {
+    "analyticsMetaTitle": "التحليلات — Wedillybird Pro",
+    "analyticsTitle": "التحليلات",
+    "analyticsEyebrow": "القيادة · {name}",
+    "analyticsLockedEyebrow": "القيادة",
+    "analyticsLockedDescription": "غرفة قيادة موحَّدة لوكالتك: أداء تجاري وتشغيلي مجمَّع على كل حفلات زفافك.",
+    "analyticsCap1": "مؤشّرات أداء مجمَّعة لعدّة فعاليات: حفلات نشطة، ميزانية في خط الأنابيب",
+    "analyticsCap2": "معدّل التحويل من عميل محتمل إلى محجوز في خط الأنابيب",
+    "analyticsCap3": "توزيع خط الأنابيب حسب المرحلة",
+    "analyticsCap4": "ميزانية ملتزَم بها مجمَّعة (مخطّطة / مدفوعة)",
+    "analyticsKpiActiveWeddings": "حفلات نشطة",
+    "analyticsKpiActiveWeddingsNote": "{count} إجمالًا",
+    "analyticsKpiClients": "العملاء",
+    "analyticsKpiClientsNote": "{count} محجوزون",
+    "analyticsKpiConversion": "التحويل",
+    "analyticsKpiConversionNote": "عميل محتمل ← محجوز",
+    "analyticsKpiPipelineBudget": "الميزانية في خط الأنابيب",
+    "analyticsKpiPipelineBudgetNote": "تقدير العملاء",
+    "analyticsPipelineByStage": "خط الأنابيب حسب المرحلة",
+    "analyticsCommittedBudget": "ميزانية ملتزَم بها (كل الحفلات)",
+    "analyticsPaidOfPlanned": "مدفوع من أصل {planned} مخطّط",
+    "quotesMetaTitle": "عروض الأسعار والفواتير — Wedillybird Pro",
+    "quotesTitle": "عروض الأسعار والفواتير",
+    "quotesLockedEyebrow": "المالية",
+    "quotesLockedDescription": "أصدِر عروض أسعار وفواتير لثنائياتك، تابِع العرابين والأرصدة، وأرسِل التذكيرات بنقرة واحدة — كل ذلك من المكتب الخلفي.",
+    "quotesCap1": "عروض أسعار وفواتير مرقَّمة (DEV-/FAC-)، بصيغة PDF بعلامتك التجارية",
+    "quotesCap2": "بنود، خصومات، ضريبة قيمة مضافة اختيارية، مجاميع آلية",
+    "quotesCap3": "جدول دفعات عربون + رصيد، متابعة المدفوع / المتبقّي",
+    "quotesCap4": "تحويل عرض سعر مقبول إلى فاتورة",
+    "quotesCap5": "حالات (مُرسَل، مقبول، مدفوع، متأخّر) وتذكيرات",
+    "quotesCap6": "سجلّ نشاط لكل مستند",
+    "integrationsMetaTitle": "عمليات الربط — Wedillybird Pro",
+    "integrationsTitle": "ربط إدارة علاقات العملاء",
+    "integrationsLockedEyebrow": "القيادة",
+    "integrationsLockedDescription": "احتفظ بنظام إدارة علاقات العملاء الذي تستخدمه بالفعل. تتولّى Wedillybird تنفيذ الزفاف وتتزامن مع أداتك.",
+    "integrationsCap1": "استيراد العملاء بصيغة CSV مع مطابقة الأعمدة والمكرَّرات",
+    "integrationsCap2": "موصِّلات HoneyBook وZapier / Make وواجهة API وWebhooks",
+    "integrationsCap3": "مزامنة واردة (نظامك لإدارة علاقات العملاء ← Wedillybird، للقراءة فقط)",
+    "integrationsCap4": "وضع «أستخدم نظام إدارة علاقات العملاء الخاص بي» الذي يُخفي خط الأنابيب الأصلي",
+    "integrationsCap5": "سجلّ مزامنة عديم التأثير الجانبي مع إعادة محاولة الإخفاقات",
+    "integrationsConnectorHoneybookDesc": "مزامنة واردة لمشاريعك (للقراءة فقط).",
+    "integrationsConnectorZapierDesc": "أتمِت تدفّقاتك مع أكثر من 6000 تطبيق.",
+    "integrationsConnectorApiDesc": "مفتاح API، أحداث صادرة، حمولات موقَّعة بـ HMAC.",
+    "integrationsHeaderEyebrow": "القيادة · عمليات الربط",
+    "integrationsHeaderTitle": "عمليات الربط",
+    "integrationsConnectorsHeading": "الموصِّلات",
+    "integrationsSoonBadge": "قريبًا",
+    "integrationsConnectorsFootnote": "الموصِّلات الخارجية في الطريق؛ استيراد CSV متاح من الآن.",
+    "contractsMetaTitle": "العقود — Wedillybird Pro",
+    "contractsTitle": "العقود",
+    "contractsLockedEyebrow": "المالية",
+    "contractsLockedDescription": "قوالب عقود، توقيع إلكتروني، ومتابعة دورة الحياة — من عرض السعر المقبول إلى العقد الموقَّع.",
+    "contractsCap1": "قوالب عقود قابلة لإعادة الاستخدام",
+    "contractsCap2": "توقيع إلكتروني من الثنائي",
+    "contractsCap3": "متابعة الحالات (مُرسَل، موقَّع، موقَّع بالمقابل، نشط)",
+    "contractsCap4": "ربط بالزفاف وبعرض السعر",
+    "contractsCap5": "سجلّ تدقيق موقوت زمنيًا",
+    "clientsMetaTitle": "العملاء — Wedillybird Pro",
+    "clientsTitle": "العملاء",
+    "clientsLockedEyebrow": "إدارة علاقات العملاء",
+    "clientsLockedDescription": "خط أنابيبك التجاري: تابِع كل ثنائي من أول تواصل إلى تسليم الزفاف، دون مغادرة المكتب الخلفي.",
+    "clientsCap1": "خط أنابيب من 6 مراحل: عميل محتمل ← جرى التواصل ← عرض سعر ← محجوز ← قيد التنفيذ ← مُسلَّم",
+    "clientsCap2": "عرض كانبان بالسحب والإفلات + جدول مكثَّف قابل للتصفية والترتيب",
+    "clientsCap3": "تحويل عميل محتمل إلى زفاف بنقرة واحدة",
+    "clientsCap4": "مصادر العملاء المحتملين وخط زمني للنشاط لكل عميل",
+    "clientsCap5": "إجراءات جماعية (تغيير الحالة، الإسناد، الحذف)",
+    "clientsCap6": "بطاقة العميل: بيانات الاتصال، الميزانية، الملاحظات، المستندات",
+    "paymentsMetaTitle": "المدفوعات — Wedillybird Pro",
+    "paymentsTitle": "المدفوعات",
+    "paymentsLockedEyebrow": "المالية",
+    "paymentsLockedDescription": "حصِّل من ثنائياتك عبر الإنترنت بواسطة Stripe Connect: تحويلات آلية، جداول دفعات، ومتابعة الحالات.",
+    "paymentsCap1": "ربط Stripe Connect (تحويلات آلية)",
+    "paymentsCap2": "تحصيل العرابين والأرصدة بالبطاقة",
+    "paymentsCap3": "جداول دفعات لكل فاتورة",
+    "paymentsCap4": "حالات فورية وتذكيرات آلية",
+    "paymentsCap5": "مطابقة مع الفواتير الصادرة",
+    "weddingsMetaTitle": "حفلات الزفاف — Wedillybird Pro",
+    "weddingsTitle": "حفلات الزفاف",
+    "weddingsCount": "{count, plural, zero {لا حفلات} one {حفل واحد} two {حفلان} few {# حفلات} many {# حفلًا} other {# حفل}}",
+    "weddingsEmpty": "لا توجد حفلات زفاف بعد. أنشئ الأول لتبدأ.",
+    "weddingsMaxInvitations": "{count} دعوة كحدّ أقصى",
+    "weddingsStatusDraft": "مسوّدة",
+    "weddingsStatusActive": "نشط",
+    "weddingsStatusArchived": "مؤرشَف",
+    "weddingsStatusCancelled": "ملغى",
+    "weddingHubMetaTitle": "زفاف — Wedillybird Pro",
+    "planningMetaTitle": "التخطيط الزمني — Wedillybird Pro",
+    "planningTitle": "التخطيط الزمني",
+    "planningEmpty": "لا توجد حفلات زفاف بعد. أنشئ زفافًا لتخطيط مهامه.",
+    "memberFallback": "عضو",
+    "budgetMetaTitle": "الميزانية — Wedillybird Pro",
+    "budgetTitle": "الميزانية",
+    "budgetEmpty": "لا توجد حفلات زفاف بعد. أنشئ زفافًا لمتابعة ميزانيته.",
+    "settingsMetaTitle": "الإعدادات — Wedillybird Pro",
+    "settingsEyebrow": "القيادة · الإعدادات",
+    "settingsTitle": "الإعدادات",
+    "dashboardMetaTitle": "غرفة القيادة — Wedillybird Pro",
+    "vendorsMetaTitle": "مزوّدو الخدمات — Wedillybird Pro",
+    "inviteEyebrow": "دعوة",
+    "onboardingEyebrow": "التهيئة · الخطوة 01",
+    "billingPerMonth": "/ شهريًا",
+    "billingAgencySubscription": "اشتراك الوكالة",
+    "billingCellBillingCycle": "دورة الفوترة",
+    "billingCellMonthly": "شهري",
+    "billingCellNextRenewal": "التجديد التالي",
+    "billingCellPaymentMethod": "وسيلة الدفع",
+    "billingCellCardViaStripe": "بطاقة · عبر Stripe",
+    "billingCellNone": "لا شيء",
+    "billingCellPlan": "الباقة",
+    "billingChangePlan": "تغيير الباقة",
+    "billingEndOfPeriod": "نهاية الفترة",
+    "billingChoosePlan": "اختيار باقة",
+    "billingSubscriptionEyebrow": "الاشتراك",
+    "billingInvoicesHeading": "الفواتير",
+    "billingTotalPaid": "إجمالي المدفوع",
+    "billingInvoicesEmpty": "ستظهر فواتير اشتراكك هنا فور أول خصم. تبقى قابلة للتنزيل من بوابة Stripe.",
+    "billingInvoiceNumber": "رقم الفاتورة",
+    "billingInvoiceDate": "التاريخ",
+    "billingInvoicePeriod": "الفترة",
+    "billingInvoiceAmount": "المبلغ",
+    "billingInvoiceStatus": "الحالة",
+    "billingInvoiceDocument": "المستند"
+  },
+  "CoupleSpace": {
+    "eyebrow": "مساحة الثنائي",
+    "weddingsTitle": "حفلات زفافك",
+    "empty": "لا توجد حفلات زفاف مرتبطة بحسابك بعد. ستمنحك وكالتك حقّ الوصول إليها — وستظهر لك هنا.",
+    "openMySpace": "فتح مساحتي",
+    "eventEyebrow": "مساحة زفافك",
+    "today": "إنه اليوم!",
+    "daysUntil": "باقٍ {days} يوم",
+    "statGuests": "المدعوّون",
+    "statConfirmed": "المؤكَّدون",
+    "statPending": "قيد الانتظار",
+    "statExpected": "الأشخاص المتوقَّعون",
+    "guestsTitle": "قائمة مدعوّيك",
+    "guestsHint": "أضِف مدعوّيك وأرقام هواتفهم — تراهم وكالتك في الوقت الفعلي لتحضير دعوات واتساب.",
+    "paymentsTitle": "المدفوعات",
+    "paymentsEmpty": "لا توجد مدفوعات مستحقّة في الوقت الحالي. سترسل لك وكالتك رابطًا هنا عند الاقتضاء.",
+    "payPending": "للسداد",
+    "paySucceeded": "مسدَّد",
+    "payFailed": "فشل",
+    "payCta": "ادفع",
+    "receiptCta": "إيصال",
+    "portalMetaTitle": "مساحة الثنائي",
+    "docInvoice": "فاتورة",
+    "docQuote": "عرض سعر",
+    "docContract": "عقد",
+    "backToEvent": "العودة إلى الفعالية",
+    "editEyebrow": "تعديل",
+    "editTitle": "تفاصيل زفافك",
+    "editSubtitle": "حدِّث المعلومات التي ستظهر على الدعوة ولوحة التحكّم.",
+    "messagingEyebrow": "تخصيص",
+    "messagingTitle": "رسالة الدعوة",
+    "messagingSubtitle": "اختَر أسلوب الرسالة التي ستُرسَل عبر واتساب إلى كل مدعوّ من مدعوّيك. يمكنك إضافة كلمة شخصية تُدرَج ضمن النص. تتحدّث المعاينة على اليمين في الوقت الفعلي.",
+    "previewBanner": "معاينة الدعوة",
+    "previewBack": "رجوع",
+    "previewAddressing": "عزيزي/عزيزتي <name>اسم المدعو</name>، يسعدنا حضورك.",
+    "previewRsvpEyebrow": "نموذج تأكيد الحضور",
+    "previewRsvpTitle": "سيؤكّد مدعوّوك حضورهم هنا.",
+    "previewRsvpHint": "3 أزرار (أؤكّد · لن أتمكّن · ربما) + المرافقون + النظام الغذائي + كلمة للعروسين.",
+    "previewGalleryCaption": "صور شاركها المدعوّون"
+  },
+  "Pay": {
+    "success": {
+      "metaTitle": "تم تأكيد الدفع — Wedillybird",
+      "title": "تم تأكيد الدفع",
+      "body": "شكرًا، لقد استلمنا دفعتك بنجاح. أُرسِل إليك إيصال عبر البريد الإلكتروني، وأُبلِغ منظّمك تلقائيًا. يمكنك إغلاق هذه الصفحة."
+    },
+    "cancel": {
+      "metaTitle": "تم إلغاء الدفع — Wedillybird",
+      "title": "تم إلغاء الدفع",
+      "body": "لم يُخصَم أي مبلغ. يمكنك المحاولة مجدّدًا من رابط الدفع الذي أُرسِل إليك."
+    }
+  },
+  "MonMariage": {
+    "common": {
+      "attach": "إرفاق",
+      "attachEmpty": "لا توجد مستندات مرفقة بعد.",
+      "attachments": "المرفقات",
+      "close": "إغلاق",
+      "confirmed": "مؤكَّدون",
+      "coupleSpace": "مساحة الثنائي",
+      "distribution": "التوزيع",
+      "donutAria": "{confirmed} ضيفًا مؤكَّدًا من أصل {sum}",
+      "jAfter": "ي+{n}",
+      "jBefore": "ي−{n}",
+      "jDay": "اليوم الموعود",
+      "mainNavLabel": "التنقّل الرئيسي",
+      "navLabel": "التنقّل",
+      "notifications": "الإشعارات",
+      "qrAria": "رمز QR للدعوة",
+      "quotaFull": "تم بلوغ الحد",
+      "quotaUsed": "{pct}٪ مُستخدَم",
+      "quotaWarn": "{pct}٪ مُستخدَم",
+      "remove": "إزالة",
+      "signOut": "تسجيل الخروج"
+    },
+    "home": {
+      "hello": "مرحبًا بكم في مساحتكم",
+      "heroAria": "لمحة عن زفافكم",
+      "navAria": "وصول سريع",
+      "confirmed": "مؤكَّدون",
+      "pending": "قيد الانتظار",
+      "expected": "الأشخاص المتوقَّعون",
+      "online": "متصلة",
+      "invitation": {
+        "title": "دعوتكم",
+        "desc": "شاركوا صفحتكم وتابعوا الردود مباشرةً."
+      },
+      "empty": {
+        "title": "كل شيء يبدأ هنا",
+        "body": "أضيفوا أول ضيوفكم لتُحيوا دعوتكم وتتابعوا الردود.",
+        "addGuests": "إضافة ضيوف",
+        "viewInvitation": "عرض الدعوة"
+      },
+      "cards": {
+        "guests": {
+          "title": "الضيوف",
+          "desc": "أديروا قائمتكم والردود."
+        },
+        "plan": {
+          "title": "الجدول الزمني",
+          "desc": "تابعوا مهامّكم خطوة بخطوة."
+        },
+        "vendors": {
+          "title": "مزوّدو الخدمات",
+          "desc": "دفتر عناوينكم وعروض أسعارهم."
+        },
+        "budget": {
+          "title": "الميزانية",
+          "desc": "نفقاتكم وجدول المدفوعات."
+        },
+        "seating": {
+          "title": "مخطّط الجلوس",
+          "desc": "وزّعوا ضيوفكم، طاولة بطاولة."
+        },
+        "forfait": {
+          "title": "باقتي",
+          "desc": "باقتكم وفواتيركم وخياراتكم."
+        }
+      }
+    },
+    "dashboard": {
+      "rsvpTitle": "الردود (RSVP)",
+      "expectedPeople": "الأشخاص المتوقَّعون",
+      "planCapacity": "سعة الباقة: {cap} ضيفًا",
+      "legend": {
+        "confirmed": "مؤكَّدون",
+        "pending": "قيد الانتظار",
+        "declined": "معتذِرون",
+        "noreply": "بلا ردّ"
+      },
+      "quotasTitle": "حصصكم",
+      "galleryActive": "المعرض نشط",
+      "quotaGuests": "الضيوف",
+      "quotaGuestsSub": "الأشخاص المتوقَّعون",
+      "quotaStorage": "معرض الصور",
+      "quotaStorageSub": "التخزين المستخدَم",
+      "guestListTitle": "قائمة الضيوف",
+      "guestListSub": "{invitations} دعوة · {people} شخصًا",
+      "confirmedCount": "{count} مؤكَّدون",
+      "guestNamePlaceholder": "اسم الضيف",
+      "nameAria": "اسم الضيف",
+      "whatsappAria": "رقم واتساب",
+      "add": "إضافة",
+      "newGuestGroup": "غير مصنَّف",
+      "searchGuest": "ابحث عن ضيف…",
+      "searchAria": "البحث عن ضيف",
+      "filterAria": "تصفية الضيوف",
+      "noGuestMatch": "لا يوجد ضيف مطابق.",
+      "filters": {
+        "all": "الكل",
+        "confirmed": "مؤكَّدون",
+        "pending": "قيد الانتظار",
+        "noreply": "بلا ردّ",
+        "declined": "معتذِرون"
+      },
+      "inviteTitle": "الدعوة العامة",
+      "online": "متصلة",
+      "youAreInvited": "أنتم مدعوّون",
+      "copy": "نسخ",
+      "copied": "تم النسخ",
+      "shareWhatsApp": "المشاركة عبر واتساب",
+      "preview": "معاينة",
+      "qrTitle": "رمز QR للدعوة",
+      "qrDesc": "اطبعوه أو اعرضوه في يوم الزفاف.",
+      "planTitle": "الجدول الزمني"
+    },
+    "planning": {
+      "eyebrow": "التنظيم",
+      "title": "جدولكم الزمني",
+      "subtitle": "تقدّموا بهدوء، خطوة بخطوة حتى اليوم الموعود.",
+      "progress": "التقدّم",
+      "percent": "{pct}٪",
+      "tasksRatio": "{done} / {total} مهمّة",
+      "inProgressCount": "{count} قيد التنفيذ",
+      "changeStatus": "تغيير الحالة",
+      "today": "اليوم",
+      "thisWeek": "هذا الأسبوع",
+      "soon": "قريبًا",
+      "deleteTask": "حذف المهمّة",
+      "addTask": "إضافة مهمّة",
+      "newTaskPlaceholder": "مهمّة جديدة…",
+      "dueAria": "تاريخ الاستحقاق",
+      "ok": "موافق",
+      "cancel": "إلغاء",
+      "addPhase": "إضافة مرحلة",
+      "newPhase": "مرحلة جديدة",
+      "createPhase": "إنشاء المرحلة",
+      "customPhase": "مرحلة مخصّصة",
+      "phaseTitleLabel": "عنوان المرحلة",
+      "phaseTitleHint": "مثال: «بعد 6 أشهر»",
+      "phaseTitlePlaceholder": "اسم المرحلة",
+      "phaseSubLabel": "عنوان فرعي",
+      "phaseSubPlaceholder": "توضيح قصير (اختياري)",
+      "optional": "اختياري",
+      "statusTodo": "للتنفيذ",
+      "statusDoing": "قيد التنفيذ",
+      "statusDone": "تمّ",
+      "statusUnknown": "للتنفيذ"
+    },
+    "budget": {
+      "eyebrow": "المالية",
+      "title": "ميزانيتكم",
+      "subtitle": "تابعوا نفقاتكم وجدول مدفوعاتكم بلمحة واحدة.",
+      "engaged": "المُلتزَم به",
+      "postsCount": "{count, plural, zero {# بنود} one {بند واحد} two {بندان} few {# بنود} many {# بندًا} other {# بند}}",
+      "plannedBudget": "الميزانية المخطَّطة",
+      "paid": "المدفوع",
+      "remainingToPay": "المتبقّي للدفع",
+      "engagedVsPlanned": "المُلتزَم مقابل المخطَّط",
+      "percent": "{pct}٪",
+      "overBudget": "تجاوز بمقدار {amount}",
+      "budgetMargin": "هامش قدره {amount}",
+      "expensesByPost": "النفقات حسب البند",
+      "vendorsLink": "عرض المزوّدين",
+      "postPaid": "{amount} مدفوعة",
+      "toSettle": "للتسوية",
+      "scheduleTitle": "جدول المدفوعات",
+      "scheduleSub": "سجّلوا مدفوعاتكم وأرفقوا الفواتير.",
+      "remainingDue": "المتبقّي المستحَق",
+      "settle": "تسوية",
+      "edit": "تعديل",
+      "recordPayment": "تسجيل دفعة",
+      "paidInFull": "مدفوع بالكامل",
+      "partialPayment": "دفعة جزئية",
+      "unpaid": "غير مدفوع",
+      "amountPaidLabel": "المبلغ المدفوع",
+      "paymentDateLabel": "تاريخ الدفع",
+      "payInFull": "دفع الكامل",
+      "deposit50": "عربون 50٪",
+      "cancelPayment": "إلغاء الدفعة",
+      "attachInvoice": "إرفاق الفاتورة",
+      "cancel": "إلغاء",
+      "save": "حفظ",
+      "statusPaid": "مدفوع",
+      "statusPartial": "جزئي",
+      "statusToPay": "للتسوية",
+      "statusPlanned": "مخطَّط"
+    },
+    "vendors": {
+      "eyebrow": "الدفتر",
+      "title": "مزوّدوكم",
+      "subtitle": "اجمعوا جهات اتصالكم وعروض الأسعار والمدفوعات في مكان واحد.",
+      "statVendors": "المزوّدون",
+      "statEngaged": "المُلتزَم به",
+      "statPaid": "المدفوع",
+      "seeBudget": "عرض الميزانية",
+      "displayAria": "وضع العرض",
+      "viewList": "الدفتر",
+      "viewKanban": "كانبان",
+      "searchPlaceholder": "ابحث عن مزوّد…",
+      "searchAria": "البحث عن مزوّد",
+      "add": "إضافة",
+      "filterStatusAria": "تصفية حسب الحالة",
+      "noVendorMatch": "لا يوجد مزوّد مطابق.",
+      "dropHere": "أفلِت هنا",
+      "filters": {
+        "all": "الكل",
+        "reserve": "محجوزون",
+        "devis": "عرض سعر",
+        "contacte": "تم التواصل",
+        "a_contacter": "للتواصل"
+      },
+      "modalEyebrow": "مزوّد",
+      "newVendor": "مزوّد جديد",
+      "editVendor": "تعديل المزوّد",
+      "createVendor": "إنشاء المزوّد",
+      "cancel": "إلغاء",
+      "save": "حفظ",
+      "vendorNameLabel": "اسم المزوّد",
+      "vendorNamePlaceholder": "مثال: قاعة، تموين، مصوّر…",
+      "categoryLabel": "الفئة",
+      "statusLabel": "الحالة",
+      "phoneLabel": "الهاتف",
+      "emailLabel": "البريد الإلكتروني",
+      "optional": "اختياري",
+      "amountLabel": "المبلغ",
+      "paidLabel": "المدفوع",
+      "depositHint": "العربون المدفوع مسبقًا",
+      "notesLabel": "ملاحظات",
+      "notesPlaceholder": "تفاصيل مفيدة: القائمة، المواعيد، الشروط…",
+      "attachmentsLabel": "المرفقات",
+      "attachmentsCount": "{count, plural, zero {# مرفقات} one {مرفق واحد} two {مرفقان} few {# مرفقات} many {# مرفقًا} other {# مرفق}}",
+      "edit": "تعديل",
+      "paidAmount": "{paid} مدفوعة",
+      "paidWithRemainder": "{paid} مدفوعة · يتبقّى {rem}",
+      "noDeposit": "لا عربون مدفوع"
+    },
+    "forfait": {
+      "eyebrow": "صيغتكم",
+      "choixTitle": "اختاروا باقتكم",
+      "choixSubtitle": "دفعة واحدة، دون أي اشتراك. كل شيء مشمول ليومكم الكبير.",
+      "oneTimeNote": "دفعة واحدة · المعرض نشط 12 شهرًا بعد الزفاف.",
+      "recommended": "موصى به",
+      "once": "مرة واحدة",
+      "onceShort": "مرة واحدة",
+      "currentPlan": "الباقة الحالية",
+      "choosePlan": "اختيار {name}",
+      "reassureRefund": "استرداد 100٪ خلال 7 أيام إذا لم تُرسَل الدعوة.",
+      "reassurePostpone": "تأجيل مجاني في حال الإلغاء.",
+      "yourPlan": "باقتكم",
+      "purchasedOn": "تم الشراء في {date}",
+      "activeOneTime": "نشط · دفعة واحدة",
+      "quotaGuests": "الضيوف",
+      "quotaGuestsSub": "الأشخاص المتوقَّعون",
+      "quotaStorage": "معرض الصور",
+      "quotaStorageSub": "التخزين المستخدَم",
+      "galleryActiveUntil": "المعرض نشط حتى <b>{date}</b>",
+      "upgradeEyebrow": "ترقية",
+      "upgradeTitle": "انتقلوا إلى Premium",
+      "upgradeDesc": "ضيوف أكثر، تخزين HD أكبر، والبحث بالوجه. دفعة واحدة دون اشتراك.",
+      "upgradeToPremium": "الترقية إلى Premium",
+      "upsellEyebrow": "بعد الزفاف",
+      "upsellTitle": "احتفظوا بصوركم بدقّة HD إلى الأبد",
+      "upsellDesc": "نزّلوا كل شيء بدقّة عالية وأرشِفوا معرضكم دون حدّ زمني.",
+      "archiveForever": "الأرشفة للأبد",
+      "invoices": "الفواتير",
+      "downloadReceipt": "تنزيل الإيصال",
+      "receiptPdf": "إيصال PDF",
+      "overagesTitle": "ما يتجاوز باقتكم",
+      "overagesHint": "يُحتسَب فقط عند التجاوز",
+      "overagesFoot": "لا خصومات مفاجئة: تبقى نفقاتكم تحت سيطرتكم."
+    },
+    "seating": {
+      "eyebrow": "الحفل",
+      "title": "مخطّط الجلوس",
+      "subtitle": "اسحبوا ضيوفكم إلى الطاولات واضبطوا كل شيء بحركات قليلة.",
+      "seatedRatio": "{seated} / {total} موزَّعون",
+      "addPerson": "إضافة شخص",
+      "autoPlace": "توزيع تلقائي",
+      "addTable": "إضافة طاولة",
+      "mobileNote": "يُحرَّر مخطّط الجلوس على شاشة كبيرة. هذه معاينة للقراءة فقط.",
+      "empty": "لا ضيوف على هذه الطاولة.",
+      "cancel": "إلغاء",
+      "add": "إضافة",
+      "shapeLabel": "الشكل",
+      "shapeRound": "دائرية",
+      "shapeRect": "مستطيلة",
+      "shapeHead": "طاولة الشرف",
+      "shapeRoundShort": "دائرية",
+      "shapeRectShort": "مستطيل",
+      "shapeHeadShort": "الشرف",
+      "seatsLabel": "المقاعد",
+      "decreaseSign": "إنقاص",
+      "increaseSign": "زيادة",
+      "addToList": "إضافة إلى القائمة",
+      "nameLabel": "الاسم",
+      "nameHint": "شخص أو عائلة",
+      "namePlaceholder": "مثال: عائلة ديالو",
+      "categoryLabel": "الفئة",
+      "peopleCountLabel": "عدد الأشخاص",
+      "guestsToSeat": "ضيوف للتوزيع",
+      "seatedCounter": "<b>{seated}</b> / {total} موزَّعون",
+      "searchGuest": "ابحث عن ضيف…",
+      "search": "البحث عن ضيف",
+      "clear": "مسح",
+      "allSeated": "جميع ضيوفكم موزَّعون.",
+      "noGuestFilter": "لا يوجد ضيف مطابق لهذا المرشّح.",
+      "chipAria": "{name}، {count} أشخاص، {cat}",
+      "placementConstraint": "قيد على التوزيع",
+      "keepTogether": "يُبقَون معًا",
+      "keepApart": "يُفصَلون",
+      "assignToTable": "توزيع {name} على طاولة",
+      "tableOptions": "خيارات الطاولة {label}",
+      "moveTable": "تحريك الطاولة {label}",
+      "move": "تحريك",
+      "capacityExceeded": "تم تجاوز السعة",
+      "zoom": "تكبير",
+      "zoomOut": "تصغير",
+      "zoomIn": "تكبير",
+      "resetView": "إعادة تمركز العرض",
+      "renameEdit": "إعادة تسمية / تعديل",
+      "duplicate": "تكرار",
+      "delete": "حذف",
+      "copyLabel": "{label} (نسخة)",
+      "tableN": "الطاولة {n}",
+      "inspectorAria": "تفاصيل الطاولة {label}",
+      "inspectorSub": "{occ}/{cap} مقاعد · {shape}",
+      "closeInspector": "إغلاق اللوحة",
+      "tableNameLabel": "اسم الطاولة",
+      "capacityLabel": "السعة",
+      "decrease": "إنقاص",
+      "increase": "زيادة",
+      "capExceeded": "{occ}/{cap} · تجاوز السعة",
+      "capFull": "ممتلئة",
+      "capFree": "{count, plural, zero {# مقاعد حرة} one {مقعد حر واحد} two {مقعدان حرّان} few {# مقاعد حرة} many {# مقعدًا حرًّا} other {# مقعد حر}}",
+      "seatedGuests": "{count, plural, zero {# ضيوف موزَّعين} one {ضيف موزَّع واحد} two {ضيفان موزَّعان} few {# ضيوف موزَّعين} many {# ضيفًا موزَّعًا} other {# ضيف موزَّع}}",
+      "seatedEmpty": "لا ضيوف موزَّعين على هذه الطاولة.",
+      "partySizeShort": "{count, plural, zero {# أشخاص} one {شخص} two {شخصان} few {# أشخاص} many {# شخصًا} other {# شخص}}",
+      "removeGuest": "إزالة {name} من الطاولة",
+      "notesLabel": "ملاحظات",
+      "notesPlaceholder": "حساسيات، احتياجات خاصة، تجميعات…",
+      "assignMenuAria": "توزيع {name}",
+      "assignMenuLabel": "توزيع {name} ({count} أشخاص)",
+      "returnToPool": "الإعادة إلى القائمة",
+      "hereSuffix": "· هنا",
+      "fullSuffix": "· ممتلئة",
+      "announceCapacityExceeded": "تم تجاوز السعة: {occ} أشخاص مقابل {cap} مقعدًا.",
+      "announceTableDeleted": "تم حذف الطاولة.",
+      "announcePersonAdded": "تمت إضافة {name} إلى القائمة.",
+      "announceAutoPlaced": "{count, plural, zero {تم توزيع # ضيوف تلقائيًا.} one {تم توزيع ضيف واحد تلقائيًا.} two {تم توزيع ضيفين تلقائيًا.} few {تم توزيع # ضيوف تلقائيًا.} many {تم توزيع # ضيفًا تلقائيًا.} other {تم توزيع # ضيف تلقائيًا.}}",
+      "starter": {
+        "head": "طاولة الشرف",
+        "headNote": "العروسان وأقرب أحبّائهما",
+        "family": "العائلة",
+        "friends": "الأصدقاء",
+        "friendsNote": "حلقة الأصدقاء المقرّبين",
+        "table3": "الطاولة 3",
+        "table4": "الطاولة 4",
+        "table5": "الطاولة 5"
+      },
+      "cats": {
+        "family": {
+          "label": "العائلة",
+          "short": "العائلة"
+        },
+        "friends": {
+          "label": "الأصدقاء",
+          "short": "الأصدقاء"
+        },
+        "colleagues": {
+          "label": "الزملاء",
+          "short": "الزملاء"
+        },
+        "pro": {
+          "label": "المزوّدون",
+          "short": "المزوّدون"
+        }
+      }
+    },
+    "nav": {
+      "home": "Home",
+      "dashboard": "My wedding",
+      "planning": "Timeline",
+      "vendors": "Vendors",
+      "seating": "Seating chart",
+      "forfait": "My plan"
+    },
+    "data": {
+      "cats": {
+        "lieu": "Venue & reception",
+        "traiteur": "Catering",
+        "photo": "Photo & video",
+        "musique": "Music / DJ",
+        "fleurs": "Flowers & decor",
+        "patisserie": "Wedding cake",
+        "tenues": "Attire",
+        "papeterie": "Stationery"
+      },
+      "guestStatus": {
+        "confirmed": "Confirmed",
+        "pending": "Pending",
+        "declined": "Declined",
+        "noreply": "No reply",
+        "unknown": "—"
+      },
+      "vendorStatus": {
+        "a_contacter": "To contact",
+        "contacte": "Contacted",
+        "devis": "Quote received",
+        "reserve": "Booked",
+        "paye": "Paid",
+        "unknown": "—"
+      },
+      "attachKinds": {
+        "facture": "Invoice",
+        "devis": "Quote",
+        "contrat": "Contract",
+        "photo": "Photo",
+        "autre": "Other",
+        "receiptOther": "Other receipt"
+      },
+      "paymentKind": {
+        "deposit": "Deposit",
+        "balance": "Balance"
+      },
+      "invoices": {
+        "premiumPlan": "Premium plan"
+      },
+      "overages": {
+        "guest": {
+          "label": "Extra guest",
+          "sub": "beyond your plan",
+          "price": "+€0.25"
+        },
+        "message": {
+          "label": "SMS / WhatsApp",
+          "sub": "per message sent",
+          "price": "€0.06 / msg"
+        },
+        "storage": {
+          "label": "Gallery storage",
+          "sub": "beyond your quota",
+          "price": "€0.03 / GB / mo"
+        }
+      },
+      "phases": {
+        "p1": {
+          "label": "12 months out",
+          "sub": "The foundations",
+          "tasks": {
+            "t1": "Set the overall budget",
+            "t2": "Lock in the date & venue",
+            "t3": "Draft the first guest list"
+          }
+        },
+        "p2": {
+          "label": "6 months out",
+          "sub": "The vendors",
+          "tasks": {
+            "t4": "Book caterer & photographer",
+            "t5": "Send the invitations",
+            "t6": "Open the shared photo gallery"
+          }
+        },
+        "p3": {
+          "label": "3 months out",
+          "sub": "Now",
+          "tasks": {
+            "t7": "Follow up with non-responders",
+            "t8": "Caterer tasting",
+            "t9": "Book the DJ",
+            "t10": "First outfit fitting"
+          }
+        },
+        "p4": {
+          "label": "1 month out",
+          "sub": "Final details",
+          "tasks": {
+            "t11": "Finalize the seating plan",
+            "t12": "Confirm the final headcount",
+            "t13": "Brief the vendors"
+          }
+        },
+        "p5": {
+          "label": "The big day",
+          "sub": "September 5",
+          "tasks": {
+            "t14": "On-site coordination",
+            "t15": "Guest check-in",
+            "t16": "Shared gallery live"
+          }
+        },
+        "p6": {
+          "label": "After the wedding",
+          "sub": "What's next",
+          "tasks": {
+            "t17": "Send thank-you notes",
+            "t18": "Download the HD gallery",
+            "t19": "Settle the final balances"
+          }
+        }
+      },
+      "steps": {
+        "s1": {
+          "label": "Plan & invitation created",
+          "when": "May",
+          "note": "Your Premium plan is active."
+        },
+        "s2": {
+          "label": "Invitations sent",
+          "when": "May",
+          "note": "166 invitations sent on WhatsApp."
+        },
+        "s3": {
+          "label": "Follow up with non-responders",
+          "when": "June",
+          "note": "18 guests haven't replied yet."
+        },
+        "s4": {
+          "label": "Finalize the seating chart",
+          "when": "August",
+          "note": "As soon as the RSVPs settle down."
+        },
+        "s5": {
+          "label": "The big day — gallery & check-in",
+          "when": "Sep 5",
+          "note": "Your guests upload their photos."
+        }
+      },
+      "plans": {
+        "essentiel": {
+          "name": "Essential",
+          "tagline": "100 guests · 5 GB gallery (12 months)",
+          "feats": {
+            "guests": "Up to 100 guests",
+            "gallery": "Shared 5 GB gallery · active 12 months",
+            "invitations": "Digital invitations + reminders",
+            "rsvp": "RSVP by SMS / WhatsApp",
+            "galleryLink": "Gallery link shared on WhatsApp"
+          }
+        },
+        "premium": {
+          "name": "Premium",
+          "tagline": "250 guests · 25 GB HD gallery (12 months)",
+          "feats": {
+            "guests": "Up to 250 guests",
+            "gallery": "25 GB HD gallery · active 12 months",
+            "essential": "Everything in Essential",
+            "albums": "Albums & invitation branding",
+            "faceSearch": "Face recognition (face-search)"
+          }
+        }
+      }
+    }
   }
 }

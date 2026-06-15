@@ -74,19 +74,34 @@ test.describe('Landing page', () => {
     const nav = page.getByRole('navigation', { name: /navigation principale/i });
     const navLinks = nav.getByRole('link');
 
-    await expect(navLinks).toHaveText(['Piliers', 'Témoignages', 'Tarifs', 'Pros', 'FAQ']);
-    await expect(nav.getByRole('link', { name: 'Pros' })).toHaveAttribute('href', '/#pricing-pros');
-    await expect(nav.getByRole('link', { name: 'FAQ' })).toHaveAttribute('href', '/#faq');
+    await expect(navLinks).toHaveText([
+      'Fonctionnalités',
+      'Témoignages',
+      'Tarifs',
+      'Pour les pros',
+      'Questions',
+    ]);
+    await expect(nav.getByRole('link', { name: 'Pour les pros' })).toHaveAttribute(
+      'href',
+      '/#pricing-pros',
+    );
+    await expect(nav.getByRole('link', { name: 'Questions' })).toHaveAttribute('href', '/#faq');
 
     await page.locator('#pricing-pros').evaluate((section) => {
       window.scrollTo(0, section.getBoundingClientRect().top + window.scrollY - 120);
     });
-    await expect(nav.getByRole('link', { name: 'Pros' })).toHaveAttribute('aria-current', 'true');
+    await expect(nav.getByRole('link', { name: 'Pour les pros' })).toHaveAttribute(
+      'aria-current',
+      'true',
+    );
 
     await page.locator('#faq').evaluate((section) => {
       window.scrollTo(0, section.getBoundingClientRect().top + window.scrollY - 120);
     });
-    await expect(nav.getByRole('link', { name: 'FAQ' })).toHaveAttribute('aria-current', 'true');
+    await expect(nav.getByRole('link', { name: 'Questions' })).toHaveAttribute(
+      'aria-current',
+      'true',
+    );
   });
 
   test('lang html vaut fr', async ({ page }) => {

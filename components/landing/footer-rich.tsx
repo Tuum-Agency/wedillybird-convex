@@ -13,9 +13,9 @@ const PRODUCT_LINKS = [
 ] as const;
 
 const PROS_LINKS = [
-  { key: 'planners', href: '/forfaits-pros' as const },
-  { key: 'venues', href: '/forfaits-pros' as const },
-  { key: 'agencies', href: '/forfaits-pros' as const },
+  { key: 'planners', href: '/pros' as const },
+  { key: 'venues', href: '/pros' as const },
+  { key: 'agencies', href: '/pros' as const },
 ] as const;
 
 const RESOURCES_LINKS = [
@@ -136,9 +136,6 @@ export function LandingFooterRich() {
             <div className="flex items-center gap-4">
               <span className="rounded-md border border-[color:var(--color-border)] bg-white px-3 py-1.5 text-xs font-bold tracking-wide text-[#635bff]">
                 Stripe
-              </span>
-              <span className="rounded-md border border-[color:var(--color-border)] bg-white px-3 py-1.5 text-xs font-bold tracking-wide text-[oklch(45%_0.13_152)]">
-                CinetPay
               </span>
             </div>
           </div>

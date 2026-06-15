@@ -2,11 +2,19 @@ export interface TestUserFixture {
   phone: string;
   email: string;
   fullName: string;
-  role: 'couple' | 'pro';
+  role: 'couple' | 'pro' | 'admin';
   locale: 'fr';
 }
 
 export const TEST_USERS: ReadonlyArray<TestUserFixture> = [
+  {
+    // Super admin — accès au dashboard /admin (seedé via seed:seedAdminUser).
+    phone: '+33600000001',
+    email: 'admin@wedillybird.test',
+    fullName: 'Super Admin',
+    role: 'admin',
+    locale: 'fr',
+  },
   {
     phone: '+33612931779',
     email: 'mamadou@wedillybird.test',
@@ -39,6 +47,14 @@ export const TEST_USERS: ReadonlyArray<TestUserFixture> = [
     phone: '+225071234567',
     email: 'kwame@wedillybird.test',
     fullName: 'Kwame Kouassi',
+    role: 'pro',
+    locale: 'fr',
+  },
+  {
+    // Agence Business (Studio Lumière) — back-office complet (CRM, budget…).
+    phone: '+33600000002',
+    email: 'camille@wedillybird.test',
+    fullName: 'Camille Faye',
     role: 'pro',
     locale: 'fr',
   },

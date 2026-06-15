@@ -1,7 +1,7 @@
 'use client';
 
 import { motion, useMotionValue, useSpring } from 'motion/react';
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useRef, type MouseEvent as ReactMouseEvent, type ReactNode } from 'react';
 import { Link } from '@/i18n/navigation';
 import { buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/cn';
@@ -25,6 +25,8 @@ interface Props {
   wrapperClassName?: string;
   children: ReactNode;
   withConfetti?: boolean;
+  /** Passé au `Link` (ex. tracking analytics au clic). N'altère pas la navigation. */
+  onClick?: (e: ReactMouseEvent<HTMLAnchorElement>) => void;
 }
 
 export function MagneticCta({
@@ -35,6 +37,7 @@ export function MagneticCta({
   wrapperClassName,
   children,
   withConfetti = false,
+  onClick,
 }: Props) {
   const ref = useRef<HTMLAnchorElement>(null);
   const x = useMotionValue(0);
@@ -108,6 +111,7 @@ export function MagneticCta({
       <Link
         ref={ref}
         href={href}
+        onClick={onClick}
         className={cn(buttonVariants({ variant, size }), 'group', className)}
       >
         {children}

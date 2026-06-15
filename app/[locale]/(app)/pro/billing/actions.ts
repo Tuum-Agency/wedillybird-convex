@@ -18,7 +18,12 @@ import {
   createPaygCheckout,
   openCustomerPortal,
 } from '@/lib/payments/drivers/stripe';
-import { isSubscriptionTier, type SubscriptionTier } from '@/lib/payments/subscriptions';
+import {
+  isSubscriptionTier,
+  isSubscriptionBilling,
+  type SubscriptionTier,
+  type SubscriptionBilling,
+} from '@/lib/payments/subscriptions';
 import { routePayment } from '@/lib/payments/country';
 
 async function appOrigin(): Promise<string> {
@@ -40,6 +45,9 @@ export async function subscribeAction(formData: FormData): Promise<void> {
   }
   const tier: SubscriptionTier = tierRaw;
 
+  const billingRaw = formData.get('billing');
+  const billing: SubscriptionBilling = isSubscriptionBilling(billingRaw) ? billingRaw : 'monthly';
+
   const convex = getConvexServerClient();
   const org = await convex.query(convexApi.myOrganization, { userId: session.userId });
   if (!org) redirectUnsafe('/pro/onboarding');
@@ -52,6 +60,7 @@ export async function subscribeAction(formData: FormData): Promise<void> {
     organizationId: org._id,
     requesterId: session.userId,
     tier,
+    billing,
     customerEmail: user.email,
     stripeCustomerId: org.stripeCustomerId,
     successUrl: `${origin}/pro/billing?status=success`,

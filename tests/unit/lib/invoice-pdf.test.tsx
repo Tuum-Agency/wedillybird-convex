@@ -65,7 +65,7 @@ describe('InvoicePDF — rendering', () => {
           amountMinor: 1250000,
           paymentId: 'p_xof_test_1',
           invoiceNumber: 'WB-2026-XOFTEST1',
-          provider: 'cinetpay',
+          provider: 'stripe',
         }}
       />,
     );

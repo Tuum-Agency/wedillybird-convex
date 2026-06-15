@@ -1,6 +1,7 @@
 import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
 import type { Id } from './_generated/dataModel';
+import { computePlatformAnalytics, computeRefundOutcome } from './lib/analytics';
 
 async function assertAdmin(
   ctx: { db: { get: (id: Id<'users'>) => Promise<{ role: string } | null> } },
@@ -27,10 +28,19 @@ export const dashboardKpi = query({
     const allPayments = await ctx.db.query('payments').collect();
     const allOrgs = await ctx.db.query('organizations').collect();
 
-    const succeededPayments = allPayments.filter((p) => p.status === 'succeeded');
+    const succeededPayments = allPayments.filter(
+      (p) => p.status === 'succeeded' || p.status === 'partially_refunded',
+    );
     const failedPayments = allPayments.filter((p) => p.status === 'failed');
+    const refundedPayments = allPayments.filter(
+      (p) => p.status === 'refunded' || p.status === 'partially_refunded',
+    );
 
     const totalRevenueMinor = succeededPayments.reduce((sum, p) => sum + p.amountMinor, 0);
+    const totalRefundedMinor = refundedPayments.reduce(
+      (sum, p) => sum + (p.refundedAmountMinor ?? 0),
+      0,
+    );
 
     const activeSubscriptions = allOrgs.filter(
       (o) => o.subscriptionStatus === 'active' || o.subscriptionStatus === 'trialing',
@@ -79,6 +89,9 @@ export const dashboardKpi = query({
       revenueByProvider[p.provider] = (revenueByProvider[p.provider] ?? 0) + p.amountMinor;
     }
 
+    const pastDueSubscriptions = allOrgs.filter((o) => o.subscriptionStatus === 'past_due');
+    const canceledSubscriptions = allOrgs.filter((o) => o.subscriptionStatus === 'canceled');
+
     return {
       totalUsers: allUsers.length,
       usersByRole: {
@@ -92,15 +105,46 @@ export const dashboardKpi = query({
       paidEvents: paidEvents.length,
       conversionRate: allEvents.length > 0 ? paidEvents.length / allEvents.length : 0,
       totalRevenueMinor,
+      netRevenueMinor: totalRevenueMinor - totalRefundedMinor,
+      totalRefundedMinor,
+      refundedPaymentsCount: refundedPayments.length,
       mrrMinor,
       failedPaymentsCount: failedPayments.length,
       failedPaymentsAmountMinor: failedPayments.reduce((s, p) => s + p.amountMinor, 0),
       activeSubscriptions: activeSubscriptions.length,
+      pastDueSubscriptions: pastDueSubscriptions.length,
+      canceledSubscriptions: canceledSubscriptions.length,
       revenueByMonth,
       usersByMonth,
       revenueByCurrency,
       revenueByProvider,
     };
+  },
+});
+
+// ---------------------------------------------------------------------------
+// Analytics plateforme — funnel de conversion, abandon de checkout,
+// saisonnalité (rush), mix d'offres, cohortes. Vue « façon Stripe » pour
+// piloter l'acquisition et la conversion sans quitter la plateforme.
+//
+// `now` est passé en argument (déterminisme Convex + cohérence SSR) : la page
+// serveur calcule Date.now() et le transmet.
+// ---------------------------------------------------------------------------
+
+export const platformAnalytics = query({
+  args: { adminId: v.id('users'), now: v.optional(v.number()) },
+  handler: async (ctx, { adminId, now: nowArg }) => {
+    await assertAdmin(ctx, adminId);
+    const now = nowArg ?? Date.now();
+
+    const [users, events, payments, orgs] = await Promise.all([
+      ctx.db.query('users').collect(),
+      ctx.db.query('events').collect(),
+      ctx.db.query('payments').collect(),
+      ctx.db.query('organizations').collect(),
+    ]);
+
+    return computePlatformAnalytics({ users, events, payments, orgs }, now);
   },
 });
 
@@ -178,12 +222,112 @@ export const listAllPayments = query({
       provider: p.provider,
       status: p.status,
       failureReason: p.failureReason,
+      refundedAmountMinor: p.refundedAmountMinor,
+      refundedAt: p.refundedAt,
       userName: userMap.get(p.userId)?.fullName ?? null,
       userEmail: userMap.get(p.userId)?.email ?? null,
       eventId: p.eventId,
       createdAt: p.createdAt,
       updatedAt: p.updatedAt,
     }));
+  },
+});
+
+// ---------------------------------------------------------------------------
+// Audit générique — pour les actions purement Stripe (coupons, codes promo,
+// remises) qui n'ont pas d'entité Convex. La server action appelle ceci après
+// l'opération Stripe pour tracer qui a fait quoi.
+// ---------------------------------------------------------------------------
+
+export const logAction = mutation({
+  args: {
+    adminId: v.id('users'),
+    action: v.string(),
+    targetType: v.union(
+      v.literal('coupon'),
+      v.literal('discount'),
+      v.literal('subscription'),
+      v.literal('organization'),
+    ),
+    targetId: v.string(),
+    details: v.optional(v.string()),
+  },
+  handler: async (ctx, { adminId, action, targetType, targetId, details }) => {
+    await assertAdmin(ctx, adminId);
+    await ctx.db.insert('adminAuditLog', {
+      adminId,
+      action,
+      targetType,
+      targetId,
+      details,
+      createdAt: Date.now(),
+    });
+    return { ok: true };
+  },
+});
+
+// ---------------------------------------------------------------------------
+// Refunds — un super admin peut rembourser un paiement plateforme (Essentiel /
+// Premium). L'appel Stripe se fait côté server action ; ici on n'expose que les
+// infos nécessaires + on enregistre le résultat (statut + montant + audit).
+// ---------------------------------------------------------------------------
+
+export const getPaymentRefundInfo = query({
+  args: { adminId: v.id('users'), paymentId: v.id('payments') },
+  handler: async (ctx, { adminId, paymentId }) => {
+    await assertAdmin(ctx, adminId);
+    const p = await ctx.db.get(paymentId);
+    if (!p) throw new Error('PAYMENT_NOT_FOUND');
+    return {
+      _id: p._id,
+      provider: p.provider,
+      providerSessionId: p.providerSessionId,
+      status: p.status,
+      currency: p.currency,
+      amountMinor: p.amountMinor,
+      refundedAmountMinor: p.refundedAmountMinor ?? 0,
+    };
+  },
+});
+
+export const markPaymentRefunded = mutation({
+  args: {
+    adminId: v.id('users'),
+    paymentId: v.id('payments'),
+    refundAmountMinor: v.number(),
+    stripeRefundId: v.optional(v.string()),
+  },
+  handler: async (ctx, { adminId, paymentId, refundAmountMinor, stripeRefundId }) => {
+    await assertAdmin(ctx, adminId);
+    const p = await ctx.db.get(paymentId);
+    if (!p) throw new Error('PAYMENT_NOT_FOUND');
+
+    const { status, totalRefunded } = computeRefundOutcome(
+      p.amountMinor,
+      p.refundedAmountMinor ?? 0,
+      refundAmountMinor,
+    );
+    await ctx.db.patch(paymentId, {
+      status,
+      refundedAmountMinor: totalRefunded,
+      refundedAt: Date.now(),
+      stripeRefundId: stripeRefundId ?? p.stripeRefundId,
+      updatedAt: Date.now(),
+    });
+    await ctx.db.insert('adminAuditLog', {
+      adminId,
+      action: status === 'refunded' ? 'refund_payment' : 'partial_refund_payment',
+      targetType: 'payment',
+      targetId: paymentId,
+      details: JSON.stringify({
+        refundAmountMinor,
+        totalRefunded,
+        currency: p.currency,
+        stripeRefundId,
+      }),
+      createdAt: Date.now(),
+    });
+    return { ok: true, status };
   },
 });
 
@@ -208,10 +352,96 @@ export const listAllOrganizations = query({
       subscriptionStatus: o.subscriptionStatus,
       subscriptionPeriodEnd: o.subscriptionPeriodEnd,
       paygCredits: o.paygCredits,
+      // Présence des identifiants Stripe → l'admin sait quelles actions
+      // (annuler, réactiver, factures) sont disponibles pour cette org.
+      hasStripeSubscription: Boolean(o.stripeSubscriptionId),
+      hasStripeCustomer: Boolean(o.stripeCustomerId),
       ownerName: ownerMap.get(o.ownerId)?.fullName ?? null,
       ownerEmail: ownerMap.get(o.ownerId)?.email ?? null,
       createdAt: o.createdAt,
     }));
+  },
+});
+
+// ---------------------------------------------------------------------------
+// Subscriptions — gestion par le super admin (annuler / réactiver). L'appel
+// Stripe se fait côté server action ; ici on expose les identifiants et on
+// reflète le résultat sur l'organisation + audit. Le webhook Stripe
+// (`subscription.deleted/updated`) reste la source de vérité et réconciliera.
+// ---------------------------------------------------------------------------
+
+export const getOrgSubscriptionInfo = query({
+  args: { adminId: v.id('users'), organizationId: v.id('organizations') },
+  handler: async (ctx, { adminId, organizationId }) => {
+    await assertAdmin(ctx, adminId);
+    const o = await ctx.db.get(organizationId);
+    if (!o) throw new Error('ORG_NOT_FOUND');
+    return {
+      _id: o._id,
+      name: o.name,
+      stripeSubscriptionId: o.stripeSubscriptionId ?? null,
+      stripeCustomerId: o.stripeCustomerId ?? null,
+      subscriptionTier: o.subscriptionTier ?? null,
+      subscriptionStatus: o.subscriptionStatus ?? null,
+      subscriptionPeriodEnd: o.subscriptionPeriodEnd ?? null,
+    };
+  },
+});
+
+export const markSubscriptionCanceled = mutation({
+  args: {
+    adminId: v.id('users'),
+    organizationId: v.id('organizations'),
+    mode: v.union(v.literal('period_end'), v.literal('immediate')),
+  },
+  handler: async (ctx, { adminId, organizationId, mode }) => {
+    await assertAdmin(ctx, adminId);
+    const o = await ctx.db.get(organizationId);
+    if (!o) throw new Error('ORG_NOT_FOUND');
+    const previousStatus = o.subscriptionStatus;
+
+    if (mode === 'immediate') {
+      // Coupe l'accès tout de suite : statut canceled + plus de date de fin.
+      await ctx.db.patch(organizationId, {
+        subscriptionStatus: 'canceled' as const,
+        subscriptionPeriodEnd: undefined,
+        updatedAt: Date.now(),
+      });
+    }
+    // mode === 'period_end' : on conserve le statut actif et la date de fin ;
+    // Stripe émettra `subscription.deleted` à l'échéance. L'audit trace l'intention.
+
+    await ctx.db.insert('adminAuditLog', {
+      adminId,
+      action: 'cancel_subscription',
+      targetType: 'subscription',
+      targetId: organizationId,
+      details: JSON.stringify({ mode, previousStatus, tier: o.subscriptionTier }),
+      createdAt: Date.now(),
+    });
+    return { ok: true };
+  },
+});
+
+export const markSubscriptionReactivated = mutation({
+  args: { adminId: v.id('users'), organizationId: v.id('organizations') },
+  handler: async (ctx, { adminId, organizationId }) => {
+    await assertAdmin(ctx, adminId);
+    const o = await ctx.db.get(organizationId);
+    if (!o) throw new Error('ORG_NOT_FOUND');
+    await ctx.db.patch(organizationId, {
+      subscriptionStatus: 'active' as const,
+      updatedAt: Date.now(),
+    });
+    await ctx.db.insert('adminAuditLog', {
+      adminId,
+      action: 'reactivate_subscription',
+      targetType: 'subscription',
+      targetId: organizationId,
+      details: JSON.stringify({ previousStatus: o.subscriptionStatus, tier: o.subscriptionTier }),
+      createdAt: Date.now(),
+    });
+    return { ok: true };
   },
 });
 

@@ -105,6 +105,7 @@ export interface ProNavProps {
 
 export function ProNav({ current }: ProNavProps) {
   const t = useTranslations('Pro');
+  const tMain = useTranslations('Pro.main');
   const tabs: Array<{
     key: ProNavProps['current'];
     href: '/pro/dashboard' | '/pro/team' | '/pro/billing' | '/pro/settings';
@@ -116,7 +117,7 @@ export function ProNav({ current }: ProNavProps) {
     { key: 'settings', href: '/pro/settings', label: t('nav.settings') },
   ];
   return (
-    <nav aria-label="Navigation pro" className="hidden items-center gap-7 md:flex">
+    <nav aria-label={tMain('proShell.navAria')} className="hidden items-center gap-7 md:flex">
       {tabs.map((tab) => {
         const active = tab.key === current;
         return (

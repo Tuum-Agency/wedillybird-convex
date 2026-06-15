@@ -5,11 +5,12 @@ import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
 import { PLANS } from '@/lib/payments/plans';
 import { detectCountryFromHeaders, routePayment } from '@/lib/payments/country';
 import { getPaymentDriver } from '@/lib/payments';
+import { captureServer, EVENTS } from '@/lib/analytics/posthog-server';
 
 const bodySchema = z.object({
   eventId: z.string().min(1),
   plan: z.enum(['essential', 'premium']),
-  currency: z.enum(['EUR', 'XOF', 'MAD', 'TND']).optional(),
+  currency: z.enum(['EUR', 'USD', 'MAD']).optional(),
 });
 
 export async function POST(req: Request): Promise<Response> {
@@ -75,6 +76,21 @@ export async function POST(req: Request): Promise<Response> {
     }
     return NextResponse.json({ error: 'PAYMENT_RECORD_FAILED' }, { status: 500 });
   }
+
+  // Analytics serveur : `checkout_started` est fiable même si le JS client est
+  // bloqué. distinctId = userId Convex → se rattache à la personne identifiée
+  // côté client. N'échoue jamais (garde interne) → ne casse pas la redirection.
+  await captureServer({
+    distinctId: session.userId,
+    event: EVENTS.checkoutStarted,
+    properties: {
+      plan,
+      currency: routing.currency,
+      amount_minor: amountMinor,
+      provider: driver.name,
+      audience: 'consumer',
+    },
+  });
 
   return NextResponse.json({
     redirectUrl: session_.redirectUrl,

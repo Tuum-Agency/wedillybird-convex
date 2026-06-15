@@ -22,7 +22,9 @@ test.describe('Onboarding — étape forfait (couple)', () => {
     await loginAsDevUser(page);
 
     await page.goto('/events/new');
-    await expect(page.getByRole('heading', { level: 1 })).toContainText(/créer/i);
+    // NB: /events/new rend 2 <h1> "Créer votre mariage" (hero + header sticky) — défaut a11y
+    // mineur signalé séparément. On scope au premier pour éviter la violation strict-mode.
+    await expect(page.getByRole('heading', { level: 1 }).first()).toContainText(/créer/i);
 
     // Step 0 — couple
     await page.getByLabel(/titre de l'événement/i).fill('Mariage F & A');
@@ -36,7 +38,7 @@ test.describe('Onboarding — étape forfait (couple)', () => {
     const value = `${future.getFullYear()}-${pad(future.getMonth() + 1)}-${pad(
       future.getDate(),
     )}T${pad(future.getHours())}:${pad(future.getMinutes())}`;
-    await page.getByLabel(/^date.*événement$/i).fill(value);
+    await page.getByLabel(/date et heure/i).fill(value);
     await page.getByRole('button', { name: /^suivant$/i }).click();
 
     // Step 2 — venue (skip)

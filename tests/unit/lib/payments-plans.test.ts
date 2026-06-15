@@ -126,16 +126,16 @@ describe('priceIdForPlan / priceIdForPostEventUpsell', () => {
     expect(priceIdForPlan('essential', 'MAD')).toBeUndefined();
   });
 
-  it('priceIdForPlan(plan, "TND") is always undefined (TND non Stripe → CinetPay)', () => {
-    // TND, comme XOF, n'est pas supporté par Stripe comme settlement currency.
-    // Le routing passe par CinetPay — le driver Stripe ne doit jamais recevoir TND.
+  it('priceIdForPlan(plan, "TND") is always undefined (TND non settleable par Stripe)', () => {
+    // TND, comme XOF, n'est pas supporté par Stripe comme settlement currency et
+    // n'a pas de processeur dédié — le driver Stripe ne doit jamais recevoir TND.
     process.env.STRIPE_PRICE_ESSENTIAL_TND = 'price_should_be_ignored';
     expect(priceIdForPlan('essential', 'TND')).toBeUndefined();
     expect(priceIdForPlan('premium', 'TND')).toBeUndefined();
     delete process.env.STRIPE_PRICE_ESSENTIAL_TND;
   });
 
-  it('priceIdForPlan(plan, "XOF") is always undefined (XOF non Stripe → CinetPay)', () => {
+  it('priceIdForPlan(plan, "XOF") is always undefined (XOF non settleable par Stripe)', () => {
     process.env.STRIPE_PRICE_ESSENTIAL_XOF = 'price_should_be_ignored';
     expect(priceIdForPlan('essential', 'XOF')).toBeUndefined();
     expect(priceIdForPlan('premium', 'XOF')).toBeUndefined();

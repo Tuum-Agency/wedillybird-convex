@@ -4,8 +4,8 @@ import { setRequestLocale, getTranslations } from 'next-intl/server';
 import { OG_DEFAULT_IMAGES, TWITTER_DEFAULT_IMAGES } from '@/lib/seo/og';
 import { toOgLocale } from '@/lib/i18n/locale-tags';
 import { Link } from '@/i18n/navigation';
-import { buttonVariants } from '@/components/ui/button';
 import { LenisProvider } from '@/components/landing/lenis-provider';
+import { HeaderCta } from '@/components/landing/header-cta';
 import { LandingHero } from '@/components/landing/hero';
 import { LandingManifesto } from '@/components/landing/manifesto';
 import { LandingFeaturesGrid } from '@/components/landing/features-grid';
@@ -14,6 +14,7 @@ import { LandingCinematicInvitation } from '@/components/landing/cinematic-invit
 import { LandingTestimonials } from '@/components/landing/testimonials';
 import { LandingPricingCards } from '@/components/landing/pricing-cards';
 import { LandingPricingPros } from '@/components/landing/pricing-pros';
+import { LandingProsFeatures } from '@/components/landing/pros-features';
 import { MobileMenu } from '@/components/landing/mobile-menu';
 import { LandingFaqAccordion } from '@/components/landing/faq-accordion';
 import { LandingCtaFinal } from '@/components/landing/cta-final';
@@ -23,7 +24,6 @@ import { WedillybirdLogo } from '@/components/brand/wedillybird-logo';
 import { LocaleSwitcher } from '@/components/layout/locale-switcher';
 import { defaultCurrencyForLocale } from '@/lib/payments/currency';
 import type { Locale } from '@/i18n/routing';
-import { cn } from '@/lib/cn';
 
 const FAQ_KEYS = [
   'whyWhatsapp',
@@ -124,6 +124,7 @@ function LandingShell({
   defaultCurrency: ReturnType<typeof defaultCurrencyForLocale>;
 }) {
   const tCommon = useTranslations('Common');
+  const tm = useTranslations('Marketing.landing');
 
   return (
     <LenisProvider>
@@ -147,7 +148,7 @@ function LandingShell({
 
           {/* Colonne centrale : navigation éditoriale */}
           <nav
-            aria-label="Navigation principale"
+            aria-label={tm('navAriaLabel')}
             className="hidden items-center justify-center gap-7 md:flex"
           >
             <SectionNav />
@@ -160,15 +161,7 @@ function LandingShell({
           <div className="flex items-center justify-end gap-2 md:gap-3">
             <LocaleSwitcher className="hidden md:inline-flex" />
             <span aria-hidden className="hidden h-5 w-px bg-[color:var(--color-border)] md:block" />
-            <Link
-              href="/sign-up"
-              className={cn(
-                buttonVariants({ variant: 'primary', size: 'sm' }),
-                'whitespace-nowrap',
-              )}
-            >
-              {tCommon('signUp')}
-            </Link>
+            <HeaderCta href="/sign-up" label={tCommon('signUp')} source="header" />
             <div className="md:hidden">
               <MobileMenu />
             </div>
@@ -184,6 +177,7 @@ function LandingShell({
         <LandingCinematicInvitation />
         <LandingTestimonials />
         <LandingPricingCards defaultCurrency={defaultCurrency} />
+        <LandingProsFeatures />
         <LandingPricingPros defaultCurrency={defaultCurrency} />
         <LandingFaqAccordion />
         <LandingCtaFinal />

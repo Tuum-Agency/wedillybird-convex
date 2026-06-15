@@ -14,7 +14,7 @@ import { isCurrency } from '@/lib/payments/plans';
  *    footer, persistée en localStorage et appliquée partout côté client.
  *
  * Le store n'a pas d'impact sur le checkout : la devise réelle du paiement est
- * re-validée côté serveur (`/api/checkout`) avec le routing Stripe/CinetPay.
+ * re-validée côté serveur (`/api/checkout`) avec le routing Stripe.
  */
 interface CurrencyState {
   selected: Currency | null;

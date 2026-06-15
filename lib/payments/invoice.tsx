@@ -26,7 +26,7 @@ export interface InvoicePayment {
   plan: PlanTier;
   amountMinor: number;
   currency: Currency;
-  provider: 'stripe' | 'cinetpay' | 'mock';
+  provider: 'stripe' | 'mock';
   customer: {
     fullName?: string;
     email?: string;
@@ -37,9 +37,8 @@ export interface InvoicePayment {
   locale?: Locale | string;
 }
 
-const PROVIDER_LABEL: Record<'stripe' | 'cinetpay' | 'mock', string> = {
+const PROVIDER_LABEL: Record<'stripe' | 'mock', string> = {
   stripe: 'Stripe',
-  cinetpay: 'CinetPay',
   mock: 'Test',
 };
 

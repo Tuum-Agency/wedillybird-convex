@@ -1,28 +1,42 @@
 import type { ReactNode } from 'react';
 import {
   LayoutDashboard,
+  BarChart3,
+  Megaphone,
   Users,
   CalendarDays,
   CreditCard,
+  FileText,
   Building2,
+  Ticket,
   Shield,
   Mail,
   ScrollText,
   LogOut,
 } from 'lucide-react';
+import { getTranslations } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
 import { signOutAction } from '@/app/[locale]/(auth)/actions';
 import { cn } from '@/lib/cn';
 
 const NAV_ITEMS = [
-  { key: 'overview', href: '/admin', icon: LayoutDashboard, label: 'Vue d’ensemble' },
-  { key: 'users', href: '/admin/users', icon: Users, label: 'Utilisateurs' },
-  { key: 'events', href: '/admin/events', icon: CalendarDays, label: 'Événements' },
-  { key: 'payments', href: '/admin/payments', icon: CreditCard, label: 'Paiements' },
-  { key: 'subscriptions', href: '/admin/subscriptions', icon: Building2, label: 'Abonnements' },
-  { key: 'moderation', href: '/admin/moderation', icon: Shield, label: 'Modération' },
-  { key: 'newsletter', href: '/admin/newsletter', icon: Mail, label: 'Newsletter' },
-  { key: 'audit-log', href: '/admin/audit-log', icon: ScrollText, label: 'Journal d’audit' },
+  { key: 'overview', href: '/admin', icon: LayoutDashboard, labelKey: 'nav.overview' },
+  { key: 'analytics', href: '/admin/analytics', icon: BarChart3, labelKey: 'nav.analytics' },
+  { key: 'acquisition', href: '/admin/acquisition', icon: Megaphone, labelKey: 'nav.acquisition' },
+  { key: 'users', href: '/admin/users', icon: Users, labelKey: 'nav.users' },
+  { key: 'events', href: '/admin/events', icon: CalendarDays, labelKey: 'nav.events' },
+  { key: 'payments', href: '/admin/payments', icon: CreditCard, labelKey: 'nav.payments' },
+  { key: 'invoices', href: '/admin/invoices', icon: FileText, labelKey: 'nav.invoices' },
+  {
+    key: 'subscriptions',
+    href: '/admin/subscriptions',
+    icon: Building2,
+    labelKey: 'nav.subscriptions',
+  },
+  { key: 'promotions', href: '/admin/promotions', icon: Ticket, labelKey: 'nav.promotions' },
+  { key: 'moderation', href: '/admin/moderation', icon: Shield, labelKey: 'nav.moderation' },
+  { key: 'newsletter', href: '/admin/newsletter', icon: Mail, labelKey: 'nav.newsletter' },
+  { key: 'audit-log', href: '/admin/audit-log', icon: ScrollText, labelKey: 'nav.auditLog' },
 ] as const;
 
 export type AdminSection = (typeof NAV_ITEMS)[number]['key'];
@@ -33,7 +47,8 @@ export interface AdminShellProps {
   adminName?: string;
 }
 
-export function AdminShell({ children, current, adminName }: AdminShellProps) {
+export async function AdminShell({ children, current, adminName }: AdminShellProps) {
+  const t = await getTranslations('Admin');
   return (
     <div
       data-theme="dark"
@@ -46,7 +61,7 @@ export function AdminShell({ children, current, adminName }: AdminShellProps) {
             className="inline-block h-2 w-2 rounded-full"
             style={{ background: 'oklch(65% 0.15 22)' }}
           />
-          <span className="font-display text-lg tracking-tight italic">Admin</span>
+          <span className="font-display text-lg tracking-tight italic">{t('shell.brand')}</span>
         </div>
 
         <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto px-3 py-4">
@@ -65,7 +80,7 @@ export function AdminShell({ children, current, adminName }: AdminShellProps) {
                 )}
               >
                 <Icon className="h-4 w-4 shrink-0" strokeWidth={1.75} />
-                {item.label}
+                {t(item.labelKey)}
               </Link>
             );
           })}
@@ -83,7 +98,7 @@ export function AdminShell({ children, current, adminName }: AdminShellProps) {
               className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-[color:var(--color-muted-foreground)] transition-colors hover:bg-[color:var(--color-surface-elevated)] hover:text-[color:var(--color-foreground)]"
             >
               <LogOut className="h-4 w-4 shrink-0" strokeWidth={1.75} />
-              Déconnexion
+              {t('shell.signOut')}
             </button>
           </form>
         </div>

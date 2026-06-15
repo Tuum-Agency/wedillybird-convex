@@ -273,23 +273,49 @@ export const assignSeat = mutation({
  * consécutives). Crée les tables manquantes. Ne touche que les non-placés.
  */
 export const autoAssignGuests = mutation({
-  args: { eventId: v.id('events'), requesterId: v.id('users') },
-  handler: async (ctx, { eventId, requesterId }) => {
+  args: {
+    eventId: v.id('events'),
+    requesterId: v.id('users'),
+    // 'unplaced' (défaut) : ne touche qu'aux personnes non placées.
+    // 'all' : vide d'abord toutes les assignations puis replace tout le monde.
+    mode: v.optional(v.union(v.literal('unplaced'), v.literal('all'))),
+    settings: v.optional(
+      v.object({
+        groupByCategory: v.optional(v.boolean()),
+        keepGroupsTogether: v.optional(v.boolean()),
+        balanceTables: v.optional(v.boolean()),
+        createTables: v.optional(v.boolean()),
+      }),
+    ),
+  },
+  handler: async (ctx, { eventId, requesterId, mode, settings }) => {
     await requireSeatingAccess(ctx, eventId, requesterId);
     const now = Date.now();
+    const replaceAll = mode === 'all';
 
     const tables = await ctx.db
       .query('tables')
       .withIndex('by_event', (q) => q.eq('eventId', eventId))
       .collect();
-    const guests = await ctx.db
+    let guests = await ctx.db
       .query('guests')
       .withIndex('by_event', (q) => q.eq('eventId', eventId))
       .collect();
-    const assignmentRows = await ctx.db
+    let assignmentRows = await ctx.db
       .query('tableAssignments')
       .withIndex('by_event', (q) => q.eq('eventId', eventId))
       .collect();
+
+    if (replaceAll) {
+      // Tout replacer : on désassigne d'abord tout le monde (principaux + accompagnants).
+      for (const g of guests) {
+        if (g.tableId) await ctx.db.patch(g._id, { tableId: undefined, updatedAt: now });
+      }
+      for (const row of assignmentRows) await ctx.db.delete(row._id);
+      guests = guests.map((g) => ({ ...g, tableId: undefined }));
+      assignmentRows = [];
+    }
+
     const assignmentMap = new Map<string, Doc<'tableAssignments'>>();
     for (const row of assignmentRows) assignmentMap.set(unitId(row.guestId, row.memberIndex), row);
 
@@ -303,13 +329,13 @@ export const autoAssignGuests = mutation({
         unassigned.push({ _id: u._id, seats: 1, ...(u.category ? { category: u.category } : {}) });
       }
     }
-    if (unassigned.length === 0) return { assigned: 0, tablesCreated: 0 };
+    if (unassigned.length === 0) return { assigned: 0, tablesCreated: 0, unplaced: 0 };
 
     const placeTables = tables.map((t) => ({
       _id: t._id,
       remaining: Math.max(0, t.capacity - (occupancy.get(t._id) ?? 0)),
     }));
-    const result = autoPlace(unassigned, placeTables, DEFAULT_CAPACITY);
+    const result = autoPlace(unassigned, placeTables, DEFAULT_CAPACITY, settings ?? {});
 
     let created = 0;
     let assigned = 0;
@@ -341,7 +367,7 @@ export const autoAssignGuests = mutation({
       assigned += 1;
     }
 
-    return { assigned, tablesCreated: created };
+    return { assigned, tablesCreated: created, unplaced: result.unplaced.length };
   },
 });
 

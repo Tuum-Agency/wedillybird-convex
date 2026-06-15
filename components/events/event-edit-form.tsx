@@ -7,6 +7,13 @@ import { Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { updateEventAction } from '@/app/[locale]/(app)/events/actions';
 
 interface InitialValues {
@@ -22,24 +29,27 @@ interface InitialValues {
   themeFont: string;
 }
 
-const TIMEZONES: ReadonlyArray<{ id: string; label: string }> = [
-  { id: 'Europe/Paris', label: 'Europe/Paris (UTC+1/+2)' },
-  { id: 'Africa/Dakar', label: 'Afrique/Dakar (UTC+0)' },
-  { id: 'Africa/Abidjan', label: 'Afrique/Abidjan (UTC+0)' },
-  { id: 'Africa/Casablanca', label: 'Afrique/Casablanca (UTC+1)' },
-  { id: 'Africa/Algiers', label: 'Afrique/Alger (UTC+1)' },
-  { id: 'Africa/Tunis', label: 'Afrique/Tunis (UTC+1)' },
-  { id: 'Africa/Douala', label: 'Afrique/Douala (UTC+1)' },
-  { id: 'Indian/Antananarivo', label: 'Océan Indien/Antananarivo (UTC+3)' },
-  { id: 'Indian/Mauritius', label: 'Océan Indien/Maurice (UTC+4)' },
-];
+const TIMEZONE_IDS = [
+  'Europe/Paris',
+  'Africa/Dakar',
+  'Africa/Abidjan',
+  'Africa/Casablanca',
+  'Africa/Algiers',
+  'Africa/Tunis',
+  'Africa/Douala',
+  'Indian/Antananarivo',
+  'Indian/Mauritius',
+] as const;
 
-const FONT_OPTIONS: ReadonlyArray<{ id: string; label: string }> = [
-  { id: 'Playfair Display', label: 'Playfair Display (élégant)' },
-  { id: 'Cormorant Garamond', label: 'Cormorant Garamond (classique)' },
-  { id: 'Inter', label: 'Inter (moderne)' },
-  { id: 'Manrope', label: 'Manrope (sans serif)' },
-];
+const FONT_IDS = ['Playfair Display', 'Cormorant Garamond', 'Inter', 'Manrope'] as const;
+
+/** Suffixe descriptif localisé par police (« élégant », « classique », …). */
+const FONT_DESCRIPTOR_KEY: Record<(typeof FONT_IDS)[number], string> = {
+  'Playfair Display': 'elegant',
+  'Cormorant Garamond': 'classic',
+  Inter: 'modern',
+  Manrope: 'sansSerif',
+};
 
 /**
  * Formulaire d'édition d'un événement existant — single page.
@@ -54,6 +64,7 @@ export function EventEditForm({
   initialValues: InitialValues;
 }) {
   const tCommon = useTranslations('Common');
+  const t = useTranslations('Events');
   const router = useRouter();
   const [form, setForm] = useState<InitialValues>(initialValues);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string | undefined>>({});
@@ -94,7 +105,7 @@ export function EventEditForm({
         setFieldErrors(flat);
         return;
       }
-      setError('Impossible de sauvegarder les changements. Réessayez.');
+      setError(t('editErrorSave'));
     });
   }
 
@@ -103,25 +114,25 @@ export function EventEditForm({
       action={submit}
       className="flex flex-col gap-8 rounded-3xl border border-[color:var(--color-border)] bg-white p-7 shadow-[var(--shadow-soft)] sm:p-9"
     >
-      <Section title="Le couple" description="Les prénoms qui apparaîtront sur les invitations.">
+      <Section title={t('editCoupleSectionTitle')} description={t('editCoupleSectionDescription')}>
         <Field
-          label="Titre de l'événement"
+          label={t('editTitleLabel')}
           id="title"
           value={form.title}
           error={fieldErrors.title}
-          placeholder="Mariage de Camille & Hugo"
+          placeholder={t('editTitlePlaceholder')}
           onChange={(v) => setForm({ ...form, title: v })}
         />
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field
-            label="Partenaire 1"
+            label={t('editPartnerALabel')}
             id="partnerA"
             value={form.partnerA}
             error={fieldErrors.partnerA}
             onChange={(v) => setForm({ ...form, partnerA: v })}
           />
           <Field
-            label="Partenaire 2"
+            label={t('editPartnerBLabel')}
             id="partnerB"
             value={form.partnerB}
             error={fieldErrors.partnerB}
@@ -130,9 +141,9 @@ export function EventEditForm({
         </div>
       </Section>
 
-      <Section title="Date et fuseau">
+      <Section title={t('editDateSectionTitle')}>
         <Field
-          label="Date et heure"
+          label={t('editDateLabel')}
           id="eventDate"
           type="datetime-local"
           value={form.eventDate}
@@ -140,79 +151,88 @@ export function EventEditForm({
           onChange={(v) => setForm({ ...form, eventDate: v })}
         />
         <div className="flex flex-col gap-2">
-          <Label htmlFor="timezone">Fuseau horaire</Label>
-          <select
-            id="timezone"
+          <Label htmlFor="timezone">{t('editTimezoneLabel')}</Label>
+          <Select
             name="timezone"
             value={form.timezone}
-            onChange={(e) => setForm({ ...form, timezone: e.target.value })}
-            className="focus-ring h-11 rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-3 text-sm"
+            onValueChange={(v) => setForm({ ...form, timezone: v })}
           >
-            {TIMEZONES.map((tz) => (
-              <option key={tz.id} value={tz.id}>
-                {tz.label}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger
+              id="timezone"
+              className="focus-ring h-11 rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-3 text-sm"
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {TIMEZONE_IDS.map((id) => (
+                <SelectItem key={id} value={id}>
+                  {t(`timezones.${id}`)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           {fieldErrors.timezone ? (
             <p className="text-xs text-[color:var(--color-destructive)]">{fieldErrors.timezone}</p>
           ) : null}
         </div>
       </Section>
 
-      <Section
-        title="Le lieu (optionnel)"
-        description="Laissez vide si vous n'avez pas encore défini le lieu."
-      >
+      <Section title={t('editVenueSectionTitle')} description={t('editVenueSectionDescription')}>
         <Field
-          label="Nom du lieu"
+          label={t('editVenueNameLabel')}
           id="venueName"
           value={form.venueName}
-          placeholder="Domaine des Lilas"
+          placeholder={t('editVenueNamePlaceholder')}
           onChange={(v) => setForm({ ...form, venueName: v })}
         />
         <Field
-          label="Adresse"
+          label={t('editVenueAddressLabel')}
           id="venueAddress"
           value={form.venueAddress}
-          placeholder="12 avenue de la République, Dakar"
+          placeholder={t('editVenueAddressPlaceholder')}
           onChange={(v) => setForm({ ...form, venueAddress: v })}
         />
       </Section>
 
-      <Section
-        title="Thème visuel"
-        description="Personnalisez les couleurs et la police de votre invitation."
-      >
+      <Section title={t('editThemeSectionTitle')} description={t('editThemeSectionDescription')}>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <ColorField
-            label="Couleur principale"
+            label={t('editPrimaryColorLabel')}
             id="themePrimary"
             value={form.themePrimary}
             onChange={(v) => setForm({ ...form, themePrimary: v })}
           />
           <ColorField
-            label="Couleur d'accent"
+            label={t('editAccentColorLabel')}
             id="themeAccent"
             value={form.themeAccent}
             onChange={(v) => setForm({ ...form, themeAccent: v })}
           />
         </div>
         <div className="flex flex-col gap-2">
-          <Label htmlFor="themeFont">Police</Label>
-          <select
-            id="themeFont"
+          <Label htmlFor="themeFont">{t('editFontLabel')}</Label>
+          <Select
             name="themeFont"
             value={form.themeFont}
-            onChange={(e) => setForm({ ...form, themeFont: e.target.value })}
-            className="focus-ring h-11 rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-3 text-sm"
+            onValueChange={(v) => setForm({ ...form, themeFont: v })}
           >
-            {FONT_OPTIONS.map((f) => (
-              <option key={f.id} value={f.id}>
-                {f.label}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger
+              id="themeFont"
+              className="focus-ring h-11 rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-3 text-sm"
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {FONT_IDS.map((id) => (
+                <SelectItem key={id} value={id}>
+                  {t('editFontOption', {
+                    name: id,
+                    descriptor: t(`fontDescriptors.${FONT_DESCRIPTOR_KEY[id]}`),
+                  })}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </Section>
 

@@ -1,8 +1,10 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 export function AdminRevenueChart({ data }: { data: Record<string, number> }) {
+  const t = useTranslations('Admin');
   const chartData = Object.entries(data)
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([month, amount]) => ({
@@ -13,7 +15,7 @@ export function AdminRevenueChart({ data }: { data: Record<string, number> }) {
   if (chartData.length === 0) {
     return (
       <div className="flex h-64 items-center justify-center text-sm text-[color:var(--color-muted-foreground)]">
-        Aucune donnée disponible
+        {t('charts.noData')}
       </div>
     );
   }
@@ -42,7 +44,7 @@ export function AdminRevenueChart({ data }: { data: Record<string, number> }) {
             color: 'var(--color-foreground)',
             fontSize: 12,
           }}
-          formatter={(value) => [`${value} €`, 'Revenu']}
+          formatter={(value) => [`${value} €`, t('charts.revenue')]}
         />
         <Bar dataKey="revenue" fill="oklch(65% 0.15 22)" radius={[4, 4, 0, 0]} />
       </BarChart>

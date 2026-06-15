@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/cn';
+import { analytics } from '@/lib/analytics/posthog-client';
 import { submitRsvpAction, type RsvpActionResult } from '@/app/[locale]/i/[token]/actions';
 
 type RsvpStatus = 'attending' | 'declined' | 'maybe';
@@ -106,6 +107,8 @@ export function RsvpFormV4({ token, plusOnesAllowed, accentColor, initial }: Pro
       const result: RsvpActionResult = await submitRsvpAction(token, formData);
       if (result.ok) {
         setSuccess(true);
+        // RSVP enregistré (boucle virale invité) — `status` non-null garanti ci-dessus.
+        analytics.rsvpSubmitted({ status });
         if (status === 'attending') fireConfetti();
         return;
       }

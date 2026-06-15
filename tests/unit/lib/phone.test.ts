@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isValidE164, maskPhone, normalizePhoneE164 } from '@/lib/phone';
+import { isValidE164, maskPhone, normalizePhoneE164, splitE164 } from '@/lib/phone';
 
 describe('normalizePhoneE164', () => {
   it('accepts already formatted E.164', () => {
@@ -51,6 +51,39 @@ describe('isValidE164', () => {
 
   it('rejects leading 0 in country code', () => {
     expect(isValidE164('+0612345678')).toBe(false);
+  });
+});
+
+describe('splitE164', () => {
+  const dials = ['33', '32', '1', '221', '212'];
+
+  it('splits a French number into dial + local', () => {
+    expect(splitE164('+33612345678', dials)).toEqual({ dial: '33', local: '612345678' });
+  });
+
+  it('picks the longest matching dial code (221 over 2)', () => {
+    expect(splitE164('+221771234567', dials)).toEqual({ dial: '221', local: '771234567' });
+  });
+
+  it('matches single-digit dial codes (US +1)', () => {
+    expect(splitE164('+14165550123', dials)).toEqual({ dial: '1', local: '4165550123' });
+  });
+
+  it('strips spaces before splitting', () => {
+    expect(splitE164('+33 6 12 34 56 78', dials)).toEqual({ dial: '33', local: '612345678' });
+  });
+
+  it('returns null without a + prefix', () => {
+    expect(splitE164('33612345678', dials)).toBeNull();
+  });
+
+  it('returns null when no dial code matches', () => {
+    expect(splitE164('+999123456', dials)).toBeNull();
+  });
+
+  it('returns null on empty / non-string input', () => {
+    expect(splitE164('+', dials)).toBeNull();
+    expect(splitE164('', dials)).toBeNull();
   });
 });
 
