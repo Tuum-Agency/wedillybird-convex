@@ -1,3 +1,7 @@
+'use client';
+
+import { useTranslations } from 'next-intl';
+
 /**
  * Mini-visuels SVG pour les 4 piliers V4.
  *
@@ -10,6 +14,7 @@
  */
 
 export function VisualInvitations() {
+  const t = useTranslations('Landing.features.visuals');
   return (
     <svg viewBox="0 0 240 160" className="h-full w-full" aria-hidden>
       <defs>
@@ -36,7 +41,7 @@ export function VisualInvitations() {
           strokeWidth="0.6"
         />
         <text x="32" y="36" fontFamily="var(--font-sans)" fontSize="9" fill="oklch(28% 0.02 28)">
-          Invitation envoyée ·
+          {t('invitationSent')}
         </text>
 
         <rect
@@ -58,7 +63,7 @@ export function VisualInvitations() {
           fill="oklch(58% 0.075 80)"
           letterSpacing="2"
         >
-          INVITATION
+          {t('invitationKicker')}
         </text>
         <text
           x="140"
@@ -82,7 +87,7 @@ export function VisualInvitations() {
           fill="oklch(45% 0.022 28)"
           letterSpacing="2"
         >
-          8 JUIN 2026
+          {t('invitationDate')}
         </text>
       </g>
 
@@ -105,6 +110,7 @@ export function VisualInvitations() {
 }
 
 export function VisualRSVP() {
+  const t = useTranslations('Landing.features.visuals');
   return (
     <svg viewBox="0 0 240 160" className="h-full w-full" aria-hidden>
       <defs>
@@ -167,7 +173,7 @@ export function VisualRSVP() {
           fill="oklch(45% 0.022 28)"
           letterSpacing="2"
         >
-          % CONFIRMÉS
+          {t('rsvpConfirmed')}
         </text>
       </g>
 
@@ -208,6 +214,7 @@ function RsvpRow({
 }
 
 export function VisualCheckin() {
+  const t = useTranslations('Landing.features.visuals');
   return (
     <svg viewBox="0 0 240 160" className="h-full w-full" aria-hidden>
       <defs>
@@ -337,7 +344,7 @@ export function VisualCheckin() {
           fill="oklch(45% 0.022 28)"
           letterSpacing="1.5"
         >
-          INVITÉ-AB42
+          {t('checkinGuestId')}
         </text>
 
         <text
@@ -383,7 +390,7 @@ export function VisualCheckin() {
           fill="oklch(28% 0.02 28)"
           letterSpacing="1.5"
         >
-          OFFLINE OK
+          {t('checkinOffline')}
         </text>
       </g>
     </svg>
@@ -391,6 +398,7 @@ export function VisualCheckin() {
 }
 
 export function VisualGallery() {
+  const t = useTranslations('Landing.features.visuals');
   return (
     <svg viewBox="0 0 240 160" className="h-full w-full" aria-hidden>
       <defs>
@@ -433,7 +441,7 @@ export function VisualGallery() {
           fontSize="9"
           fill="oklch(28% 0.02 28)"
         >
-          Premier baiser
+          {t('galleryCaption1')}
         </text>
       </g>
 
@@ -461,7 +469,7 @@ export function VisualGallery() {
           fontSize="9"
           fill="oklch(28% 0.02 28)"
         >
-          La danse
+          {t('galleryCaption2')}
         </text>
       </g>
 
@@ -489,7 +497,7 @@ export function VisualGallery() {
           fontSize="9"
           fill="oklch(28% 0.02 28)"
         >
-          Les confettis
+          {t('galleryCaption3')}
         </text>
       </g>
 
@@ -513,8 +521,10 @@ export function VisualGallery() {
           fontSize="8"
           fill="oklch(48% 0.085 22)"
           letterSpacing="2"
+          textLength="80"
+          lengthAdjust="spacingAndGlyphs"
         >
-          + 247 SOUVENIRS
+          {t('galleryCounter')}
         </text>
       </g>
     </svg>

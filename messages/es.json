@@ -535,6 +535,18 @@
           "Álbum PDF imprimible",
           "Conservación hasta 5 años"
         ]
+      },
+      "visuals": {
+        "invitationSent": "Invitación enviada ·",
+        "invitationKicker": "INVITACIÓN",
+        "invitationDate": "8 JUNIO 2026",
+        "rsvpConfirmed": "% CONFIRMADOS",
+        "checkinGuestId": "INVITADO-AB42",
+        "checkinOffline": "SIN CONEXIÓN OK",
+        "galleryCaption1": "Primer beso",
+        "galleryCaption2": "El baile",
+        "galleryCaption3": "Confeti",
+        "galleryCounter": "+ 247 RECUERDOS"
       }
     },
     "cinematic": {

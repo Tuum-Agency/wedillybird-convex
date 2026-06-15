@@ -535,6 +535,18 @@
           "Album PDF imprimable",
           "Conservation jusqu'à 5 ans"
         ]
+      },
+      "visuals": {
+        "invitationSent": "Invitation envoyée ·",
+        "invitationKicker": "INVITATION",
+        "invitationDate": "8 JUIN 2026",
+        "rsvpConfirmed": "% CONFIRMÉS",
+        "checkinGuestId": "INVITÉ-AB42",
+        "checkinOffline": "HORS LIGNE OK",
+        "galleryCaption1": "Premier baiser",
+        "galleryCaption2": "La danse",
+        "galleryCaption3": "Les confettis",
+        "galleryCounter": "+ 247 SOUVENIRS"
       }
     },
     "cinematic": {

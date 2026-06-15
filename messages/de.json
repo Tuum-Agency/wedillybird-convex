@@ -535,6 +535,18 @@
           "Druckbares PDF-Album",
           "Aufbewahrung bis zu 5 Jahren"
         ]
+      },
+      "visuals": {
+        "invitationSent": "Einladung gesendet ·",
+        "invitationKicker": "EINLADUNG",
+        "invitationDate": "8. JUNI 2026",
+        "rsvpConfirmed": "% BESTÄTIGT",
+        "checkinGuestId": "GAST-AB42",
+        "checkinOffline": "OFFLINE OK",
+        "galleryCaption1": "Erster Kuss",
+        "galleryCaption2": "Der Tanz",
+        "galleryCaption3": "Konfetti",
+        "galleryCounter": "+ 247 ERINNERUNGEN"
       }
     },
     "cinematic": {
