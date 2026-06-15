@@ -446,7 +446,7 @@ export function CinematicOpening({
         transition={{ duration: 0.6, delay: 0.7, ease: 'easeOut' }}
         className="mt-8 font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-ink-500)] uppercase"
       >
-        Faites défiler pour découvrir
+        {t('scrollToDiscover')}
       </motion.p>
     </div>
   );

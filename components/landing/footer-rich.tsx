@@ -69,7 +69,7 @@ export function LandingFooterRich() {
               method="POST"
             >
               <label className="sr-only" htmlFor="footer-newsletter-email">
-                Email
+                {t('emailLabel')}
               </label>
               <input
                 id="footer-newsletter-email"

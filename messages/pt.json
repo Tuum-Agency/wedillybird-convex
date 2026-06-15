@@ -227,7 +227,8 @@
     "home": "Início",
     "meta": {
       "organizationDescription": "Plataforma SaaS de organização de casamentos WhatsApp-first: convites, RSVP, check-in, galeria partilhada. França e África Ocidental francófona."
-    }
+    },
+    "close": "Fechar"
   },
   "Footer": {
     "allRightsReserved": "Todos os direitos reservados",
@@ -255,7 +256,8 @@
       "article6Title": "6. Responsabilidade",
       "article6Body": "O Serviço é fornecido «tal como está». A Wedillybird envida esforços para garantir a máxima disponibilidade, mas não garante a ausência de interrupções. A responsabilidade da Wedillybird limita-se ao montante pago pelo Utilizador nos últimos 12 meses.",
       "article7Title": "7. Direito aplicável e litígios",
-      "article7Body": "Os presentes Termos regem-se pelo direito francês. Qualquer litígio relativo à sua execução é da competência exclusiva dos tribunais de Paris, salvo disposição de ordem pública em contrário."
+      "article7Body": "Os presentes Termos regem-se pelo direito francês. Qualquer litígio relativo à sua execução é da competência exclusiva dos tribunais de Paris, salvo disposição de ordem pública em contrário.",
+      "description": "Termos e condições de utilização do Serviço Wedillybird: conta, preços, propriedade intelectual, responsabilidade, direito aplicável."
     },
     "privacy": {
       "title": "Política de privacidade",
@@ -275,7 +277,8 @@
       "rightsTitle": "Os teus direitos",
       "rightsBody": "Acesso, retificação, eliminação, oposição, portabilidade, limitação. Para exercer um direito, escreve para privacy@wedillybird.com. Podes também apresentar uma reclamação junto da CNIL.",
       "contactTitle": "Contacto",
-      "contactBody": "Email: privacy@wedillybird.com. Resposta em 30 dias, conforme o RGPD."
+      "contactBody": "Email: privacy@wedillybird.com. Resposta em 30 dias, conforme o RGPD.",
+      "description": "Política de privacidade Wedillybird: dados recolhidos, finalidades, bases legais RGPD, períodos de conservação, subcontratantes, os teus direitos."
     },
     "cookies": {
       "title": "Política de cookies",
@@ -287,7 +290,8 @@
       "controlTitle": "Controlar os cookies",
       "controlBody": "Podes eliminar os cookies através das definições do teu navegador. Desativar o cookie de sessão termina a tua ligação ao Serviço.",
       "thirdPartiesTitle": "Cookies de terceiros",
-      "thirdPartiesBody": "A Stripe coloca os seus próprios cookies nas páginas de pagamento (fora do domínio Wedillybird) para prevenir fraudes. Consulta a respetiva política de privacidade."
+      "thirdPartiesBody": "A Stripe coloca os seus próprios cookies nas páginas de pagamento (fora do domínio Wedillybird) para prevenir fraudes. Consulta a respetiva política de privacidade.",
+      "description": "Cookies essenciais ao funcionamento da Wedillybird: sessão HMAC, cache offline check-in. Sem cookies publicitários nem trackers de terceiros."
     }
   },
   "Account": {
@@ -711,7 +715,8 @@
         }
       },
       "payments": "Pagamentos seguros via",
-      "rights": "Todos os direitos reservados"
+      "rights": "Todos os direitos reservados",
+      "emailLabel": "E-mail"
     },
     "prosFeatures": {
       "eyebrow": "Para agências e wedding planners",
@@ -823,7 +828,9 @@
     "stepTwoEyebrow": "PASSO 02 — VERIFICAÇÃO",
     "smsConsent": "Ao continuar, concorda em receber um código de verificação único por SMS ou WhatsApp. Podem aplicar-se tarifas de mensagens e dados. Responda STOP para cancelar a subscrição.",
     "otpGroupLabel": "Código de verificação",
-    "otpDigitLabel": "Dígito {position} de {total}"
+    "otpDigitLabel": "Dígito {position} de {total}",
+    "title": "Um casamento vive-se na conversa.",
+    "titleAccent": "Faz com que aconteça aí."
   },
   "Onboarding": {
     "stepProfile": "O teu perfil",
@@ -990,7 +997,8 @@
     "yourReply": "Sua resposta",
     "weddingDayArrived": "O grande dia chegou.",
     "cinematicSkip": "Pular",
-    "cinematicSkipAria": "Pular cinemática"
+    "cinematicSkipAria": "Pular cinemática",
+    "scrollToDiscover": "Role para descobrir"
   },
   "OrgPublic": {
     "poweredBy": "Com tecnologia",
@@ -1078,7 +1086,8 @@
         "rateLimited": "Demasiadas pesquisas recentes. Aguarda alguns instantes antes de tentares de novo.",
         "notInPlan": "Apenas no plano Premium. Mude para Premium para usar a busca facial.",
         "unknown": "Ocorreu um erro. Tenta de novo."
-      }
+      },
+      "cancel": "Cancelar"
     }
   },
   "Checkin": {
@@ -1787,6 +1796,1323 @@
         "refundDone": "Reembolso efetuado",
         "milestoneMarked": "Vencimento marcado como recebido",
         "modeChanged": "Modo: {mode}"
+      }
+    },
+    "budgetBoard": {
+      "eyebrow": "Orçamento · {org}",
+      "srTitle": "Orçamento de {couple}",
+      "coupleFallback": "Este casamento",
+      "readOnlySuffix": " · apenas leitura",
+      "readOnlyNote": "Está a consultar este orçamento apenas em modo de leitura. Contacte a agência para o alterar.",
+      "a": "a",
+      "addLine": "Nova linha",
+      "newLine": "Nova linha",
+      "addLineInCategory": "Adicionar uma linha · {category}",
+      "label": "Descrição",
+      "name": "Nome",
+      "category": "Categoria",
+      "vendorName": "Fornecedor",
+      "plannedEur": "Previsto (€)",
+      "amountEur": "Valor (€)",
+      "dueDate": "Vencimento",
+      "paidAt": "Data de pagamento",
+      "method": "Método de pagamento",
+      "note": "Nota",
+      "proof": "Comprovativo",
+      "percent": "{pct} %",
+      "postsCount": "{count, plural, =0 {nenhuma rubrica} =1 {1 rubrica} other {# rubricas}}",
+      "actions": {
+        "add": "Adicionar",
+        "cancel": "Cancelar",
+        "save": "Guardar",
+        "saving": "A guardar…",
+        "done": "Concluído",
+        "copy": "Copiar",
+        "copied": "Copiado"
+      },
+      "kpi": {
+        "envelope": "Envelope",
+        "planned": "Previsto",
+        "plannedSub": "{posts, plural, one {# rubrica} other {# rubricas}} · {lines, plural, one {# linha} other {# linhas}}",
+        "plannedOverSub": "{amount} acima do envelope",
+        "paid": "Pago",
+        "paidSub": "{pct} % do previsto",
+        "remaining": "Por pagar",
+        "remainingSub": "Em {lines, plural, one {# linha} other {# linhas}}"
+      },
+      "health": {
+        "progress": "Progresso dos pagamentos",
+        "progressStat": "{pct} % · {paid} / {planned}",
+        "envelopeAmount": "Envelope {amount}"
+      },
+      "alerts": {
+        "envelope": {
+          "title": "Envelope ultrapassado",
+          "body": "O previsto ultrapassa o envelope em {amount}. Ajuste as linhas ou reveja o envelope com o casal."
+        },
+        "overrun": {
+          "title": "Linhas acima do previsto",
+          "body": "{count, plural, one {# linha ultrapassa} other {# linhas ultrapassam}} o valor previsto. Verifique os pagamentos registados."
+        },
+        "overdue": {
+          "title": "Vencimentos em atraso",
+          "body": "{count, plural, one {# linha está vencida} other {# linhas estão vencidas}} e continuam por liquidar."
+        }
+      },
+      "donut": {
+        "title": "Distribuição do previsto"
+      },
+      "bars": {
+        "title": "Pago vs previsto por rubrica",
+        "legendPlanned": "Previsto",
+        "legendPaid": "Pago"
+      },
+      "cols": {
+        "item": "Item",
+        "planned": "Previsto",
+        "paid": "Pago",
+        "remaining": "Restante",
+        "dueDate": "Vencimento",
+        "status": "Estado",
+        "actions": "Ações"
+      },
+      "empty": {
+        "text": "Ainda não há linhas de orçamento.",
+        "cta": "Adicione uma primeira linha para começar o acompanhamento."
+      },
+      "confirmRemoveLine": "Eliminar a linha «{label}»? Esta ação é definitiva.",
+      "confirmRemovePayment": "Eliminar o pagamento de {amount}? Esta ação é definitiva.",
+      "row": {
+        "payment": "Pagamento",
+        "recordPaymentTitle": "Registar um pagamento",
+        "recordPaymentAria": "Registar um pagamento para {label}",
+        "editAria": "Editar a linha {label}",
+        "removeAria": "Eliminar a linha {label}",
+        "showPaymentsAria": "Mostrar os pagamentos de {label}",
+        "hidePaymentsAria": "Ocultar os pagamentos de {label}"
+      },
+      "lineDialog": {
+        "createTitle": "Nova linha de orçamento",
+        "editTitle": "Editar linha",
+        "labelLabel": "Descrição",
+        "labelPlaceholder": "Aluguer do espaço, sinal do catering…",
+        "categoryLabel": "Categoria",
+        "vendorLabel": "Fornecedor",
+        "plannedLabel": "Valor previsto (€)",
+        "dueDateLabel": "Vencimento",
+        "paidNotePrefix": "Já pago:",
+        "paidNoteSuffix": "— editável a partir do histórico de pagamentos."
+      },
+      "paymentDialog": {
+        "title": "Registar um pagamento",
+        "remainingPrefix": "· restante",
+        "modeManual": "Receber",
+        "modeOnline": "Link de pagamento",
+        "amountReceivedLabel": "Valor recebido (€)",
+        "amountToRequestLabel": "Valor a solicitar (€)",
+        "methodLabel": "Método",
+        "methodSelectAria": "Escolher o método de pagamento",
+        "dateLabel": "Data",
+        "noteLabel": "Nota",
+        "notePlaceholder": "Sinal, saldo, n.º de fatura…",
+        "proofLabel": "Comprovativo (opcional)",
+        "proofHint": "PDF, JPG, PNG ou WebP · 5 MB máx.",
+        "savePayment": "Guardar o pagamento",
+        "onlineHint": "Será gerado um link de pagamento Stripe: partilhe-o com o casal para um pagamento com cartão.",
+        "generateLink": "Gerar link",
+        "generating": "A gerar…",
+        "linkReadyTitle": "Link de pagamento pronto",
+        "linkReadyBody": "Partilhe este link com o casal. O pagamento será adicionado automaticamente após a liquidação.",
+        "linkFieldAria": "Link de pagamento"
+      },
+      "envelope": {
+        "editAria": "Editar o envelope",
+        "fieldAria": "Valor do envelope em euros",
+        "saveAria": "Guardar o envelope"
+      },
+      "vendorPicker": {
+        "placeholder": "Pesquisar ou adicionar um fornecedor…",
+        "create": "Criar «{name}»",
+        "creating": "A criar…",
+        "newVendor": "Novo",
+        "hint": "Escreva para pesquisar no seu diretório de fornecedores."
+      },
+      "payHistory": {
+        "empty": "Nenhum pagamento registado.",
+        "pending": "Pendente",
+        "failed": "Falhado",
+        "receipt": "Recibo",
+        "proof": "Comprovativo",
+        "noProof": "Sem comprovativo",
+        "copyLink": "Copiar link",
+        "linkCopied": "Link copiado",
+        "cancelLinkTitle": "Cancelar o link de pagamento",
+        "cancelLinkAria": "Cancelar o link de pagamento de {amount}",
+        "removeTitle": "Eliminar o pagamento",
+        "removePaymentAria": "Eliminar o pagamento de {amount}"
+      },
+      "export": {
+        "button": "Exportar",
+        "title": "Exportar o orçamento",
+        "disabledTitle": "Não há linhas para exportar",
+        "csv": "Exportar para CSV",
+        "lineCount": "{count, plural, one {# linha} other {# linhas}}"
+      },
+      "csv": {
+        "category": "Categoria",
+        "item": "Item",
+        "vendor": "Fornecedor",
+        "planned": "Previsto (€)",
+        "paid": "Pago (€)",
+        "remaining": "Restante (€)",
+        "dueDate": "Vencimento",
+        "status": "Estado"
+      },
+      "errors": {
+        "generic": "Ocorreu um erro. Tente novamente.",
+        "INVALID_LABEL": "A descrição é obrigatória.",
+        "INVALID_AMOUNT": "O valor introduzido é inválido.",
+        "FEATURE_NOT_IN_PLAN": "Esta funcionalidade não está incluída no seu plano.",
+        "FORBIDDEN": "Não tem permissões para esta ação.",
+        "INVALID_PROOF_TYPE": "Formato de comprovativo não suportado (PDF, JPG, PNG ou WebP).",
+        "INVALID_PROOF_SIZE": "O comprovativo excede o tamanho máximo de 5 MB.",
+        "UPLOAD_FAILED": "Falha no envio do comprovativo. Tente novamente.",
+        "PAYMENTS_NOT_CONFIGURED": "Os pagamentos online ainda não estão configurados. Ligue a sua conta Stripe nas definições."
+      },
+      "categories": {
+        "venue": "Local",
+        "catering": "Catering",
+        "photoVideo": "Foto / Vídeo",
+        "decorFlowers": "Decoração e flores",
+        "attire": "Trajes",
+        "musicDj": "Música / DJ",
+        "stationery": "Papelaria",
+        "transport": "Transporte",
+        "misc": "Diversos"
+      },
+      "status": {
+        "todo": "Por pagar",
+        "partial": "Parcial",
+        "paid": "Pago",
+        "overdue": "Em atraso"
+      },
+      "methods": {
+        "transfer": "Transferência",
+        "card": "Cartão",
+        "cash": "Dinheiro",
+        "check": "Cheque",
+        "online": "Pagamento online",
+        "other": "Outro"
+      },
+      "envelopeState": {
+        "under": "Dentro do envelope",
+        "near": "Perto do envelope",
+        "over": "Acima do envelope"
+      }
+    },
+    "clientsBoard": {
+      "eyebrow": "{count} clientes · {budget} de pipeline",
+      "title": "Clientes",
+      "newClient": "Novo cliente",
+      "editClient": "Editar cliente",
+      "viewTable": "Tabela",
+      "viewPipeline": "Pipeline",
+      "searchPlaceholder": "Pesquisar um cliente…",
+      "searchAria": "Pesquisar um cliente",
+      "filterStage": "Etapa",
+      "filterAssignee": "Responsável",
+      "sort": "Ordenar",
+      "sortBy": "Ordenar por",
+      "sortAsc": "Ordem crescente",
+      "sortDesc": "Ordem decrescente",
+      "reset": "Repor",
+      "selectedCount": "{count, plural, one {# cliente selecionado} other {# clientes selecionados}}",
+      "moveTo": "Mover para",
+      "delete": "Eliminar",
+      "cancelSelection": "Cancelar seleção",
+      "bulkDeleteConfirm": "{count, plural, one {Eliminar este cliente?} other {Eliminar estes # clientes?}}",
+      "cols": {
+        "client": "Cliente",
+        "stage": "Etapa",
+        "wedding": "Casamento",
+        "budget": "Orçamento",
+        "assignee": "Responsável",
+        "lastContact": "Último contacto"
+      },
+      "weddingBadge": "Casamento",
+      "selectRow": "Selecionar {couple}",
+      "stageOf": "Etapa de {couple}",
+      "cardAria": "{couple}, etapa {stage}",
+      "dropHere": "Soltar aqui",
+      "dateTbd": "Data a definir",
+      "countdownPrefix": "D−",
+      "budgetEstimated": "Orçamento estimado",
+      "budgetToEstimate": "Orçamento a estimar",
+      "emptyState": "Ainda não há clientes. Adicione o seu primeiro lead para iniciar o seu pipeline.",
+      "noMatch": "Nenhum cliente corresponde aos seus filtros.",
+      "detailAria": "Ficha do cliente {couple}",
+      "detailEyebrowAssigned": "Acompanhado por {name}",
+      "detailEyebrowUnassigned": "Não atribuído",
+      "changeStatus": "Mudar etapa",
+      "close": "Fechar",
+      "closeDetail": "Fechar ficha",
+      "call": "Ligar",
+      "whatsapp": "WhatsApp",
+      "emailAction": "E-mail",
+      "contactInfo": "Contactos",
+      "edit": "Editar",
+      "notProvided": "Não indicado",
+      "linkedWedding": "Casamento associado",
+      "openWedding": "Abrir casamento",
+      "past": "Passado",
+      "noLinkedWedding": "Nenhum casamento associado a este cliente. Crie um para iniciar a produção.",
+      "createWedding": "Criar casamento",
+      "budget": "Orçamento",
+      "planned": "Previsto",
+      "booked": "Comprometido",
+      "committed": "{pct, number, percent} comprometido",
+      "remaining": "{amount} restante",
+      "budgetNotEstimated": "Orçamento não estimado para este cliente.",
+      "notesActivity": "Notas e atividade",
+      "entryCount": "{count, plural, one {# entrada} other {# entradas}}",
+      "addNotePlaceholder": "Adicionar uma nota…",
+      "addNoteAria": "Adicionar uma nota",
+      "saveNote": "Guardar nota",
+      "loading": "A carregar…",
+      "noActivity": "Ainda não há atividade.",
+      "statusChanged": "Etapa alterada de {from} para {to}",
+      "documents": "Documentos",
+      "noDocuments": "Ainda não há documentos.",
+      "unassigned": "Não atribuído",
+      "delivered": "Entregue",
+      "form": {
+        "partnerA": "Parceiro A",
+        "partnerAPlaceholder": "Nome do primeiro parceiro",
+        "partnerB": "Parceiro B",
+        "partnerBPlaceholder": "Nome do segundo parceiro",
+        "phone": "Telefone",
+        "phonePlaceholder": "+33 6 12 34 56 78",
+        "whatsapp": "WhatsApp",
+        "email": "E-mail",
+        "emailPlaceholder": "cliente@exemplo.com",
+        "source": "Origem",
+        "stage": "Etapa",
+        "assignee": "Responsável",
+        "noOne": "Ninguém",
+        "weddingDate": "Data do casamento",
+        "venue": "Local",
+        "venuePlaceholder": "Quinta, solar, salão…",
+        "budgetPlanned": "Orçamento previsto (€)",
+        "budgetBooked": "Orçamento comprometido (€)",
+        "initialNote": "Nota inicial",
+        "initialNotePlaceholder": "Contexto, primeiro contacto…",
+        "cancel": "Cancelar",
+        "create": "Criar cliente",
+        "save": "Guardar",
+        "saving": "A guardar…"
+      },
+      "stages": {
+        "lead": "Lead",
+        "contacted": "Contactado",
+        "quote": "Orçamento enviado",
+        "booked": "Reservado",
+        "in_progress": "Em curso",
+        "delivered": "Entregue"
+      },
+      "stagesPlural": {
+        "lead": "Leads",
+        "contacted": "Contactados",
+        "quote": "Orçamentos enviados",
+        "booked": "Reservados",
+        "in_progress": "Em curso",
+        "delivered": "Entregues"
+      },
+      "sortOptions": {
+        "couple": "Casal",
+        "stage": "Etapa",
+        "date": "Data do casamento",
+        "budget": "Orçamento",
+        "contact": "Último contacto"
+      },
+      "sources": {
+        "recommendation": "Recomendação",
+        "instagram": "Instagram",
+        "fair": "Feira",
+        "website": "Site",
+        "other": "Outro"
+      },
+      "errors": {
+        "generic": "Ocorreu um erro. Tente novamente.",
+        "invalidPartnerA": "O nome do parceiro A é obrigatório.",
+        "invalidBudget": "O orçamento introduzido é inválido.",
+        "featureNotInPlan": "O CRM de clientes não está incluído no seu plano.",
+        "forbidden": "Não tem permissão para esta ação.",
+        "needsFutureDate": "A data do casamento deve ser futura.",
+        "noOrg": "Nenhuma agência ativa. Selecione ou crie uma agência.",
+        "unauthenticated": "Sessão expirada. Inicie sessão novamente."
+      }
+    },
+    "contractsBoard": {
+      "aiDisclaimer": "Cláusulas geradas automaticamente a partir de modelos jurídicos padrão, adaptadas à jurisdição selecionada. A Wedillybird não é um escritório de advocacia: peça a um profissional do direito que reveja este contrato antes de assinar.",
+      "backToList": "Voltar à lista",
+      "builder": {
+        "assistant": "Assistente de redação",
+        "awaitingSignature": "A aguardar assinatura",
+        "clausesGenerated": "Cláusulas geradas para {jurisdiction}",
+        "countersigned": "Contra-assinado",
+        "draftSaved": "Rascunho guardado",
+        "esignTitle": "Assinatura eletrónica",
+        "generateClauses": "Gerar cláusulas · {jurisdiction}",
+        "jurisdiction": "Jurisdição",
+        "pdf": "PDF",
+        "saveDraft": "Guardar rascunho",
+        "sectionAria": "Conteúdo da cláusula «{title}»",
+        "sectionsTitle": "Cláusulas do contrato",
+        "sendForSignature": "Enviar para assinatura",
+        "sentForSignature": "Contrato enviado para assinatura",
+        "service": "Serviço",
+        "sigAgency": "A agência — {name}",
+        "sigCouple": "O casal — {name}",
+        "signed": "Assinado",
+        "toCountersign": "A contra-assinar"
+      },
+      "clientId": "Cliente",
+      "cols": {
+        "amount": "Montante",
+        "client": "Cliente",
+        "number": "N.º",
+        "sent": "Enviado a",
+        "signed": "Assinado a",
+        "status": "Estado"
+      },
+      "createForm": {
+        "cancel": "Cancelar",
+        "clientLabel": "Cliente",
+        "clientPlaceholder": "Selecionar um cliente",
+        "create": "Criar contrato",
+        "creating": "A criar…",
+        "totalLabel": "Montante total (€)",
+        "weddingLabel": "Casamento",
+        "weddingNone": "Sem casamento associado"
+      },
+      "detail": {
+        "activeNote": "O contrato está ativo. Uma cópia assinada está arquivada e disponível para transferência.",
+        "advance": {
+          "activate": "Ativar contrato",
+          "countersign": "Contra-assinar",
+          "markSigned": "Marcar como assinado pelo casal",
+          "send": "Enviar para assinatura"
+        },
+        "auditTrail": "Registo de auditoria",
+        "by": "por {name}",
+        "cancelContract": "Anular contrato",
+        "cancelledNote": "Este contrato foi anulado. Permanece consultável como arquivo.",
+        "confirmCancel": "Anular este contrato? Esta ação é definitiva.",
+        "downloadPdf": "Transferir o PDF",
+        "downloadSignedPdf": "Transferir o PDF assinado",
+        "edit": "Editar",
+        "internalCopyArchived": "Uma cópia interna está arquivada.",
+        "signatureCertificate": "Certificado de assinatura",
+        "statusTitle": "Estado do contrato"
+      },
+      "errors": {
+        "GENERIC": "Ocorreu um erro. Tente novamente."
+      },
+      "eventId": "Casamento",
+      "eyebrow": "Contratos",
+      "jurisdiction": "Jurisdição",
+      "list": {
+        "empty": "Ainda não há contratos. Crie o seu primeiro contrato a partir de um modelo.",
+        "searchAria": "Pesquisar contratos",
+        "searchPlaceholder": "Pesquisar por número ou cliente…"
+      },
+      "mergeFields": {
+        "agency": "A agência",
+        "agreedDate": "a data acordada",
+        "agreedVenue": "o local acordado",
+        "balanceDue": "30 dias antes do evento"
+      },
+      "newContract": "Novo contrato",
+      "preview": {
+        "client": "Cliente",
+        "contract": "Contrato",
+        "theAgency": "A agência",
+        "theCouple": "O casal",
+        "wedding": "Casamento"
+      },
+      "service": "Serviço",
+      "smartFile": {
+        "linkedObjects": "Itens associados",
+        "title": "Processo de reserva"
+      },
+      "templates": "Modelos",
+      "timeline": {
+        "active": "Contrato ativo",
+        "cancelled": "Contrato anulado",
+        "countersigned": "Contra-assinado pela agência",
+        "created": "Contrato criado",
+        "sent": "Enviado para assinatura",
+        "signedBy": "Assinado por {name}"
+      },
+      "title": {
+        "builder": "Redação do contrato",
+        "list": "Contratos",
+        "templates": "Modelos de contrato"
+      },
+      "toasts": {
+        "certificateDownloaded": "Certificado de assinatura transferido",
+        "pdfDownloaded": "PDF transferido",
+        "signedPdfDownloaded": "PDF assinado transferido",
+        "statusUpdated": "Estado atualizado"
+      },
+      "total": "Total",
+      "useTemplate": "Usar este modelo",
+      "status": {
+        "draft": "Rascunho",
+        "sent": "Enviado",
+        "signed_client": "Assinado pelo casal",
+        "countersigned": "Contra-assinado",
+        "active": "Ativo",
+        "cancelled": "Anulado"
+      },
+      "smartSteps": {
+        "quote_sent": "Orçamento enviado",
+        "quote_accepted": "Orçamento aceite",
+        "contract_signed": "Contrato assinado",
+        "deposit_paid": "Sinal pago",
+        "booked": "Reservado"
+      },
+      "serviceTypes": {
+        "coordination": {
+          "name": "Coordenação do dia",
+          "desc": "12 h de presença · supervisão · plano de mesas"
+        },
+        "complete": {
+          "name": "Organização completa",
+          "desc": "Da procura do local ao grande dia"
+        },
+        "intimate": {
+          "name": "Casamento íntimo",
+          "desc": "Grupo restrito · serviço simplificado"
+        }
+      },
+      "jurisdictions": {
+        "FR": "França",
+        "BE": "Bélgica",
+        "CH": "Suíça",
+        "LU": "Luxemburgo",
+        "CA-QC": "Canadá (Quebeque)",
+        "US": "Estados Unidos"
+      }
+    },
+    "integrations": {
+      "title": "Importar clientes",
+      "subtitle": "A partir de um ficheiro CSV ou colando",
+      "dropzone": "Largue um ficheiro CSV ou clique para procurar",
+      "orPaste": "ou cole os seus dados",
+      "pastePlaceholder": "Nome, Cônjuge, E-mail, Telefone…",
+      "pasteAria": "Colar os dados a importar",
+      "parse": "Analisar",
+      "columnFallback": "Coluna {n}",
+      "mapColumn": "Mapear a coluna {column}",
+      "toImport": "<b>{count}</b> para importar",
+      "duplicatesSkipped": "<b>{count}</b> duplicado{count, plural, one {} other {s}} ignorado{count, plural, one {} other {s}}",
+      "duplicateBadge": "Duplicado",
+      "back": "Voltar",
+      "importing": "A importar…",
+      "importCta": "Importar {count, plural, one {# cliente} other {# clientes}}",
+      "resultImported": "{count, plural, one {# cliente importado} other {# clientes importados}}",
+      "resultSkipped": "{count, plural, one {# duplicado ignorado} other {# duplicados ignorados}}",
+      "importAnother": "Importar outro ficheiro",
+      "partnerA": "Cônjuge A",
+      "partnerB": "Cônjuge B",
+      "email": "E-mail",
+      "phone": "Telefone",
+      "steps": {
+        "upload": "Ficheiro",
+        "map": "Colunas",
+        "result": "Resultado"
+      },
+      "fields": {
+        "partnerA": "Cônjuge A",
+        "partnerB": "Cônjuge B",
+        "email": "E-mail",
+        "phone": "Telefone",
+        "ignore": "Ignorar"
+      }
+    },
+    "seatingBoard": {
+      "poolTitle": "Por colocar",
+      "searchPlaceholder": "Procurar um convidado…",
+      "searchAria": "Procurar um convidado",
+      "poolAllSeated": "Todos os convidados estão colocados",
+      "poolNoMatch": "Nenhum convidado corresponde",
+      "guestCount": "{count, plural, one {# convidado} other {# convidados}}",
+      "guestChipAria": "{name}, {seats, plural, one {# lugar} other {# lugares}}",
+      "seatedSuffix": "colocados",
+      "addTable": "Adicionar uma mesa",
+      "autoPlace": "Colocação automática",
+      "autoSettingsTitle": "Definições de colocação",
+      "runPlacement": "Executar a colocação",
+      "modeUnplaced": "{count, plural, one {# por colocar} other {# por colocar}}",
+      "modeAll": "Recolocar tudo",
+      "autoOption": {
+        "groupByCategory": {
+          "label": "Agrupar por categoria",
+          "hint": "Junta família, amigos e colegas"
+        },
+        "keepGroupsTogether": {
+          "label": "Manter os grupos juntos",
+          "hint": "Evita separar o mesmo agregado"
+        },
+        "balanceTables": {
+          "label": "Equilibrar as mesas",
+          "hint": "Distribui os convidados pelas mesas"
+        },
+        "createTables": {
+          "label": "Criar mesas se necessário",
+          "hint": "Adiciona mesas quando faltam lugares"
+        }
+      },
+      "emptyTitle": "Ainda sem mesas",
+      "emptyDescription": "Execute a colocação automática ou adicione uma mesa para começar o seu plano.",
+      "zoomIn": "Aproximar",
+      "zoomOut": "Afastar",
+      "resetView": "Repor a vista",
+      "moveTable": "Mover a mesa",
+      "moveTableAria": "Mover a mesa {name}",
+      "close": "Fechar",
+      "peopleCount": "{occupancy} / {capacity} pessoas",
+      "tableNameLabel": "Nome da mesa",
+      "shapeLabel": "Forma",
+      "shapeRound": "Redonda",
+      "shapeRect": "Retangular",
+      "shapeRectShort": "Retângulo",
+      "capacityLabel": "Capacidade",
+      "capacityOver": "Sobrelotada · {occupancy}/{capacity}",
+      "capacityFull": "Completa",
+      "capacityFree": "{free, plural, one {# lugar livre} other {# lugares livres}}",
+      "placedGuestsLabel": "{count, plural, =0 {Convidados colocados} one {# convidado colocado} other {# convidados colocados}}",
+      "placedGuestsEmpty": "Nenhum convidado nesta mesa",
+      "removeGuestAria": "Remover {name} da mesa",
+      "deleteTable": "Eliminar a mesa",
+      "decrease": "Diminuir",
+      "increase": "Aumentar",
+      "newTableEyebrow": "Nova mesa",
+      "add": "Adicionar",
+      "cancel": "Cancelar"
+    },
+    "planningBoard": {
+      "eyebrow": "{org} · Planeamento",
+      "title": "Planeamento do casamento",
+      "newTask": "Nova tarefa",
+      "addTask": "Adicionar uma tarefa",
+      "applyTemplate": "Aplicar um modelo",
+      "saveAsTemplate": "Guardar como modelo",
+      "add": "Adicionar",
+      "save": "Guardar",
+      "saving": "A guardar…",
+      "cancel": "Cancelar",
+      "done": "Concluído",
+      "viewTablist": "Modos de visualização",
+      "views": {
+        "phase": "Por fase",
+        "board": "Quadro",
+        "frise": "Linha do tempo"
+      },
+      "searchPlaceholder": "Procurar uma tarefa…",
+      "searchAria": "Procurar uma tarefa",
+      "filterStatusAria": "Filtrar por estado",
+      "filterAllStatuses": "Todos os estados",
+      "filterAssigneeAria": "Filtrar por responsável",
+      "filterAll": "Todos",
+      "unassigned": "Sem responsável",
+      "noFilterMatch": "Nenhuma tarefa corresponde aos filtros",
+      "resetFilters": "Repor filtros",
+      "empty": {
+        "none": "Ainda sem tarefas para este casamento.",
+        "applyToStart": "Aplique um modelo para começar.",
+        "templateClassic": "Modelo de casamento clássico",
+        "templateIntimate": "Modelo de casamento íntimo",
+        "myTemplates": "{count, plural, one {O meu modelo} other {Os meus modelos ({count})}}"
+      },
+      "progress": {
+        "label": "Progresso",
+        "ratio": "{done} / {total} tarefas",
+        "ringAria": "{pct}% concluído",
+        "upToDate": "Em dia"
+      },
+      "overdueCount": "{count, plural, one {# tarefa atrasada} other {# tarefas atrasadas}}",
+      "lateCount": "{count, plural, one {# atrasada} other {# atrasadas}}",
+      "statusChange": "Alterar o estado · atual: {status}",
+      "hasNote": "Contém uma nota",
+      "assignedTo": "Atribuído a {name}",
+      "removeTask": "Eliminar a tarefa «{title}»",
+      "emptyColumn": "Nenhuma tarefa",
+      "moveLeft": "Recuar «{title}»",
+      "moveRight": "Avançar «{title}»",
+      "dialog": {
+        "newTitle": "Nova tarefa",
+        "editTitle": "Editar a tarefa",
+        "taskLabel": "Tarefa",
+        "taskPlaceholder": "Ex.: reservar o catering",
+        "phaseLabel": "Fase",
+        "dueLabel": "Prazo",
+        "priorityLabel": "Prioridade",
+        "assigneeLabel": "Responsável",
+        "noteLabel": "Nota",
+        "notePlaceholder": "Detalhes, contactos, lembretes…",
+        "subtasks": "Subtarefas",
+        "addSubtask": "Adicionar uma subtarefa",
+        "addSubtaskPlaceholder": "Título da subtarefa",
+        "removeSubtask": "Remover «{label}»"
+      },
+      "priority": {
+        "low": "Baixa",
+        "normal": "Normal",
+        "high": "Alta"
+      },
+      "saveDialog": {
+        "eyebrow": "Modelo de planeamento",
+        "title": "Guardar como modelo",
+        "description": "Reutilize estas {count, plural, one {# tarefa} other {# tarefas}} nos seus próximos casamentos.",
+        "nameLabel": "Nome do modelo",
+        "namePlaceholder": "Ex.: casamento em palácio 200 convidados",
+        "nameAria": "Nome do modelo"
+      },
+      "applyDialog": {
+        "eyebrow": "Modelos de planeamento",
+        "taskCount": "{count, plural, one {# tarefa} other {# tarefas}}",
+        "customTag": " · personalizado",
+        "deleteTemplate": "Eliminar o modelo «{name}»",
+        "emptyTemplate": "Este modelo não contém tarefas.",
+        "willAppend": "Estas {count, plural, one {# tarefa será adicionada} other {# tarefas serão adicionadas}} às existentes.",
+        "applyCount": "Adicionar {count, plural, one {# tarefa} other {# tarefas}}"
+      },
+      "jBadge": {
+        "dday": "Dia do casamento",
+        "before": "D−{n}",
+        "after": "D+{n}"
+      },
+      "frise": {
+        "upcomingTitle": "Próximos prazos",
+        "ddayWithDate": "Dia do casamento · {date}",
+        "noUpcoming": "Sem prazos a chegar.",
+        "noDated": "Ainda sem tarefas com data.",
+        "today": "Hoje",
+        "undatedCount": "{count, plural, one {# tarefa sem data} other {# tarefas sem data}}"
+      },
+      "errors": {
+        "generic": "Ocorreu um erro. Tente novamente.",
+        "titleRequired": "O título da tarefa é obrigatório.",
+        "templateNameRequired": "O nome do modelo é obrigatório.",
+        "templateLimit": "Limite de {max} modelos atingido."
+      },
+      "phase": "Fase",
+      "notes": "Notas",
+      "dueDate": "Prazo",
+      "assigneeId": "Responsável"
+    },
+    "quotesBoard": {
+      "back": "Voltar",
+      "title": "Orçamentos e faturas",
+      "eyebrow": "Faturação",
+      "newQuote": "Novo orçamento",
+      "newInvoice": "Nova fatura",
+      "convertToInvoice": "Converter em fatura",
+      "confirmDelete": "Eliminar o documento {number}? Esta ação é definitiva.",
+      "searchPlaceholder": "Pesquisar por número, cliente…",
+      "searchAriaLabel": "Pesquisar documentos",
+      "updating": "A atualizar…",
+      "tabs": {
+        "quotes": "Orçamentos",
+        "invoices": "Faturas"
+      },
+      "kpis": {
+        "collected": "Recebido este mês",
+        "pending": "Pendente",
+        "overdue": "Em atraso",
+        "openQuotes": "Orçamentos em curso"
+      },
+      "cols": {
+        "number": "Número",
+        "client": "Cliente",
+        "wedding": "Casamento",
+        "amount": "Montante",
+        "paidRemaining": "Pago / Restante",
+        "status": "Estado",
+        "validity": "Validade",
+        "dueDate": "Vencimento"
+      },
+      "empty": {
+        "noQuotes": "Ainda não há orçamentos. Crie o seu primeiro orçamento para começar.",
+        "noInvoices": "Ainda não há faturas. Crie uma fatura ou converta um orçamento aceite.",
+        "noMatch": "Nenhum documento corresponde à sua pesquisa."
+      },
+      "errors": {
+        "featureNotInPlan": "Os orçamentos e faturas não estão incluídos no seu plano. Faça upgrade para os desbloquear.",
+        "forbidden": "Não tem permissões para realizar esta ação.",
+        "invalidClient": "Selecione um cliente válido.",
+        "invalidLines": "Adicione pelo menos uma linha com uma descrição.",
+        "generic": "Ocorreu um erro. Tente novamente."
+      },
+      "preview": {
+        "agencyName": "A sua agência",
+        "agencyInitial": "A"
+      },
+      "rowMenu": {
+        "actions": "Ações",
+        "view": "Ver",
+        "edit": "Editar",
+        "delete": "Eliminar"
+      },
+      "doc": {
+        "quote": "Orçamento",
+        "invoice": "Fatura",
+        "date": "Data",
+        "issued": "Emitido em",
+        "designation": "Designação"
+      },
+      "builder": {
+        "editTitle": "Editar {number}",
+        "clientWeddingCard": "Cliente e casamento",
+        "linkedWedding": "Casamento associado",
+        "noClientPlaceholder": "Selecionar um cliente",
+        "noneOption": "Nenhum",
+        "linesCard": "Linhas",
+        "defaultLineLabel": "Serviço",
+        "colLabel": "Descrição",
+        "colQty": "Qtd.",
+        "colUnitPrice": "Preço unit.",
+        "colTotal": "Total",
+        "qtyAria": "Quantidade",
+        "unitPriceAria": "Preço unitário",
+        "removeLineAria": "Remover linha",
+        "addLine": "Adicionar uma linha",
+        "discountField": "Desconto (€)",
+        "taxField": "IVA",
+        "taxNone": "Sem IVA",
+        "taxFr": "IVA 20% (França)",
+        "taxUs": "Imposto 5%",
+        "subtotal": "Subtotal",
+        "discount": "Desconto",
+        "taxRow": "IVA ({rate}%)",
+        "total": "Total",
+        "scheduleCard": "Plano de pagamento",
+        "depositField": "Sinal (%)",
+        "scheduleDeposit": "Sinal {pct}%",
+        "scheduleDepositOnSign": "Sinal {pct}% na assinatura",
+        "scheduleBalance": "Saldo",
+        "whenToday": "Hoje",
+        "whenDue": "No vencimento",
+        "saveDraft": "Guardar rascunho",
+        "send": "Enviar",
+        "sending": "A enviar…"
+      },
+      "detail": {
+        "backToList": "Voltar à lista",
+        "paid": "Pago",
+        "remaining": "Em dívida",
+        "scheduleHeading": "Plano de pagamento",
+        "scheduleDue": "Vence a {date}",
+        "onReceipt": "Na receção",
+        "collected": "Recebido",
+        "markPaid": "Marcar como pago",
+        "awaiting": "Pendente",
+        "manualNote": "O acompanhamento de pagamentos é manual: marque cada prestação como recebida assim que o pagamento chegar.",
+        "followUp": "Reenviar lembrete",
+        "edit": "Editar",
+        "history": "Histórico",
+        "documentCreated": "Documento criado"
+      }
+    },
+    "vendorsBoard": {
+      "actions": {
+        "add": "Adicionar",
+        "addVendor": "Adicionar um fornecedor",
+        "cancel": "Cancelar",
+        "close": "Fechar",
+        "edit": "Editar",
+        "editNamed": "Editar {name}",
+        "removeNamed": "Remover {name}",
+        "resetFilters": "Redefinir os filtros",
+        "save": "Guardar",
+        "saving": "A guardar…"
+      },
+      "attachDialog": {
+        "createBudgetLine": "Criar uma linha de orçamento vinculada",
+        "errorAlreadyAttached": "Este fornecedor já está vinculado a este casamento.",
+        "errorChoose": "Escolha um fornecedor.",
+        "plannedAmount": "Montante previsto",
+        "statusLegend": "Estado",
+        "vendorLabel": "Fornecedor",
+        "vendorOption": "{name} — {category}"
+      },
+      "capWarning": "Limite atingido: máximo de {cap} fornecedores no seu plano.",
+      "category": "Categoria",
+      "cols": {
+        "actions": "Ações",
+        "category": "Categoria",
+        "linkedBudget": "Orçamento vinculado",
+        "location": "Localização",
+        "price": "Faixa de preço",
+        "rating": "Avaliação",
+        "status": "Estado",
+        "vendor": "Fornecedor"
+      },
+      "confirmRemove": "Remover o fornecedor «{name}»?",
+      "contact": {
+        "email": "Enviar um e-mail",
+        "phone": "Ligar",
+        "website": "Abrir o site",
+        "whatsapp": "Enviar mensagem no WhatsApp"
+      },
+      "detail": {
+        "contactSection": "Contacto",
+        "email": "E-mail",
+        "fallbackName": "Ficha do fornecedor",
+        "location": "Localização",
+        "noWeddings": "Nenhum casamento vinculado por enquanto.",
+        "phone": "Telefone",
+        "priceRange": "Faixa de preço",
+        "website": "Site",
+        "weddingFallback": "Casamento",
+        "weddingsSection": "Casamentos",
+        "whatsapp": "WhatsApp"
+      },
+      "email": "E-mail",
+      "empty": {
+        "directory": "Nenhum fornecedor no diretório.",
+        "directoryWritable": "O seu diretório está vazio. Adicione o seu primeiro fornecedor para reutilizá-lo em todos os seus casamentos.",
+        "noMatch": "Nenhum fornecedor corresponde à sua pesquisa."
+      },
+      "engagements": {
+        "attach": "Vincular um fornecedor",
+        "attachShort": "Vincular",
+        "attachedCount": "{count, plural, one {# fornecedor vinculado} other {# fornecedores vinculados}}",
+        "budgetLinked": "Vinculado a uma linha de orçamento",
+        "chooseWedding": "Escolher um casamento",
+        "confirmDetach": "Desvincular «{name}» deste casamento?",
+        "detachNamed": "Desvincular {name}",
+        "emptyTitle": "Nenhum fornecedor vinculado a este casamento por enquanto.",
+        "kpiBudget": "Orçamento vinculado",
+        "kpiConfirmed": "Confirmados",
+        "kpiVendors": "Fornecedores",
+        "noEvents": "Crie um casamento para começar a vincular fornecedores.",
+        "statusOf": "Estado de {name}",
+        "step1": "Escolha um fornecedor do diretório",
+        "step2": "Defina o seu estado",
+        "step3": "Vincule-o ao orçamento se necessário",
+        "weddingLabel": "Casamento"
+      },
+      "errors": {
+        "unknown": "Ocorreu um erro. Tente novamente."
+      },
+      "form": {
+        "category": "Categoria",
+        "createTitle": "Novo fornecedor",
+        "editTitle": "Editar fornecedor",
+        "email": "E-mail",
+        "location": "Localização",
+        "locationPlaceholder": "Cidade ou região",
+        "name": "Nome",
+        "namePlaceholder": "Ex. Studio Lumen",
+        "notes": "Notas",
+        "priceRange": "Faixa de preço",
+        "ratingLabel": "Avaliação",
+        "website": "Site",
+        "websitePlaceholder": "seusite.com"
+      },
+      "header": {
+        "eyebrow": "{count, plural, one {# fornecedor} other {# fornecedores}}",
+        "eyebrowCapped": "{count} / {cap} fornecedores",
+        "title": "Fornecedores"
+      },
+      "location": "Localização",
+      "name": "Nome",
+      "notes": "Notas",
+      "phone": "Telefone",
+      "plannedEur": "Montante previsto (€)",
+      "priceRange": "Faixa de preço",
+      "rating": {
+        "ariaValue": "Avaliação: {r} de 5"
+      },
+      "tabs": {
+        "ariaLabel": "Visualização de fornecedores",
+        "byWedding": "Por casamento",
+        "directory": "Diretório"
+      },
+      "toolbar": {
+        "allCategories": "Todas as categorias",
+        "filterAria": "Filtrar por categoria",
+        "results": "{count, plural, one {# resultado} other {# resultados}}",
+        "searchAria": "Pesquisar um fornecedor",
+        "searchPlaceholder": "Pesquisar um fornecedor…"
+      },
+      "view": {
+        "grid": "Vista em grelha",
+        "table": "Vista em tabela"
+      },
+      "website": "Site",
+      "whatsapp": "WhatsApp",
+      "categories": {
+        "venue": "Local",
+        "catering": "Catering",
+        "photoVideo": "Foto / Vídeo",
+        "decorFlowers": "Decoração e flores",
+        "musicDj": "Música / DJ",
+        "beauty": "Beleza",
+        "cake": "Confeitaria",
+        "stationery": "Papelaria",
+        "transport": "Transporte",
+        "entertainment": "Animação",
+        "other": "Outro"
+      },
+      "priceWords": {
+        "economic": "Económico",
+        "moderate": "Moderado",
+        "premium": "Premium"
+      },
+      "engagementStatus": {
+        "contacted": "Contactado",
+        "quoted": "Orçamento recebido",
+        "booked": "Reservado",
+        "confirmed": "Confirmado"
+      }
+    },
+    "weddings": {
+      "partnerA": "Parceiro A",
+      "partnerB": "Parceiro B",
+      "venueName": "Nome do local",
+      "venueAddress": "Endereço do local",
+      "eventDate": "Data do evento",
+      "common": {
+        "cancel": "Cancelar",
+        "clear": "Limpar",
+        "close": "Fechar"
+      },
+      "status": {
+        "active": "Ativo",
+        "draft": "Rascunho",
+        "archived": "Arquivado",
+        "cancelled": "Cancelado"
+      },
+      "tabs": {
+        "overview": "Visão geral",
+        "guests": "Convidados",
+        "messaging": "Mensagens",
+        "checkin": "Check-in",
+        "seating": "Plano de mesas",
+        "gallery": "Galeria",
+        "invoice": "Faturação"
+      },
+      "rsvp": {
+        "confirmed": "Confirmados",
+        "declined": "Ausentes",
+        "pending": "Pendentes",
+        "maybe": "Talvez",
+        "confirmedShort": "confirm.",
+        "declinedShort": "ausentes",
+        "pendingShort": "pend.",
+        "attendingShort": "presentes"
+      },
+      "rsvpPill": {
+        "attending": "Presente",
+        "declined": "Ausente",
+        "pending": "Pendente",
+        "maybe": "Talvez"
+      },
+      "hub": {
+        "weddings": "Casamentos",
+        "breadcrumb": "Trilha de navegação",
+        "dayMinusPrefix": "D−",
+        "dayMinusValue": "D−{n}",
+        "invitationsSent": "Convites enviados",
+        "draftNotPublished": "Rascunho · não publicado",
+        "eventNoCapPlan": "Evento {no}/{cap} · {plan}",
+        "eventNoPlan": "Evento {no} · {plan}",
+        "backToDraft": "Voltar para rascunho",
+        "publishEvent": "Publicar evento",
+        "eventActive": "Evento ativo",
+        "readyToPublish": "Pronto para publicar",
+        "invitationsDistributable": "A página pública está no ar: já pode distribuir os convites.",
+        "publishToDistribute": "Publique o evento para colocar a página pública no ar e distribuir os convites.",
+        "publishing": "A publicar…",
+        "quotaExceeded": "Quota de eventos atingida para o seu plano.",
+        "publishFailed": "Falha na publicação. Tente novamente.",
+        "rsvpResponses": "Respostas de confirmação",
+        "viewGuests": "Ver convidados",
+        "guestsUnit": "convidados",
+        "percent": "{n}%",
+        "responseRate": "Taxa de resposta",
+        "quickActions": "Ações rápidas",
+        "qaBroadcast": "Difundir",
+        "qaAddGuests": "Adicionar convidados",
+        "qaOpenCheckin": "Abrir check-in",
+        "qaPublicPage": "Página pública",
+        "kpiCountdown": "Contagem decrescente",
+        "kpiGuests": "Convidados",
+        "kpiBudget": "Orçamento",
+        "budgetEngaged": "{pct}% comprometido",
+        "viewBudget": "Ver orçamento",
+        "kpiTasks": "Tarefas",
+        "tasksDueSoon": "com prazo próximo",
+        "backlog": "Backlog"
+      },
+      "launcher": {
+        "newWedding": "Novo casamento",
+        "eyebrow": "Novo evento",
+        "partnerA": "Parceiro A",
+        "partnerAPlaceholder": "Nome",
+        "partnerB": "Parceiro B",
+        "partnerBPlaceholder": "Nome",
+        "weddingDate": "Data do casamento",
+        "venueName": "Local",
+        "venueNamePlaceholder": "Quinta, solar…",
+        "venueAddress": "Endereço",
+        "venueAddressPlaceholder": "Cidade ou endereço completo",
+        "creating": "A criar…",
+        "createWedding": "Criar casamento",
+        "errBothNames": "Indique os dois nomes.",
+        "errDate": "Indique uma data válida.",
+        "errInvalidNames": "Nomes inválidos.",
+        "errCreate": "Não foi possível criar o casamento. Tente novamente."
+      },
+      "invites": {
+        "guestCount": "{count, plural, =0 {0 convidados} one {# convidado} other {# convidados}}",
+        "capSuffix": " / {cap}",
+        "manageGuests": "Gerir convidados",
+        "filterAll": "Todos",
+        "filterAttending": "Presentes",
+        "filterPending": "Pendentes",
+        "filterDeclined": "Ausentes",
+        "emptyTitle": "Ainda sem convidados",
+        "emptyBody": "Adicione os seus convidados para acompanhar as respostas e enviar os convites.",
+        "emptyCta": "Adicionar convidados",
+        "searchPlaceholder": "Pesquisar um convidado…",
+        "searchAria": "Pesquisar um convidado",
+        "colGuest": "Convidado",
+        "colCategory": "Categoria",
+        "colPlusOnes": "Acompanhantes",
+        "colRsvp": "Confirmação",
+        "noMatch": "Nenhum convidado corresponde."
+      },
+      "messaging": {
+        "notPublishedTitle": "Evento não publicado",
+        "notPublishedBody": "Publique o evento a partir da visão geral para distribuir os convites e os lembretes.",
+        "messagesThisMonth": "Mensagens este mês",
+        "billing": "Faturação",
+        "styleTitle": "Estilo do convite",
+        "templatesCount": "{count, plural, one {# modelo} other {# modelos}}",
+        "personalMessage": "Mensagem pessoal",
+        "optional": "(opcional)",
+        "personalPlaceholder": "Uma palavra para os seus convidados…",
+        "recipientsTitle": "Destinatários",
+        "recipientsCount": "{count, plural, =0 {0 destinatários} one {# destinatário} other {# destinatários}}",
+        "audienceAria": "Seleção de público",
+        "audAllTitle": "Todos os convidados",
+        "audAllSub": "Difundir para toda a lista",
+        "audPendingTitle": "À espera de resposta",
+        "audPendingSub": "Lembrar os convidados sem resposta",
+        "audCategoryTitle": "Por categoria",
+        "audCategorySub": "Segmentar grupos específicos",
+        "guestUnitAbbr": "conv.",
+        "noCategories": "Nenhuma categoria definida.",
+        "messagesToSend": "{count, plural, =0 {Nenhuma mensagem a enviar} one {<n>#</n> mensagem a enviar} other {<n>#</n> mensagens a enviar}}",
+        "quotaImpact": "{used} → {after} de {cap} este mês",
+        "overQuotaSuffix": " · excedido",
+        "broadcastNow": "Difundir agora",
+        "broadcastStarted": "{count, plural, one {Difusão iniciada para # destinatário} other {Difusão iniciada para # destinatários}}",
+        "deliveryStatus": "Estado de entrega",
+        "lastBroadcast": "última difusão {time}",
+        "colGuest": "Convidado",
+        "colChannel": "Canal",
+        "colStatus": "Estado",
+        "colTimestamp": "Hora",
+        "channelWhatsApp": "WhatsApp",
+        "autoReminders": "Lembretes automáticos",
+        "reminderD7": "Lembrete em D−7",
+        "reminderD1": "Lembrete em D−1",
+        "nextRun": "Próximo envio {next}",
+        "disabled": "Desativado",
+        "remindersNote": "Os lembretes só são enviados aos convidados sem resposta e são descontados da sua quota mensal.",
+        "previewAria": "Pré-visualização da mensagem",
+        "verifiedAccount": "Conta verificada",
+        "firstNameToken": "Nome",
+        "persoQuote": "«{text}»",
+        "viewInvitation": "Ver convite",
+        "confirmEyebrow": "Confirmação",
+        "confirmTitle": "Distribuir os convites",
+        "confirmBody": "Vai enviar o modelo <b>{style}</b> a {count, plural, one {# convidado} other {# convidados}} via WhatsApp.",
+        "recapRecipients": "Destinatários",
+        "recapConsumed": "Mensagens consumidas",
+        "recapQuotaAfter": "Quota após o envio",
+        "confirmCta": "{count, plural, one {Enviar a # convidado} other {Enviar a # convidados}}",
+        "overQuotaWarning": "Este envio excede a sua quota mensal; as mensagens excedentes serão faturadas a 0,06 €/mensagem.",
+        "remainingThisMonth": "{count, plural, one {{n} mensagem restante este mês} other {{n} mensagens restantes este mês}}",
+        "otherCategory": "Outros",
+        "tpl": {
+          "classic": {
+            "name": "Clássico",
+            "desc": "Elegante e sóbrio",
+            "header": "Está convidado(a)",
+            "body": "Olá <name></name>, seria uma honra contar com a sua presença. Confirme a sua presença com um clique."
+          },
+          "photo": {
+            "name": "Foto",
+            "desc": "Com imagem de destaque",
+            "header": "O nosso grande dia está a chegar",
+            "body": "<name></name>, veja o nosso convite e confirme já a sua presença."
+          },
+          "modern": {
+            "name": "Moderno",
+            "desc": "Depurado e contemporâneo",
+            "header": "Reserve a data",
+            "body": "Olá <name></name>! Vamos casar e contamos contigo. Responde em segundos."
+          },
+          "festive": {
+            "name": "Festivo",
+            "desc": "Colorido e alegre",
+            "header": "Que comece a festa!",
+            "body": "<name></name>, mal podemos esperar para celebrar consigo! Confirme a sua presença e prepare os seus melhores passos de dança."
+          },
+          "sober": {
+            "name": "Sóbrio",
+            "desc": "Minimalista, apenas texto",
+            "header": "Convite",
+            "body": "<name></name>, está convidado(a) para o nosso casamento. Confirme a sua presença através do link abaixo."
+          }
+        },
+        "delivery": {
+          "replied": "Respondido",
+          "read": "Lido",
+          "delivered": "Entregue",
+          "sent": "Enviado"
+        }
+      },
+      "checkin": {
+        "emptyTitle": "Sem convidados para receber",
+        "emptyBody": "O check-in será ativado assim que os convidados confirmarem a presença.",
+        "arrivedOf": "{value} de {total} chegaram",
+        "arrivedLabel": "chegaram",
+        "arrivedHeading": "<n>{arrived}</n> de <n>{total}</n> chegaram",
+        "stillExpected": "{count, plural, =0 {Já chegaram todos} one {# convidado ainda esperado} other {# convidados ainda esperados}}",
+        "lastArrival": "última chegada {time}",
+        "noArrival": "ainda sem chegadas",
+        "offlinePending": "{count, plural, =0 {Offline} one {Offline · <b>#</b> pendente} other {Offline · <b>#</b> pendentes}}",
+        "onlineSynced": "Online · sincronizado",
+        "backOnline": "Voltar a ficar online",
+        "simulateOffline": "Simular offline",
+        "qrScanner": "Leitor de QR",
+        "qrViewfinder": "Visor do leitor de QR",
+        "scanResultArrived": "{name} chegou (+{plusOnes})",
+        "simulateScan": "Simular uma leitura",
+        "scannerHint": "Aponte para o QR do convidado ou pesquise-o na lista.",
+        "searchPlaceholder": "Pesquisar um convidado…",
+        "plusOnesAbbr": "{count, plural, one {+# acomp.} other {+# acomp.}}",
+        "arrivedTag": "Chegou",
+        "undoArrivalAria": "Anular a chegada de {name}",
+        "markArrived": "Marcar como chegado",
+        "markArrivedAria": "Marcar {name} como chegado(a)",
+        "recentArrivals": "Chegadas recentes",
+        "viaSession": "{count, plural, =0 {0 nesta sessão} one {# nesta sessão} other {# nesta sessão}}",
+        "recentArrivalsEmpty": "As chegadas aparecerão aqui à medida que os convidados fizerem check-in.",
+        "byStaff": "por {by}",
+        "allArrived": "Todos os convidados chegaram.",
+        "arrivedToast": "{queued, select, true {<b>{name}</b> registado(a) (será sincronizado) · +{plusOnes}} other {<b>{name}</b> chegou · +{plusOnes}}}",
+        "syncedToast": "{count, plural, one {<b>#</b> chegada sincronizada} other {<b>#</b> chegadas sincronizadas}}",
+        "offlineToast": "Modo <b>offline</b>: as chegadas serão sincronizadas quando a rede voltar."
+      },
+      "seating": {
+        "headTable": "Mesa de honra",
+        "tableN": "Mesa {n}",
+        "emptyTitle": "Sem convidados para colocar",
+        "emptyBody": "O plano de mesas será construído assim que os convidados confirmarem a presença.",
+        "tablesCount": "{count, plural, one {# mesa} other {# mesas}}",
+        "placedHeading": "<n>{placed}</n> de <n>{total}</n> colocados",
+        "fullPlan": "Plano completo",
+        "removeTitle": "Remover {name} da mesa",
+        "removeAria": "Remover {name} da mesa",
+        "unassigned": "Por colocar",
+        "allPlaced": "Todos os convidados estão colocados.",
+        "place": "Colocar"
+      },
+      "gallery": {
+        "moderationAria": "Moderação de fotos",
+        "subPending": "Pendentes",
+        "subApproved": "Aprovadas",
+        "subRejected": "Rejeitadas",
+        "allAlbums": "Todos os álbuns",
+        "albumCeremony": "Cerimónia",
+        "albumCocktail": "Cocktail",
+        "albumEvening": "Festa",
+        "selectedCount": "{count, plural, one {<b>#</b> selecionada} other {<b>#</b> selecionadas}}",
+        "approveAll": "Aprovar tudo",
+        "rejectAll": "Rejeitar tudo",
+        "downloadAll": "Descarregar tudo",
+        "emptyPendingTitle": "Moderação em dia",
+        "emptyPendingBody": "Nenhuma foto pendente. Os novos envios aparecerão aqui.",
+        "emptyOtherTitle": "Nenhuma foto aqui",
+        "emptyOtherBody": "Ainda sem fotos nesta seleção.",
+        "flaggedTitle": "Sinalizada: {flag}",
+        "flagNoFace": "Nenhum rosto detetado",
+        "flagSensitive": "Conteúdo sensível",
+        "statusApproved": "Aprovada",
+        "statusRejected": "Rejeitada",
+        "approve": "Aprovar",
+        "zoom": "Ampliar",
+        "reject": "Rejeitar",
+        "selectPhotoAria": "Selecionar a foto de {by}",
+        "reasonLabel": "Motivo: {reason}",
+        "reasonBlurry": "Foto desfocada",
+        "reasonManual": "Rejeição manual",
+        "reasonBulk": "Rejeição em lote",
+        "photoApproved": "Foto aprovada",
+        "photoRejected": "Foto rejeitada",
+        "photosApproved": "{count, plural, one {<b>#</b> foto aprovada} other {<b>#</b> fotos aprovadas}}",
+        "photosRejected": "{count, plural, one {<b>#</b> foto rejeitada} other {<b>#</b> fotos rejeitadas}}",
+        "zipPreparing": "{count, plural, one {A preparar o arquivo (# foto)…} other {A preparar o arquivo (# fotos)…}}",
+        "lightboxAria": "Foto de {by}",
+        "statApproved": "Aprovadas",
+        "statPending": "Pendentes",
+        "statRejected": "Rejeitadas"
+      },
+      "invoice": {
+        "modeAria": "Modo de faturação",
+        "billing": "Faturação",
+        "subscription": "Subscrição",
+        "payg": "Por evento",
+        "eventBilling": "Faturação do evento",
+        "subTitle": "Coberto pela subscrição {plan}",
+        "subDesc": "Este evento está incluído no seu plano ({cap} eventos). Apenas os excedentes são faturados.",
+        "subLineLabel": "Plano {plan}",
+        "subLineNote": "Evento {no} do ciclo",
+        "subLineNoteCap": "Evento {no}/{cap} do ciclo",
+        "paygTitle": "Pagamento por evento",
+        "paygDesc": "Este evento foi pago à unidade, fora de qualquer subscrição. Os excedentes são faturados à parte.",
+        "paygLineLabel": "Crédito de evento",
+        "paygLineNote": "Plano por evento · 150 convidados",
+        "included": "Incluído",
+        "payActivation": "Ativação do evento",
+        "payMessageOverage": "Excedente de mensagens ({count} × {rate})",
+        "payStorageOverage": "Excedente de armazenamento ({gb} GB)",
+        "payCredit": "Crédito de evento (PAYG)",
+        "payGuestOverage": "Excedente de convidados ({count} × {rate})",
+        "paymentsTitle": "Pagamentos",
+        "movementsCount": "{count, plural, one {# movimento} other {# movimentos}}",
+        "colDate": "Data",
+        "colLabel": "Descrição",
+        "colAmount": "Montante",
+        "colStatus": "Estado",
+        "colInvoice": "Fatura",
+        "statusPaid": "Pago",
+        "statusPending": "Pendente",
+        "statusFailed": "Falhou",
+        "availableWhenPaid": "Disponível assim que o pagamento for liquidado",
+        "downloadToast": "A descarregar a fatura <b>{label}</b>…",
+        "ledgerCoveredSub": "cobertos pela sua subscrição",
+        "ledgerCoveredPayg": "pagos por evento",
+        "ledgerNote": "Aqui aparecem apenas os <strong>excedentes</strong>; as taxas base estão {context}. Encontre as suas faturas consolidadas na <link>faturação da agência</link>."
       }
     }
   },
@@ -2638,7 +3964,17 @@
     "errors": {
       "submit": "Não foi possível criar o evento. Tenta de novo.",
       "invalidDate": "A data tem de ser no futuro."
-    }
+    },
+    "eventDate": "Data do evento",
+    "partnerA": "Parceiro 1",
+    "partnerB": "Parceiro 2",
+    "pendingPlanTier": "Plano escolhido",
+    "themeAccent": "Cor de destaque",
+    "themeFont": "Tipografia",
+    "themePrimary": "Cor principal",
+    "timezone": "Fuso horário",
+    "venueAddress": "Endereço do local",
+    "venueName": "Nome do local"
   },
   "Billing": {
     "paygHistory": {
@@ -2886,11 +4222,24 @@
     },
     "forfaitsPros": {
       "title": "Planos pro para wedding planners — Wedillybird",
-      "description": "Starter, Business, Agency ou Pay-as-you-go: a stack completa para wedding planners e agências. Branding de agência, subdomínio, multi-eventos, -20 % na modalidade anual."
+      "description": "Starter, Business, Agency ou Pay-as-you-go: a stack completa para wedding planners e agências. Branding de agência, subdomínio, multi-eventos, -20 % na modalidade anual.",
+      "eyebrow": "PLANOS PROFISSIONAIS",
+      "subtitle": "Escolhe o plano que corresponde ao teu ritmo. Passa para o anual e poupa 20 %."
     },
     "contact": {
       "title": "Contacto — Wedillybird",
-      "description": "Uma pergunta, um projeto, uma palavra meiga? Toda a nossa equipa lê cada mensagem. Resposta humana em 24 h úteis, em português."
+      "description": "Uma pergunta, um projeto, uma palavra meiga? Toda a nossa equipa lê cada mensagem. Resposta humana em 24 h úteis, em português.",
+      "eyebrow": "ESCREVE-NOS",
+      "subtitle": "Toda a nossa equipa lê cada mensagem. Resposta humana em 24 h úteis, em português — promessa simples.",
+      "infoTitle": "Outros canais",
+      "infoEmail": "Email direto",
+      "infoEmailValue": "hello@wedillybird.com",
+      "infoSupport": "Apoio técnico",
+      "infoSupportValue": "support@wedillybird.com",
+      "infoPrivacy": "Dados pessoais",
+      "infoPrivacyValue": "privacy@wedillybird.com",
+      "infoHours": "Disponibilidade",
+      "infoHoursValue": "Segunda a sexta, 9 h – 19 h (CET)"
     },
     "faq": {
       "title": "FAQ — Wedillybird",
@@ -3275,6 +4624,670 @@
       "metaTitle": "Pagamento cancelado — Wedillybird",
       "title": "Pagamento cancelado",
       "body": "Nenhum montante foi debitado. Pode tentar novamente a partir do link de pagamento que lhe foi enviado."
+    }
+  },
+  "LocaleBanner": {
+    "suggestion": "Este site também está disponível em português.",
+    "accept": "Ver em português",
+    "dismiss": "Fechar"
+  },
+  "Events": {
+    "broadcastEyebrow": "Difusão por WhatsApp",
+    "broadcastTitle": "Enviar os convites",
+    "broadcastProgress": "<strong>{invited}</strong> de <muted>{withPhone} convidados contactáveis</muted>",
+    "broadcastWithoutPhone": "{count, plural, one {# sem número} other {# sem número}}",
+    "broadcastHintNotPublished": "Publique primeiro o seu convite para poder enviar os links aos seus convidados.",
+    "broadcastHintNoPhones": "Nenhum convidado tem número de telefone. Adicione números para enviar os convites por WhatsApp.",
+    "broadcastAllSent": "Todos os convites foram enviados. Os seus convidados já podem confirmar a presença.",
+    "broadcastConfirm": "{count, plural, one {Enviar o convite a # convidado?} other {Enviar os convites a # convidados?}}",
+    "broadcastSuccess": "{count, plural, one {# convite enviado.} other {# convites enviados.}}",
+    "broadcastFailures": "{count, plural, one {# envio falhou.} other {# envios falharam.}}",
+    "broadcastMockNotice": "Modo demo — nenhuma mensagem real foi enviada.",
+    "broadcastErrorNotPublished": "O seu convite deve estar publicado antes do envio.",
+    "broadcastErrorForbidden": "Não tem permissões para enviar os convites.",
+    "broadcastErrorGeneric": "O envio falhou. Tente novamente.",
+    "broadcastButtonSending": "A enviar…",
+    "broadcastButtonNoPhones": "Sem números disponíveis",
+    "broadcastButtonAllSent": "Tudo enviado",
+    "broadcastButtonSend": "{count, plural, one {Enviar a # convidado} other {Enviar aos # convidados}}",
+    "customBodyLabel": "Corpo da mensagem",
+    "customSampleBody": "Olá {p1}!\n\n{p2} casam-se no dia {p3} e adorariam tê-lo presente.\n\n{p4}\n\nResponda ao convite abaixo.",
+    "customPlaceholderHint": "{placeholder} = primeiro nome do convidado (obrigatório)",
+    "customVariablesHint": "Variáveis disponíveis: <code>{p1}</code> nome · <code>{p2}</code> casal · <code>{p3}</code> data · <code>{p4}</code> local · <code>{p5}</code> mensagem pessoal.",
+    "customCtaLabel": "Texto do botão",
+    "customCtaDefault": "Responder ao convite",
+    "customNotifyLabel": "Canal de notificação",
+    "customMetaNotice": "O seu modelo é enviado ao WhatsApp (Meta) para revisão. A aprovação demora normalmente de alguns minutos até 24 horas.",
+    "customSubmit": "Submeter modelo",
+    "customSubmitting": "A submeter…",
+    "customErrorBodyShort": "A mensagem deve ter pelo menos 20 caracteres e incluir {placeholder} (primeiro nome do convidado).",
+    "customErrorBodyLong": "A mensagem não pode exceder {max} caracteres.",
+    "customErrorBodyMissingPlaceholder": "A mensagem deve incluir {placeholder} para personalizar o primeiro nome de cada convidado.",
+    "customErrorCtaLong": "O texto do botão não pode exceder {max} caracteres.",
+    "customErrorCtaRequired": "O texto do botão é obrigatório.",
+    "customErrorInvalidChannel": "O canal de notificação selecionado é inválido.",
+    "customErrorInvalidInput": "Alguns campos são inválidos. Verifique os dados introduzidos.",
+    "customErrorGeneric": "A submissão falhou. Tente novamente.",
+    "customNotifyOptions": {
+      "email": {
+        "label": "E-mail",
+        "hint": "Os seus convidados são avisados por e-mail após a aprovação."
+      },
+      "whatsapp": {
+        "label": "WhatsApp",
+        "hint": "O convite é enviado diretamente pelo WhatsApp."
+      },
+      "both": {
+        "label": "WhatsApp e e-mail",
+        "hint": "Alcance todos os convidados, tanto no WhatsApp como por e-mail."
+      }
+    },
+    "editCoupleSectionTitle": "O casal",
+    "editCoupleSectionDescription": "Os nomes que aparecerão no convite.",
+    "editTitleLabel": "Título do evento",
+    "editTitlePlaceholder": "Casamento de Fatou e Amadou",
+    "editPartnerALabel": "Parceiro 1",
+    "editPartnerBLabel": "Parceiro 2",
+    "editDateSectionTitle": "Data e fuso horário",
+    "editDateLabel": "Data e hora",
+    "editTimezoneLabel": "Fuso horário",
+    "editVenueSectionTitle": "O local",
+    "editVenueSectionDescription": "Onde os seus convidados o encontrarão no grande dia.",
+    "editVenueNameLabel": "Nome do local",
+    "editVenueNamePlaceholder": "Quinta dos Lilases",
+    "editVenueAddressLabel": "Endereço",
+    "editVenueAddressPlaceholder": "12 avenue de la République, Dakar",
+    "editThemeSectionTitle": "Tema visual",
+    "editThemeSectionDescription": "As cores e a tipografia do seu convite.",
+    "editPrimaryColorLabel": "Cor principal",
+    "editAccentColorLabel": "Cor de destaque",
+    "editFontLabel": "Tipografia",
+    "editFontOption": "{name} · {descriptor}",
+    "editErrorSave": "Não foi possível guardar. Tente novamente.",
+    "fontDescriptors": {
+      "elegant": "elegante",
+      "classic": "clássico",
+      "modern": "moderno",
+      "sansSerif": "sem serifa"
+    },
+    "messagingStyleSectionTitle": "Estilo do convite",
+    "messagingStyleSectionDescription": "Escolha o tom da mensagem enviada aos seus convidados.",
+    "messagingSelected": "Selecionado",
+    "messagingPremiumBadge": "Premium",
+    "messagingCustomTitle": "O meu modelo personalizado",
+    "messagingCustomDescription": "Escreva a sua própria mensagem de convite, submetida ao WhatsApp para aprovação.",
+    "messagingCustomApproved": "O seu modelo está aprovado.",
+    "messagingCustomPending": "O seu modelo está em análise.",
+    "messagingPersonalSectionTitle": "Mensagem pessoal",
+    "messagingPersonalSectionDescription": "Um toque pessoal inserido no lugar de {placeholder} em cada convite (máx. {max} caracteres).",
+    "messagingPersonalLabel": "A sua mensagem",
+    "messagingPersonalPlaceholder": "Esperamos vê-lo entre nós.",
+    "messagingChannelSectionTitle": "Canal preferido",
+    "messagingChannelSectionDescription": "Como os seus convidados recebem o convite e os lembretes.",
+    "messagingSuccess": "As suas preferências de mensagens foram guardadas.",
+    "messagingErrorPersonalTooLong": "A mensagem pessoal não pode exceder {max} caracteres.",
+    "messagingErrorSave": "Não foi possível guardar. Tente novamente.",
+    "messagingSave": "Guardar",
+    "messagingSaving": "A guardar…",
+    "messagingStyles": {
+      "warm": {
+        "label": "Caloroso",
+        "tagline": "Um tom próximo e terno, como uma mensagem a um amigo."
+      },
+      "classic": {
+        "label": "Clássico",
+        "tagline": "Elegante e formal, na tradição dos convites de casamento."
+      },
+      "african": {
+        "label": "Cerimónia",
+        "tagline": "Solene e caloroso, repleto de alegria e bênçãos."
+      },
+      "festive": {
+        "label": "Festivo",
+        "tagline": "Alegre e espontâneo, para dar logo vontade de festejar."
+      },
+      "minimal": {
+        "label": "Minimalista",
+        "tagline": "Sóbrio e direto: o essencial, sem floreados."
+      }
+    },
+    "messagingChannelOptions": {
+      "whatsapp": "Apenas WhatsApp",
+      "email": "Apenas e-mail",
+      "both": "WhatsApp e e-mail"
+    },
+    "templateMetaLabel": "Modelo do WhatsApp",
+    "templatePendingHint": "Modelo em análise pelo WhatsApp. Os seus convidados serão avisados por {channel} assim que for aprovado.",
+    "templateApprovedHint": "Modelo aprovado. Será usado nos próximos envios de convites.",
+    "templatePausedHint": "Modelo suspenso pelo WhatsApp. Contacte o suporte se o problema persistir.",
+    "templateRejectionReason": "Motivo da recusa",
+    "templateSubmittedAt": "Submetido a {date}",
+    "templateReviewedAt": "Analisado a {date}",
+    "templateChannel": {
+      "whatsapp": "WhatsApp",
+      "email": "e-mail",
+      "both": "WhatsApp e e-mail"
+    },
+    "templateStatus": {
+      "draft": "Rascunho",
+      "pending": "Em análise",
+      "approved": "Aprovado",
+      "rejected": "Recusado",
+      "paused": "Suspenso",
+      "disabled": "Desativado"
+    },
+    "mockupGuestPreview": "Pré-visualização do convidado",
+    "mockupOnline": "online",
+    "mockupToday": "Hoje",
+    "mockupDisclaimer": "Pré-visualização indicativa. O resultado real pode variar consoante o dispositivo do convidado.",
+    "wizardProgress": "Passo {current} de {total}",
+    "title": "Título",
+    "partnerA": "Parceiro 1",
+    "partnerB": "Parceiro 2",
+    "eventDate": "Data do evento",
+    "timezone": "Fuso horário",
+    "venueName": "Nome do local",
+    "venueAddress": "Endereço do local",
+    "themePrimary": "Cor principal",
+    "themeAccent": "Cor de destaque",
+    "themeFont": "Tipografia",
+    "eventId": "ID do evento",
+    "bodyText": "Corpo da mensagem",
+    "ctaLabel": "Texto do botão",
+    "personalMessage": "Mensagem pessoal",
+    "preferredChannel": "Canal preferido",
+    "templateStyle": "Estilo do modelo",
+    "templateNotifyChannel": "Canal de notificação",
+    "clearVenue": "Limpar local",
+    "clearCustomTemplate": "Remover modelo personalizado",
+    "timezones": {
+      "Europe/Paris": "Europa/Paris (UTC+1/+2)",
+      "Africa/Dakar": "África/Dakar (UTC+0)",
+      "Africa/Abidjan": "África/Abidjan (UTC+0)",
+      "Africa/Casablanca": "África/Casablanca (UTC+1)",
+      "Africa/Algiers": "África/Argel (UTC+1)",
+      "Africa/Tunis": "África/Tunes (UTC+1)",
+      "Africa/Douala": "África/Duala (UTC+1)",
+      "Indian/Antananarivo": "Índico/Antananarivo (UTC+3)",
+      "Indian/Mauritius": "Índico/Maurícia (UTC+4)"
+    }
+  },
+  "MonMariage": {
+    "common": {
+      "attach": "Anexar",
+      "attachEmpty": "Nenhum documento anexado ainda.",
+      "attachments": "Anexos",
+      "close": "Fechar",
+      "confirmed": "confirmados",
+      "coupleSpace": "Espaço do casal",
+      "distribution": "Distribuição",
+      "donutAria": "{confirmed} convidados confirmados de {sum}",
+      "jAfter": "D+{n}",
+      "jBefore": "D−{n}",
+      "jDay": "É hoje",
+      "mainNavLabel": "Navegação principal",
+      "navLabel": "Navegação",
+      "notifications": "Notificações",
+      "qrAria": "Código QR do convite",
+      "quotaFull": "Cota atingida",
+      "quotaUsed": "{pct}% utilizado",
+      "quotaWarn": "{pct}% utilizado",
+      "remove": "Remover",
+      "signOut": "Sair"
+    },
+    "home": {
+      "hello": "Bem-vindos ao vosso espaço",
+      "heroAria": "O vosso casamento num relance",
+      "navAria": "Acessos rápidos",
+      "confirmed": "Confirmados",
+      "pending": "Pendentes",
+      "expected": "Pessoas esperadas",
+      "online": "Online",
+      "invitation": {
+        "title": "O vosso convite",
+        "desc": "Partilhem a vossa página e acompanhem as respostas ao vivo."
+      },
+      "empty": {
+        "title": "Tudo começa aqui",
+        "body": "Adicionem os primeiros convidados para dar vida ao convite e acompanhar as respostas.",
+        "addGuests": "Adicionar convidados",
+        "viewInvitation": "Ver convite"
+      },
+      "cards": {
+        "guests": {
+          "title": "Convidados",
+          "desc": "Façam a gestão da lista e das respostas."
+        },
+        "plan": {
+          "title": "Planeamento",
+          "desc": "Acompanhem as tarefas passo a passo."
+        },
+        "vendors": {
+          "title": "Fornecedores",
+          "desc": "A vossa agenda e os respetivos orçamentos."
+        },
+        "budget": {
+          "title": "Orçamento",
+          "desc": "As vossas despesas e o calendário de pagamentos."
+        },
+        "seating": {
+          "title": "Plano de mesas",
+          "desc": "Sentem os convidados, mesa a mesa."
+        },
+        "forfait": {
+          "title": "O meu plano",
+          "desc": "O vosso plano, faturas e opções."
+        }
+      }
+    },
+    "dashboard": {
+      "rsvpTitle": "Respostas (RSVP)",
+      "expectedPeople": "Pessoas esperadas",
+      "planCapacity": "Capacidade do plano: {cap} convidados",
+      "legend": {
+        "confirmed": "Confirmados",
+        "pending": "Pendentes",
+        "declined": "Recusados",
+        "noreply": "Sem resposta"
+      },
+      "quotasTitle": "As vossas cotas",
+      "galleryActive": "Galeria ativa",
+      "quotaGuests": "Convidados",
+      "quotaGuestsSub": "Pessoas esperadas",
+      "quotaStorage": "Galeria de fotos",
+      "quotaStorageSub": "Armazenamento usado",
+      "guestListTitle": "Lista de convidados",
+      "guestListSub": "{invitations} convites · {people} pessoas",
+      "confirmedCount": "{count} confirmados",
+      "guestNamePlaceholder": "Nome do convidado",
+      "nameAria": "Nome do convidado",
+      "whatsappAria": "Número de WhatsApp",
+      "add": "Adicionar",
+      "newGuestGroup": "Por classificar",
+      "searchGuest": "Procurar um convidado…",
+      "searchAria": "Procurar um convidado",
+      "filterAria": "Filtrar convidados",
+      "noGuestMatch": "Nenhum convidado corresponde.",
+      "filters": {
+        "all": "Todos",
+        "confirmed": "Confirmados",
+        "pending": "Pendentes",
+        "noreply": "Sem resposta",
+        "declined": "Recusados"
+      },
+      "inviteTitle": "Convite público",
+      "online": "Online",
+      "youAreInvited": "Estão convidados",
+      "copy": "Copiar",
+      "copied": "Copiado",
+      "shareWhatsApp": "Partilhar no WhatsApp",
+      "preview": "Pré-visualizar",
+      "qrTitle": "Código QR do convite",
+      "qrDesc": "Imprimam-no ou mostrem-no no dia do casamento.",
+      "planTitle": "Planeamento"
+    },
+    "planning": {
+      "eyebrow": "Organização",
+      "title": "O vosso planeamento",
+      "subtitle": "Avancem com calma, passo a passo até ao grande dia.",
+      "progress": "Progresso",
+      "percent": "{pct}%",
+      "tasksRatio": "{done} / {total} tarefas",
+      "inProgressCount": "{count} em curso",
+      "changeStatus": "Alterar estado",
+      "today": "Hoje",
+      "thisWeek": "Esta semana",
+      "soon": "Em breve",
+      "deleteTask": "Eliminar tarefa",
+      "addTask": "Adicionar tarefa",
+      "newTaskPlaceholder": "Nova tarefa…",
+      "dueAria": "Data-limite",
+      "ok": "OK",
+      "cancel": "Cancelar",
+      "addPhase": "Adicionar fase",
+      "newPhase": "Nova fase",
+      "createPhase": "Criar fase",
+      "customPhase": "Fase personalizada",
+      "phaseTitleLabel": "Título da fase",
+      "phaseTitleHint": "Ex.: «Daqui a 6 meses»",
+      "phaseTitlePlaceholder": "Nome da fase",
+      "phaseSubLabel": "Subtítulo",
+      "phaseSubPlaceholder": "Uma breve nota (opcional)",
+      "optional": "opcional",
+      "statusTodo": "A fazer",
+      "statusDoing": "Em curso",
+      "statusDone": "Concluído",
+      "statusUnknown": "A fazer"
+    },
+    "budget": {
+      "eyebrow": "Finanças",
+      "title": "O vosso orçamento",
+      "subtitle": "Acompanhem as despesas e o calendário de pagamentos num relance.",
+      "engaged": "Comprometido",
+      "postsCount": "{count, plural, one {# rubrica} other {# rubricas}}",
+      "plannedBudget": "Orçamento previsto",
+      "paid": "Pago",
+      "remainingToPay": "Falta pagar",
+      "engagedVsPlanned": "Comprometido vs previsto",
+      "percent": "{pct}%",
+      "overBudget": "Excede em {amount}",
+      "budgetMargin": "Margem de {amount}",
+      "expensesByPost": "Despesas por rubrica",
+      "vendorsLink": "Ver fornecedores",
+      "postPaid": "{amount} pagos",
+      "toSettle": "A liquidar",
+      "scheduleTitle": "Calendário de pagamentos",
+      "scheduleSub": "Registem os pagamentos e anexem as faturas.",
+      "remainingDue": "Em dívida",
+      "settle": "Liquidar",
+      "edit": "Editar",
+      "recordPayment": "Registar um pagamento",
+      "paidInFull": "Totalmente pago",
+      "partialPayment": "Pagamento parcial",
+      "unpaid": "Por pagar",
+      "amountPaidLabel": "Valor pago",
+      "paymentDateLabel": "Data do pagamento",
+      "payInFull": "Pagar tudo",
+      "deposit50": "Sinal 50%",
+      "cancelPayment": "Cancelar pagamento",
+      "attachInvoice": "Anexar fatura",
+      "cancel": "Cancelar",
+      "save": "Guardar",
+      "statusPaid": "Pago",
+      "statusPartial": "Parcial",
+      "statusToPay": "A liquidar",
+      "statusPlanned": "Previsto"
+    },
+    "vendors": {
+      "eyebrow": "Agenda",
+      "title": "Os vossos fornecedores",
+      "subtitle": "Centralizem contactos, orçamentos e pagamentos.",
+      "statVendors": "Fornecedores",
+      "statEngaged": "Comprometido",
+      "statPaid": "Pago",
+      "seeBudget": "Ver orçamento",
+      "displayAria": "Modo de exibição",
+      "viewList": "Agenda",
+      "viewKanban": "Kanban",
+      "searchPlaceholder": "Procurar um fornecedor…",
+      "searchAria": "Procurar um fornecedor",
+      "add": "Adicionar",
+      "filterStatusAria": "Filtrar por estado",
+      "noVendorMatch": "Nenhum fornecedor corresponde.",
+      "dropHere": "Largue aqui",
+      "filters": {
+        "all": "Todos",
+        "reserve": "Reservados",
+        "devis": "Orçamento",
+        "contacte": "Contactados",
+        "a_contacter": "A contactar"
+      },
+      "modalEyebrow": "Fornecedor",
+      "newVendor": "Novo fornecedor",
+      "editVendor": "Editar fornecedor",
+      "createVendor": "Criar fornecedor",
+      "cancel": "Cancelar",
+      "save": "Guardar",
+      "vendorNameLabel": "Nome do fornecedor",
+      "vendorNamePlaceholder": "Ex.: quinta, catering, fotógrafo…",
+      "categoryLabel": "Categoria",
+      "statusLabel": "Estado",
+      "phoneLabel": "Telefone",
+      "emailLabel": "E-mail",
+      "optional": "opcional",
+      "amountLabel": "Valor",
+      "paidLabel": "Pago",
+      "depositHint": "sinal já pago",
+      "notesLabel": "Observações",
+      "notesPlaceholder": "Detalhes úteis: ementa, horários, condições…",
+      "attachmentsLabel": "Anexos",
+      "attachmentsCount": "{count, plural, one {# anexo} other {# anexos}}",
+      "edit": "Editar",
+      "paidAmount": "{paid} pagos",
+      "paidWithRemainder": "{paid} pagos · falta {rem}",
+      "noDeposit": "Sem sinal pago"
+    },
+    "forfait": {
+      "eyebrow": "A vossa fórmula",
+      "choixTitle": "Escolham o vosso plano",
+      "choixSubtitle": "Um pagamento único, nunca uma subscrição. Tudo incluído para o vosso grande dia.",
+      "oneTimeNote": "Pagamento único · galeria ativa 12 meses após o casamento.",
+      "recommended": "Recomendado",
+      "once": "pagamento único",
+      "onceShort": "único",
+      "currentPlan": "Plano atual",
+      "choosePlan": "Escolher {name}",
+      "reassureRefund": "Reembolso de 100% em 7 dias se o convite não for enviado.",
+      "reassurePostpone": "Adiamento gratuito em caso de cancelamento.",
+      "yourPlan": "O vosso plano",
+      "purchasedOn": "comprado a {date}",
+      "activeOneTime": "Ativo · pagamento único",
+      "quotaGuests": "Convidados",
+      "quotaGuestsSub": "Pessoas esperadas",
+      "quotaStorage": "Galeria de fotos",
+      "quotaStorageSub": "Armazenamento usado",
+      "galleryActiveUntil": "Galeria ativa até <b>{date}</b>",
+      "upgradeEyebrow": "Upgrade",
+      "upgradeTitle": "Passem para Premium",
+      "upgradeDesc": "Mais convidados, mais armazenamento HD e pesquisa por rosto. Um único pagamento, sem subscrição.",
+      "upgradeToPremium": "Mudar para Premium",
+      "upsellEyebrow": "Após o casamento",
+      "upsellTitle": "Guardem as fotos em HD para sempre",
+      "upsellDesc": "Descarreguem tudo em alta definição e arquivem a galeria sem limite de tempo.",
+      "archiveForever": "Arquivar para sempre",
+      "invoices": "Faturas",
+      "downloadReceipt": "Descarregar o recibo",
+      "receiptPdf": "Recibo PDF",
+      "overagesTitle": "Para além do vosso plano",
+      "overagesHint": "cobrado apenas se ultrapassarem",
+      "overagesFoot": "Sem cobranças surpresa: mantêm o controlo dos gastos."
+    },
+    "seating": {
+      "eyebrow": "Receção",
+      "title": "O vosso plano de mesas",
+      "subtitle": "Arrastem os convidados para as mesas e ajustem tudo em poucos gestos.",
+      "seatedRatio": "{seated} / {total} sentados",
+      "addPerson": "Adicionar pessoa",
+      "autoPlace": "Posicionar auto",
+      "addTable": "Adicionar mesa",
+      "mobileNote": "O plano de mesas é editado em ecrã grande. Aqui está uma pré-visualização só de leitura.",
+      "empty": "Nenhum convidado nesta mesa.",
+      "cancel": "Cancelar",
+      "add": "Adicionar",
+      "shapeLabel": "Forma",
+      "shapeRound": "Redonda",
+      "shapeRect": "Retangular",
+      "shapeHead": "Mesa de honra",
+      "shapeRoundShort": "Redonda",
+      "shapeRectShort": "Retângulo",
+      "shapeHeadShort": "Honra",
+      "seatsLabel": "Lugares",
+      "decreaseSign": "Diminuir",
+      "increaseSign": "Aumentar",
+      "addToList": "Adicionar à lista",
+      "nameLabel": "Nome",
+      "nameHint": "pessoa ou família",
+      "namePlaceholder": "Ex.: Família Diallo",
+      "categoryLabel": "Categoria",
+      "peopleCountLabel": "Número de pessoas",
+      "guestsToSeat": "Convidados por sentar",
+      "seatedCounter": "<b>{seated}</b> / {total} sentados",
+      "searchGuest": "Procurar um convidado…",
+      "search": "Procurar um convidado",
+      "clear": "Limpar",
+      "allSeated": "Todos os convidados estão sentados.",
+      "noGuestFilter": "Nenhum convidado corresponde a este filtro.",
+      "chipAria": "{name}, {count} pessoas, {cat}",
+      "placementConstraint": "Restrição de posicionamento",
+      "keepTogether": "Manter juntos",
+      "keepApart": "Manter separados",
+      "assignToTable": "Sentar {name} numa mesa",
+      "tableOptions": "Opções da mesa {label}",
+      "moveTable": "Mover a mesa {label}",
+      "move": "Mover",
+      "capacityExceeded": "Capacidade excedida",
+      "zoom": "Zoom",
+      "zoomOut": "Reduzir zoom",
+      "zoomIn": "Ampliar zoom",
+      "resetView": "Recentrar a vista",
+      "renameEdit": "Renomear / editar",
+      "duplicate": "Duplicar",
+      "delete": "Eliminar",
+      "copyLabel": "{label} (cópia)",
+      "tableN": "Mesa {n}",
+      "inspectorAria": "Detalhes da mesa {label}",
+      "inspectorSub": "{occ}/{cap} lugares · {shape}",
+      "closeInspector": "Fechar o painel",
+      "tableNameLabel": "Nome da mesa",
+      "capacityLabel": "Capacidade",
+      "decrease": "Diminuir",
+      "increase": "Aumentar",
+      "capExceeded": "{occ}/{cap} · acima da capacidade",
+      "capFull": "Completa",
+      "capFree": "{count, plural, one {# lugar livre} other {# lugares livres}}",
+      "seatedGuests": "{count, plural, one {# convidado sentado} other {# convidados sentados}}",
+      "seatedEmpty": "Nenhum convidado sentado nesta mesa.",
+      "partySizeShort": "{count, plural, one {# pess.} other {# pess.}}",
+      "removeGuest": "Remover {name} da mesa",
+      "notesLabel": "Notas",
+      "notesPlaceholder": "Alergias, necessidades especiais, agrupamentos…",
+      "assignMenuAria": "Sentar {name}",
+      "assignMenuLabel": "Sentar {name} ({count} pess.)",
+      "returnToPool": "Devolver à lista",
+      "hereSuffix": "· aqui",
+      "fullSuffix": "· cheio",
+      "announceCapacityExceeded": "Capacidade excedida: {occ} pessoas para {cap} lugares.",
+      "announceTableDeleted": "Mesa eliminada.",
+      "announcePersonAdded": "{name} adicionado à lista.",
+      "announceAutoPlaced": "{count, plural, one {# convidado sentado automaticamente.} other {# convidados sentados automaticamente.}}",
+      "starter": {
+        "head": "Mesa de honra",
+        "headNote": "Os noivos e os seus próximos",
+        "family": "Família",
+        "friends": "Amigos",
+        "friendsNote": "Grupo de amigos próximos",
+        "table3": "Mesa 3",
+        "table4": "Mesa 4",
+        "table5": "Mesa 5"
+      },
+      "cats": {
+        "family": {
+          "label": "Família",
+          "short": "Família"
+        },
+        "friends": {
+          "label": "Amigos",
+          "short": "Amigos"
+        },
+        "colleagues": {
+          "label": "Colegas",
+          "short": "Colegas"
+        },
+        "pro": {
+          "label": "Fornecedores",
+          "short": "Fornecedores"
+        }
+      }
+    }
+  },
+  "CouplePortal": {
+    "backToBackOffice": "Voltar ao back office",
+    "beforeTheBigDay": "para o grande dia",
+    "brandSubtitle": "Espaço dos noivos",
+    "budget": {
+      "empty": "O seu orçamento aparecerá aqui assim que a sua agência adicionar as primeiras rubricas de despesa.",
+      "paid": "Pago",
+      "planned": "Previsto",
+      "remaining": "Restante",
+      "title": "Orçamento"
+    },
+    "comingSoon": {
+      "body": "Esta secção chega em breve ao seu espaço. Entretanto, a sua agência continua ao seu lado para preparar tudo.",
+      "viewAgencySide": "Ver o lado da agência"
+    },
+    "countdown": "D‑{days}",
+    "dayBadge": {
+      "future": "Em {days} dias",
+      "past": "{days} dias de atraso",
+      "today": "Hoje"
+    },
+    "documents": {
+      "empty": "Ainda sem documentos. Os seus orçamentos, contratos e faturas aparecerão aqui assim que a sua agência os partilhar.",
+      "pendingCount": "{count, plural, one {# documento para assinar} other {# documentos para assinar}}",
+      "pendingHint": "para rever e assinar antes de continuar.",
+      "title": "Documentos"
+    },
+    "docStatus": {
+      "to_sign": "Por assinar",
+      "sent": "Enviado",
+      "signed": "Assinado"
+    },
+    "eyebrow": "O seu espaço de casamento",
+    "gallery": {
+      "soonBody": "No grande dia, os seus convidados partilharão aqui as suas fotos num instante. A galeria abrirá automaticamente quando chegar a altura.",
+      "soonTitle": "A galeria abre no grande dia",
+      "title": "Galeria"
+    },
+    "guests": {
+      "confirmed": "confirmados",
+      "count": "{count, plural, one {# convidado} other {# convidados}}",
+      "declined": "recusados",
+      "defaultCategory": "Convidado",
+      "empty": "A sua lista de convidados aparecerá aqui assim que forem adicionados os primeiros nomes.",
+      "pending": "pendentes",
+      "title": "Convidados"
+    },
+    "kpi": {
+      "budgetEngaged": "Orçamento comprometido",
+      "pendingActions": "ações pendentes",
+      "preparations": "Preparativos",
+      "rsvpConfirmed": "RSVP confirmados",
+      "tasksDone": "{done} / {total} tarefas",
+      "todo": "A fazer"
+    },
+    "messages": {
+      "inputAriaLabel": "Escrever uma mensagem",
+      "inputPlaceholder": "Escrever a {name}…",
+      "plannerInitialsFallback": "WP",
+      "plannerRole": "O seu wedding planner",
+      "sendAriaLabel": "Enviar",
+      "soonBody": "A mensagaria com a sua agência chega muito em breve. Entretanto, mantenha-se em contacto pelos seus canais habituais.",
+      "title": "Mensagens"
+    },
+    "nav": {
+      "ariaLabel": "Navegação principal",
+      "mobileAriaLabel": "Navegação móvel",
+      "dashboard": "Painel",
+      "planning": "Planeamento",
+      "budget": "Orçamento",
+      "documents": "Documentos",
+      "guests": "Convidados",
+      "gallery": "Galeria",
+      "messages": "Mensagens"
+    },
+    "phases": {
+      "m12": "12 meses ou mais",
+      "m6": "6 meses",
+      "m3": "3 meses",
+      "m1": "1 mês",
+      "d7": "D-7",
+      "dday": "O grande dia",
+      "after": "Depois"
+    },
+    "planning": {
+      "progressLabel": "Progresso dos preparativos",
+      "title": "Planeamento"
+    },
+    "poweredBy": "Com tecnologia {brand}",
+    "rsvpPill": {
+      "pending": "Pendente",
+      "attending": "Confirmado",
+      "declined": "Recusado",
+      "maybe": "Talvez"
+    },
+    "yourTurn": {
+      "empty": "Nada a fazer do seu lado por agora. A sua agência avisá-lo-á assim que houver uma ação à sua espera.",
+      "title": "É a sua vez"
     }
   }
 }
