@@ -951,6 +951,7 @@
   },
   "Invitation": {
     "youreInvited": "Vous êtes invité·e",
+    "scrollToDiscover": "Faites défiler pour découvrir",
     "addressing": "Cher·chère {name}, nous serions heureux de votre présence.",
     "willYouAttend": "Serez-vous des nôtres ?",
     "status": {
@@ -3275,6 +3276,559 @@
       "metaTitle": "Paiement annulé — Wedillybird",
       "title": "Paiement annulé",
       "body": "Aucun montant n'a été débité. Vous pouvez réessayer depuis le lien de paiement qui vous a été transmis."
+    }
+  },
+  "MonMariage": {
+    "common": {
+      "attach": "Joindre",
+      "attachEmpty": "Aucun document joint pour l’instant.",
+      "attachments": "Pièces jointes",
+      "close": "Fermer",
+      "confirmed": "confirmés",
+      "coupleSpace": "Espace couple",
+      "distribution": "Répartition",
+      "donutAria": "{confirmed} invités confirmés sur {sum}",
+      "jAfter": "J+{n}",
+      "jBefore": "J−{n}",
+      "jDay": "Jour J",
+      "mainNavLabel": "Navigation principale",
+      "navLabel": "Navigation",
+      "notifications": "Notifications",
+      "qrAria": "QR code de l’invitation",
+      "quotaFull": "Quota atteint",
+      "quotaUsed": "{pct} % utilisés",
+      "quotaWarn": "{pct} % utilisés",
+      "remove": "Retirer",
+      "signOut": "Se déconnecter"
+    },
+    "home": {
+      "hello": "Bienvenue dans votre espace",
+      "heroAria": "Aperçu de votre mariage",
+      "navAria": "Accès rapides",
+      "confirmed": "Confirmés",
+      "pending": "En attente",
+      "expected": "Personnes attendues",
+      "online": "En ligne",
+      "invitation": {
+        "title": "Votre invitation",
+        "desc": "Partagez votre page et suivez les réponses en direct."
+      },
+      "empty": {
+        "title": "Tout commence ici",
+        "body": "Ajoutez vos premiers invités pour faire vivre votre invitation et suivre les réponses.",
+        "addGuests": "Ajouter des invités",
+        "viewInvitation": "Voir l’invitation"
+      },
+      "cards": {
+        "guests": {
+          "title": "Invités",
+          "desc": "Gérez votre liste et les réponses."
+        },
+        "plan": {
+          "title": "Rétroplanning",
+          "desc": "Suivez vos tâches étape par étape."
+        },
+        "vendors": {
+          "title": "Prestataires",
+          "desc": "Votre carnet d’adresses et leurs devis."
+        },
+        "budget": {
+          "title": "Budget",
+          "desc": "Vos dépenses et l’échéancier des paiements."
+        },
+        "seating": {
+          "title": "Plan de table",
+          "desc": "Placez vos invités, table par table."
+        },
+        "forfait": {
+          "title": "Mon forfait",
+          "desc": "Votre forfait, vos factures et options."
+        }
+      }
+    },
+    "dashboard": {
+      "rsvpTitle": "Réponses (RSVP)",
+      "expectedPeople": "Personnes attendues",
+      "planCapacity": "Capacité du forfait : {cap} invités",
+      "legend": {
+        "confirmed": "Confirmés",
+        "pending": "En attente",
+        "declined": "Déclinés",
+        "noreply": "Sans réponse"
+      },
+      "quotasTitle": "Vos quotas",
+      "galleryActive": "Galerie active",
+      "quotaGuests": "Invités",
+      "quotaGuestsSub": "Personnes attendues",
+      "quotaStorage": "Galerie photo",
+      "quotaStorageSub": "Stockage utilisé",
+      "guestListTitle": "Liste des invités",
+      "guestListSub": "{invitations} invitations · {people} personnes",
+      "confirmedCount": "{count} confirmés",
+      "guestNamePlaceholder": "Nom de l’invité",
+      "nameAria": "Nom de l’invité",
+      "whatsappAria": "Numéro WhatsApp",
+      "add": "Ajouter",
+      "newGuestGroup": "À classer",
+      "searchGuest": "Rechercher un invité…",
+      "searchAria": "Rechercher un invité",
+      "filterAria": "Filtrer les invités",
+      "noGuestMatch": "Aucun invité ne correspond.",
+      "filters": {
+        "all": "Tous",
+        "confirmed": "Confirmés",
+        "pending": "En attente",
+        "noreply": "Sans réponse",
+        "declined": "Déclinés"
+      },
+      "inviteTitle": "Invitation publique",
+      "online": "En ligne",
+      "youAreInvited": "Vous êtes invité·e",
+      "copy": "Copier",
+      "copied": "Copié",
+      "shareWhatsApp": "Partager sur WhatsApp",
+      "preview": "Aperçu",
+      "qrTitle": "QR code de l’invitation",
+      "qrDesc": "À imprimer ou afficher le jour J.",
+      "planTitle": "Rétroplanning"
+    },
+    "planning": {
+      "eyebrow": "Organisation",
+      "title": "Votre rétroplanning",
+      "subtitle": "Avancez sereinement, étape par étape jusqu’au grand jour.",
+      "progress": "Avancement",
+      "percent": "{pct} %",
+      "tasksRatio": "{done} / {total} tâches",
+      "inProgressCount": "{count} en cours",
+      "changeStatus": "Changer le statut",
+      "today": "Aujourd’hui",
+      "thisWeek": "Cette semaine",
+      "soon": "Bientôt",
+      "deleteTask": "Supprimer la tâche",
+      "addTask": "Ajouter une tâche",
+      "newTaskPlaceholder": "Nouvelle tâche…",
+      "dueAria": "Date d’échéance",
+      "ok": "OK",
+      "cancel": "Annuler",
+      "addPhase": "Ajouter une phase",
+      "newPhase": "Nouvelle phase",
+      "createPhase": "Créer la phase",
+      "customPhase": "Phase personnalisée",
+      "phaseTitleLabel": "Titre de la phase",
+      "phaseTitleHint": "Ex. « Dans 6 mois »",
+      "phaseTitlePlaceholder": "Nom de la phase",
+      "phaseSubLabel": "Sous-titre",
+      "phaseSubPlaceholder": "Une courte précision (facultatif)",
+      "optional": "facultatif",
+      "statusTodo": "À faire",
+      "statusDoing": "En cours",
+      "statusDone": "Fait",
+      "statusUnknown": "À faire"
+    },
+    "budget": {
+      "eyebrow": "Finances",
+      "title": "Votre budget",
+      "subtitle": "Suivez vos dépenses et l’échéancier de vos paiements en un coup d’œil.",
+      "engaged": "Engagé",
+      "postsCount": "{count, plural, one {# poste} other {# postes}}",
+      "plannedBudget": "Budget prévu",
+      "paid": "Payé",
+      "remainingToPay": "Reste à payer",
+      "engagedVsPlanned": "Engagé vs prévu",
+      "percent": "{pct} %",
+      "overBudget": "Dépassement de {amount}",
+      "budgetMargin": "Marge de {amount}",
+      "expensesByPost": "Dépenses par poste",
+      "vendorsLink": "Voir les prestataires",
+      "postPaid": "{amount} payés",
+      "toSettle": "À régler",
+      "scheduleTitle": "Échéancier des paiements",
+      "scheduleSub": "Enregistrez vos paiements et joignez les factures.",
+      "remainingDue": "Reste dû",
+      "settle": "Régler",
+      "edit": "Modifier",
+      "recordPayment": "Enregistrer un paiement",
+      "paidInFull": "Payé en totalité",
+      "partialPayment": "Paiement partiel",
+      "unpaid": "Non payé",
+      "amountPaidLabel": "Montant payé",
+      "paymentDateLabel": "Date du paiement",
+      "payInFull": "Tout payer",
+      "deposit50": "Acompte 50 %",
+      "cancelPayment": "Annuler le paiement",
+      "attachInvoice": "Joindre la facture",
+      "cancel": "Annuler",
+      "save": "Enregistrer",
+      "statusPaid": "Payé",
+      "statusPartial": "Partiel",
+      "statusToPay": "À régler",
+      "statusPlanned": "Prévu"
+    },
+    "vendors": {
+      "eyebrow": "Carnet",
+      "title": "Vos prestataires",
+      "subtitle": "Centralisez vos contacts, devis et paiements, lieu après lieu.",
+      "statVendors": "Prestataires",
+      "statEngaged": "Engagé",
+      "statPaid": "Payé",
+      "seeBudget": "Voir le budget",
+      "displayAria": "Mode d’affichage",
+      "viewList": "Carnet",
+      "viewKanban": "Kanban",
+      "searchPlaceholder": "Rechercher un prestataire…",
+      "searchAria": "Rechercher un prestataire",
+      "add": "Ajouter",
+      "filterStatusAria": "Filtrer par statut",
+      "noVendorMatch": "Aucun prestataire ne correspond.",
+      "dropHere": "Déposez ici",
+      "filters": {
+        "all": "Tous",
+        "reserve": "Réservés",
+        "devis": "Devis",
+        "contacte": "Contactés",
+        "a_contacter": "À contacter"
+      },
+      "modalEyebrow": "Prestataire",
+      "newVendor": "Nouveau prestataire",
+      "editVendor": "Modifier le prestataire",
+      "createVendor": "Créer le prestataire",
+      "cancel": "Annuler",
+      "save": "Enregistrer",
+      "vendorNameLabel": "Nom du prestataire",
+      "vendorNamePlaceholder": "Ex. Domaine, traiteur, photographe…",
+      "categoryLabel": "Catégorie",
+      "statusLabel": "Statut",
+      "phoneLabel": "Téléphone",
+      "emailLabel": "E-mail",
+      "optional": "facultatif",
+      "amountLabel": "Montant",
+      "paidLabel": "Payé",
+      "depositHint": "acompte déjà versé",
+      "notesLabel": "Observations",
+      "notesPlaceholder": "Détails utiles : menu, horaires, conditions…",
+      "attachmentsLabel": "Pièces jointes",
+      "attachmentsCount": "{count, plural, one {# pièce jointe} other {# pièces jointes}}",
+      "edit": "Modifier",
+      "paidAmount": "{paid} payés",
+      "paidWithRemainder": "{paid} payés · reste {rem}",
+      "noDeposit": "Aucun acompte versé"
+    },
+    "forfait": {
+      "eyebrow": "Votre formule",
+      "choixTitle": "Choisissez votre forfait",
+      "choixSubtitle": "Un paiement unique, jamais d’abonnement. Tout est inclus pour votre grand jour.",
+      "oneTimeNote": "Paiement unique · galerie active 12 mois après le mariage.",
+      "recommended": "Recommandé",
+      "once": "une fois",
+      "onceShort": "une fois",
+      "currentPlan": "Forfait actuel",
+      "choosePlan": "Choisir {name}",
+      "reassureRefund": "Remboursé à 100 % sous 7 jours si l’invitation n’est pas envoyée.",
+      "reassurePostpone": "Report gratuit en cas d’annulation.",
+      "yourPlan": "Votre forfait",
+      "purchasedOn": "acheté le {date}",
+      "activeOneTime": "Actif · paiement unique",
+      "quotaGuests": "Invités",
+      "quotaGuestsSub": "Personnes attendues",
+      "quotaStorage": "Galerie photo",
+      "quotaStorageSub": "Stockage utilisé",
+      "galleryActiveUntil": "Galerie active jusqu’au <b>{date}</b>",
+      "upgradeEyebrow": "Surclassement",
+      "upgradeTitle": "Passez à Premium",
+      "upgradeDesc": "Plus d’invités, plus de stockage HD et la recherche par visage. Un seul paiement, pas d’abonnement.",
+      "upgradeToPremium": "Passer à Premium",
+      "upsellEyebrow": "Après le mariage",
+      "upsellTitle": "Conservez vos photos en HD pour toujours",
+      "upsellDesc": "Téléchargez l’intégralité en haute définition et archivez votre galerie sans limite de temps.",
+      "archiveForever": "Archiver pour toujours",
+      "invoices": "Factures",
+      "downloadReceipt": "Télécharger le reçu",
+      "receiptPdf": "Reçu PDF",
+      "overagesTitle": "Au-delà de votre forfait",
+      "overagesHint": "facturé seulement si vous dépassez",
+      "overagesFoot": "Aucun prélèvement surprise : vous gardez la main sur vos dépenses."
+    },
+    "seating": {
+      "eyebrow": "Réception",
+      "title": "Votre plan de table",
+      "subtitle": "Glissez vos invités sur les tables et ajustez tout en quelques gestes.",
+      "seatedRatio": "{seated} / {total} placés",
+      "addPerson": "Ajouter une personne",
+      "autoPlace": "Placement auto",
+      "addTable": "Ajouter une table",
+      "mobileNote": "Le plan de table s’édite sur grand écran. Voici un aperçu en lecture seule.",
+      "empty": "Aucun invité à cette table.",
+      "cancel": "Annuler",
+      "add": "Ajouter",
+      "shapeLabel": "Forme",
+      "shapeRound": "Ronde",
+      "shapeRect": "Rectangulaire",
+      "shapeHead": "Table d’honneur",
+      "shapeRoundShort": "Ronde",
+      "shapeRectShort": "Rectangle",
+      "shapeHeadShort": "Honneur",
+      "seatsLabel": "Places",
+      "decreaseSign": "Diminuer",
+      "increaseSign": "Augmenter",
+      "addToList": "Ajouter à la liste",
+      "nameLabel": "Nom",
+      "nameHint": "personne ou famille",
+      "namePlaceholder": "Ex. Famille Diallo",
+      "categoryLabel": "Catégorie",
+      "peopleCountLabel": "Nombre de personnes",
+      "guestsToSeat": "Invités à placer",
+      "seatedCounter": "<b>{seated}</b> / {total} placés",
+      "searchGuest": "Rechercher un invité…",
+      "search": "Rechercher un invité",
+      "clear": "Effacer",
+      "allSeated": "Tous vos invités sont placés.",
+      "noGuestFilter": "Aucun invité ne correspond à ce filtre.",
+      "chipAria": "{name}, {count} personnes, {cat}",
+      "placementConstraint": "Contrainte de placement",
+      "keepTogether": "À garder ensemble",
+      "keepApart": "À séparer",
+      "assignToTable": "Placer {name} à une table",
+      "tableOptions": "Options de la table {label}",
+      "moveTable": "Déplacer la table {label}",
+      "move": "Déplacer",
+      "capacityExceeded": "Capacité dépassée",
+      "zoom": "Zoom",
+      "zoomOut": "Dézoomer",
+      "zoomIn": "Zoomer",
+      "resetView": "Recentrer la vue",
+      "renameEdit": "Renommer / modifier",
+      "duplicate": "Dupliquer",
+      "delete": "Supprimer",
+      "copyLabel": "{label} (copie)",
+      "tableN": "Table {n}",
+      "inspectorAria": "Détails de la table {label}",
+      "inspectorSub": "{occ}/{cap} places · {shape}",
+      "closeInspector": "Fermer le panneau",
+      "tableNameLabel": "Nom de la table",
+      "capacityLabel": "Capacité",
+      "decrease": "Diminuer",
+      "increase": "Augmenter",
+      "capExceeded": "{occ}/{cap} · surcapacité",
+      "capFull": "Complète",
+      "capFree": "{count, plural, one {# place libre} other {# places libres}}",
+      "seatedGuests": "{count, plural, one {# invité placé} other {# invités placés}}",
+      "seatedEmpty": "Aucun invité placé à cette table.",
+      "partySizeShort": "{count, plural, one {# pers.} other {# pers.}}",
+      "removeGuest": "Retirer {name} de la table",
+      "notesLabel": "Notes",
+      "notesPlaceholder": "Allergies, besoins particuliers, regroupements…",
+      "assignMenuAria": "Placer {name}",
+      "assignMenuLabel": "Placer {name} ({count} pers.)",
+      "returnToPool": "Remettre dans la liste",
+      "hereSuffix": " · ici",
+      "fullSuffix": " · complet",
+      "announceCapacityExceeded": "Capacité dépassée : {occ} personnes pour {cap} places.",
+      "announceTableDeleted": "Table supprimée.",
+      "announcePersonAdded": "{name} ajouté à la liste.",
+      "announceAutoPlaced": "{count, plural, one {# invité placé automatiquement.} other {# invités placés automatiquement.}}",
+      "starter": {
+        "head": "Table d’honneur",
+        "headNote": "Les mariés et leurs proches",
+        "family": "Famille",
+        "friends": "Amis",
+        "friendsNote": "Bande d’amis proches",
+        "table3": "Table 3",
+        "table4": "Table 4",
+        "table5": "Table 5"
+      },
+      "cats": {
+        "family": {
+          "label": "Famille",
+          "short": "Famille"
+        },
+        "friends": {
+          "label": "Amis",
+          "short": "Amis"
+        },
+        "colleagues": {
+          "label": "Collègues",
+          "short": "Collègues"
+        },
+        "pro": {
+          "label": "Prestataires",
+          "short": "Prestataires"
+        }
+      }
+    },
+    "nav": {
+      "home": "Accueil",
+      "dashboard": "Mon mariage",
+      "planning": "Rétroplanning",
+      "vendors": "Prestataires",
+      "seating": "Plan de table",
+      "forfait": "Forfait"
+    },
+    "data": {
+      "cats": {
+        "lieu": "Lieu & réception",
+        "traiteur": "Traiteur",
+        "photo": "Photo & vidéo",
+        "musique": "Musique / DJ",
+        "fleurs": "Fleurs & déco",
+        "patisserie": "Pièce montée",
+        "tenues": "Tenues",
+        "papeterie": "Papeterie"
+      },
+      "guestStatus": {
+        "confirmed": "Confirmé",
+        "pending": "En attente",
+        "declined": "Refusé",
+        "noreply": "Sans réponse",
+        "unknown": "—"
+      },
+      "vendorStatus": {
+        "a_contacter": "À contacter",
+        "contacte": "Contacté",
+        "devis": "Devis reçu",
+        "reserve": "Réservé",
+        "paye": "Payé",
+        "unknown": "—"
+      },
+      "attachKinds": {
+        "facture": "Facture",
+        "devis": "Devis",
+        "contrat": "Contrat",
+        "photo": "Photo",
+        "autre": "Autre",
+        "receiptOther": "Autre reçu"
+      },
+      "paymentKind": {
+        "deposit": "Acompte",
+        "balance": "Solde"
+      },
+      "invoices": {
+        "premiumPlan": "Forfait Premium"
+      },
+      "overages": {
+        "guest": {
+          "label": "Invité supplémentaire",
+          "sub": "au-delà du forfait",
+          "price": "+0,25 €"
+        },
+        "message": {
+          "label": "SMS / WhatsApp",
+          "sub": "par message envoyé",
+          "price": "0,06 € / msg"
+        },
+        "storage": {
+          "label": "Stockage galerie",
+          "sub": "au-delà du quota",
+          "price": "0,03 € / Go / mois"
+        }
+      },
+      "phases": {
+        "p1": {
+          "label": "Il y a 12 mois",
+          "sub": "Les fondations",
+          "tasks": {
+            "t1": "Définir le budget global",
+            "t2": "Réserver la date & le lieu",
+            "t3": "Établir la première liste d’invités"
+          }
+        },
+        "p2": {
+          "label": "Il y a 6 mois",
+          "sub": "Les prestataires",
+          "tasks": {
+            "t4": "Réserver traiteur & photographe",
+            "t5": "Envoyer les faire-part",
+            "t6": "Ouvrir la galerie photo partagée"
+          }
+        },
+        "p3": {
+          "label": "3 mois avant",
+          "sub": "Maintenant",
+          "tasks": {
+            "t7": "Relancer les invités sans réponse",
+            "t8": "Dégustation chez le traiteur",
+            "t9": "Réserver le DJ",
+            "t10": "Premier essayage des tenues"
+          }
+        },
+        "p4": {
+          "label": "1 mois avant",
+          "sub": "Les derniers détails",
+          "tasks": {
+            "t11": "Finaliser le plan de table",
+            "t12": "Confirmer le nombre de couverts",
+            "t13": "Brief des prestataires"
+          }
+        },
+        "p5": {
+          "label": "Le jour J",
+          "sub": "5 septembre",
+          "tasks": {
+            "t14": "Coordination sur place",
+            "t15": "Check-in des invités",
+            "t16": "Galerie partagée ouverte"
+          }
+        },
+        "p6": {
+          "label": "Après le mariage",
+          "sub": "La suite",
+          "tasks": {
+            "t17": "Envoyer les remerciements",
+            "t18": "Télécharger la galerie HD",
+            "t19": "Régler les derniers soldes"
+          }
+        }
+      },
+      "steps": {
+        "s1": {
+          "label": "Forfait & invitation créés",
+          "when": "Mai",
+          "note": "Votre forfait Premium est actif."
+        },
+        "s2": {
+          "label": "Invitations envoyées",
+          "when": "Mai",
+          "note": "166 invitations envoyées sur WhatsApp."
+        },
+        "s3": {
+          "label": "Relancer les sans-réponse",
+          "when": "Juin",
+          "note": "18 invité·e·s n’ont pas encore répondu."
+        },
+        "s4": {
+          "label": "Boucler le plan de table",
+          "when": "Août",
+          "note": "Dès que les RSVP sont stabilisés."
+        },
+        "s5": {
+          "label": "Jour J — galerie & check-in",
+          "when": "5 sept.",
+          "note": "Vos invités déposent leurs photos."
+        }
+      },
+      "plans": {
+        "essentiel": {
+          "name": "Essentiel",
+          "tagline": "100 invités · galerie 5 Go (12 mois)",
+          "feats": {
+            "guests": "Jusqu’à 100 invités",
+            "gallery": "Galerie partagée 5 Go · active 12 mois",
+            "invitations": "Invitations digitales + relances",
+            "rsvp": "RSVP par SMS / WhatsApp",
+            "galleryLink": "Lien galerie partagé sur WhatsApp"
+          }
+        },
+        "premium": {
+          "name": "Premium",
+          "tagline": "250 invités · galerie 25 Go HD (12 mois)",
+          "feats": {
+            "guests": "Jusqu’à 250 invités",
+            "gallery": "Galerie HD 25 Go · active 12 mois",
+            "essential": "Tout l’Essentiel inclus",
+            "albums": "Albums & branding de l’invitation",
+            "faceSearch": "Reconnaissance faciale (face-search)"
+          }
+        }
+      }
     }
   }
 }

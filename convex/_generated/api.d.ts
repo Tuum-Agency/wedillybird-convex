@@ -23,6 +23,7 @@ import type * as invitationActions from "../invitationActions.js";
 import type * as lib_analytics from "../lib/analytics.js";
 import type * as lib_autoplace from "../lib/autoplace.js";
 import type * as lib_channelRouting from "../lib/channelRouting.js";
+import type * as lib_currency from "../lib/currency.js";
 import type * as lib_email from "../lib/email.js";
 import type * as lib_entitlements from "../lib/entitlements.js";
 import type * as lib_eventAuth from "../lib/eventAuth.js";
@@ -81,6 +82,7 @@ declare const fullApi: ApiFromModules<{
   "lib/analytics": typeof lib_analytics;
   "lib/autoplace": typeof lib_autoplace;
   "lib/channelRouting": typeof lib_channelRouting;
+  "lib/currency": typeof lib_currency;
   "lib/email": typeof lib_email;
   "lib/entitlements": typeof lib_entitlements;
   "lib/eventAuth": typeof lib_eventAuth;

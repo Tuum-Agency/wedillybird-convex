@@ -41,7 +41,7 @@ function PlanCardBuy({ plan, currentId }: { plan: McPlan; currentId: McPlanId | 
         <div className="ptag">{tr(plan.tagline)}</div>
       </div>
       <div className="mc-plan-price">
-        <span className="amt">{mcEUR(plan.price, locale)}</span>
+        <span className="amt">{mcEUR(plan.price, locale, 'EUR')}</span>
         <span className="per">{t('once')}</span>
       </div>
       <ul className="mc-plan-feats">
@@ -179,7 +179,7 @@ function ForfaitActif({ active, usage }: { active: McActive; usage: McUsage }) {
           </div>
           <div className="ua">
             <span className="pr">
-              +{mcEUR(MC_PLANS.premium.price - MC_PLANS.essentiel.price, locale)}
+              +{mcEUR(MC_PLANS.premium.price - MC_PLANS.essentiel.price, locale, 'EUR')}
               <small>{t('onceShort')}</small>
             </span>
             <McBtn variant="primary" size="md">
@@ -202,7 +202,7 @@ function ForfaitActif({ active, usage }: { active: McActive; usage: McUsage }) {
         </div>
         <div className="ua">
           <span className="pr">
-            {mcEUR(MC_HD.price, locale)}
+            {mcEUR(MC_HD.price, locale, 'EUR')}
             <small>{t('onceShort')}</small>
           </span>
           <McBtn variant="halo" size="md">

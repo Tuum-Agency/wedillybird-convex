@@ -6,6 +6,7 @@ import { pickUniqueSlug } from './lib/uniqueSlug';
 import { eventQuotaForTier } from './lib/entitlements';
 import { assertEventAccess } from './lib/eventAuth';
 import { assertOrgWrite } from './lib/orgAuth';
+import { BUDGET_CURRENCY } from './lib/currency';
 import { normalizePhone, isValidE164 } from './lib/phone';
 import { summarizeGuestRsvp } from './lib/guestStats';
 
@@ -214,10 +215,15 @@ export const create = mutation({
      */
     pendingPlanTier: v.optional(v.union(v.literal('essential'), v.literal('premium'))),
     organizationId: v.optional(v.id('organizations')),
+    currency: v.optional(BUDGET_CURRENCY),
   },
   handler: async (ctx, args) => {
     const owner = await ctx.db.get(args.ownerId);
     if (!owner) throw new Error('OWNER_NOT_FOUND');
+
+    // Devise du budget : explicite > devise de l'org > préférence du couple.
+    const orgForCurrency = args.organizationId ? await ctx.db.get(args.organizationId) : null;
+    const currency = args.currency ?? orgForCurrency?.currency ?? owner.preferredCurrency;
 
     const title = args.title.trim();
     const partnerA = args.partnerA.trim();
@@ -248,6 +254,7 @@ export const create = mutation({
       // planTier left undefined until the owner pays (Essentiel or Premium).
       ...(args.pendingPlanTier ? { pendingPlanTier: args.pendingPlanTier } : {}),
       ...(args.organizationId ? { organizationId: args.organizationId } : {}),
+      ...(currency ? { currency } : {}),
       maxGuests: ANTI_ABUSE_GUEST_CAP,
       createdAt: now,
       updatedAt: now,

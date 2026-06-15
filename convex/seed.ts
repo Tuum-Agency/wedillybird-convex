@@ -338,7 +338,7 @@ export const seedLaunchDemo = mutation({
     }
     if (!owner) throw new Error('OWNER_INIT_FAILED');
 
-    const eventDate = new Date('2026-07-18T16:00:00.000Z').getTime();
+    const eventDate = new Date('2026-09-05T16:00:00.000Z').getTime();
     const galleryExpiresAt = eventDate + 180 * 24 * 60 * 60 * 1000;
 
     const existing = await ctx.db
@@ -349,20 +349,20 @@ export const seedLaunchDemo = mutation({
     const eventPayload = {
       ownerId: owner._id,
       slug: LAUNCH_DEMO_SLUG,
-      title: 'Sarah & Marc',
-      coupleNames: { partnerA: 'Sarah', partnerB: 'Marc' },
+      title: 'Camille & Hugo',
+      coupleNames: { partnerA: 'Camille', partnerB: 'Hugo' },
       eventDate,
       timezone: 'Europe/Paris',
       venue: {
-        name: 'Domaine du Vieux Moulin',
-        address: 'Route des Lavandes, 84210 Pernes-les-Fontaines, France',
-        lat: 43.9978,
-        lng: 5.0588,
+        name: 'The Olive Grove Estate',
+        address: 'Saint-Rémy-de-Provence, France',
+        lat: 43.7904,
+        lng: 4.8317,
       },
       theme: {
-        primaryColor: '#C2613E',
+        primaryColor: 'oklch(72% 0.09 20)',
         accentColor: '#FAF3E8',
-        fontFamily: 'Migra',
+        fontFamily: 'Bodoni Moda',
       },
       status: 'active' as const,
       planTier: 'premium' as const,

@@ -54,6 +54,7 @@ import {
   type PaymentStatus,
 } from '@/lib/pro/budget';
 import { parseEurToMinor, nowMs } from '@/lib/pro/format';
+import { currencySymbol, type BudgetCurrency } from '@/lib/currency';
 import {
   createBudgetLineAction,
   updateBudgetLineAction,
@@ -147,14 +148,14 @@ function useErrorLabel() {
  * Hook de formatage monétaire localisé (centimes → « 18 000 € »). Reproduit la
  * logique FR partagée mais via la locale active (pas de `fr-FR` codé en dur).
  */
-function useEurFormat() {
+function useEurFormat(currency: BudgetCurrency = 'EUR') {
   const format = useFormatter();
   return (minor: number | null | undefined) => {
     if (minor == null) return '—';
     const eur = minor / 100;
     return format.number(eur, {
       style: 'currency',
-      currency: 'EUR',
+      currency,
       maximumFractionDigits: Number.isInteger(eur) ? 0 : 2,
     });
   };
@@ -313,10 +314,12 @@ function EnvelopeEditor({
   initialMinor,
   onSave,
   onCancel,
+  currency,
 }: {
   initialMinor: number;
   onSave: (eur: string) => void;
   onCancel: () => void;
+  currency: BudgetCurrency;
 }) {
   const t = useTranslations('Pro.budgetBoard');
   const [digits, setDigits] = useState(
@@ -344,7 +347,7 @@ function EnvelopeEditor({
           className="font-display w-full min-w-0 bg-transparent text-2xl text-[color:var(--color-foreground)] italic tabular-nums outline-none placeholder:text-[color:var(--color-muted-foreground)] placeholder:not-italic"
         />
         <span className="font-display text-xl text-[color:var(--color-muted-foreground)] italic">
-          €
+          {currencySymbol(currency)}
         </span>
       </div>
       <button
@@ -366,6 +369,7 @@ export function BudgetBoard({
   envelopeMinor: initialEnvelope,
   canEdit,
   vendors,
+  currency = 'EUR',
 }: {
   events: ReadonlyArray<WeddingOption>;
   selectedEventId: string;
@@ -375,10 +379,12 @@ export function BudgetBoard({
   canEdit: boolean;
   /** Annuaire prestataires de l'org (pour le combobox de la ligne budget). */
   vendors: ReadonlyArray<{ name: string; category?: string }>;
+  /** Devise des budgets de l'agence (org.currency). Défaut EUR. */
+  currency?: BudgetCurrency;
 }) {
   const router = useRouter();
   const t = useTranslations('Pro.budgetBoard');
-  const fmtEur = useEurFormat();
+  const fmtEur = useEurFormat(currency);
   const fmtDate = useDateFormat();
   const errLabel = useErrorLabel();
   const catLabel = useCategoryLabel();
@@ -713,6 +719,7 @@ export function BudgetBoard({
               initialMinor={envelopeMinor}
               onSave={saveEnvelope}
               onCancel={() => setEnvEditing(false)}
+              currency={currency}
             />
           ) : (
             <span className="font-display text-2xl text-[color:var(--color-foreground)] italic tabular-nums">
@@ -833,8 +840,8 @@ export function BudgetBoard({
       {/* Graphiques */}
       {summary.plannedMinor > 0 ? (
         <section className="grid gap-3 lg:grid-cols-2">
-          <DonutCard segments={donut} totalMinor={summary.plannedMinor} />
-          <BarsCard groups={groups} />
+          <DonutCard segments={donut} totalMinor={summary.plannedMinor} currency={currency} />
+          <BarsCard groups={groups} currency={currency} />
         </section>
       ) : null}
 
@@ -1011,6 +1018,7 @@ export function BudgetBoard({
                                   line={l}
                                   canEdit={canEdit}
                                   onRemovePayment={onRemovePayment}
+                                  currency={currency}
                                 />
                               </td>
                             </tr>
@@ -1428,13 +1436,15 @@ function PaymentHistory({
   line,
   canEdit,
   onRemovePayment,
+  currency,
 }: {
   line: BudgetLineRow;
   canEdit: boolean;
   onRemovePayment: (line: BudgetLineRow, payment: BudgetPaymentRow) => void;
+  currency: BudgetCurrency;
 }) {
   const t = useTranslations('Pro.budgetBoard');
-  const fmtEur = useEurFormat();
+  const fmtEur = useEurFormat(currency);
   const fmtDate = useDateFormat();
   if (line.payments.length === 0) {
     return (
@@ -1703,12 +1713,14 @@ function Kpi({
 function DonutCard({
   segments,
   totalMinor,
+  currency,
 }: {
   segments: ReturnType<typeof donutSegments>;
   totalMinor: number;
+  currency: BudgetCurrency;
 }) {
   const t = useTranslations('Pro.budgetBoard');
-  const fmtEur = useEurFormat();
+  const fmtEur = useEurFormat(currency);
   const catLabel = useCategoryLabel();
   const R = 80;
   const C = 2 * Math.PI * R;
@@ -1779,9 +1791,15 @@ function DonutCard({
   );
 }
 
-function BarsCard({ groups }: { groups: CategoryGroup<BudgetLineRow>[] }) {
+function BarsCard({
+  groups,
+  currency,
+}: {
+  groups: CategoryGroup<BudgetLineRow>[];
+  currency: BudgetCurrency;
+}) {
   const t = useTranslations('Pro.budgetBoard');
-  const fmtEur = useEurFormat();
+  const fmtEur = useEurFormat(currency);
   const catLabel = useCategoryLabel();
   const max = Math.max(1, ...groups.map((g) => g.plannedMinor));
   const sorted = [...groups].sort((a, b) => b.plannedMinor - a.plannedMinor);

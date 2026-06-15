@@ -97,6 +97,7 @@ export default async function ProBudgetPage({
         envelopeMinor={budget?.envelopeMinor ?? 0}
         canEdit={canEdit}
         vendors={vendors.map((v) => ({ name: v.name, category: v.category }))}
+        currency={org.currency ?? 'EUR'}
       />
     </ProSidebarShell>
   );

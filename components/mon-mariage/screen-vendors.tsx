@@ -12,6 +12,7 @@ import { McModal, McField, McInput, McSelect, McTextarea, Attachments, AttachChi
 import {
   MC_VENDORS,
   MC_CATS,
+  MC_CURRENCY,
   mcVendorStatusMeta,
   mcEUR,
   type McVendor,
@@ -19,6 +20,7 @@ import {
   type McVendorStatus,
   type McAttachment,
 } from './data';
+import { currencySymbol } from '@/lib/currency';
 
 // libellés via clés `MonMariage.vendors.filters.<k>`
 const MC_VFILTERS: ReadonlyArray<[string, string]> = [
@@ -158,7 +160,7 @@ function VendorModal({
         </McField>
         <McField label={t('amountLabel')}>
           <McInput
-            prefix="€"
+            prefix={currencySymbol(MC_CURRENCY)}
             value={amount}
             onChange={(e) => setAmount(e.target.value.replace(/[^\d.]/g, ''))}
             placeholder="0"
@@ -167,7 +169,7 @@ function VendorModal({
         </McField>
         <McField label={t('paidLabel')} hint={t('depositHint')}>
           <McInput
-            prefix="€"
+            prefix={currencySymbol(MC_CURRENCY)}
             value={paid}
             onChange={(e) => setPaid(e.target.value.replace(/[^\d.]/g, ''))}
             placeholder="0"

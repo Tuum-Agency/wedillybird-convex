@@ -8,6 +8,7 @@ import {
 } from './_generated/server';
 import { internal } from './_generated/api';
 import type { Doc, Id } from './_generated/dataModel';
+import { BUDGET_CURRENCY } from './lib/currency';
 import { pickUniqueSlug } from './lib/uniqueSlug';
 import { seatLimitForTier } from './lib/entitlements';
 
@@ -69,6 +70,7 @@ export const create = mutation({
     name: v.string(),
     primaryColor: v.optional(v.string()),
     accentColor: v.optional(v.string()),
+    currency: v.optional(BUDGET_CURRENCY),
   },
   handler: async (ctx, args) => {
     const owner = await ctx.db.get(args.ownerId);
@@ -88,6 +90,7 @@ export const create = mutation({
       slug,
       primaryColor: args.primaryColor,
       accentColor: args.accentColor,
+      ...(args.currency ? { currency: args.currency } : {}),
       createdAt: now,
       updatedAt: now,
     });
@@ -484,6 +487,7 @@ export const myOrganization = query({
       slug: org.slug,
       primaryColor: org.primaryColor,
       accentColor: org.accentColor,
+      currency: org.currency ?? null,
       logoUrl,
       customDomain: org.customDomain,
       senderEmail: org.senderEmail,

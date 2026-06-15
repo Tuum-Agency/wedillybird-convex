@@ -947,6 +947,7 @@
   },
   "Invitation": {
     "youreInvited": "أنتم مدعوون",
+    "scrollToDiscover": "مرّر للاكتشاف",
     "addressing": "عزيزي/عزيزتي {name}، يسعدنا حضوركم.",
     "willYouAttend": "هل ستكونون معنا؟",
     "status": {
@@ -3271,6 +3272,559 @@
       "metaTitle": "تم إلغاء الدفع — Wedillybird",
       "title": "تم إلغاء الدفع",
       "body": "لم يُخصَم أي مبلغ. يمكنك المحاولة مجدّدًا من رابط الدفع الذي أُرسِل إليك."
+    }
+  },
+  "MonMariage": {
+    "common": {
+      "attach": "إرفاق",
+      "attachEmpty": "لا توجد مستندات مرفقة بعد.",
+      "attachments": "المرفقات",
+      "close": "إغلاق",
+      "confirmed": "مؤكَّدون",
+      "coupleSpace": "مساحة الثنائي",
+      "distribution": "التوزيع",
+      "donutAria": "{confirmed} ضيفًا مؤكَّدًا من أصل {sum}",
+      "jAfter": "ي+{n}",
+      "jBefore": "ي−{n}",
+      "jDay": "اليوم الموعود",
+      "mainNavLabel": "التنقّل الرئيسي",
+      "navLabel": "التنقّل",
+      "notifications": "الإشعارات",
+      "qrAria": "رمز QR للدعوة",
+      "quotaFull": "تم بلوغ الحد",
+      "quotaUsed": "{pct}٪ مُستخدَم",
+      "quotaWarn": "{pct}٪ مُستخدَم",
+      "remove": "إزالة",
+      "signOut": "تسجيل الخروج"
+    },
+    "home": {
+      "hello": "مرحبًا بكم في مساحتكم",
+      "heroAria": "لمحة عن زفافكم",
+      "navAria": "وصول سريع",
+      "confirmed": "مؤكَّدون",
+      "pending": "قيد الانتظار",
+      "expected": "الأشخاص المتوقَّعون",
+      "online": "متصلة",
+      "invitation": {
+        "title": "دعوتكم",
+        "desc": "شاركوا صفحتكم وتابعوا الردود مباشرةً."
+      },
+      "empty": {
+        "title": "كل شيء يبدأ هنا",
+        "body": "أضيفوا أول ضيوفكم لتُحيوا دعوتكم وتتابعوا الردود.",
+        "addGuests": "إضافة ضيوف",
+        "viewInvitation": "عرض الدعوة"
+      },
+      "cards": {
+        "guests": {
+          "title": "الضيوف",
+          "desc": "أديروا قائمتكم والردود."
+        },
+        "plan": {
+          "title": "الجدول الزمني",
+          "desc": "تابعوا مهامّكم خطوة بخطوة."
+        },
+        "vendors": {
+          "title": "مزوّدو الخدمات",
+          "desc": "دفتر عناوينكم وعروض أسعارهم."
+        },
+        "budget": {
+          "title": "الميزانية",
+          "desc": "نفقاتكم وجدول المدفوعات."
+        },
+        "seating": {
+          "title": "مخطّط الجلوس",
+          "desc": "وزّعوا ضيوفكم، طاولة بطاولة."
+        },
+        "forfait": {
+          "title": "باقتي",
+          "desc": "باقتكم وفواتيركم وخياراتكم."
+        }
+      }
+    },
+    "dashboard": {
+      "rsvpTitle": "الردود (RSVP)",
+      "expectedPeople": "الأشخاص المتوقَّعون",
+      "planCapacity": "سعة الباقة: {cap} ضيفًا",
+      "legend": {
+        "confirmed": "مؤكَّدون",
+        "pending": "قيد الانتظار",
+        "declined": "معتذِرون",
+        "noreply": "بلا ردّ"
+      },
+      "quotasTitle": "حصصكم",
+      "galleryActive": "المعرض نشط",
+      "quotaGuests": "الضيوف",
+      "quotaGuestsSub": "الأشخاص المتوقَّعون",
+      "quotaStorage": "معرض الصور",
+      "quotaStorageSub": "التخزين المستخدَم",
+      "guestListTitle": "قائمة الضيوف",
+      "guestListSub": "{invitations} دعوة · {people} شخصًا",
+      "confirmedCount": "{count} مؤكَّدون",
+      "guestNamePlaceholder": "اسم الضيف",
+      "nameAria": "اسم الضيف",
+      "whatsappAria": "رقم واتساب",
+      "add": "إضافة",
+      "newGuestGroup": "غير مصنَّف",
+      "searchGuest": "ابحث عن ضيف…",
+      "searchAria": "البحث عن ضيف",
+      "filterAria": "تصفية الضيوف",
+      "noGuestMatch": "لا يوجد ضيف مطابق.",
+      "filters": {
+        "all": "الكل",
+        "confirmed": "مؤكَّدون",
+        "pending": "قيد الانتظار",
+        "noreply": "بلا ردّ",
+        "declined": "معتذِرون"
+      },
+      "inviteTitle": "الدعوة العامة",
+      "online": "متصلة",
+      "youAreInvited": "أنتم مدعوّون",
+      "copy": "نسخ",
+      "copied": "تم النسخ",
+      "shareWhatsApp": "المشاركة عبر واتساب",
+      "preview": "معاينة",
+      "qrTitle": "رمز QR للدعوة",
+      "qrDesc": "اطبعوه أو اعرضوه في يوم الزفاف.",
+      "planTitle": "الجدول الزمني"
+    },
+    "planning": {
+      "eyebrow": "التنظيم",
+      "title": "جدولكم الزمني",
+      "subtitle": "تقدّموا بهدوء، خطوة بخطوة حتى اليوم الموعود.",
+      "progress": "التقدّم",
+      "percent": "{pct}٪",
+      "tasksRatio": "{done} / {total} مهمّة",
+      "inProgressCount": "{count} قيد التنفيذ",
+      "changeStatus": "تغيير الحالة",
+      "today": "اليوم",
+      "thisWeek": "هذا الأسبوع",
+      "soon": "قريبًا",
+      "deleteTask": "حذف المهمّة",
+      "addTask": "إضافة مهمّة",
+      "newTaskPlaceholder": "مهمّة جديدة…",
+      "dueAria": "تاريخ الاستحقاق",
+      "ok": "موافق",
+      "cancel": "إلغاء",
+      "addPhase": "إضافة مرحلة",
+      "newPhase": "مرحلة جديدة",
+      "createPhase": "إنشاء المرحلة",
+      "customPhase": "مرحلة مخصّصة",
+      "phaseTitleLabel": "عنوان المرحلة",
+      "phaseTitleHint": "مثال: «بعد 6 أشهر»",
+      "phaseTitlePlaceholder": "اسم المرحلة",
+      "phaseSubLabel": "عنوان فرعي",
+      "phaseSubPlaceholder": "توضيح قصير (اختياري)",
+      "optional": "اختياري",
+      "statusTodo": "للتنفيذ",
+      "statusDoing": "قيد التنفيذ",
+      "statusDone": "تمّ",
+      "statusUnknown": "للتنفيذ"
+    },
+    "budget": {
+      "eyebrow": "المالية",
+      "title": "ميزانيتكم",
+      "subtitle": "تابعوا نفقاتكم وجدول مدفوعاتكم بلمحة واحدة.",
+      "engaged": "المُلتزَم به",
+      "postsCount": "{count, plural, zero {# بنود} one {بند واحد} two {بندان} few {# بنود} many {# بندًا} other {# بند}}",
+      "plannedBudget": "الميزانية المخطَّطة",
+      "paid": "المدفوع",
+      "remainingToPay": "المتبقّي للدفع",
+      "engagedVsPlanned": "المُلتزَم مقابل المخطَّط",
+      "percent": "{pct}٪",
+      "overBudget": "تجاوز بمقدار {amount}",
+      "budgetMargin": "هامش قدره {amount}",
+      "expensesByPost": "النفقات حسب البند",
+      "vendorsLink": "عرض المزوّدين",
+      "postPaid": "{amount} مدفوعة",
+      "toSettle": "للتسوية",
+      "scheduleTitle": "جدول المدفوعات",
+      "scheduleSub": "سجّلوا مدفوعاتكم وأرفقوا الفواتير.",
+      "remainingDue": "المتبقّي المستحَق",
+      "settle": "تسوية",
+      "edit": "تعديل",
+      "recordPayment": "تسجيل دفعة",
+      "paidInFull": "مدفوع بالكامل",
+      "partialPayment": "دفعة جزئية",
+      "unpaid": "غير مدفوع",
+      "amountPaidLabel": "المبلغ المدفوع",
+      "paymentDateLabel": "تاريخ الدفع",
+      "payInFull": "دفع الكامل",
+      "deposit50": "عربون 50٪",
+      "cancelPayment": "إلغاء الدفعة",
+      "attachInvoice": "إرفاق الفاتورة",
+      "cancel": "إلغاء",
+      "save": "حفظ",
+      "statusPaid": "مدفوع",
+      "statusPartial": "جزئي",
+      "statusToPay": "للتسوية",
+      "statusPlanned": "مخطَّط"
+    },
+    "vendors": {
+      "eyebrow": "الدفتر",
+      "title": "مزوّدوكم",
+      "subtitle": "اجمعوا جهات اتصالكم وعروض الأسعار والمدفوعات في مكان واحد.",
+      "statVendors": "المزوّدون",
+      "statEngaged": "المُلتزَم به",
+      "statPaid": "المدفوع",
+      "seeBudget": "عرض الميزانية",
+      "displayAria": "وضع العرض",
+      "viewList": "الدفتر",
+      "viewKanban": "كانبان",
+      "searchPlaceholder": "ابحث عن مزوّد…",
+      "searchAria": "البحث عن مزوّد",
+      "add": "إضافة",
+      "filterStatusAria": "تصفية حسب الحالة",
+      "noVendorMatch": "لا يوجد مزوّد مطابق.",
+      "dropHere": "أفلِت هنا",
+      "filters": {
+        "all": "الكل",
+        "reserve": "محجوزون",
+        "devis": "عرض سعر",
+        "contacte": "تم التواصل",
+        "a_contacter": "للتواصل"
+      },
+      "modalEyebrow": "مزوّد",
+      "newVendor": "مزوّد جديد",
+      "editVendor": "تعديل المزوّد",
+      "createVendor": "إنشاء المزوّد",
+      "cancel": "إلغاء",
+      "save": "حفظ",
+      "vendorNameLabel": "اسم المزوّد",
+      "vendorNamePlaceholder": "مثال: قاعة، تموين، مصوّر…",
+      "categoryLabel": "الفئة",
+      "statusLabel": "الحالة",
+      "phoneLabel": "الهاتف",
+      "emailLabel": "البريد الإلكتروني",
+      "optional": "اختياري",
+      "amountLabel": "المبلغ",
+      "paidLabel": "المدفوع",
+      "depositHint": "العربون المدفوع مسبقًا",
+      "notesLabel": "ملاحظات",
+      "notesPlaceholder": "تفاصيل مفيدة: القائمة، المواعيد، الشروط…",
+      "attachmentsLabel": "المرفقات",
+      "attachmentsCount": "{count, plural, zero {# مرفقات} one {مرفق واحد} two {مرفقان} few {# مرفقات} many {# مرفقًا} other {# مرفق}}",
+      "edit": "تعديل",
+      "paidAmount": "{paid} مدفوعة",
+      "paidWithRemainder": "{paid} مدفوعة · يتبقّى {rem}",
+      "noDeposit": "لا عربون مدفوع"
+    },
+    "forfait": {
+      "eyebrow": "صيغتكم",
+      "choixTitle": "اختاروا باقتكم",
+      "choixSubtitle": "دفعة واحدة، دون أي اشتراك. كل شيء مشمول ليومكم الكبير.",
+      "oneTimeNote": "دفعة واحدة · المعرض نشط 12 شهرًا بعد الزفاف.",
+      "recommended": "موصى به",
+      "once": "مرة واحدة",
+      "onceShort": "مرة واحدة",
+      "currentPlan": "الباقة الحالية",
+      "choosePlan": "اختيار {name}",
+      "reassureRefund": "استرداد 100٪ خلال 7 أيام إذا لم تُرسَل الدعوة.",
+      "reassurePostpone": "تأجيل مجاني في حال الإلغاء.",
+      "yourPlan": "باقتكم",
+      "purchasedOn": "تم الشراء في {date}",
+      "activeOneTime": "نشط · دفعة واحدة",
+      "quotaGuests": "الضيوف",
+      "quotaGuestsSub": "الأشخاص المتوقَّعون",
+      "quotaStorage": "معرض الصور",
+      "quotaStorageSub": "التخزين المستخدَم",
+      "galleryActiveUntil": "المعرض نشط حتى <b>{date}</b>",
+      "upgradeEyebrow": "ترقية",
+      "upgradeTitle": "انتقلوا إلى Premium",
+      "upgradeDesc": "ضيوف أكثر، تخزين HD أكبر، والبحث بالوجه. دفعة واحدة دون اشتراك.",
+      "upgradeToPremium": "الترقية إلى Premium",
+      "upsellEyebrow": "بعد الزفاف",
+      "upsellTitle": "احتفظوا بصوركم بدقّة HD إلى الأبد",
+      "upsellDesc": "نزّلوا كل شيء بدقّة عالية وأرشِفوا معرضكم دون حدّ زمني.",
+      "archiveForever": "الأرشفة للأبد",
+      "invoices": "الفواتير",
+      "downloadReceipt": "تنزيل الإيصال",
+      "receiptPdf": "إيصال PDF",
+      "overagesTitle": "ما يتجاوز باقتكم",
+      "overagesHint": "يُحتسَب فقط عند التجاوز",
+      "overagesFoot": "لا خصومات مفاجئة: تبقى نفقاتكم تحت سيطرتكم."
+    },
+    "seating": {
+      "eyebrow": "الحفل",
+      "title": "مخطّط الجلوس",
+      "subtitle": "اسحبوا ضيوفكم إلى الطاولات واضبطوا كل شيء بحركات قليلة.",
+      "seatedRatio": "{seated} / {total} موزَّعون",
+      "addPerson": "إضافة شخص",
+      "autoPlace": "توزيع تلقائي",
+      "addTable": "إضافة طاولة",
+      "mobileNote": "يُحرَّر مخطّط الجلوس على شاشة كبيرة. هذه معاينة للقراءة فقط.",
+      "empty": "لا ضيوف على هذه الطاولة.",
+      "cancel": "إلغاء",
+      "add": "إضافة",
+      "shapeLabel": "الشكل",
+      "shapeRound": "دائرية",
+      "shapeRect": "مستطيلة",
+      "shapeHead": "طاولة الشرف",
+      "shapeRoundShort": "دائرية",
+      "shapeRectShort": "مستطيل",
+      "shapeHeadShort": "الشرف",
+      "seatsLabel": "المقاعد",
+      "decreaseSign": "إنقاص",
+      "increaseSign": "زيادة",
+      "addToList": "إضافة إلى القائمة",
+      "nameLabel": "الاسم",
+      "nameHint": "شخص أو عائلة",
+      "namePlaceholder": "مثال: عائلة ديالو",
+      "categoryLabel": "الفئة",
+      "peopleCountLabel": "عدد الأشخاص",
+      "guestsToSeat": "ضيوف للتوزيع",
+      "seatedCounter": "<b>{seated}</b> / {total} موزَّعون",
+      "searchGuest": "ابحث عن ضيف…",
+      "search": "البحث عن ضيف",
+      "clear": "مسح",
+      "allSeated": "جميع ضيوفكم موزَّعون.",
+      "noGuestFilter": "لا يوجد ضيف مطابق لهذا المرشّح.",
+      "chipAria": "{name}، {count} أشخاص، {cat}",
+      "placementConstraint": "قيد على التوزيع",
+      "keepTogether": "يُبقَون معًا",
+      "keepApart": "يُفصَلون",
+      "assignToTable": "توزيع {name} على طاولة",
+      "tableOptions": "خيارات الطاولة {label}",
+      "moveTable": "تحريك الطاولة {label}",
+      "move": "تحريك",
+      "capacityExceeded": "تم تجاوز السعة",
+      "zoom": "تكبير",
+      "zoomOut": "تصغير",
+      "zoomIn": "تكبير",
+      "resetView": "إعادة تمركز العرض",
+      "renameEdit": "إعادة تسمية / تعديل",
+      "duplicate": "تكرار",
+      "delete": "حذف",
+      "copyLabel": "{label} (نسخة)",
+      "tableN": "الطاولة {n}",
+      "inspectorAria": "تفاصيل الطاولة {label}",
+      "inspectorSub": "{occ}/{cap} مقاعد · {shape}",
+      "closeInspector": "إغلاق اللوحة",
+      "tableNameLabel": "اسم الطاولة",
+      "capacityLabel": "السعة",
+      "decrease": "إنقاص",
+      "increase": "زيادة",
+      "capExceeded": "{occ}/{cap} · تجاوز السعة",
+      "capFull": "ممتلئة",
+      "capFree": "{count, plural, zero {# مقاعد حرة} one {مقعد حر واحد} two {مقعدان حرّان} few {# مقاعد حرة} many {# مقعدًا حرًّا} other {# مقعد حر}}",
+      "seatedGuests": "{count, plural, zero {# ضيوف موزَّعين} one {ضيف موزَّع واحد} two {ضيفان موزَّعان} few {# ضيوف موزَّعين} many {# ضيفًا موزَّعًا} other {# ضيف موزَّع}}",
+      "seatedEmpty": "لا ضيوف موزَّعين على هذه الطاولة.",
+      "partySizeShort": "{count, plural, zero {# أشخاص} one {شخص} two {شخصان} few {# أشخاص} many {# شخصًا} other {# شخص}}",
+      "removeGuest": "إزالة {name} من الطاولة",
+      "notesLabel": "ملاحظات",
+      "notesPlaceholder": "حساسيات، احتياجات خاصة، تجميعات…",
+      "assignMenuAria": "توزيع {name}",
+      "assignMenuLabel": "توزيع {name} ({count} أشخاص)",
+      "returnToPool": "الإعادة إلى القائمة",
+      "hereSuffix": "· هنا",
+      "fullSuffix": "· ممتلئة",
+      "announceCapacityExceeded": "تم تجاوز السعة: {occ} أشخاص مقابل {cap} مقعدًا.",
+      "announceTableDeleted": "تم حذف الطاولة.",
+      "announcePersonAdded": "تمت إضافة {name} إلى القائمة.",
+      "announceAutoPlaced": "{count, plural, zero {تم توزيع # ضيوف تلقائيًا.} one {تم توزيع ضيف واحد تلقائيًا.} two {تم توزيع ضيفين تلقائيًا.} few {تم توزيع # ضيوف تلقائيًا.} many {تم توزيع # ضيفًا تلقائيًا.} other {تم توزيع # ضيف تلقائيًا.}}",
+      "starter": {
+        "head": "طاولة الشرف",
+        "headNote": "العروسان وأقرب أحبّائهما",
+        "family": "العائلة",
+        "friends": "الأصدقاء",
+        "friendsNote": "حلقة الأصدقاء المقرّبين",
+        "table3": "الطاولة 3",
+        "table4": "الطاولة 4",
+        "table5": "الطاولة 5"
+      },
+      "cats": {
+        "family": {
+          "label": "العائلة",
+          "short": "العائلة"
+        },
+        "friends": {
+          "label": "الأصدقاء",
+          "short": "الأصدقاء"
+        },
+        "colleagues": {
+          "label": "الزملاء",
+          "short": "الزملاء"
+        },
+        "pro": {
+          "label": "المزوّدون",
+          "short": "المزوّدون"
+        }
+      }
+    },
+    "nav": {
+      "home": "Home",
+      "dashboard": "My wedding",
+      "planning": "Timeline",
+      "vendors": "Vendors",
+      "seating": "Seating chart",
+      "forfait": "My plan"
+    },
+    "data": {
+      "cats": {
+        "lieu": "Venue & reception",
+        "traiteur": "Catering",
+        "photo": "Photo & video",
+        "musique": "Music / DJ",
+        "fleurs": "Flowers & decor",
+        "patisserie": "Wedding cake",
+        "tenues": "Attire",
+        "papeterie": "Stationery"
+      },
+      "guestStatus": {
+        "confirmed": "Confirmed",
+        "pending": "Pending",
+        "declined": "Declined",
+        "noreply": "No reply",
+        "unknown": "—"
+      },
+      "vendorStatus": {
+        "a_contacter": "To contact",
+        "contacte": "Contacted",
+        "devis": "Quote received",
+        "reserve": "Booked",
+        "paye": "Paid",
+        "unknown": "—"
+      },
+      "attachKinds": {
+        "facture": "Invoice",
+        "devis": "Quote",
+        "contrat": "Contract",
+        "photo": "Photo",
+        "autre": "Other",
+        "receiptOther": "Other receipt"
+      },
+      "paymentKind": {
+        "deposit": "Deposit",
+        "balance": "Balance"
+      },
+      "invoices": {
+        "premiumPlan": "Premium plan"
+      },
+      "overages": {
+        "guest": {
+          "label": "Extra guest",
+          "sub": "beyond your plan",
+          "price": "+€0.25"
+        },
+        "message": {
+          "label": "SMS / WhatsApp",
+          "sub": "per message sent",
+          "price": "€0.06 / msg"
+        },
+        "storage": {
+          "label": "Gallery storage",
+          "sub": "beyond your quota",
+          "price": "€0.03 / GB / mo"
+        }
+      },
+      "phases": {
+        "p1": {
+          "label": "12 months out",
+          "sub": "The foundations",
+          "tasks": {
+            "t1": "Set the overall budget",
+            "t2": "Lock in the date & venue",
+            "t3": "Draft the first guest list"
+          }
+        },
+        "p2": {
+          "label": "6 months out",
+          "sub": "The vendors",
+          "tasks": {
+            "t4": "Book caterer & photographer",
+            "t5": "Send the invitations",
+            "t6": "Open the shared photo gallery"
+          }
+        },
+        "p3": {
+          "label": "3 months out",
+          "sub": "Now",
+          "tasks": {
+            "t7": "Follow up with non-responders",
+            "t8": "Caterer tasting",
+            "t9": "Book the DJ",
+            "t10": "First outfit fitting"
+          }
+        },
+        "p4": {
+          "label": "1 month out",
+          "sub": "Final details",
+          "tasks": {
+            "t11": "Finalize the seating plan",
+            "t12": "Confirm the final headcount",
+            "t13": "Brief the vendors"
+          }
+        },
+        "p5": {
+          "label": "The big day",
+          "sub": "September 5",
+          "tasks": {
+            "t14": "On-site coordination",
+            "t15": "Guest check-in",
+            "t16": "Shared gallery live"
+          }
+        },
+        "p6": {
+          "label": "After the wedding",
+          "sub": "What's next",
+          "tasks": {
+            "t17": "Send thank-you notes",
+            "t18": "Download the HD gallery",
+            "t19": "Settle the final balances"
+          }
+        }
+      },
+      "steps": {
+        "s1": {
+          "label": "Plan & invitation created",
+          "when": "May",
+          "note": "Your Premium plan is active."
+        },
+        "s2": {
+          "label": "Invitations sent",
+          "when": "May",
+          "note": "166 invitations sent on WhatsApp."
+        },
+        "s3": {
+          "label": "Follow up with non-responders",
+          "when": "June",
+          "note": "18 guests haven't replied yet."
+        },
+        "s4": {
+          "label": "Finalize the seating chart",
+          "when": "August",
+          "note": "As soon as the RSVPs settle down."
+        },
+        "s5": {
+          "label": "The big day — gallery & check-in",
+          "when": "Sep 5",
+          "note": "Your guests upload their photos."
+        }
+      },
+      "plans": {
+        "essentiel": {
+          "name": "Essential",
+          "tagline": "100 guests · 5 GB gallery (12 months)",
+          "feats": {
+            "guests": "Up to 100 guests",
+            "gallery": "Shared 5 GB gallery · active 12 months",
+            "invitations": "Digital invitations + reminders",
+            "rsvp": "RSVP by SMS / WhatsApp",
+            "galleryLink": "Gallery link shared on WhatsApp"
+          }
+        },
+        "premium": {
+          "name": "Premium",
+          "tagline": "250 guests · 25 GB HD gallery (12 months)",
+          "feats": {
+            "guests": "Up to 250 guests",
+            "gallery": "25 GB HD gallery · active 12 months",
+            "essential": "Everything in Essential",
+            "albums": "Albums & invitation branding",
+            "faceSearch": "Face recognition (face-search)"
+          }
+        }
+      }
     }
   }
 }

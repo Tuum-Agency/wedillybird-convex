@@ -13,6 +13,7 @@ import {
   MC_BUDGET_TOTAL,
   MC_PAYMENTS,
   MC_CATS,
+  MC_CURRENCY,
   mcBudgetPostes,
   mcEUR,
   mcDateNum,
@@ -21,6 +22,7 @@ import {
   type McPayment,
   type McVendorCat,
 } from './data';
+import { currencySymbol } from '@/lib/currency';
 
 /* Paiement enrichi côté état local (montant payé, date, factures) */
 interface McPaymentState extends McPayment {
@@ -82,7 +84,7 @@ function PaymentModal({
       <div className="mc-formgrid">
         <McField label={t('amountPaidLabel')}>
           <McInput
-            prefix="€"
+            prefix={currencySymbol(MC_CURRENCY)}
             value={amount}
             onChange={(e) => setAmount(e.target.value.replace(/[^\d.]/g, ''))}
             inputMode="decimal"

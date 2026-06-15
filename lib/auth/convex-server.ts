@@ -1,6 +1,7 @@
 import 'server-only';
 import { ConvexHttpClient } from 'convex/browser';
 import { makeFunctionReference, type FunctionReference } from 'convex/server';
+import type { BudgetCurrency } from '@/lib/currency';
 
 let cachedClient: ConvexHttpClient | null = null;
 
@@ -67,7 +68,13 @@ export const convexApi = {
   >('auth:currentUser'),
   completeOnboarding: makeFunctionReference<
     'mutation',
-    { userId: string; fullName: string; role: 'couple' | 'pro'; email: string },
+    {
+      userId: string;
+      fullName: string;
+      role: 'couple' | 'pro';
+      email: string;
+      preferredCurrency?: BudgetCurrency;
+    },
     { ok: true }
   >('users:completeOnboarding'),
   userByPhone: makeFunctionReference<
@@ -95,6 +102,7 @@ export const convexApi = {
       theme?: { primaryColor: string; accentColor: string; fontFamily: string };
       pendingPlanTier?: 'essential' | 'premium';
       organizationId?: string;
+      currency?: BudgetCurrency;
     },
     { id: string; slug: string }
   >('events:create'),
@@ -681,6 +689,7 @@ export const convexApi = {
       name: string;
       primaryColor?: string;
       accentColor?: string;
+      currency?: BudgetCurrency;
     },
     { id: string; slug: string }
   >('organizations:create'),
@@ -693,6 +702,7 @@ export const convexApi = {
       slug: string;
       primaryColor?: string;
       accentColor?: string;
+      currency: BudgetCurrency | null;
       logoUrl: string | null;
       customDomain?: string;
       senderEmail?: string;

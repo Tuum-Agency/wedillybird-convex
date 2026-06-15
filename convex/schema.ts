@@ -1,5 +1,6 @@
 import { defineSchema, defineTable } from 'convex/server';
 import { v } from 'convex/values';
+import { BUDGET_CURRENCY } from './lib/currency';
 
 export default defineSchema({
   users: defineTable({
@@ -32,6 +33,8 @@ export default defineSchema({
       ),
     ),
     stripeCustomerId: v.optional(v.string()),
+    /** Devise de budget préférée, choisie à l'onboarding. Défaut applicatif: EUR. */
+    preferredCurrency: v.optional(BUDGET_CURRENCY),
     createdAt: v.number(),
     lastSeenAt: v.optional(v.number()),
   })
@@ -45,6 +48,8 @@ export default defineSchema({
     logoStorageId: v.optional(v.id('_storage')),
     primaryColor: v.optional(v.string()),
     accentColor: v.optional(v.string()),
+    /** Devise des budgets de l'agence (budget interne, prestataires). Défaut: EUR. */
+    currency: v.optional(BUDGET_CURRENCY),
     /** Marque blanche (Agency) : domaine sur mesure + e-mail expéditeur + retrait du badge. */
     customDomain: v.optional(v.string()),
     senderEmail: v.optional(v.string()),
@@ -185,6 +190,8 @@ export default defineSchema({
     }),
     eventDate: v.number(),
     timezone: v.string(),
+    /** Devise du budget de ce mariage. Héritée de l'org / du couple à la création. Défaut: EUR. */
+    currency: v.optional(BUDGET_CURRENCY),
     /** Enveloppe budgétaire — cible totale fixée avec le couple (centimes). */
     budgetEnvelopeMinor: v.optional(v.number()),
     venue: v.optional(

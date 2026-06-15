@@ -5,6 +5,7 @@ import { getSession } from '@/lib/auth/session';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
 import { createConnectedAccount, createAccountOnboardingLink } from '@/lib/payments/drivers/stripe';
 import { appOrigin } from '@/lib/reminders/window';
+import { asBudgetCurrency } from '@/lib/currency';
 
 const E164 = /^\+[1-9]\d{6,14}$/;
 const HEX_COLOR_RE = /^#([0-9a-fA-F]{6}|[0-9a-fA-F]{3})$/;
@@ -24,6 +25,11 @@ export async function createOrganizationAction(formData: FormData): Promise<Crea
 
   const primary = (formData.get('primaryColor') as string | null)?.trim() || undefined;
   const accent = (formData.get('accentColor') as string | null)?.trim() || undefined;
+  const rawCurrency = formData.get('currency');
+  const currency =
+    typeof rawCurrency === 'string' && rawCurrency.length > 0
+      ? asBudgetCurrency(rawCurrency)
+      : undefined;
 
   try {
     const convex = getConvexServerClient();
@@ -32,6 +38,7 @@ export async function createOrganizationAction(formData: FormData): Promise<Crea
       name,
       primaryColor: primary,
       accentColor: accent,
+      ...(currency ? { currency } : {}),
     });
     revalidatePath('/pro/dashboard');
     return { ok: true, id, slug };

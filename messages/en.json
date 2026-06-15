@@ -947,6 +947,7 @@
   },
   "Invitation": {
     "youreInvited": "You're invited",
+    "scrollToDiscover": "Scroll to discover",
     "addressing": "Dear {name}, we'd be delighted to have you with us.",
     "willYouAttend": "Will you join us?",
     "status": {
@@ -3271,6 +3272,559 @@
       "metaTitle": "Payment cancelled — Wedillybird",
       "title": "Payment cancelled",
       "body": "No amount was charged. You can try again from the payment link that was sent to you."
+    }
+  },
+  "MonMariage": {
+    "common": {
+      "attach": "Attach",
+      "attachEmpty": "No documents attached yet.",
+      "attachments": "Attachments",
+      "close": "Close",
+      "confirmed": "confirmed",
+      "coupleSpace": "Couple space",
+      "distribution": "Breakdown",
+      "donutAria": "{confirmed} guests confirmed out of {sum}",
+      "jAfter": "D+{n}",
+      "jBefore": "D−{n}",
+      "jDay": "The big day",
+      "mainNavLabel": "Main navigation",
+      "navLabel": "Navigation",
+      "notifications": "Notifications",
+      "qrAria": "Invitation QR code",
+      "quotaFull": "Limit reached",
+      "quotaUsed": "{pct}% used",
+      "quotaWarn": "{pct}% used",
+      "remove": "Remove",
+      "signOut": "Sign out"
+    },
+    "home": {
+      "hello": "Welcome to your space",
+      "heroAria": "Your wedding at a glance",
+      "navAria": "Quick access",
+      "confirmed": "Confirmed",
+      "pending": "Pending",
+      "expected": "People expected",
+      "online": "Online",
+      "invitation": {
+        "title": "Your invitation",
+        "desc": "Share your page and follow responses live."
+      },
+      "empty": {
+        "title": "It all starts here",
+        "body": "Add your first guests to bring your invitation to life and track responses.",
+        "addGuests": "Add guests",
+        "viewInvitation": "View invitation"
+      },
+      "cards": {
+        "guests": {
+          "title": "Guests",
+          "desc": "Manage your list and responses."
+        },
+        "plan": {
+          "title": "Planning",
+          "desc": "Track your tasks step by step."
+        },
+        "vendors": {
+          "title": "Vendors",
+          "desc": "Your address book and their quotes."
+        },
+        "budget": {
+          "title": "Budget",
+          "desc": "Your expenses and the payment schedule."
+        },
+        "seating": {
+          "title": "Seating plan",
+          "desc": "Seat your guests, table by table."
+        },
+        "forfait": {
+          "title": "My plan",
+          "desc": "Your plan, invoices and options."
+        }
+      }
+    },
+    "dashboard": {
+      "rsvpTitle": "Responses (RSVP)",
+      "expectedPeople": "People expected",
+      "planCapacity": "Plan capacity: {cap} guests",
+      "legend": {
+        "confirmed": "Confirmed",
+        "pending": "Pending",
+        "declined": "Declined",
+        "noreply": "No reply"
+      },
+      "quotasTitle": "Your quotas",
+      "galleryActive": "Gallery active",
+      "quotaGuests": "Guests",
+      "quotaGuestsSub": "People expected",
+      "quotaStorage": "Photo gallery",
+      "quotaStorageSub": "Storage used",
+      "guestListTitle": "Guest list",
+      "guestListSub": "{invitations} invitations · {people} people",
+      "confirmedCount": "{count} confirmed",
+      "guestNamePlaceholder": "Guest name",
+      "nameAria": "Guest name",
+      "whatsappAria": "WhatsApp number",
+      "add": "Add",
+      "newGuestGroup": "To sort",
+      "searchGuest": "Search for a guest…",
+      "searchAria": "Search for a guest",
+      "filterAria": "Filter guests",
+      "noGuestMatch": "No guests match.",
+      "filters": {
+        "all": "All",
+        "confirmed": "Confirmed",
+        "pending": "Pending",
+        "noreply": "No reply",
+        "declined": "Declined"
+      },
+      "inviteTitle": "Public invitation",
+      "online": "Online",
+      "youAreInvited": "You’re invited",
+      "copy": "Copy",
+      "copied": "Copied",
+      "shareWhatsApp": "Share on WhatsApp",
+      "preview": "Preview",
+      "qrTitle": "Invitation QR code",
+      "qrDesc": "Print it or display it on the big day.",
+      "planTitle": "Planning"
+    },
+    "planning": {
+      "eyebrow": "Planning",
+      "title": "Your planning",
+      "subtitle": "Move forward calmly, step by step to the big day.",
+      "progress": "Progress",
+      "percent": "{pct}%",
+      "tasksRatio": "{done} / {total} tasks",
+      "inProgressCount": "{count} in progress",
+      "changeStatus": "Change status",
+      "today": "Today",
+      "thisWeek": "This week",
+      "soon": "Soon",
+      "deleteTask": "Delete task",
+      "addTask": "Add a task",
+      "newTaskPlaceholder": "New task…",
+      "dueAria": "Due date",
+      "ok": "OK",
+      "cancel": "Cancel",
+      "addPhase": "Add a phase",
+      "newPhase": "New phase",
+      "createPhase": "Create phase",
+      "customPhase": "Custom phase",
+      "phaseTitleLabel": "Phase title",
+      "phaseTitleHint": "E.g. “In 6 months”",
+      "phaseTitlePlaceholder": "Phase name",
+      "phaseSubLabel": "Subtitle",
+      "phaseSubPlaceholder": "A short note (optional)",
+      "optional": "optional",
+      "statusTodo": "To do",
+      "statusDoing": "In progress",
+      "statusDone": "Done",
+      "statusUnknown": "To do"
+    },
+    "budget": {
+      "eyebrow": "Finances",
+      "title": "Your budget",
+      "subtitle": "Track your expenses and payment schedule at a glance.",
+      "engaged": "Committed",
+      "postsCount": "{count, plural, one {# category} other {# categories}}",
+      "plannedBudget": "Planned budget",
+      "paid": "Paid",
+      "remainingToPay": "Left to pay",
+      "engagedVsPlanned": "Committed vs planned",
+      "percent": "{pct}%",
+      "overBudget": "{amount} over budget",
+      "budgetMargin": "{amount} of headroom",
+      "expensesByPost": "Expenses by category",
+      "vendorsLink": "View vendors",
+      "postPaid": "{amount} paid",
+      "toSettle": "To settle",
+      "scheduleTitle": "Payment schedule",
+      "scheduleSub": "Record your payments and attach invoices.",
+      "remainingDue": "Outstanding",
+      "settle": "Settle",
+      "edit": "Edit",
+      "recordPayment": "Record a payment",
+      "paidInFull": "Paid in full",
+      "partialPayment": "Partial payment",
+      "unpaid": "Unpaid",
+      "amountPaidLabel": "Amount paid",
+      "paymentDateLabel": "Payment date",
+      "payInFull": "Pay in full",
+      "deposit50": "50% deposit",
+      "cancelPayment": "Cancel payment",
+      "attachInvoice": "Attach invoice",
+      "cancel": "Cancel",
+      "save": "Save",
+      "statusPaid": "Paid",
+      "statusPartial": "Partial",
+      "statusToPay": "To settle",
+      "statusPlanned": "Planned"
+    },
+    "vendors": {
+      "eyebrow": "Directory",
+      "title": "Your vendors",
+      "subtitle": "Keep your contacts, quotes and payments in one place.",
+      "statVendors": "Vendors",
+      "statEngaged": "Committed",
+      "statPaid": "Paid",
+      "seeBudget": "View budget",
+      "displayAria": "Display mode",
+      "viewList": "Directory",
+      "viewKanban": "Kanban",
+      "searchPlaceholder": "Search for a vendor…",
+      "searchAria": "Search for a vendor",
+      "add": "Add",
+      "filterStatusAria": "Filter by status",
+      "noVendorMatch": "No vendors match.",
+      "dropHere": "Drop here",
+      "filters": {
+        "all": "All",
+        "reserve": "Booked",
+        "devis": "Quote",
+        "contacte": "Contacted",
+        "a_contacter": "To contact"
+      },
+      "modalEyebrow": "Vendor",
+      "newVendor": "New vendor",
+      "editVendor": "Edit vendor",
+      "createVendor": "Create vendor",
+      "cancel": "Cancel",
+      "save": "Save",
+      "vendorNameLabel": "Vendor name",
+      "vendorNamePlaceholder": "E.g. venue, caterer, photographer…",
+      "categoryLabel": "Category",
+      "statusLabel": "Status",
+      "phoneLabel": "Phone",
+      "emailLabel": "Email",
+      "optional": "optional",
+      "amountLabel": "Amount",
+      "paidLabel": "Paid",
+      "depositHint": "deposit already paid",
+      "notesLabel": "Notes",
+      "notesPlaceholder": "Useful details: menu, schedule, terms…",
+      "attachmentsLabel": "Attachments",
+      "attachmentsCount": "{count, plural, one {# attachment} other {# attachments}}",
+      "edit": "Edit",
+      "paidAmount": "{paid} paid",
+      "paidWithRemainder": "{paid} paid · {rem} left",
+      "noDeposit": "No deposit paid"
+    },
+    "forfait": {
+      "eyebrow": "Your plan",
+      "choixTitle": "Choose your plan",
+      "choixSubtitle": "A one-time payment, never a subscription. Everything is included for your big day.",
+      "oneTimeNote": "One-time payment · gallery active for 12 months after the wedding.",
+      "recommended": "Recommended",
+      "once": "one-time",
+      "onceShort": "one-time",
+      "currentPlan": "Current plan",
+      "choosePlan": "Choose {name}",
+      "reassureRefund": "100% refund within 7 days if the invitation isn’t sent.",
+      "reassurePostpone": "Free postponement if you have to cancel.",
+      "yourPlan": "Your plan",
+      "purchasedOn": "purchased on {date}",
+      "activeOneTime": "Active · one-time payment",
+      "quotaGuests": "Guests",
+      "quotaGuestsSub": "People expected",
+      "quotaStorage": "Photo gallery",
+      "quotaStorageSub": "Storage used",
+      "galleryActiveUntil": "Gallery active until <b>{date}</b>",
+      "upgradeEyebrow": "Upgrade",
+      "upgradeTitle": "Upgrade to Premium",
+      "upgradeDesc": "More guests, more HD storage and face search. A single payment, no subscription.",
+      "upgradeToPremium": "Upgrade to Premium",
+      "upsellEyebrow": "After the wedding",
+      "upsellTitle": "Keep your photos in HD forever",
+      "upsellDesc": "Download everything in high definition and archive your gallery with no time limit.",
+      "archiveForever": "Archive forever",
+      "invoices": "Invoices",
+      "downloadReceipt": "Download receipt",
+      "receiptPdf": "PDF receipt",
+      "overagesTitle": "Beyond your plan",
+      "overagesHint": "charged only if you exceed",
+      "overagesFoot": "No surprise charges: you stay in control of your spending."
+    },
+    "seating": {
+      "eyebrow": "Reception",
+      "title": "Your seating plan",
+      "subtitle": "Drag your guests onto the tables and adjust everything in a few moves.",
+      "seatedRatio": "{seated} / {total} seated",
+      "addPerson": "Add a person",
+      "autoPlace": "Auto-seat",
+      "addTable": "Add a table",
+      "mobileNote": "The seating plan is edited on a larger screen. Here’s a read-only preview.",
+      "empty": "No guests at this table.",
+      "cancel": "Cancel",
+      "add": "Add",
+      "shapeLabel": "Shape",
+      "shapeRound": "Round",
+      "shapeRect": "Rectangular",
+      "shapeHead": "Head table",
+      "shapeRoundShort": "Round",
+      "shapeRectShort": "Rectangle",
+      "shapeHeadShort": "Head",
+      "seatsLabel": "Seats",
+      "decreaseSign": "Decrease",
+      "increaseSign": "Increase",
+      "addToList": "Add to list",
+      "nameLabel": "Name",
+      "nameHint": "person or family",
+      "namePlaceholder": "E.g. The Diallo family",
+      "categoryLabel": "Category",
+      "peopleCountLabel": "Number of people",
+      "guestsToSeat": "Guests to seat",
+      "seatedCounter": "<b>{seated}</b> / {total} seated",
+      "searchGuest": "Search for a guest…",
+      "search": "Search for a guest",
+      "clear": "Clear",
+      "allSeated": "All your guests are seated.",
+      "noGuestFilter": "No guests match this filter.",
+      "chipAria": "{name}, {count} people, {cat}",
+      "placementConstraint": "Seating constraint",
+      "keepTogether": "Keep together",
+      "keepApart": "Keep apart",
+      "assignToTable": "Seat {name} at a table",
+      "tableOptions": "Options for {label}",
+      "moveTable": "Move table {label}",
+      "move": "Move",
+      "capacityExceeded": "Capacity exceeded",
+      "zoom": "Zoom",
+      "zoomOut": "Zoom out",
+      "zoomIn": "Zoom in",
+      "resetView": "Reset view",
+      "renameEdit": "Rename / edit",
+      "duplicate": "Duplicate",
+      "delete": "Delete",
+      "copyLabel": "{label} (copy)",
+      "tableN": "Table {n}",
+      "inspectorAria": "Details for table {label}",
+      "inspectorSub": "{occ}/{cap} seats · {shape}",
+      "closeInspector": "Close panel",
+      "tableNameLabel": "Table name",
+      "capacityLabel": "Capacity",
+      "decrease": "Decrease",
+      "increase": "Increase",
+      "capExceeded": "{occ}/{cap} · over capacity",
+      "capFull": "Full",
+      "capFree": "{count, plural, one {# free seat} other {# free seats}}",
+      "seatedGuests": "{count, plural, one {# seated guest} other {# seated guests}}",
+      "seatedEmpty": "No guests seated at this table.",
+      "partySizeShort": "{count, plural, one {# pers.} other {# people}}",
+      "removeGuest": "Remove {name} from the table",
+      "notesLabel": "Notes",
+      "notesPlaceholder": "Allergies, special needs, groupings…",
+      "assignMenuAria": "Seat {name}",
+      "assignMenuLabel": "Seat {name} ({count} ppl)",
+      "returnToPool": "Return to the list",
+      "hereSuffix": "· here",
+      "fullSuffix": "· full",
+      "announceCapacityExceeded": "Capacity exceeded: {occ} people for {cap} seats.",
+      "announceTableDeleted": "Table deleted.",
+      "announcePersonAdded": "{name} added to the list.",
+      "announceAutoPlaced": "{count, plural, one {# guest seated automatically.} other {# guests seated automatically.}}",
+      "starter": {
+        "head": "Head table",
+        "headNote": "The couple and their close family",
+        "family": "Family",
+        "friends": "Friends",
+        "friendsNote": "Close circle of friends",
+        "table3": "Table 3",
+        "table4": "Table 4",
+        "table5": "Table 5"
+      },
+      "cats": {
+        "family": {
+          "label": "Family",
+          "short": "Family"
+        },
+        "friends": {
+          "label": "Friends",
+          "short": "Friends"
+        },
+        "colleagues": {
+          "label": "Colleagues",
+          "short": "Colleagues"
+        },
+        "pro": {
+          "label": "Vendors",
+          "short": "Vendors"
+        }
+      }
+    },
+    "nav": {
+      "home": "Home",
+      "dashboard": "My wedding",
+      "planning": "Timeline",
+      "vendors": "Vendors",
+      "seating": "Seating chart",
+      "forfait": "My plan"
+    },
+    "data": {
+      "cats": {
+        "lieu": "Venue & reception",
+        "traiteur": "Catering",
+        "photo": "Photo & video",
+        "musique": "Music / DJ",
+        "fleurs": "Flowers & decor",
+        "patisserie": "Wedding cake",
+        "tenues": "Attire",
+        "papeterie": "Stationery"
+      },
+      "guestStatus": {
+        "confirmed": "Confirmed",
+        "pending": "Pending",
+        "declined": "Declined",
+        "noreply": "No reply",
+        "unknown": "—"
+      },
+      "vendorStatus": {
+        "a_contacter": "To contact",
+        "contacte": "Contacted",
+        "devis": "Quote received",
+        "reserve": "Booked",
+        "paye": "Paid",
+        "unknown": "—"
+      },
+      "attachKinds": {
+        "facture": "Invoice",
+        "devis": "Quote",
+        "contrat": "Contract",
+        "photo": "Photo",
+        "autre": "Other",
+        "receiptOther": "Other receipt"
+      },
+      "paymentKind": {
+        "deposit": "Deposit",
+        "balance": "Balance"
+      },
+      "invoices": {
+        "premiumPlan": "Premium plan"
+      },
+      "overages": {
+        "guest": {
+          "label": "Extra guest",
+          "sub": "beyond your plan",
+          "price": "+€0.25"
+        },
+        "message": {
+          "label": "SMS / WhatsApp",
+          "sub": "per message sent",
+          "price": "€0.06 / msg"
+        },
+        "storage": {
+          "label": "Gallery storage",
+          "sub": "beyond your quota",
+          "price": "€0.03 / GB / mo"
+        }
+      },
+      "phases": {
+        "p1": {
+          "label": "12 months out",
+          "sub": "The foundations",
+          "tasks": {
+            "t1": "Set the overall budget",
+            "t2": "Lock in the date & venue",
+            "t3": "Draft the first guest list"
+          }
+        },
+        "p2": {
+          "label": "6 months out",
+          "sub": "The vendors",
+          "tasks": {
+            "t4": "Book caterer & photographer",
+            "t5": "Send the invitations",
+            "t6": "Open the shared photo gallery"
+          }
+        },
+        "p3": {
+          "label": "3 months out",
+          "sub": "Now",
+          "tasks": {
+            "t7": "Follow up with non-responders",
+            "t8": "Caterer tasting",
+            "t9": "Book the DJ",
+            "t10": "First outfit fitting"
+          }
+        },
+        "p4": {
+          "label": "1 month out",
+          "sub": "Final details",
+          "tasks": {
+            "t11": "Finalize the seating plan",
+            "t12": "Confirm the final headcount",
+            "t13": "Brief the vendors"
+          }
+        },
+        "p5": {
+          "label": "The big day",
+          "sub": "September 5",
+          "tasks": {
+            "t14": "On-site coordination",
+            "t15": "Guest check-in",
+            "t16": "Shared gallery live"
+          }
+        },
+        "p6": {
+          "label": "After the wedding",
+          "sub": "What's next",
+          "tasks": {
+            "t17": "Send thank-you notes",
+            "t18": "Download the HD gallery",
+            "t19": "Settle the final balances"
+          }
+        }
+      },
+      "steps": {
+        "s1": {
+          "label": "Plan & invitation created",
+          "when": "May",
+          "note": "Your Premium plan is active."
+        },
+        "s2": {
+          "label": "Invitations sent",
+          "when": "May",
+          "note": "166 invitations sent on WhatsApp."
+        },
+        "s3": {
+          "label": "Follow up with non-responders",
+          "when": "June",
+          "note": "18 guests haven't replied yet."
+        },
+        "s4": {
+          "label": "Finalize the seating chart",
+          "when": "August",
+          "note": "As soon as the RSVPs settle down."
+        },
+        "s5": {
+          "label": "The big day — gallery & check-in",
+          "when": "Sep 5",
+          "note": "Your guests upload their photos."
+        }
+      },
+      "plans": {
+        "essentiel": {
+          "name": "Essential",
+          "tagline": "100 guests · 5 GB gallery (12 months)",
+          "feats": {
+            "guests": "Up to 100 guests",
+            "gallery": "Shared 5 GB gallery · active 12 months",
+            "invitations": "Digital invitations + reminders",
+            "rsvp": "RSVP by SMS / WhatsApp",
+            "galleryLink": "Gallery link shared on WhatsApp"
+          }
+        },
+        "premium": {
+          "name": "Premium",
+          "tagline": "250 guests · 25 GB HD gallery (12 months)",
+          "feats": {
+            "guests": "Up to 250 guests",
+            "gallery": "25 GB HD gallery · active 12 months",
+            "essential": "Everything in Essential",
+            "albums": "Albums & invitation branding",
+            "faceSearch": "Face recognition (face-search)"
+          }
+        }
+      }
     }
   }
 }
