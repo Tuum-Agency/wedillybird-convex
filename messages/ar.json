@@ -531,6 +531,18 @@
           "ألبوم PDF قابل للطباعة",
           "حفظ يصل إلى 5 سنوات"
         ]
+      },
+      "visuals": {
+        "invitationSent": "تم إرسال الدعوة ·",
+        "invitationKicker": "دعوة",
+        "invitationDate": "8 يونيو 2026",
+        "rsvpConfirmed": "٪ مؤكَّدون",
+        "checkinGuestId": "ضيف-AB42",
+        "checkinOffline": "غير متصل ✓",
+        "galleryCaption1": "القبلة الأولى",
+        "galleryCaption2": "الرقصة",
+        "galleryCaption3": "القصاصات",
+        "galleryCounter": "+ 247 ذكرى"
       }
     },
     "cinematic": {

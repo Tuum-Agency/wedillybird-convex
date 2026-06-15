@@ -531,6 +531,18 @@
         "title": "Moderated shared gallery",
         "description": "Guests and witnesses drop their photos from their link. Automatic moderation before publication, final PDF album and an optional HD photo book delivered to your door.",
         "highlights": ["AI + manual moderation", "Printable PDF album", "Kept for up to 5 years"]
+      },
+      "visuals": {
+        "invitationSent": "Invitation sent ·",
+        "invitationKicker": "INVITATION",
+        "invitationDate": "8 JUNE 2026",
+        "rsvpConfirmed": "% CONFIRMED",
+        "checkinGuestId": "GUEST-AB42",
+        "checkinOffline": "OFFLINE OK",
+        "galleryCaption1": "First kiss",
+        "galleryCaption2": "The dance",
+        "galleryCaption3": "Confetti",
+        "galleryCounter": "+ 247 MEMORIES"
       }
     },
     "cinematic": {

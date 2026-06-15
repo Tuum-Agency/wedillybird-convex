@@ -535,6 +535,18 @@
           "Álbum PDF imprimível",
           "Conservação até 5 anos"
         ]
+      },
+      "visuals": {
+        "invitationSent": "Convite enviado ·",
+        "invitationKicker": "CONVITE",
+        "invitationDate": "8 JUNHO 2026",
+        "rsvpConfirmed": "% CONFIRMADOS",
+        "checkinGuestId": "CONVIDADO-AB42",
+        "checkinOffline": "OFFLINE OK",
+        "galleryCaption1": "Primeiro beijo",
+        "galleryCaption2": "A dança",
+        "galleryCaption3": "Confete",
+        "galleryCounter": "+ 247 MEMÓRIAS"
       }
     },
     "cinematic": {

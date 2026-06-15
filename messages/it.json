@@ -535,6 +535,18 @@
           "Album PDF stampabile",
           "Conservazione fino a 5 anni"
         ]
+      },
+      "visuals": {
+        "invitationSent": "Invito inviato ·",
+        "invitationKicker": "INVITO",
+        "invitationDate": "8 GIUGNO 2026",
+        "rsvpConfirmed": "% CONFERMATI",
+        "checkinGuestId": "OSPITE-AB42",
+        "checkinOffline": "OFFLINE OK",
+        "galleryCaption1": "Primo bacio",
+        "galleryCaption2": "Il ballo",
+        "galleryCaption3": "Coriandoli",
+        "galleryCounter": "+ 247 RICORDI"
       }
     },
     "cinematic": {
