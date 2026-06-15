@@ -223,7 +223,7 @@ function FaceSearchModalInner({ onClose, onResult, search }: FaceSearchModalProp
         <button
           type="button"
           onClick={onClose}
-          aria-label={t('close') === 'Gallery.faceSearch.close' ? 'Fermer' : t('close')}
+          aria-label={t('close')}
           className="focus-ring absolute top-3 right-3 flex h-9 w-9 items-center justify-center rounded-full text-[color:var(--color-ink-500)] transition-colors hover:bg-[color:var(--color-ivory-100)]"
           data-testid="face-search-close"
         >
@@ -274,6 +274,7 @@ function FaceSearchModalInner({ onClose, onResult, search }: FaceSearchModalProp
             captureTitle={t('captureTitle')}
             uploadCta={t('uploadCta')}
             cameraCta={t('cameraCta')}
+            cancelCta={t('cancel')}
           />
         ) : null}
 
@@ -413,6 +414,7 @@ interface CaptureStepProps {
   captureTitle: string;
   uploadCta: string;
   cameraCta: string;
+  cancelCta: string;
 }
 
 function CaptureStep({
@@ -429,6 +431,7 @@ function CaptureStep({
   captureTitle,
   uploadCta,
   cameraCta,
+  cancelCta,
 }: CaptureStepProps) {
   return (
     <div className="flex flex-col gap-4">
@@ -503,7 +506,7 @@ function CaptureStep({
               className="flex-1"
             >
               <X className="h-4 w-4" aria-hidden strokeWidth={1.75} />
-              Annuler
+              {cancelCta}
             </Button>
           </div>
         </div>

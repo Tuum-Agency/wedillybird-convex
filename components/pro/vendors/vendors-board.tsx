@@ -38,7 +38,6 @@ import {
   ENGAGEMENT_STATUS_META,
   filterVendors,
   priceLabel,
-  priceWord,
   usedCategories,
   vendorCategoryHue,
   vendorInitials,
@@ -74,6 +73,42 @@ const ERROR_KEY: Record<string, string> = {
   VENDOR_LIMIT_REACHED: 'errors.vendorLimitReached',
   FORBIDDEN: 'errors.forbidden',
 };
+
+/** Catégories prestataire canoniques (FR, valeur stockée) → sous-clé i18n stable. */
+const VENDOR_CATEGORY_KEY: Record<string, string> = {
+  Lieu: 'venue',
+  Traiteur: 'catering',
+  'Photo / Vidéo': 'photoVideo',
+  'Décoration & Fleurs': 'decorFlowers',
+  'Musique / DJ': 'musicDj',
+  Beauté: 'beauty',
+  Pâtisserie: 'cake',
+  Papeterie: 'stationery',
+  Transport: 'transport',
+  Animation: 'entertainment',
+  Autre: 'other',
+};
+
+/** Hook : libellé de catégorie localisé (catégorie libre affichée telle quelle). */
+function useVendorCategoryLabel() {
+  const t = useTranslations('Pro.vendorsBoard');
+  return (category: string) => {
+    const key = VENDOR_CATEGORY_KEY[category];
+    return key ? t(`categories.${key}` as const) : category;
+  };
+}
+
+/** Hook : gamme de prix 1–3 localisée (« Économique » / « Modéré » / « Premium »). */
+function useVendorPriceWord() {
+  const t = useTranslations('Pro.vendorsBoard');
+  return (range: number | undefined): string | null => {
+    const r = range ? Math.round(range) : 0;
+    if (r === 1) return t('priceWords.economic');
+    if (r === 2) return t('priceWords.moderate');
+    if (r === 3) return t('priceWords.premium');
+    return null;
+  };
+}
 
 function Stars({ rating, showValue }: { rating: number | undefined; showValue?: boolean }) {
   const t = useTranslations('Pro.vendorsBoard');
@@ -138,6 +173,7 @@ function PricePips({ range }: { range: number | undefined }) {
 }
 
 function CategoryTint({ category }: { category: string }) {
+  const catLabel = useVendorCategoryLabel();
   const hue = vendorCategoryHue(category);
   return (
     <span
@@ -149,7 +185,7 @@ function CategoryTint({ category }: { category: string }) {
         style={{ background: `oklch(62% 0.12 ${hue})` }}
         aria-hidden
       />
-      {category}
+      {catLabel(category)}
     </span>
   );
 }
@@ -209,6 +245,8 @@ export function VendorsBoard({
   engagements?: EngagementRow[];
 }) {
   const t = useTranslations('Pro.vendorsBoard');
+  const catLabel = useVendorCategoryLabel();
+  const priceWordLabel = useVendorPriceWord();
   const router = useRouter();
   const [vendors, setVendors] = useState<VendorRow[]>(initialVendors);
   const [engagements, setEngagements] = useState<EngagementRow[]>(initialEngagements);
@@ -448,7 +486,7 @@ export function VendorsBoard({
                 <SelectItem value="all">{t('toolbar.allCategories')}</SelectItem>
                 {categories.map((c) => (
                   <SelectItem key={c} value={c}>
-                    {c}
+                    {catLabel(c)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -655,7 +693,7 @@ export function VendorsBoard({
                   <SelectContent>
                     {VENDOR_CATEGORIES.map((c) => (
                       <SelectItem key={c} value={c}>
-                        {c}
+                        {catLabel(c)}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -771,7 +809,10 @@ export function VendorsBoard({
                 <Kv label={t('detail.whatsapp')} value={detailVendor.whatsapp} mono />
                 <Kv label={t('detail.email')} value={detailVendor.email} />
                 <Kv label={t('detail.website')} value={detailVendor.website} />
-                <Kv label={t('detail.priceRange')} value={priceWord(detailVendor.priceRange)} />
+                <Kv
+                  label={t('detail.priceRange')}
+                  value={priceWordLabel(detailVendor.priceRange)}
+                />
               </div>
               <div className="flex flex-col gap-2 rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-4">
                 <span className="font-mono text-[10px] tracking-[0.16em] text-[color:var(--color-muted-foreground)] uppercase">
@@ -816,7 +857,7 @@ export function VendorsBoard({
                                   style={{ background: meta.dot }}
                                   aria-hidden
                                 />
-                                {meta.label}
+                                {t(`engagementStatus.${e.status}`)}
                               </span>
                             </span>
                           </div>
