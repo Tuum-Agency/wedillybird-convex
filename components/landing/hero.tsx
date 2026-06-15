@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import heroBg from './hero-bg.jpg';
 import { motion, useReducedMotion } from 'motion/react';
 import { useTranslations } from 'next-intl';
 import { ArrowRight } from 'lucide-react';
@@ -46,11 +47,15 @@ export function LandingHero() {
       {/* Photo hero plein cadre — couple Provence golden hour, Unsplash regradé */}
       <div className="absolute inset-0 -z-20">
         <Image
-          src="https://images.unsplash.com/photo-1606216794074-735e91aa2c92?auto=format&fit=crop&w=2400&q=85"
+          src={heroBg}
           alt=""
           fill
           priority
-          sizes="100vw"
+          quality={55}
+          placeholder="blur"
+          // Overlay ivoire ~70 % → la finesse est invisible : on sert une
+          // variante plus légère sur mobile (gain de transfert = LCP).
+          sizes="(max-width: 768px) 62vw, 100vw"
           className="object-cover"
         />
       </div>
