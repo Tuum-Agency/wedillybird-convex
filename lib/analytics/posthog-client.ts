@@ -6,6 +6,7 @@ import {
   type AnalyticsPersonProps,
   type BillingPeriod,
 } from './events';
+import { metaTrack, setMetaConsent } from './meta-pixel';
 
 /**
  * Couche analytics PostHog côté client.
@@ -154,6 +155,8 @@ export function setAnalyticsConsent(granted: boolean): void {
       posthog.stopSessionRecording?.();
       posthog.opt_out_capturing();
     }
+    // Pixel Meta piloté par le même consentement (chargé seulement si accepté).
+    setMetaConsent(granted);
   } catch {
     /* no-op */
   }
@@ -206,6 +209,7 @@ export const analytics = {
   /** Compte créé (OTP/magic link vérifié). */
   signupCompleted(props?: { method?: 'whatsapp' | 'email' }): void {
     track(EVENTS.signupCompleted, props);
+    metaTrack('CompleteRegistration');
   },
   /** Onboarding terminé (profil complété, rôle choisi). */
   onboardingCompleted(props: { role: 'couple' | 'pro' }): void {
@@ -214,6 +218,7 @@ export const analytics = {
   /** Démarrage du checkout (doublé/fiabilisé côté serveur). */
   checkoutStarted(props: { plan: string; audience?: AnalyticsAudience; currency?: string }): void {
     track(EVENTS.checkoutStarted, props);
+    metaTrack('InitiateCheckout', props.currency ? { currency: props.currency } : undefined);
   },
   /** Vue d'une page d'invitation publique (haut de la boucle virale). */
   invitationViewed(props?: { white_label?: boolean }): void {
