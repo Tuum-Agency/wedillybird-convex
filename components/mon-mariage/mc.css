@@ -131,6 +131,11 @@
 .mc-main.vendors {
   max-width: 1180px;
 }
+/* Garde anti-débordement horizontal sur les écrans couple (hors seating/vendors,
+   qui ont leurs propres conteneurs scrollables) : aucun élément ne déborde du cadre. */
+.mc-main:not(.seating):not(.vendors) {
+  overflow-x: clip;
+}
 
 /* bottom tab bar (mobile) */
 .mc-tabbar {
@@ -1111,11 +1116,20 @@
   min-width: 0;
 }
 .mc-filters {
-  display: inline-flex;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 6px;
   padding: 4px;
   border-radius: 11px;
   background: var(--color-surface-elevated);
+  width: 100%;
+  max-width: 100%;
+}
+@media (min-width: 560px) {
+  .mc-filters {
+    width: auto;
+  }
 }
 .mc-filters button {
   border: none;
