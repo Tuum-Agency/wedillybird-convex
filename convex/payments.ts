@@ -137,7 +137,11 @@ export const markSucceeded = mutation({
     // back in line with the payment's plan — but only patch when something
     // actually diverges, to avoid spurious `updatedAt` churn.
     const event = await ctx.db.get(payment.eventId);
-    if (event) {
+    // Réconciliation réservée aux paiements de forfait. Un upsell HD
+    // (`kind: 'post_event_upsell'`, sans `plan`) ne passe jamais par ce
+    // chemin — il est appliqué par `applyPostEventUpsell` — mais on garde
+    // la condition défensive pour la cohérence des types (`plan` optionnel).
+    if (event && payment.plan) {
       const patch = computeEventReconciliation({
         event: {
           planTier: event.planTier,
@@ -294,6 +298,124 @@ export const extendRetentionPostEvent = internalMutation({
 });
 
 /**
+ * Applique l'upsell HD post-event (+29 €) après confirmation Stripe.
+ *
+ * Déclenchée par le webhook (`checkout.session.completed`, metadata
+ * `kind: 'post-event-upsell'`) **et** par le fallback de la page de succès si
+ * le webhook est en retard. Idempotente : la clé `(provider, providerSessionId)`
+ * garantit qu'un même paiement n'enregistre qu'une ligne et n'étend la galerie
+ * qu'une fois.
+ *
+ * **Sécurité** : mutation publique (appelée depuis le serveur Next via le
+ * webhook / la page de succès) mais gardée par `webhookSecret` — même schéma
+ * que `organizations:updateSubscriptionFromWebhook` (fix F-01). Sans ce secret,
+ * impossible de prolonger une galerie à 5 ans sans payer (cf. fix F-09 qui avait
+ * passé `extendRetentionPostEvent` en internal).
+ */
+export const applyPostEventUpsell = mutation({
+  args: {
+    webhookSecret: v.string(),
+    eventId: v.id('events'),
+    requesterId: v.id('users'),
+    provider: PROVIDER,
+    providerSessionId: v.string(),
+    amountMinor: v.number(),
+    currency: CURRENCY,
+  },
+  handler: async (ctx, args) => {
+    const expected = process.env.CONVEX_WEBHOOK_SECRET;
+    if (!expected || args.webhookSecret !== expected) throw new Error('FORBIDDEN');
+
+    const event = await ctx.db.get(args.eventId);
+    if (!event) throw new Error('EVENT_NOT_FOUND');
+    if (event.ownerId !== args.requesterId) throw new Error('FORBIDDEN');
+
+    const now = Date.now();
+
+    // Idempotence : si ce paiement a déjà été appliqué (renvoi de webhook ou
+    // double passage webhook + fallback), on ne réinsère pas et on ne renotifie
+    // pas — mais on s'assure quand même que la galerie est bien prolongée.
+    const existing = await ctx.db
+      .query('payments')
+      .withIndex('by_session', (q) =>
+        q.eq('provider', args.provider).eq('providerSessionId', args.providerSessionId),
+      )
+      .first();
+
+    const newExpiresAt = event.eventDate + POST_EVENT_UPSELL_RETENTION_DAYS * MS_PER_DAY;
+    const needsExtension = !event.galleryExpiresAt || event.galleryExpiresAt < newExpiresAt;
+    if (needsExtension || event.hdUpsellPurchasedAt === undefined) {
+      await ctx.db.patch(args.eventId, {
+        ...(needsExtension ? { galleryExpiresAt: newExpiresAt } : {}),
+        hdUpsellPurchasedAt: event.hdUpsellPurchasedAt ?? now,
+        updatedAt: now,
+      });
+    }
+
+    if (existing) {
+      // Déjà enregistré → on s'assure simplement qu'il est marqué succeeded.
+      if (existing.status !== 'succeeded') {
+        await ctx.db.patch(existing._id, { status: 'succeeded', updatedAt: now });
+      }
+      return { ok: true as const, alreadyApplied: true };
+    }
+
+    await ctx.db.insert('payments', {
+      userId: args.requesterId,
+      eventId: args.eventId,
+      kind: 'post_event_upsell',
+      currency: args.currency,
+      amountMinor: args.amountMinor,
+      provider: args.provider,
+      providerSessionId: args.providerSessionId,
+      status: 'succeeded',
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    // Notification + reçu au propriétaire (best-effort, première application
+    // seulement). Mêmes canaux que `markSucceeded`.
+    const owner = await ctx.db.get(args.requesterId);
+    if (owner?.email) {
+      const amountFormatted = formatAmount(args.amountMinor, args.currency);
+      const eventTitle = event.title;
+      await ctx.scheduler.runAfter(0, internal.emailActions.sendProNotification, {
+        to: owner.email,
+        recipientName: owner.fullName ?? owner.phone ?? '',
+        organizationName: eventTitle,
+        kind: 'payment-received' as const,
+        detailKey: 'paymentReceivedDetail',
+        detailVars: { eventTitle },
+        ctaLabelKey: 'paymentReceived',
+        ctaUrl: `${process.env.NEXT_PUBLIC_APP_URL ?? 'https://wedillybird.com'}/events/${args.eventId}`,
+        locale: owner.locale,
+      });
+
+      const invoiceNumber = `INV-${args.providerSessionId.slice(-8).toUpperCase()}`;
+      const ownerLocaleTag = ownerLocaleToIntlTag(owner.locale);
+      const periodLabel = new Date(now).toLocaleDateString(ownerLocaleTag, {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      });
+      const invoiceUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? 'https://wedillybird.com'}/events/${args.eventId}/invoice?session=${args.providerSessionId}`;
+      await ctx.scheduler.runAfter(0, internal.emailActions.sendStripeInvoice, {
+        to: owner.email,
+        recipientName: owner.fullName ?? owner.phone ?? '',
+        organizationName: eventTitle,
+        invoiceNumber,
+        amountFormatted,
+        periodLabel,
+        invoiceUrl,
+        locale: owner.locale,
+      });
+    }
+
+    return { ok: true as const, alreadyApplied: false };
+  },
+});
+
+/**
  * One-shot repair for events whose denormalised payment fields drifted
  * from their corresponding `payments` row (typically because an earlier
  * version of `markSucceeded` returned early on the idempotency guard
@@ -326,11 +448,13 @@ export const _repairOrphanedEventGalleries = internalMutation({
         .withIndex('by_event', (q) => q.eq('eventId', event._id))
         .collect();
       const succeeded = payments
-        .filter((p) => p.status === 'succeeded')
+        // Seuls les paiements de forfait portent un `plan` à réconcilier ;
+        // on ignore les upsells HD (`post_event_upsell`, sans `plan`).
+        .filter((p) => p.status === 'succeeded' && p.plan !== undefined)
         .sort((a, b) => b.updatedAt - a.updatedAt);
       const payment = succeeded[0];
 
-      if (!payment) {
+      if (!payment || !payment.plan) {
         skipped.push({ eventId: event._id, reason: 'NO_SUCCEEDED_PAYMENT' });
         continue;
       }

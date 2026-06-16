@@ -216,6 +216,7 @@ export const listAllPayments = query({
 
     return payments.map((p) => ({
       _id: p._id,
+      kind: p.kind,
       plan: p.plan,
       currency: p.currency,
       amountMinor: p.amountMinor,
@@ -674,5 +675,74 @@ export const deleteEvent = mutation({
       createdAt: Date.now(),
     });
     return { ok: true };
+  },
+});
+
+// ---------------------------------------------------------------------------
+// Livres photo (upsell HD post-event) — fabrication & expédition manuelles
+// par l'équipe ops. Cette vue liste les commandes et permet de faire évoluer
+// leur statut (en fabrication → expédié), ou de les annuler.
+// ---------------------------------------------------------------------------
+
+export const listPhotoBookOrders = query({
+  args: { adminId: v.id('users') },
+  handler: async (ctx, { adminId }) => {
+    await assertAdmin(ctx, adminId);
+    const orders = await ctx.db.query('photoBookOrders').order('desc').collect();
+    const eventIds = [...new Set(orders.map((o) => o.eventId))];
+    const userIds = [...new Set(orders.map((o) => o.userId))];
+    const [events, users] = await Promise.all([
+      Promise.all(eventIds.map((id) => ctx.db.get(id))),
+      Promise.all(userIds.map((id) => ctx.db.get(id))),
+    ]);
+    const eventMap = new Map(events.filter(Boolean).map((e) => [e!._id, e!]));
+    const userMap = new Map(users.filter(Boolean).map((u) => [u!._id, u!]));
+
+    return orders.map((o) => ({
+      _id: o._id,
+      eventId: o.eventId,
+      eventTitle: eventMap.get(o.eventId)?.title ?? null,
+      status: o.status,
+      recipientName: o.recipientName,
+      addressLine1: o.addressLine1,
+      addressLine2: o.addressLine2,
+      city: o.city,
+      postalCode: o.postalCode,
+      country: o.country,
+      notes: o.notes,
+      ownerName: userMap.get(o.userId)?.fullName ?? null,
+      ownerEmail: userMap.get(o.userId)?.email ?? null,
+      createdAt: o.createdAt,
+      updatedAt: o.updatedAt,
+    }));
+  },
+});
+
+export const updatePhotoBookStatus = mutation({
+  args: {
+    adminId: v.id('users'),
+    orderId: v.id('photoBookOrders'),
+    status: v.union(
+      v.literal('requested'),
+      v.literal('in_production'),
+      v.literal('shipped'),
+      v.literal('cancelled'),
+    ),
+  },
+  handler: async (ctx, { adminId, orderId, status }) => {
+    await assertAdmin(ctx, adminId);
+    const order = await ctx.db.get(orderId);
+    if (!order) throw new Error('ORDER_NOT_FOUND');
+
+    await ctx.db.patch(orderId, { status, updatedAt: Date.now() });
+    await ctx.db.insert('adminAuditLog', {
+      adminId,
+      action: 'update_photo_book_status',
+      targetType: 'photo_book',
+      targetId: orderId,
+      details: JSON.stringify({ from: order.status, to: status }),
+      createdAt: Date.now(),
+    });
+    return { ok: true as const, status };
   },
 });

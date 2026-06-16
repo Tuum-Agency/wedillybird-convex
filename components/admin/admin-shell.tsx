@@ -7,6 +7,7 @@ import {
   CalendarDays,
   CreditCard,
   FileText,
+  BookOpen,
   Building2,
   Ticket,
   Shield,
@@ -27,6 +28,7 @@ const NAV_ITEMS = [
   { key: 'events', href: '/admin/events', icon: CalendarDays, labelKey: 'nav.events' },
   { key: 'payments', href: '/admin/payments', icon: CreditCard, labelKey: 'nav.payments' },
   { key: 'invoices', href: '/admin/invoices', icon: FileText, labelKey: 'nav.invoices' },
+  { key: 'photo-books', href: '/admin/photo-books', icon: BookOpen, labelKey: 'nav.photoBooks' },
   {
     key: 'subscriptions',
     href: '/admin/subscriptions',

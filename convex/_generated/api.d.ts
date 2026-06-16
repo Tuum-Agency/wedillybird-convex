@@ -43,6 +43,7 @@ import type * as paygPurchases from "../paygPurchases.js";
 import type * as paymentLinks from "../paymentLinks.js";
 import type * as payments from "../payments.js";
 import type * as paymentsInvoice from "../paymentsInvoice.js";
+import type * as photoBooks from "../photoBooks.js";
 import type * as photos from "../photos.js";
 import type * as photosActions from "../photosActions.js";
 import type * as photosFaceSearch from "../photosFaceSearch.js";
@@ -102,6 +103,7 @@ declare const fullApi: ApiFromModules<{
   paymentLinks: typeof paymentLinks;
   payments: typeof payments;
   paymentsInvoice: typeof paymentsInvoice;
+  photoBooks: typeof photoBooks;
   photos: typeof photos;
   photosActions: typeof photosActions;
   photosFaceSearch: typeof photosFaceSearch;

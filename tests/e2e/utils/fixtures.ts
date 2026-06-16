@@ -209,3 +209,36 @@ export async function seedTierFixtures(): Promise<TierFixtures> {
   await convex().mutation(seedTestUsersRef, {});
   return convex().mutation(seedTierFixturesRef, {});
 }
+
+/* -------------------------------------------------------------------------- */
+/*  Helpers Convex pour la spec upsell HD post-event + livre photo            */
+/* -------------------------------------------------------------------------- */
+
+export interface UpsellFixtures {
+  ownerPhone: string;
+  /** Essentiel + upsell HD acheté + commande livre photo (carte « acheté »). */
+  purchasedEventId: string;
+  /** Premium sans upsell (carte propose l'achat +29 €). */
+  buyEventId: string;
+}
+
+const seedUpsellDemoRef = makeFunctionReference<'mutation', { suffix?: string }, UpsellFixtures>(
+  'seed:seedUpsellDemo',
+);
+
+const seedAdminUserRef = makeFunctionReference<
+  'mutation',
+  Record<string, never>,
+  { userId: string; created: boolean }
+>('seed:seedAdminUser');
+
+/**
+ * Seed (idempotent) des events de démo upsell HD, possédés par Fatima
+ * (+212661234567). Garantit d'abord la présence des users test ET de l'admin
+ * (+33600000001) — la spec teste aussi `/admin/photo-books`.
+ */
+export async function seedUpsellFixtures(suffix?: string): Promise<UpsellFixtures> {
+  await convex().mutation(seedTestUsersRef, {});
+  await convex().mutation(seedAdminUserRef, {});
+  return convex().mutation(seedUpsellDemoRef, suffix ? { suffix } : {});
+}

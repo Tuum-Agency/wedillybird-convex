@@ -22,6 +22,7 @@ import { AppShell } from '@/components/app/app-shell';
 import { BroadcastInvitationsCard } from '@/components/events/broadcast-invitations-card';
 import { LiveGuestStats } from '@/components/events/live-guest-stats';
 import { UpgradeCard } from '@/components/payments/upgrade-card';
+import { PostEventUpsellCard } from '@/components/payments/post-event-upsell-card';
 import { routePayment } from '@/lib/payments/country';
 import { togglePublishAction } from '@/app/[locale]/(app)/events/actions';
 import { cn } from '@/lib/cn';
@@ -90,6 +91,13 @@ export default async function EventDetailPage({
   });
 
   const user = await convex.query(convexApi.currentUser, { userId: session!.userId });
+  // Commande de livre photo : seulement pertinente une fois l'upsell HD acheté.
+  const photoBookOrder = event.hdUpsellPurchasedAt
+    ? await convex.query(convexApi.getPhotoBookOrder, {
+        eventId,
+        requesterId: session!.userId,
+      })
+    : null;
   const t = await getTranslations('EventDetail');
   const tDash = await getTranslations('Dashboard');
   const statusCfg = STATUS_CONFIG[event.status];
@@ -443,12 +451,21 @@ export default async function EventDetailPage({
   );
 
   const upgradeSection = (
-    <div id="upgrade" className="scroll-mt-24">
+    <div id="upgrade" className="flex scroll-mt-24 flex-col gap-4">
       <UpgradeCard
         eventId={eventId}
         currentTier={event.planTier}
         currency={routePayment(undefined).currency}
       />
+      {/* Upsell HD post-event : proposé uniquement sur un event déjà payé. */}
+      {event.planTier ? (
+        <PostEventUpsellCard
+          eventId={eventId}
+          currency={routePayment(undefined).currency}
+          purchased={event.hdUpsellPurchasedAt !== undefined}
+          photoBook={photoBookOrder ? { status: photoBookOrder.status } : null}
+        />
+      ) : null}
     </div>
   );
 

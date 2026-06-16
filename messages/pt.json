@@ -16,7 +16,8 @@
       "moderation": "Moderação",
       "newsletter": "Newsletter",
       "auditLog": "Registro de auditoria",
-      "promotions": "Promoções"
+      "promotions": "Promoções",
+      "photoBooks": "Livres photo"
     },
     "common": {
       "back": "Voltar",
@@ -2546,7 +2547,68 @@
       "stripe_driver_not_configured": "Stripe não configurado neste ambiente",
       "reconciliation": "O webhook do Stripe está atrasado. O pagamento foi recebido mas o upgrade vai aplicar-se daqui a alguns instantes. Atualiza a página.",
       "network": "Erro de rede, tenta de novo",
-      "unknown": "Ocorreu um erro. Tenta de novo."
+      "unknown": "Ocorreu um erro. Tenta de novo.",
+      "plan_required": "Activez d’abord un forfait pour votre événement",
+      "already_purchased": "Archive HD déjà débloquée pour cet événement"
+    },
+    "upsell": {
+      "eyebrow": "Après le mariage",
+      "title": "Conservez vos photos en HD pour toujours",
+      "subtitle": "Un paiement unique pour prolonger votre galerie et télécharger toutes vos photos en haute définition.",
+      "benefitRetention": "Galerie conservée 5 ans après le mariage",
+      "benefitHd": "Téléchargement HD de toutes les photos",
+      "cta": "Archiver pour toujours",
+      "redirecting": "Redirection…",
+      "purchased": "Archive HD débloquée — galerie conservée 5 ans.",
+      "successTitle": "Archive HD débloquée",
+      "successBody": "Vos photos sont conservées en haute définition. Votre galerie reste accessible 5 ans après le mariage.",
+      "processingTitle": "Paiement en cours de traitement",
+      "processingBody": "Nous finalisons votre achat. Rafraîchissez cette page dans quelques secondes pour voir votre archive HD débloquée.",
+      "reconciliation": "Le webhook Stripe est en retard. Le paiement a bien été reçu mais l’archive va se débloquer dans quelques instants. Rafraîchissez la page.",
+      "backToEvent": "Retour à l’événement",
+      "errors": {
+        "invalid_input": "Données invalides",
+        "invalid_plan_price": "Indisponible pour cette devise",
+        "forbidden": "Vous n’avez pas les droits sur cet événement",
+        "plan_required": "Activez d’abord un forfait pour votre événement",
+        "already_purchased": "Archive HD déjà débloquée pour cet événement",
+        "unsupported_stripe_currency": "Devise non supportée pour ce paiement",
+        "stripe_driver_not_configured": "Stripe non configuré sur cet environnement",
+        "network": "Erreur réseau, réessayez",
+        "unknown": "Une erreur est survenue. Réessayez."
+      },
+      "downloadHd": "Télécharger l’archive HD",
+      "photoBook": {
+        "cta": "Commander le livre photo",
+        "dialogTitle": "Votre livre photo HD",
+        "dialogSubtitle": "Indiquez l’adresse de livraison. Nous imprimons votre livre photo et vous l’expédions.",
+        "recipientName": "Nom du destinataire",
+        "addressLine1": "Adresse",
+        "addressLine2": "Complément d’adresse",
+        "postalCode": "Code postal",
+        "city": "Ville",
+        "country": "Pays",
+        "notes": "Note (optionnel)",
+        "submit": "Confirmer la commande",
+        "submitting": "Envoi…",
+        "cancel": "Annuler",
+        "statusLabel": {
+          "requested": "Livre photo : commande reçue",
+          "in_production": "Livre photo : en fabrication",
+          "shipped": "Livre photo : expédié",
+          "cancelled": "Livre photo : annulé"
+        },
+        "errors": {
+          "invalid_address": "Adresse incomplète — vérifiez les champs obligatoires.",
+          "upsell_required": "Achetez d’abord l’archive HD pour commander le livre photo.",
+          "already_ordered": "Une commande de livre photo est déjà en cours.",
+          "forbidden": "Vous n’avez pas les droits sur cet événement.",
+          "not_found": "Événement introuvable.",
+          "unauthorized": "Connectez-vous pour commander.",
+          "network": "Erreur réseau, réessayez.",
+          "unknown": "Une erreur est survenue. Réessayez."
+        }
+      }
     }
   },
   "Invoice": {
@@ -2601,7 +2663,8 @@
     "statusFailed": "Falhou",
     "statusCancelled": "Cancelado",
     "planEssential": "Essencial",
-    "planPremium": "Premium"
+    "planPremium": "Premium",
+    "lineUpsellHd": "Archive HD (galerie 5 ans)"
   },
   "EventCreate": {
     "title": "Cria o teu casamento",
@@ -2841,6 +2904,10 @@
       "paygCreditActivated": {
         "subject": "Crédito Pay-as-you-go ativado — {organizationName}",
         "ctaLabel": "Ver o meu saldo"
+      },
+      "photoBookOrdered": {
+        "subject": "Commande de livre photo — {organizationName}",
+        "ctaLabel": "Voir l’événement"
       }
     },
     "stripeInvoice": {

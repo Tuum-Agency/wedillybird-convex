@@ -515,3 +515,18 @@ export async function adminSendNewsletterAction(
     return { ok: false, error: msg(e) };
   }
 }
+
+export async function adminUpdatePhotoBookStatusAction(
+  orderId: string,
+  status: 'requested' | 'in_production' | 'shipped' | 'cancelled',
+): Promise<ActionResult> {
+  try {
+    const adminId = await requireAdmin();
+    const convex = getConvexServerClient();
+    await convex.mutation(convexApi.adminUpdatePhotoBookStatus, { adminId, orderId, status });
+    revalidatePath('/admin/photo-books');
+    return { ok: true };
+  } catch (e: unknown) {
+    return { ok: false, error: msg(e) };
+  }
+}

@@ -6,7 +6,8 @@ import { Badge } from '@/components/ui/badge';
 
 type Payment = {
   _id: string;
-  plan: 'essential' | 'premium';
+  kind?: 'plan' | 'post_event_upsell';
+  plan?: 'essential' | 'premium';
   currency: 'EUR' | 'USD' | 'XOF' | 'MAD' | 'TND';
   amountMinor: number;
   status: 'pending' | 'succeeded' | 'failed' | 'cancelled' | 'refunded' | 'partially_refunded';
@@ -98,7 +99,9 @@ export function AdminInvoicesTable({ payments }: { payments: Payment[] }) {
               >
                 <td className="px-4 py-3 font-medium">{p.userName ?? p.userEmail ?? '—'}</td>
                 <td className="px-4 py-3">
-                  <Badge variant={p.plan === 'premium' ? 'primary' : 'neutral'}>{p.plan}</Badge>
+                  <Badge variant={p.plan === 'premium' ? 'primary' : 'neutral'}>
+                    {p.plan ?? (p.kind === 'post_event_upsell' ? 'Upsell HD' : '—')}
+                  </Badge>
                 </td>
                 <td className="px-4 py-3 font-mono">
                   {formatAmount(p.amountMinor, p.currency, locale)}

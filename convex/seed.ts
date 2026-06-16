@@ -1631,3 +1631,98 @@ export const _resetTestData = internalMutation({
     return { deleted };
   },
 });
+
+/**
+ * Seed (idempotent) pour les tests e2e de l'upsell HD post-event + livre photo.
+ * Crée deux events possédés par Fatima (+212661234567), un user couple sans
+ * autre event seedé :
+ *   - `upsell-purchased-demo` : Essentiel AVEC upsell HD acheté
+ *     (`hdUpsellPurchasedAt`, galerie +5 ans) + une commande de livre photo
+ *     `requested` → la carte upsell s'affiche en état « acheté » (download HD +
+ *     statut livre photo) et l'admin /admin/photo-books a de la donnée.
+ *   - `upsell-buy-demo` : Premium SANS upsell → la carte propose l'achat (+29 €).
+ * Isolé des fixtures de gating (n'altère pas `feature-gating.spec.ts`).
+ */
+export const seedUpsellDemo = mutation({
+  // `suffix` rend les slugs uniques par worker Playwright (ex. `-chromium`) :
+  // les projets/workers tournent en parallèle et re-seedent chacun ; sans
+  // suffixe ils wiperaient les mêmes slugs et supprimeraient les events
+  // utilisés par un autre worker (→ 404 intermittents).
+  args: { suffix: v.optional(v.string()) },
+  handler: async (ctx, { suffix }) => {
+    const sfx = (suffix ?? '').replace(/[^a-z0-9-]/gi, '').slice(0, 40);
+    const now = Date.now();
+    const eventDate = now + 30 * 24 * 60 * 60 * 1000; // J+30
+    const theme = { primaryColor: '#C2613E', accentColor: '#FAF3E8', fontFamily: 'Migra' };
+    const purchasedSlug = `upsell-purchased-demo${sfx}`;
+    const buySlug = `upsell-buy-demo${sfx}`;
+
+    const fatima = await ctx.db
+      .query('users')
+      .withIndex('by_phone', (q) => q.eq('phone', '+212661234567'))
+      .first();
+    if (!fatima) throw new Error('RUN_seedTestUsers_FIRST');
+
+    async function wipeEventBySlug(slug: string) {
+      const ev = await ctx.db
+        .query('events')
+        .withIndex('by_slug', (q) => q.eq('slug', slug))
+        .first();
+      if (!ev) return;
+      const orders = await ctx.db
+        .query('photoBookOrders')
+        .withIndex('by_event', (q) => q.eq('eventId', ev._id))
+        .collect();
+      for (const o of orders) await ctx.db.delete(o._id);
+      await ctx.db.delete(ev._id);
+    }
+
+    await wipeEventBySlug(purchasedSlug);
+    await wipeEventBySlug(buySlug);
+
+    const purchasedEventId = await ctx.db.insert('events', {
+      ownerId: fatima._id,
+      slug: purchasedSlug,
+      title: 'Archive HD Demo',
+      coupleNames: { partnerA: 'Inès', partnerB: 'Yanis' },
+      eventDate,
+      timezone: 'Europe/Paris',
+      theme,
+      status: 'active',
+      planTier: 'essential',
+      paidAt: now - 24 * 60 * 60 * 1000,
+      maxGuests: 100,
+      galleryExpiresAt: eventDate + 5 * 365 * 24 * 60 * 60 * 1000,
+      hdUpsellPurchasedAt: now - 60 * 60 * 1000,
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    // Pas de commande de livre photo seedée : la spec e2e la crée via l'UI
+    // (formulaire du Dialog) pour tester le flux complet jusqu'à l'admin. Le
+    // wipe ci-dessus garantit l'idempotence entre deux exécutions.
+
+    const buyEventId = await ctx.db.insert('events', {
+      ownerId: fatima._id,
+      slug: buySlug,
+      title: 'Premium sans upsell',
+      coupleNames: { partnerA: 'Sofia', partnerB: 'Liam' },
+      eventDate,
+      timezone: 'Europe/Paris',
+      theme,
+      status: 'active',
+      planTier: 'premium',
+      paidAt: now - 24 * 60 * 60 * 1000,
+      maxGuests: 250,
+      galleryExpiresAt: eventDate + 180 * 24 * 60 * 60 * 1000,
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    return {
+      ownerPhone: fatima.phone,
+      purchasedEventId,
+      buyEventId,
+    };
+  },
+});

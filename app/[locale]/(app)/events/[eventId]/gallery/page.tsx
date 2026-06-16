@@ -7,6 +7,7 @@ import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
 import { AppShell } from '@/components/app/app-shell';
 import { OwnerGallery } from '@/components/gallery/owner-gallery';
 import { buttonVariants } from '@/components/ui/button';
+import { canDownloadGalleryZip } from '@/lib/gallery/zip-access';
 import { cn } from '@/lib/cn';
 
 export default async function GalleryPage({
@@ -106,7 +107,7 @@ export default async function GalleryPage({
           <OwnerGallery
             eventId={eventId}
             initialPhotos={photos}
-            canDownloadZip={event.planTier === 'premium' || Boolean(event.organizationId)}
+            canDownloadZip={canDownloadGalleryZip(event)}
           />
         )}
       </div>

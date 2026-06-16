@@ -25,7 +25,8 @@ import { adminRefundPaymentAction } from '@/app/[locale]/(app)/admin/actions';
 
 type Payment = {
   _id: string;
-  plan: 'essential' | 'premium';
+  kind?: 'plan' | 'post_event_upsell';
+  plan?: 'essential' | 'premium';
   currency: 'EUR' | 'USD' | 'XOF' | 'MAD' | 'TND';
   amountMinor: number;
   provider: 'stripe' | 'mock';
@@ -156,7 +157,11 @@ function PaymentRow({ payment: p, locale }: { payment: Payment; locale: string }
     <tr className="border-b border-[color:var(--color-border)] last:border-0 hover:bg-[color:var(--color-surface-elevated)]/50">
       <td className="px-4 py-3 font-medium">{p.userName ?? p.userEmail ?? '—'}</td>
       <td className="px-4 py-3">
-        <Badge variant={p.plan === 'premium' ? 'primary' : 'neutral'}>{p.plan}</Badge>
+        {p.plan ? (
+          <Badge variant={p.plan === 'premium' ? 'primary' : 'neutral'}>{p.plan}</Badge>
+        ) : (
+          <Badge variant="neutral">{p.kind === 'post_event_upsell' ? 'Upsell HD' : '—'}</Badge>
+        )}
       </td>
       <td className="px-4 py-3 font-mono">
         {formatAmount(p.amountMinor, p.currency, locale)}
@@ -252,7 +257,7 @@ function RefundDialog({ payment: p, remaining }: { payment: Payment; remaining: 
           <DialogDescription>
             {t.rich('payments.refund.description', {
               client: p.userName ?? p.userEmail ?? t('payments.clientFallback'),
-              plan: p.plan,
+              plan: p.plan ?? 'Upsell HD',
               amount: formatAmount(remaining, p.currency, locale),
               mono: (chunks) => <span className="font-mono">{chunks}</span>,
             })}{' '}

@@ -294,6 +294,7 @@ export const convexApi = {
       pendingPlanTier?: 'essential' | 'premium';
       maxGuests: number;
       galleryExpiresAt?: number;
+      hdUpsellPurchasedAt?: number;
       messagingConfig?: {
         templateStyle: 'classic' | 'warm' | 'african' | 'minimal' | 'festive';
         personalMessage?: string;
@@ -615,7 +616,8 @@ export const convexApi = {
       _id: string;
       userId: string;
       eventId: string;
-      plan: 'essential' | 'premium';
+      kind?: 'plan' | 'post_event_upsell';
+      plan?: 'essential' | 'premium';
       currency: 'EUR' | 'USD' | 'XOF' | 'MAD' | 'TND';
       amountMinor: number;
       provider: 'stripe' | 'mock';
@@ -624,6 +626,46 @@ export const convexApi = {
       status: 'pending' | 'succeeded' | 'failed' | 'cancelled';
     } | null
   >('payments:findBySession'),
+  requestPhotoBook: makeFunctionReference<
+    'mutation',
+    {
+      eventId: string;
+      requesterId: string;
+      recipientName: string;
+      addressLine1: string;
+      addressLine2?: string;
+      city: string;
+      postalCode: string;
+      country: string;
+      notes?: string;
+    },
+    { id: string; status: 'requested' }
+  >('photoBooks:request'),
+  getPhotoBookOrder: makeFunctionReference<
+    'query',
+    { eventId: string; requesterId: string },
+    {
+      _id: string;
+      status: 'requested' | 'in_production' | 'shipped' | 'cancelled';
+      recipientName: string;
+      city: string;
+      country: string;
+      createdAt: number;
+    } | null
+  >('photoBooks:getForEvent'),
+  applyPostEventUpsell: makeFunctionReference<
+    'mutation',
+    {
+      webhookSecret: string;
+      eventId: string;
+      requesterId: string;
+      provider: 'stripe' | 'mock';
+      providerSessionId: string;
+      amountMinor: number;
+      currency: 'EUR' | 'USD' | 'XOF' | 'MAD' | 'TND';
+    },
+    { ok: true; alreadyApplied: boolean }
+  >('payments:applyPostEventUpsell'),
   markPaymentSucceeded: makeFunctionReference<
     'mutation',
     {
@@ -649,7 +691,8 @@ export const convexApi = {
     { eventId: string; requesterId: string },
     Array<{
       _id: string;
-      plan: 'essential' | 'premium';
+      kind?: 'plan' | 'post_event_upsell';
+      plan?: 'essential' | 'premium';
       currency: 'EUR' | 'USD' | 'XOF' | 'MAD' | 'TND';
       amountMinor: number;
       provider: 'stripe' | 'mock';
@@ -1812,7 +1855,8 @@ export const convexApi = {
     { adminId: string },
     Array<{
       _id: string;
-      plan: 'essential' | 'premium';
+      kind?: 'plan' | 'post_event_upsell';
+      plan?: 'essential' | 'premium';
       currency: 'EUR' | 'USD' | 'XOF' | 'MAD' | 'TND';
       amountMinor: number;
       provider: 'stripe' | 'mock';
@@ -1827,6 +1871,36 @@ export const convexApi = {
       updatedAt: number;
     }>
   >('admin:listAllPayments'),
+  adminListPhotoBookOrders: makeFunctionReference<
+    'query',
+    { adminId: string },
+    Array<{
+      _id: string;
+      eventId: string;
+      eventTitle: string | null;
+      status: 'requested' | 'in_production' | 'shipped' | 'cancelled';
+      recipientName: string;
+      addressLine1: string;
+      addressLine2?: string;
+      city: string;
+      postalCode: string;
+      country: string;
+      notes?: string;
+      ownerName: string | null;
+      ownerEmail: string | null;
+      createdAt: number;
+      updatedAt: number;
+    }>
+  >('admin:listPhotoBookOrders'),
+  adminUpdatePhotoBookStatus: makeFunctionReference<
+    'mutation',
+    {
+      adminId: string;
+      orderId: string;
+      status: 'requested' | 'in_production' | 'shipped' | 'cancelled';
+    },
+    { ok: true; status: 'requested' | 'in_production' | 'shipped' | 'cancelled' }
+  >('admin:updatePhotoBookStatus'),
   adminListAllOrganizations: makeFunctionReference<
     'query',
     { adminId: string },

@@ -245,6 +245,14 @@ export default defineSchema({
     // pushes this to J+5y.
     galleryExpiresAt: v.optional(v.number()),
     /**
+     * Horodatage de l'achat de l'upsell HD post-event (+29 €). Présent ⇒ la
+     * galerie a été prolongée à 5 ans contre paiement et l'archive HD est
+     * débloquée. Absent ⇒ upsell jamais acheté (la carte d'upsell reste
+     * proposée). Posé par `payments:applyPostEventUpsell` après confirmation
+     * Stripe.
+     */
+    hdUpsellPurchasedAt: v.optional(v.number()),
+    /**
      * Configuration du message d'invitation WhatsApp envoyé aux invités.
      * Le couple choisit un style préfabriqué (Wedillybird-prefab MVP — cf.
      * `lib/whatsapp/templates.ts`) et personnalise via un mot perso libre
@@ -402,7 +410,17 @@ export default defineSchema({
   payments: defineTable({
     userId: v.id('users'),
     eventId: v.id('events'),
-    plan: v.union(v.literal('essential'), v.literal('premium')),
+    /**
+     * Nature du paiement one-shot particulier :
+     *  - `plan` (défaut, absent pour rétro-compat) : achat d'un forfait
+     *    Essentiel/Premium → `plan` renseigné.
+     *  - `post_event_upsell` : achat de l'upsell HD post-event (+29 €) →
+     *    `plan` absent (ce n'est pas un forfait), la rétention galerie passe à
+     *    5 ans (cf. `applyPostEventUpsell`).
+     */
+    kind: v.optional(v.union(v.literal('plan'), v.literal('post_event_upsell'))),
+    // Forfait acheté. Absent pour un paiement `post_event_upsell`.
+    plan: v.optional(v.union(v.literal('essential'), v.literal('premium'))),
     currency: v.union(
       v.literal('EUR'),
       v.literal('USD'),
@@ -437,6 +455,36 @@ export default defineSchema({
     .index('by_user', ['userId'])
     .index('by_event', ['eventId'])
     .index('by_session', ['provider', 'providerSessionId']),
+
+  /**
+   * Commandes de livre photo HD imprimé — débloquées par l'upsell HD post-event
+   * (`events.hdUpsellPurchasedAt`). La fabrication/expédition est assurée
+   * manuellement par l'équipe ops (pas d'intégration imprimeur automatisée) :
+   * la commande est enregistrée ici, ops est notifiée par email et fait évoluer
+   * le `status` à la main.
+   */
+  photoBookOrders: defineTable({
+    eventId: v.id('events'),
+    userId: v.id('users'),
+    status: v.union(
+      v.literal('requested'),
+      v.literal('in_production'),
+      v.literal('shipped'),
+      v.literal('cancelled'),
+    ),
+    recipientName: v.string(),
+    addressLine1: v.string(),
+    addressLine2: v.optional(v.string()),
+    city: v.string(),
+    postalCode: v.string(),
+    country: v.string(),
+    /** Note libre du couple (ex. consignes de livraison). */
+    notes: v.optional(v.string()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index('by_event', ['eventId'])
+    .index('by_user', ['userId']),
 
   photos: defineTable({
     eventId: v.id('events'),
@@ -722,6 +770,7 @@ export default defineSchema({
       v.literal('coupon'),
       v.literal('discount'),
       v.literal('photo'),
+      v.literal('photo_book'),
       v.literal('template'),
       v.literal('newsletter'),
     ),

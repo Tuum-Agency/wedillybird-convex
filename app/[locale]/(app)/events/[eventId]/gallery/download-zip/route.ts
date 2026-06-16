@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth/session';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
 import { createZipStream, safeZipEntryName, type ZipStreamEntry } from '@/lib/photos/zip-stream';
+import { canDownloadGalleryZip } from '@/lib/gallery/zip-access';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -57,13 +58,11 @@ export async function GET(
   }
 
   // Gate par formule : le téléchargement ZIP de la galerie est une feature
-  // Premium (cf. PREMIUM_EXTRA_FEATURES dans lib/payments/plans.ts). Un event
-  // Essentiel (planTier 'essential', hors organisation Pro) n'y a pas droit —
-  // cohérent avec eventHasFeature côté Convex. Sans ce check, un Essentiel
-  // pourrait télécharger l'archive via l'URL directe alors que l'UI la vend
-  // comme Premium.
-  const hasZipFeature = event.planTier === 'premium' || Boolean(event.organizationId);
-  if (!hasZipFeature) {
+  // Premium (cf. PREMIUM_EXTRA_FEATURES dans lib/payments/plans.ts), aussi
+  // débloquée par l'upsell HD post-event (+29 €) pour un Essentiel. Sans ce
+  // check, l'archive serait accessible via l'URL directe alors que l'UI la
+  // réserve à ces formules. Cohérent avec `eventHasFeature` côté Convex.
+  if (!canDownloadGalleryZip(event)) {
     return NextResponse.json({ error: 'FEATURE_NOT_IN_PLAN' }, { status: 403 });
   }
 
