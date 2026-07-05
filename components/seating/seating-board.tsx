@@ -29,6 +29,14 @@ import {
 } from 'lucide-react';
 import { Link } from '@/i18n/navigation';
 import { Button, buttonVariants } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { cn } from '@/lib/cn';
 import {
   assignSeatAction,
@@ -47,6 +55,7 @@ import {
   type SeatGuest,
   type SeatTable,
 } from '@/lib/seating/board';
+import type { TableShape } from '@/lib/pro/seating';
 import { SeatingCanvas, TABLE_DRAG_PREFIX } from '@/components/seating/seating-canvas';
 
 const DEFAULT_CAPACITY = 8;
@@ -79,6 +88,7 @@ export function SeatingBoard({ eventId, initial }: Props) {
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [view, setView] = useState<'list' | 'plan'>('list');
+  const [deleteTarget, setDeleteTarget] = useState<SeatTable | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
@@ -168,7 +178,7 @@ export function SeatingBoard({ eventId, initial }: Props) {
     }
   }
 
-  function handleToggleShape(tableId: string, next: 'round' | 'rect') {
+  function handleToggleShape(tableId: string, next: TableShape) {
     setTables((cur) => cur.map((tb) => (tb._id === tableId ? { ...tb, shape: next } : tb)));
     void updateTableAction(tableId, { shape: next }).then((res) => {
       if (!res.ok) setError(t('error'));
@@ -215,20 +225,20 @@ export function SeatingBoard({ eventId, initial }: Props) {
     }
   }
 
-  async function handleDeleteTable(tableId: string) {
+  function handleDeleteTable(tableId: string) {
     const table = tables.find((tb) => tb._id === tableId);
+    if (table) setDeleteTarget(table);
+  }
+
+  async function confirmDeleteTable() {
+    const table = deleteTarget;
+    setDeleteTarget(null);
     if (!table) return;
-    if (
-      typeof window !== 'undefined' &&
-      !window.confirm(t('deleteConfirm', { name: table.name }))
-    ) {
-      return;
-    }
     const prev = { tables, unassigned };
-    setTables((cur) => cur.filter((tb) => tb._id !== tableId));
+    setTables((cur) => cur.filter((tb) => tb._id !== table._id));
     setUnassigned((cur) => [...cur, ...table.assigned]);
     setError('');
-    const res = await deleteTableAction(tableId);
+    const res = await deleteTableAction(table._id);
     if (!res.ok) {
       setTables(prev.tables);
       setUnassigned(prev.unassigned);
@@ -247,13 +257,22 @@ export function SeatingBoard({ eventId, initial }: Props) {
     });
   }
 
+  function handleRename(tableId: string, name: string) {
+    const clean = name.trim();
+    if (!clean) return;
+    setTables((cur) => cur.map((tb) => (tb._id === tableId ? { ...tb, name: clean } : tb)));
+    void updateTableAction(tableId, { name: clean }).then((res) => {
+      if (!res.ok) setError(t('error'));
+    });
+  }
+
   const hasAttending = totalSeats > 0;
 
   return (
     <DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd}>
       <div className="flex flex-col gap-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <p className="text-sm text-[color:var(--color-ink-500)]">
+          <p className="text-sm text-[color:var(--color-muted-foreground)]">
             {t('stats', {
               seated: seatedSeats,
               total: totalSeats,
@@ -272,8 +291,8 @@ export function SeatingBoard({ eventId, initial }: Props) {
                 data-testid="view-list"
                 className={`focus-ring inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm transition-colors ${
                   view === 'list'
-                    ? 'bg-[color:var(--color-ink-900)] text-white'
-                    : 'text-[color:var(--color-ink-500)]'
+                    ? 'bg-[color:var(--color-primary)] text-[color:var(--color-primary-foreground)]'
+                    : 'text-[color:var(--color-muted-foreground)]'
                 }`}
               >
                 <LayoutGrid className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />
@@ -286,8 +305,8 @@ export function SeatingBoard({ eventId, initial }: Props) {
                 data-testid="view-plan"
                 className={`focus-ring inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm transition-colors ${
                   view === 'plan'
-                    ? 'bg-[color:var(--color-ink-900)] text-white'
-                    : 'text-[color:var(--color-ink-500)]'
+                    ? 'bg-[color:var(--color-primary)] text-[color:var(--color-primary-foreground)]'
+                    : 'text-[color:var(--color-muted-foreground)]'
                 }`}
               >
                 <MapIcon className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />
@@ -340,7 +359,7 @@ export function SeatingBoard({ eventId, initial }: Props) {
         ) : null}
 
         {!hasAttending ? (
-          <p className="rounded-2xl border border-dashed border-[color:var(--color-border)] px-4 py-10 text-center text-sm text-[color:var(--color-ink-500)]">
+          <p className="rounded-2xl border border-dashed border-[color:var(--color-border)] px-4 py-10 text-center text-sm text-[color:var(--color-muted-foreground)]">
             {t('noAttending')}
           </p>
         ) : (
@@ -355,7 +374,7 @@ export function SeatingBoard({ eventId, initial }: Props) {
             />
 
             {tables.length === 0 ? (
-              <p className="rounded-2xl border border-dashed border-[color:var(--color-border)] px-4 py-10 text-center text-sm text-[color:var(--color-ink-500)]">
+              <p className="rounded-2xl border border-dashed border-[color:var(--color-border)] px-4 py-10 text-center text-sm text-[color:var(--color-muted-foreground)]">
                 {t('noTables')}
               </p>
             ) : view === 'plan' ? (
@@ -364,11 +383,15 @@ export function SeatingBoard({ eventId, initial }: Props) {
                 onUnassignGuest={handleUnassignGuest}
                 onToggleShape={handleToggleShape}
                 onDelete={handleDeleteTable}
+                onRename={handleRename}
                 labels={{
                   shapeToggle: t('shapeToggle'),
+                  move: t('moveTable'),
                   del: t('deleteTable'),
                   unassign: t('clickToUnassign'),
                   empty: t('tableEmpty'),
+                  nameLabel: t('tableNameLabel'),
+                  renameHint: t('renameHint'),
                 }}
               />
             ) : (
@@ -380,6 +403,7 @@ export function SeatingBoard({ eventId, initial }: Props) {
                     activeId={activeId}
                     onDelete={() => handleDeleteTable(table._id)}
                     onCapacityChange={(raw) => handleCapacityChange(table._id, raw)}
+                    onRename={(name) => handleRename(table._id, name)}
                     labels={{
                       occupancy: t('occupancy', {
                         occupied: table.occupancy,
@@ -390,6 +414,7 @@ export function SeatingBoard({ eventId, initial }: Props) {
                       capacity: t('capacityLabel'),
                       empty: t('tableEmpty'),
                       seat: t('seatLabel'),
+                      nameLabel: t('tableNameLabel'),
                     }}
                   />
                 ))}
@@ -402,6 +427,36 @@ export function SeatingBoard({ eventId, initial }: Props) {
       <DragOverlay>
         {activeGuest ? <GuestChip guest={activeGuest} overlay seatLabel={t('seatLabel')} /> : null}
       </DragOverlay>
+
+      <Dialog
+        open={deleteTarget !== null}
+        onOpenChange={(open) => {
+          if (!open) setDeleteTarget(null);
+        }}
+      >
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t('deleteTable')}</DialogTitle>
+            <DialogDescription>
+              {deleteTarget ? t('deleteConfirm', { name: deleteTarget.name }) : ''}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setDeleteTarget(null)}>
+              {t('cancel')}
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={confirmDeleteTable}
+              data-testid="confirm-delete-table"
+            >
+              <Trash2 className="h-4 w-4" strokeWidth={2} aria-hidden />
+              {t('deleteTable')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </DndContext>
   );
 }
@@ -433,14 +488,14 @@ function UnassignedColumn({
       }`}
     >
       <div className="flex flex-col gap-0.5">
-        <h2 className="text-sm font-semibold text-[color:var(--color-ink-900)]">
+        <h2 className="text-sm font-semibold text-[color:var(--color-foreground)]">
           {label} · {guests.length}
         </h2>
-        <p className="text-xs text-[color:var(--color-ink-500)]">{hint}</p>
+        <p className="text-xs text-[color:var(--color-muted-foreground)]">{hint}</p>
       </div>
       <div className="flex flex-col gap-2">
         {guests.length === 0 ? (
-          <p className="rounded-lg border border-dashed border-[color:var(--color-border)] px-3 py-6 text-center text-xs text-[color:var(--color-ink-500)]">
+          <p className="rounded-lg border border-dashed border-[color:var(--color-border)] px-3 py-6 text-center text-xs text-[color:var(--color-muted-foreground)]">
             {emptyLabel}
           </p>
         ) : (
@@ -458,12 +513,14 @@ function TableCard({
   activeId,
   onDelete,
   onCapacityChange,
+  onRename,
   labels,
 }: {
   table: SeatTable;
   activeId: string | null;
   onDelete: () => void;
   onCapacityChange: (raw: string) => void;
+  onRename: (name: string) => void;
   labels: {
     occupancy: string;
     over: string;
@@ -471,6 +528,7 @@ function TableCard({
     capacity: string;
     empty: string;
     seat: string;
+    nameLabel: string;
   };
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: table._id });
@@ -489,12 +547,30 @@ function TableCard({
     >
       <div className="flex items-start justify-between gap-2">
         <div className="flex flex-col gap-0.5">
-          <h3 className="text-sm font-semibold text-[color:var(--color-ink-900)]">{table.name}</h3>
+          <input
+            defaultValue={table.name}
+            key={table.name}
+            aria-label={labels.nameLabel}
+            data-testid="table-name-input"
+            onBlur={(e) => {
+              const v = e.target.value.trim();
+              if (v && v !== table.name) onRename(v);
+              else e.target.value = table.name;
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') e.currentTarget.blur();
+              if (e.key === 'Escape') {
+                e.currentTarget.value = table.name;
+                e.currentTarget.blur();
+              }
+            }}
+            className="-mx-1.5 w-full rounded-md border border-transparent bg-transparent px-1.5 py-0.5 text-sm font-semibold text-[color:var(--color-foreground)] transition-colors outline-none hover:border-[color:var(--color-border)] focus:border-[color:var(--color-primary)] focus:bg-[color:var(--color-surface-elevated)]"
+          />
           <span
             className={`inline-flex items-center gap-1 text-xs ${
               table.overCapacity
                 ? 'text-[color:var(--color-danger)]'
-                : 'text-[color:var(--color-ink-500)]'
+                : 'text-[color:var(--color-muted-foreground)]'
             }`}
             data-testid="table-occupancy"
           >
@@ -511,7 +587,7 @@ function TableCard({
           </span>
         </div>
         <div className="flex items-center gap-1.5">
-          <label className="flex items-center gap-1 text-xs text-[color:var(--color-ink-500)]">
+          <label className="flex items-center gap-1 text-xs text-[color:var(--color-muted-foreground)]">
             <span className="sr-only">{labels.capacity}</span>
             <input
               type="number"
@@ -529,7 +605,7 @@ function TableCard({
             onClick={onDelete}
             aria-label={labels.del}
             data-testid="delete-table"
-            className="focus-ring flex h-7 w-7 items-center justify-center rounded-md text-[color:var(--color-ink-500)] transition-colors hover:bg-[color:var(--color-danger)]/10 hover:text-[color:var(--color-danger)]"
+            className="focus-ring flex h-7 w-7 items-center justify-center rounded-md text-[color:var(--color-muted-foreground)] transition-colors hover:bg-[color:var(--color-danger)]/10 hover:text-[color:var(--color-danger)]"
           >
             <Trash2 className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden />
           </button>
@@ -537,7 +613,7 @@ function TableCard({
       </div>
       <div className="flex min-h-[3rem] flex-col gap-2">
         {table.assigned.length === 0 ? (
-          <p className="rounded-lg border border-dashed border-[color:var(--color-border)] px-3 py-4 text-center text-xs text-[color:var(--color-ink-500)]">
+          <p className="rounded-lg border border-dashed border-[color:var(--color-border)] px-3 py-4 text-center text-xs text-[color:var(--color-muted-foreground)]">
             {labels.empty}
           </p>
         ) : (
@@ -575,25 +651,25 @@ function GuestChip({
       data-testid="guest-chip"
       data-guest-id={guest._id}
       data-member-index={guest.memberIndex}
-      className={`flex cursor-grab touch-none items-center gap-2 rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-ivory-100)] px-2.5 py-2 text-sm active:cursor-grabbing ${
+      className={`flex cursor-grab touch-none items-center gap-2 rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-surface-elevated)] px-2.5 py-2 text-sm active:cursor-grabbing ${
         dimmed || isDragging ? 'opacity-40' : ''
       } ${overlay ? 'shadow-[var(--shadow-popover)]' : ''}`}
     >
       <GripVertical
-        className="h-3.5 w-3.5 shrink-0 text-[color:var(--color-ink-500)]"
+        className="h-3.5 w-3.5 shrink-0 text-[color:var(--color-muted-foreground)]"
         strokeWidth={2}
         aria-hidden
       />
       <span className="flex min-w-0 flex-1 flex-col">
-        <span className="truncate text-[color:var(--color-ink-900)]">{guest.fullName}</span>
+        <span className="truncate text-[color:var(--color-foreground)]">{guest.fullName}</span>
         {guest.hostName ? (
-          <span className="truncate text-[10px] text-[color:var(--color-ink-500)]">
+          <span className="truncate text-[10px] text-[color:var(--color-muted-foreground)]">
             {t('guestOf', { host: guest.hostName })}
           </span>
         ) : null}
       </span>
       {plusOnes > 0 ? (
-        <span className="shrink-0 rounded-full bg-[color:var(--color-surface)] px-1.5 py-0.5 text-[10px] font-medium text-[color:var(--color-ink-500)]">
+        <span className="shrink-0 rounded-full bg-[color:var(--color-surface)] px-1.5 py-0.5 text-[10px] font-medium text-[color:var(--color-muted-foreground)]">
           {seatLabel} {guest.seats}
         </span>
       ) : null}

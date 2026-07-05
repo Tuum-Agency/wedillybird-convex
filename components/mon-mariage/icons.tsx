@@ -469,6 +469,37 @@ export const ICONS: Record<string, IconNode> = {
   ],
   Circle: [['circle', { cx: 12, cy: 12, r: 10 }]],
   RectangleH: [['rect', { width: 20, height: 12, x: 2, y: 6, rx: 2 }]],
+  Square: [['rect', { width: 18, height: 18, x: 3, y: 3, rx: 2 }]],
+  Wine: [
+    ['path', { d: 'M8 22h8' }],
+    ['path', { d: 'M7 10h10' }],
+    ['path', { d: 'M12 15v7' }],
+    ['path', { d: 'M12 15a5 5 0 0 0 5-5c0-2-.5-4-2-8H9c-1.5 4-2 6-2 8a5 5 0 0 0 5 5Z' }],
+  ],
+  DoorOpen: [
+    ['path', { d: 'M13 4h3a2 2 0 0 1 2 2v14' }],
+    ['path', { d: 'M2 20h3' }],
+    ['path', { d: 'M13 20h9' }],
+    ['path', { d: 'M10 12v.01' }],
+    [
+      'path',
+      {
+        d: 'M13 4.562v16.157a1 1 0 0 1-1.242.97L5 20V5.562a2 2 0 0 1 1.515-1.94l4-1A2 2 0 0 1 13 4.562Z',
+      },
+    ],
+  ],
+  Move: [
+    ['path', { d: 'M12 2v20' }],
+    ['path', { d: 'M2 12h20' }],
+    ['path', { d: 'm15 5-3-3-3 3' }],
+    ['path', { d: 'm15 19-3 3-3-3' }],
+    ['path', { d: 'm19 9 3 3-3 3' }],
+    ['path', { d: 'm5 9-3 3 3 3' }],
+  ],
+  RotateCw: [
+    ['path', { d: 'M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8' }],
+    ['path', { d: 'M21 3v5h-5' }],
+  ],
   Crown: [
     [
       'path',

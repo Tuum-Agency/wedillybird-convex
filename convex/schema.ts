@@ -356,7 +356,9 @@ export default defineSchema({
     name: v.string(),
     capacity: v.number(),
     // Forme du nœud dans le plan visuel spatial (v2). Défaut traité comme 'round'.
-    shape: v.optional(v.union(v.literal('round'), v.literal('rect'))),
+    shape: v.optional(
+      v.union(v.literal('round'), v.literal('oval'), v.literal('rect'), v.literal('square')),
+    ),
     // Position (px) du nœud sur le canvas du plan visuel (v2). undefined =
     // pas encore positionné → l'UI applique une grille par défaut.
     posX: v.optional(v.number()),

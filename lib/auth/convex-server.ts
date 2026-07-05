@@ -136,7 +136,7 @@ export const convexApi = {
       requesterId: string;
       name?: string;
       capacity?: number;
-      shape?: 'round' | 'rect';
+      shape?: 'round' | 'oval' | 'rect' | 'square';
       posX?: number;
       posY?: number;
     },
@@ -181,7 +181,7 @@ export const convexApi = {
         _id: string;
         name: string;
         capacity: number;
-        shape?: 'round' | 'rect';
+        shape?: 'round' | 'oval' | 'rect' | 'square';
         posX?: number;
         posY?: number;
         order: number;

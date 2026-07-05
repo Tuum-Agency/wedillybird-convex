@@ -37,7 +37,7 @@ import {
   RsvpMini,
   type HubGuestRow,
 } from './hub-ops-tabs';
-import { SeatingPlanner } from '@/components/pro/seating/seating-planner';
+import { SeatingBoard } from '@/components/seating/seating-board';
 import type { SeatingPlan } from '@/lib/seating/board';
 
 export type { HubGuestRow };
@@ -525,13 +525,7 @@ function WeddingHubInner(
         <CheckinTab guests={props.guests ?? []} guestTotal={props.guestTotal} />
       ) : activeTab === 'tables' ? (
         props.seatingPlan ? (
-          <SeatingPlanner
-            eventId={eventId}
-            initialPlan={props.seatingPlan}
-            coupleA={props.coupleA}
-            coupleB={props.coupleB}
-            dateLabel={props.dateLabel}
-          />
+          <SeatingBoard eventId={eventId} initial={props.seatingPlan} />
         ) : (
           <SeatingTab
             guests={props.guests ?? []}
