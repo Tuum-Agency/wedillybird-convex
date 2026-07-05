@@ -24,6 +24,8 @@ export interface InvitationShellProps {
   venueName?: string;
   /** Couleur d'accent du couple (theme.primaryColor) — sceau + filets. */
   accentColor?: string;
+  /** Date de l'événement (epoch ms ou ISO) — compte à rebours de la cinématique. */
+  eventDate?: number | string;
   /** Token de l'invitation, sert de clé sessionStorage pour le replay. */
   token: string;
   children: ReactNode;
@@ -35,6 +37,7 @@ export function InvitationShell({
   formattedDate,
   venueName,
   accentColor,
+  eventDate,
   token,
   children,
 }: InvitationShellProps) {
@@ -95,6 +98,7 @@ export function InvitationShell({
               formattedDate={formattedDate}
               venueName={venueName}
               accentColor={accentColor}
+              eventDate={eventDate}
               onComplete={handleComplete}
             />
           </motion.div>

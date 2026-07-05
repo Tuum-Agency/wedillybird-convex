@@ -69,6 +69,7 @@ export default async function PublicOrgInvitationPage({
         formattedDate={eventDateCompact}
         venueName={event.venue?.name}
         accentColor={accentColor}
+        eventDate={event.eventDate}
       >
         <article className="container-page mx-auto flex w-full max-w-2xl flex-col gap-16 py-16 sm:py-24">
           <header className="flex flex-col items-center gap-5 text-center">
