@@ -209,7 +209,7 @@ function GuestsCard({ guests }: { guests: McGuest[] }) {
         id: 'n' + Date.now(),
         name: name.trim(),
         group: t('newGuestGroup'),
-        cc: '+33',
+        cc: '+1',
         phone: phone.trim() || '— — — — —',
         count: 1,
         status: 'noreply' as McGuestStatus,
@@ -264,14 +264,14 @@ function GuestsCard({ guests }: { guests: McGuest[] }) {
         <div className="mc-qa-phone">
           <span className="cc">
             <Icon name="MessageCircle" size={13} stroke={2} className="wa" />
-            +33
+            +1
           </span>
           <input
             value={phone}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPhone(e.target.value)}
             onKeyDown={(e: React.KeyboardEvent) => e.key === 'Enter' && add()}
             inputMode="tel"
-            placeholder="6 12 34 56 78"
+            placeholder="415 555 0123"
             aria-label={t('whatsappAria')}
           />
         </div>

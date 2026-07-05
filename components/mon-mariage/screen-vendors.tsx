@@ -146,7 +146,7 @@ function VendorModal({
             icon="Phone"
             value={contact}
             onChange={(e) => setContact(e.target.value)}
-            placeholder="+33 6 12 34 56 78"
+            placeholder="+1 415 555 0123"
             inputMode="tel"
           />
         </McField>
