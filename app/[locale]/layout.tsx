@@ -9,6 +9,7 @@ import { ConvexClientProvider } from '@/components/providers/convex-client-provi
 import { SkipLink } from '@/components/layout/skip-link';
 import { Toaster } from '@/components/ui/toast';
 import { CookieConsent } from '@/components/layout/cookie-consent';
+import { MetaPixel } from '@/components/analytics/meta-pixel';
 import { LocaleSuggestionBanner } from '@/components/layout/locale-suggestion-banner';
 import '../globals.css';
 
@@ -142,6 +143,7 @@ export default async function LocaleLayout({
             {children}
             <Toaster />
             <CookieConsent />
+            <MetaPixel />
           </ConvexClientProvider>
         </NextIntlClientProvider>
       </body>

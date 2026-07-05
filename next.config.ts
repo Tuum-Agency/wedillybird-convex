@@ -53,10 +53,10 @@ const securityHeaders = [
     key: 'Content-Security-Policy',
     value: [
       "default-src 'self'",
-      "img-src 'self' https://*.cloudfront.net https://media.wedillybird.com https://images.unsplash.com https://plus.unsplash.com data: blob:",
-      `script-src 'self' 'unsafe-inline'${devScriptDirectives} https://js.stripe.com`,
+      "img-src 'self' https://*.cloudfront.net https://media.wedillybird.com https://images.unsplash.com https://plus.unsplash.com https://www.facebook.com data: blob:",
+      `script-src 'self' 'unsafe-inline'${devScriptDirectives} https://js.stripe.com https://connect.facebook.net`,
       "worker-src 'self' blob:",
-      "connect-src 'self' https://*.convex.cloud https://*.convex.site wss://*.convex.cloud https://api.stripe.com https://*.s3.eu-west-3.amazonaws.com",
+      "connect-src 'self' https://*.convex.cloud https://*.convex.site wss://*.convex.cloud https://api.stripe.com https://*.s3.eu-west-3.amazonaws.com https://www.facebook.com",
       'frame-src https://js.stripe.com https://checkout.stripe.com',
       "style-src 'self' 'unsafe-inline'",
       "font-src 'self' data:",
@@ -100,6 +100,9 @@ const nextConfig: NextConfig = {
     ];
   },
   images: {
+    // Next 16 : les valeurs de `quality` doivent être whitelistées (défaut [75]).
+    // 55 pour le hero — fortement voilé par l'overlay ivoire, donc invisible.
+    qualities: [55, 75],
     remotePatterns: [
       // Unsplash — visuels mariage curatés (libre de droit, license CC0).
       { protocol: 'https', hostname: 'images.unsplash.com' },

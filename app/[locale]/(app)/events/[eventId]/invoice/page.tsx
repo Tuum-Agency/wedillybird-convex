@@ -167,7 +167,7 @@ export default async function EventInvoicePage({
               </thead>
               <tbody>
                 {succeeded.map((payment) => {
-                  const dateLabel = new Intl.DateTimeFormat('fr-FR', {
+                  const dateLabel = new Intl.DateTimeFormat(locale, {
                     day: 'numeric',
                     month: 'long',
                     year: 'numeric',

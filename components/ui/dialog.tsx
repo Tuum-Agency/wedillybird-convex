@@ -2,6 +2,7 @@
 
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { X } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import type { ComponentProps, ReactNode } from 'react';
 import { cn } from '@/lib/cn';
 
@@ -22,6 +23,7 @@ export function DialogContent({
   showClose = true,
   ...props
 }: ComponentProps<typeof DialogPrimitive.Content> & { showClose?: boolean }) {
+  const t = useTranslations('Common');
   return (
     <DialogPrimitive.Portal>
       <DialogPrimitive.Overlay className="animate-fade-in fixed inset-0 z-50 bg-black/55 backdrop-blur-sm" />
@@ -35,7 +37,7 @@ export function DialogContent({
         <div className="flex flex-col overflow-y-auto p-6">{children}</div>
         {showClose ? (
           <DialogPrimitive.Close
-            aria-label="Fermer"
+            aria-label={t('close')}
             className="focus-ring absolute top-4 right-4 rounded-lg p-1 text-[color:var(--color-muted-foreground)] transition-colors hover:bg-[color:var(--color-surface-elevated)] hover:text-[color:var(--color-foreground)]"
           >
             <X className="h-4 w-4" strokeWidth={2} aria-hidden />
