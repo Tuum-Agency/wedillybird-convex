@@ -251,7 +251,7 @@
       "article3Title": "3. Account and access",
       "article3Body": "Access to the Service requires creating an account by verifying a phone number. The User is responsible for the confidentiality of their number and for any action taken from their account. Any unauthorised use must be reported immediately.",
       "article4Title": "4. Pricing and payment",
-      "article4Body": "The Service is offered with no free tier. For individuals planning a wedding, two one-shot plans are available: Essential (€29, core features + 30-day gallery) and Premium (€59, Essential + 6-month gallery + PDF album). A post-wedding upsell (+€29) extends the gallery to 5 years and adds the HD photo book. For professionals, monthly or annual subscriptions (Starter €99/month, Business €219/month, Agency €449/month, -20% annual) or pay-as-you-go (€79 per event). Payments are processed by Stripe. Full refund within 7 days if the event has not been sent. If the wedding is cancelled, free postponement to another date.",
+      "article4Body": "The Service is offered with no free tier. For individuals planning a wedding, two one-shot plans are available: Essential (€29, invitations, RSVP, check-in and dashboard — no shared gallery) and Premium (€59, Essential + 6-month shared gallery + PDF album). A post-wedding upsell (+€29) extends the gallery to 5 years and adds the HD photo book. For professionals, monthly or annual subscriptions (Starter €99/month, Business €219/month, Agency €449/month, -20% annual) or pay-as-you-go (€79 per event). Payments are processed by Stripe. Full refund within 7 days if the event has not been sent. If the wedding is cancelled, free postponement to another date.",
       "article5Title": "5. Intellectual property",
       "article5Body": "The User retains ownership of the content they upload. They grant Wedillybird a non-exclusive licence to use this content solely for the operation of the Service. Wedillybird retains ownership of the platform, its code and brand.",
       "article6Title": "6. Liability",
@@ -419,7 +419,7 @@
       },
       "guestVsInvitation": {
         "q": "What's the difference between an invitation and a guest?",
-        "a": "An invitation = one entry in your list corresponding to a primary person (e.g. your cousin Aminata) to whom you send a personalised link with their QR code. That person can indicate in their reply that they will be coming with N additional people (for example their partner and children). The plan quota counts the number of invitations sent, not the total number of people attending. So with the Sérénité plan (150 invitations), you can welcome far more than 150 actual people on the day."
+        "a": "An invitation = one entry in your list corresponding to a primary person (e.g. your cousin Aminata) to whom you send a personalised link with their QR code. That person can indicate in their reply that they will be coming with N additional people (for example their partner and children). The plan quota counts the number of invitations sent, not the total number of people attending. So with the Essential plan (100 invitations) or Premium (250 invitations), you can welcome far more actual people on the day."
       }
     }
   },
@@ -432,8 +432,8 @@
       "ctaPrimary": "Plan my wedding",
       "ctaSecondary": "See plans",
       "trust": {
-        "stat": "1,240 weddings celebrated",
-        "rating": "4.9 / 5 couple satisfaction",
+        "stat": "One payment, no subscription",
+        "rating": "Full refund within 7 days if nothing is sent",
         "regions": "Available worldwide"
       },
       "card": {
@@ -482,10 +482,10 @@
           "context": "vs 22% by traditional email"
         },
         "rsvpSpeed": {
-          "value": 73,
-          "suffix": "%",
-          "label": "of RSVPs within 24 hours",
-          "context": "average across the first 30 invitations"
+          "value": 30,
+          "suffix": " s",
+          "label": "to confirm attendance",
+          "context": "one tap from the conversation, no app"
         },
         "memory": {
           "value": 5,
@@ -494,7 +494,7 @@
           "context": "with the Premium + post-wedding upsell"
         }
       },
-      "source": "Measured across the first 1,240 weddings celebrated with Wedillybird, 2026."
+      "source": "Open rates: published industry averages for messaging vs email — not Wedillybird measurements."
     },
     "features": {
       "chapter": "CHAPTER 03 — THE PILLARS",
@@ -560,29 +560,29 @@
     },
     "testimonials": {
       "chapter": "CHAPTER 05 — THE VOICES",
-      "eyebrow": "They said yes",
-      "title": "Couples and planners who have gained peace of mind.",
+      "eyebrow": "Built for the day itself",
+      "title": "Three demanding wedding days, the same calm.",
       "items": {
         "couple-fr": {
-          "quote": "We invited 180 people in four taps. Offline check-in saved the entrance when the venue's WiFi gave up — nobody waited more than five seconds.",
-          "name": "Camille & Hugo",
-          "location": "Outdoor wedding · June 2026",
-          "initials": "CH",
-          "alt": "Portrait of a smiling Camille and Hugo"
+          "quote": "180 guests outdoors and the venue WiFi drops at arrival: check-in keeps running offline, the list syncs back when the network returns, and nobody waits in line.",
+          "name": "The open air",
+          "location": "Scenario · 180 guests · offline check-in",
+          "initials": "01",
+          "alt": "Outdoor wedding scenario"
         },
         "couple-sn": {
-          "quote": "We had over 600 guests across three days. Wedillybird held up where Excel and our group chats were buckling. The shared gallery brought the memories back again three months later.",
-          "name": "Awa & Mamadou",
-          "location": "Wedding 600+ guests · November 2025",
-          "initials": "AM",
-          "alt": "Awa and Mamadou in traditional attire"
+          "quote": "600+ guests across three days, where shared spreadsheets and group chats crack: one personalized link per guest, live replies, and a shared gallery that keeps living after the weekend.",
+          "name": "The three days",
+          "location": "Scenario · 600+ guests · multi-event",
+          "initials": "02",
+          "alt": "Large multi-day wedding scenario"
         },
         "planner-pro": {
-          "quote": "I'm running eight weddings this season with my own branding on every guest page. My couples see my agency, not a third-party tool — that's exactly what was missing in the market.",
-          "name": "Studio Lumière",
-          "location": "Wedding planner",
-          "initials": "SL",
-          "alt": "Wedding planner in front of an outdoor wedding"
+          "quote": "Eight weddings in a season, every guest page in the agency's colors: your couples see your brand, not a third-party tool, and every RSVP is tracked in one place.",
+          "name": "Under your brand",
+          "location": "Scenario · agencies & wedding planners",
+          "initials": "03",
+          "alt": "Wedding planning agency scenario"
         }
       }
     },
@@ -636,11 +636,11 @@
       "items": {
         "whyWhatsapp": {
           "q": "Why text instead of an email or a dedicated app?",
-          "a": "Because your guests are already there. Text gets a 98% open rate vs 22% for email, with no app and no account to create. In the US and Canada your guests receive an SMS; on WhatsApp worldwide. It's the most universal channel there is."
+          "a": "Because your guests are already there. Published industry averages put messaging open rates around 98% vs about 22% for email, with no app and no account to create. In the US and Canada your guests receive an SMS; on WhatsApp worldwide. It's the most universal channel internationally."
         },
         "olderGuests": {
           "q": "Will my older or less tech-savvy guests manage?",
-          "a": "Yes. The invitation page opens in one tap, straight from the text — no app, no account to create. RSVP takes 3 buttons. More than 92% of grandparents tested confirmed without help."
+          "a": "Yes. The invitation page opens in one tap, straight from the text — no app, no account to create. RSVP takes 3 buttons, designed to stay readable and easy to use without help, including for guests who are less comfortable with technology."
         },
         "guestLimit": {
           "q": "What's the maximum number of guests?",
@@ -673,12 +673,12 @@
       "title": "The big day deserves better than a PDF.",
       "subtitle": "Create your first invitation in three minutes. No card needed to explore, full refund within 7 days if you change your mind.",
       "cta": "Plan my wedding",
-      "trust": "1,240 weddings celebrated · 4.9 / 5 couple satisfaction"
+      "trust": "One payment · Full refund within 7 days if nothing is sent · Free reschedule if the date changes"
     },
     "footer": {
       "tagline": "The wedding concierge that lives in your guests' texts. Designed for weddings around the world.",
       "newsletterTitle": "Get our free invitation templates",
-      "newsletterSubtitle": "Once a month, templates signed by renowned wedding designers, and zero spam.",
+      "newsletterSubtitle": "Once a month: invitation templates, checklists and practical ideas for planning your wedding. Zero spam.",
       "newsletterPlaceholder": "you@email.com",
       "newsletterCta": "Subscribe",
       "newsletterSuccess": "Subscribed. See you in your inbox soon.",

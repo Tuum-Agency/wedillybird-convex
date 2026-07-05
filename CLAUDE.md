@@ -10,9 +10,9 @@ Résumé impératif :
 
 - **Pas de tier `free`** côté particuliers. (Supprimé du code ✅ — `PlanTier = 'essential' | 'premium'`.)
 - **Particuliers (one-shot)** :
-  - Essentiel **29 €** — 100 invités max — 5 Go galerie 12 mois
-  - Premium **59 €** — 250 invités max — 25 Go HD 12 mois
-  - Upsell HD post-event **+29 €** — archive perpétuelle
+  - Essentiel **29 €** — 100 invitations max — sans galerie partagée
+  - Premium **59 €** — 250 invitations max — galerie partagée HD 6 mois + album PDF
+  - Upsell HD post-event **+29 €** — rétention galerie 5 ans + export ZIP HD + livre photo
 - **Pros (mensuel · -20 % en annuel)** :
   - Starter **99 €/mois** (79 €/mois annuel) — 5 events × 150 invités — 50 Go
   - Business **219 €/mois** (175 €/mois annuel) — 20 events × 150 invités — 200 Go
@@ -23,7 +23,7 @@ Résumé impératif :
   - Invité au-delà du cap : **0,25 €/invité**
   - Stockage : **0,03 €/Go/mois**
   - Event simultané supplémentaire (Pro) : **19 €/event/mois prorata**
-- **Règles transverses** : remboursement 100 % sous 7j si event non envoyé, report gratuit en cas d'annulation, galerie active 12 mois post-event puis archivage.
+- **Règles transverses** : remboursement 100 % sous 7j si event non envoyé, report gratuit en cas d'annulation, galerie Premium active 6 mois post-event (5 ans avec l'upsell HD).
 - **Bundle interne** : 3,5 × cap invités (couvre invitation + reminders + RSVP + gallery link).
 
 Le code (`lib/payments/plans.ts`, `lib/payments/subscriptions.ts`) est **aligné** sur cette grille. Les Stripe Prices **live** ont été créés et nettoyés (2026-06-12) : **30 Prices canoniques actifs** (Essentiel 29 / Premium 59 / Upsell 29 / Starter 99·951 / Business 219·2103 / Agency 449·4311 / PAYG 79, en EUR/USD/MAD) ; les anciens Prices aux mauvais montants ont été **archivés**. Les env vars `STRIPE_PRICE_*` Vercel pointent sur les bons IDs (génération `price_1Tdp*`/`1Tdtq*`). Vérifié via l'API Stripe (0 transaction live à ce jour).

@@ -251,7 +251,7 @@
       "article3Title": "3. Account e accesso",
       "article3Body": "L'accesso al Servizio richiede la creazione di un account tramite verifica di un numero WhatsApp. L'Utente è responsabile della riservatezza del proprio numero e di qualsiasi azione effettuata dal proprio account. Qualsiasi uso non autorizzato deve essere segnalato immediatamente.",
       "article4Title": "4. Tariffe e pagamento",
-      "article4Body": "Il Servizio è proposto senza piano gratuito. Per i privati che organizzano un matrimonio, due formule a pagamento unico: Essenziale (29 €, funzionalità di base + galleria 30 giorni) e Premium (59 €, Essenziale + galleria 6 mesi + album PDF). Un upsell post-matrimonio (+29 €) estende la galleria a 5 anni e aggiunge il libro fotografico HD. Per i professionisti, abbonamento mensile o annuale (Starter 99 €/mese, Business 219 €/mese, Agency 449 €/mese, -20 % in annuale) o pagamento a evento (79 €). I pagamenti sono gestiti da Stripe. Rimborso integrale entro 7 giorni se l'evento non è stato inviato. In caso di annullamento del matrimonio, rinvio gratuito a un'altra data.",
+      "article4Body": "Il Servizio è proposto senza piano gratuito. Per i privati che organizzano un matrimonio, due formule a pagamento unico: Essenziale (29 €, inviti, RSVP, check-in e dashboard — senza galleria condivisa) e Premium (59 €, Essenziale + galleria condivisa 6 mesi + album PDF). Un upsell post-matrimonio (+29 €) estende la galleria a 5 anni e aggiunge il libro fotografico HD. Per i professionisti, abbonamento mensile o annuale (Starter 99 €/mese, Business 219 €/mese, Agency 449 €/mese, -20 % in annuale) o pagamento a evento (79 €). I pagamenti sono gestiti da Stripe. Rimborso integrale entro 7 giorni se l'evento non è stato inviato. In caso di annullamento del matrimonio, rinvio gratuito a un'altra data.",
       "article5Title": "5. Proprietà intellettuale",
       "article5Body": "L'Utente conserva la proprietà dei contenuti che carica. Concede a Wedillybird una licenza non esclusiva di utilizzo di tali contenuti ai soli fini del funzionamento del Servizio. Wedillybird conserva la proprietà della piattaforma, del codice e del marchio.",
       "article6Title": "6. Responsabilità",
@@ -419,7 +419,7 @@
       },
       "guestVsInvitation": {
         "q": "Qual è la differenza tra un invito e un invitato?",
-        "a": "Un invito = una scheda nella tua lista che corrisponde a una persona principale (es. tua cugina Aminata) a cui invii un link personalizzato con il suo QR code. Questa persona può indicare nella sua risposta che verrà accompagnata da N persone (per esempio il coniuge e i figli). La quota del piano conta il numero di inviti inviati, non il numero totale di persone che vengono. Quindi con la formula Serenità (150 inviti), puoi accogliere ben più di 150 persone fisiche il giorno del matrimonio."
+        "a": "Un invito = una scheda nella tua lista che corrisponde a una persona principale (es. tua cugina Aminata) a cui invii un link personalizzato con il suo QR code. Questa persona può indicare nella sua risposta che verrà accompagnata da N persone (per esempio il coniuge e i figli). La quota del piano conta il numero di inviti inviati, non il numero totale di persone che vengono. Quindi con la formula Essenziale (100 inviti) o Premium (250 inviti), puoi accogliere molte più persone fisiche il giorno del matrimonio."
       }
     }
   },
@@ -432,8 +432,8 @@
       "ctaPrimary": "Preparare il mio matrimonio",
       "ctaSecondary": "Vedi le formule",
       "trust": {
-        "stat": "1.240 matrimoni celebrati",
-        "rating": "4,9 / 5 soddisfazione coppie",
+        "stat": "Pagamento unico, senza abbonamento",
+        "rating": "Rimborso completo entro 7 giorni se non viene inviato nulla",
         "regions": "Disponibile a livello internazionale"
       },
       "card": {
@@ -482,10 +482,10 @@
           "context": "vs 22 % per email classica"
         },
         "rsvpSpeed": {
-          "value": 73,
-          "suffix": "%",
-          "label": "di RSVP in 24 ore",
-          "context": "media sui primi 30 inviti"
+          "value": 30,
+          "suffix": " s",
+          "label": "per confermare la presenza",
+          "context": "un tocco dalla conversazione, senza app"
         },
         "memory": {
           "value": 5,
@@ -494,7 +494,7 @@
           "context": "con l'opzione Premium + Upsell post-matrimonio"
         }
       },
-      "source": "Misurato sui primi 1.240 matrimoni celebrati con Wedillybird, 2026."
+      "source": "Tassi di apertura: medie di settore pubblicate per WhatsApp ed email — non misurazioni di Wedillybird."
     },
     "features": {
       "chapter": "CAPITOLO 03 — I PILASTRI",
@@ -564,29 +564,29 @@
     },
     "testimonials": {
       "chapter": "CAPITOLO 05 — LE VOCI",
-      "eyebrow": "Hanno detto sì",
-      "title": "Coppie e wedding planner che hanno guadagnato in serenità.",
+      "eyebrow": "Pensato per il campo",
+      "title": "Tre giorni delle nozze impegnativi, la stessa serenità.",
       "items": {
         "couple-fr": {
-          "quote": "Abbiamo invitato 180 persone in quattro tap. Il check-in offline ha salvato l'ingresso quando il WiFi della tenuta ha ceduto — nessuno ha aspettato più di cinque secondi.",
-          "name": "Camille & Hugo",
-          "location": "Matrimonio all'aperto · giugno 2026",
-          "initials": "CH",
-          "alt": "Ritratto di Camille e Hugo sorridenti"
+          "quote": "180 invitati all'aperto e il WiFi della tenuta che cade all'arrivo: il check-in continua offline, la lista si sincronizza al ritorno della rete e nessuno fa la fila.",
+          "name": "All'aria aperta",
+          "location": "Scenario · 180 invitati · check-in offline",
+          "initials": "01",
+          "alt": "Scenario di un matrimonio all'aperto"
         },
         "couple-sn": {
-          "quote": "Eravamo più di 600 invitati su tre giorni. Wedillybird ha tenuto dove Excel e i nostri gruppi WhatsApp crollavano. La galleria condivisa ha riportato i ricordi ancora una volta tre mesi dopo.",
-          "name": "Awa & Mamadou",
-          "location": "Matrimonio 600+ invitati · novembre 2025",
-          "initials": "AM",
-          "alt": "Awa e Mamadou in abito tradizionale"
+          "quote": "Oltre 600 invitati su tre giorni, dove l'Excel condiviso e i gruppi WhatsApp si rompono: un link personalizzato per invitato, risposte in diretta e una galleria comune che continua a vivere dopo il weekend.",
+          "name": "I tre giorni",
+          "location": "Scenario · 600+ invitati · multi-evento",
+          "initials": "02",
+          "alt": "Scenario di un grande matrimonio su più giorni"
         },
         "planner-pro": {
-          "quote": "Gestisco otto matrimoni questa stagione con il mio branding su ogni pagina invitato. Le mie coppie vedono la mia agenzia, non uno strumento esterno — è esattamente ciò che mancava sul mercato.",
-          "name": "Studio Lumière",
-          "location": "Wedding planner",
-          "initials": "SL",
-          "alt": "Wedding planner davanti a un matrimonio all'aperto"
+          "quote": "Otto matrimoni in stagione, ogni pagina invitato con i colori dell'agenzia: le tue coppie vedono il tuo brand, non uno strumento terzo, e tutti gli RSVP si seguono in un unico posto.",
+          "name": "Con il tuo brand",
+          "location": "Scenario · agenzie e wedding planner",
+          "initials": "03",
+          "alt": "Scenario di un'agenzia di wedding planning"
         }
       }
     },
@@ -640,11 +640,11 @@
       "items": {
         "whyWhatsapp": {
           "q": "Perché WhatsApp e non un'email o un'app dedicata?",
-          "a": "Perché i tuoi invitati sono già lì. WhatsApp mostra un tasso di apertura del 98 % vs 22 % per un'email, e non richiede alcuna installazione. È il canale più universale a livello internazionale."
+          "a": "Perché i tuoi invitati sono già lì. Le medie di settore pubblicate collocano il tasso di apertura di WhatsApp intorno al 98 %, contro circa il 22 % dell'email — e non c'è nulla da installare. È il canale più universale a livello internazionale."
         },
         "olderGuests": {
           "q": "I miei invitati anziani o poco a loro agio con il digitale ce la faranno?",
-          "a": "Sì. La pagina d'invito si apre nel browser di WhatsApp con un tap — niente app, nessun account da creare. L'RSVP avviene in 3 pulsanti. Più del 92 % dei nonni testati ha confermato senza aiuto."
+          "a": "Sì. La pagina dell'invito si apre nel browser di WhatsApp con un tocco — nessuna app, nessun account da creare. L'RSVP è fatto di 3 pulsanti, pensato per restare leggibile e usabile senza aiuto, anche per gli invitati meno a loro agio con il digitale."
         },
         "guestLimit": {
           "q": "Quanti invitati al massimo?",
@@ -677,12 +677,12 @@
       "title": "Il grande giorno merita meglio di un PDF.",
       "subtitle": "Crea il tuo primo invito in tre minuti. Senza carta di credito per esplorare, rimborsato entro 7 giorni se cambi idea.",
       "cta": "Preparare il mio matrimonio",
-      "trust": "1.240 matrimoni celebrati · 4,9 / 5 soddisfazione coppie"
+      "trust": "Pagamento unico · Rimborso entro 7 giorni se non viene inviato nulla · Rinvio gratuito se la data cambia"
     },
     "footer": {
       "tagline": "Wedding concierge WhatsApp-first. Pensato per i matrimoni di tutto il mondo.",
       "newsletterTitle": "Ricevi i nostri template di invito gratuiti",
-      "newsletterSubtitle": "Una volta al mese, modelli firmati da wedding designer riconosciuti, e zero spam.",
+      "newsletterSubtitle": "Una volta al mese: modelli di invito, checklist e idee concrete per preparare il tuo matrimonio. Zero spam.",
       "newsletterPlaceholder": "tu@email.com",
       "newsletterCta": "Ricevi",
       "newsletterSuccess": "Iscritto. A presto nella tua casella mail.",

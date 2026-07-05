@@ -16,8 +16,8 @@ const STAT_KEYS = ['openRate', 'rsvpSpeed', 'memory'] as const;
  * 1. Lede long-format Migra italic (la conviction)
  * 2. Diptyque "Hier / Désormais" en prose éditoriale (pas un tableau)
  * 3. Pull-quote géant climax (promesse B "Six mois après...")
- * 4. Trois stats inline (98%, 73%, 5 ans) en grand chiffre + label
- * 5. Source / méthodologie en bas de page
+ * 4. Trois stats inline (98 %, 30 s, 5 ans) en grand chiffre + label
+ * 5. Source / attribution sectorielle en bas de page
  *
  * Inspiration : Aesop product story + Atelier Isabey "atelier" page +
  * Mercury "Why Mercury" section éditoriale.

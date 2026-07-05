@@ -251,7 +251,7 @@
       "article3Title": "3. Cuenta y acceso",
       "article3Body": "El acceso al Servicio requiere la creación de una cuenta mediante la verificación de un número de WhatsApp. El Usuario es responsable de la confidencialidad de su número y de cualquier acción realizada desde su cuenta. Cualquier uso no autorizado debe comunicarse de inmediato.",
       "article4Title": "4. Tarifas y pago",
-      "article4Body": "El Servicio se ofrece sin plan gratuito. Para particulares que organizan una boda, dos planes de pago único: Esencial (29 €, funciones básicas + galería 30 días) y Premium (59 €, Esencial + galería 6 meses + álbum PDF). Una mejora postboda (+29 €) amplía la galería a 5 años y añade el libro de fotos en HD. Para profesionales, suscripción mensual o anual (Starter 99 €/mes, Business 219 €/mes, Agency 449 €/mes, -20 % en plan anual) o pago por evento (79 €). Los pagos se procesan a través de Stripe. Reembolso íntegro en un plazo de 7 días si el evento aún no se ha enviado. En caso de cancelación de la boda, aplazamiento gratuito a otra fecha.",
+      "article4Body": "El Servicio se ofrece sin plan gratuito. Para particulares que organizan una boda, dos planes de pago único: Esencial (29 €, invitaciones, RSVP, check-in y panel — sin galería compartida) y Premium (59 €, Esencial + galería compartida 6 meses + álbum PDF). Una mejora postboda (+29 €) amplía la galería a 5 años y añade el libro de fotos en HD. Para profesionales, suscripción mensual o anual (Starter 99 €/mes, Business 219 €/mes, Agency 449 €/mes, -20 % en plan anual) o pago por evento (79 €). Los pagos se procesan a través de Stripe. Reembolso íntegro en un plazo de 7 días si el evento aún no se ha enviado. En caso de cancelación de la boda, aplazamiento gratuito a otra fecha.",
       "article5Title": "5. Propiedad intelectual",
       "article5Body": "El Usuario conserva la propiedad de los contenidos que sube. Otorga a Wedillybird una licencia no exclusiva de uso de dichos contenidos con el único fin del funcionamiento del Servicio. Wedillybird conserva la propiedad de la plataforma, el código y la marca.",
       "article6Title": "6. Responsabilidad",
@@ -419,7 +419,7 @@
       },
       "guestVsInvitation": {
         "q": "¿Cuál es la diferencia entre una invitación y un invitado?",
-        "a": "Una invitación = una ficha en tu lista que corresponde a una persona principal (p. ej., tu prima Aminata) a la que envías un enlace personalizado con su código QR. Esa persona puede indicar en su respuesta que vendrá acompañada de N personas (por ejemplo, su pareja y sus hijos). La cuota del plan cuenta el número de invitaciones enviadas, no el número total de personas que asisten. Por lo tanto, con el plan Serenidad (150 invitaciones), puedes acoger a muchas más de 150 personas el día D."
+        "a": "Una invitación = una ficha en tu lista que corresponde a una persona principal (p. ej., tu prima Aminata) a la que envías un enlace personalizado con su código QR. Esa persona puede indicar en su respuesta que vendrá acompañada de N personas (por ejemplo, su pareja y sus hijos). La cuota del plan cuenta el número de invitaciones enviadas, no el número total de personas que asisten. Por lo tanto, con el plan Esencial (100 invitaciones) o Premium (250 invitaciones), puedes acoger a muchas más personas el día D."
       }
     }
   },
@@ -432,8 +432,8 @@
       "ctaPrimary": "Preparar mi boda",
       "ctaSecondary": "Ver los planes",
       "trust": {
-        "stat": "1 240 bodas celebradas",
-        "rating": "4,9 / 5 satisfacción de las parejas",
+        "stat": "Pago único, sin suscripción",
+        "rating": "Reembolso íntegro en 7 días si no se envía nada",
         "regions": "Disponible internacionalmente"
       },
       "card": {
@@ -482,10 +482,10 @@
           "context": "frente al 22 % por email clásico"
         },
         "rsvpSpeed": {
-          "value": 73,
-          "suffix": "%",
-          "label": "de RSVP en 24 horas",
-          "context": "media en las 30 primeras invitaciones"
+          "value": 30,
+          "suffix": " s",
+          "label": "para confirmar asistencia",
+          "context": "un toque desde la conversación, sin app"
         },
         "memory": {
           "value": 5,
@@ -494,7 +494,7 @@
           "context": "con la opción Premium + Mejora postboda"
         }
       },
-      "source": "Medido en las 1 240 primeras bodas celebradas con Wedillybird, 2026."
+      "source": "Tasas de apertura: medias sectoriales publicadas para WhatsApp y el email — no son mediciones de Wedillybird."
     },
     "features": {
       "chapter": "CAPÍTULO 03 — LOS PILARES",
@@ -564,29 +564,29 @@
     },
     "testimonials": {
       "chapter": "CAPÍTULO 05 — LAS VOCES",
-      "eyebrow": "Han dicho sí",
-      "title": "Parejas y planners que han ganado en serenidad.",
+      "eyebrow": "Diseñado para el terreno",
+      "title": "Tres grandes días exigentes, la misma serenidad.",
       "items": {
         "couple-fr": {
-          "quote": "Invitamos a 180 personas con cuatro toques. El check-in offline salvó la entrada cuando el WiFi del recinto se cayó — nadie esperó más de cinco segundos.",
-          "name": "Camille y Hugo",
-          "location": "Boda al aire libre · junio de 2026",
-          "initials": "CH",
-          "alt": "Retrato de Camille y Hugo sonrientes"
+          "quote": "180 invitados al aire libre y el WiFi de la finca que cae a la llegada: el check-in sigue funcionando sin conexión, la lista se sincroniza al volver la red y nadie hace cola.",
+          "name": "Al aire libre",
+          "location": "Escenario · 180 invitados · check-in offline",
+          "initials": "01",
+          "alt": "Escenario de una boda al aire libre"
         },
         "couple-sn": {
-          "quote": "Éramos más de 600 invitados durante tres días. Wedillybird aguantó allí donde Excel y nuestros grupos de WhatsApp se rompían. La galería compartida hizo volver los recuerdos otra vez tres meses después.",
-          "name": "Awa y Mamadou",
-          "location": "Boda 600+ invitados · noviembre de 2025",
-          "initials": "AM",
-          "alt": "Awa y Mamadou con vestimenta tradicional"
+          "quote": "Más de 600 invitados durante tres días, donde el Excel compartido y los grupos de WhatsApp se rompen: un enlace personalizado por invitado, respuestas en directo y una galería común que sigue viva después del fin de semana.",
+          "name": "Los tres días",
+          "location": "Escenario · 600+ invitados · multievento",
+          "initials": "02",
+          "alt": "Escenario de una gran boda de varios días"
         },
         "planner-pro": {
-          "quote": "Gestiono ocho bodas esta temporada con mi marca en cada página de invitación. Mis parejas ven a mi agencia, no a una herramienta de terceros — es exactamente lo que faltaba en el mercado.",
-          "name": "Studio Lumière",
-          "location": "Wedding planner",
-          "initials": "SL",
-          "alt": "Wedding planner ante una boda al aire libre"
+          "quote": "Ocho bodas en la temporada, cada página de invitado con los colores de la agencia: tus parejas ven tu marca, no una herramienta de terceros, y todos los RSVP se siguen en un solo lugar.",
+          "name": "Con tu marca",
+          "location": "Escenario · agencias y wedding planners",
+          "initials": "03",
+          "alt": "Escenario de una agencia de wedding planning"
         }
       }
     },
@@ -640,11 +640,11 @@
       "items": {
         "whyWhatsapp": {
           "q": "¿Por qué WhatsApp y no un email o una app dedicada?",
-          "a": "Porque tus invitados ya están allí. WhatsApp registra una tasa de apertura del 98 % frente al 22 % de un email, y no requiere ninguna instalación. Es el canal más universal a nivel internacional."
+          "a": "Porque tus invitados ya están ahí. Las medias publicadas del sector sitúan la tasa de apertura de WhatsApp en torno al 98 %, frente a un 22 % aproximado del email — y no hay nada que instalar. Es el canal más universal a nivel internacional."
         },
         "olderGuests": {
           "q": "¿Mis invitados mayores o poco habituados a lo digital sabrán arreglárselas?",
-          "a": "Sí. La página de invitación se abre en el navegador de WhatsApp con un toque — sin app, sin cuenta que crear. El RSVP se hace con 3 botones. Más del 92 % de los abuelos probados confirmaron sin ayuda."
+          "a": "Sí. La página de invitación se abre en el navegador de WhatsApp con un toque — sin app y sin crear cuenta. El RSVP son 3 botones, pensado para ser legible y fácil de usar sin ayuda, incluso para los invitados menos cómodos con la tecnología."
         },
         "guestLimit": {
           "q": "¿Cuántos invitados como máximo?",
@@ -677,12 +677,12 @@
       "title": "El gran día se merece más que un PDF.",
       "subtitle": "Crea tu primera invitación en tres minutos. Sin tarjeta bancaria para explorar, reembolso en 7 días si cambias de opinión.",
       "cta": "Preparar mi boda",
-      "trust": "1 240 bodas celebradas · 4,9 / 5 satisfacción de las parejas"
+      "trust": "Pago único · Reembolso en 7 días si no se envía nada · Cambio de fecha gratuito"
     },
     "footer": {
       "tagline": "WhatsApp-first wedding concierge. Pensado para bodas en todo el mundo.",
       "newsletterTitle": "Recibe nuestras plantillas de invitación gratuitas",
-      "newsletterSubtitle": "Una vez al mes, modelos firmados por wedding designers reconocidos, y cero spam.",
+      "newsletterSubtitle": "Una vez al mes: plantillas de invitación, checklists e ideas prácticas para preparar tu boda. Cero spam.",
       "newsletterPlaceholder": "tu@email.com",
       "newsletterCta": "Recibir",
       "newsletterSuccess": "Inscrito. Hasta pronto en tu buzón.",

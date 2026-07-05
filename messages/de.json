@@ -251,7 +251,7 @@
       "article3Title": "3. Konto und Zugang",
       "article3Body": "Der Zugang zum Dienst erfordert die Erstellung eines Kontos durch Verifizierung einer WhatsApp-Nummer. Der Nutzer ist für die Vertraulichkeit seiner Nummer und für jede Handlung verantwortlich, die über sein Konto erfolgt. Jede unbefugte Nutzung ist unverzüglich zu melden.",
       "article4Title": "4. Preise und Zahlung",
-      "article4Body": "Der Dienst wird ohne kostenlose Variante angeboten. Für Privatpersonen, die eine Hochzeit organisieren, gibt es zwei Einmalzahlungs-Pakete: Essentiel (29 €, Grundfunktionen + Galerie 30 Tage) und Premium (59 €, Essentiel + Galerie 6 Monate + PDF-Album). Ein Upsell nach der Hochzeit (+29 €) verlängert die Galerie auf 5 Jahre und fügt das HD-Fotobuch hinzu. Für Profis: monatliches oder jährliches Abonnement (Starter 99 €/Monat, Business 219 €/Monat, Agency 449 €/Monat, -20 % bei jährlicher Zahlung) oder Bezahlung pro Event (79 €). Zahlungen werden über Stripe abgewickelt. Vollständige Rückerstattung innerhalb von 7 Tagen, sofern das Event noch nicht versendet wurde. Bei Absage der Hochzeit ist eine kostenlose Verschiebung auf einen anderen Termin möglich.",
+      "article4Body": "Der Dienst wird ohne kostenlose Variante angeboten. Für Privatpersonen, die eine Hochzeit organisieren, gibt es zwei Einmalzahlungs-Pakete: Essentiel (29 €, Einladungen, RSVP, Check-in und Dashboard — ohne geteilte Galerie) und Premium (59 €, Essentiel + geteilte Galerie 6 Monate + PDF-Album). Ein Upsell nach der Hochzeit (+29 €) verlängert die Galerie auf 5 Jahre und fügt das HD-Fotobuch hinzu. Für Profis: monatliches oder jährliches Abonnement (Starter 99 €/Monat, Business 219 €/Monat, Agency 449 €/Monat, -20 % bei jährlicher Zahlung) oder Bezahlung pro Event (79 €). Zahlungen werden über Stripe abgewickelt. Vollständige Rückerstattung innerhalb von 7 Tagen, sofern das Event noch nicht versendet wurde. Bei Absage der Hochzeit ist eine kostenlose Verschiebung auf einen anderen Termin möglich.",
       "article5Title": "5. Geistiges Eigentum",
       "article5Body": "Der Nutzer behält das Eigentum an den von ihm hochgeladenen Inhalten. Er räumt Wedillybird eine nicht-exklusive Lizenz zur Nutzung dieser Inhalte ausschließlich zum Zweck des Betriebs des Dienstes ein. Wedillybird behält das Eigentum an der Plattform, dem Code und der Marke.",
       "article6Title": "6. Haftung",
@@ -419,7 +419,7 @@
       },
       "guestVsInvitation": {
         "q": "Was ist der Unterschied zwischen einer Einladung und einem Gast?",
-        "a": "Eine Einladung = ein Eintrag in deiner Liste, der einer Hauptperson entspricht (z. B. deiner Cousine Aminata), der du einen personalisierten Link mit ihrem QR-Code sendest. Diese Person kann in ihrer Antwort angeben, dass sie mit N weiteren Personen kommt (z. B. ihrem Partner und ihren Kindern). Das Kontingent des Plans zählt die Anzahl der gesendeten Einladungen, nicht die Gesamtzahl der Personen, die kommen. Mit dem Sérénité-Paket (150 Einladungen) kannst du also weit mehr als 150 Menschen am großen Tag empfangen."
+        "a": "Eine Einladung = ein Eintrag in deiner Liste, der einer Hauptperson entspricht (z. B. deiner Cousine Aminata), der du einen personalisierten Link mit ihrem QR-Code sendest. Diese Person kann in ihrer Antwort angeben, dass sie mit N weiteren Personen kommt (z. B. ihrem Partner und ihren Kindern). Das Kontingent des Plans zählt die Anzahl der gesendeten Einladungen, nicht die Gesamtzahl der Personen, die kommen. Mit dem Paket Essentiel (100 Einladungen) oder Premium (250 Einladungen) kannst du also weit mehr Menschen am großen Tag empfangen."
       }
     }
   },
@@ -432,8 +432,8 @@
       "ctaPrimary": "Meine Hochzeit vorbereiten",
       "ctaSecondary": "Pakete ansehen",
       "trust": {
-        "stat": "1.240 gefeierte Hochzeiten",
-        "rating": "4,9 / 5 Zufriedenheit der Paare",
+        "stat": "Einmalzahlung, kein Abo",
+        "rating": "Volle Rückerstattung binnen 7 Tagen, wenn nichts versendet wurde",
         "regions": "Weltweit verfügbar"
       },
       "card": {
@@ -482,10 +482,10 @@
           "context": "vs. 22 % bei klassischer E-Mail"
         },
         "rsvpSpeed": {
-          "value": 73,
-          "suffix": "%",
-          "label": "RSVP innerhalb von 24 Stunden",
-          "context": "Durchschnitt der ersten 30 Einladungen"
+          "value": 30,
+          "suffix": " s",
+          "label": "um zuzusagen",
+          "context": "ein Tipp direkt aus dem Chat, ohne App"
         },
         "memory": {
           "value": 5,
@@ -494,7 +494,7 @@
           "context": "mit der Option Premium + Upsell nach der Hochzeit"
         }
       },
-      "source": "Gemessen an den ersten 1.240 mit Wedillybird gefeierten Hochzeiten, 2026."
+      "source": "Öffnungsraten: veröffentlichte Branchendurchschnitte für WhatsApp und E-Mail — keine Wedillybird-Messungen."
     },
     "features": {
       "chapter": "KAPITEL 03 — DIE SÄULEN",
@@ -564,29 +564,29 @@
     },
     "testimonials": {
       "chapter": "KAPITEL 05 — DIE STIMMEN",
-      "eyebrow": "Sie haben Ja gesagt",
-      "title": "Paare und Planner, die Gelassenheit gewonnen haben.",
+      "eyebrow": "Für den Ernstfall gebaut",
+      "title": "Drei anspruchsvolle Hochzeitstage, dieselbe Gelassenheit.",
       "items": {
         "couple-fr": {
-          "quote": "Wir haben 180 Personen mit vier Klicks eingeladen. Der Offline-Check-in hat den Eingang gerettet, als das WLAN im Anwesen versagte — niemand hat länger als fünf Sekunden gewartet.",
-          "name": "Camille & Hugo",
-          "location": "Hochzeit unter freiem Himmel · Juni 2026",
-          "initials": "CH",
-          "alt": "Porträt von Camille und Hugo, lächelnd"
+          "quote": "180 Gäste unter freiem Himmel, das WLAN des Guts fällt bei der Ankunft aus: der Check-in läuft offline weiter, die Liste synchronisiert sich, sobald das Netz zurück ist, und niemand steht Schlange.",
+          "name": "Unter freiem Himmel",
+          "location": "Szenario · 180 Gäste · Offline-Check-in",
+          "initials": "01",
+          "alt": "Szenario einer Hochzeit im Freien"
         },
         "couple-sn": {
-          "quote": "Wir waren über 600 Gäste an drei Tagen. Wedillybird hat dort durchgehalten, wo Excel und unsere WhatsApp-Gruppen versagten. Die geteilte Galerie hat die Erinnerungen drei Monate später noch einmal zurückgebracht.",
-          "name": "Awa & Mamadou",
-          "location": "Hochzeit mit 600+ Gästen · November 2025",
-          "initials": "AM",
-          "alt": "Awa und Mamadou in traditioneller Kleidung"
+          "quote": "Über 600 Gäste an drei Tagen, wo geteilte Tabellen und WhatsApp-Gruppen zusammenbrechen: ein persönlicher Link pro Gast, Antworten in Echtzeit und eine gemeinsame Galerie, die nach dem Wochenende weiterlebt.",
+          "name": "Die drei Tage",
+          "location": "Szenario · 600+ Gäste · Multi-Event",
+          "initials": "02",
+          "alt": "Szenario einer großen mehrtägigen Hochzeit"
         },
         "planner-pro": {
-          "quote": "Ich betreue diese Saison acht Hochzeiten mit meinem Branding auf jeder Gästeseite. Meine Paare sehen meine Agentur, kein Drittanbieter-Tool — genau das hat auf dem Markt gefehlt.",
-          "name": "Studio Lumière",
-          "location": "Hochzeitsplanerin",
-          "initials": "SL",
-          "alt": "Hochzeitsplanerin vor einer Outdoor-Hochzeit"
+          "quote": "Acht Hochzeiten in einer Saison, jede Gästeseite in den Farben der Agentur: eure Paare sehen eure Marke, kein Fremdtool, und alle Zusagen laufen an einem Ort zusammen.",
+          "name": "Unter eurer Marke",
+          "location": "Szenario · Agenturen & Wedding Planner",
+          "initials": "03",
+          "alt": "Szenario einer Wedding-Planning-Agentur"
         }
       }
     },
@@ -640,11 +640,11 @@
       "items": {
         "whyWhatsapp": {
           "q": "Warum WhatsApp und nicht eine E-Mail oder eine eigene App?",
-          "a": "Weil deine Gäste schon dort sind. WhatsApp hat eine Öffnungsrate von 98 % gegenüber 22 % bei E-Mail und erfordert keine Installation. Es ist der universellste Kanal weltweit."
+          "a": "Weil deine Gäste schon dort sind. Veröffentlichte Branchendurchschnitte verorten die Öffnungsrate von WhatsApp bei rund 98 %, gegenüber etwa 22 % bei E-Mail — und es muss nichts installiert werden. Es ist der universellste Kanal weltweit."
         },
         "olderGuests": {
           "q": "Kommen meine älteren oder weniger digital-affinen Gäste damit zurecht?",
-          "a": "Ja. Die Einladungsseite öffnet sich mit einem Tipp im WhatsApp-Browser — keine App, kein Konto nötig. Das RSVP läuft über 3 Buttons. Über 92 % der getesteten Großeltern haben ohne Hilfe zugesagt."
+          "a": "Ja. Die Einladungsseite öffnet sich mit einem Tipp direkt im WhatsApp-Browser — keine App, kein Konto nötig. Die Zusage besteht aus 3 Buttons und ist so gestaltet, dass sie ohne Hilfe lesbar und bedienbar bleibt, auch für Gäste, die mit Technik weniger vertraut sind."
         },
         "guestLimit": {
           "q": "Wie viele Gäste maximal?",
@@ -677,12 +677,12 @@
       "title": "Der große Tag verdient mehr als eine PDF.",
       "subtitle": "Erstelle deine erste Einladung in drei Minuten. Ohne Kreditkarte zum Erkunden, Rückerstattung innerhalb von 7 Tagen, falls du es dir anders überlegst.",
       "cta": "Meine Hochzeit vorbereiten",
-      "trust": "1.240 gefeierte Hochzeiten · 4,9 / 5 Zufriedenheit der Paare"
+      "trust": "Einmalzahlung · Rückerstattung binnen 7 Tagen, wenn nichts versendet wurde · Kostenlose Terminverschiebung"
     },
     "footer": {
       "tagline": "WhatsApp-first Hochzeits-Concierge. Gedacht für Hochzeiten weltweit.",
       "newsletterTitle": "Erhalte unsere kostenlosen Einladungsvorlagen",
-      "newsletterSubtitle": "Einmal im Monat Vorlagen von renommierten Hochzeitsdesignern, ohne Spam.",
+      "newsletterSubtitle": "Einmal im Monat: Einladungsvorlagen, Checklisten und konkrete Ideen für eure Hochzeitsplanung. Kein Spam.",
       "newsletterPlaceholder": "du@email.com",
       "newsletterCta": "Erhalten",
       "newsletterSuccess": "Eingetragen. Bis bald in deinem Postfach.",

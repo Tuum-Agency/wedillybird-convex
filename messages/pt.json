@@ -251,7 +251,7 @@
       "article3Title": "3. Conta e acesso",
       "article3Body": "O acesso ao Serviço requer a criação de uma conta através da verificação de um número WhatsApp. O Utilizador é responsável pela confidencialidade do seu número e por qualquer ação efetuada a partir da sua conta. Qualquer utilização não autorizada deve ser comunicada de imediato.",
       "article4Title": "4. Preços e pagamento",
-      "article4Body": "O Serviço é disponibilizado sem opção gratuita. Para particulares que organizam um casamento, existem duas modalidades em pagamento único: Essencial (29 €, funcionalidades base + galeria 30 dias) e Premium (59 €, Essencial + galeria 6 meses + álbum PDF). Um upsell pós-casamento (+29 €) prolonga a galeria para 5 anos e adiciona o livro fotográfico HD. Para profissionais, há subscrição mensal ou anual (Starter 99 €/mês, Business 219 €/mês, Agency 449 €/mês, -20 % na modalidade anual) ou pagamento por evento (79 €). Os pagamentos são processados pela Stripe. Reembolso integral até 7 dias se o evento ainda não tiver sido enviado. Em caso de cancelamento do casamento, adiamento gratuito para outra data.",
+      "article4Body": "O Serviço é disponibilizado sem opção gratuita. Para particulares que organizam um casamento, existem duas modalidades em pagamento único: Essencial (29 €, convites, RSVP, check-in e painel — sem galeria partilhada) e Premium (59 €, Essencial + galeria partilhada 6 meses + álbum PDF). Um upsell pós-casamento (+29 €) prolonga a galeria para 5 anos e adiciona o livro fotográfico HD. Para profissionais, há subscrição mensal ou anual (Starter 99 €/mês, Business 219 €/mês, Agency 449 €/mês, -20 % na modalidade anual) ou pagamento por evento (79 €). Os pagamentos são processados pela Stripe. Reembolso integral até 7 dias se o evento ainda não tiver sido enviado. Em caso de cancelamento do casamento, adiamento gratuito para outra data.",
       "article5Title": "5. Propriedade intelectual",
       "article5Body": "O Utilizador conserva a propriedade dos conteúdos que carrega. Concede à Wedillybird uma licença não exclusiva de utilização desses conteúdos exclusivamente para o funcionamento do Serviço. A Wedillybird mantém a propriedade da plataforma, do código e da marca.",
       "article6Title": "6. Responsabilidade",
@@ -419,7 +419,7 @@
       },
       "guestVsInvitation": {
         "q": "Qual é a diferença entre um convite e um convidado?",
-        "a": "Um convite = uma ficha na tua lista que corresponde a uma pessoa principal (ex.: a tua prima Aminata) a quem envias uma ligação personalizada com o seu QR code. Essa pessoa pode indicar na resposta que vai acompanhada de N pessoas (por exemplo, o cônjuge e os filhos). A quota do plano conta o número de convites enviados, não o número total de pessoas que vão estar presentes. Por isso, com o plano Serenidade (150 convites), podes acolher muito mais de 150 pessoas no dia do casamento."
+        "a": "Um convite = uma ficha na tua lista que corresponde a uma pessoa principal (ex.: a tua prima Aminata) a quem envias uma ligação personalizada com o seu QR code. Essa pessoa pode indicar na resposta que vai acompanhada de N pessoas (por exemplo, o cônjuge e os filhos). A quota do plano conta o número de convites enviados, não o número total de pessoas que vão estar presentes. Por isso, com o plano Essencial (100 convites) ou Premium (250 convites), podes acolher muito mais pessoas no dia do casamento."
       }
     }
   },
@@ -432,8 +432,8 @@
       "ctaPrimary": "Preparar o meu casamento",
       "ctaSecondary": "Ver os planos",
       "trust": {
-        "stat": "1.240 casamentos celebrados",
-        "rating": "4,9 / 5 de satisfação dos casais",
+        "stat": "Pagamento único, sem assinatura",
+        "rating": "Reembolso total em 7 dias se nada for enviado",
         "regions": "Disponível internacionalmente"
       },
       "card": {
@@ -482,10 +482,10 @@
           "context": "vs 22 % por email tradicional"
         },
         "rsvpSpeed": {
-          "value": 73,
-          "suffix": "%",
-          "label": "de RSVP em 24 horas",
-          "context": "média sobre os 30 primeiros convites"
+          "value": 30,
+          "suffix": " s",
+          "label": "para confirmar presença",
+          "context": "um toque na conversa, sem app"
         },
         "memory": {
           "value": 5,
@@ -494,7 +494,7 @@
           "context": "com a opção Premium + Upsell pós-casamento"
         }
       },
-      "source": "Medido nos primeiros 1.240 casamentos celebrados com a Wedillybird, 2026."
+      "source": "Taxas de abertura: médias do setor publicadas para WhatsApp e email — não são medições da Wedillybird."
     },
     "features": {
       "chapter": "CAPÍTULO 03 — OS PILARES",
@@ -564,29 +564,29 @@
     },
     "testimonials": {
       "chapter": "CAPÍTULO 05 — AS VOZES",
-      "eyebrow": "Disseram sim",
-      "title": "Casais e planners que ganharam serenidade.",
+      "eyebrow": "Feito para o terreno",
+      "title": "Três grandes dias exigentes, a mesma serenidade.",
       "items": {
         "couple-fr": {
-          "quote": "Convidámos 180 pessoas em quatro toques. O check-in offline salvou a entrada quando o WiFi da quinta falhou — ninguém esperou mais de cinco segundos.",
-          "name": "Camille & Hugo",
-          "location": "Casamento ao ar livre · junho de 2026",
-          "initials": "CH",
-          "alt": "Retrato da Camille e do Hugo a sorrir"
+          "quote": "180 convidados ao ar livre e o WiFi da quinta que cai à chegada: o check-in continua offline, a lista sincroniza quando a rede volta e ninguém fica na fila.",
+          "name": "Ao ar livre",
+          "location": "Cenário · 180 convidados · check-in offline",
+          "initials": "01",
+          "alt": "Cenário de um casamento ao ar livre"
         },
         "couple-sn": {
-          "quote": "Éramos mais de 600 convidados durante três dias. A Wedillybird aguentou onde o Excel e os nossos grupos de WhatsApp cediam. A galeria partilhada trouxe as memórias de volta, mais uma vez, três meses depois.",
-          "name": "Awa & Mamadou",
-          "location": "Casamento com 600+ convidados · novembro de 2025",
-          "initials": "AM",
-          "alt": "Awa e Mamadou em traje tradicional"
+          "quote": "Mais de 600 convidados em três dias, onde o Excel partilhado e os grupos de WhatsApp se desfazem: um link personalizado por convidado, respostas em direto e uma galeria comum que continua viva depois do fim de semana.",
+          "name": "Os três dias",
+          "location": "Cenário · 600+ convidados · multievento",
+          "initials": "02",
+          "alt": "Cenário de um grande casamento de vários dias"
         },
         "planner-pro": {
-          "quote": "Estou a gerir oito casamentos esta época, com a minha marca em cada página de convidado. Os meus casais veem a minha agência, não uma ferramenta de terceiros — era mesmo isto que faltava no mercado.",
-          "name": "Studio Lumière",
-          "location": "Wedding planner",
-          "initials": "SL",
-          "alt": "Wedding planner num casamento ao ar livre"
+          "quote": "Oito casamentos na época, cada página de convidado com as cores da agência: os teus casais veem a tua marca, não uma ferramenta de terceiros, e todos os RSVP acompanham-se num só lugar.",
+          "name": "Com a tua marca",
+          "location": "Cenário · agências e wedding planners",
+          "initials": "03",
+          "alt": "Cenário de uma agência de wedding planning"
         }
       }
     },
@@ -640,11 +640,11 @@
       "items": {
         "whyWhatsapp": {
           "q": "Porquê WhatsApp e não um email ou uma aplicação dedicada?",
-          "a": "Porque os teus convidados já lá estão. O WhatsApp tem uma taxa de abertura de 98 % vs 22 % do email e não exige qualquer instalação. É o canal mais universal a nível internacional."
+          "a": "Porque os teus convidados já lá estão. As médias publicadas do setor situam a taxa de abertura do WhatsApp perto de 98 %, contra cerca de 22 % do email — e não há nada para instalar. É o canal mais universal a nível internacional."
         },
         "olderGuests": {
           "q": "Os meus convidados mais velhos ou pouco à vontade com o digital vão conseguir?",
-          "a": "Sim. A página de convite abre no navegador do WhatsApp num toque — sem aplicação, sem conta para criar. O RSVP faz-se com 3 botões. Mais de 92 % dos avós testados confirmaram sem ajuda."
+          "a": "Sim. A página do convite abre no navegador do WhatsApp com um toque — sem app e sem criar conta. O RSVP são 3 botões, pensado para ser legível e fácil de usar sem ajuda, mesmo para os convidados menos à vontade com o digital."
         },
         "guestLimit": {
           "q": "Qual é o número máximo de convidados?",
@@ -677,12 +677,12 @@
       "title": "O grande dia merece mais do que um PDF.",
       "subtitle": "Cria o teu primeiro convite em três minutos. Sem cartão de crédito para explorar, reembolsado em 7 dias se mudares de ideias.",
       "cta": "Preparar o meu casamento",
-      "trust": "1.240 casamentos celebrados · 4,9 / 5 de satisfação dos casais"
+      "trust": "Pagamento único · Reembolso em 7 dias se nada for enviado · Reagendamento gratuito se a data mudar"
     },
     "footer": {
       "tagline": "Wedding concierge WhatsApp-first. Pensado para casamentos em todo o mundo.",
       "newsletterTitle": "Recebe os nossos templates de convite gratuitos",
-      "newsletterSubtitle": "Uma vez por mês, modelos assinados por wedding designers reconhecidos, e zero spam.",
+      "newsletterSubtitle": "Uma vez por mês: modelos de convite, checklists e ideias práticas para preparar o teu casamento. Zero spam.",
       "newsletterPlaceholder": "tu@email.com",
       "newsletterCta": "Receber",
       "newsletterSuccess": "Inscrito. Até breve na tua caixa de email.",
