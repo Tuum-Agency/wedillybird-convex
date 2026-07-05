@@ -1218,6 +1218,8 @@ export interface AdminCoupon {
   redeemBy: number | null;
   valid: boolean;
   createdAt: number;
+  /** Produits Stripe auxquels le coupon est restreint (`applies_to.products`). Vide = tous. */
+  appliesToProducts: string[];
 }
 
 export interface AdminPromotionCode {
@@ -1246,6 +1248,7 @@ function mapCoupon(c: Stripe.Coupon): AdminCoupon {
     redeemBy: c.redeem_by ? c.redeem_by * 1000 : null,
     valid: c.valid,
     createdAt: (c.created ?? 0) * 1000,
+    appliesToProducts: c.applies_to?.products ?? [],
   };
 }
 
@@ -1263,6 +1266,12 @@ export async function createCoupon(input: {
   durationInMonths?: number;
   maxRedemptions?: number;
   redeemBy?: number; // ms epoch
+  /**
+   * Restreint le coupon à ces produits Stripe (`applies_to.products`). Vide /
+   * absent = applicable à tous les produits. ⚠️ Immuable après création (Stripe
+   * n'autorise pas la modif d'`applies_to`).
+   */
+  appliesToProducts?: string[];
 }): Promise<AdminCoupon> {
   const stripe = getStripe();
   if ((input.percentOff == null) === (input.amountOffMinor == null)) {
@@ -1284,9 +1293,50 @@ export async function createCoupon(input: {
     ...(input.duration === 'repeating' ? { duration_in_months: input.durationInMonths } : {}),
     ...(input.maxRedemptions != null ? { max_redemptions: input.maxRedemptions } : {}),
     ...(input.redeemBy != null ? { redeem_by: Math.floor(input.redeemBy / 1000) } : {}),
+    ...(input.appliesToProducts && input.appliesToProducts.length > 0
+      ? { applies_to: { products: input.appliesToProducts } }
+      : {}),
   };
   const coupon = await stripe.coupons.create(params);
   return mapCoupon(coupon);
+}
+
+/**
+ * Résout les IDs de **produits** Stripe des forfaits pros (Starter / Business /
+ * Agency, mensuel + annuel) pour l'environnement courant — pour restreindre un
+ * coupon aux abonnements pros via `applies_to.products` (geste « code promo
+ * agences » qui ne doit pas marcher sur les forfaits couples ni le PAYG).
+ *
+ * En live, chaque (tier × cadence) est un produit Stripe distinct (6 au total).
+ * Les variantes de devise (EUR/USD/MAD) d'un même tier × cadence partagent le
+ * **même** produit → résoudre via EUR suffit à couvrir toutes les devises. On
+ * lit les Price IDs via `priceIdForTier` (test en dev, live en prod), on
+ * retrieve chaque prix et on déduplique les produits. Un variant dont l'env var
+ * manque est ignoré (best effort).
+ */
+export async function resolveProPlanProductIds(): Promise<string[]> {
+  const stripe = getStripe();
+  const tiers: SubscriptionTier[] = ['starter', 'business', 'agency'];
+  const billings: SubscriptionBilling[] = ['monthly', 'annual'];
+
+  const priceIds = new Set<string>();
+  for (const tier of tiers) {
+    for (const billing of billings) {
+      try {
+        priceIds.add(priceIdForTier(tier, billing, 'EUR'));
+      } catch {
+        // Env var absente pour ce variant — on l'ignore.
+      }
+    }
+  }
+
+  const products = new Set<string>();
+  for (const priceId of priceIds) {
+    const price = await stripe.prices.retrieve(priceId);
+    const product = typeof price.product === 'string' ? price.product : price.product?.id;
+    if (product) products.add(product);
+  }
+  return [...products];
 }
 
 export async function listCoupons(limit = 100): Promise<AdminCoupon[]> {
