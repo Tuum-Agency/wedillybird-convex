@@ -4,7 +4,6 @@ import { useTranslations } from 'next-intl';
 import { useReducedMotion } from 'motion/react';
 import { useRef, type CSSProperties } from 'react';
 import {
-  CinematicCountdown,
   CinematicSkip,
   shiftL,
   useCinematicTimeline,
@@ -15,19 +14,23 @@ import {
 import './theatre.css';
 
 /**
- * « Le Lever de rideau » — cinématique théâtrale (l'acte des cygnes).
+ * « Le Lever de rideau » — l'acte des cygnes. AUCUNE carte : les prénoms
+ * sont LE TITRE DU SPECTACLE.
  *
- * Un théâtre à l'italienne : le projecteur balaie le velours, le rideau se
- * lève sur un lac au clair de lune, deux cygnes glissent l'un vers l'autre
- * et leurs cous dessinent un cœur — la carte s'élève alors du lac dans le
- * cône de lumière. Les étoiles scintillent, l'eau miroite, le rideau reste
- * en cadre de scène autour du compte à rebours.
+ * Théâtre à l'italienne, caméra frontale quasi fixe — c'est la LUMIÈRE qui
+ * met en scène : le projecteur balaie le velours, le rideau se lève sur un
+ * lac au clair de lune, deux cygnes glissent l'un vers l'autre… puis une
+ * ENSEIGNE descend des cintres au bout de ses cordes, portant les prénoms
+ * en lettres d'or — ses AMPOULES s'allument une à une. Un panneau « Acte I »
+ * entre côté cour avec la date pendant que les cygnes composent leur cœur.
+ * Compte à rebours final en chiffres de music-hall entre deux rangées de
+ * loupiotes.
  *
  * Phases : 0 rideau fermé · 1 rise (lever) · 2 scene (lac + cygnes) ·
- *          3 heart (cœur + carte) · 4 named (prénoms) · 5 settled
+ *          3 title (enseigne + ampoules) · 4 act (Acte I + cœur) · 5 settled
  */
-const WAITS = [950, 950, 1150, 1000, 950];
-const PHASES = ['', 'rise', 'scene', 'heart', 'named', 'settled'] as const;
+const WAITS = [950, 950, 1200, 1050, 900];
+const PHASES = ['', 'rise', 'scene', 'title', 'act', 'settled'] as const;
 
 const STARS: ReadonlyArray<{ x: number; y: number; s: number; d: number }> = [
   { x: 12, y: 8, s: 2.5, d: 0 },
@@ -40,6 +43,26 @@ const STARS: ReadonlyArray<{ x: number; y: number; s: number; d: number }> = [
   { x: 52, y: 22, s: 1.4, d: 3.6 },
   { x: 80, y: 28, s: 1.7, d: 0.4 },
   { x: 34, y: 30, s: 1.3, d: 1.6 },
+];
+
+/** Ampoules du pourtour de l'enseigne (292×132). */
+const BULBS: ReadonlyArray<{ x: number; y: number }> = [
+  { x: 24, y: 7 },
+  { x: 65, y: 7 },
+  { x: 106, y: 7 },
+  { x: 146, y: 7 },
+  { x: 186, y: 7 },
+  { x: 227, y: 7 },
+  { x: 268, y: 7 },
+  { x: 268, y: 66 },
+  { x: 268, y: 125 },
+  { x: 227, y: 125 },
+  { x: 186, y: 125 },
+  { x: 146, y: 125 },
+  { x: 106, y: 125 },
+  { x: 65, y: 125 },
+  { x: 24, y: 125 },
+  { x: 24, y: 66 },
 ];
 
 function Swan({ side }: { side: 'l' | 'r' }) {
@@ -95,16 +118,22 @@ export function CinematicTheatre({
     .filter(Boolean)
     .join(' ');
 
-  // Marque blanche : l'accent teinte le velours du rideau + les accents.
+  // Marque blanche : l'accent teinte le velours du rideau.
   const tint: CSSProperties = accentColor
     ? ({
         '--c-curt': shiftL(accentColor, -0.18),
         '--c-curt-dk': shiftL(accentColor, -0.34),
-        '--c-accent': accentColor,
       } as CSSProperties)
     : {};
 
   const stageCls = ['cineT-stage', live && 'live'].filter(Boolean).join(' ');
+
+  const cdCell = (v: number | null, u: string, i: number) => (
+    <span className="t-cdc" style={{ '--cdd': `${i * 0.1}s` } as CSSProperties}>
+      <b>{v == null ? '—' : String(v).padStart(2, '0')}</b>
+      <i>{u}</i>
+    </span>
+  );
 
   return (
     <div className={stageCls} style={tint} role="presentation">
@@ -160,26 +189,40 @@ export function CinematicTheatre({
               <span className="spark">✦</span>
             </div>
 
-            <div className="card3d">
-              <div className="card-face">
-                <span className="card-sheen" aria-hidden />
-                <span className="cf-eyebrow">{t('youreInvited')}</span>
-                <span className="cf-rule" />
-                <div className="cf-names">
-                  <span className="cf-clip">
-                    <span className="cf-line l1">{partnerA}</span>
-                  </span>
-                  <span className="cf-amp">&amp;</span>
-                  <span className="cf-clip">
-                    <span className="cf-line l2">{partnerB}</span>
-                  </span>
-                </div>
-                <span className="cf-rule" />
-                <span className="cf-date">
-                  {formattedDate}
-                  {venueName ? ` · ${venueName}` : ''}
+            {/* L'ENSEIGNE volée des cintres : les prénoms en titre */}
+            <div className="t-flying">
+              <span className="t-rope ra" aria-hidden />
+              <span className="t-rope rb" aria-hidden />
+              <div className="t-board">
+                {BULBS.map((b, i) => (
+                  <span
+                    key={i}
+                    className="t-bulb"
+                    aria-hidden
+                    style={
+                      {
+                        left: `${b.x}px`,
+                        top: `${b.y}px`,
+                        '--bd': `${i * 0.07}s`,
+                        '--bi': i,
+                      } as CSSProperties
+                    }
+                  />
+                ))}
+                <span className="t-eyebrow">{t('youreInvited')}</span>
+                <b className="t-name">{partnerA}</b>
+                <span className="t-star" aria-hidden>
+                  ✦
                 </span>
+                <b className="t-name">{partnerB}</b>
               </div>
+            </div>
+
+            {/* Panneau « Acte I » — la date entre côté cour */}
+            <div className="t-act">
+              <b>{t('actOne')}</b>
+              <span>{formattedDate}</span>
+              {venueName ? <i>{venueName}</i> : null}
             </div>
 
             {/* Cône du projecteur */}
@@ -193,7 +236,19 @@ export function CinematicTheatre({
           </div>
         </div>
 
-        {target != null && <CinematicCountdown cd={cd} className="cineT-after" />}
+        {/* Compte à rebours music-hall */}
+        {target != null && (
+          <div className="t-cd">
+            <span className="lbl">{t('countdownLabel')}</span>
+            <span className="t-rule" aria-hidden />
+            <div className="row">
+              {cdCell(cd?.d ?? null, t('countdownDays'), 0)}
+              {cdCell(cd?.h ?? null, t('countdownHours'), 1)}
+              {cdCell(cd?.m ?? null, t('countdownMinutes'), 2)}
+            </div>
+            <span className="t-rule" aria-hidden />
+          </div>
+        )}
       </div>
 
       <p className="cineT-cue" style={{ opacity: effectivePhase === 4 ? 1 : 0 }}>

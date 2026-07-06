@@ -1016,7 +1016,11 @@
     "musicHint": "Une musique accompagne cette invitation",
     "musicPlayAria": "Lancer la musique",
     "musicMuteAria": "Couper la musique",
-    "musicUnmuteAria": "Réactiver la musique"
+    "musicUnmuteAria": "Réactiver la musique",
+    "passDate": "Date",
+    "passGate": "Porte",
+    "passSeat": "Siège",
+    "actOne": "Acte I"
   },
   "OrgPublic": {
     "poweredBy": "Propulsé par",
@@ -5669,19 +5673,19 @@
       },
       "floral": {
         "name": "L'Éclosion",
-        "desc": "Un bouquet s'élance et fleurit, la carte naît au cœur des pivoines."
+        "desc": "Le jardin s'éveille : vos prénoms s'écrivent à l'encre sous l'arche en fleurs."
       },
       "cake": {
         "name": "La Pièce montée",
-        "desc": "Les étages s'empilent, les bougies s'allument — la carte jaillit sous les confettis."
+        "desc": "La pièce montée se dresse et vos prénoms sont pochés au glaçage, bougies allumées."
       },
       "voyage": {
         "name": "L'Embarquement",
-        "desc": "Le hublot s'ouvre sur l'aube, la carte arrive comme une carte d'embarquement."
+        "desc": "Le hublot s'ouvre sur l'aube — carte d'embarquement imprimée, puis tamponnée."
       },
       "theatre": {
         "name": "Le Lever de rideau",
-        "desc": "Le velours s'ouvre sur un lac au clair de lune — deux cygnes composent un cœur."
+        "desc": "Le rideau se lève sur le lac aux cygnes — vos prénoms en enseigne lumineuse."
       }
     },
     "tracks": {

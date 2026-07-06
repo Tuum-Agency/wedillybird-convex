@@ -1016,7 +1016,11 @@
     "musicHint": "Esta invitación viene con música",
     "musicPlayAria": "Reproducir la música",
     "musicMuteAria": "Silenciar la música",
-    "musicUnmuteAria": "Reactivar la música"
+    "musicUnmuteAria": "Reactivar la música",
+    "passDate": "Fecha",
+    "passGate": "Puerta",
+    "passSeat": "Asiento",
+    "actOne": "Acto I"
   },
   "OrgPublic": {
     "poweredBy": "Desarrollado con",
@@ -5669,19 +5673,19 @@
       },
       "floral": {
         "name": "La Floración",
-        "desc": "Un ramo crece y florece; la tarjeta nace entre las peonías."
+        "desc": "El jardín despierta: vuestros nombres se escriben a tinta bajo el arco en flor."
       },
       "cake": {
         "name": "La Tarta nupcial",
-        "desc": "Los pisos se apilan, las velas se encienden y la tarjeta aparece entre confeti."
+        "desc": "La tarta se alza y vuestros nombres se dibujan en glaseado, con velas encendidas."
       },
       "voyage": {
         "name": "El Embarque",
-        "desc": "La ventanilla se abre al amanecer; la tarjeta llega como una tarjeta de embarque."
+        "desc": "La ventanilla se abre al amanecer: la tarjeta de embarque se imprime y se sella."
       },
       "theatre": {
         "name": "El Telón",
-        "desc": "El terciopelo se abre sobre un lago a la luz de la luna: dos cisnes forman un corazón."
+        "desc": "El telón se alza sobre el lago de los cisnes: vuestros nombres en luces de marquesina."
       }
     },
     "tracks": {

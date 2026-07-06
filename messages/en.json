@@ -1012,7 +1012,11 @@
     "musicHint": "This invitation comes with music",
     "musicPlayAria": "Play the music",
     "musicMuteAria": "Mute the music",
-    "musicUnmuteAria": "Unmute the music"
+    "musicUnmuteAria": "Unmute the music",
+    "passDate": "Date",
+    "passGate": "Gate",
+    "passSeat": "Seat",
+    "actOne": "Act I"
   },
   "OrgPublic": {
     "poweredBy": "Powered by",
@@ -5665,19 +5669,19 @@
       },
       "floral": {
         "name": "The Bloom",
-        "desc": "A bouquet rises and blossoms; the card emerges among the peonies."
+        "desc": "The garden wakes: your names are inked beneath a blooming arch."
       },
       "cake": {
         "name": "The Wedding Cake",
-        "desc": "Tiers stack up, candles light — the card bursts out in confetti."
+        "desc": "The cake rises and your names are piped in icing, candles lit."
       },
       "voyage": {
         "name": "The Boarding",
-        "desc": "The cabin window opens onto dawn; the card arrives like a boarding pass."
+        "desc": "The cabin window opens onto dawn — a boarding pass prints, then gets stamped."
       },
       "theatre": {
         "name": "The Curtain Rise",
-        "desc": "Velvet parts on a moonlit lake — two swans form a heart."
+        "desc": "The curtain rises on the swan lake — your names up in marquee lights."
       }
     },
     "tracks": {

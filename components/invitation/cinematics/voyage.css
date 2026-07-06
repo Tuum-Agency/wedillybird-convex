@@ -1,7 +1,9 @@
 /* Wedillybird — Cinématique « L'Embarquement » (voyage).
-   Cabine au crépuscule → hublot → traversée → plein ciel à l'aube.
-   Avion en papier, carte d'embarquement perforée, prénoms tamponnés.
-   Phases (classes cumulatives) : shade · through · plane · named · settled */
+   Langage graphique AVIATION, aucune carte de papeterie : cabine → hublot
+   → traversée → plein ciel, puis CARTE D'EMBARQUEMENT paysage (codes
+   voyageurs, porte ♥, siège 2A, talon code-barres), TAMPON encreur, et
+   compte à rebours en TABLEAU DES DÉPARTS à volets.
+   Phases (classes cumulatives) : shade · through · ticket · stamp · settled */
 
 .cineV-stage {
   position: relative;
@@ -20,10 +22,8 @@
     oklch(93% 0.05 70) 76%,
     oklch(96% 0.028 85) 100%
   );
-  --c-accent: var(--color-blush-700);
-  --c-shade: oklch(88% 0.028 85);
-  --c-paper: oklch(98.5% 0.008 85);
-  --c-paper-2: oklch(95.5% 0.02 32);
+  --c-ink-pass: oklch(30% 0.03 262);
+  --c-stamp: oklch(56% 0.13 20);
 }
 
 .cineV-stage .cine2-skip {
@@ -59,11 +59,17 @@
 .cineV.through .vx-camera {
   transform: rotateX(1deg) translateZ(-6px) scale(0.996);
 }
-.cineV.plane .vx-camera,
-.cineV.named .vx-camera,
-.cineV.settled .vx-camera {
+.cineV.ticket .vx-camera {
   transform: rotateX(0deg) translateZ(0px) scale(1);
-  transition: transform 1.5s cubic-bezier(0.3, 0.75, 0.25, 1);
+}
+/* Punch du tampon. */
+.cineV.stamp .vx-camera {
+  transform: scale(1.02);
+  transition: transform 0.4s cubic-bezier(0.3, 0.8, 0.3, 1);
+}
+.cineV.settled .vx-camera {
+  transform: scale(1);
+  transition: transform 1.4s cubic-bezier(0.3, 0.75, 0.25, 1);
 }
 
 .vx-par {
@@ -126,7 +132,6 @@
   }
 }
 
-/* Cumulus : une masse + renflements en box-shadow, léger blur. */
 .cl {
   position: absolute;
   width: 120px;
@@ -150,7 +155,6 @@
   }
 }
 
-/* Filets de vent à la traversée. */
 .streak {
   position: absolute;
   width: 150px;
@@ -192,14 +196,14 @@
 .pp-path {
   position: absolute;
   left: 0;
-  top: 158px;
+  top: 128px;
   width: 100%;
   height: 120px;
   pointer-events: none;
   opacity: 0;
   transform: translateZ(26px);
 }
-.cineV.plane .pp-path {
+.cineV.ticket .pp-path {
   opacity: 1;
 }
 .pp-trail {
@@ -211,7 +215,7 @@
   transform-origin: left center;
   transform: rotate(-10deg) scaleX(0);
 }
-.cineV.plane .pp-trail {
+.cineV.ticket .pp-trail {
   transform: rotate(-10deg) scaleX(1);
   transition: transform 1.9s linear 0.12s;
 }
@@ -229,7 +233,8 @@
   opacity: 0;
 }
 .pplane .w1,
-.pplane .w2 {
+.pplane .w2,
+.v-planeglyph i {
   position: absolute;
   inset: 0;
 }
@@ -241,7 +246,7 @@
   clip-path: polygon(0 18%, 30% 58%, 40% 94%);
   background: linear-gradient(140deg, oklch(90% 0.015 265), oklch(80% 0.02 262));
 }
-.cineV.plane .pplane {
+.cineV.ticket .pplane {
   animation: cineVFly 2.35s cubic-bezier(0.35, 0.2, 0.35, 1) 1 forwards;
 }
 @keyframes cineVFly {
@@ -324,7 +329,6 @@
 .h-sky .cl {
   animation-duration: 8s;
 }
-/* La lumière monte dans le hublot quand le cache se lève. */
 .h-sky::after {
   content: '';
   position: absolute;
@@ -346,7 +350,7 @@
   inset: 0;
   background:
     repeating-linear-gradient(180deg, transparent 0 34px, oklch(0% 0 0 / 0.04) 34px 35px),
-    linear-gradient(180deg, var(--c-shade), oklch(82% 0.03 80));
+    linear-gradient(180deg, oklch(88% 0.028 85), oklch(82% 0.03 80));
   box-shadow: inset 0 -3px 6px oklch(55% 0.04 78 / 0.4);
   transform: translateY(0);
   transition: transform 1.1s var(--ease-out-expo);
@@ -408,246 +412,371 @@
   opacity: 0;
 }
 
-/* -------------------------------- carte -------------------------------- */
+/* ----------------------- carte d'embarquement --------------------------- */
 
-.cineV .card3d {
+.v-pass {
   position: absolute;
-  left: 40px;
-  top: 92px;
-  width: 280px;
-  height: 340px;
-  transform-style: preserve-3d;
-  transform: translateX(120px) translateZ(-620px) rotateY(24deg);
+  left: 50%;
+  top: 224px;
+  width: 316px;
+  height: 156px;
+  margin-left: -158px;
+  display: flex;
+  border-radius: 12px;
+  background: linear-gradient(172deg, oklch(98.5% 0.008 85), oklch(95% 0.02 60));
+  border: 1px solid oklch(86% 0.03 70);
+  box-shadow: 0 22px 44px oklch(30% 0.04 265 / 0.32);
+  transform: translateX(440px) translateZ(30px) rotate(4deg);
   opacity: 0;
   transition:
-    transform 1.35s cubic-bezier(0.3, 0.75, 0.25, 1) 0.5s,
-    opacity 0.7s ease 0.6s;
+    transform 0.95s cubic-bezier(0.25, 0.9, 0.3, 1) 0.05s,
+    opacity 0.5s ease 0.1s;
 }
-.cineV.plane .card3d {
+.cineV.ticket .v-pass {
+  transform: translateX(0) translateZ(30px) rotate(0deg);
   opacity: 1;
-  transform: translateX(0) translateY(6px) translateZ(2px) rotateY(0deg);
 }
-.cineV.named .card3d {
-  opacity: 1;
-  transform: translateY(-8px) translateZ(30px);
-  transition: transform 1s cubic-bezier(0.45, 0.05, 0.55, 0.95);
-}
-.cineV.settled .card3d {
-  opacity: 1;
-  transform: translateY(-26px) translateZ(30px) rotateX(-1deg);
+.cineV.settled .v-pass {
+  transform: translateX(0) translateY(-16px) translateZ(30px);
   transition: transform 1.1s cubic-bezier(0.45, 0.05, 0.55, 0.95);
 }
 
-.cineV .card-face {
-  position: absolute;
-  inset: 0;
-  border-radius: 8px;
-  padding: 30px 26px 30px 38px;
-  text-align: center;
-  background: linear-gradient(176deg, var(--c-paper), var(--c-paper-2));
-  border: 1px solid oklch(86% 0.03 70);
-  box-shadow:
-    0 22px 40px oklch(30% 0.04 265 / 0.3),
-    inset 0 1px 0 oklch(99% 0.006 85);
+.v-main {
+  flex: 1;
+  min-width: 0;
+  padding: 12px 12px 10px 16px;
   display: flex;
   flex-direction: column;
+}
+.v-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  padding-bottom: 7px;
+  border-bottom: 1px solid oklch(88% 0.03 75);
+}
+.v-brand {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 12px;
+  color: var(--c-ink-pass);
+  white-space: nowrap;
+}
+.v-type {
+  font-family: var(--font-mono);
+  font-size: 6.5px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: oklch(55% 0.03 262);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.v-codes {
+  display: flex;
   align-items: center;
   justify-content: center;
   gap: 14px;
+  margin: 9px 0 2px;
 }
-/* Bord perforé de carte d'embarquement. */
-.cineV .card-perfo {
-  position: absolute;
-  left: 14px;
-  top: 10px;
-  bottom: 10px;
-  width: 5px;
-  background-image: radial-gradient(circle at 2.5px 7px, oklch(84% 0.03 70) 2.4px, transparent 3px);
-  background-size: 5px 16px;
-  background-repeat: repeat-y;
-  opacity: 0.9;
-}
-.cineV .card-sheen {
-  position: absolute;
-  inset: 0;
-  border-radius: 8px;
-  overflow: hidden;
-  pointer-events: none;
-}
-.cineV .card-sheen::before {
-  content: '';
-  position: absolute;
-  top: -30%;
-  left: -70%;
-  width: 45%;
-  height: 160%;
-  transform: skewX(-16deg);
-  background: linear-gradient(100deg, transparent, oklch(99% 0.02 92 / 0.55), transparent);
-  opacity: 0;
-}
-.cineV.named .card-sheen::before {
-  animation: cineVSheen 1.15s cubic-bezier(0.4, 0.1, 0.3, 1) 0.5s 1 forwards;
-}
-@keyframes cineVSheen {
-  0% {
-    left: -70%;
-    opacity: 1;
-  }
-  100% {
-    left: 150%;
-    opacity: 1;
-  }
-}
-
-.cineV .cf-eyebrow {
+.v-codes b {
   font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.26em;
-  text-transform: uppercase;
-  color: var(--color-ink-500);
-  opacity: 0;
-  transform: translateY(6px);
-  transition:
-    opacity 0.5s ease,
-    transform 0.5s ease;
-}
-/* Filet pointillé — signature carte d'embarquement. */
-.cineV .cf-rule {
-  width: 64px;
-  height: 1px;
-  background: repeating-linear-gradient(90deg, var(--color-gold-500) 0 6px, transparent 6px 10px);
-  transform: scaleX(0);
-  transform-origin: center;
-  transition: transform 0.6s var(--ease-out-quint);
-}
-.cineV.named .cf-eyebrow,
-.cineV.settled .cf-eyebrow {
-  opacity: 1;
-  transform: none;
-}
-.cineV.named .cf-rule,
-.cineV.settled .cf-rule {
-  transform: scaleX(1);
-}
-.cineV .cf-names {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0;
-}
-.cineV .cf-clip {
-  line-height: 1.02;
-}
-/* Prénoms « tamponnés » comme un visa. */
-.cineV .cf-line {
-  display: block;
-  font-family: var(--font-display);
-  font-style: italic;
-  font-size: 46px;
-  letter-spacing: -0.025em;
+  font-weight: 600;
+  font-size: 31px;
+  letter-spacing: 0.05em;
+  line-height: 1;
   color: var(--color-ink-900);
-  opacity: 0;
-  transform: scale(1.2) rotate(0.6deg);
-  transition:
-    opacity 0.4s ease,
-    transform 0.5s cubic-bezier(0.2, 1.4, 0.4, 1);
 }
-.cineV .cf-amp {
-  font-family: var(--font-display);
-  font-style: italic;
-  font-size: 19px;
-  color: var(--c-accent);
-  letter-spacing: 0.2em;
-  margin: 5px 0;
-  opacity: 0;
-  transition: opacity 0.5s ease;
+.v-planeglyph {
+  position: relative;
+  width: 22px;
+  height: 22px;
+  flex: none;
 }
-.cineV.named .cf-line,
-.cineV.settled .cf-line {
-  opacity: 1;
-  transform: scale(1) rotate(0deg);
+.v-planeglyph .w1 {
+  clip-path: polygon(0 18%, 100% 46%, 30% 58%);
+  background: oklch(62% 0.05 262);
 }
-.cineV.named .cf-line.l2 {
-  transition-delay: 0.24s;
+.v-planeglyph .w2 {
+  clip-path: polygon(0 18%, 30% 58%, 40% 94%);
+  background: oklch(46% 0.045 262);
 }
-.cineV.settled .cf-line.l2 {
-  transition-delay: 0s;
-}
-.cineV.named .cf-amp,
-.cineV.settled .cf-amp {
-  opacity: 1;
-  transition-delay: 0.16s;
-}
-.cineV .cf-date {
+.v-names {
+  text-align: center;
   font-family: var(--font-mono);
   font-size: 8.5px;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--color-ink-500);
-  max-width: 210px;
+  color: oklch(48% 0.03 262);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.v-fields {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 8px;
+}
+.v-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.v-field i {
+  font-family: var(--font-mono);
+  font-style: normal;
+  font-size: 6px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: oklch(60% 0.03 262);
+}
+.v-field b {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 9.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-ink-900);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 150px;
+}
+.v-venue {
+  margin-top: 4px;
+  font-family: var(--font-mono);
+  font-size: 6.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: oklch(60% 0.03 262);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* Talon détachable. */
+.v-stub {
+  flex: none;
+  width: 58px;
+  border-left: 2px dashed oklch(84% 0.03 70);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 6px;
+}
+.v-barcode {
+  width: 34px;
+  height: 74px;
+  background: repeating-linear-gradient(
+    180deg,
+    var(--c-ink-pass) 0 2px,
+    transparent 2px 5px,
+    var(--c-ink-pass) 5px 6px,
+    transparent 6px 10px,
+    var(--c-ink-pass) 10px 13px,
+    transparent 13px 16px
+  );
+  opacity: 0.85;
+}
+.v-stubtxt {
+  font-family: var(--font-mono);
+  font-size: 7px;
+  letter-spacing: 0.18em;
+  color: oklch(48% 0.03 262);
+  white-space: nowrap;
+}
+
+/* Champs qui se « tamponnent » un à un pendant l'impression. */
+.v-f {
   opacity: 0;
-  transition: opacity 0.5s ease 0.5s;
+  transform: scale(1.14);
+  transition:
+    opacity 0.3s ease var(--vd, 0.6s),
+    transform 0.4s cubic-bezier(0.2, 1.3, 0.4, 1) var(--vd, 0.6s);
 }
-.cineV.named .cf-date,
-.cineV.settled .cf-date {
+.cineV.ticket .v-f {
   opacity: 1;
+  transform: scale(1);
+}
+.v-f.f1 {
+  --vd: 0.75s;
+}
+.v-f.f2 {
+  --vd: 0.9s;
+}
+.v-f.f3 {
+  --vd: 1.02s;
+}
+.v-f.f4 {
+  --vd: 1.18s;
+}
+.v-f.f5 {
+  --vd: 1.32s;
+}
+.v-f.f6 {
+  --vd: 1.44s;
+}
+.v-f.f7 {
+  --vd: 1.56s;
+}
+.v-f.f8 {
+  --vd: 1.68s;
 }
 
-/* --------------------------- compte à rebours --------------------------- */
+/* Le TAMPON encreur. */
+.v-stamp {
+  position: absolute;
+  right: 22px;
+  top: -14px;
+  width: 104px;
+  height: 104px;
+  border-radius: 50%;
+  border: 2.5px solid var(--c-stamp);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  rotate: -12deg;
+  color: var(--c-stamp);
+  mix-blend-mode: multiply;
+  opacity: 0;
+  transform: scale(2.4) translateZ(34px);
+  pointer-events: none;
+}
+.v-stamp::after {
+  content: '';
+  position: absolute;
+  inset: 5px;
+  border-radius: 50%;
+  border: 1.2px solid var(--c-stamp);
+  opacity: 0.75;
+}
+.v-stamp i {
+  font-family: var(--font-mono);
+  font-style: normal;
+  font-weight: 600;
+  font-size: 16px;
+  letter-spacing: 0.12em;
+}
+.v-stamp em {
+  font-family: var(--font-mono);
+  font-style: normal;
+  font-size: 5.5px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+}
+.cineV.stamp .v-stamp {
+  animation: cineVSlam 0.6s cubic-bezier(0.2, 1.1, 0.3, 1) 0.15s 1 forwards;
+}
+@keyframes cineVSlam {
+  0% {
+    opacity: 0;
+    transform: scale(2.4) translateZ(34px);
+  }
+  55% {
+    opacity: 0.95;
+    transform: scale(0.93) translateZ(34px);
+  }
+  78% {
+    transform: scale(1.05) translateZ(34px);
+  }
+  100% {
+    opacity: 0.92;
+    transform: scale(1) translateZ(34px);
+  }
+}
 
-.cineV-after {
+/* ------------------- tableau des départs (compte à rebours) ------------- */
+
+.v-board {
   position: absolute;
   left: 50%;
-  bottom: 26px;
-  transform: translateX(-50%);
-  width: 320px;
+  bottom: 16px;
+  width: 306px;
+  margin-left: -153px;
+  padding: 10px 12px 12px;
+  border-radius: 12px;
+  background: oklch(23% 0.025 262 / 0.96);
+  box-shadow:
+    0 14px 34px oklch(20% 0.03 262 / 0.4),
+    inset 0 1px 0 oklch(40% 0.02 262 / 0.6);
   text-align: center;
+  pointer-events: none;
   opacity: 0;
-  transition: opacity 0.7s ease 0.4s;
+  transform: translateY(26px);
+  transition:
+    opacity 0.6s ease 0.25s,
+    transform 0.7s var(--ease-out-quint) 0.25s;
 }
-.cineV.settled .cineV-after {
+.cineV.settled .v-board {
   opacity: 1;
+  transform: translateY(0);
 }
-.cineV-after .lbl {
+.v-board .lbl {
+  display: block;
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: 8px;
   letter-spacing: 0.3em;
   text-transform: uppercase;
-  color: var(--color-ink-500);
-  margin-bottom: 10px;
+  color: oklch(72% 0.03 260);
+  margin-bottom: 8px;
 }
-.cineV-after .cd {
+.v-board .row {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   gap: 12px;
 }
-.cineV-after .cell {
+.v-cell {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  min-width: 52px;
 }
-.cineV-after .n {
-  font-family: var(--font-display);
-  font-style: italic;
-  font-size: 30px;
-  color: var(--c-accent);
-  line-height: 1;
-}
-.cineV-after .u {
+.v-cell b {
+  position: relative;
+  display: block;
+  width: 64px;
+  padding: 8px 0;
+  border-radius: 6px;
+  background: oklch(15% 0.02 260);
+  box-shadow: inset 0 0 0 1px oklch(32% 0.02 260);
   font-family: var(--font-mono);
-  font-size: 8px;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--color-ink-500);
+  font-weight: 600;
+  font-size: 24px;
+  line-height: 1.1;
+  color: oklch(95% 0.008 90);
+  overflow: hidden;
+  transform: rotateX(-88deg);
+  transform-origin: top center;
 }
-.cineV-after .sep {
-  font-family: var(--font-display);
-  font-style: italic;
-  font-size: 22px;
-  color: var(--color-gold-500);
+/* Charnière du volet. */
+.v-cell b::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1.5px;
+  background: oklch(28% 0.02 260);
+}
+.cineV.settled .v-cell b {
+  transform: rotateX(0deg);
+  transition: transform 0.6s cubic-bezier(0.34, 1.3, 0.5, 1) calc(var(--fd, 0s) + 0.45s);
+}
+.v-cell i {
+  font-family: var(--font-mono);
+  font-style: normal;
+  font-size: 7px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: oklch(66% 0.025 260);
 }
 
 .cineV-cue {
@@ -686,6 +815,13 @@
   .cineV .vx-camera {
     transform: none !important;
   }
+  .cineV .v-stamp {
+    opacity: 0.92;
+    transform: scale(1) translateZ(34px);
+  }
+  .cineV .v-cell b {
+    transform: rotateX(0deg);
+  }
 }
 .cineV.reduced *,
 .cineV.reduced *::before,
@@ -703,16 +839,21 @@
 .cineV.reduced .cl {
   animation: none !important;
 }
+.cineV.reduced .v-stamp {
+  opacity: 0.92;
+  transform: scale(1) translateZ(34px);
+}
+.cineV.reduced .v-cell b {
+  transform: rotateX(0deg);
+}
 .cineV.frozen .cl,
 .cineV.frozen .pplane,
 .cineV.frozen .streak,
-.cineV.frozen .vx-sky .sun {
+.cineV.frozen .vx-sky .sun,
+.cineV.frozen .v-stamp {
   animation: none;
 }
-.cineV.frozen .pplane {
-  opacity: 1;
-  transform: translate(150px, 36px) rotate(-3deg);
-}
-.cineV.frozen .card-sheen::before {
-  animation: none;
+.cineV.frozen .v-stamp {
+  opacity: 0.92;
+  transform: scale(1) translateZ(34px);
 }

@@ -1016,7 +1016,11 @@
     "musicHint": "Questo invito è accompagnato dalla musica",
     "musicPlayAria": "Avvia la musica",
     "musicMuteAria": "Disattiva la musica",
-    "musicUnmuteAria": "Riattiva la musica"
+    "musicUnmuteAria": "Riattiva la musica",
+    "passDate": "Data",
+    "passGate": "Gate",
+    "passSeat": "Posto",
+    "actOne": "Atto I"
   },
   "OrgPublic": {
     "poweredBy": "Powered by",
@@ -5669,19 +5673,19 @@
       },
       "floral": {
         "name": "La Fioritura",
-        "desc": "Un bouquet cresce e fiorisce; l'invito sboccia tra le peonie."
+        "desc": "Il giardino si risveglia: i vostri nomi si scrivono a inchiostro sotto l'arco in fiore."
       },
       "cake": {
         "name": "La Torta nuziale",
-        "desc": "I piani si impilano, le candeline si accendono — l'invito esce tra i coriandoli."
+        "desc": "La torta si erge e i vostri nomi sono decorati in glassa, candeline accese."
       },
       "voyage": {
         "name": "L'Imbarco",
-        "desc": "L'oblò si apre sull'alba; l'invito arriva come una carta d'imbarco."
+        "desc": "L'oblò si apre sull'alba: la carta d'imbarco si stampa e riceve il timbro."
       },
       "theatre": {
         "name": "Il Sipario",
-        "desc": "Il velluto si apre su un lago al chiaro di luna: due cigni formano un cuore."
+        "desc": "Il sipario si alza sul lago dei cigni: i vostri nomi in luci da insegna."
       }
     },
     "tracks": {

@@ -1016,7 +1016,11 @@
     "musicHint": "Diese Einladung wird von Musik begleitet",
     "musicPlayAria": "Musik abspielen",
     "musicMuteAria": "Musik stummschalten",
-    "musicUnmuteAria": "Musik wieder einschalten"
+    "musicUnmuteAria": "Musik wieder einschalten",
+    "passDate": "Datum",
+    "passGate": "Gate",
+    "passSeat": "Sitz",
+    "actOne": "Akt I"
   },
   "OrgPublic": {
     "poweredBy": "Bereitgestellt von",
@@ -5669,19 +5673,19 @@
       },
       "floral": {
         "name": "Die Blüte",
-        "desc": "Ein Strauß wächst und erblüht; die Karte erscheint zwischen Pfingstrosen."
+        "desc": "Der Garten erwacht: Eure Namen werden unter dem Blütenbogen mit Tinte geschrieben."
       },
       "cake": {
         "name": "Die Hochzeitstorte",
-        "desc": "Die Etagen stapeln sich, Kerzen leuchten – die Karte erscheint im Konfettiregen."
+        "desc": "Die Torte erhebt sich, eure Namen werden in Zuckerguss aufgespritzt, Kerzen brennen."
       },
       "voyage": {
         "name": "Das Boarding",
-        "desc": "Das Kabinenfenster öffnet sich zur Morgendämmerung; die Karte kommt wie eine Bordkarte."
+        "desc": "Das Kabinenfenster öffnet sich zur Morgendämmerung – die Bordkarte wird gedruckt und gestempelt."
       },
       "theatre": {
         "name": "Der Vorhang",
-        "desc": "Der Samt öffnet sich über einem mondbeschienenen See – zwei Schwäne formen ein Herz."
+        "desc": "Der Vorhang hebt sich über dem Schwanensee – eure Namen in Leuchtreklame."
       }
     },
     "tracks": {

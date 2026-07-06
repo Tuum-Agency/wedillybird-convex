@@ -4,7 +4,6 @@ import { useTranslations } from 'next-intl';
 import { useReducedMotion } from 'motion/react';
 import { useRef, type CSSProperties } from 'react';
 import {
-  CinematicCountdown,
   CinematicSkip,
   dustStyle,
   shiftL,
@@ -16,48 +15,78 @@ import {
 import './floral.css';
 
 /**
- * « L'Éclosion » — cinématique florale.
+ * « L'Éclosion » — le jardin écrit l'invitation. AUCUNE carte : la nature
+ * fait tout.
  *
- * Un bouquet naît à l'aube : les tiges s'élancent, les feuilles se déplient,
- * les pivoines éclosent pétale par pétale, puis le bouquet s'écarte pour
- * laisser monter la carte — il se resserre enfin en guirlande au pied du
- * compte à rebours pendant que des pétales se détachent et tombent.
+ * La caméra démarre au ras du pré ; les tiges s'élancent et elle monte avec
+ * elles ; une arche de blossoms se compose dans le ciel ; les prénoms
+ * S'ÉCRIVENT À L'ENCRE sous l'arche (révélation calligraphique + parafe doré
+ * qui se trace) ; la date descend du sommet de l'arche sur une ÉTIQUETTE
+ * SUSPENDUE qui se balance ; enfin le compte à rebours fleurit — trois
+ * blossoms dont les cœurs portent les chiffres, pétales au vent.
  *
- * Phases : 0 aube · 1 grow (tiges) · 2 bud (boutons) · 3 bloom (éclosion)
- *          · 4 reveal (carte + prénoms) · 5 settled (guirlande + pétales)
+ * Phases : 0 pré à l'aube · 1 grow (tiges + caméra qui monte) · 2 bloom
+ *          (fleurs + arche) · 3 write (encre + parafe) · 4 tag (étiquette)
+ *          · 5 settled (compte à rebours fleuri + pétales)
  */
-const WAITS = [850, 700, 950, 1050, 950];
-const PHASES = ['', 'grow', 'bud', 'bloom', 'reveal', 'settled'] as const;
+const WAITS = [950, 900, 1150, 950, 900];
+const PHASES = ['', 'grow', 'bloom', 'write', 'tag', 'settled'] as const;
 
-/** Tiges du bouquet : angle (deg), hauteur (px), taille de fleur (px), délais. */
-const STEMS: ReadonlyArray<{ a: number; h: number; fs: number; d: number }> = [
-  { a: -26, h: 196, fs: 44, d: 0.22 },
-  { a: -13, h: 232, fs: 58, d: 0.1 },
-  { a: 0, h: 258, fs: 68, d: 0 },
-  { a: 13, h: 226, fs: 56, d: 0.16 },
-  { a: 26, h: 188, fs: 42, d: 0.3 },
+/** Tiges du pré : x (px scène), hauteur, taille de fleur, délai. */
+const STEMS: ReadonlyArray<{ x: number; h: number; fs: number; d: number }> = [
+  { x: 34, h: 200, fs: 40, d: 0.15 },
+  { x: 78, h: 152, fs: 30, d: 0.35 },
+  { x: 128, h: 122, fs: 24, d: 0.5 },
+  { x: 232, h: 128, fs: 26, d: 0.42 },
+  { x: 286, h: 168, fs: 34, d: 0.28 },
+  { x: 326, h: 210, fs: 42, d: 0.08 },
 ];
 
-const OUTER_PETALS = [0, 1, 2, 3, 4, 5, 6]; // 7 pétales × 51,4°
-const INNER_PETALS = [0, 1, 2, 3, 4]; // 5 pétales × 72°
+/** Blossoms flottants de l'arche (arc au-dessus des prénoms). */
+const ARCH: ReadonlyArray<{ x: number; y: number; fs: number; d: number }> = [
+  { x: 34, y: 268, fs: 30, d: 0.55 },
+  { x: 52, y: 196, fs: 38, d: 0.4 },
+  { x: 96, y: 136, fs: 32, d: 0.25 },
+  { x: 180, y: 108, fs: 44, d: 0 },
+  { x: 264, y: 136, fs: 32, d: 0.3 },
+  { x: 308, y: 196, fs: 38, d: 0.45 },
+  { x: 326, y: 268, fs: 30, d: 0.6 },
+];
+
+const PETALS = [0, 1, 2, 3, 4, 5]; // 6 pétales × 60°
 
 const DUST: ReadonlyArray<{ x: number; y: number; z: number; s: number; d: number }> = [
-  { x: 16, y: 30, z: 55, s: 4.5, d: 0 },
-  { x: 80, y: 22, z: 30, s: 4, d: 1.4 },
-  { x: 28, y: 64, z: 75, s: 3.5, d: 2.2 },
-  { x: 68, y: 58, z: 42, s: 5, d: 0.8 },
-  { x: 46, y: 16, z: 18, s: 3, d: 2.9 },
-  { x: 88, y: 46, z: 66, s: 3.5, d: 1.8 },
-  { x: 10, y: 50, z: 24, s: 3, d: 3.3 },
-  { x: 56, y: 82, z: 50, s: 4, d: 1.1 },
+  { x: 18, y: 34, z: 55, s: 4, d: 0 },
+  { x: 78, y: 24, z: 30, s: 3.5, d: 1.4 },
+  { x: 30, y: 60, z: 70, s: 3.5, d: 2.2 },
+  { x: 64, y: 52, z: 42, s: 4.5, d: 0.8 },
+  { x: 46, y: 14, z: 18, s: 3, d: 2.9 },
+  { x: 88, y: 44, z: 62, s: 3, d: 1.8 },
 ];
 
-/** Pétales qui se détachent et tombent à l'état apaisé. */
 const FALLING = [
-  { x: 26, d: 0, t: 9 },
-  { x: 58, d: 3.2, t: 11 },
-  { x: 78, d: 6.1, t: 10 },
+  { x: 22, d: 0, t: 9 },
+  { x: 56, d: 3.2, t: 11 },
+  { x: 80, d: 6.1, t: 10 },
 ] as const;
+
+function Blossom({ fs, extra }: { fs: number; extra?: string }) {
+  return (
+    <span
+      className={`f-blossom${extra ? ` ${extra}` : ''}`}
+      style={{ '--fs': `${fs}px` } as CSSProperties}
+    >
+      {PETALS.map((p) => (
+        <span
+          key={p}
+          className="f-petal"
+          style={{ '--r': `${p * 60}deg`, '--pd': `${p * 0.05}s` } as CSSProperties}
+        />
+      ))}
+      <span className="f-heart" />
+    </span>
+  );
+}
 
 export function CinematicFloral({
   partnerA,
@@ -99,17 +128,24 @@ export function CinematicFloral({
     .filter(Boolean)
     .join(' ');
 
-  // Marque blanche : l'accent du couple teinte pétales, cœur et accents.
   const tint: CSSProperties = accentColor
     ? ({
         '--c-petal': shiftL(accentColor, 0.14),
         '--c-petal-dk': shiftL(accentColor, -0.04),
-        '--c-petal-deep': shiftL(accentColor, -0.18),
         '--c-accent': shiftL(accentColor, -0.24),
       } as CSSProperties)
     : {};
 
   const stageCls = ['cineF-stage', 'paper-grain', live && 'live'].filter(Boolean).join(' ');
+
+  const cdCell = (v: number | null, u: string, i: number) => (
+    <span className="f-cdb-wrap" style={{ '--cdd': `${i * 0.12}s` } as CSSProperties}>
+      <Blossom fs={58} extra="cdb" />
+      <b>{v == null ? '—' : String(v).padStart(2, '0')}</b>
+      <i>{u}</i>
+    </span>
+  );
+
   return (
     <div className={stageCls} style={tint} role="presentation">
       {live && holdPhase == null && !isReduced && effectivePhase < 5 && (
@@ -137,71 +173,66 @@ export function CinematicFloral({
               ))}
             </div>
 
-            <div className="bouquet" aria-hidden>
-              <div className="b-shadow" />
-              <div className="b-glow" />
+            {/* Le pré : sol + tiges qui s'élancent */}
+            <div className="f-meadow" aria-hidden>
+              <span className="f-soil" />
               {STEMS.map((s, i) => (
                 <div
                   key={i}
-                  className={`stemg sg${i}`}
+                  className="f-stemg"
                   style={
                     {
-                      '--a': `${s.a}deg`,
+                      left: `${s.x}px`,
                       '--h': `${s.h}px`,
-                      '--fs': `${s.fs}px`,
                       '--sd': `${s.d}s`,
+                      '--sw': `${i % 2 === 0 ? 1 : -1}`,
                     } as CSSProperties
                   }
                 >
-                  <span className="stem" />
-                  <span className="leaf ll" />
-                  <span className="leaf lr" />
-                  <div className="flower">
-                    <span className="f-bud" />
-                    {OUTER_PETALS.map((p) => (
-                      <span
-                        key={`o${p}`}
-                        className="petal po"
-                        style={{ '--r': `${p * 51.4}deg`, '--pd': `${p * 0.05}s` } as CSSProperties}
-                      />
-                    ))}
-                    {INNER_PETALS.map((p) => (
-                      <span
-                        key={`i${p}`}
-                        className="petal pi"
-                        style={
-                          {
-                            '--r': `${36 + p * 72}deg`,
-                            '--pd': `${0.18 + p * 0.05}s`,
-                          } as CSSProperties
-                        }
-                      />
-                    ))}
-                    <span className="heart" />
-                  </div>
+                  <span className="f-stem" />
+                  <span className="f-leaf fl" />
+                  <span className="f-leaf fr" />
+                  <Blossom fs={s.fs} />
                 </div>
               ))}
             </div>
 
-            <div className="card3d">
-              <div className="card-face">
-                <span className="card-sheen" aria-hidden />
-                <span className="cf-eyebrow">{t('youreInvited')}</span>
-                <span className="cf-rule" />
-                <div className="cf-names">
-                  <span className="cf-clip">
-                    <span className="cf-line l1">{partnerA}</span>
-                  </span>
-                  <span className="cf-amp">&amp;</span>
-                  <span className="cf-clip">
-                    <span className="cf-line l2">{partnerB}</span>
-                  </span>
-                </div>
-                <span className="cf-rule" />
-                <span className="cf-date">
-                  {formattedDate}
-                  {venueName ? ` · ${venueName}` : ''}
+            {/* L'arche de blossoms flottants */}
+            <div className="f-arch" aria-hidden>
+              {ARCH.map((b, i) => (
+                <span
+                  key={i}
+                  className="f-archspot"
+                  style={{ left: `${b.x}px`, top: `${b.y}px`, '--ad': `${b.d}s` } as CSSProperties}
+                >
+                  <Blossom fs={b.fs} />
                 </span>
+              ))}
+            </div>
+
+            {/* Les prénoms s'écrivent à l'encre sous l'arche */}
+            <div className="f-names">
+              <span className="f-name na">
+                <span className="txt">{partnerA}</span>
+              </span>
+              <svg className="f-swash" viewBox="0 0 170 26" aria-hidden>
+                <path d="M6 15 C 38 4, 66 24, 96 11 C 118 2, 142 12, 164 8" fill="none" />
+                <text x="85" y="20">
+                  &amp;
+                </text>
+              </svg>
+              <span className="f-name nb">
+                <span className="txt">{partnerB}</span>
+              </span>
+            </div>
+
+            {/* L'étiquette suspendue (date + lieu) */}
+            <div className="f-tagwrap" aria-hidden={effectivePhase < 4}>
+              <span className="f-string" />
+              <div className="f-tag">
+                <span className="f-taghole" />
+                <b>{formattedDate}</b>
+                {venueName ? <i>{venueName}</i> : null}
               </div>
             </div>
 
@@ -218,7 +249,17 @@ export function CinematicFloral({
           </div>
         </div>
 
-        {target != null && <CinematicCountdown cd={cd} className="cineF-after" />}
+        {/* Compte à rebours fleuri */}
+        {target != null && (
+          <div className="f-cd">
+            <span className="lbl">{t('countdownLabel')}</span>
+            <div className="row">
+              {cdCell(cd?.d ?? null, t('countdownDays'), 0)}
+              {cdCell(cd?.h ?? null, t('countdownHours'), 1)}
+              {cdCell(cd?.m ?? null, t('countdownMinutes'), 2)}
+            </div>
+          </div>
+        )}
       </div>
 
       <p className="cineF-cue" style={{ opacity: effectivePhase === 4 ? 1 : 0 }}>

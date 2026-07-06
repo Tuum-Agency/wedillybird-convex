@@ -1016,7 +1016,11 @@
     "musicHint": "Este convite vem com música",
     "musicPlayAria": "Tocar a música",
     "musicMuteAria": "Silenciar a música",
-    "musicUnmuteAria": "Reativar a música"
+    "musicUnmuteAria": "Reativar a música",
+    "passDate": "Data",
+    "passGate": "Portão",
+    "passSeat": "Assento",
+    "actOne": "Ato I"
   },
   "OrgPublic": {
     "poweredBy": "Com tecnologia",
@@ -5669,19 +5673,19 @@
       },
       "floral": {
         "name": "O Desabrochar",
-        "desc": "Um buquê cresce e floresce; o convite nasce entre as peônias."
+        "desc": "O jardim desperta: os vossos nomes são escritos a tinta sob o arco florido."
       },
       "cake": {
         "name": "O Bolo de casamento",
-        "desc": "Os andares se empilham, as velas acendem — o convite surge entre confetes."
+        "desc": "O bolo ergue-se e os vossos nomes são escritos em glacê, velas acesas."
       },
       "voyage": {
         "name": "O Embarque",
-        "desc": "A janela abre para o amanhecer; o convite chega como um cartão de embarque."
+        "desc": "A janela abre para o amanhecer — o cartão de embarque é impresso e carimbado."
       },
       "theatre": {
         "name": "O Erguer da cortina",
-        "desc": "O veludo se abre sobre um lago ao luar — dois cisnes formam um coração."
+        "desc": "A cortina sobe sobre o lago dos cisnes — os vossos nomes em letreiro luminoso."
       }
     },
     "tracks": {
