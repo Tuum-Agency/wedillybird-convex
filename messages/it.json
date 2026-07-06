@@ -5686,6 +5686,30 @@
       "theatre": {
         "name": "Il Sipario",
         "desc": "Il sipario si alza sul lago dei cigni: i vostri nomi in luci da insegna."
+      },
+      "etoiles": {
+        "name": "La Costellazione",
+        "desc": "La notte si accende: un cuore si traccia di stella in stella, i vostri nomi di luce."
+      },
+      "lanternes": {
+        "name": "Le Lanterne",
+        "desc": "Le lanterne si accendono e si alzano: i vostri nomi brillano attraverso la carta."
+      },
+      "rivage": {
+        "name": "La Riva",
+        "desc": "L'onda si ritira e i vostri nomi restano scritti sulla sabbia."
+      },
+      "feux": {
+        "name": "I Fuochi d'artificio",
+        "desc": "I razzi salgono; il gran finale rivela i vostri nomi in oro."
+      },
+      "deco": {
+        "name": "L'Art déco",
+        "desc": "Nero e oro: la cornice si disegna, i vostri nomi in maiuscole dorate stile Gatsby."
+      },
+      "neige": {
+        "name": "Primo fiocco",
+        "desc": "La neve cade, il gelo vela il vetro: un cerchio di calore rivela i vostri nomi."
       }
     },
     "tracks": {

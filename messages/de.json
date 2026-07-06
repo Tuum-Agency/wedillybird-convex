@@ -5686,6 +5686,30 @@
       "theatre": {
         "name": "Der Vorhang",
         "desc": "Der Vorhang hebt sich über dem Schwanensee – eure Namen in Leuchtreklame."
+      },
+      "etoiles": {
+        "name": "Die Konstellation",
+        "desc": "Die Nacht erwacht: ein Herz zeichnet sich von Stern zu Stern, eure Namen im Sternenlicht."
+      },
+      "lanternes": {
+        "name": "Die Laternen",
+        "desc": "Die Laternen leuchten auf und steigen – eure Namen scheinen durch das Papier."
+      },
+      "rivage": {
+        "name": "Das Ufer",
+        "desc": "Die Welle zieht sich zurück und eure Namen bleiben in den Sand geschrieben."
+      },
+      "feux": {
+        "name": "Das Feuerwerk",
+        "desc": "Raketen steigen auf; das Finale enthüllt eure Namen in Gold."
+      },
+      "deco": {
+        "name": "Das Art déco",
+        "desc": "Schwarz und Gold: der Rahmen zeichnet sich, eure Namen in goldenen Gatsby-Lettern."
+      },
+      "neige": {
+        "name": "Erste Schneeflocke",
+        "desc": "Schnee fällt, Frost überzieht das Glas – ein warmer Kreis enthüllt eure Namen."
       }
     },
     "tracks": {

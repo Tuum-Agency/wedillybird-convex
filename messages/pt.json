@@ -5686,6 +5686,30 @@
       "theatre": {
         "name": "O Erguer da cortina",
         "desc": "A cortina sobe sobre o lago dos cisnes — os vossos nomes em letreiro luminoso."
+      },
+      "etoiles": {
+        "name": "A Constelação",
+        "desc": "A noite acorda: um coração traça-se de estrela em estrela, os vossos nomes em luz."
+      },
+      "lanternes": {
+        "name": "As Lanternas",
+        "desc": "As lanternas acendem-se e sobem — os vossos nomes brilham através do papel."
+      },
+      "rivage": {
+        "name": "A Praia",
+        "desc": "A onda recua e os vossos nomes ficam escritos na areia."
+      },
+      "feux": {
+        "name": "O Fogo de artifício",
+        "desc": "Os foguetes sobem; o grande final revela os vossos nomes em ouro."
+      },
+      "deco": {
+        "name": "A Art déco",
+        "desc": "Preto e dourado: a moldura desenha-se, os vossos nomes em maiúsculas douradas à Gatsby."
+      },
+      "neige": {
+        "name": "Primeiro floco",
+        "desc": "A neve cai, a geada cobre o vidro — um círculo de calor revela os vossos nomes."
       }
     },
     "tracks": {

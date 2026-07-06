@@ -5682,6 +5682,30 @@
       "theatre": {
         "name": "The Curtain Rise",
         "desc": "The curtain rises on the swan lake — your names up in marquee lights."
+      },
+      "etoiles": {
+        "name": "The Constellation",
+        "desc": "The night awakens: a heart is traced star to star, your names in starlight."
+      },
+      "lanternes": {
+        "name": "The Lanterns",
+        "desc": "Lanterns light up and rise — your names glow through the paper."
+      },
+      "rivage": {
+        "name": "The Shore",
+        "desc": "The wave pulls back and your names remain written in the sand."
+      },
+      "feux": {
+        "name": "The Fireworks",
+        "desc": "Rockets rise; the grand finale reveals your names in gold."
+      },
+      "deco": {
+        "name": "The Art Deco",
+        "desc": "Black and gold: the frame draws itself, your names in Gatsby gold capitals."
+      },
+      "neige": {
+        "name": "First Snowflake",
+        "desc": "Snow falls, frost creeps over the glass — a circle of warmth reveals your names."
       }
     },
     "tracks": {

@@ -5,11 +5,12 @@ import { ArrowLeft, Calendar, Camera, Eye, MapPin } from 'lucide-react';
 import { Link, redirect } from '@/i18n/navigation';
 import { getSession } from '@/lib/auth/session';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
-import { isCinematicId } from '@/components/invitation/cinematics/registry';
+import { asCinematicId, isCinematicId } from '@/components/invitation/cinematics/registry';
 import { isMusicTrackId, musicTrackSrc } from '@/lib/invitation/music';
 import { InvitationShell } from '@/components/invitation/invitation-shell';
 import { WeddingCountdown } from '@/components/invitation/wedding-countdown';
 import { LandingFooterRich } from '@/components/landing/footer-rich';
+import { InvitationFooter } from '@/components/invitation/invitation-footer';
 
 export const dynamic = 'force-dynamic';
 
@@ -274,7 +275,7 @@ export default async function EventPreviewPage({
               </span>
             </div>
           </article>
-          <LandingFooterRich />
+          {asCinematicId(cinematic) === 'seal' ? <LandingFooterRich /> : <InvitationFooter />}
         </InvitationShell>
       </div>
     </main>

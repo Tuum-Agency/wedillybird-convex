@@ -1,0 +1,596 @@
+/* Wedillybird — Cinématique « L'Art déco » (gala Gatsby).
+   Noir & or : filets qui glissent, éventails en soleil lamelle par lamelle,
+   double cadre qui SE DESSINE (+ gradins d'angles), prénoms en CAPITALES
+   DORÉES espacées avec éclat traversant, bulles de champagne.
+   Phases (classes cumulatives) : lines · fans · frame · names · settled */
+
+.cineD-stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(70% 46% at 50% 108%, oklch(22% 0.02 75 / 0.55), transparent 62%),
+    linear-gradient(180deg, oklch(15% 0.008 80), oklch(11.5% 0.006 75));
+  --c-gold: oklch(82% 0.1 86);
+  --c-gold-dk: oklch(64% 0.09 82);
+  --c-champ: oklch(90% 0.05 88);
+}
+
+.cineD-stage .cine2-skip {
+  color: oklch(84% 0.07 86);
+  text-shadow: 0 1px 3px oklch(8% 0.01 80 / 0.6);
+}
+
+.cineD-scene {
+  position: relative;
+  width: 360px;
+  height: 560px;
+  perspective: 1500px;
+  perspective-origin: 50% 44%;
+  transform: scale(var(--cine-scale, 1));
+  transform-origin: center center;
+}
+@media (min-width: 900px) {
+  .cineD-stage.live .cineD-scene {
+    --cine-scale: 1.22;
+  }
+}
+
+/* Caméra de gala : un très lent recul de majesté. */
+.dx-camera {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  transform: scale(1.05);
+  transition: transform 5.5s cubic-bezier(0.3, 0.4, 0.3, 1);
+}
+.cineD.frame .dx-camera,
+.cineD.names .dx-camera,
+.cineD.settled .dx-camera {
+  transform: scale(1);
+}
+
+.dx-par {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  transition: transform 0.5s var(--ease-out-quint);
+}
+
+/* -------------------------------- filets -------------------------------- */
+
+.dc-lines {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.dc-lines span {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    oklch(60% 0.07 84 / 0.34) 30%,
+    oklch(60% 0.07 84 / 0.34) 70%,
+    transparent
+  );
+  transform: scaleY(0);
+  transition: transform 1s cubic-bezier(0.4, 0.1, 0.25, 1) var(--ld, 0s);
+}
+.dc-lines span.fromTop {
+  transform-origin: top center;
+}
+.dc-lines span.fromBottom {
+  transform-origin: bottom center;
+}
+.cineD.lines .dc-lines span {
+  transform: scaleY(1);
+}
+/* Une fois le cadre dessiné, les filets s'effacent derrière la composition. */
+.cineD.frame .dc-lines span {
+  opacity: 0.42;
+  transition:
+    transform 1s cubic-bezier(0.4, 0.1, 0.25, 1) var(--ld, 0s),
+    opacity 0.9s ease;
+}
+.cineD.settled .dc-lines span {
+  opacity: 0.3;
+}
+
+/* ----------------------------- éventails -------------------------------- */
+
+.dc-fan {
+  position: absolute;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+.dc-fan.top {
+  left: 50%;
+  top: 96px;
+}
+.dc-fan.bl {
+  left: 26px;
+  bottom: 88px;
+}
+.dc-fan.br {
+  right: 26px;
+  bottom: 88px;
+}
+.dc-fan span {
+  position: absolute;
+  left: -1.5px;
+  bottom: 0;
+  width: 3px;
+  height: 62px;
+  border-radius: 3px;
+  background: linear-gradient(to top, var(--c-gold-dk), var(--c-gold));
+  transform-origin: bottom center;
+  transform: rotate(0deg) scaleY(0.2);
+  opacity: 0;
+  transition:
+    transform 0.7s cubic-bezier(0.3, 1.1, 0.4, 1) var(--fd, 0s),
+    opacity 0.4s ease var(--fd, 0s);
+}
+.dc-fan.top span {
+  transform-origin: top center;
+  bottom: auto;
+  top: 0;
+}
+.dc-fan.bl span,
+.dc-fan.br span {
+  height: 48px;
+}
+.cineD.fans .dc-fan span {
+  transform: rotate(var(--fa)) scaleY(1);
+  opacity: 1;
+}
+.dc-fan .hub {
+  position: absolute;
+  left: -5px;
+  top: -5px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 32%, var(--c-champ), var(--c-gold-dk));
+  opacity: 0;
+  transition: opacity 0.5s ease 0.4s;
+}
+.dc-fan.bl .hub,
+.dc-fan.br .hub {
+  top: auto;
+  bottom: -5px;
+}
+.cineD.fans .dc-fan .hub {
+  opacity: 1;
+}
+.cineD.settled .dc-fan span {
+  animation: cineDShimmer 4.5s ease-in-out var(--fd, 0s) infinite alternate;
+}
+@keyframes cineDShimmer {
+  0% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* ------------------------ le cadre qui se dessine ------------------------ */
+
+.dc-frame {
+  position: absolute;
+  pointer-events: none;
+}
+.dc-frame.outer {
+  inset: 150px 30px 168px;
+}
+.dc-frame.inner {
+  inset: 160px 40px 178px;
+}
+.dc-frame .e {
+  position: absolute;
+  background: var(--c-gold);
+}
+.dc-frame.inner .e {
+  background: oklch(66% 0.08 84 / 0.75);
+}
+.dc-frame .e.et,
+.dc-frame .e.eb {
+  left: 0;
+  right: 0;
+  height: 1.5px;
+  transform: scaleX(0);
+}
+.dc-frame .e.et {
+  top: 0;
+  transform-origin: left center;
+}
+.dc-frame .e.eb {
+  bottom: 0;
+  transform-origin: right center;
+}
+.dc-frame .e.el,
+.dc-frame .e.er {
+  top: 0;
+  bottom: 0;
+  width: 1.5px;
+  transform: scaleY(0);
+}
+.dc-frame .e.el {
+  left: 0;
+  transform-origin: bottom center;
+}
+.dc-frame .e.er {
+  right: 0;
+  transform-origin: top center;
+}
+.cineD.frame .dc-frame .e.et {
+  transform: scaleX(1);
+  transition: transform 0.65s cubic-bezier(0.4, 0.1, 0.3, 1) 0.05s;
+}
+.cineD.frame .dc-frame .e.er {
+  transform: scaleY(1);
+  transition: transform 0.5s cubic-bezier(0.4, 0.1, 0.3, 1) 0.6s;
+}
+.cineD.frame .dc-frame .e.eb {
+  transform: scaleX(1);
+  transition: transform 0.65s cubic-bezier(0.4, 0.1, 0.3, 1) 1s;
+}
+.cineD.frame .dc-frame .e.el {
+  transform: scaleY(1);
+  transition: transform 0.5s cubic-bezier(0.4, 0.1, 0.3, 1) 1.55s;
+}
+.cineD.frame .dc-frame.inner .e.et {
+  transition-delay: 0.3s;
+}
+.cineD.frame .dc-frame.inner .e.er {
+  transition-delay: 0.85s;
+}
+.cineD.frame .dc-frame.inner .e.eb {
+  transition-delay: 1.25s;
+}
+.cineD.frame .dc-frame.inner .e.el {
+  transition-delay: 1.8s;
+}
+
+/* Gradins d'angles (ziggourats). */
+.dc-zig {
+  position: absolute;
+  width: 22px;
+  height: 14px;
+  background:
+    linear-gradient(var(--c-gold), var(--c-gold)) 50% 0 / 8px 4px no-repeat,
+    linear-gradient(var(--c-gold), var(--c-gold)) 50% 5px / 15px 4px no-repeat,
+    linear-gradient(var(--c-gold), var(--c-gold)) 50% 10px / 22px 4px no-repeat;
+  opacity: 0;
+  transform: scale(0.4);
+  transition:
+    opacity 0.5s ease 1.9s,
+    transform 0.55s cubic-bezier(0.34, 1.4, 0.5, 1) 1.9s;
+  pointer-events: none;
+}
+.dc-zig.za {
+  left: 20px;
+  top: 138px;
+}
+.dc-zig.zb {
+  right: 20px;
+  top: 138px;
+}
+.dc-zig.zc {
+  left: 20px;
+  bottom: 158px;
+  rotate: 180deg;
+}
+.dc-zig.zd {
+  right: 20px;
+  bottom: 158px;
+  rotate: 180deg;
+}
+.cineD.frame .dc-zig {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* ------------------------ capitales dorées ------------------------------ */
+
+.dc-names {
+  position: absolute;
+  left: 50%;
+  top: 208px;
+  width: 300px;
+  transform: translateX(-50%) translateZ(20px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+  pointer-events: none;
+}
+.dc-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  letter-spacing: 0.42em;
+  text-transform: uppercase;
+  color: oklch(62% 0.06 84);
+  margin-bottom: 6px;
+  opacity: 0;
+  transition: opacity 0.7s ease 0.15s;
+}
+/* Typographie SIGNATURE du thème : capitales display NON italiques. */
+.dc-name {
+  position: relative;
+  display: block;
+  max-width: 300px;
+  overflow: hidden;
+  font-family: var(--font-display);
+  font-style: normal;
+  font-weight: 500;
+  font-size: 27px;
+  line-height: 1.2;
+  letter-spacing: 0.6em;
+  text-indent: 0.6em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--c-gold);
+  opacity: 0;
+  transition:
+    opacity 0.8s ease 0.3s,
+    letter-spacing 1.2s cubic-bezier(0.3, 0.7, 0.3, 1) 0.3s,
+    text-indent 1.2s cubic-bezier(0.3, 0.7, 0.3, 1) 0.3s;
+}
+.dc-name.nb {
+  transition-delay: 0.65s;
+}
+.cineD.names .dc-name {
+  opacity: 1;
+  letter-spacing: 0.3em;
+  text-indent: 0.3em;
+}
+/* Éclat qui traverse les capitales. */
+.dc-name .shine {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -40%;
+  width: 34%;
+  background: linear-gradient(100deg, transparent, oklch(96% 0.05 92 / 0.5), transparent);
+  transform: skewX(-16deg);
+  opacity: 0;
+}
+.cineD.names .dc-name .shine {
+  animation: cineDShine 1.1s cubic-bezier(0.4, 0.1, 0.3, 1) 1s 1 forwards;
+}
+.cineD.names .dc-name.nb .shine {
+  animation-delay: 1.3s;
+}
+@keyframes cineDShine {
+  0% {
+    left: -40%;
+    opacity: 1;
+  }
+  100% {
+    left: 120%;
+    opacity: 1;
+  }
+}
+.dc-diamond {
+  font-size: 11px;
+  color: var(--c-champ);
+  opacity: 0;
+  transform: rotate(45deg) scale(0.3);
+  transition:
+    opacity 0.5s ease 0.55s,
+    transform 0.6s cubic-bezier(0.34, 1.5, 0.5, 1) 0.55s;
+}
+.cineD.names .dc-diamond {
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
+}
+.dc-date {
+  margin-top: 12px;
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: oklch(66% 0.05 84);
+  max-width: 280px;
+  opacity: 0;
+  transition: opacity 0.7s ease 1.5s;
+}
+.cineD.names .dc-date {
+  opacity: 1;
+}
+
+/* --------------------------- bulles de champagne ------------------------ */
+
+.dc-bubbles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.dc-bubbles span {
+  position: absolute;
+  bottom: 22%;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  border: 1px solid oklch(88% 0.06 88 / 0.75);
+  background: oklch(88% 0.06 88 / 0.14);
+  opacity: 0;
+}
+.cineD.settled .dc-bubbles span {
+  animation: cineDBubble var(--bt, 8s) linear var(--bd, 0s) infinite;
+}
+@keyframes cineDBubble {
+  0% {
+    opacity: 0;
+    transform: translateY(0) translateX(0);
+  }
+  10% {
+    opacity: 0.85;
+  }
+  50% {
+    transform: translateY(-32vh) translateX(4px);
+  }
+  90% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-58vh) translateX(-3px);
+  }
+}
+
+/* --------------------------- compte à rebours --------------------------- */
+
+.dc-cd {
+  position: absolute;
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+  width: 330px;
+  text-align: center;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.7s ease 0.3s;
+}
+.cineD.settled .dc-cd {
+  opacity: 1;
+}
+.dc-cd .lbl {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: oklch(62% 0.06 84);
+  margin-bottom: 9px;
+}
+.dc-cd .row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 16px;
+}
+.dc-cdc {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  opacity: 0;
+  transform: translateY(8px);
+  transition:
+    opacity 0.6s ease calc(var(--cdd, 0s) + 0.25s),
+    transform 0.6s var(--ease-out-quint) calc(var(--cdd, 0s) + 0.25s);
+}
+.cineD.settled .dc-cdc {
+  opacity: 1;
+  transform: translateY(0);
+}
+.dc-cdc b {
+  position: relative;
+  display: block;
+  width: 66px;
+  padding: 12px 0 8px;
+  background: oklch(13.5% 0.008 80 / 0.95);
+  box-shadow: inset 0 0 0 1px oklch(52% 0.07 84 / 0.7);
+  font-family: var(--font-display);
+  font-style: normal;
+  font-weight: 500;
+  font-size: 22px;
+  line-height: 1;
+  letter-spacing: 0.06em;
+  color: var(--c-gold);
+}
+/* Fronton à gradins. */
+.dc-cdc .steps {
+  position: absolute;
+  left: 50%;
+  top: -9px;
+  width: 22px;
+  height: 9px;
+  margin-left: -11px;
+  background:
+    linear-gradient(var(--c-gold), var(--c-gold)) 50% 0 / 8px 3px no-repeat,
+    linear-gradient(var(--c-gold), var(--c-gold)) 50% 3px / 14px 3px no-repeat,
+    linear-gradient(var(--c-gold), var(--c-gold)) 50% 6px / 22px 3px no-repeat;
+}
+.dc-cdc em {
+  font-family: var(--font-mono);
+  font-style: normal;
+  font-size: 7.5px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: oklch(60% 0.055 84);
+}
+
+.cineD-cue {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  color: oklch(70% 0.05 85);
+  transition: opacity 0.6s ease;
+  pointer-events: none;
+}
+.cineD-cue .t {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+}
+
+/* ------------------------- reduced / frozen ---------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .cineD *,
+  .cineD *::before,
+  .cineD *::after {
+    transition-duration: 0.01ms !important;
+    animation: none !important;
+  }
+  .cineD .dc-bubbles {
+    display: none;
+  }
+  .cineD .dx-camera {
+    transform: none !important;
+  }
+  .cineD .dc-name {
+    letter-spacing: 0.3em;
+    text-indent: 0.3em;
+  }
+}
+.cineD.reduced *,
+.cineD.reduced *::before,
+.cineD.reduced *::after {
+  transition: none !important;
+  animation: none !important;
+}
+.cineD.reduced .dc-bubbles {
+  display: none;
+}
+.cineD.reduced .dx-camera {
+  transform: none !important;
+}
+.cineD.reduced .dc-name {
+  letter-spacing: 0.3em;
+  text-indent: 0.3em;
+}
+.cineD.frozen .dc-bubbles span,
+.cineD.frozen .dc-fan span,
+.cineD.frozen .dc-name .shine {
+  animation: none;
+}

@@ -18,6 +18,12 @@ const THEMES: Record<Exclude<CinematicId, 'seal'>, ComponentType<CinematicSceneP
   cake: dynamic(() => import('./cake').then((m) => m.CinematicCake)),
   voyage: dynamic(() => import('./voyage').then((m) => m.CinematicVoyage)),
   theatre: dynamic(() => import('./theatre').then((m) => m.CinematicTheatre)),
+  etoiles: dynamic(() => import('./etoiles').then((m) => m.CinematicEtoiles)),
+  lanternes: dynamic(() => import('./lanternes').then((m) => m.CinematicLanternes)),
+  rivage: dynamic(() => import('./rivage').then((m) => m.CinematicRivage)),
+  feux: dynamic(() => import('./feux').then((m) => m.CinematicFeux)),
+  deco: dynamic(() => import('./deco').then((m) => m.CinematicDeco)),
+  neige: dynamic(() => import('./neige').then((m) => m.CinematicNeige)),
 };
 
 export type CinematicPlayerProps = CinematicSceneProps & {

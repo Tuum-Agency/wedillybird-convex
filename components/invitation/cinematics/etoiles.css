@@ -1,0 +1,558 @@
+/* Wedillybird — Cinématique « La Constellation » (étoiles).
+   Le ciel écrit l'invitation : étoiles qui s'avivent, étoiles filantes,
+   cœur tracé d'étoile en étoile (polyline dashoffset + nœuds embrasés),
+   prénoms en lumière stellaire, compte à rebours en orbes.
+   Phases (classes cumulatives) : night · shoot · trace · names · settled */
+
+.cineS-stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, oklch(17% 0.03 268) 0%, oklch(12.5% 0.022 262) 100%);
+  --c-star: oklch(96% 0.01 95);
+  --c-line: oklch(88% 0.04 90);
+  --c-glow: oklch(90% 0.06 88);
+}
+
+.cineS-stage .cine2-skip {
+  color: oklch(88% 0.015 90);
+  text-shadow: 0 1px 3px oklch(8% 0.02 265 / 0.6);
+}
+
+.cineS-scene {
+  position: relative;
+  width: 360px;
+  height: 560px;
+  perspective: 1400px;
+  perspective-origin: 50% 44%;
+  transform: scale(var(--cine-scale, 1));
+  transform-origin: center center;
+}
+@media (min-width: 900px) {
+  .cineS-stage.live .cineS-scene {
+    --cine-scale: 1.22;
+  }
+}
+
+/* Caméra contemplative : lente élévation du regard, rien de plus —
+   le mouvement appartient au ciel. */
+.sx-camera {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  transform: translateY(26px) scale(1.05);
+  transition: transform 5s cubic-bezier(0.3, 0.4, 0.3, 1);
+}
+.cineS.night .sx-camera {
+  transform: translateY(12px) scale(1.02);
+}
+.cineS.trace .sx-camera,
+.cineS.names .sx-camera,
+.cineS.settled .sx-camera {
+  transform: translateY(0) scale(1);
+}
+
+.sx-par {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  transition: transform 0.5s var(--ease-out-quint);
+}
+
+/* -------------------------------- ciel ---------------------------------- */
+
+.st-milky {
+  position: absolute;
+  left: -30%;
+  top: 6%;
+  width: 160%;
+  height: 34%;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    oklch(60% 0.03 280 / 0.14) 40%,
+    oklch(70% 0.02 290 / 0.1) 55%,
+    transparent
+  );
+  rotate: -16deg;
+  filter: blur(6px);
+  opacity: 0.6;
+  transition: opacity 1.2s ease;
+}
+.cineS.night .st-milky {
+  opacity: 1;
+}
+
+.st-sky {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.st-sky span {
+  position: absolute;
+  border-radius: 50%;
+  background: var(--c-star);
+  opacity: 0.3;
+  animation: cineSStar 4s ease-in-out var(--sd, 0s) infinite;
+}
+.cineS.night .st-sky span {
+  animation-duration: 3.2s;
+}
+@keyframes cineSStar {
+  0%,
+  100% {
+    opacity: 0.22;
+  }
+  50% {
+    opacity: 0.95;
+  }
+}
+
+.st-hill {
+  position: absolute;
+  left: -4%;
+  right: -4%;
+  bottom: -6px;
+  height: 120px;
+  pointer-events: none;
+}
+.st-hill.h1 {
+  clip-path: polygon(0 100%, 0 55%, 18% 34%, 42% 58%, 63% 30%, 84% 52%, 100% 40%, 100% 100%);
+  background: oklch(10% 0.018 265);
+}
+.st-hill.h2 {
+  height: 88px;
+  clip-path: polygon(0 100%, 0 62%, 24% 44%, 52% 66%, 78% 42%, 100% 58%, 100% 100%);
+  background: oklch(8% 0.014 262);
+}
+
+/* --------------------------- étoiles filantes --------------------------- */
+
+.st-shoot {
+  position: absolute;
+  width: 110px;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, transparent, oklch(96% 0.02 92 / 0.95));
+  opacity: 0;
+  pointer-events: none;
+}
+.st-shoot::after {
+  content: '';
+  position: absolute;
+  right: -3px;
+  top: -2.5px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: radial-gradient(circle, oklch(98% 0.02 95), transparent 70%);
+  box-shadow: 0 0 12px oklch(95% 0.04 92);
+}
+.st-shoot.s1 {
+  left: 6%;
+  top: 14%;
+  rotate: 18deg;
+}
+.st-shoot.s2 {
+  right: 4%;
+  top: 30%;
+  rotate: 199deg;
+  width: 80px;
+}
+.cineS.shoot .st-shoot.s1 {
+  animation: cineSShoot 1s cubic-bezier(0.3, 0.4, 0.3, 1) 1 forwards;
+}
+.cineS.shoot .st-shoot.s2 {
+  animation: cineSShoot 0.9s cubic-bezier(0.3, 0.4, 0.3, 1) 0.45s 1 forwards;
+}
+@keyframes cineSShoot {
+  0% {
+    opacity: 0;
+    transform: translateX(0);
+  }
+  18% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(230px);
+  }
+}
+
+/* ------------------------- le cœur de la nuit --------------------------- */
+
+.st-heart {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.st-heart polyline {
+  fill: none;
+  stroke: var(--c-line);
+  stroke-width: 1.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.85;
+  filter: drop-shadow(0 0 4px oklch(88% 0.05 90 / 0.7));
+  stroke-dasharray: 620;
+  stroke-dashoffset: 620;
+}
+.cineS.trace .st-heart polyline {
+  transition: stroke-dashoffset 1.9s cubic-bezier(0.4, 0.1, 0.3, 1) 0.1s;
+  stroke-dashoffset: 0;
+}
+.cineS.settled .st-heart {
+  animation: cineSBreath 5s ease-in-out infinite alternate;
+}
+@keyframes cineSBreath {
+  0% {
+    opacity: 0.85;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.st-nodes {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.st-nodes span {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  margin: -2.5px 0 0 -2.5px;
+  border-radius: 50%;
+  background: var(--c-star);
+  box-shadow: 0 0 8px oklch(94% 0.04 92 / 0.9);
+  opacity: 0.35;
+  transform: scale(0.6);
+}
+.cineS.trace .st-nodes span {
+  animation: cineSNode 0.55s cubic-bezier(0.34, 1.4, 0.5, 1) calc(0.1s + var(--nd, 0s) * 1.6) 1
+    forwards;
+}
+@keyframes cineSNode {
+  0% {
+    opacity: 0.35;
+    transform: scale(0.6);
+  }
+  55% {
+    opacity: 1;
+    transform: scale(2);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+}
+
+/* --------------------- prénoms en lumière stellaire --------------------- */
+
+.st-names {
+  position: absolute;
+  left: 50%;
+  top: 294px;
+  width: 330px;
+  transform: translateX(-50%) translateZ(20px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  text-align: center;
+  pointer-events: none;
+}
+.st-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: oklch(66% 0.02 275);
+  margin-bottom: 8px;
+  opacity: 0;
+  transition: opacity 0.7s ease 0.15s;
+}
+.st-name {
+  display: block;
+  max-width: 330px;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 500;
+  font-size: 40px;
+  line-height: 1.08;
+  color: oklch(95% 0.018 92);
+  text-shadow:
+    0 0 18px oklch(90% 0.05 90 / 0.55),
+    0 0 46px oklch(85% 0.06 88 / 0.3);
+  opacity: 0;
+  filter: blur(7px);
+  transition:
+    opacity 0.9s ease 0.25s,
+    filter 1.1s ease 0.25s;
+}
+.st-name.nb {
+  transition-delay: 0.7s;
+}
+.st-amp {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 17px;
+  color: var(--c-glow);
+  letter-spacing: 0.2em;
+  margin: 2px 0;
+  opacity: 0;
+  transition: opacity 0.6s ease 0.55s;
+}
+.cineS.names .st-eyebrow,
+.cineS.names .st-amp {
+  opacity: 1;
+}
+.cineS.names .st-name {
+  opacity: 1;
+  filter: blur(0);
+}
+/* Trait de comète sous les prénoms. */
+.st-comet {
+  position: relative;
+  width: 150px;
+  height: 2px;
+  margin-top: 8px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, transparent, var(--c-glow), oklch(96% 0.02 92));
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.9s cubic-bezier(0.3, 0.7, 0.3, 1) 1.1s;
+}
+.st-comet::after {
+  content: '';
+  position: absolute;
+  right: -3px;
+  top: -2px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: oklch(97% 0.02 94);
+  box-shadow: 0 0 10px oklch(94% 0.05 92);
+}
+.cineS.names .st-comet {
+  transform: scaleX(1);
+}
+.st-date {
+  margin-top: 6px;
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: oklch(70% 0.02 280);
+  max-width: 300px;
+  opacity: 0;
+  transition: opacity 0.7s ease 1.4s;
+}
+.cineS.names .st-date {
+  opacity: 1;
+}
+
+/* --------------------------- compte à rebours --------------------------- */
+
+.st-cd {
+  position: absolute;
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+  width: 330px;
+  text-align: center;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.7s ease 0.3s;
+}
+.cineS.settled .st-cd {
+  opacity: 1;
+}
+.st-cd .lbl {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: oklch(64% 0.02 278);
+  margin-bottom: 10px;
+}
+.st-cd .row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 30px;
+}
+.st-orb {
+  position: relative;
+  width: 60px;
+  height: 78px;
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(8px);
+  transition:
+    opacity 0.7s ease calc(var(--od, 0s) + 0.3s),
+    transform 0.7s var(--ease-out-quint) calc(var(--od, 0s) + 0.3s);
+}
+.cineS.settled .st-orb {
+  opacity: 1;
+  transform: translateY(0);
+}
+.st-orb b {
+  position: absolute;
+  left: 50%;
+  top: 27px;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 500;
+  font-size: 21px;
+  color: oklch(95% 0.02 92);
+  text-shadow: 0 0 14px oklch(88% 0.06 88 / 0.6);
+}
+/* Le cœur de l'orbe. */
+.st-orb::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 27px;
+  width: 44px;
+  height: 44px;
+  margin: -22px 0 0 -22px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 42% 36%,
+    oklch(40% 0.05 275 / 0.9),
+    oklch(24% 0.035 268 / 0.9) 68%
+  );
+  box-shadow:
+    0 0 18px oklch(80% 0.05 90 / 0.28),
+    inset 0 0 10px oklch(70% 0.04 285 / 0.6);
+}
+/* Orbite + satellite. */
+.st-orb .ring {
+  position: absolute;
+  left: 50%;
+  top: 27px;
+  width: 58px;
+  height: 58px;
+  margin: -29px 0 0 -29px;
+  border-radius: 50%;
+  border: 1px solid oklch(78% 0.03 90 / 0.4);
+}
+.st-orb .ring::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: -2px;
+  width: 4px;
+  height: 4px;
+  margin-left: -2px;
+  border-radius: 50%;
+  background: var(--c-star);
+  box-shadow: 0 0 6px oklch(94% 0.04 92);
+}
+.cineS.settled .st-orb .ring {
+  animation: cineSOrbit 9s linear calc(var(--od, 0s) * 4) infinite;
+}
+@keyframes cineSOrbit {
+  to {
+    rotate: 360deg;
+  }
+}
+.st-orb em {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  font-family: var(--font-mono);
+  font-style: normal;
+  font-size: 7.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: oklch(64% 0.02 278);
+}
+
+.cineS-cue {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  color: oklch(72% 0.015 285);
+  transition: opacity 0.6s ease;
+  pointer-events: none;
+}
+.cineS-cue .t {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+}
+
+/* ------------------------- reduced / frozen ---------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .cineS *,
+  .cineS *::before,
+  .cineS *::after {
+    transition-duration: 0.01ms !important;
+    animation: none !important;
+  }
+  .cineS .st-shoot {
+    display: none;
+  }
+  .cineS .sx-camera {
+    transform: none !important;
+  }
+  .cineS .st-heart polyline {
+    stroke-dashoffset: 0;
+  }
+  .cineS .st-nodes span {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+  .cineS .st-name {
+    filter: none;
+  }
+}
+.cineS.reduced *,
+.cineS.reduced *::before,
+.cineS.reduced *::after {
+  transition: none !important;
+  animation: none !important;
+}
+.cineS.reduced .st-shoot {
+  display: none;
+}
+.cineS.reduced .sx-camera {
+  transform: none !important;
+}
+.cineS.reduced .st-heart polyline {
+  stroke-dashoffset: 0;
+}
+.cineS.reduced .st-nodes span {
+  opacity: 1;
+  transform: scale(1.15);
+}
+.cineS.reduced .st-name {
+  filter: none;
+}
+.cineS.frozen .st-sky span,
+.cineS.frozen .st-shoot,
+.cineS.frozen .st-orb .ring,
+.cineS.frozen .st-heart {
+  animation: none;
+}

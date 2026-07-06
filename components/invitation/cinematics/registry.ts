@@ -11,7 +11,19 @@
  */
 import type { MusicTrackId } from '@/lib/invitation/music';
 
-export const CINEMATIC_IDS = ['seal', 'floral', 'cake', 'voyage', 'theatre'] as const;
+export const CINEMATIC_IDS = [
+  'seal',
+  'floral',
+  'cake',
+  'voyage',
+  'theatre',
+  'etoiles',
+  'lanternes',
+  'rivage',
+  'feux',
+  'deco',
+  'neige',
+] as const;
 export type CinematicId = (typeof CINEMATIC_IDS)[number];
 
 export const DEFAULT_CINEMATIC: CinematicId = 'seal';
@@ -36,7 +48,13 @@ export interface CinematicMeta {
 export const CINEMATIC_META: Record<CinematicId, CinematicMeta> = {
   seal: { id: 'seal', suggestedTrackId: 'aurore', dark: false },
   floral: { id: 'floral', suggestedTrackId: 'jardin', dark: false },
-  cake: { id: 'cake', suggestedTrackId: 'celebration', dark: false },
+  cake: { id: 'cake', suggestedTrackId: 'celebration', dark: true },
   voyage: { id: 'voyage', suggestedTrackId: 'envol', dark: true },
   theatre: { id: 'theatre', suggestedTrackId: 'harmonie', dark: true },
+  etoiles: { id: 'etoiles', suggestedTrackId: 'harmonie', dark: true },
+  lanternes: { id: 'lanternes', suggestedTrackId: 'aurore', dark: true },
+  rivage: { id: 'rivage', suggestedTrackId: 'envol', dark: false },
+  feux: { id: 'feux', suggestedTrackId: 'celebration', dark: true },
+  deco: { id: 'deco', suggestedTrackId: 'harmonie', dark: true },
+  neige: { id: 'neige', suggestedTrackId: 'aurore', dark: false },
 };

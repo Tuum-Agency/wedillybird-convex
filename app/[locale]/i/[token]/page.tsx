@@ -10,6 +10,8 @@ import { InvitationShell } from '@/components/invitation/invitation-shell';
 import { WeddingCountdown } from '@/components/invitation/wedding-countdown';
 import { RsvpFormV4 } from '@/components/invitation/rsvp-form-v4';
 import { LandingFooterRich } from '@/components/landing/footer-rich';
+import { InvitationFooter } from '@/components/invitation/invitation-footer';
+import { asCinematicId } from '@/components/invitation/cinematics/registry';
 import { TrackOnMount } from '@/components/analytics/track-on-mount';
 
 export const dynamic = 'force-dynamic';
@@ -253,7 +255,11 @@ export default async function InvitationPage({
             </span>
           </Link>
         </article>
-        <LandingFooterRich />
+        {asCinematicId(event.invitationCinematic) === 'seal' ? (
+          <LandingFooterRich />
+        ) : (
+          <InvitationFooter />
+        )}
       </InvitationShell>
     </main>
   );

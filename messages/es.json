@@ -5686,6 +5686,30 @@
       "theatre": {
         "name": "El Telón",
         "desc": "El telón se alza sobre el lago de los cisnes: vuestros nombres en luces de marquesina."
+      },
+      "etoiles": {
+        "name": "La Constelación",
+        "desc": "La noche despierta: un corazón se traza de estrella en estrella, vuestros nombres en luz."
+      },
+      "lanternes": {
+        "name": "Las Linternas",
+        "desc": "Las linternas se encienden y se elevan: vuestros nombres brillan a través del papel."
+      },
+      "rivage": {
+        "name": "La Orilla",
+        "desc": "La ola se retira y vuestros nombres quedan escritos en la arena."
+      },
+      "feux": {
+        "name": "Los Fuegos artificiales",
+        "desc": "Los cohetes suben; el gran final revela vuestros nombres en oro."
+      },
+      "deco": {
+        "name": "El Art déco",
+        "desc": "Negro y oro: el marco se dibuja, vuestros nombres en mayúsculas doradas estilo Gatsby."
+      },
+      "neige": {
+        "name": "Primer copo",
+        "desc": "Cae la nieve, la escarcha cubre el cristal: un círculo de calor revela vuestros nombres."
       }
     },
     "tracks": {

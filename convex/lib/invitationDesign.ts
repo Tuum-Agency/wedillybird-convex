@@ -8,7 +8,19 @@
  */
 import { eventHasFeature } from './entitlements';
 
-export const CINEMATIC_IDS = ['seal', 'floral', 'cake', 'voyage', 'theatre'] as const;
+export const CINEMATIC_IDS = [
+  'seal',
+  'floral',
+  'cake',
+  'voyage',
+  'theatre',
+  'etoiles',
+  'lanternes',
+  'rivage',
+  'feux',
+  'deco',
+  'neige',
+] as const;
 export type CinematicId = (typeof CINEMATIC_IDS)[number];
 
 export const MUSIC_TRACK_IDS = ['aurore', 'jardin', 'celebration', 'envol', 'harmonie'] as const;
