@@ -14,7 +14,6 @@ import {
   type SubscriptionTier,
 } from '@/lib/payments/subscriptions';
 import { formatAmount, priceFontSizeClamp, type Currency } from '@/lib/payments/plans';
-import { convertFromEur } from '@/lib/payments/currency';
 import { useEffectiveCurrency } from '@/stores/currency-store';
 import { cn } from '@/lib/cn';
 import { inViewOnce, scrollReveal, scrollRevealParent } from '@/lib/motion/presets';
@@ -110,22 +109,22 @@ export function LandingPricingPros({
     { tier: 'agency', recommended: false, ring: 'gold' },
   ];
 
+  // La table `prices` porte l'override USD marché (parité numérique, cf.
+  // subscriptions.ts) — ne pas reconvertir l'EUR en direct.
   function getMonthlyEquivalentLabel(tier: SubscriptionTier): string {
     if (billing === 'monthly') {
-      const minor = convertFromEur(SUBSCRIPTION_TIER_PRICES[tier].amountMinor, currency);
-      return formatAmount(minor, currency);
+      return formatAmount(SUBSCRIPTION_TIER_PRICES[tier].prices[currency], currency);
     }
-    const annualMinor = convertFromEur(SUBSCRIPTION_TIER_ANNUAL_PRICES[tier].amountMinor, currency);
+    const annualMinor = SUBSCRIPTION_TIER_ANNUAL_PRICES[tier].prices[currency];
     const monthlyEquivMinor = Math.round(annualMinor / 12);
     return formatAmount(monthlyEquivMinor, currency);
   }
 
   function getAnnualBilledLabel(tier: SubscriptionTier): string {
-    const minor = convertFromEur(SUBSCRIPTION_TIER_ANNUAL_PRICES[tier].amountMinor, currency);
-    return formatAmount(minor, currency);
+    return formatAmount(SUBSCRIPTION_TIER_ANNUAL_PRICES[tier].prices[currency], currency);
   }
 
-  const paygLabel = formatAmount(convertFromEur(PAYG_PRO_PRICE.amountMinor, currency), currency);
+  const paygLabel = formatAmount(PAYG_PRO_PRICE.prices[currency], currency);
 
   return (
     <section

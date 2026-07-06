@@ -89,8 +89,10 @@ interface PlanSpec {
   id: string;
   productName: string;
   productDescription: string;
-  /** Montant EUR en unités mineures (source de vérité v2). USD/MAD dérivés via convertFromEur. */
+  /** Montant EUR en unités mineures (source de vérité v2). MAD dérivé via convertFromEur. */
   eurMinor: number;
+  /** Prix US en cents, posé en valeur marché (décision 2026-07-06) — prioritaire sur la conversion EUR. */
+  usdMinor?: number;
   /** undefined = one-shot, 'month' / 'year' = recurring. */
   interval: 'month' | 'year' | undefined;
   /** Préfixe d'env var. Le suffix `_<CURRENCY>` est ajouté automatiquement. */
@@ -107,6 +109,7 @@ const PLANS_TO_SYNC: ReadonlyArray<PlanSpec> = [
     productDescription:
       'Forfait particulier 29 €. 100 invités, invitations WhatsApp/SMS, RSVP temps réel, check-in offline, galerie 5 Go 12 mois.',
     eurMinor: 2900,
+    usdMinor: 4000,
     interval: undefined,
     envVarBase: 'STRIPE_PRICE_ESSENTIAL',
   },
@@ -116,6 +119,7 @@ const PLANS_TO_SYNC: ReadonlyArray<PlanSpec> = [
     productDescription:
       'Forfait particulier 59 €. 250 invités, galerie 25 Go HD 12 mois, recherche par visage, plan de table, album PDF, invitation cinématique.',
     eurMinor: 5900,
+    usdMinor: 8000,
     interval: undefined,
     envVarBase: 'STRIPE_PRICE_PREMIUM',
   },
@@ -125,6 +129,7 @@ const PLANS_TO_SYNC: ReadonlyArray<PlanSpec> = [
     productDescription:
       'Extension post-mariage +29 €. Archive HD perpétuelle + export ZIP haute définition.',
     eurMinor: 2900,
+    usdMinor: 3000,
     interval: undefined,
     envVarBase: 'STRIPE_PRICE_POST_EVENT_UPSELL',
   },
@@ -135,6 +140,7 @@ const PLANS_TO_SYNC: ReadonlyArray<PlanSpec> = [
     productDescription:
       '99 €/mois. 5 événements × 150 invités, 3 000 messages inclus, 50 Go, branding Wedillybird.',
     eurMinor: 9900,
+    usdMinor: 9900,
     interval: 'month',
     envVarBase: 'STRIPE_PRICE_STARTER',
   },
@@ -144,6 +150,7 @@ const PLANS_TO_SYNC: ReadonlyArray<PlanSpec> = [
     productDescription:
       '219 €/mois. 20 événements × 150 invités, 10 000 messages, 200 Go, logo personnalisé + sous-domaine.',
     eurMinor: 21900,
+    usdMinor: 21900,
     interval: 'month',
     envVarBase: 'STRIPE_PRICE_BUSINESS',
   },
@@ -153,6 +160,7 @@ const PLANS_TO_SYNC: ReadonlyArray<PlanSpec> = [
     productDescription:
       '449 €/mois. 50 événements × 150 invités, 25 000 messages, 500 Go, marque blanche.',
     eurMinor: 44900,
+    usdMinor: 44900,
     interval: 'month',
     envVarBase: 'STRIPE_PRICE_AGENCY',
   },
@@ -162,6 +170,7 @@ const PLANS_TO_SYNC: ReadonlyArray<PlanSpec> = [
     productName: 'Wedillybird Pro — Starter (annuel)',
     productDescription: '951 €/an (équiv. 79,25 €/mois). 5 événements actifs, 3 000 messages/mois.',
     eurMinor: 95100,
+    usdMinor: 95100,
     interval: 'year',
     envVarBase: 'STRIPE_PRICE_STARTER_ANNUAL',
   },
@@ -171,6 +180,7 @@ const PLANS_TO_SYNC: ReadonlyArray<PlanSpec> = [
     productDescription:
       '2 103 €/an (équiv. 175,25 €/mois). 20 événements actifs, 10 000 messages/mois.',
     eurMinor: 210300,
+    usdMinor: 210300,
     interval: 'year',
     envVarBase: 'STRIPE_PRICE_BUSINESS_ANNUAL',
   },
@@ -180,6 +190,7 @@ const PLANS_TO_SYNC: ReadonlyArray<PlanSpec> = [
     productDescription:
       '4 311 €/an (équiv. 359,25 €/mois). 50 événements actifs, 25 000 messages/mois.',
     eurMinor: 431100,
+    usdMinor: 431100,
     interval: 'year',
     envVarBase: 'STRIPE_PRICE_AGENCY_ANNUAL',
   },
@@ -189,6 +200,7 @@ const PLANS_TO_SYNC: ReadonlyArray<PlanSpec> = [
     productName: 'Wedillybird Pro — Pay-as-you-go (1 événement)',
     productDescription: '79 €/événement, sans abonnement. 150 invités, 25 Go.',
     eurMinor: 7900,
+    usdMinor: 7900,
     interval: undefined,
     envVarBase: 'STRIPE_PRICE_PAYG_EVENT',
   },
@@ -245,8 +257,13 @@ async function syncPlanCurrency(
 ): Promise<SyncResult | null> {
   const envVarName =
     currency === 'EUR' ? `${spec.envVarBase}_EUR` : `${spec.envVarBase}_${currency}`;
-  // USD/MAD dérivés de l'EUR via convertFromEur → strictement alignés sur l'app.
-  const unitAmount = convertFromEur(spec.eurMinor, currency);
+  // MAD dérivé de l'EUR via convertFromEur ; USD = valeur marché posée (spec.usdMinor)
+  // quand présente (grille consumer $40/$80/$30, cf. lib/payments/plans.ts) —
+  // strictement aligné sur l'app.
+  const unitAmount =
+    currency === 'USD' && spec.usdMinor !== undefined
+      ? spec.usdMinor
+      : convertFromEur(spec.eurMinor, currency);
 
   if (DRY_RUN) {
     return {

@@ -8,8 +8,9 @@ import { buttonVariants } from '@/components/ui/button';
 import { analytics } from '@/lib/analytics/posthog-client';
 import {
   PLANS,
-  POST_EVENT_UPSELL,
-  formatEurAs,
+  formatAmount,
+  getPlanPrice,
+  getUpsellPrice,
   priceFontSizeClamp,
   type Currency,
 } from '@/lib/payments/plans';
@@ -37,11 +38,13 @@ interface Props {
  */
 export function LandingPricingCards({ defaultCurrency }: Props) {
   const currency = useEffectiveCurrency(defaultCurrency);
+  // getPlanPrice/getUpsellPrice appliquent l'override USD marché (cf. plans.ts)
+  // avant de retomber sur la conversion EUR pour les autres devises.
   const prices = {
-    essential: formatEurAs(PLANS.essential.eurMinor, currency),
-    premium: formatEurAs(PLANS.premium.eurMinor, currency),
+    essential: formatAmount(getPlanPrice('essential', currency), currency),
+    premium: formatAmount(getPlanPrice('premium', currency), currency),
   };
-  const upsellPriceLabel = formatEurAs(POST_EVENT_UPSELL.eurMinor, currency);
+  const upsellPriceLabel = formatAmount(getUpsellPrice(currency), currency);
 
   const t = useTranslations('Landing');
   const tPlans = useTranslations('Plans');
