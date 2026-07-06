@@ -4920,6 +4920,7 @@
       "quotaUsed": "{pct} % belegt",
       "quotaWarn": "{pct} % belegt",
       "remove": "Entfernen",
+      "saveError": "Speichern fehlgeschlagen — deine letzten Änderungen wurden zurückgesetzt. Versuch es erneut.",
       "signOut": "Abmelden"
     },
     "data": {
@@ -4958,9 +4959,12 @@
       },
       "paymentKind": {
         "deposit": "Deposit",
-        "balance": "Balance"
+        "balance": "Balance",
+        "other": "Weitere Zahlung"
       },
       "invoices": {
+        "essentielPlan": "Essentiel-Paket",
+        "hdUpsell": "HD-Archiv 5 Jahre (Upsell)",
         "premiumPlan": "Premium plan"
       },
       "overages": {
@@ -5094,6 +5098,11 @@
       "heroAria": "Ihre Hochzeit im Überblick",
       "navAria": "Schnellzugriffe",
       "confirmed": "Bestätigt",
+      "noEvent": {
+        "body": "Legt euer Event an (Namen, Datum, Ort), um euren Bereich zu öffnen: Einladungen, Zusagen, Budget, Dienstleister und Sitzplan.",
+        "cta": "Meine Hochzeit anlegen",
+        "title": "Eure Hochzeit ist noch nicht angelegt"
+      },
       "pending": "Ausstehend",
       "expected": "Erwartete Personen",
       "online": "Online",
@@ -5181,6 +5190,7 @@
       "planTitle": "Planung"
     },
     "nav": {
+      "budget": "Budget",
       "home": "Home",
       "dashboard": "My wedding",
       "planning": "Timeline",
@@ -5223,6 +5233,7 @@
     },
     "budget": {
       "eyebrow": "Finanzen",
+      "setBudget": "Budget festlegen",
       "title": "Ihr Budget",
       "subtitle": "Behalten Sie Ausgaben und Zahlungsplan auf einen Blick im Überblick.",
       "engaged": "Gebunden",
@@ -5313,6 +5324,7 @@
       "eyebrow": "Ihr Tarif",
       "choixTitle": "Wählen Sie Ihr Paket",
       "choixSubtitle": "Eine einmalige Zahlung, niemals ein Abo. Alles für Ihren großen Tag inklusive.",
+      "noInvoices": "Noch keine Rechnungen.",
       "oneTimeNote": "Einmalige Zahlung · Galerie 12 Monate nach der Hochzeit aktiv.",
       "recommended": "Empfohlen",
       "once": "einmalig",
@@ -5321,6 +5333,7 @@
       "choosePlan": "{name} wählen",
       "reassureRefund": "100 % Rückerstattung innerhalb von 7 Tagen, falls die Einladung nicht versendet wird.",
       "reassurePostpone": "Kostenlose Verschiebung im Fall einer Absage.",
+      "upsellPurchased": "5-Jahres-Archiv aktiv",
       "yourPlan": "Ihr Paket",
       "purchasedOn": "gekauft am {date}",
       "activeOneTime": "Aktiv · einmalige Zahlung",
@@ -5379,6 +5392,11 @@
       "honorHint": "Hebt den Tisch hervor (Goldakzent).",
       "honorLabel": "Ehrentisch",
       "inspectElementAria": "Details des Elements {label}",
+      "locked": {
+        "body": "Wechselt zu Premium, um euren Saal in 3D zu gestalten, Gäste per Drag-and-drop zu platzieren und den Plan zu exportieren.",
+        "cta": "Premium-Paket ansehen",
+        "title": "Der Sitzplan ist eine Premium-Funktion"
+      },
       "recenter": "Zentrieren",
       "roomDefaultName": "Festsaal",
       "roomLengthLabel": "Länge (m)",

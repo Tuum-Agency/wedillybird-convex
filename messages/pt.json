@@ -4920,6 +4920,7 @@
       "quotaUsed": "{pct}% utilizado",
       "quotaWarn": "{pct}% utilizado",
       "remove": "Remover",
+      "saveError": "Não foi possível guardar — as tuas últimas alterações foram revertidas. Tenta novamente.",
       "signOut": "Sair"
     },
     "data": {
@@ -4958,9 +4959,12 @@
       },
       "paymentKind": {
         "deposit": "Deposit",
-        "balance": "Balance"
+        "balance": "Balance",
+        "other": "Outro pagamento"
       },
       "invoices": {
+        "essentielPlan": "Plano Essencial",
+        "hdUpsell": "Arquivo HD 5 anos (upsell)",
         "premiumPlan": "Premium plan"
       },
       "overages": {
@@ -5094,6 +5098,11 @@
       "heroAria": "O vosso casamento num relance",
       "navAria": "Acessos rápidos",
       "confirmed": "Confirmados",
+      "noEvent": {
+        "body": "Cria o teu evento (nomes, data, local) para abrir o teu espaço: convites, RSVP, orçamento, fornecedores e plano de mesas.",
+        "cta": "Criar o meu casamento",
+        "title": "O teu casamento ainda não está criado"
+      },
       "pending": "Pendentes",
       "expected": "Pessoas esperadas",
       "online": "Online",
@@ -5181,6 +5190,7 @@
       "planTitle": "Planeamento"
     },
     "nav": {
+      "budget": "Orçamento",
       "home": "Home",
       "dashboard": "My wedding",
       "planning": "Timeline",
@@ -5223,6 +5233,7 @@
     },
     "budget": {
       "eyebrow": "Finanças",
+      "setBudget": "Definir o orçamento",
       "title": "O vosso orçamento",
       "subtitle": "Acompanhem as despesas e o calendário de pagamentos num relance.",
       "engaged": "Comprometido",
@@ -5313,6 +5324,7 @@
       "eyebrow": "A vossa fórmula",
       "choixTitle": "Escolham o vosso plano",
       "choixSubtitle": "Um pagamento único, nunca uma subscrição. Tudo incluído para o vosso grande dia.",
+      "noInvoices": "Ainda não há faturas.",
       "oneTimeNote": "Pagamento único · galeria ativa 12 meses após o casamento.",
       "recommended": "Recomendado",
       "once": "pagamento único",
@@ -5321,6 +5333,7 @@
       "choosePlan": "Escolher {name}",
       "reassureRefund": "Reembolso de 100% em 7 dias se o convite não for enviado.",
       "reassurePostpone": "Adiamento gratuito em caso de cancelamento.",
+      "upsellPurchased": "Arquivo de 5 anos ativo",
       "yourPlan": "O vosso plano",
       "purchasedOn": "comprado a {date}",
       "activeOneTime": "Ativo · pagamento único",
@@ -5379,6 +5392,11 @@
       "honorHint": "Destaca a mesa (detalhe dourado).",
       "honorLabel": "Mesa de honra",
       "inspectElementAria": "Detalhes do elemento {label}",
+      "locked": {
+        "body": "Passa a Premium para desenhar a tua sala em 3D, sentar os convidados com arrastar e largar e exportar o plano.",
+        "cta": "Ver o plano Premium",
+        "title": "O plano de mesas é uma funcionalidade Premium"
+      },
       "recenter": "Centrar",
       "roomDefaultName": "Salão de receção",
       "roomLengthLabel": "Comprimento (m)",

@@ -4916,6 +4916,7 @@
       "quotaUsed": "{pct}٪ مُستخدَم",
       "quotaWarn": "{pct}٪ مُستخدَم",
       "remove": "إزالة",
+      "saveError": "تعذّر الحفظ — تم التراجع عن آخر تعديلاتك. حاول مجددًا.",
       "signOut": "تسجيل الخروج"
     },
     "data": {
@@ -4954,9 +4955,12 @@
       },
       "paymentKind": {
         "deposit": "Deposit",
-        "balance": "Balance"
+        "balance": "Balance",
+        "other": "دفعة أخرى"
       },
       "invoices": {
+        "essentielPlan": "باقة Essentiel",
+        "hdUpsell": "أرشيف HD لمدة 5 سنوات (إضافة)",
         "premiumPlan": "Premium plan"
       },
       "overages": {
@@ -5090,6 +5094,11 @@
       "heroAria": "لمحة عن زفافكم",
       "navAria": "وصول سريع",
       "confirmed": "مؤكَّدون",
+      "noEvent": {
+        "body": "أنشئ مناسبتك (الأسماء، التاريخ، المكان) لفتح مساحتك: الدعوات، تأكيدات الحضور، الميزانية، المزوّدون ومخطط الجلوس.",
+        "cta": "إنشاء زفافي",
+        "title": "لم يُنشأ زفافك بعد"
+      },
       "pending": "قيد الانتظار",
       "expected": "الأشخاص المتوقَّعون",
       "online": "متصلة",
@@ -5177,6 +5186,7 @@
       "planTitle": "الجدول الزمني"
     },
     "nav": {
+      "budget": "الميزانية",
       "home": "Home",
       "dashboard": "My wedding",
       "planning": "Timeline",
@@ -5219,6 +5229,7 @@
     },
     "budget": {
       "eyebrow": "المالية",
+      "setBudget": "تحديد الميزانية",
       "title": "ميزانيتكم",
       "subtitle": "تابعوا نفقاتكم وجدول مدفوعاتكم بلمحة واحدة.",
       "engaged": "المُلتزَم به",
@@ -5309,6 +5320,7 @@
       "eyebrow": "صيغتكم",
       "choixTitle": "اختاروا باقتكم",
       "choixSubtitle": "دفعة واحدة، دون أي اشتراك. كل شيء مشمول ليومكم الكبير.",
+      "noInvoices": "لا فواتير حتى الآن.",
       "oneTimeNote": "دفعة واحدة · المعرض نشط 12 شهرًا بعد الزفاف.",
       "recommended": "موصى به",
       "once": "مرة واحدة",
@@ -5317,6 +5329,7 @@
       "choosePlan": "اختيار {name}",
       "reassureRefund": "استرداد 100٪ خلال 7 أيام إذا لم تُرسَل الدعوة.",
       "reassurePostpone": "تأجيل مجاني في حال الإلغاء.",
+      "upsellPurchased": "أرشيف 5 سنوات مفعّل",
       "yourPlan": "باقتكم",
       "purchasedOn": "تم الشراء في {date}",
       "activeOneTime": "نشط · دفعة واحدة",
@@ -5375,6 +5388,11 @@
       "honorHint": "يُبرز الطاولة (لمسة ذهبية).",
       "honorLabel": "طاولة الشرف",
       "inspectElementAria": "تفاصيل العنصر {label}",
+      "locked": {
+        "body": "انتقل إلى Premium لتصميم قاعتك ثلاثية الأبعاد، وتوزيع الضيوف بالسحب والإفلات، وتصدير المخطط.",
+        "cta": "عرض باقة Premium",
+        "title": "مخطط الجلوس ميزة Premium"
+      },
       "recenter": "إعادة التوسيط",
       "roomDefaultName": "قاعة الاستقبال",
       "roomLengthLabel": "الطول (م)",

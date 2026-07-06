@@ -2,6 +2,7 @@
 
 import dynamic from 'next/dynamic';
 import type { McScreenKey } from '@/components/mon-mariage/app';
+import { buildDemoBundle, DEMO_NOW } from '@/components/mon-mariage/demo-bundle';
 
 // Rendu CLIENT-ONLY (ssr: false) pour les captures : évite tout mismatch
 // d'hydratation (les helpers de date de data.ts dépendent du fuseau horaire,
@@ -18,5 +19,12 @@ export function CaptureClient({
   initialScreen: McScreenKey;
   forfaitView: 'choix' | 'actif';
 }) {
-  return <MonMariageApp initialScreen={initialScreen} forfaitView={forfaitView} />;
+  return (
+    <MonMariageApp
+      bundle={buildDemoBundle()}
+      now={DEMO_NOW}
+      initialScreen={initialScreen}
+      forfaitViewOverride={forfaitView}
+    />
+  );
 }

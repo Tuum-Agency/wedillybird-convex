@@ -1,7 +1,9 @@
 'use client';
 // AUTO-PORTED from Claude Design bundle (couple/mc-app.jsx), typed.
 // Espace couple self-serve — shell : sidebar (desktop) / bottom tab bar (mobile).
-// LIGHT « mariage éditorial ». Données mock pour l'instant (props Convex à venir).
+// LIGHT « mariage éditorial ». Câblé Convex : le bundle serveur hydrate le store
+// Zustand (stores/mon-mariage.ts), les écrans lisent le store et mutent en
+// optimiste via les server actions.
 
 import { useState, type CSSProperties } from 'react';
 import { useTranslations } from 'next-intl';
@@ -15,20 +17,9 @@ import { VendorsScreen } from './screen-vendors';
 import { BudgetScreen } from './screen-budget';
 import { ForfaitScreen } from './screen-forfait';
 import { SeatingScreen } from './screen-seating';
-import {
-  MC_COUPLE,
-  MC_RSVP,
-  MC_USAGE,
-  MC_ACTIVE,
-  MC_GUESTS,
-  mcInitials,
-  mcJ,
-  type McCouple,
-  type McRsvp,
-  type McUsage,
-  type McActive,
-  type McGuest,
-} from './data';
+import { mcInitials, mcJ } from './data';
+import type { MmBundle } from '@/lib/mon-mariage/types';
+import { guestsView, useMonMariage } from '@/stores/mon-mariage';
 
 export type McScreenKey =
   | 'home'
@@ -68,64 +59,57 @@ function DashSkeleton() {
   );
 }
 
-export interface MonMariageData {
-  couple: McCouple;
-  rsvp: McRsvp;
-  usage: McUsage;
-  active: McActive;
-  guests: McGuest[];
-}
-
 export function MonMariageApp({
-  data = {
-    couple: MC_COUPLE,
-    rsvp: MC_RSVP,
-    usage: MC_USAGE,
-    active: MC_ACTIVE,
-    guests: MC_GUESTS,
-  },
+  bundle,
+  now,
   userName,
   loading = false,
-  empty = false,
   initialScreen = 'home',
-  forfaitView = 'actif',
+  forfaitViewOverride,
 }: {
-  data?: MonMariageData;
+  /** Snapshot Convex de l'espace couple (null = aucun mariage self-serve). */
+  bundle: MmBundle | null;
+  /** Horloge serveur (epoch ms) — évite tout mismatch d'hydratation sur les J−. */
+  now: number;
   userName?: string;
   loading?: boolean;
-  empty?: boolean;
   initialScreen?: McScreenKey;
-  forfaitView?: 'choix' | 'actif';
+  /** Force la vue forfait (utilisé par /capture-mm). */
+  forfaitViewOverride?: 'choix' | 'actif';
 }) {
   const [screen, setScreen] = useState<McScreenKey>(initialScreen);
   const t = useTranslations('MonMariage.nav');
   const tc = useTranslations('MonMariage.common');
-  const { couple, rsvp, usage, active, guests } = data;
-  const initials = mcInitials(couple.names);
-  const j = mcJ(couple.weddingDate);
-  const jLabel =
-    j.kind === 'day'
+
+  // Hydrate le store une fois par montage, de façon synchrone (avant le premier
+  // render des écrans) — pattern initialiseur, pas d'effet.
+  const [hydratedOnce] = useState(() => {
+    useMonMariage.getState().hydrate(bundle, now);
+    return true;
+  });
+  void hydratedOnce;
+
+  const store = useMonMariage();
+  const empty = store.event === null;
+  const couple = store.couple;
+  const guests = guestsView(store.guests);
+  const initials = couple ? mcInitials(couple.names) : (userName?.[0]?.toUpperCase() ?? '·');
+  const j = couple ? mcJ(couple.weddingDate, store.now) : null;
+  const jLabel = !j
+    ? tc('coupleSpace')
+    : j.kind === 'day'
       ? tc('jDay')
       : j.kind === 'before'
         ? tc('jBefore', { n: j.n })
         : tc('jAfter', { n: j.n });
 
   const render = () => {
-    if (loading) return <DashSkeleton />;
+    if (loading || !store.hydrated) return <DashSkeleton />;
     switch (screen) {
       case 'home':
-        return (
-          <HomeScreen
-            couple={couple}
-            rsvp={rsvp}
-            empty={empty}
-            onNav={(k) => setScreen(k as McScreenKey)}
-          />
-        );
+        return <HomeScreen empty={empty} onNav={(k) => setScreen(k as McScreenKey)} />;
       case 'dashboard':
-        return (
-          <DashScreen couple={couple} rsvp={rsvp} usage={usage} active={active} guests={guests} />
-        );
+        return <DashScreen guests={guests} />;
       case 'planning':
         return <PlanningScreen />;
       case 'vendors':
@@ -133,9 +117,9 @@ export function MonMariageApp({
       case 'budget':
         return <BudgetScreen onNav={(k) => setScreen(k as McScreenKey)} />;
       case 'seating':
-        return <SeatingScreen />;
+        return <SeatingScreen onNav={(k) => setScreen(k as McScreenKey)} />;
       case 'forfait':
-        return <ForfaitScreen active={active} usage={usage} view={forfaitView} />;
+        return <ForfaitScreen view={forfaitViewOverride ?? (store.active ? 'actif' : 'choix')} />;
       default:
         return null;
     }
@@ -172,7 +156,7 @@ export function MonMariageApp({
             <div className="mc-side-mini">
               <span className="av">{initials}</span>
               <span className="nm">
-                <b>{userName || couple.names}</b>
+                <b>{userName || couple?.names || tc('coupleSpace')}</b>
                 <span>{jLabel}</span>
               </span>
               <button className="mc-logout" aria-label={tc('signOut')} title={tc('signOut')}>

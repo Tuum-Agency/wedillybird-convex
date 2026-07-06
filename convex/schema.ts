@@ -356,13 +356,31 @@ export default defineSchema({
     name: v.string(),
     capacity: v.number(),
     // Forme du nœud dans le plan visuel spatial (v2). Défaut traité comme 'round'.
+    // Les 4 premières formes = board agence (lib/pro/seating) ; imperial /
+    // sweetheart / head = éditeur couple self-serve (/mon-mariage) uniquement.
     shape: v.optional(
-      v.union(v.literal('round'), v.literal('oval'), v.literal('rect'), v.literal('square')),
+      v.union(
+        v.literal('round'),
+        v.literal('oval'),
+        v.literal('rect'),
+        v.literal('square'),
+        v.literal('imperial'),
+        v.literal('sweetheart'),
+        v.literal('head'),
+      ),
     ),
-    // Position (px) du nœud sur le canvas du plan visuel (v2). undefined =
-    // pas encore positionné → l'UI applique une grille par défaut.
+    // Position du nœud sur le plan. Unité selon le produit : board agence = px
+    // canvas ; éditeur couple /mon-mariage = MÈTRES depuis le coin haut-gauche
+    // de la salle (un event ne vit que dans un seul des deux produits).
+    // undefined = pas encore positionné → l'UI applique une grille par défaut.
     posX: v.optional(v.number()),
     posY: v.optional(v.number()),
+    /** Rotation en degrés (éditeur couple). Défaut 0. */
+    rotation: v.optional(v.number()),
+    /** Table d'honneur (ornement doré, éditeur couple). */
+    honor: v.optional(v.boolean()),
+    /** Note libre du couple sur la table. */
+    notes: v.optional(v.string()),
     // Ordre d'affichage dans la vue liste (board drag-and-drop).
     order: v.number(),
     createdAt: v.number(),
@@ -390,6 +408,135 @@ export default defineSchema({
     .index('by_table', ['tableId'])
     .index('by_guest', ['guestId'])
     .index('by_guest_member', ['guestId', 'memberIndex']),
+
+  /* ==================== Espace couple self-serve (/mon-mariage) ====================
+     Tables du produit couple one-shot (event.ownerId = le couple, PAS d'org).
+     Volontairement distinctes des tables agence (vendors/budgetLines/planningTasks,
+     org-scopées) : zéro couplage avec le back-office pro. Montants en CENTIMES
+     dans la devise de l'event (`events.currency`). */
+
+  /** Carnet prestataires du couple. `category`/`status` : cf. convex/lib/coupleModel.ts. */
+  coupleVendors: defineTable({
+    eventId: v.id('events'),
+    name: v.string(),
+    category: v.string(),
+    status: v.union(
+      v.literal('a_contacter'),
+      v.literal('contacte'),
+      v.literal('devis'),
+      v.literal('reserve'),
+      v.literal('paye'),
+    ),
+    /** Budget prévu pour ce prestataire (centimes). */
+    amountMinor: v.number(),
+    /** Déjà payé (centimes). */
+    paidMinor: v.number(),
+    contact: v.optional(v.string()),
+    email: v.optional(v.string()),
+    note: v.optional(v.string()),
+    /** Pièces jointes déclaratives (métadonnées seules — pas de binaire en phase 1). */
+    attachments: v.optional(v.array(v.object({ name: v.string(), kind: v.string() }))),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index('by_event', ['eventId']),
+
+  /** Échéancier de paiements du couple (acomptes / soldes prestataires). */
+  couplePayments: defineTable({
+    eventId: v.id('events'),
+    /** Rattachement facultatif à une fiche prestataire. */
+    vendorId: v.optional(v.id('coupleVendors')),
+    /** Nom affiché (dénormalisé — l'échéance survit à la suppression de la fiche). */
+    vendorName: v.string(),
+    category: v.string(),
+    kind: v.union(v.literal('deposit'), v.literal('balance'), v.literal('other')),
+    /** Date d'échéance (epoch ms). */
+    dueDate: v.number(),
+    /** Montant dû (centimes). */
+    amountMinor: v.number(),
+    /** Montant réglé (centimes, 0 ≤ paidMinor). > 0 = acompte partiel ou soldé. */
+    paidMinor: v.number(),
+    /** Date de règlement effectif (epoch ms) quand payé. */
+    paidAt: v.optional(v.number()),
+    attachments: v.optional(v.array(v.object({ name: v.string(), kind: v.string() }))),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index('by_event', ['eventId'])
+    .index('by_vendor', ['vendorId']),
+
+  /** Phases du rétroplanning perso. `labelKey` (template i18n) XOR `label` (libre). */
+  couplePhases: defineTable({
+    eventId: v.id('events'),
+    label: v.optional(v.string()),
+    labelKey: v.optional(v.string()),
+    sub: v.optional(v.string()),
+    subKey: v.optional(v.string()),
+    order: v.number(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index('by_event', ['eventId']),
+
+  /** Tâches du rétroplanning perso, rattachées à une phase. */
+  coupleTasks: defineTable({
+    eventId: v.id('events'),
+    phaseId: v.id('couplePhases'),
+    label: v.optional(v.string()),
+    labelKey: v.optional(v.string()),
+    status: v.union(v.literal('todo'), v.literal('doing'), v.literal('done')),
+    /** Échéance (epoch ms). */
+    dueDate: v.optional(v.number()),
+    order: v.number(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index('by_event', ['eventId'])
+    .index('by_phase', ['phaseId']),
+
+  /**
+   * Salle du plan de table couple (1 row par event) : dimensions en mètres,
+   * sol, éléments de décor (piste, bar, arche…). Les tables vivent dans
+   * `tables` (posX/posY en mètres pour ce produit).
+   */
+  coupleRooms: defineTable({
+    eventId: v.id('events'),
+    name: v.string(),
+    widthM: v.number(),
+    lengthM: v.number(),
+    floor: v.union(
+      v.literal('parquet'),
+      v.literal('marble'),
+      v.literal('carpet'),
+      v.literal('grass'),
+      v.literal('concrete'),
+    ),
+    elements: v.array(
+      v.object({
+        id: v.string(),
+        kind: v.union(
+          v.literal('dancefloor'),
+          v.literal('stage'),
+          v.literal('dj'),
+          v.literal('bar'),
+          v.literal('buffet'),
+          v.literal('cake'),
+          v.literal('photobooth'),
+          v.literal('gifts'),
+          v.literal('guestbook'),
+          v.literal('entrance'),
+          v.literal('arch'),
+          v.literal('plant'),
+        ),
+        x: v.number(),
+        y: v.number(),
+        w: v.number(),
+        h: v.number(),
+        rotation: v.number(),
+        label: v.optional(v.string()),
+      }),
+    ),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index('by_event', ['eventId']),
 
   eventCollaborators: defineTable({
     eventId: v.id('events'),

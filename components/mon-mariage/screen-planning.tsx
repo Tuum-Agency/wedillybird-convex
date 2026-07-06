@@ -9,7 +9,8 @@ import { useLocale, useTranslations } from 'next-intl';
 import { Icon } from './icons';
 import { McBtn, Fleuron, McPill } from './parts';
 import { McModal, McField, McInput } from './modal';
-import { MC_PHASES, mcDateNum, mcDaysTo, type McPhase, type McTask } from './data';
+import { mcDateNum, mcDaysTo, type McTask } from './data';
+import { useMonMariage } from '@/stores/mon-mariage';
 
 /** [pillKind, clé i18n du statut de tâche]. */
 function mcTaskStatusMeta(s: string): [string, string] {
@@ -189,7 +190,11 @@ function PhaseModal({
 export function PlanningScreen() {
   const t = useTranslations('MonMariage.planning');
   const tRoot = useTranslations('MonMariage');
-  const [phases, setPhases] = useState<McPhase[]>(MC_PHASES);
+  const phases = useMonMariage((st) => st.phases);
+  const storeSetTaskStatus = useMonMariage((st) => st.setTaskStatus);
+  const storeRemoveTask = useMonMariage((st) => st.removeTask);
+  const storeAddTask = useMonMariage((st) => st.addTask);
+  const storeAddPhase = useMonMariage((st) => st.addPhase);
   const [modal, setModal] = useState(false);
 
   const all = phases.flatMap((p) => p.tasks);
@@ -197,41 +202,16 @@ export function PlanningScreen() {
   const doing = all.filter((t) => t.status === 'doing').length;
   const pct = all.length ? Math.round((done / all.length) * 100) : 0;
 
-  const cycle = (pid: string, tid: string) =>
-    setPhases((ps) =>
-      ps.map((p) =>
-        p.id !== pid
-          ? p
-          : {
-              ...p,
-              tasks: p.tasks.map((t) =>
-                t.id !== tid
-                  ? t
-                  : {
-                      ...t,
-                      status: t.status === 'done' ? 'todo' : t.status === 'todo' ? 'doing' : 'done',
-                    },
-              ),
-            },
-      ),
-    );
-  const delTask = (pid: string, tid: string) =>
-    setPhases((ps) =>
-      ps.map((p) => (p.id !== pid ? p : { ...p, tasks: p.tasks.filter((t) => t.id !== tid) })),
-    );
-  const addTask = (pid: string, label: string, due?: string) =>
-    setPhases((ps) =>
-      ps.map((p) =>
-        p.id !== pid
-          ? p
-          : { ...p, tasks: [...p.tasks, { id: 'x' + Date.now(), label, due, status: 'todo' }] },
-      ),
-    );
+  const cycle = (pid: string, tid: string) => {
+    const task = phases.find((p) => p.id === pid)?.tasks.find((tk) => tk.id === tid);
+    if (!task) return;
+    const next = task.status === 'done' ? 'todo' : task.status === 'todo' ? 'doing' : 'done';
+    void storeSetTaskStatus(pid, tid, next);
+  };
+  const delTask = (pid: string, tid: string) => void storeRemoveTask(pid, tid);
+  const addTask = (pid: string, label: string, due?: string) => void storeAddTask(pid, label, due);
   const createPhase = (label: string, sub: string) =>
-    setPhases((ps) => [
-      ...ps,
-      { id: 'ph' + Date.now(), label, sub: sub || t('customPhase'), tasks: [] },
-    ]);
+    void storeAddPhase(label, sub || t('customPhase'));
 
   return (
     <>

@@ -5,12 +5,13 @@
 // tables (7 formes), des éléments de salle, et configure la salle (gabarit, dimensions,
 // sol). Données mock — câblage Convex à venir.
 
-import { useState, useRef, useEffect, type CSSProperties } from 'react';
+import { useState, useRef, useEffect, useMemo, type CSSProperties } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { Icon } from './icons';
 import { McBtn } from './parts';
 import { McModal, McField, McInput } from './modal';
-import { MC_COUPLE, MC_GUESTS, mcDateShort, type McGuest } from './data';
+import { mcDateShort } from './data';
+import { seatGuestsView, useMonMariage } from '@/stores/mon-mariage';
 import {
   BASE_PPM,
   TILT_3D,
@@ -22,7 +23,6 @@ import {
   FLOOR_KEYS,
   FLOOR_LABEL_KEYS,
   type SeatCatKey,
-  type SeatGuest,
   type SeatTable,
   type SeatView,
   type RoomElement,
@@ -49,24 +49,6 @@ import {
 } from './seating-engine';
 
 /* ---- liste d'invités du mariage → invités à placer ---- */
-function groupToCat(group: string): SeatCatKey {
-  const g = group.toLowerCase();
-  if (g.includes('famille') || g.includes('family')) return 'family';
-  if (g.includes('collègue') || g.includes('collegue') || g.includes('collèg')) return 'colleagues';
-  if (g.includes('presta') || g.includes('pro')) return 'pro';
-  return 'friends';
-}
-function guestsToSeat(guests: McGuest[]): SeatGuest[] {
-  return guests
-    .filter((g) => g.status !== 'declined')
-    .map((g) => ({
-      id: g.id,
-      name: g.name,
-      category: groupToCat(g.group),
-      partySize: Math.max(1, g.count),
-      status: g.status,
-    }));
-}
 
 /* ---- géométrie ---- */
 const snap = (m: number): number => Math.round(m * 4) / 4; // 0,25 m
@@ -113,68 +95,83 @@ function hitTarget(x: number, y: number): HitTarget {
 }
 
 /* ============================ ÉCRAN ============================ */
-export function SeatingScreen() {
+export function SeatingScreen({ onNav }: { onNav?: (k: string) => void }) {
   const t = useTranslations('MonMariage.seating');
   const locale = useLocale();
   const ballroom = ROOM_TEMPLATES[0]!;
 
-  const [room, setRoom] = useState<RoomConfig>(() => ({
-    name: t('roomDefaultName'),
-    widthM: ballroom.widthM,
-    lengthM: ballroom.lengthM,
-    floor: ballroom.floor,
-  }));
-  const [elements, setElements] = useState<RoomElement[]>(() => buildElements(ballroom));
-  const [tables, setTables] = useState<SeatTable[]>(() => [
-    {
-      id: 'T0',
-      label: t('starter.head'),
-      shape: 'head',
-      capacity: 10,
-      x: 9,
-      y: 11.4,
-      rotation: 0,
-      honor: true,
-      notes: t('starter.headNote'),
-    },
-    {
-      id: 'T1',
-      label: t('starter.family'),
-      shape: 'round',
-      capacity: 8,
-      x: 3.4,
-      y: 4,
-      rotation: 0,
-    },
-    {
-      id: 'T2',
-      label: t('starter.friends'),
-      shape: 'round',
-      capacity: 8,
-      x: 3.4,
-      y: 8.4,
-      rotation: 0,
-    },
-    {
-      id: 'T3',
-      label: t('tableN', { n: 3 }),
-      shape: 'round',
-      capacity: 8,
-      x: 14,
-      y: 9,
-      rotation: 0,
-    },
-    {
-      id: 'T4',
-      label: t('tableN', { n: 4 }),
-      shape: 'round',
-      capacity: 8,
-      x: 6.2,
-      y: 9,
-      rotation: 0,
-    },
-  ]);
-  const [guests, setGuests] = useState<SeatGuest[]>(() => guestsToSeat(MC_GUESTS));
+  const seatingUnlocked = useMonMariage((st) => st.event?.seatingUnlocked ?? false);
+  const couple = useMonMariage((st) => st.couple);
+  const storeGuestsRaw = useMonMariage((st) => st.guests);
+  const tables = useMonMariage((st) => st.seatTables);
+  const storeRoom = useMonMariage((st) => st.room);
+  const patchTableLocal = useMonMariage((st) => st.patchSeatTableLocal);
+  const addTableLocal = useMonMariage((st) => st.addSeatTableLocal);
+  const persistTable = useMonMariage((st) => st.upsertSeatTable);
+  const storeRemoveTable = useMonMariage((st) => st.removeSeatTable);
+  const storeSaveRoom = useMonMariage((st) => st.saveRoom);
+  const storeAssign = useMonMariage((st) => st.assignGuestTable);
+  const storeAddGuest = useMonMariage((st) => st.addGuest);
+
+  // Salle + éléments : état LOCAL (gestes fluides), seedé du store, persisté par
+  // snapshots (saveRoomSoon) aux frontières d'interaction.
+  const [room, setRoom] = useState<RoomConfig>(() =>
+    storeRoom
+      ? {
+          name: storeRoom.name,
+          widthM: storeRoom.widthM,
+          lengthM: storeRoom.lengthM,
+          floor: storeRoom.floor,
+        }
+      : {
+          name: t('roomDefaultName'),
+          widthM: ballroom.widthM,
+          lengthM: ballroom.lengthM,
+          floor: ballroom.floor,
+        },
+  );
+  const [elements, setElements] = useState<RoomElement[]>(() =>
+    storeRoom ? storeRoom.elements.map((e) => ({ ...e })) : buildElements(ballroom),
+  );
+
+  // Invités : dérivés du store (assignations incluses), déclinés exclus du pool.
+  const guests = useMemo(
+    () => seatGuestsView(storeGuestsRaw).filter((g) => g.status !== 'declined'),
+    [storeGuestsRaw],
+  );
+
+  // refs snapshots pour la persistance débouncée (sync en effet — jamais au render)
+  const roomRef = useRef(room);
+  const elementsRef = useRef(elements);
+  const tablesRef = useRef(tables);
+  useEffect(() => {
+    roomRef.current = room;
+    elementsRef.current = elements;
+    tablesRef.current = tables;
+  }, [room, elements, tables]);
+  const roomTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const saveRoomSoon = () => {
+    if (roomTimer.current) clearTimeout(roomTimer.current);
+    roomTimer.current = setTimeout(() => {
+      roomTimer.current = null;
+      void storeSaveRoom(roomRef.current, elementsRef.current);
+    }, 600);
+  };
+  const tableTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+  const commitTableSoon = (id: string, isNew = false) => {
+    const timers = tableTimers.current;
+    if (timers[id]) clearTimeout(timers[id]);
+    timers[id] = setTimeout(() => {
+      delete timers[id];
+      const tb = tablesRef.current.find((x) => x.id === id);
+      if (!tb) return;
+      void persistTable(tb, isNew).then((realId) => {
+        if (isNew && realId && realId !== id) {
+          setSelectedId((sel) => (sel === id ? realId : sel));
+        }
+      });
+    }, 350);
+  };
 
   const [view, setView] = useState<SeatView>({ x: 60, y: 30, k: 0.82, mode: '3d' });
   const [search, setSearch] = useState('');
@@ -235,46 +232,37 @@ export function SeatingScreen() {
         return false;
       }
     }
-    setGuests((gs) =>
-      gs.map((x) => (x.id === guestId ? { ...x, tableId: tableId || undefined } : x)),
-    );
+    void storeAssign(guestId, tableId);
     return true;
   };
 
-  /* ---- mutations table ---- */
-  const patchTable = (id: string, patch: Partial<SeatTable>) =>
-    setTables((ts) => ts.map((tb) => (tb.id === id ? { ...tb, ...patch } : tb)));
+  /* ---- mutations table (optimiste store + persistance débouncée) ---- */
+  const patchTable = (id: string, patch: Partial<SeatTable>) => {
+    patchTableLocal(id, patch);
+    commitTableSoon(id);
+  };
   const onShape = (id: string, shape: TableShape) => {
     const spec = TABLE_SHAPES[shape];
-    setTables((ts) =>
-      ts.map((tb) =>
-        tb.id === id
-          ? {
-              ...tb,
-              shape,
-              capacity: spec.fixedCap
-                ? spec.defaultCap
-                : clamp(tb.capacity, spec.minCap, spec.maxCap),
-              honor: shape === 'sweetheart' ? true : tb.honor,
-            }
-          : tb,
-      ),
-    );
+    const tb = tables.find((x) => x.id === id);
+    if (!tb) return;
+    patchTable(id, {
+      shape,
+      capacity: spec.fixedCap ? spec.defaultCap : clamp(tb.capacity, spec.minCap, spec.maxCap),
+      honor: shape === 'sweetheart' ? true : tb.honor,
+    });
   };
   const dupObject = (id: string) => {
     const tb = tables.find((x) => x.id === id);
     if (tb) {
       const nid = newId('T');
-      setTables((ts) => [
-        ...ts,
-        {
-          ...tb,
-          id: nid,
-          label: t('copyLabel', { label: tb.label }),
-          x: clamp(tb.x + 1.5, 0, room.widthM),
-          y: clamp(tb.y + 1.5, 0, room.lengthM),
-        },
-      ]);
+      addTableLocal({
+        ...tb,
+        id: nid,
+        label: t('copyLabel', { label: tb.label }),
+        x: clamp(tb.x + 1.5, 0, room.widthM),
+        y: clamp(tb.y + 1.5, 0, room.lengthM),
+      });
+      commitTableSoon(nid, true);
       setSelectedId(nid);
     }
     const el = elements.find((x) => x.id === id);
@@ -290,12 +278,16 @@ export function SeatingScreen() {
         },
       ]);
       setSelectedId(nid);
+      saveRoomSoon();
     }
   };
   const delObject = (id: string) => {
-    setGuests((gs) => gs.map((g) => (g.tableId === id ? { ...g, tableId: undefined } : g)));
-    setTables((ts) => ts.filter((tb) => tb.id !== id));
-    setElements((es) => es.filter((e) => e.id !== id));
+    if (tables.some((tb) => tb.id === id)) {
+      void storeRemoveTable(id); // désassigne aussi les invités posés dessus
+    } else if (elements.some((e) => e.id === id)) {
+      setElements((es) => es.filter((e) => e.id !== id));
+      saveRoomSoon();
+    }
     if (selectedId === id) setSelectedId(null);
     announce(t('announceDeleted'));
   };
@@ -305,19 +297,17 @@ export function SeatingScreen() {
     const spec = TABLE_SHAPES[shape];
     const nid = newId('T');
     const n = tables.length + 1;
-    setTables((ts) => [
-      ...ts,
-      {
-        id: nid,
-        label: t('tableN', { n }),
-        shape,
-        capacity: spec.defaultCap,
-        x: clamp(room.widthM / 2 + ((n % 3) - 1) * 1.6, 1, room.widthM - 1),
-        y: clamp(room.lengthM / 2 + ((n % 2) - 0.5) * 1.6, 1, room.lengthM - 1),
-        rotation: 0,
-        honor: shape === 'sweetheart',
-      },
-    ]);
+    addTableLocal({
+      id: nid,
+      label: t('tableN', { n }),
+      shape,
+      capacity: spec.defaultCap,
+      x: clamp(room.widthM / 2 + ((n % 3) - 1) * 1.6, 1, room.widthM - 1),
+      y: clamp(room.lengthM / 2 + ((n % 2) - 0.5) * 1.6, 1, room.lengthM - 1),
+      rotation: 0,
+      ...(shape === 'sweetheart' ? { honor: true } : {}),
+    });
+    commitTableSoon(nid, true);
     setSelectedId(nid);
     setPalette(null);
   };
@@ -339,13 +329,10 @@ export function SeatingScreen() {
     ]);
     setSelectedId(nid);
     setPalette(null);
+    saveRoomSoon();
   };
   const addPerson = (name: string, party: number, cat: SeatCatKey) => {
-    const nid = newId('gn');
-    setGuests((gs) => [
-      { id: nid, name, partySize: party, category: cat, status: 'confirmed' },
-      ...gs,
-    ]);
+    void storeAddGuest({ fullName: name, category: cat, plusOnesAllowed: Math.max(0, party - 1) });
     announce(t('announcePersonAdded', { name }));
   };
 
@@ -353,29 +340,25 @@ export function SeatingScreen() {
   const autoPlace = () => {
     setAutoPlacing(true);
     setTimeout(() => {
-      setGuests((gs) => {
-        const next = gs.map((g) => ({ ...g }));
-        const occ: Record<string, number> = {};
-        tables.forEach((tb) => (occ[tb.id] = 0));
-        next.forEach((g) => {
-          if (g.tableId) occ[g.tableId] = (occ[g.tableId] ?? 0) + g.partySize;
-        });
-        const order = SEAT_CAT_KEYS;
-        const pool = next
-          .filter((g) => !g.tableId)
-          .sort((a, b) => order.indexOf(a.category) - order.indexOf(b.category));
-        let placed = 0;
-        pool.forEach((g) => {
-          const tb = tables.find((x) => (occ[x.id] ?? 0) + g.partySize <= x.capacity);
-          if (tb) {
-            g.tableId = tb.id;
-            occ[tb.id] = (occ[tb.id] ?? 0) + g.partySize;
-            placed++;
-          }
-        });
-        announce(t('announceAutoPlaced', { count: placed }));
-        return next;
+      const occ: Record<string, number> = {};
+      tablesRef.current.forEach((tb) => (occ[tb.id] = 0));
+      guests.forEach((g) => {
+        if (g.tableId) occ[g.tableId] = (occ[g.tableId] ?? 0) + g.partySize;
       });
+      const order = SEAT_CAT_KEYS;
+      const pool = guests
+        .filter((g) => !g.tableId)
+        .sort((a, b) => order.indexOf(a.category) - order.indexOf(b.category));
+      let placed = 0;
+      for (const g of pool) {
+        const tb = tablesRef.current.find((x) => (occ[x.id] ?? 0) + g.partySize <= x.capacity);
+        if (tb) {
+          occ[tb.id] = (occ[tb.id] ?? 0) + g.partySize;
+          placed++;
+          void storeAssign(g.id, tb.id);
+        }
+      }
+      announce(t('announceAutoPlaced', { count: placed }));
       setAutoPlacing(false);
     }, 700);
   };
@@ -436,10 +419,14 @@ export function SeatingScreen() {
       const dyM = (ev.clientY - sy) / (BASE_PPM * k * cosT);
       const nx = clamp(snap(ox + dxM), 0, room.widthM);
       const ny = clamp(snap(oy + dyM), 0, room.lengthM);
-      if (kind === 'table') patchTable(id, { x: nx, y: ny });
+      // pendant le geste : uniquement l'état local (pas d'aller-retour réseau)
+      if (kind === 'table') patchTableLocal(id, { x: nx, y: ny });
       else setElements((es) => es.map((el) => (el.id === id ? { ...el, x: nx, y: ny } : el)));
     };
     const up = () => {
+      // persistance au lâcher
+      if (kind === 'table') commitTableSoon(id);
+      else saveRoomSoon();
       window.removeEventListener('pointermove', move);
       window.removeEventListener('pointerup', up);
     };
@@ -449,8 +436,16 @@ export function SeatingScreen() {
 
   /* ---- configuration de la salle ---- */
   const applyTemplate = (tpl: RoomTemplate) => {
-    setRoom((r) => ({ ...r, widthM: tpl.widthM, lengthM: tpl.lengthM, floor: tpl.floor }));
-    setElements(buildElements(tpl));
+    const nextRoom = {
+      ...roomRef.current,
+      widthM: tpl.widthM,
+      lengthM: tpl.lengthM,
+      floor: tpl.floor,
+    };
+    const nextElements = buildElements(tpl);
+    setRoom(nextRoom);
+    setElements(nextElements);
+    void storeSaveRoom(nextRoom, nextElements);
     announce(t('announceTemplate', { name: t(tpl.nameKey) }));
   };
 
@@ -478,8 +473,38 @@ export function SeatingScreen() {
 
   const assignGuest = assignMenu ? guests.find((g) => g.id === assignMenu.guestId) : null;
   const inspectOpen = !!(selTable || selElement);
-  const coupleA = (MC_COUPLE.names.split('&')[0] ?? '').trim();
-  const coupleB = (MC_COUPLE.names.split('&')[1] ?? '').trim();
+
+  if (!seatingUnlocked) {
+    return (
+      <>
+        <header className="mc-pagehead">
+          <div className="ph-l">
+            <span className="mc-eyebrow">{t('eyebrow')}</span>
+            <h1>{t('title')}</h1>
+          </div>
+          <p className="ph-sub">{t('subtitle')}</p>
+        </header>
+        <section className="mc-card feature">
+          <div className="mc-empty">
+            <span className="ill">
+              <Icon name="Armchair" size={32} stroke={1.7} />
+            </span>
+            <h3>{t('locked.title')}</h3>
+            <p>{t('locked.body')}</p>
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+              <McBtn variant="halo" size="lg" onClick={() => onNav?.('forfait')}>
+                <Icon name="Sparkles" size={16} stroke={1.9} />
+                {t('locked.cta')}
+              </McBtn>
+            </div>
+          </div>
+        </section>
+      </>
+    );
+  }
+  const coupleNames = couple?.names ?? '';
+  const coupleA = (coupleNames.split('&')[0] ?? '').trim();
+  const coupleB = (coupleNames.split('&')[1] ?? '').trim();
 
   return (
     <>
@@ -499,7 +524,7 @@ export function SeatingScreen() {
               {coupleA} <span className="amp">&amp;</span> {coupleB}
             </span>
             <span className="dt">
-              {mcDateShort(MC_COUPLE.weddingDate, locale)} ·{' '}
+              {couple ? mcDateShort(couple.weddingDate, locale) : ''} ·{' '}
               {t('seatedRatio', { seated: totals.seated, total: totals.total })}
             </span>
           </span>
@@ -653,10 +678,12 @@ export function SeatingScreen() {
             onCap={(id, capacity) => patchTable(id, { capacity })}
             onRotate={(id, deg) => {
               if (tables.some((x) => x.id === id)) patchTable(id, { rotation: norm(deg) });
-              else
+              else {
                 setElements((es) =>
                   es.map((el) => (el.id === id ? { ...el, rotation: norm(deg) } : el)),
                 );
+                saveRoomSoon();
+              }
             }}
             onHonor={(id, honor) => patchTable(id, { honor })}
             onNotes={(id, notes) => patchTable(id, { notes })}
@@ -664,9 +691,10 @@ export function SeatingScreen() {
             onDuplicate={dupObject}
             onDelete={delObject}
             onChairDown={(gid, tid, e) => startDragGuest(gid, tid, e)}
-            onResize={(id, w, h) =>
-              setElements((es) => es.map((el) => (el.id === id ? { ...el, w, h } : el)))
-            }
+            onResize={(id, w, h) => {
+              setElements((es) => es.map((el) => (el.id === id ? { ...el, w, h } : el)));
+              saveRoomSoon();
+            }}
           />
         </div>
       </div>
@@ -728,7 +756,10 @@ export function SeatingScreen() {
       {roomDialog && (
         <RoomSetupDialog
           room={room}
-          onClose={() => setRoomDialog(false)}
+          onClose={() => {
+            setRoomDialog(false);
+            saveRoomSoon();
+          }}
           onName={(name) => setRoom((r) => ({ ...r, name }))}
           onDims={(w, l) => setRoom((r) => ({ ...r, widthM: w, lengthM: l }))}
           onFloor={(floor) => setRoom((r) => ({ ...r, floor }))}

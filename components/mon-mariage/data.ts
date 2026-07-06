@@ -389,10 +389,11 @@ export function mcDateNum(iso: string, locale: string): string {
 }
 
 export type McJKind = 'before' | 'day' | 'after';
-/** Compte à rebours « J− » : on garde le calcul (MC_TODAY figé), le libellé est
-    traduit côté composant via `MonMariage.common.jBefore/jDay/jAfter`. */
-export function mcJ(iso: string): { kind: McJKind; n: number } {
-  const n = Math.round((new Date(iso + 'T12:00:00').getTime() - MC_TODAY.getTime()) / 86400000);
+/** Compte à rebours « J− » : `now` = horloge serveur passée en prop (hydration-safe) ;
+    défaut MC_TODAY pour la démo/capture. Libellé traduit côté composant via
+    `MonMariage.common.jBefore/jDay/jAfter`. */
+export function mcJ(iso: string, now: number = MC_TODAY.getTime()): { kind: McJKind; n: number } {
+  const n = Math.round((new Date(iso + 'T12:00:00').getTime() - now) / 86400000);
   if (n > 0) return { kind: 'before', n };
   if (n === 0) return { kind: 'day', n: 0 };
   return { kind: 'after', n: -n };
@@ -808,6 +809,6 @@ export const MC_PAYMENTS: McPayment[] = [
   },
 ];
 
-export function mcDaysTo(iso: string): number {
-  return Math.round((new Date(iso + 'T12:00:00').getTime() - MC_TODAY.getTime()) / 86400000);
+export function mcDaysTo(iso: string, now: number = MC_TODAY.getTime()): number {
+  return Math.round((new Date(iso + 'T12:00:00').getTime() - now) / 86400000);
 }

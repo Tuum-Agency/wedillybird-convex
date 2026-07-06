@@ -418,6 +418,173 @@ export const convexApi = {
       withPhone: number;
     }
   >('guests:countByEvent'),
+
+  /* ============ Espace couple self-serve (/mon-mariage) ============ */
+  coupleSpaceBundle: makeFunctionReference<
+    'query',
+    { requesterId: string },
+    import('@/lib/mon-mariage/types').MmBundle | null
+  >('coupleSpace:bundle'),
+  coupleAddVendor: makeFunctionReference<
+    'mutation',
+    {
+      eventId: string;
+      requesterId: string;
+      name: string;
+      category: string;
+      status: 'a_contacter' | 'contacte' | 'devis' | 'reserve' | 'paye';
+      amountMinor: number;
+      paidMinor: number;
+      contact?: string;
+      email?: string;
+      note?: string;
+      attachments?: Array<{ name: string; kind: string }>;
+    },
+    string
+  >('coupleSpace:addVendor'),
+  coupleUpdateVendor: makeFunctionReference<
+    'mutation',
+    {
+      vendorId: string;
+      requesterId: string;
+      name?: string;
+      category?: string;
+      status?: 'a_contacter' | 'contacte' | 'devis' | 'reserve' | 'paye';
+      amountMinor?: number;
+      paidMinor?: number;
+      contact?: string;
+      email?: string;
+      note?: string;
+      attachments?: Array<{ name: string; kind: string }>;
+    },
+    null
+  >('coupleSpace:updateVendor'),
+  coupleRemoveVendor: makeFunctionReference<
+    'mutation',
+    { vendorId: string; requesterId: string },
+    null
+  >('coupleSpace:removeVendor'),
+  coupleAddPayment: makeFunctionReference<
+    'mutation',
+    {
+      eventId: string;
+      requesterId: string;
+      vendorId?: string;
+      vendorName: string;
+      category: string;
+      kind: 'deposit' | 'balance' | 'other';
+      dueDate: number;
+      amountMinor: number;
+    },
+    string
+  >('coupleSpace:addPayment'),
+  coupleSetPaymentPaid: makeFunctionReference<
+    'mutation',
+    {
+      paymentId: string;
+      requesterId: string;
+      paidMinor: number;
+      paidAt?: number;
+      attachments?: Array<{ name: string; kind: string }>;
+    },
+    null
+  >('coupleSpace:setPaymentPaid'),
+  coupleRemovePayment: makeFunctionReference<
+    'mutation',
+    { paymentId: string; requesterId: string },
+    null
+  >('coupleSpace:removePayment'),
+  coupleSetBudgetEnvelope: makeFunctionReference<
+    'mutation',
+    { eventId: string; requesterId: string; budgetEnvelopeMinor: number },
+    null
+  >('coupleSpace:setBudgetEnvelope'),
+  coupleEnsureDefaultPlanning: makeFunctionReference<
+    'mutation',
+    { eventId: string; requesterId: string },
+    { seeded: boolean }
+  >('coupleSpace:ensureDefaultPlanning'),
+  coupleAddPhase: makeFunctionReference<
+    'mutation',
+    { eventId: string; requesterId: string; label: string; sub?: string },
+    string
+  >('coupleSpace:addPhase'),
+  coupleAddTask: makeFunctionReference<
+    'mutation',
+    { phaseId: string; requesterId: string; label: string; dueDate?: number },
+    string
+  >('coupleSpace:addTask'),
+  coupleSetTaskStatus: makeFunctionReference<
+    'mutation',
+    { taskId: string; requesterId: string; status: 'todo' | 'doing' | 'done' },
+    null
+  >('coupleSpace:setTaskStatus'),
+  coupleRemoveTask: makeFunctionReference<
+    'mutation',
+    { taskId: string; requesterId: string },
+    null
+  >('coupleSpace:removeTask'),
+  coupleSaveRoom: makeFunctionReference<
+    'mutation',
+    {
+      eventId: string;
+      requesterId: string;
+      name: string;
+      widthM: number;
+      lengthM: number;
+      floor: 'parquet' | 'marble' | 'carpet' | 'grass' | 'concrete';
+      elements: Array<{
+        id: string;
+        kind:
+          | 'dancefloor'
+          | 'stage'
+          | 'dj'
+          | 'bar'
+          | 'buffet'
+          | 'cake'
+          | 'photobooth'
+          | 'gifts'
+          | 'guestbook'
+          | 'entrance'
+          | 'arch'
+          | 'plant';
+        x: number;
+        y: number;
+        w: number;
+        h: number;
+        rotation: number;
+        label?: string;
+      }>;
+    },
+    string
+  >('coupleSpace:saveRoom'),
+  coupleUpsertTable: makeFunctionReference<
+    'mutation',
+    {
+      eventId: string;
+      requesterId: string;
+      tableId?: string;
+      name: string;
+      shape: 'round' | 'oval' | 'rect' | 'square' | 'imperial' | 'sweetheart' | 'head';
+      capacity: number;
+      x: number;
+      y: number;
+      rotation: number;
+      honor?: boolean;
+      notes?: string;
+    },
+    string
+  >('coupleSpace:upsertTable'),
+  coupleRemoveTable: makeFunctionReference<
+    'mutation',
+    { tableId: string; requesterId: string },
+    null
+  >('coupleSpace:removeTable'),
+  coupleAssignGuestTable: makeFunctionReference<
+    'mutation',
+    { guestId: string; requesterId: string; tableId: string | null },
+    null
+  >('coupleSpace:assignGuestTable'),
   getGuestByToken: makeFunctionReference<
     'query',
     { token: string },

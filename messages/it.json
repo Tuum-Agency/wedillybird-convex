@@ -4920,6 +4920,7 @@
       "quotaUsed": "{pct}% utilizzato",
       "quotaWarn": "{pct}% utilizzato",
       "remove": "Rimuovi",
+      "saveError": "Impossibile salvare — le ultime modifiche sono state annullate. Riprova.",
       "signOut": "Disconnetti"
     },
     "data": {
@@ -4958,9 +4959,12 @@
       },
       "paymentKind": {
         "deposit": "Deposit",
-        "balance": "Balance"
+        "balance": "Balance",
+        "other": "Altra scadenza"
       },
       "invoices": {
+        "essentielPlan": "Piano Essenziale",
+        "hdUpsell": "Archivio HD 5 anni (upsell)",
         "premiumPlan": "Premium plan"
       },
       "overages": {
@@ -5094,6 +5098,11 @@
       "heroAria": "Le vostre nozze in sintesi",
       "navAria": "Accessi rapidi",
       "confirmed": "Confermati",
+      "noEvent": {
+        "body": "Crea il tuo evento (nomi, data, location) per aprire il tuo spazio: inviti, RSVP, budget, fornitori e piano dei tavoli.",
+        "cta": "Creare il mio matrimonio",
+        "title": "Il tuo matrimonio non è ancora creato"
+      },
       "pending": "In attesa",
       "expected": "Persone attese",
       "online": "Online",
@@ -5181,6 +5190,7 @@
       "planTitle": "Pianificazione"
     },
     "nav": {
+      "budget": "Budget",
       "home": "Home",
       "dashboard": "My wedding",
       "planning": "Timeline",
@@ -5223,6 +5233,7 @@
     },
     "budget": {
       "eyebrow": "Finanze",
+      "setBudget": "Definire il budget",
       "title": "Il vostro budget",
       "subtitle": "Seguite spese e scadenze dei pagamenti con un colpo d’occhio.",
       "engaged": "Impegnato",
@@ -5313,6 +5324,7 @@
       "eyebrow": "La vostra formula",
       "choixTitle": "Scegliete il vostro piano",
       "choixSubtitle": "Un pagamento unico, mai un abbonamento. Tutto incluso per il vostro grande giorno.",
+      "noInvoices": "Nessuna fattura per ora.",
       "oneTimeNote": "Pagamento unico · galleria attiva 12 mesi dopo le nozze.",
       "recommended": "Consigliato",
       "once": "una tantum",
@@ -5321,6 +5333,7 @@
       "choosePlan": "Scegli {name}",
       "reassureRefund": "Rimborso del 100% entro 7 giorni se l’invito non viene inviato.",
       "reassurePostpone": "Rinvio gratuito in caso di annullamento.",
+      "upsellPurchased": "Archivio di 5 anni attivo",
       "yourPlan": "Il vostro piano",
       "purchasedOn": "acquistato il {date}",
       "activeOneTime": "Attivo · pagamento unico",
@@ -5379,6 +5392,11 @@
       "honorHint": "Mette in risalto il tavolo (accento oro).",
       "honorLabel": "Tavolo d’onore",
       "inspectElementAria": "Dettagli dell’elemento {label}",
+      "locked": {
+        "body": "Passa a Premium per progettare la sala in 3D, sistemare gli invitati con il drag and drop ed esportare il piano.",
+        "cta": "Vedi il piano Premium",
+        "title": "Il piano dei tavoli è una funzione Premium"
+      },
       "recenter": "Centra",
       "roomDefaultName": "Sala ricevimenti",
       "roomLengthLabel": "Lunghezza (m)",

@@ -10,9 +10,7 @@ import { Icon } from './icons';
 import { McBtn, McPill } from './parts';
 import { McModal, McField, McInput, McSelect, McTextarea, Attachments, AttachChip } from './modal';
 import {
-  MC_VENDORS,
   MC_CATS,
-  MC_CURRENCY,
   mcVendorStatusMeta,
   mcEUR,
   type McVendor,
@@ -20,6 +18,7 @@ import {
   type McVendorStatus,
   type McAttachment,
 } from './data';
+import { useMmCurrency, useMonMariage } from '@/stores/mon-mariage';
 import { currencySymbol } from '@/lib/currency';
 
 // libellés via clés `MonMariage.vendors.filters.<k>`
@@ -79,6 +78,7 @@ function VendorModal({
     k,
     tr(key),
   ]);
+  const currency = useMmCurrency();
   const v = vendor || ({} as Partial<McVendor>);
   const [name, setName] = useState(v.name || '');
   const [cat, setCat] = useState<string>(v.cat || 'lieu');
@@ -160,7 +160,7 @@ function VendorModal({
         </McField>
         <McField label={t('amountLabel')}>
           <McInput
-            prefix={currencySymbol(MC_CURRENCY)}
+            prefix={currencySymbol(currency)}
             value={amount}
             onChange={(e) => setAmount(e.target.value.replace(/[^\d.]/g, ''))}
             placeholder="0"
@@ -169,7 +169,7 @@ function VendorModal({
         </McField>
         <McField label={t('paidLabel')} hint={t('depositHint')}>
           <McInput
-            prefix={currencySymbol(MC_CURRENCY)}
+            prefix={currencySymbol(currency)}
             value={paid}
             onChange={(e) => setPaid(e.target.value.replace(/[^\d.]/g, ''))}
             placeholder="0"
@@ -213,6 +213,7 @@ function VendorCard({
   const tRoot = useTranslations('MonMariage');
   const tr = (key: string) => tRoot(key.replace(/^MonMariage\./, ''));
   const locale = useLocale();
+  const currency = useMmCurrency();
   const cat = MC_CATS[v.cat];
   const [kind, labelKey] = mcVendorStatusMeta(v.status);
   const rem = v.amount - v.paid;
@@ -270,12 +271,15 @@ function VendorCard({
         )}
         <div className="vfoot">
           <div className="vamt">
-            <span className="a">{mcEUR(v.amount, locale)}</span>
+            <span className="a">{mcEUR(v.amount, locale, currency)}</span>
             {v.paid > 0 ? (
               <span className="p">
                 {rem > 0
-                  ? t('paidWithRemainder', { paid: mcEUR(v.paid, locale), rem: mcEUR(rem, locale) })
-                  : t('paidAmount', { paid: mcEUR(v.paid, locale) })}
+                  ? t('paidWithRemainder', {
+                      paid: mcEUR(v.paid, locale, currency),
+                      rem: mcEUR(rem, locale, currency),
+                    })
+                  : t('paidAmount', { paid: mcEUR(v.paid, locale, currency) })}
               </span>
             ) : v.amount > 0 ? (
               <span className="p muted">{t('noDeposit')}</span>
@@ -360,10 +364,14 @@ export function VendorsScreen({ onNav }: { onNav: (k: string) => void }) {
   const t = useTranslations('MonMariage.vendors');
   const tRoot = useTranslations('MonMariage');
   const locale = useLocale();
+  const currency = useMmCurrency();
+  const storeVendors = useMonMariage((st) => st.vendors);
+  const storeAddVendor = useMonMariage((st) => st.addVendor);
+  const storeUpdateVendor = useMonMariage((st) => st.updateVendor);
   const [view, setView] = useState('carnet');
   const [filter, setFilter] = useState('all');
   const [q, setQ] = useState('');
-  const [list, setList] = useState<McVendor[]>(() => MC_VENDORS.map(normalizeVendor));
+  const list = storeVendors.map(normalizeVendor);
   const [modal, setModal] = useState<Partial<McVendor> | null>(null); // null | {} (new) | vendor (edit)
 
   const engaged = list.reduce((a, v) => a + v.amount, 0);
@@ -378,12 +386,12 @@ export function VendorsScreen({ onNav }: { onNav: (k: string) => void }) {
         catLabel(v.cat).toLowerCase().includes(q.toLowerCase())),
   );
 
-  const save = (vd: McVendor) =>
-    setList((l) =>
-      l.some((x) => x.id === vd.id) ? l.map((x) => (x.id === vd.id ? vd : x)) : [vd, ...l],
-    );
-  const move = (id: string, status: McVendorStatus) =>
-    setList((l) => l.map((v) => (v.id === id ? { ...v, status } : v)));
+  const save = (vd: McVendor) => {
+    const { id, ...rest } = vd;
+    if (list.some((x) => x.id === id)) void storeUpdateVendor(id, rest);
+    else void storeAddVendor(rest);
+  };
+  const move = (id: string, status: McVendorStatus) => void storeUpdateVendor(id, { status });
 
   return (
     <>
@@ -405,11 +413,11 @@ export function VendorsScreen({ onNav }: { onNav: (k: string) => void }) {
         </div>
         <div className="mc-vstat">
           <span className="l">{t('statEngaged')}</span>
-          <span className="v">{mcEUR(engaged, locale)}</span>
+          <span className="v">{mcEUR(engaged, locale, currency)}</span>
         </div>
         <div className="mc-vstat">
           <span className="l">{t('statPaid')}</span>
-          <span className="v ok">{mcEUR(paid, locale)}</span>
+          <span className="v ok">{mcEUR(paid, locale, currency)}</span>
         </div>
         <button className="mc-budgetlink" onClick={() => onNav('budget')}>
           <Icon name="Wallet" size={16} stroke={1.9} />

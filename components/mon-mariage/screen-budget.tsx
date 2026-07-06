@@ -10,10 +10,7 @@ import { Icon } from './icons';
 import { McBtn, RingChart } from './parts';
 import { McModal, McField, McInput, Attachments, AttachChip } from './modal';
 import {
-  MC_BUDGET_TOTAL,
-  MC_PAYMENTS,
   MC_CATS,
-  MC_CURRENCY,
   mcBudgetPostes,
   mcEUR,
   mcDateNum,
@@ -23,6 +20,7 @@ import {
   type McVendorCat,
 } from './data';
 import { currencySymbol } from '@/lib/currency';
+import { useMmCurrency, useMonMariage } from '@/stores/mon-mariage';
 
 /* Paiement enrichi côté état local (montant payé, date, factures) */
 interface McPaymentState extends McPayment {
@@ -44,9 +42,13 @@ function PaymentModal({
   const t = useTranslations('MonMariage.budget');
   const tRoot = useTranslations('MonMariage');
   const locale = useLocale();
+  const currency = useMmCurrency();
+  const now = useMonMariage((st) => st.now);
   const due = pay.amount;
   const [amount, setAmount] = useState(String(pay.paidAmount || pay.amount));
-  const [date, setDate] = useState(pay.payDate || '2026-06-11');
+  const [date, setDate] = useState(
+    pay.payDate || (now ? new Date(now).toISOString().slice(0, 10) : ''),
+  );
   const [factures, setFactures] = useState<McAttachment[]>(pay.factures || []);
   const num = Number(amount) || 0;
   const partial = num > 0 && num < due;
@@ -74,7 +76,7 @@ function PaymentModal({
       <div className="mc-pay-sum">
         <div>
           <span className="l">{tRoot(pay.kind.replace(/^MonMariage\./, ''))}</span>
-          <span className="v">{mcEUR(due, locale)}</span>
+          <span className="v">{mcEUR(due, locale, currency)}</span>
         </div>
         <span className={'mc-pill ' + (num >= due ? 'ok' : partial ? 'gold' : 'muted')}>
           <span className="d" />
@@ -84,7 +86,7 @@ function PaymentModal({
       <div className="mc-formgrid">
         <McField label={t('amountPaidLabel')}>
           <McInput
-            prefix={currencySymbol(MC_CURRENCY)}
+            prefix={currencySymbol(currency)}
             value={amount}
             onChange={(e) => setAmount(e.target.value.replace(/[^\d.]/g, ''))}
             inputMode="decimal"
@@ -139,8 +141,10 @@ function PaymentRow({ e, onRecord }: { e: McPaymentState; onRecord: () => void }
   const t = useTranslations('MonMariage.budget');
   const tRoot = useTranslations('MonMariage');
   const locale = useLocale();
+  const currency = useMmCurrency();
+  const now = useMonMariage((st) => st.now);
   const cat = MC_CATS[e.cat];
-  const days = mcDaysTo(e.date);
+  const days = mcDaysTo(e.date, now || undefined);
   const paidAmt = e.paidAmount || 0;
   const full = paidAmt >= e.amount;
   const partial = paidAmt > 0 && paidAmt < e.amount;
@@ -162,7 +166,9 @@ function PaymentRow({ e, onRecord }: { e: McPaymentState; onRecord: () => void }
         <b>{e.vendor}</b>
         <span>
           {tRoot(e.kind.replace(/^MonMariage\./, ''))}
-          {partial ? ` · ${mcEUR(paidAmt, locale)} / ${mcEUR(e.amount, locale)}` : ''}
+          {partial
+            ? ` · ${mcEUR(paidAmt, locale, currency)} / ${mcEUR(e.amount, locale, currency)}`
+            : ''}
         </span>
         {e.factures && e.factures.length > 0 && (
           <div className="pfact">
@@ -173,7 +179,7 @@ function PaymentRow({ e, onRecord }: { e: McPaymentState; onRecord: () => void }
         )}
       </div>
       <div className="pright">
-        <span className="pamt">{mcEUR(e.amount, locale)}</span>
+        <span className="pamt">{mcEUR(e.amount, locale, currency)}</span>
         <span className={'mc-pill ' + pk}>
           <span className="d" />
           {t(plKey)}
@@ -200,30 +206,46 @@ export function BudgetScreen({ onNav }: { onNav: (k: string) => void }) {
   const t = useTranslations('MonMariage.budget');
   const tRoot = useTranslations('MonMariage');
   const locale = useLocale();
+  const currency = useMmCurrency();
   const catLabel = (cat: McVendorCat) => tRoot(MC_CATS[cat].label.replace(/^MonMariage\./, ''));
-  const postes = mcBudgetPostes();
-  const total = MC_BUDGET_TOTAL;
+  const vendors = useMonMariage((st) => st.vendors);
+  const storePayments = useMonMariage((st) => st.payments);
+  const budgetTotal = useMonMariage((st) => st.budgetTotal);
+  const storeSetPaymentPaid = useMonMariage((st) => st.setPaymentPaid);
+  const storeSetBudgetTotal = useMonMariage((st) => st.setBudgetTotal);
+  const postes = mcBudgetPostes(vendors);
   const engaged = postes.reduce((a, p) => a + p.planned, 0);
-  const [payments, setPayments] = useState<McPaymentState[]>(() =>
-    MC_PAYMENTS.map((e) => ({
-      ...e,
-      paidAmount: e.paid ? e.amount : 0,
-      payDate: e.paid ? e.date : null,
-      factures: [],
-    })),
-  );
+  const total = budgetTotal ?? 0;
+  const payments: McPaymentState[] = storePayments.map((e) => ({
+    ...e,
+    paidAmount: e.paid ? e.amount : (e.paidAmount ?? 0),
+    payDate: e.payDate ?? null,
+    factures: e.factures ?? [],
+  }));
   const [modal, setModal] = useState<McPaymentState | null>(null);
+  const [editingTotal, setEditingTotal] = useState(false);
+  const [totalDraft, setTotalDraft] = useState('');
 
   const paid = payments.reduce((a, e) => a + (e.paidAmount || 0), 0);
   const remaining = engaged - paid;
-  const engagedPct = Math.round((engaged / total) * 100);
-  const over = engaged > total;
+  const engagedPct = total > 0 ? Math.round((engaged / total) * 100) : 0;
+  const over = total > 0 && engaged > total;
   const segments = postes.map((p) => ({ value: p.planned, color: MC_CATS[p.cat].tint }));
   const sorted = payments.slice().sort((a, b) => a.date.localeCompare(b.date));
 
   const record = (e: McPaymentState) => setModal(e);
   const savePay = (vd: McPaymentState) =>
-    setPayments((ps) => ps.map((p) => (p.id === vd.id ? vd : p)));
+    void storeSetPaymentPaid(
+      vd.id,
+      vd.paidAmount,
+      vd.payDate ?? undefined,
+      vd.factures.map((f) => ({ name: f.name, kind: f.kind })),
+    );
+  const commitTotal = () => {
+    const n = Number(totalDraft.replace(/[^\d.]/g, ''));
+    if (Number.isFinite(n) && n > 0) void storeSetBudgetTotal(n);
+    setEditingTotal(false);
+  };
 
   return (
     <>
@@ -242,7 +264,7 @@ export function BudgetScreen({ onNav }: { onNav: (k: string) => void }) {
             center={
               <>
                 <span className="l">{t('engaged')}</span>
-                <span className="v">{mcEUR(engaged, locale)}</span>
+                <span className="v">{mcEUR(engaged, locale, currency)}</span>
                 <span className="c">{t('postsCount', { count: postes.length })}</span>
               </>
             }
@@ -250,17 +272,47 @@ export function BudgetScreen({ onNav }: { onNav: (k: string) => void }) {
           <div className="mc-budget-side">
             <div className="mc-budget-fig">
               <span className="l">{t('plannedBudget')}</span>
-              <span className="v">{mcEUR(total, locale)}</span>
+              {editingTotal ? (
+                <McInput
+                  prefix={currencySymbol(currency)}
+                  value={totalDraft}
+                  onChange={(e) => setTotalDraft(e.target.value.replace(/[^\d.]/g, ''))}
+                  onBlur={commitTotal}
+                  onKeyDown={(e) => e.key === 'Enter' && commitTotal()}
+                  inputMode="decimal"
+                  autoFocus
+                />
+              ) : (
+                <button
+                  type="button"
+                  className="v"
+                  style={{
+                    background: 'none',
+                    border: 0,
+                    padding: 0,
+                    cursor: 'pointer',
+                    font: 'inherit',
+                    textAlign: 'inherit',
+                  }}
+                  onClick={() => {
+                    setTotalDraft(total ? String(total) : '');
+                    setEditingTotal(true);
+                  }}
+                  title={t('setBudget')}
+                >
+                  {total > 0 ? mcEUR(total, locale, currency) : t('setBudget')}
+                </button>
+              )}
             </div>
             <div className="mc-budget-fig">
               <span className="l">{t('paid')}</span>
-              <span className="v ok">{mcEUR(paid, locale)}</span>
+              <span className="v ok">{mcEUR(paid, locale, currency)}</span>
             </div>
             <div className="mc-budget-fig">
               <span className="l">{t('remainingToPay')}</span>
-              <span className="v wait">{mcEUR(remaining, locale)}</span>
+              <span className="v wait">{mcEUR(remaining, locale, currency)}</span>
             </div>
-            <div className="mc-budget-bar">
+            <div className="mc-budget-bar" style={total > 0 ? undefined : { display: 'none' }}>
               <div className="lab">
                 <span>{t('engagedVsPlanned')}</span>
                 <span className={over ? 'over' : ''}>{t('percent', { pct: engagedPct })}</span>
@@ -275,8 +327,8 @@ export function BudgetScreen({ onNav }: { onNav: (k: string) => void }) {
                 <span className={'mc-budget-alert' + (over ? ' over' : '')}>
                   <Icon name={over ? 'CircleAlert' : 'Info'} size={13} stroke={1.9} />
                   {over
-                    ? t('overBudget', { amount: mcEUR(engaged - total, locale) })
-                    : t('budgetMargin', { amount: mcEUR(total - engaged, locale) })}
+                    ? t('overBudget', { amount: mcEUR(engaged - total, locale, currency) })
+                    : t('budgetMargin', { amount: mcEUR(total - engaged, locale, currency) })}
                 </span>
               )}
             </div>
@@ -307,10 +359,10 @@ export function BudgetScreen({ onNav }: { onNav: (k: string) => void }) {
                     <span>{p.vendors.join(' · ')}</span>
                   </div>
                   <div className="pamt">
-                    <span className="a">{mcEUR(p.planned, locale)}</span>
+                    <span className="a">{mcEUR(p.planned, locale, currency)}</span>
                     <span className="r">
                       {p.paid > 0
-                        ? t('postPaid', { amount: mcEUR(p.paid, locale) })
+                        ? t('postPaid', { amount: mcEUR(p.paid, locale, currency) })
                         : t('toSettle')}
                     </span>
                   </div>
@@ -332,7 +384,7 @@ export function BudgetScreen({ onNav }: { onNav: (k: string) => void }) {
           </div>
           <span className="mc-due">
             <span className="l">{t('remainingDue')}</span>
-            <span className="v">{mcEUR(remaining, locale)}</span>
+            <span className="v">{mcEUR(remaining, locale, currency)}</span>
           </span>
         </div>
         <div className="mc-pays" style={{ marginTop: 12 }}>

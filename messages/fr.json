@@ -4920,6 +4920,7 @@
       "quotaUsed": "{pct} % utilisés",
       "quotaWarn": "{pct} % utilisés",
       "remove": "Retirer",
+      "saveError": "Impossible d'enregistrer — vos dernières modifications ont été annulées. Réessayez.",
       "signOut": "Se déconnecter"
     },
     "data": {
@@ -4958,9 +4959,12 @@
       },
       "paymentKind": {
         "deposit": "Acompte",
-        "balance": "Solde"
+        "balance": "Solde",
+        "other": "Autre échéance"
       },
       "invoices": {
+        "essentielPlan": "Forfait Essentiel",
+        "hdUpsell": "Archive HD 5 ans (upsell)",
         "premiumPlan": "Forfait Premium"
       },
       "overages": {
@@ -5094,6 +5098,11 @@
       "heroAria": "Aperçu de votre mariage",
       "navAria": "Accès rapides",
       "confirmed": "Confirmés",
+      "noEvent": {
+        "body": "Créez votre événement (noms, date, lieu) pour ouvrir votre espace : invitations, RSVP, budget, prestataires et plan de table.",
+        "cta": "Créer mon mariage",
+        "title": "Votre mariage n'est pas encore créé"
+      },
       "pending": "En attente",
       "expected": "Personnes attendues",
       "online": "En ligne",
@@ -5181,6 +5190,7 @@
       "planTitle": "Rétroplanning"
     },
     "nav": {
+      "budget": "Budget",
       "home": "Accueil",
       "dashboard": "Mon mariage",
       "planning": "Rétroplanning",
@@ -5223,6 +5233,7 @@
     },
     "budget": {
       "eyebrow": "Finances",
+      "setBudget": "Définir le budget",
       "title": "Votre budget",
       "subtitle": "Suivez vos dépenses et l’échéancier de vos paiements en un coup d’œil.",
       "engaged": "Engagé",
@@ -5313,6 +5324,7 @@
       "eyebrow": "Votre formule",
       "choixTitle": "Choisissez votre forfait",
       "choixSubtitle": "Un paiement unique, jamais d’abonnement. Tout est inclus pour votre grand jour.",
+      "noInvoices": "Aucune facture pour l'instant.",
       "oneTimeNote": "Paiement unique · galerie active 12 mois après le mariage.",
       "recommended": "Recommandé",
       "once": "une fois",
@@ -5321,6 +5333,7 @@
       "choosePlan": "Choisir {name}",
       "reassureRefund": "Remboursé à 100 % sous 7 jours si l’invitation n’est pas envoyée.",
       "reassurePostpone": "Report gratuit en cas d’annulation.",
+      "upsellPurchased": "Archive 5 ans activée",
       "yourPlan": "Votre forfait",
       "purchasedOn": "acheté le {date}",
       "activeOneTime": "Actif · paiement unique",
@@ -5379,6 +5392,11 @@
       "honorHint": "Met la table en avant (ornement doré).",
       "honorLabel": "Table d’honneur",
       "inspectElementAria": "Détails de l’élément {label}",
+      "locked": {
+        "body": "Passez au forfait Premium pour composer votre salle en 3D, placer vos invités par glisser-déposer et exporter le plan.",
+        "cta": "Voir le forfait Premium",
+        "title": "Le plan de table est une fonctionnalité Premium"
+      },
       "recenter": "Recentrer",
       "roomDefaultName": "Salle de réception",
       "roomLengthLabel": "Longueur (m)",

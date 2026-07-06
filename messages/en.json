@@ -4916,6 +4916,7 @@
       "quotaUsed": "{pct}% used",
       "quotaWarn": "{pct}% used",
       "remove": "Remove",
+      "saveError": "Couldn't save — your latest changes were rolled back. Try again.",
       "signOut": "Sign out"
     },
     "data": {
@@ -4954,9 +4955,12 @@
       },
       "paymentKind": {
         "deposit": "Deposit",
-        "balance": "Balance"
+        "balance": "Balance",
+        "other": "Other payment"
       },
       "invoices": {
+        "essentielPlan": "Essential plan",
+        "hdUpsell": "5-year HD archive (upsell)",
         "premiumPlan": "Premium plan"
       },
       "overages": {
@@ -5090,6 +5094,11 @@
       "heroAria": "Your wedding at a glance",
       "navAria": "Quick access",
       "confirmed": "Confirmed",
+      "noEvent": {
+        "body": "Create your event (names, date, venue) to open your space: invitations, RSVPs, budget, vendors and seating chart.",
+        "cta": "Create my wedding",
+        "title": "Your wedding isn't set up yet"
+      },
       "pending": "Pending",
       "expected": "People expected",
       "online": "Online",
@@ -5177,6 +5186,7 @@
       "planTitle": "Planning"
     },
     "nav": {
+      "budget": "Budget",
       "home": "Home",
       "dashboard": "My wedding",
       "planning": "Timeline",
@@ -5219,6 +5229,7 @@
     },
     "budget": {
       "eyebrow": "Finances",
+      "setBudget": "Set the budget",
       "title": "Your budget",
       "subtitle": "Track your expenses and payment schedule at a glance.",
       "engaged": "Committed",
@@ -5309,6 +5320,7 @@
       "eyebrow": "Your plan",
       "choixTitle": "Choose your plan",
       "choixSubtitle": "A one-time payment, never a subscription. Everything is included for your big day.",
+      "noInvoices": "No invoices yet.",
       "oneTimeNote": "One-time payment · gallery active for 12 months after the wedding.",
       "recommended": "Recommended",
       "once": "one-time",
@@ -5317,6 +5329,7 @@
       "choosePlan": "Choose {name}",
       "reassureRefund": "100% refund within 7 days if the invitation isn’t sent.",
       "reassurePostpone": "Free postponement if you have to cancel.",
+      "upsellPurchased": "5-year archive active",
       "yourPlan": "Your plan",
       "purchasedOn": "purchased on {date}",
       "activeOneTime": "Active · one-time payment",
@@ -5375,6 +5388,11 @@
       "honorHint": "Highlights the table (gold accent).",
       "honorLabel": "Head table",
       "inspectElementAria": "{label} details",
+      "locked": {
+        "body": "Upgrade to Premium to design your room in 3D, seat guests with drag and drop, and export the chart.",
+        "cta": "See the Premium plan",
+        "title": "The seating chart is a Premium feature"
+      },
       "recenter": "Recenter",
       "roomDefaultName": "Reception hall",
       "roomLengthLabel": "Length (m)",
