@@ -2,22 +2,33 @@
 
 import { useTranslations } from 'next-intl';
 import { useReducedMotion } from 'motion/react';
-import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore, type CSSProperties } from 'react';
 import './cinematic2.css';
 
 /**
- * Cinematic2 — Ouverture cinématique 2.5D (design Claude Design « Ouverture cinématique »).
+ * Cinematic v3 — Ouverture cinématique en vraie profondeur (CSS 3D, zéro WebGL).
  *
- * Une enveloppe de papeterie qui s'ouvre en profondeur réelle (CSS 3D : perspective +
- * preserve-3d + translateZ), avec parallaxe au pointeur, ombre portée, reflet gold sur
- * le sceau de cire qui se fend, doublure champagne révélée, carte qui émerge, prénoms
- * en Bodoni ligne par ligne, fleurons + compte à rebours. Aucun WebGL.
+ * Ce que la v3 ajoute à la 2.5D d'origine :
+ *  - CAMÉRA : la scène démarre en plongée légère puis « descend » vers le
+ *    spectateur pendant l'ouverture (dolly rotateX + translateZ par phase).
+ *  - ENVELOPPE double face : le rabat a un recto papier et un verso doublure
+ *    (backface-visibility), l'ouverture révèle physiquement l'intérieur.
+ *  - SCEAU qui ÉCLATE : trois éclats de cire (clip-path) projetés en rotate3d
+ *    avec chute amortie + anneau d'onde au moment de la fracture.
+ *  - LUMIÈRE : balayage spéculaire unique sur la carte quand les prénoms se
+ *    posent, et key light globale qui suit la parallaxe.
+ *  - POUSSIÈRE D'OR : particules étagées en translateZ (profondeur réelle).
+ *  - PARALLAXE GYROSCOPE sur mobile (deviceorientation quand disponible sans
+ *    permission explicite) — incliner le téléphone révèle la profondeur ;
+ *    au pointeur sur desktop comme avant.
  *
- * Six phases auto-jouées (cumulatives) :
+ * Six phases auto-jouées (cumulatives), API inchangée :
  *   0 fermé · 1 armed (sceau) · 2 open (rabat) · 3 emerged (carte) · 4 named (prénoms) · 5 settled (apaisement)
  *
  * Pilotable en marque blanche via `accentColor` (sceau + accents) ou `skin="sage"`.
  * `prefers-reduced-motion` → saut direct à l'état apaisé (aucune animation).
+ * Budget perf : transform/opacity uniquement, ~50 nœuds, aucun listener passif
+ * pendant les phases d'animation lourdes autres que pointer/orientation.
  */
 export interface Cinematic2Props {
   partnerA: string;
@@ -44,7 +55,21 @@ export interface Cinematic2Props {
 }
 
 const PHASE_CLASSES = ['', 'armed', 'open', 'emerged', 'named', 'settled'] as const;
-const WAITS = [820, 560, 1040, 880, 900]; // ms avant chaque phase suivante
+const WAITS = [900, 640, 1150, 950, 950]; // ms avant chaque phase suivante (tempo v3)
+
+/** Positions des poussières d'or (profondeur translateZ en px, % scène). */
+const DUST: ReadonlyArray<{ x: number; y: number; z: number; s: number; d: number }> = [
+  { x: 14, y: 24, z: 60, s: 5, d: 0 },
+  { x: 82, y: 18, z: 30, s: 4, d: 1.3 },
+  { x: 24, y: 70, z: 80, s: 3.5, d: 2.1 },
+  { x: 70, y: 64, z: 45, s: 5.5, d: 0.7 },
+  { x: 50, y: 12, z: 15, s: 3, d: 2.8 },
+  { x: 90, y: 44, z: 70, s: 4, d: 1.9 },
+  { x: 8, y: 48, z: 25, s: 3.5, d: 3.4 },
+  { x: 38, y: 86, z: 55, s: 4.5, d: 1.1 },
+  { x: 62, y: 90, z: 20, s: 3, d: 2.5 },
+  { x: 47, y: 40, z: 95, s: 2.5, d: 0.4 },
+];
 
 function countdown(target: number) {
   const diff = Math.max(0, target - Date.now());
@@ -155,6 +180,31 @@ export function Cinematic2({
     sceneRef.current.style.setProperty('--rx', '0deg');
   }
 
+  // Parallaxe gyroscope (mobile) : incliner le téléphone révèle la profondeur.
+  // Uniquement quand l'API est disponible SANS permission explicite (Android,
+  // vieux iOS) — iOS 13+ exige un geste utilisateur, on garde alors le flottement
+  // idle. Baseline = première mesure (tenue naturelle du téléphone), deltas
+  // amortis et bornés pour rester élégant.
+  useEffect(() => {
+    if (!parallax || isReduced || typeof window === 'undefined') return;
+    const DOE = window.DeviceOrientationEvent as
+      | (typeof DeviceOrientationEvent & { requestPermission?: () => Promise<string> })
+      | undefined;
+    if (!DOE || typeof DOE.requestPermission === 'function') return;
+    let base: { beta: number; gamma: number } | null = null;
+    const onOrient = (e: DeviceOrientationEvent) => {
+      if (e.beta == null || e.gamma == null || !sceneRef.current) return;
+      if (!base) base = { beta: e.beta, gamma: e.gamma };
+      const clamp = (v: number, m: number) => Math.max(-m, Math.min(m, v));
+      const ry = clamp((e.gamma - base.gamma) * 0.35, 8);
+      const rx = clamp((base.beta - e.beta) * 0.3, 6);
+      sceneRef.current.style.setProperty('--ry', `${ry.toFixed(2)}deg`);
+      sceneRef.current.style.setProperty('--rx', `${rx.toFixed(2)}deg`);
+    };
+    window.addEventListener('deviceorientation', onOrient);
+    return () => window.removeEventListener('deviceorientation', onOrient);
+  }, [parallax, isReduced]);
+
   const sceneCls = [
     'cine2-scene',
     'cine2',
@@ -206,42 +256,73 @@ export function Cinematic2({
       )}
 
       <div className={sceneCls} ref={sceneRef} onPointerMove={onMove} onPointerLeave={onLeave}>
-        <div className="cine2-parallax">
-          <div className="env3d">
-            <div className="e-shadow" />
-            <div className="e-back" />
-            <div className="e-lining" />
-            <div className="e-glow" />
-            <div className="e-side-l" />
-            <div className="e-side-r" />
-            <div className="e-front" />
-            <div className="e-flap" />
-            <div className="e-seal">
-              <span className="seal-h seal-l" />
-              <span className="seal-h seal-r" />
-              <span className="seal-shine" />
-              <span className="seal-mono">{initials}</span>
-            </div>
-          </div>
+        {/* Key light : suit la parallaxe, éclaire la scène de façon cohérente */}
+        <div className="cine3-light" aria-hidden />
 
-          <div className="card3d">
-            <div className="card-face">
-              <span className="cf-eyebrow">{t('youreInvited')}</span>
-              <span className="cf-rule" />
-              <div className="cf-names">
-                <span className="cf-clip">
-                  <span className="cf-line l1">{partnerA}</span>
-                </span>
-                <span className="cf-amp">&amp;</span>
-                <span className="cf-clip">
-                  <span className="cf-line l2">{partnerB}</span>
+        <div className="cine3-camera">
+          <div className="cine2-parallax">
+            {/* Poussière d'or étagée en profondeur (visible dès l'émergence) */}
+            <div className="cine3-dust" aria-hidden>
+              {DUST.map((p, i) => (
+                <span
+                  key={i}
+                  style={
+                    {
+                      left: `${p.x}%`,
+                      top: `${p.y}%`,
+                      width: p.s,
+                      height: p.s,
+                      '--dz': `${p.z}px`,
+                      '--dd': `${p.d}s`,
+                    } as CSSProperties
+                  }
+                />
+              ))}
+            </div>
+
+            <div className="env3d">
+              <div className="e-shadow" />
+              <div className="e-back" />
+              <div className="e-lining" />
+              <div className="e-glow" />
+              <div className="e-side-l" />
+              <div className="e-side-r" />
+              <div className="e-front" />
+              {/* Rabat double face : recto papier / verso doublure (backface) */}
+              <div className="e-flap">
+                <span className="flap-front" />
+                <span className="flap-back" />
+              </div>
+              <div className="e-seal">
+                <span className="seal-ring" />
+                <span className="seal-s s1" />
+                <span className="seal-s s2" />
+                <span className="seal-s s3" />
+                <span className="seal-shine" />
+                <span className="seal-mono">{initials}</span>
+              </div>
+            </div>
+
+            <div className="card3d">
+              <div className="card-face">
+                <span className="card-sheen" aria-hidden />
+                <span className="cf-eyebrow">{t('youreInvited')}</span>
+                <span className="cf-rule" />
+                <div className="cf-names">
+                  <span className="cf-clip">
+                    <span className="cf-line l1">{partnerA}</span>
+                  </span>
+                  <span className="cf-amp">&amp;</span>
+                  <span className="cf-clip">
+                    <span className="cf-line l2">{partnerB}</span>
+                  </span>
+                </div>
+                <span className="cf-rule" />
+                <span className="cf-date">
+                  {formattedDate}
+                  {venueName ? ` · ${venueName}` : ''}
                 </span>
               </div>
-              <span className="cf-rule" />
-              <span className="cf-date">
-                {formattedDate}
-                {venueName ? ` · ${venueName}` : ''}
-              </span>
             </div>
           </div>
         </div>

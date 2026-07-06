@@ -335,30 +335,41 @@
   width: 320px;
   height: 140px;
   transform-origin: top center;
+  transform-style: preserve-3d;
   clip-path: polygon(0 0, 100% 0, 50% 100%);
-  background: linear-gradient(to bottom, oklch(93% 0.042 24), oklch(89% 0.052 26));
   transform: translateZ(6px) rotateX(0deg);
-  transition:
-    transform 1.05s var(--ease-out-expo),
-    background 0.55s ease,
-    box-shadow 0.55s ease,
-    filter 0.4s ease;
+  transition: transform 1.15s var(--ease-out-expo);
   filter: drop-shadow(0 1.5px 0 oklch(80% 0.07 82 / 0.55))
     drop-shadow(0 6px 8px oklch(48% 0.085 22 / 0.24));
+}
+/* Vraie double face : recto papier / verso doublure (backface-visibility) —
+   l'ouverture révèle physiquement l'intérieur du rabat. */
+.flap-front,
+.flap-back {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+}
+.flap-front {
+  background: linear-gradient(to bottom, oklch(93% 0.042 24), oklch(89% 0.052 26));
+  box-shadow: inset 0 1px 0 oklch(96% 0.02 80);
+}
+.flap-back {
+  transform: rotateX(180deg);
+  background: radial-gradient(
+    135% 120% at 50% 100%,
+    oklch(97.5% 0.022 86),
+    oklch(95% 0.03 84) 55%,
+    var(--c-lining-dk)
+  );
+  box-shadow: inset 0 16px 24px oklch(58% 0.06 80 / 0.3);
 }
 .cine2.open .e-flap,
 .cine2.emerged .e-flap,
 .cine2.named .e-flap,
 .cine2.settled .e-flap {
-  transform: translateZ(7px) rotateX(-150deg);
-  background: radial-gradient(
-    135% 120% at 50% 0%,
-    oklch(97.5% 0.022 86),
-    oklch(95% 0.03 84) 55%,
-    var(--c-lining-dk)
-  );
-  filter: none;
-  box-shadow: inset 0 -16px 24px oklch(58% 0.06 80 / 0.3);
+  transform: translateZ(7px) rotateX(-152deg);
+  filter: drop-shadow(0 -4px 10px oklch(48% 0.085 22 / 0.14));
 }
 
 .e-seal {
@@ -373,10 +384,13 @@
   position: absolute;
   top: 0;
 }
-.seal-h {
-  width: 27px;
+/* Trois éclats de cire : disque plein découpé en quartiers irréguliers
+   (clip-path). Au « crack », chacun est projeté en rotate3d et retombe. */
+.seal-s {
+  left: 0;
+  width: 54px;
   height: 54px;
-  overflow: hidden;
+  border-radius: 50%;
   background: radial-gradient(
     120% 90% at 38% 30%,
     var(--c-seal-lt),
@@ -387,17 +401,55 @@
     inset 0 0 8px oklch(48% 0.085 22 / 0.45),
     0 3px 7px oklch(48% 0.085 22 / 0.35);
   transition:
-    transform 0.6s var(--ease-spring),
-    opacity 0.5s ease;
+    transform 0.72s cubic-bezier(0.3, 0.9, 0.4, 1.04),
+    opacity 0.62s ease 0.08s;
 }
-.seal-l {
-  left: 0;
-  border-radius: 54px 0 0 54px;
+.seal-s.s1 {
+  clip-path: polygon(50% 50%, -10% -10%, 62% -12%);
 }
-.seal-r {
-  right: 0;
-  left: auto;
-  border-radius: 0 54px 54px 0;
+.seal-s.s2 {
+  clip-path: polygon(50% 50%, 62% -12%, 115% 40%, 88% 112%);
+}
+.seal-s.s3 {
+  clip-path: polygon(50% 50%, 88% 112%, 8% 115%, -10% -10%);
+}
+.cine2.armed .seal-s.s1 {
+  transform: translate3d(-30px, -14px, 34px) rotate3d(0.6, 0.4, 1, -74deg);
+  opacity: 0;
+}
+.cine2.armed .seal-s.s2 {
+  transform: translate3d(32px, 2px, 40px) rotate3d(0.2, 0.8, 1, 82deg);
+  opacity: 0;
+}
+.cine2.armed .seal-s.s3 {
+  transform: translate3d(-6px, 34px, 28px) rotate3d(1, 0.2, 0.6, 66deg);
+  opacity: 0;
+}
+/* Onde de fracture : anneau qui s'étend au moment du crack */
+.seal-ring {
+  left: 50%;
+  top: 50%;
+  width: 54px;
+  height: 54px;
+  margin: -27px 0 0 -27px;
+  border-radius: 50%;
+  border: 1.5px solid var(--c-seal-lt);
+  opacity: 0;
+  transform: scale(0.7) translateZ(12px);
+  pointer-events: none;
+}
+.cine2.armed .seal-ring {
+  animation: cine3SealRing 0.62s var(--ease-out-quint) 1 forwards;
+}
+@keyframes cine3SealRing {
+  0% {
+    opacity: 0.9;
+    transform: scale(0.7) translateZ(12px);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(2.1) translateZ(12px);
+  }
 }
 .seal-mono {
   left: 0;
@@ -460,14 +512,6 @@
     left: 130%;
     opacity: 1;
   }
-}
-.cine2.armed .seal-l {
-  transform: translate(-26px, 15px) translateZ(30px) rotate(-28deg);
-  opacity: 0;
-}
-.cine2.armed .seal-r {
-  transform: translate(26px, 15px) translateZ(30px) rotate(32deg);
-  opacity: 0;
 }
 .cine2.armed .seal-mono {
   opacity: 0;
@@ -639,4 +683,152 @@
 .cine2.frozen .seal-shine::before {
   animation: none;
   left: 130%;
+}
+
+/* ============================ v3 : caméra ============================
+   Dolly cinématographique : plongée légère au départ, la scène « descend »
+   vers le spectateur pendant l'ouverture puis se pose. */
+.cine3-camera {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  transform: rotateX(10deg) translateZ(-70px) scale(0.965);
+  transition: transform 1.25s cubic-bezier(0.3, 0.75, 0.25, 1);
+}
+.cine2.armed .cine3-camera {
+  transform: rotateX(7deg) translateZ(-46px) scale(0.978);
+}
+.cine2.open .cine3-camera {
+  transform: rotateX(3.5deg) translateZ(-18px) scale(0.99);
+}
+.cine2.emerged .cine3-camera {
+  transform: rotateX(1.5deg) translateZ(0px) scale(1);
+}
+.cine2.named .cine3-camera,
+.cine2.settled .cine3-camera {
+  transform: rotateX(0deg) translateZ(0px) scale(1);
+  transition: transform 1.5s cubic-bezier(0.3, 0.75, 0.25, 1);
+}
+
+/* ============================ v3 : key light ============================
+   Halo directionnel qui suit la parallaxe (pointeur ou gyroscope) : la scène
+   s'éclaire de façon cohérente quand on l'incline. */
+.cine3-light {
+  position: absolute;
+  inset: -12%;
+  pointer-events: none;
+  z-index: 3;
+  opacity: 0.55;
+  background: radial-gradient(
+    46% 34% at calc(50% + var(--ry, 0deg) * 2.4%) calc(34% - var(--rx, 0deg) * 2.2%),
+    oklch(99% 0.015 90 / 0.5),
+    transparent 70%
+  );
+  transition: opacity 0.8s ease;
+  mix-blend-mode: soft-light;
+}
+.cine2.settled .cine3-light {
+  opacity: 0.35;
+}
+
+/* ============================ v3 : poussière d'or ============================
+   Particules étagées en translateZ — la parallaxe révèle la profondeur. */
+.cine3-dust {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  pointer-events: none;
+}
+.cine3-dust span {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, oklch(92% 0.08 88), oklch(76% 0.1 82));
+  box-shadow: 0 0 6px oklch(85% 0.09 85 / 0.8);
+  opacity: 0;
+  transform: translateZ(var(--dz, 40px));
+}
+.cine2.emerged .cine3-dust span,
+.cine2.named .cine3-dust span,
+.cine2.settled .cine3-dust span {
+  animation: cine3Dust 6.5s ease-in-out var(--dd, 0s) infinite;
+}
+@keyframes cine3Dust {
+  0%,
+  100% {
+    opacity: 0;
+    transform: translateZ(var(--dz, 40px)) translateY(6px);
+  }
+  30%,
+  70% {
+    opacity: 0.75;
+  }
+  50% {
+    opacity: 0.9;
+    transform: translateZ(var(--dz, 40px)) translateY(-10px);
+  }
+}
+
+/* ============================ v3 : balayage spéculaire de la carte ============
+   Un seul passage de lumière quand les prénoms se posent — l'effet « papier
+   nacré qui accroche la lumière ». */
+.card-sheen {
+  position: absolute;
+  inset: 0;
+  border-radius: 8px;
+  overflow: hidden;
+  pointer-events: none;
+}
+.card-sheen::before {
+  content: '';
+  position: absolute;
+  top: -30%;
+  left: -70%;
+  width: 45%;
+  height: 160%;
+  transform: skewX(-16deg);
+  background: linear-gradient(100deg, transparent, oklch(99% 0.02 92 / 0.55), transparent);
+  opacity: 0;
+}
+.cine2.named .card-sheen::before {
+  animation: cine3Sheen 1.15s cubic-bezier(0.4, 0.1, 0.3, 1) 0.45s 1 forwards;
+}
+@keyframes cine3Sheen {
+  0% {
+    left: -70%;
+    opacity: 1;
+  }
+  100% {
+    left: 150%;
+    opacity: 1;
+  }
+}
+
+/* v3 : la carte se présente face caméra avec une micro-inclinaison vivante
+   (translateZ modéré : au-delà, le haut de la carte sort du cadre mobile) */
+.cine2.settled .card3d {
+  transform: translateY(-150px) translateZ(10px) rotateX(-1deg);
+}
+
+/* reduced motion / frozen : tout figer proprement */
+@media (prefers-reduced-motion: reduce) {
+  .cine3-dust {
+    display: none;
+  }
+  .cine3-camera {
+    transform: none !important;
+  }
+}
+.cine2.reduced .cine3-light,
+.cine2.reduced .cine3-dust {
+  display: none;
+}
+.cine2.reduced .cine3-camera {
+  transform: none !important;
+}
+.cine2.frozen .cine3-dust span {
+  animation: none;
+  opacity: 0.6;
+}
+.cine2.frozen .card-sheen::before {
+  animation: none;
 }
