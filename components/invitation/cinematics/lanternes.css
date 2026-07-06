@@ -47,18 +47,18 @@
   }
 }
 
-/* Caméra : très légère élévation quand les lanternes montent. */
+/* Caméra : elle S'ÉLÈVE avec les lanternes et pique légèrement vers l'eau. */
 .lx-camera {
   position: absolute;
   inset: 0;
   transform-style: preserve-3d;
-  transform: translateY(8px) scale(1.03);
+  transform: translateY(8px) rotateX(0deg) translateZ(-20px) scale(1.04);
   transition: transform 3.4s cubic-bezier(0.3, 0.5, 0.3, 1);
 }
 .cineL.rise .lx-camera,
 .cineL.names .lx-camera,
 .cineL.settled .lx-camera {
-  transform: translateY(-4px) scale(1);
+  transform: translateY(-6px) rotateX(-2.5deg) translateZ(14px) scale(1);
 }
 
 .lx-par {
@@ -73,9 +73,10 @@
 
 .ln-horizon {
   position: absolute;
-  left: -6%;
-  right: -6%;
+  left: -14%;
+  right: -14%;
   top: 352px;
+  transform: translateZ(-160px) scale(1.3);
   height: 60px;
   background: linear-gradient(to bottom, transparent, oklch(70% 0.12 55 / 0.4), transparent);
   filter: blur(9px);
@@ -83,10 +84,12 @@
 }
 .ln-water {
   position: absolute;
-  left: 0;
-  right: 0;
+  left: -10%;
+  right: -10%;
   top: 368px;
-  bottom: 0;
+  bottom: -30px;
+  transform: translateZ(-90px) scale(1.18);
+  transform-origin: top center;
   background:
     radial-gradient(52% 34px at 50% 0, oklch(74% 0.1 55 / 0.22), transparent 70%),
     linear-gradient(180deg, oklch(29% 0.048 35 / 0.92), oklch(15% 0.028 300));
@@ -149,14 +152,14 @@
   );
   box-shadow: 0 0 14px oklch(84% 0.11 60 / 0.75);
   opacity: 0;
-  transform: scale(0.55);
+  transform: translateZ(var(--lz, 0px)) scale(0.55);
   transition:
     opacity 0.6s ease var(--ld, 0s),
     transform 0.7s cubic-bezier(0.34, 1.3, 0.5, 1) var(--ld, 0s);
 }
 .cineL.gather .ln-small {
   opacity: 1;
-  transform: scale(1);
+  transform: translateZ(var(--lz, 0px)) scale(1);
 }
 /* Reflet sur l'eau. */
 .ln-small .glow {
@@ -173,7 +176,8 @@
 }
 /* Envol : chaque petite dérive selon ses variables. */
 .cineL.rise .ln-small {
-  transform: translate3d(var(--ldx, 0px), var(--lry, -140px), var(--lz, 0px)) scale(0.92);
+  transform: translate3d(var(--ldx, 0px), var(--lry, -140px), calc(var(--lz, 0px) + 50px))
+    scale(0.92);
   transition:
     transform 2.6s cubic-bezier(0.32, 0.55, 0.3, 1) calc(var(--ld, 0s) * 1.4),
     opacity 0.6s ease;
@@ -204,10 +208,14 @@
   transform: translateY(64px);
   transition: transform 2.1s cubic-bezier(0.32, 0.6, 0.28, 1);
 }
-.cineL.rise .ln-big,
+.cineL.rise .ln-big {
+  transform: translateY(-58px) translateZ(30px);
+}
+/* La grande lanterne APPROCHE pour livrer les prénoms. */
 .cineL.names .ln-big,
 .cineL.settled .ln-big {
-  transform: translateY(-58px);
+  transform: translateY(-58px) translateZ(86px);
+  transition: transform 1.6s cubic-bezier(0.3, 0.7, 0.28, 1);
 }
 .cineL.settled .ln-big {
   animation: cineLDrift 6s ease-in-out 0.6s infinite alternate;

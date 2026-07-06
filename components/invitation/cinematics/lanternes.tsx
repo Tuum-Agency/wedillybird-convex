@@ -30,11 +30,11 @@ const PHASES = ['', 'gather', 'ignite', 'rise', 'names', 'settled'] as const;
 
 /** Petites lanternes : x (px scène), délai, profondeur, dérive d'envol. */
 const SMALL: ReadonlyArray<{ x: number; d: number; z: number; ry: number; dx: number }> = [
-  { x: 52, d: 0, z: -30, ry: -168, dx: -14 },
-  { x: 112, d: 0.22, z: 18, ry: -120, dx: 10 },
-  { x: 236, d: 0.12, z: 24, ry: -132, dx: -8 },
-  { x: 296, d: 0.3, z: -22, ry: -180, dx: 14 },
-  { x: 178, d: 0.4, z: -46, ry: -210, dx: 4 },
+  { x: 52, d: 0, z: -150, ry: -168, dx: -14 },
+  { x: 112, d: 0.22, z: 60, ry: -120, dx: 10 },
+  { x: 236, d: 0.12, z: 90, ry: -132, dx: -8 },
+  { x: 296, d: 0.3, z: -110, ry: -180, dx: 14 },
+  { x: 178, d: 0.4, z: -190, ry: -210, dx: 4 },
 ];
 
 const FIREFLIES: ReadonlyArray<{ x: number; y: number; d: number }> = [
@@ -69,7 +69,7 @@ export function CinematicLanternes({
     isReduced,
     onDone,
   });
-  const par = useSceneParallax(sceneRef, { enabled: parallax && !isReduced });
+  const par = useSceneParallax(sceneRef, { enabled: parallax && !isReduced, intensity: 1.6 });
   const cd = useCountdown(eventDate);
   const target = eventDate != null ? new Date(eventDate).getTime() : null;
 

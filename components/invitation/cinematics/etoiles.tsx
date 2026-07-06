@@ -29,23 +29,23 @@ const WAITS = [900, 850, 1150, 1050, 900];
 const PHASES = ['', 'night', 'shoot', 'trace', 'names', 'settled'] as const;
 
 /** Étoiles d'ambiance (position %, taille px, délai de scintillement). */
-const SKY: ReadonlyArray<{ x: number; y: number; s: number; d: number }> = [
-  { x: 8, y: 12, s: 2.5, d: 0 },
-  { x: 20, y: 32, s: 1.8, d: 1.2 },
-  { x: 31, y: 8, s: 2.2, d: 2.4 },
-  { x: 44, y: 24, s: 1.5, d: 0.8 },
-  { x: 55, y: 6, s: 2.6, d: 1.7 },
-  { x: 66, y: 30, s: 1.6, d: 3 },
-  { x: 78, y: 10, s: 2.3, d: 0.4 },
-  { x: 90, y: 26, s: 1.8, d: 2 },
-  { x: 12, y: 52, s: 1.6, d: 2.8 },
-  { x: 88, y: 50, s: 1.5, d: 1 },
-  { x: 40, y: 46, s: 1.4, d: 3.4 },
-  { x: 70, y: 48, s: 1.7, d: 0.6 },
-  { x: 26, y: 68, s: 1.4, d: 1.9 },
-  { x: 82, y: 70, s: 1.6, d: 2.5 },
-  { x: 52, y: 62, s: 1.3, d: 3.8 },
-  { x: 6, y: 78, s: 1.5, d: 0.2 },
+const SKY: ReadonlyArray<{ x: number; y: number; s: number; d: number; z: number }> = [
+  { x: 8, y: 12, s: 2.5, d: 0, z: -60 },
+  { x: 20, y: 32, s: 1.8, d: 1.2, z: -260 },
+  { x: 31, y: 8, s: 2.2, d: 2.4, z: -140 },
+  { x: 44, y: 24, s: 1.5, d: 0.8, z: -340 },
+  { x: 55, y: 6, s: 2.6, d: 1.7, z: -80 },
+  { x: 66, y: 30, s: 1.6, d: 3, z: -300 },
+  { x: 78, y: 10, s: 2.3, d: 0.4, z: -180 },
+  { x: 90, y: 26, s: 1.8, d: 2, z: -240 },
+  { x: 12, y: 52, s: 1.6, d: 2.8, z: -200 },
+  { x: 88, y: 50, s: 1.5, d: 1, z: -320 },
+  { x: 40, y: 46, s: 1.4, d: 3.4, z: -110 },
+  { x: 70, y: 48, s: 1.7, d: 0.6, z: -40 },
+  { x: 26, y: 68, s: 1.4, d: 1.9, z: -160 },
+  { x: 82, y: 70, s: 1.6, d: 2.5, z: -90 },
+  { x: 52, y: 62, s: 1.3, d: 3.8, z: -280 },
+  { x: 6, y: 78, s: 1.5, d: 0.2, z: -120 },
 ];
 
 /** Nœuds du cœur (coordonnées scène 360×560, zone haute). */
@@ -87,7 +87,7 @@ export function CinematicEtoiles({
     isReduced,
     onDone,
   });
-  const par = useSceneParallax(sceneRef, { enabled: parallax && !isReduced });
+  const par = useSceneParallax(sceneRef, { enabled: parallax && !isReduced, intensity: 1.6 });
   const cd = useCountdown(eventDate);
   const target = eventDate != null ? new Date(eventDate).getTime() : null;
 
@@ -144,6 +144,7 @@ export function CinematicEtoiles({
                       width: s.s,
                       height: s.s,
                       '--sd': `${s.d}s`,
+                      '--sz': `${s.z}px`,
                     } as CSSProperties
                   }
                 />
@@ -156,19 +157,21 @@ export function CinematicEtoiles({
             <span className="st-shoot s1" aria-hidden />
             <span className="st-shoot s2" aria-hidden />
 
-            {/* La constellation en cœur */}
-            <svg className="st-heart" viewBox="0 0 360 560" aria-hidden>
-              <polyline points={points} />
-            </svg>
-            <div className="st-nodes" aria-hidden>
-              {HEART.map((p, i) => (
-                <span
-                  key={i}
-                  style={
-                    { left: `${p.x}px`, top: `${p.y}px`, '--nd': `${i * 0.12}s` } as CSSProperties
-                  }
-                />
-              ))}
+            {/* La constellation en cœur — plane qui se REDRESSE (hologramme) */}
+            <div className="st-plane" aria-hidden>
+              <svg className="st-heart" viewBox="0 0 360 560">
+                <polyline points={points} />
+              </svg>
+              <div className="st-nodes">
+                {HEART.map((p, i) => (
+                  <span
+                    key={i}
+                    style={
+                      { left: `${p.x}px`, top: `${p.y}px`, '--nd': `${i * 0.12}s` } as CSSProperties
+                    }
+                  />
+                ))}
+              </div>
             </div>
 
             {/* Les prénoms en lumière stellaire */}

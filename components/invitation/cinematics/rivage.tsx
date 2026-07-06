@@ -60,7 +60,7 @@ export function CinematicRivage({
     isReduced,
     onDone,
   });
-  const par = useSceneParallax(sceneRef, { enabled: parallax && !isReduced });
+  const par = useSceneParallax(sceneRef, { enabled: parallax && !isReduced, intensity: 1.6 });
   const cd = useCountdown(eventDate);
   const target = eventDate != null ? new Date(eventDate).getTime() : null;
 

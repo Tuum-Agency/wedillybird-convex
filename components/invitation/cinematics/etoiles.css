@@ -50,10 +50,16 @@
 .cineS.night .sx-camera {
   transform: translateY(12px) scale(1.02);
 }
+/* WARP : la caméra plonge dans le champ d'étoiles avec l'étoile filante. */
+.cineS.shoot .sx-camera {
+  transform: translateY(4px) translateZ(120px) scale(1.01);
+  transition: transform 1.7s cubic-bezier(0.35, 0.5, 0.3, 1);
+}
 .cineS.trace .sx-camera,
 .cineS.names .sx-camera,
 .cineS.settled .sx-camera {
-  transform: translateY(0) scale(1);
+  transform: translateY(0) translateZ(0) scale(1);
+  transition: transform 2.4s cubic-bezier(0.3, 0.5, 0.3, 1);
 }
 
 .sx-par {
@@ -79,6 +85,7 @@
     oklch(70% 0.02 290 / 0.1) 55%,
     transparent
   );
+  transform: translateZ(-420px) scale(1.7);
   rotate: -16deg;
   filter: blur(6px);
   opacity: 0.6;
@@ -93,11 +100,15 @@
   inset: 0;
   pointer-events: none;
 }
+.st-sky {
+  transform-style: preserve-3d;
+}
 .st-sky span {
   position: absolute;
   border-radius: 50%;
   background: var(--c-star);
   opacity: 0.3;
+  transform: translateZ(var(--sz, 0px));
   animation: cineSStar 4s ease-in-out var(--sd, 0s) infinite;
 }
 .cineS.night .st-sky span {
@@ -124,11 +135,15 @@
 .st-hill.h1 {
   clip-path: polygon(0 100%, 0 55%, 18% 34%, 42% 58%, 63% 30%, 84% 52%, 100% 40%, 100% 100%);
   background: oklch(10% 0.018 265);
+  transform: translateZ(-130px) scale(1.24);
+  transform-origin: bottom center;
 }
 .st-hill.h2 {
   height: 88px;
   clip-path: polygon(0 100%, 0 62%, 24% 44%, 52% 66%, 78% 42%, 100% 58%, 100% 100%);
   background: oklch(8% 0.014 262);
+  transform: translateZ(-60px) scale(1.1);
+  transform-origin: bottom center;
 }
 
 /* --------------------------- étoiles filantes --------------------------- */
@@ -185,6 +200,23 @@
 }
 
 /* ------------------------- le cœur de la nuit --------------------------- */
+
+/* Le plan de la constellation se REDRESSE face au spectateur (hologramme). */
+.st-plane {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  transform-origin: 50% 46%;
+  transform: rotateX(58deg) translateZ(-160px);
+  opacity: 0.4;
+  transition:
+    transform 2s cubic-bezier(0.3, 0.7, 0.25, 1),
+    opacity 1.2s ease;
+}
+.cineS.trace .st-plane {
+  transform: rotateX(0deg) translateZ(0px);
+  opacity: 1;
+}
 
 .st-heart {
   position: absolute;
@@ -448,6 +480,7 @@
   margin: -29px 0 0 -29px;
   border-radius: 50%;
   border: 1px solid oklch(78% 0.03 90 / 0.4);
+  transform: rotateX(64deg);
 }
 .st-orb .ring::after {
   content: '';
@@ -465,8 +498,11 @@
   animation: cineSOrbit 9s linear calc(var(--od, 0s) * 4) infinite;
 }
 @keyframes cineSOrbit {
+  from {
+    transform: rotateX(64deg) rotate(0deg);
+  }
   to {
-    rotate: 360deg;
+    transform: rotateX(64deg) rotate(360deg);
   }
 }
 .st-orb em {

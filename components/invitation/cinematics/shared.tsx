@@ -112,7 +112,7 @@ export function useCinematicTimeline({
 
 export function useSceneParallax(
   sceneRef: RefObject<HTMLDivElement | null>,
-  { enabled }: { enabled: boolean },
+  { enabled, intensity = 1 }: { enabled: boolean; intensity?: number },
 ) {
   // Gyroscope (mobile) : uniquement quand l'API est disponible SANS permission
   // explicite (Android, vieux iOS) — iOS 13+ exige un geste utilisateur.
@@ -128,22 +128,22 @@ export function useSceneParallax(
       if (e.beta == null || e.gamma == null || !sceneRef.current) return;
       if (!base) base = { beta: e.beta, gamma: e.gamma };
       const clamp = (v: number, m: number) => Math.max(-m, Math.min(m, v));
-      const ry = clamp((e.gamma - base.gamma) * 0.35, 8);
-      const rx = clamp((base.beta - e.beta) * 0.3, 6);
+      const ry = clamp((e.gamma - base.gamma) * 0.35 * intensity, 8 * intensity);
+      const rx = clamp((base.beta - e.beta) * 0.3 * intensity, 6 * intensity);
       sceneRef.current.style.setProperty('--ry', `${ry.toFixed(2)}deg`);
       sceneRef.current.style.setProperty('--rx', `${rx.toFixed(2)}deg`);
     };
     window.addEventListener('deviceorientation', onOrient);
     return () => window.removeEventListener('deviceorientation', onOrient);
-  }, [enabled, sceneRef]);
+  }, [enabled, sceneRef, intensity]);
 
   function onPointerMove(e: React.PointerEvent<HTMLDivElement>) {
     if (!enabled || !sceneRef.current) return;
     const r = sceneRef.current.getBoundingClientRect();
     const x = (e.clientX - r.left) / r.width - 0.5;
     const y = (e.clientY - r.top) / r.height - 0.5;
-    sceneRef.current.style.setProperty('--ry', `${(x * 9).toFixed(2)}deg`);
-    sceneRef.current.style.setProperty('--rx', `${(-y * 6).toFixed(2)}deg`);
+    sceneRef.current.style.setProperty('--ry', `${(x * 9 * intensity).toFixed(2)}deg`);
+    sceneRef.current.style.setProperty('--rx', `${(-y * 6 * intensity).toFixed(2)}deg`);
   }
   function onPointerLeave() {
     if (!sceneRef.current) return;

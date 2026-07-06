@@ -40,21 +40,24 @@
   }
 }
 
-/* Caméra de spectateur : frontale, un unique lent push-in — la mise en
-   scène vient de la lumière, pas de la caméra. */
+/* Caméra de spectateur : elle FRANCHIT lentement le cadre de scène —
+   le rideau et la frise glissent hors champ en vraie profondeur. */
 .tx-camera {
   position: absolute;
   inset: 0;
   transform-style: preserve-3d;
-  transform: rotateX(1.5deg) translateZ(-16px) scale(0.985);
+  transform: rotateX(1.5deg) translateZ(-36px) scale(0.985);
   transition: transform 4.5s cubic-bezier(0.3, 0.4, 0.3, 1);
 }
 .cineT.scene .tx-camera {
-  transform: rotateX(0.5deg) translateZ(-6px) scale(0.995);
+  transform: rotateX(0.5deg) translateZ(-4px) scale(0.995);
+}
+.cineT.title .tx-camera {
+  transform: rotateX(0deg) translateZ(22px) scale(1);
 }
 .cineT.act .tx-camera,
 .cineT.settled .tx-camera {
-  transform: rotateX(0deg) translateZ(0) scale(1);
+  transform: rotateX(0deg) translateZ(46px) scale(1);
 }
 
 .tx-par {
@@ -72,7 +75,7 @@
   inset: 26px 8px 64px;
   border-radius: 6px;
   overflow: hidden;
-  transform: translateZ(-40px);
+  transform: translateZ(-150px) scale(1.24);
   background: linear-gradient(
     180deg,
     oklch(20% 0.04 278) 0%,
@@ -87,10 +90,10 @@
   position: absolute;
 }
 .moon {
-  left: 27%;
-  top: 15%;
-  width: 46px;
-  height: 46px;
+  left: 15%;
+  top: 8%;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   background: radial-gradient(circle at 42% 38%, oklch(97% 0.02 95), oklch(88% 0.04 90));
   box-shadow: 0 0 34px oklch(92% 0.04 92 / 0.55);
@@ -162,7 +165,7 @@
   background: linear-gradient(180deg, oklch(32% 0.055 276), oklch(17% 0.032 268));
 }
 .moonpath {
-  left: calc(27% + 4px);
+  left: calc(15% - 1px);
   top: 62%;
   bottom: 6%;
   width: 38px;
@@ -204,7 +207,7 @@
   top: 430px;
   width: 0;
   height: 0;
-  transform: translateZ(-20px);
+  transform: translateZ(-70px) scale(1.1);
 }
 .swans > * {
   position: absolute;
@@ -657,11 +660,18 @@
 .curt.cr {
   right: -3%;
 }
+/* Ouverture à CHARNIÈRE : chaque pan pivote en s'écartant. */
+.curt.cl {
+  transform-origin: left center;
+}
+.curt.cr {
+  transform-origin: right center;
+}
 .cineT.rise .curt.cl {
-  transform: translateZ(80px) translateX(-88%);
+  transform: translateZ(80px) translateX(-86%) rotateY(16deg);
 }
 .cineT.rise .curt.cr {
-  transform: translateZ(80px) translateX(88%);
+  transform: translateZ(80px) translateX(86%) rotateY(-16deg);
 }
 
 .valance {

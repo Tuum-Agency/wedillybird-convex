@@ -12,7 +12,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(180deg, oklch(93% 0.016 245) 0%, oklch(87% 0.022 238) 100%);
+  background: linear-gradient(180deg, oklch(87% 0.035 252) 0%, oklch(76% 0.05 246) 100%);
   --c-ice: oklch(78% 0.03 235);
   --c-ice-ink: oklch(44% 0.035 240);
   --c-warm: oklch(30% 0.045 55);
@@ -39,21 +39,21 @@
   }
 }
 
-/* Caméra : un pas feutré vers la vitre. */
+/* Caméra : un vrai pas vers la vitre — le dehors s'écarte en profondeur. */
 .nx-camera {
   position: absolute;
   inset: 0;
   transform-style: preserve-3d;
-  transform: scale(1.06);
+  transform: translateZ(-50px) scale(1.08);
   transition: transform 4.5s cubic-bezier(0.3, 0.4, 0.3, 1);
 }
 .cineN.frost .nx-camera {
-  transform: scale(1.03);
+  transform: translateZ(-16px) scale(1.04);
 }
 .cineN.wipe .nx-camera,
 .cineN.names .nx-camera,
 .cineN.settled .nx-camera {
-  transform: scale(1);
+  transform: translateZ(24px) scale(1);
 }
 
 .nx-par {
@@ -73,8 +73,12 @@
   bottom: -6px;
   pointer-events: none;
 }
+.ng-pines {
+  transform-origin: bottom center;
+}
 .ng-pines.pa {
   height: 130px;
+  transform: translateZ(-210px) scale(1.45);
   clip-path: polygon(
     0 100%,
     0 55%,
@@ -93,6 +97,7 @@
 }
 .ng-pines.pb {
   height: 96px;
+  transform: translateZ(-110px) scale(1.22);
   clip-path: polygon(
     0 100%,
     0 70%,
@@ -146,8 +151,8 @@
 }
 .ng-fern {
   position: absolute;
-  width: 150px;
-  height: 150px;
+  width: 185px;
+  height: 185px;
 }
 .ng-fern.fa {
   left: -12px;
@@ -166,8 +171,8 @@
   top: -12px;
 }
 .ng-fern path {
-  stroke: oklch(92% 0.02 236 / 0.95);
-  stroke-width: 2.4;
+  stroke: oklch(95% 0.015 236 / 0.98);
+  stroke-width: 3;
   stroke-linecap: round;
   filter: drop-shadow(0 0 3px oklch(88% 0.025 238 / 0.8));
   stroke-dasharray: 220;
@@ -192,6 +197,7 @@
 .ng-warm {
   position: absolute;
   inset: 0;
+  transform: translateZ(12px);
   background:
     radial-gradient(60% 44% at 50% 44%, oklch(46% 0.06 55 / 0.85), transparent 76%),
     linear-gradient(180deg, oklch(33% 0.045 52), oklch(24% 0.035 45));
@@ -199,13 +205,13 @@
   transition: clip-path 1.6s cubic-bezier(0.4, 0.1, 0.25, 1);
 }
 .cineN.wipe .ng-warm {
-  clip-path: circle(158px at 50% 44%);
+  clip-path: circle(148px at 50% 44%);
 }
 .cineN.names .ng-warm {
-  clip-path: circle(172px at 50% 44%);
+  clip-path: circle(168px at 50% 44%);
 }
 .cineN.settled .ng-warm {
-  clip-path: circle(196px at 50% 42%);
+  clip-path: circle(188px at 50% 42%);
   transition: clip-path 2s cubic-bezier(0.4, 0.1, 0.25, 1);
 }
 
@@ -328,6 +334,7 @@
 .ng-snow {
   position: absolute;
   inset: -4% 0 0;
+  transform-style: preserve-3d;
   pointer-events: none;
 }
 .ng-snow span {
@@ -336,7 +343,7 @@
   border-radius: 50%;
   background: oklch(99.5% 0.003 240);
   box-shadow:
-    0 0 4px oklch(98% 0.006 238 / 0.95),
+    0 0 6px 1.5px oklch(99% 0.005 240 / 0.9),
     0 1px 3px oklch(58% 0.03 238 / 0.4);
   opacity: 0;
   animation: cineNFall var(--ft, 10s) linear var(--fd, 0s) infinite;
@@ -344,20 +351,20 @@
 @keyframes cineNFall {
   0% {
     opacity: 0;
-    transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, var(--fz, 0px));
   }
   6% {
     opacity: 0.95;
   }
   50% {
-    transform: translate3d(var(--fw, 14px), 52vh, 0);
+    transform: translate3d(var(--fw, 14px), 52vh, var(--fz, 0px));
   }
   96% {
     opacity: 0.85;
   }
   100% {
     opacity: 0;
-    transform: translate3d(calc(var(--fw, 14px) * -0.4), 106vh, 0);
+    transform: translate3d(calc(var(--fw, 14px) * -0.4), 106vh, var(--fz, 0px));
   }
 }
 

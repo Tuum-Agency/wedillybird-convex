@@ -28,10 +28,12 @@ import './feux.css';
 const WAITS = [850, 800, 1000, 1150, 950];
 const PHASES = ['', 'hush', 'launch', 'burst', 'names', 'settled'] as const;
 
-const SPARK_COUNT = 16;
+const SPARK_COUNT = 24;
 /** Directions d'une gerbe (angle régulier + rayon légèrement varié). */
-function sparks(radius: number): Array<{ tx: number; ty: number; ra: number; d: number }> {
-  const out: Array<{ tx: number; ty: number; ra: number; d: number }> = [];
+function sparks(
+  radius: number,
+): Array<{ tx: number; ty: number; ra: number; tz: number; d: number }> {
+  const out: Array<{ tx: number; ty: number; ra: number; tz: number; d: number }> = [];
   for (let i = 0; i < SPARK_COUNT; i++) {
     const a = (i / SPARK_COUNT) * Math.PI * 2;
     const r = radius * (0.66 + 0.34 * (((i * 7) % 5) / 4));
@@ -42,14 +44,16 @@ function sparks(radius: number): Array<{ tx: number; ty: number; ra: number; d: 
       ty: Number((Math.sin(a) * r).toFixed(2)),
       // Orientation RADIALE du trait (0° = vertical, le long de la trajectoire).
       ra: Number((((a * 180) / Math.PI + 90) % 360).toFixed(1)),
+      // Profondeur : certaines étincelles jaillissent VERS la caméra.
+      tz: ((i * 53) % 7) * 52 - 90,
       d: (i % 4) * 0.03,
     });
   }
   return out;
 }
-const BURST_A = sparks(78);
-const BURST_B = sparks(64);
-const BURST_C = sparks(105);
+const BURST_A = sparks(118);
+const BURST_B = sparks(96);
+const BURST_C = sparks(150);
 
 const EMBERS: ReadonlyArray<{ x: number; d: number }> = [
   { x: 20, d: 0 },
@@ -63,11 +67,12 @@ function Burst({
   color,
 }: {
   cls: string;
-  parts: ReadonlyArray<{ tx: number; ty: number; ra: number; d: number }>;
+  parts: ReadonlyArray<{ tx: number; ty: number; ra: number; tz: number; d: number }>;
   color: 0 | 1;
 }) {
   return (
     <div className={`fw-burst ${cls}`} aria-hidden>
+      <span className="fw-core" />
       <span className="fw-ring" />
       {parts.map((p, i) => (
         <i
@@ -78,6 +83,7 @@ function Burst({
               '--tx': `${p.tx}px`,
               '--ty': `${p.ty}px`,
               '--ra': `${p.ra.toFixed(1)}deg`,
+              '--tz': `${p.tz}px`,
               '--sd': `${p.d}s`,
             } as CSSProperties
           }
@@ -112,7 +118,7 @@ export function CinematicFeux({
     isReduced,
     onDone,
   });
-  const par = useSceneParallax(sceneRef, { enabled: parallax && !isReduced });
+  const par = useSceneParallax(sceneRef, { enabled: parallax && !isReduced, intensity: 1.6 });
   const cd = useCountdown(eventDate);
   const target = eventDate != null ? new Date(eventDate).getTime() : null;
 
@@ -158,6 +164,7 @@ export function CinematicFeux({
         <div className="wx-camera">
           <div className="wx-par">
             {/* Nuit + silhouettes d'arbres + guirlande lointaine */}
+            <span className="fw-stars" aria-hidden />
             <span className="fw-trees ta" aria-hidden />
             <span className="fw-trees tb" aria-hidden />
             <span className="fw-garland" aria-hidden />

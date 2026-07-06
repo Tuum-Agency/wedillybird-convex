@@ -66,7 +66,7 @@ export function CinematicDeco({
     isReduced,
     onDone,
   });
-  const par = useSceneParallax(sceneRef, { enabled: parallax && !isReduced });
+  const par = useSceneParallax(sceneRef, { enabled: parallax && !isReduced, intensity: 1.6 });
   const cd = useCountdown(eventDate);
   const target = eventDate != null ? new Date(eventDate).getTime() : null;
 
@@ -111,6 +111,9 @@ export function CinematicDeco({
       >
         <div className="dx-camera">
           <div className="dx-par">
+            {/* Sol de marbre en perspective */}
+            <span className="dc-floor" aria-hidden />
+
             {/* Filets verticaux */}
             <div className="dc-lines" aria-hidden>
               {[54, 100, 146, 214, 260, 306].map((x, i) => (

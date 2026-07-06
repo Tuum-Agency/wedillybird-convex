@@ -39,21 +39,21 @@
   }
 }
 
-/* Caméra plongeante qui se redresse doucement. */
+/* Caméra : du zénith au ras du sable — vraie bascule. */
 .rx-camera {
   position: absolute;
   inset: 0;
   transform-style: preserve-3d;
-  transform: rotateX(8deg) translateY(-6px) scale(1.05);
+  transform: rotateX(17deg) translateY(-10px) translateZ(-46px) scale(1.1);
   transition: transform 3.6s cubic-bezier(0.3, 0.5, 0.3, 1);
 }
 .cineR.wash .rx-camera {
-  transform: rotateX(5deg) translateY(-3px) scale(1.02);
+  transform: rotateX(9deg) translateY(-4px) translateZ(-16px) scale(1.04);
 }
 .cineR.carve .rx-camera,
 .cineR.plank .rx-camera,
 .cineR.settled .rx-camera {
-  transform: rotateX(2deg) translateY(0) scale(1);
+  transform: rotateX(2.5deg) translateY(0) translateZ(6px) scale(1);
 }
 
 .rx-par {
@@ -138,7 +138,7 @@
   left: 50%;
   top: 196px;
   width: 330px;
-  transform: translateX(-50%);
+  transform: translateX(-50%) translateZ(12px);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -258,11 +258,17 @@
 /* Bloc mer ancré au-dessus de la scène ; translateY = position du rivage. */
 .rv-sea {
   position: absolute;
-  left: -5%;
-  right: -5%;
+  /* Large débord : inclinée (rotateX) + caméra au zénith, ses bords ne
+     doivent jamais entrer dans le cadre. */
+  left: -28%;
+  right: -28%;
   top: -620px;
   height: 620px;
-  transform: translateY(128px);
+  /* Plan parallèle à l'écran, z fixe AU-DESSUS du sable (z 0) : un tilt
+     propre croiserait le plan du sable pendant le wash → z-fighting. La
+     profondeur vient de la caméra (zénith → ras du sable). */
+  transform: translateY(128px) translateZ(8px);
+  transform-origin: bottom center;
   pointer-events: none;
 }
 .rv-deep {
@@ -338,13 +344,13 @@
 }
 @keyframes cineRTide {
   0% {
-    transform: translateY(128px);
+    transform: translateY(128px) translateZ(8px);
   }
   48% {
-    transform: translateY(196px);
+    transform: translateY(196px) translateZ(8px);
   }
   100% {
-    transform: translateY(128px);
+    transform: translateY(128px) translateZ(8px);
   }
 }
 .cineR.wash .rv-sea {
@@ -352,29 +358,29 @@
 }
 @keyframes cineRWash {
   0% {
-    transform: translateY(128px);
+    transform: translateY(128px) translateZ(8px);
   }
   42% {
-    transform: translateY(430px);
+    transform: translateY(430px) translateZ(8px) scaleY(1.05);
   }
   100% {
-    transform: translateY(112px);
+    transform: translateY(112px) translateZ(8px);
   }
 }
 .cineR.carve .rv-sea,
 .cineR.plank .rv-sea {
   animation: none;
-  transform: translateY(112px);
+  transform: translateY(112px) translateZ(8px);
 }
 .cineR.settled .rv-sea {
   animation: cineRLap 5.5s ease-in-out infinite alternate;
 }
 @keyframes cineRLap {
   0% {
-    transform: translateY(112px);
+    transform: translateY(112px) translateZ(8px);
   }
   100% {
-    transform: translateY(126px);
+    transform: translateY(126px) translateZ(8px);
   }
 }
 
@@ -397,15 +403,16 @@
   text-align: center;
   rotate: -2deg;
   opacity: 0;
-  transform: translateY(70px);
+  /* La pancarte TOMBE depuis la caméra sur le sable. */
+  transform: translateY(26px) translateZ(300px) rotateX(-38deg);
   pointer-events: none;
 }
 .cineR.plank .rv-plank {
   opacity: 1;
-  transform: translateY(0);
+  transform: translateY(0) translateZ(0) rotateX(0deg);
   transition:
-    opacity 0.4s ease 0.15s,
-    transform 0.8s cubic-bezier(0.3, 1.15, 0.4, 1) 0.15s;
+    opacity 0.35s ease 0.15s,
+    transform 0.85s cubic-bezier(0.3, 1.12, 0.4, 1) 0.15s;
 }
 .rv-knot {
   position: absolute;

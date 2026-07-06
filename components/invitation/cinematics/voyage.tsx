@@ -29,14 +29,14 @@ import './voyage.css';
 const WAITS = [900, 800, 1050, 1050, 900];
 const PHASES = ['', 'shade', 'through', 'ticket', 'stamp', 'settled'] as const;
 
-/** translateZ ≤ 22 px : les nuages restent DERRIÈRE le pass (z 30). */
+/** Nuages ÉTAGÉS en profondeur (≤ 44 px : toujours derrière le pass, z 80). */
 const CLOUDS: ReadonlyArray<{ x: number; y: number; s: number; z: number; d: number }> = [
-  { x: 8, y: 66, s: 1.25, z: 18, d: 0 },
-  { x: 55, y: 74, s: 1.6, z: 10, d: 1.6 },
-  { x: 30, y: 84, s: 2, z: 22, d: 0.8 },
-  { x: 72, y: 60, s: 1, z: 6, d: 2.4 },
-  { x: -6, y: 80, s: 1.7, z: 14, d: 3.1 },
-  { x: 62, y: 88, s: 2.2, z: 4, d: 1.2 },
+  { x: 8, y: 66, s: 1.25, z: 44, d: 0 },
+  { x: 55, y: 74, s: 1.6, z: -80, d: 1.6 },
+  { x: 30, y: 84, s: 2, z: 20, d: 0.8 },
+  { x: 72, y: 60, s: 1, z: -150, d: 2.4 },
+  { x: -6, y: 80, s: 1.7, z: -30, d: 3.1 },
+  { x: 62, y: 88, s: 2.2, z: -190, d: 1.2 },
 ];
 
 const MINI_CLOUDS: ReadonlyArray<{ x: number; y: number; s: number; d: number }> = [
@@ -80,7 +80,7 @@ export function CinematicVoyage({
     isReduced,
     onDone,
   });
-  const par = useSceneParallax(sceneRef, { enabled: parallax && !isReduced });
+  const par = useSceneParallax(sceneRef, { enabled: parallax && !isReduced, intensity: 1.6 });
   const cd = useCountdown(eventDate);
   const target = eventDate != null ? new Date(eventDate).getTime() : null;
 

@@ -29,18 +29,23 @@ const WAITS = [900, 950, 1100, 1050, 900];
 const PHASES = ['', 'snow', 'frost', 'wipe', 'names', 'settled'] as const;
 
 /** Flocons : x %, taille, durée, délai, dérive. */
-const FLAKES: ReadonlyArray<{ x: number; s: number; t: number; d: number; w: number }> = [
-  { x: 6, s: 4, t: 9, d: 0, w: 18 },
-  { x: 16, s: 3, t: 11, d: 2.2, w: -14 },
-  { x: 28, s: 5, t: 8, d: 4.1, w: 12 },
-  { x: 40, s: 3.5, t: 10, d: 1.3, w: -18 },
-  { x: 52, s: 4.5, t: 9.5, d: 5.6, w: 16 },
-  { x: 64, s: 3, t: 11.5, d: 0.7, w: -12 },
-  { x: 76, s: 5, t: 8.5, d: 3.4, w: 14 },
-  { x: 88, s: 3.5, t: 10.5, d: 6.2, w: -16 },
-  { x: 95, s: 4, t: 9, d: 1.9, w: 10 },
-  { x: 34, s: 2.5, t: 12, d: 7.1, w: -10 },
-];
+const FLAKES: ReadonlyArray<{ x: number; s: number; t: number; d: number; w: number; z: number }> =
+  [
+    { x: 6, s: 7, t: 9, d: 0, w: 18, z: 60 },
+    { x: 16, s: 5, t: 11, d: 2.2, w: -14, z: -150 },
+    { x: 28, s: 8.5, t: 8, d: 4.1, w: 12, z: 130 },
+    { x: 40, s: 6, t: 10, d: 1.3, w: -18, z: -80 },
+    { x: 52, s: 7.5, t: 9.5, d: 5.6, w: 16, z: 30 },
+    { x: 64, s: 5, t: 11.5, d: 0.7, w: -12, z: -190 },
+    { x: 76, s: 8.5, t: 8.5, d: 3.4, w: 14, z: 90 },
+    { x: 88, s: 6, t: 10.5, d: 6.2, w: -16, z: -50 },
+    { x: 95, s: 7, t: 9, d: 1.9, w: 10, z: -120 },
+    { x: 34, s: 4.5, t: 12, d: 7.1, w: -10, z: -20 },
+    { x: 12, s: 5.5, t: 10.5, d: 3.8, w: 14, z: 100 },
+    { x: 46, s: 4.5, t: 11.5, d: 6.7, w: -12, z: -170 },
+    { x: 70, s: 6.5, t: 9.8, d: 1.1, w: 16, z: 40 },
+    { x: 84, s: 5, t: 12.5, d: 4.9, w: -14, z: -100 },
+  ];
 
 export function CinematicNeige({
   partnerA,
@@ -67,7 +72,7 @@ export function CinematicNeige({
     isReduced,
     onDone,
   });
-  const par = useSceneParallax(sceneRef, { enabled: parallax && !isReduced });
+  const par = useSceneParallax(sceneRef, { enabled: parallax && !isReduced, intensity: 1.6 });
   const cd = useCountdown(eventDate);
   const target = eventDate != null ? new Date(eventDate).getTime() : null;
 
@@ -178,6 +183,7 @@ export function CinematicNeige({
                       '--ft': `${f.t}s`,
                       '--fd': `${f.d}s`,
                       '--fw': `${f.w}px`,
+                      '--fz': `${f.z}px`,
                     } as CSSProperties
                   }
                 />

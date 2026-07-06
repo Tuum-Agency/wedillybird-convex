@@ -39,27 +39,27 @@
   }
 }
 
-/* Caméra VERTICALE : au ras du pré, elle MONTE avec les tiges — signature
-   du thème (aucun dolly avant/arrière ici). */
+/* Caméra : elle MONTE avec les tiges puis TRAVERSE le pré — travelling
+   avant entre les fleurs proches (z 40-52) qui glissent hors champ. */
 .fx-camera {
   position: absolute;
   inset: 0;
   transform-style: preserve-3d;
-  transform: translateY(-118px) rotateX(-2deg) scale(1.18);
+  transform: translateY(-118px) rotateX(-2deg) translateZ(-90px) scale(1.16);
   transition: transform 1.6s cubic-bezier(0.34, 0.6, 0.22, 1);
 }
 .cineF.grow .fx-camera {
-  transform: translateY(-56px) rotateX(-1deg) scale(1.1);
+  transform: translateY(-56px) rotateX(-1deg) translateZ(-48px) scale(1.09);
 }
 .cineF.bloom .fx-camera {
-  transform: translateY(-12px) rotateX(0deg) scale(1.03);
+  transform: translateY(-12px) rotateX(0deg) translateZ(-6px) scale(1.02);
 }
 .cineF.write .fx-camera,
 .cineF.tag .fx-camera {
-  transform: translateY(0) rotateX(0deg) scale(1);
+  transform: translateY(0) rotateX(0deg) translateZ(26px) scale(1);
 }
 .cineF.settled .fx-camera {
-  transform: translateY(-4px) rotateX(0deg) scale(0.995);
+  transform: translateY(-4px) rotateX(0deg) translateZ(30px) scale(0.995);
   transition: transform 1.8s cubic-bezier(0.34, 0.6, 0.22, 1);
 }
 
@@ -125,6 +125,7 @@
 .f-meadow {
   position: absolute;
   inset: 0;
+  transform-style: preserve-3d;
   pointer-events: none;
 }
 .f-soil {
@@ -144,6 +145,8 @@
   width: 2px;
   height: var(--h);
   transform-origin: bottom center;
+  transform: translateZ(var(--sz, 0px));
+  transform-style: preserve-3d;
 }
 .cineF.bloom .f-stemg {
   animation: cineFSway 5.2s ease-in-out calc(var(--sd) * 2) infinite alternate;
@@ -247,6 +250,7 @@
 .f-arch {
   position: absolute;
   inset: 0;
+  transform-style: preserve-3d;
   pointer-events: none;
 }
 .f-archspot {
@@ -254,14 +258,14 @@
   width: 0;
   height: 0;
   opacity: 0;
-  transform: translateY(16px) scale(0.4);
+  transform: translateY(16px) scale(0.4) translateZ(var(--az, 0px));
   transition:
     opacity 0.7s ease calc(var(--ad) + 0.25s),
     transform 0.8s cubic-bezier(0.34, 1.3, 0.5, 1) calc(var(--ad) + 0.25s);
 }
 .cineF.bloom .f-archspot {
   opacity: 1;
-  transform: translateY(0) scale(1);
+  transform: translateY(0) scale(1) translateZ(var(--az, 0px));
 }
 .cineF.settled .f-archspot {
   animation: cineFFloat 6s ease-in-out calc(var(--ad) * 3) infinite alternate;
@@ -282,7 +286,7 @@
   left: 50%;
   top: 238px;
   width: 330px;
-  transform: translateX(-50%) translateZ(24px);
+  transform: translateX(-50%) translateZ(64px);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -462,20 +466,20 @@
 @keyframes cineFFall {
   0% {
     opacity: 0;
-    transform: translate3d(0, -10px, 30px) rotate(0deg);
+    transform: translate3d(0, -10px, 70px) rotate3d(0.6, 1, 0.2, 0deg);
   }
   8% {
     opacity: 0.75;
   }
   50% {
-    transform: translate3d(-22px, 170px, 30px) rotate(150deg);
+    transform: translate3d(-22px, 170px, 20px) rotate3d(0.6, 1, 0.2, 200deg);
   }
   88% {
     opacity: 0.6;
   }
   100% {
     opacity: 0;
-    transform: translate3d(14px, 350px, 30px) rotate(300deg);
+    transform: translate3d(14px, 350px, 60px) rotate3d(0.6, 1, 0.2, 400deg);
   }
 }
 
