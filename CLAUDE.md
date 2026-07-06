@@ -26,7 +26,7 @@ Résumé impératif :
 - **Règles transverses** : remboursement 100 % sous 7j si event non envoyé, report gratuit en cas d'annulation, galerie Premium active 6 mois post-event (5 ans avec l'upsell HD).
 - **Bundle interne** : 3,5 × cap invités (couvre invitation + reminders + RSVP + gallery link).
 
-Le code (`lib/payments/plans.ts`, `lib/payments/subscriptions.ts`) est **aligné** sur cette grille. Les Stripe Prices **live** ont été créés et nettoyés (2026-06-12) : **30 Prices canoniques actifs** (Essentiel 29 / Premium 59 / Upsell 29 / Starter 99·951 / Business 219·2103 / Agency 449·4311 / PAYG 79, en EUR/USD/MAD) ; les anciens Prices aux mauvais montants ont été **archivés**. Les env vars `STRIPE_PRICE_*` Vercel pointent sur les bons IDs (génération `price_1Tdp*`/`1Tdtq*`). Vérifié via l'API Stripe (0 transaction live à ce jour).
+Le code (`lib/payments/plans.ts`, `lib/payments/subscriptions.ts`) est **aligné** sur cette grille, et la grille USD v2.3 est **en prod depuis le 2026-07-07** (PR #67 mergée, env Vercel + déploiement cohérents, site vérifié à $40/$80). **30 Prices canoniques actifs** : EUR + MAD = génération `price_1Tdp*`/`1Tdtq*`, **USD = génération `price_1TqHq*`** (montants marché $40/$80/$30/$99·951/$219·2103/$449·4311/$79) ; les anciens USD ×1,08 et tous les Prices aux mauvais montants sont **archivés**. Vérifié via l'API Stripe (0 transaction live à ce jour).
 
 ## Direction de design (V2)
 
