@@ -89,8 +89,10 @@ interface PlanSpec {
   id: string;
   productName: string;
   productDescription: string;
-  /** Montant EUR en unités mineures (source de vérité v2). USD/MAD dérivés via convertFromEur. */
+  /** Montant EUR en unités mineures (source de vérité v2). MAD dérivé via convertFromEur. */
   eurMinor: number;
+  /** Prix US en cents, posé en valeur marché (décision 2026-07-06) — prioritaire sur la conversion EUR. */
+  usdMinor?: number;
   /** undefined = one-shot, 'month' / 'year' = recurring. */
   interval: 'month' | 'year' | undefined;
   /** Préfixe d'env var. Le suffix `_<CURRENCY>` est ajouté automatiquement. */
@@ -107,6 +109,7 @@ const PLANS_TO_SYNC: ReadonlyArray<PlanSpec> = [
     productDescription:
       'Forfait particulier 29 €. 100 invités, invitations WhatsApp/SMS, RSVP temps réel, check-in offline, galerie 5 Go 12 mois.',
     eurMinor: 2900,
+    usdMinor: 4000,
     interval: undefined,
     envVarBase: 'STRIPE_PRICE_ESSENTIAL',
   },
@@ -116,6 +119,7 @@ const PLANS_TO_SYNC: ReadonlyArray<PlanSpec> = [
     productDescription:
       'Forfait particulier 59 €. 250 invités, galerie 25 Go HD 12 mois, recherche par visage, plan de table, album PDF, invitation cinématique.',
     eurMinor: 5900,
+    usdMinor: 8000,
     interval: undefined,
     envVarBase: 'STRIPE_PRICE_PREMIUM',
   },
@@ -125,6 +129,7 @@ const PLANS_TO_SYNC: ReadonlyArray<PlanSpec> = [
     productDescription:
       'Extension post-mariage +29 €. Archive HD perpétuelle + export ZIP haute définition.',
     eurMinor: 2900,
+    usdMinor: 3000,
     interval: undefined,
     envVarBase: 'STRIPE_PRICE_POST_EVENT_UPSELL',
   },
@@ -245,8 +250,13 @@ async function syncPlanCurrency(
 ): Promise<SyncResult | null> {
   const envVarName =
     currency === 'EUR' ? `${spec.envVarBase}_EUR` : `${spec.envVarBase}_${currency}`;
-  // USD/MAD dérivés de l'EUR via convertFromEur → strictement alignés sur l'app.
-  const unitAmount = convertFromEur(spec.eurMinor, currency);
+  // MAD dérivé de l'EUR via convertFromEur ; USD = valeur marché posée (spec.usdMinor)
+  // quand présente (grille consumer $40/$80/$30, cf. lib/payments/plans.ts) —
+  // strictement aligné sur l'app.
+  const unitAmount =
+    currency === 'USD' && spec.usdMinor !== undefined
+      ? spec.usdMinor
+      : convertFromEur(spec.eurMinor, currency);
 
   if (DRY_RUN) {
     return {

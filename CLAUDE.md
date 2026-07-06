@@ -9,10 +9,10 @@
 Résumé impératif :
 
 - **Pas de tier `free`** côté particuliers. (Supprimé du code ✅ — `PlanTier = 'essential' | 'premium'`.)
-- **Particuliers (one-shot)** :
-  - Essentiel **29 €** — 100 invitations max — sans galerie partagée
-  - Premium **59 €** — 250 invitations max — galerie partagée HD 6 mois + album PDF
-  - Upsell HD post-event **+29 €** — rétention galerie 5 ans + export ZIP HD + livre photo
+- **Particuliers (one-shot)** — EUR canonique · **USD posé en valeur marché** (v2.3, 2026-07-06 : plus de conversion ×1,08 pour l'USD consumer ; overrides `usdMinor` dans `plans.ts`) :
+  - Essentiel **29 € / $40** — 100 invitations max — sans galerie partagée
+  - Premium **59 € / $80** — 250 invitations max — galerie partagée HD 6 mois + album PDF
+  - Upsell HD post-event **+29 € / +$30** — rétention galerie 5 ans + export ZIP HD + livre photo
 - **Pros (mensuel · -20 % en annuel)** :
   - Starter **99 €/mois** (79 €/mois annuel) — 5 events × 150 invités — 50 Go
   - Business **219 €/mois** (175 €/mois annuel) — 20 events × 150 invités — 200 Go
