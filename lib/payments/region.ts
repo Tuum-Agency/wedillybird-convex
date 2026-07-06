@@ -9,8 +9,7 @@
  * sélecteur footer (cf. `stores/currency-store.ts`).
  */
 import type { Currency, PlanTier } from './plans';
-import { convertFromEur } from './currency';
-import { PLANS, POST_EVENT_UPSELL } from './plans';
+import { getPlanPrice, getUpsellPrice } from './plans';
 import {
   PAYG_PRO_PRICE,
   SUBSCRIPTION_TIER_ANNUAL_PRICES,
@@ -75,11 +74,11 @@ export function getRegionalPlanPrice(
   _region: PricingRegion,
   currency: Currency,
 ): number {
-  return convertFromEur(PLANS[plan].eurMinor, currency);
+  return getPlanPrice(plan, currency);
 }
 
 export function getRegionalUpsellPrice(_region: PricingRegion, currency: Currency): number {
-  return convertFromEur(POST_EVENT_UPSELL.eurMinor, currency);
+  return getUpsellPrice(currency);
 }
 
 /**

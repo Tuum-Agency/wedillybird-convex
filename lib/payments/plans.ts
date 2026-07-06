@@ -8,11 +8,12 @@
  * Pas de tier gratuit. Pas de quota d'invitations particuliers (capacity-based
  * → features-based, cf. spec).
  *
- * **EUR est la source unique** — tous les autres montants (USD, XOF, MAD, TND)
- * sont dérivés via `convertFromEur` (cf. `lib/payments/currency.ts`). Pas
- * d'overlay régional, pas de pricing spécial Afrique : un mariage à 29 € reste
- * 29 € converti pour tout le monde, partout. L'utilisateur peut overrider la
- * devise d'affichage via le sélecteur footer (cf. `stores/currency-store.ts`).
+ * **EUR est la source unique** pour XOF/MAD/TND, dérivés via `convertFromEur`
+ * (cf. `lib/payments/currency.ts`). **USD est posé en valeur marché** (nombres
+ * ronds, décision 2026-07-06, cf. `.context/pricing-v2.md` § « Grille USD ») —
+ * pas de conversion mécanique pour le marché US. Pas d'overlay régional, pas de
+ * pricing spécial Afrique. L'utilisateur peut overrider la devise d'affichage
+ * via le sélecteur footer (cf. `stores/currency-store.ts`).
  *
  * Multi-devises : EUR + USD + MAD réglés via Stripe. XOF/TND restent des
  * devises d'affichage uniquement (pas de processeur de paiement).
@@ -35,6 +36,11 @@ export interface PlanDefinition {
   /** Montant canonique en centimes d'euro — source de vérité. */
   eurMinor: number;
   /**
+   * Prix US en cents, posé à la main (nombre rond, valeur marché). Prioritaire
+   * sur la conversion EUR quand présent — cf. `getPlanPrice`.
+   */
+  usdMinor?: number;
+  /**
    * Table dérivée des prix par devise (en unités mineures). Calculée à partir
    * de `eurMinor` au chargement du module via `pricesFromEur`. Présente pour
    * la rétro-compatibilité des appelants existants (`PLANS[plan].prices.MAD`).
@@ -49,6 +55,8 @@ export interface PostEventUpsellDefinition {
   galleryRetentionDays: number;
   /** Montant canonique en centimes d'euro — source de vérité. */
   eurMinor: number;
+  /** Prix US en cents, posé à la main (cf. `PlanDefinition.usdMinor`). */
+  usdMinor?: number;
   /** Table dérivée (cf. `PlanDefinition.prices`). */
   prices: Record<Currency, number>;
 }
@@ -78,20 +86,31 @@ const ESSENTIAL_EUR = 2900; // 29 €
 const PREMIUM_EUR = 5900; // 59 € (grille v2 — absorbe le coût SMS US)
 const UPSELL_EUR = 2900; // +29 €
 
+// Grille USD posée en valeur marché — PAS la conversion EUR×1,08 (qui donnait
+// $31.32/$63.72). Décision 2026-07-06 (cf. `.context/pricing-v2.md` § « Grille
+// USD ») : nombres ronds (positionnement « one payment, no tricks »), ancrés
+// sur les alternatives US (Paperless Post ~$85-375 pour la seule livraison,
+// apps galerie $99-249) ; marge SMS US worst-case conservée ≥ 80 %.
+const ESSENTIAL_USD = 4000; // $40
+const PREMIUM_USD = 8000; // $80
+const UPSELL_USD = 3000; // +$30
+
 export const PLANS: Record<PlanTier, PlanDefinition> = {
   essential: {
     tier: 'essential',
     featureKeys: ESSENTIAL_FEATURES,
     galleryRetentionDays: 30,
     eurMinor: ESSENTIAL_EUR,
-    prices: pricesFromEur(ESSENTIAL_EUR),
+    usdMinor: ESSENTIAL_USD,
+    prices: { ...pricesFromEur(ESSENTIAL_EUR), USD: ESSENTIAL_USD },
   },
   premium: {
     tier: 'premium',
     featureKeys: [...ESSENTIAL_FEATURES, ...PREMIUM_EXTRA_FEATURES],
     galleryRetentionDays: 180,
     eurMinor: PREMIUM_EUR,
-    prices: pricesFromEur(PREMIUM_EUR),
+    usdMinor: PREMIUM_USD,
+    prices: { ...pricesFromEur(PREMIUM_EUR), USD: PREMIUM_USD },
   },
 };
 
@@ -99,7 +118,8 @@ export const POST_EVENT_UPSELL: PostEventUpsellDefinition = {
   featureKeys: ['galleryRetention5y', 'photoBookHd', 'exportHd'],
   galleryRetentionDays: 5 * 365, // 5 ans
   eurMinor: UPSELL_EUR,
-  prices: pricesFromEur(UPSELL_EUR),
+  usdMinor: UPSELL_USD,
+  prices: { ...pricesFromEur(UPSELL_EUR), USD: UPSELL_USD },
 };
 
 export const PAID_PLANS: PlanTier[] = ['essential', 'premium'];
@@ -115,10 +135,15 @@ export function isCurrency(value: string): value is Currency {
 }
 
 export function getPlanPrice(plan: PlanTier, currency: Currency): number {
-  return convertFromEur(PLANS[plan].eurMinor, currency);
+  const def = PLANS[plan];
+  if (currency === 'USD' && def.usdMinor !== undefined) return def.usdMinor;
+  return convertFromEur(def.eurMinor, currency);
 }
 
 export function getUpsellPrice(currency: Currency): number {
+  if (POST_EVENT_UPSELL.usdMinor !== undefined && currency === 'USD') {
+    return POST_EVENT_UPSELL.usdMinor;
+  }
   return convertFromEur(POST_EVENT_UPSELL.eurMinor, currency);
 }
 
