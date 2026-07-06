@@ -61,6 +61,9 @@ export function buildDemoBundle(): MmBundle {
       galleryExpiresAt: fromIsoDate(MC_ACTIVE.galleryExpires),
       hdUpsellPurchasedAt: null,
       seatingUnlocked: true,
+      invitationCinematic: 'floral',
+      invitationMusic: { source: 'library', trackId: 'jardin' },
+      cinematicUnlocked: true,
     },
     guests: demoGuests(),
     vendors: MC_VENDORS.map((v) => ({

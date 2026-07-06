@@ -1007,7 +1007,12 @@
     "weddingDayArrived": "The big day is here.",
     "cinematicSkip": "Skip",
     "cinematicSkipAria": "Skip cinematic",
-    "scrollToDiscover": "Scroll to discover"
+    "scrollToDiscover": "Scroll to discover",
+    "openInvitation": "Open the invitation",
+    "musicHint": "This invitation comes with music",
+    "musicPlayAria": "Play the music",
+    "musicMuteAria": "Mute the music",
+    "musicUnmuteAria": "Unmute the music"
   },
   "OrgPublic": {
     "poweredBy": "Powered by",
@@ -4893,7 +4898,11 @@
       "Africa/Douala": "Africa/Douala (UTC+1)",
       "Indian/Antananarivo": "Indian/Antananarivo (UTC+3)",
       "Indian/Mauritius": "Indian/Mauritius (UTC+4)"
-    }
+    },
+    "editInvitationSectionTitle": "Invitation",
+    "editInvitationSectionDescription": "Opening cinematic and music your guests will see.",
+    "editCinematicLabel": "Cinematic",
+    "editMusicLabel": "Music"
   },
   "MonMariage": {
     "common": {
@@ -5183,7 +5192,8 @@
       "preview": "Preview",
       "qrTitle": "Invitation QR code",
       "qrDesc": "Print it or display it on the big day.",
-      "planTitle": "Planning"
+      "planTitle": "Planning",
+      "customize": "Customize"
     },
     "nav": {
       "budget": "Budget",
@@ -5630,6 +5640,72 @@
     "yourTurn": {
       "empty": "Nothing on your plate for now. Your agency will let you know as soon as an action is waiting for you.",
       "title": "Your turn"
+    }
+  },
+  "InvitationDesign": {
+    "chooseFile": "Choose a file",
+    "cinematicSection": "Opening cinematic",
+    "customMusic": "Your music",
+    "customMusicHint": "MP3 or M4A, 10 MB max",
+    "done": "Done",
+    "eyebrow": "Invitation",
+    "lockedBody": "Choosing a cinematic and music is included with Premium.",
+    "musicNone": "No music",
+    "musicNoneDesc": "The invitation opens in silence",
+    "musicSection": "Music",
+    "pause": "Stop",
+    "play": "Listen",
+    "preview": "Preview",
+    "title": "Customize your invitation",
+    "uploading": "Uploading…",
+    "themes": {
+      "seal": {
+        "name": "The Seal",
+        "desc": "The sealed envelope opens in real depth — the signature classic."
+      },
+      "floral": {
+        "name": "The Bloom",
+        "desc": "A bouquet rises and blossoms; the card emerges among the peonies."
+      },
+      "cake": {
+        "name": "The Wedding Cake",
+        "desc": "Tiers stack up, candles light — the card bursts out in confetti."
+      },
+      "voyage": {
+        "name": "The Boarding",
+        "desc": "The cabin window opens onto dawn; the card arrives like a boarding pass."
+      },
+      "theatre": {
+        "name": "The Curtain Rise",
+        "desc": "Velvet parts on a moonlit lake — two swans form a heart."
+      }
+    },
+    "tracks": {
+      "aurore": {
+        "name": "Aurore",
+        "desc": "Intimate piano, morning warmth"
+      },
+      "jardin": {
+        "name": "Jardin",
+        "desc": "Rippling harp, dewdrop sparkle"
+      },
+      "celebration": {
+        "name": "Célébration",
+        "desc": "Bouncing marimba, festive spirit"
+      },
+      "envol": {
+        "name": "Envol",
+        "desc": "Airy arpeggios, open sky"
+      },
+      "harmonie": {
+        "name": "Harmonie",
+        "desc": "Sweeping strings, moonlight"
+      }
+    },
+    "uploadErrors": {
+      "type": "Unsupported format (MP3 or M4A)",
+      "size": "File too large (10 MB max)",
+      "network": "Upload failed — try again"
     }
   }
 }

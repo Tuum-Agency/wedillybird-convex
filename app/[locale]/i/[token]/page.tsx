@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation';
 import { Calendar, MapPin, Camera } from 'lucide-react';
 import { Link } from '@/i18n/navigation';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
+import { resolveInvitationMusic } from '@/lib/invitation/music';
 import { InvitationShell } from '@/components/invitation/invitation-shell';
 import { WeddingCountdown } from '@/components/invitation/wedding-countdown';
 import { RsvpFormV4 } from '@/components/invitation/rsvp-form-v4';
@@ -105,6 +106,8 @@ export default async function InvitationPage({
         venueName={event.venue?.name}
         accentColor={accentColor}
         eventDate={event.eventDate}
+        cinematic={event.invitationCinematic}
+        music={resolveInvitationMusic(event.invitationMusic)}
       >
         <article className="container-page mx-auto flex w-full max-w-2xl flex-col gap-16 py-16 sm:py-24">
           {/* Header couple */}

@@ -47,6 +47,7 @@ import {
   mmRemoveVendorAction,
   mmSaveRoomAction,
   mmSetBudgetEnvelopeAction,
+  mmSetInvitationDesignAction,
   mmSetPaymentPaidAction,
   mmSetTaskStatusAction,
   mmUpdateVendorAction,
@@ -111,6 +112,15 @@ export interface MonMariageState {
   ) => Promise<void>;
   removePayment: (id: string) => Promise<void>;
   setBudgetTotal: (major: number) => Promise<void>;
+
+  /** Cinématique + musique de l'invitation publique (optimiste sur `event`). */
+  setInvitationDesign: (input: {
+    cinematic?: string;
+    music?:
+      | { source: 'library'; trackId: string }
+      | { source: 'custom'; s3Key: string; title: string }
+      | null;
+  }) => Promise<void>;
 
   ensurePlanning: () => Promise<void>;
   addPhase: (label: string, sub?: string) => Promise<void>;
@@ -400,6 +410,34 @@ export const useMonMariage = create<MonMariageState>()((set, get) => {
         : await mmSetBudgetEnvelopeAction(event.id, toMinor(major));
       if (!res.ok) {
         set({ budgetTotal: prev });
+        failToast();
+      }
+    },
+
+    setInvitationDesign: async (input) => {
+      const event = get().event;
+      if (!event) return;
+      const next: MmEvent = {
+        ...event,
+        invitationCinematic:
+          input.cinematic !== undefined
+            ? input.cinematic === 'seal'
+              ? null
+              : input.cinematic
+            : event.invitationCinematic,
+        invitationMusic: input.music !== undefined ? input.music : event.invitationMusic,
+      };
+      set({ event: next });
+      const res = get().demo
+        ? ({ ok: true } as { ok: true; id?: string })
+        : await mmSetInvitationDesignAction({
+            eventId: event.id,
+            cinematic: input.cinematic,
+            music: input.music ?? undefined,
+            clearMusic: input.music === null ? true : undefined,
+          });
+      if (!res.ok) {
+        set({ event });
         failToast();
       }
     },

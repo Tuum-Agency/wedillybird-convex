@@ -10,6 +10,8 @@ import {
 } from '@/lib/validators/events';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
 import { getSession } from '@/lib/auth/session';
+import { isCinematicId } from '@/components/invitation/cinematics/registry';
+import { isMusicTrackId } from '@/lib/invitation/music';
 
 export type CreateEventResult =
   | { ok: true; slug: string }
@@ -250,6 +252,27 @@ export async function updateEventAction(
         }
       : undefined;
 
+  // Personnalisation invitation (hors zod : ids validés ici + gating Convex).
+  const rawCinematic = formData.get('invitationCinematic');
+  const invitationCinematic =
+    rawCinematic && isCinematicId(String(rawCinematic)) ? String(rawCinematic) : undefined;
+  const rawTrack = formData.get('invitationMusicTrack');
+  const rawKey = formData.get('invitationMusicKey');
+  const rawMusicTitle = formData.get('invitationMusicTitle');
+  const clearInvitationMusic = formData.get('clearInvitationMusic') === '1';
+  let invitationMusic:
+    | { source: 'library' | 'custom'; trackId?: string; s3Key?: string; title?: string }
+    | undefined;
+  if (rawTrack && isMusicTrackId(String(rawTrack))) {
+    invitationMusic = { source: 'library', trackId: String(rawTrack) };
+  } else if (rawKey) {
+    invitationMusic = {
+      source: 'custom',
+      s3Key: String(rawKey),
+      title: rawMusicTitle ? String(rawMusicTitle) : undefined,
+    };
+  }
+
   const convex = getConvexServerClient();
   try {
     await convex.mutation(convexApi.updateEvent, {
@@ -263,9 +286,36 @@ export async function updateEventAction(
       ...(venue ? { venue } : {}),
       ...(data.clearVenue ? { clearVenue: true } : {}),
       ...(theme ? { theme } : {}),
+      ...(invitationCinematic ? { invitationCinematic } : {}),
+      ...(invitationMusic ? { invitationMusic } : {}),
+      ...(clearInvitationMusic ? { clearInvitationMusic: true } : {}),
     });
     revalidatePath(`/fr/events/${eventId}`);
     return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : 'UNKNOWN' };
+  }
+}
+
+/**
+ * Presigned PUT S3 pour la musique personnalisée de l'invitation (édition
+ * event côté owner/agence). Mêmes gardes que côté couple : owner + feature
+ * `cinematicInvitation`, préfixe `audio/{eventId}/`, ≤ 10 Mo côté client.
+ */
+export async function createEventMusicUploadUrlAction(
+  eventId: string,
+  contentType: string,
+): Promise<{ ok: true; uploadUrl: string; s3Key: string } | { ok: false; error: string }> {
+  const session = await getSession();
+  if (!session) return { ok: false, error: 'UNAUTHENTICATED' };
+  try {
+    const convex = getConvexServerClient();
+    const res = await convex.action(convexApi.createInvitationMusicUploadUrl, {
+      eventId,
+      requesterId: session.userId,
+      contentType,
+    });
+    return { ok: true, ...res };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : 'UNKNOWN' };
   }

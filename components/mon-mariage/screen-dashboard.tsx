@@ -25,6 +25,7 @@ import {
 import { useRouter } from '@/i18n/navigation';
 import { rsvpFromGuests } from '@/lib/mon-mariage/adapt';
 import { useMonMariage } from '@/stores/mon-mariage';
+import { InvitationDesignModal } from './invitation-design-modal';
 
 /** Libellé « J− » localisé depuis le descripteur de `mcJ`. */
 function useJLabel(iso: string): string {
@@ -314,6 +315,7 @@ function InviteCard({ couple, eventId }: { couple: McCouple; eventId: string }) 
   const locale = useLocale();
   const router = useRouter();
   const [copied, setCopied] = useState(false);
+  const [customizing, setCustomizing] = useState(false);
   const previewPath = `/events/${eventId}/preview`;
   const url = `wedillybird.com/${couple.slug}`;
   const copy = () => {
@@ -380,6 +382,10 @@ function InviteCard({ couple, eventId }: { couple: McCouple; eventId: string }) 
                 <Icon name="Eye" size={15} stroke={1.9} />
                 {t('preview')}
               </McBtn>
+              <McBtn variant="outline" size="sm" onClick={() => setCustomizing(true)}>
+                <Icon name="Wand2" size={15} stroke={1.9} />
+                {t('customize')}
+              </McBtn>
             </div>
           </div>
         </div>
@@ -393,6 +399,13 @@ function InviteCard({ couple, eventId }: { couple: McCouple; eventId: string }) 
           </div>
         </div>
       </div>
+      {customizing && (
+        <InvitationDesignModal
+          eventId={eventId}
+          previewPath={previewPath}
+          onClose={() => setCustomizing(false)}
+        />
+      )}
     </section>
   );
 }

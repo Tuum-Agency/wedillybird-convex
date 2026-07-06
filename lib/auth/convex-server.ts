@@ -262,6 +262,14 @@ export const convexApi = {
       venue?: { name: string; address: string };
       clearVenue?: boolean;
       theme?: { primaryColor: string; accentColor: string; fontFamily: string };
+      invitationCinematic?: string;
+      invitationMusic?: {
+        source: 'library' | 'custom';
+        trackId?: string;
+        s3Key?: string;
+        title?: string;
+      };
+      clearInvitationMusic?: boolean;
     },
     { ok: true }
   >('events:update'),
@@ -295,6 +303,13 @@ export const convexApi = {
       maxGuests: number;
       galleryExpiresAt?: number;
       hdUpsellPurchasedAt?: number;
+      invitationCinematic?: string;
+      invitationMusic?: {
+        source: 'library' | 'custom';
+        trackId?: string;
+        s3Key?: string;
+        title?: string;
+      };
       messagingConfig?: {
         templateStyle: 'classic' | 'warm' | 'african' | 'minimal' | 'festive';
         personalMessage?: string;
@@ -585,6 +600,27 @@ export const convexApi = {
     { guestId: string; requesterId: string; tableId: string | null },
     null
   >('coupleSpace:assignGuestTable'),
+  coupleSetInvitationDesign: makeFunctionReference<
+    'mutation',
+    {
+      eventId: string;
+      requesterId: string;
+      cinematic?: string;
+      music?: {
+        source: 'library' | 'custom';
+        trackId?: string;
+        s3Key?: string;
+        title?: string;
+      };
+      clearMusic?: boolean;
+    },
+    null
+  >('coupleSpace:setInvitationDesign'),
+  createInvitationMusicUploadUrl: makeFunctionReference<
+    'action',
+    { eventId: string; requesterId: string; contentType: string },
+    { uploadUrl: string; s3Key: string }
+  >('invitationAudio:createInvitationMusicUploadUrl'),
   getGuestByToken: makeFunctionReference<
     'query',
     { token: string },
@@ -607,6 +643,13 @@ export const convexApi = {
         timezone: string;
         venue?: { name: string; address: string; lat?: number; lng?: number };
         theme?: { primaryColor: string; accentColor: string; fontFamily: string };
+        invitationCinematic?: string;
+        invitationMusic: {
+          source: 'library' | 'custom';
+          trackId?: string;
+          title?: string;
+          customUrl?: string;
+        } | null;
       };
     } | null
   >('guests:getByToken'),

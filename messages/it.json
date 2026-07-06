@@ -1011,7 +1011,12 @@
     "weddingDayArrived": "Il grande giorno è arrivato.",
     "cinematicSkip": "Salta",
     "cinematicSkipAria": "Salta cinematica",
-    "scrollToDiscover": "Scorri per scoprire"
+    "scrollToDiscover": "Scorri per scoprire",
+    "openInvitation": "Apri l'invito",
+    "musicHint": "Questo invito è accompagnato dalla musica",
+    "musicPlayAria": "Avvia la musica",
+    "musicMuteAria": "Disattiva la musica",
+    "musicUnmuteAria": "Riattiva la musica"
   },
   "OrgPublic": {
     "poweredBy": "Powered by",
@@ -4897,7 +4902,11 @@
       "Africa/Douala": "Africa/Douala (UTC+1)",
       "Indian/Antananarivo": "Indiano/Antananarivo (UTC+3)",
       "Indian/Mauritius": "Indiano/Mauritius (UTC+4)"
-    }
+    },
+    "editInvitationSectionTitle": "Invito",
+    "editInvitationSectionDescription": "Cinematica di apertura e musica che vedranno gli invitati.",
+    "editCinematicLabel": "Cinematica",
+    "editMusicLabel": "Musica"
   },
   "MonMariage": {
     "common": {
@@ -5187,7 +5196,8 @@
       "preview": "Anteprima",
       "qrTitle": "Codice QR dell’invito",
       "qrDesc": "Stampatelo o mostratelo il giorno delle nozze.",
-      "planTitle": "Pianificazione"
+      "planTitle": "Pianificazione",
+      "customize": "Personalizza"
     },
     "nav": {
       "budget": "Budget",
@@ -5634,6 +5644,72 @@
     "yourTurn": {
       "empty": "Per ora non c'è nulla da fare da parte tua. La tua agenzia ti avviserà non appena ci sarà un'azione in attesa.",
       "title": "Tocca a voi"
+    }
+  },
+  "InvitationDesign": {
+    "chooseFile": "Scegli un file",
+    "cinematicSection": "Cinematica di apertura",
+    "customMusic": "La vostra musica",
+    "customMusicHint": "MP3 o M4A, max 10 MB",
+    "done": "Fatto",
+    "eyebrow": "Invito",
+    "lockedBody": "La scelta della cinematica e della musica è inclusa con Premium.",
+    "musicNone": "Senza musica",
+    "musicNoneDesc": "L'invito si apre in silenzio",
+    "musicSection": "Musica",
+    "pause": "Ferma",
+    "play": "Ascolta",
+    "preview": "Anteprima",
+    "title": "Personalizza l'invito",
+    "uploading": "Caricamento…",
+    "themes": {
+      "seal": {
+        "name": "Il Sigillo",
+        "desc": "La busta sigillata si apre in profondità: il classico distintivo."
+      },
+      "floral": {
+        "name": "La Fioritura",
+        "desc": "Un bouquet cresce e fiorisce; l'invito sboccia tra le peonie."
+      },
+      "cake": {
+        "name": "La Torta nuziale",
+        "desc": "I piani si impilano, le candeline si accendono — l'invito esce tra i coriandoli."
+      },
+      "voyage": {
+        "name": "L'Imbarco",
+        "desc": "L'oblò si apre sull'alba; l'invito arriva come una carta d'imbarco."
+      },
+      "theatre": {
+        "name": "Il Sipario",
+        "desc": "Il velluto si apre su un lago al chiaro di luna: due cigni formano un cuore."
+      }
+    },
+    "tracks": {
+      "aurore": {
+        "name": "Aurore",
+        "desc": "Pianoforte intimo, calore del mattino"
+      },
+      "jardin": {
+        "name": "Jardin",
+        "desc": "Arpa fluente, riflessi di rugiada"
+      },
+      "celebration": {
+        "name": "Célébration",
+        "desc": "Marimba vivace, spirito di festa"
+      },
+      "envol": {
+        "name": "Envol",
+        "desc": "Arpeggi eterei, cielo aperto"
+      },
+      "harmonie": {
+        "name": "Harmonie",
+        "desc": "Archi ampi, chiaro di luna"
+      }
+    },
+    "uploadErrors": {
+      "type": "Formato non supportato (MP3 o M4A)",
+      "size": "File troppo grande (max 10 MB)",
+      "network": "Caricamento non riuscito: riprova"
     }
   }
 }

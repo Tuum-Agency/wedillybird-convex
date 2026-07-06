@@ -3662,3 +3662,196 @@
   font-size: 16px;
   color: var(--color-ink-900);
 }
+
+/* ============ Personnalisation invitation (cinématique + musique) ============ */
+
+.mc-cinelock {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid oklch(86% 0.06 85 / 0.7);
+  background: oklch(97% 0.025 85 / 0.6);
+  color: var(--color-ink-700, oklch(35% 0.02 40));
+  font-size: 12.5px;
+  margin-bottom: 14px;
+}
+.mc-cinelabel {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--color-ink-500);
+  margin: 16px 0 10px;
+}
+.mc-cinegrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px;
+}
+.mc-cinecard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--color-border, oklch(88% 0.015 60));
+  border-radius: 12px;
+  background: oklch(99% 0.005 85);
+  overflow: hidden;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+.mc-cinecard:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px oklch(40% 0.05 30 / 0.08);
+}
+.mc-cinecard.sel {
+  border-color: var(--brand, oklch(60% 0.09 20));
+  box-shadow: 0 0 0 1px var(--brand, oklch(60% 0.09 20));
+}
+.mc-cinecard.locked {
+  opacity: 0.72;
+}
+.mc-cinemain {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 10px 12px 8px;
+  text-align: left;
+  cursor: pointer;
+  background: none;
+  border: none;
+  width: 100%;
+}
+.mc-cinecard.locked .mc-cinemain {
+  cursor: not-allowed;
+}
+.mc-cineswatch {
+  width: 100%;
+  height: 54px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  color: oklch(35% 0.04 30 / 0.75);
+  margin-bottom: 6px;
+}
+.mc-cineswatch[data-dark] {
+  color: oklch(96% 0.01 90 / 0.9);
+}
+.mc-cinemain b {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--color-ink-900);
+}
+.mc-cinemain .d {
+  font-size: 11.5px;
+  line-height: 1.35;
+  color: var(--color-ink-500);
+  min-height: 31px;
+}
+.mc-cinepreview {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0 12px 10px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--brand-strong, var(--color-ink-700, oklch(35% 0.02 40)));
+  text-decoration: none;
+}
+.mc-cinepreview:hover {
+  text-decoration: underline;
+}
+.mc-cinebadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0 12px 10px;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: oklch(62% 0.09 80);
+}
+
+.mc-musiclist {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.mc-musicrow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--color-border, oklch(88% 0.015 60));
+  border-radius: 10px;
+  background: oklch(99% 0.005 85);
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+.mc-musicrow.sel {
+  border-color: var(--brand, oklch(60% 0.09 20));
+  box-shadow: 0 0 0 1px var(--brand, oklch(60% 0.09 20));
+}
+.mc-musicrow.locked {
+  opacity: 0.6;
+  pointer-events: none;
+}
+.mc-musicrow.locked .mc-musicplay {
+  pointer-events: auto;
+  opacity: 1;
+}
+.mc-musicplay {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 1px solid var(--color-border, oklch(88% 0.015 60));
+  background: oklch(98% 0.01 85);
+  cursor: pointer;
+  color: var(--color-ink-700, oklch(35% 0.02 40));
+}
+.mc-musicplay.ghost {
+  cursor: default;
+  color: var(--color-ink-500);
+}
+.mc-musicpick {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+.mc-musicpick b {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-ink-900);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mc-musicpick span {
+  font-size: 11px;
+  color: var(--color-ink-500);
+}
+.mc-musicsel {
+  flex: none;
+  color: var(--brand-strong, oklch(45% 0.09 20));
+}
+.mc-musicrow.custom .mc-musicpick {
+  cursor: default;
+}

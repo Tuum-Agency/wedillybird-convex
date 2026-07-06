@@ -10,6 +10,7 @@ import {
 import type { Doc, Id } from './_generated/dataModel';
 import { generateQrToken } from './lib/qrToken';
 import { assertEventAccess } from './lib/eventAuth';
+import { musicForClient } from './lib/invitationDesign';
 
 const QR_MAX_ATTEMPTS = 6;
 
@@ -202,6 +203,8 @@ export const getByToken = query({
         timezone: event.timezone,
         venue: event.venue,
         theme: event.theme,
+        invitationCinematic: event.invitationCinematic,
+        invitationMusic: musicForClient(event.invitationMusic),
       },
     };
   },

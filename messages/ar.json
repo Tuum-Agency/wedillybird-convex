@@ -1007,7 +1007,12 @@
     "weddingDayArrived": "وصل اليوم الكبير.",
     "cinematicSkip": "تخطي",
     "cinematicSkipAria": "تخطي السينمائية",
-    "scrollToDiscover": "مرّر للاكتشاف"
+    "scrollToDiscover": "مرّر للاكتشاف",
+    "openInvitation": "افتح الدعوة",
+    "musicHint": "ترافق هذه الدعوة موسيقى",
+    "musicPlayAria": "تشغيل الموسيقى",
+    "musicMuteAria": "كتم الموسيقى",
+    "musicUnmuteAria": "إلغاء كتم الموسيقى"
   },
   "OrgPublic": {
     "poweredBy": "مُقدَّم من",
@@ -4893,7 +4898,11 @@
       "Africa/Douala": "إفريقيا/دوالا (UTC+1)",
       "Indian/Antananarivo": "المحيط الهندي/أنتاناناريفو (UTC+3)",
       "Indian/Mauritius": "المحيط الهندي/موريشيوس (UTC+4)"
-    }
+    },
+    "editInvitationSectionTitle": "الدعوة",
+    "editInvitationSectionDescription": "مشهد الافتتاح والموسيقى التي سيراها ضيوفكم.",
+    "editCinematicLabel": "المشهد",
+    "editMusicLabel": "الموسيقى"
   },
   "MonMariage": {
     "common": {
@@ -5183,7 +5192,8 @@
       "preview": "معاينة",
       "qrTitle": "رمز QR للدعوة",
       "qrDesc": "اطبعوه أو اعرضوه في يوم الزفاف.",
-      "planTitle": "الجدول الزمني"
+      "planTitle": "الجدول الزمني",
+      "customize": "تخصيص"
     },
     "nav": {
       "budget": "الميزانية",
@@ -5630,6 +5640,72 @@
     "yourTurn": {
       "empty": "لا شيء عليك القيام به في الوقت الحالي. ستُعلمك وكالتك بمجرد أن ينتظرك إجراء ما.",
       "title": "دوركم الآن"
+    }
+  },
+  "InvitationDesign": {
+    "chooseFile": "اختيار ملف",
+    "cinematicSection": "مشهد الافتتاح",
+    "customMusic": "موسيقاكما",
+    "customMusicHint": "‏MP3 أو M4A، بحد أقصى 10 م.ب",
+    "done": "تم",
+    "eyebrow": "الدعوة",
+    "lockedBody": "اختيار المشهد والموسيقى متاح مع باقة Premium.",
+    "musicNone": "بدون موسيقى",
+    "musicNoneDesc": "تُفتح الدعوة بصمت",
+    "musicSection": "الموسيقى",
+    "pause": "إيقاف",
+    "play": "استماع",
+    "preview": "معاينة",
+    "title": "تخصيص الدعوة",
+    "uploading": "جارٍ الرفع…",
+    "themes": {
+      "seal": {
+        "name": "الختم",
+        "desc": "يُفتح الظرف المختوم بعمق حقيقي — الكلاسيكية المميزة."
+      },
+      "floral": {
+        "name": "التفتّح",
+        "desc": "باقة تنمو وتزهر، وتولد البطاقة بين الأزهار."
+      },
+      "cake": {
+        "name": "كعكة الزفاف",
+        "desc": "تتراكم الطوابق وتضاء الشموع — وتظهر البطاقة وسط قصاصات الورق."
+      },
+      "voyage": {
+        "name": "الإقلاع",
+        "desc": "تنفتح النافذة على الفجر، وتصل البطاقة كبطاقة صعود."
+      },
+      "theatre": {
+        "name": "رفع الستارة",
+        "desc": "ينفتح المخمل على بحيرة مقمرة — بجعتان ترسمان قلبًا."
+      }
+    },
+    "tracks": {
+      "aurore": {
+        "name": "Aurore",
+        "desc": "بيانو حميم ودفء الصباح"
+      },
+      "jardin": {
+        "name": "Jardin",
+        "desc": "قيثارة منسابة وبريق الندى"
+      },
+      "celebration": {
+        "name": "Célébration",
+        "desc": "ماريمبا مرحة وروح احتفالية"
+      },
+      "envol": {
+        "name": "Envol",
+        "desc": "تتابعات هوائية وسماء رحبة"
+      },
+      "harmonie": {
+        "name": "Harmonie",
+        "desc": "وتريات واسعة وضوء القمر"
+      }
+    },
+    "uploadErrors": {
+      "type": "صيغة غير مدعومة (MP3 أو M4A)",
+      "size": "الملف كبير جدًا (بحد أقصى 10 م.ب)",
+      "network": "فشل الرفع — حاول مجددًا"
     }
   }
 }

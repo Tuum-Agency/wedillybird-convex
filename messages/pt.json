@@ -1011,7 +1011,12 @@
     "weddingDayArrived": "O grande dia chegou.",
     "cinematicSkip": "Pular",
     "cinematicSkipAria": "Pular cinemática",
-    "scrollToDiscover": "Deslize para descobrir"
+    "scrollToDiscover": "Deslize para descobrir",
+    "openInvitation": "Abrir o convite",
+    "musicHint": "Este convite vem com música",
+    "musicPlayAria": "Tocar a música",
+    "musicMuteAria": "Silenciar a música",
+    "musicUnmuteAria": "Reativar a música"
   },
   "OrgPublic": {
     "poweredBy": "Com tecnologia",
@@ -4897,7 +4902,11 @@
       "Africa/Douala": "África/Duala (UTC+1)",
       "Indian/Antananarivo": "Índico/Antananarivo (UTC+3)",
       "Indian/Mauritius": "Índico/Maurícia (UTC+4)"
-    }
+    },
+    "editInvitationSectionTitle": "Convite",
+    "editInvitationSectionDescription": "Cinemática de abertura e música que os convidados verão.",
+    "editCinematicLabel": "Cinemática",
+    "editMusicLabel": "Música"
   },
   "MonMariage": {
     "common": {
@@ -5187,7 +5196,8 @@
       "preview": "Pré-visualizar",
       "qrTitle": "Código QR do convite",
       "qrDesc": "Imprimam-no ou mostrem-no no dia do casamento.",
-      "planTitle": "Planeamento"
+      "planTitle": "Planeamento",
+      "customize": "Personalizar"
     },
     "nav": {
       "budget": "Orçamento",
@@ -5634,6 +5644,72 @@
     "yourTurn": {
       "empty": "Nada a fazer do seu lado por agora. A sua agência avisá-lo-á assim que houver uma ação à sua espera.",
       "title": "É a sua vez"
+    }
+  },
+  "InvitationDesign": {
+    "chooseFile": "Escolher um ficheiro",
+    "cinematicSection": "Cinemática de abertura",
+    "customMusic": "A sua música",
+    "customMusicHint": "MP3 ou M4A, máx. 10 MB",
+    "done": "Concluído",
+    "eyebrow": "Convite",
+    "lockedBody": "A escolha da cinemática e da música está incluída no Premium.",
+    "musicNone": "Sem música",
+    "musicNoneDesc": "O convite abre em silêncio",
+    "musicSection": "Música",
+    "pause": "Parar",
+    "play": "Ouvir",
+    "preview": "Pré-visualizar",
+    "title": "Personalizar o convite",
+    "uploading": "Enviando…",
+    "themes": {
+      "seal": {
+        "name": "O Selo",
+        "desc": "O envelope lacrado abre-se em profundidade — o clássico da casa."
+      },
+      "floral": {
+        "name": "O Desabrochar",
+        "desc": "Um buquê cresce e floresce; o convite nasce entre as peônias."
+      },
+      "cake": {
+        "name": "O Bolo de casamento",
+        "desc": "Os andares se empilham, as velas acendem — o convite surge entre confetes."
+      },
+      "voyage": {
+        "name": "O Embarque",
+        "desc": "A janela abre para o amanhecer; o convite chega como um cartão de embarque."
+      },
+      "theatre": {
+        "name": "O Erguer da cortina",
+        "desc": "O veludo se abre sobre um lago ao luar — dois cisnes formam um coração."
+      }
+    },
+    "tracks": {
+      "aurore": {
+        "name": "Aurore",
+        "desc": "Piano intimista, calor da manhã"
+      },
+      "jardin": {
+        "name": "Jardin",
+        "desc": "Harpa fluida, brilhos de orvalho"
+      },
+      "celebration": {
+        "name": "Célébration",
+        "desc": "Marimba saltitante, espírito de festa"
+      },
+      "envol": {
+        "name": "Envol",
+        "desc": "Arpejos etéreos, céu aberto"
+      },
+      "harmonie": {
+        "name": "Harmonie",
+        "desc": "Cordas amplas, luar"
+      }
+    },
+    "uploadErrors": {
+      "type": "Formato não suportado (MP3 ou M4A)",
+      "size": "Ficheiro demasiado grande (máx. 10 MB)",
+      "network": "Falha no envio — tente novamente"
     }
   }
 }

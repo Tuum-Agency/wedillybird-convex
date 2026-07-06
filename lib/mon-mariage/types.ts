@@ -33,6 +33,19 @@ export interface MmEvent {
   hdUpsellPurchasedAt: number | null;
   /** Plan de table débloqué (Premium). */
   seatingUnlocked: boolean;
+  /** Cinématique d'ouverture choisie (null = sceau, défaut). */
+  invitationCinematic: string | null;
+  /** Musique de l'invitation (résolue côté serveur) — null = silence. */
+  invitationMusic: MmInvitationMusic | null;
+  /** Choix de cinématique + musique débloqués (Premium). */
+  cinematicUnlocked: boolean;
+}
+
+export interface MmInvitationMusic {
+  source: 'library' | 'custom';
+  trackId?: string;
+  title?: string;
+  customUrl?: string;
 }
 
 export type MmRsvpStatus = 'pending' | 'attending' | 'declined' | 'maybe';

@@ -5,6 +5,8 @@ import { ArrowLeft, Calendar, Camera, Eye, MapPin } from 'lucide-react';
 import { Link, redirect } from '@/i18n/navigation';
 import { getSession } from '@/lib/auth/session';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
+import { isCinematicId } from '@/components/invitation/cinematics/registry';
+import { isMusicTrackId, musicTrackSrc } from '@/lib/invitation/music';
 import { InvitationShell } from '@/components/invitation/invitation-shell';
 import { WeddingCountdown } from '@/components/invitation/wedding-countdown';
 import { LandingFooterRich } from '@/components/landing/footer-rich';
@@ -26,8 +28,10 @@ export const dynamic = 'force-dynamic';
  */
 export default async function EventPreviewPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string; eventId: string }>;
+  searchParams: Promise<{ cinematic?: string; music?: string }>;
 }) {
   const { locale, eventId } = await params;
   setRequestLocale(locale);
@@ -43,6 +47,29 @@ export default async function EventPreviewPage({
     requesterId: session!.userId,
   });
   if (!event) notFound();
+
+  // Overrides d'aperçu (?cinematic=floral&music=jardin|off) — permettent aux
+  // pickers d'essayer un thème/une piste AVANT d'enregistrer le choix.
+  const overrides = await searchParams;
+  const cinematic = isCinematicId(overrides.cinematic)
+    ? overrides.cinematic
+    : (event.invitationCinematic ?? null);
+  let music: { url: string; title?: string } | null = null;
+  if (overrides.music === 'off') {
+    music = null;
+  } else if (isMusicTrackId(overrides.music)) {
+    music = { url: musicTrackSrc(overrides.music) };
+  } else if (
+    event.invitationMusic?.source === 'library' &&
+    isMusicTrackId(event.invitationMusic.trackId)
+  ) {
+    music = { url: musicTrackSrc(event.invitationMusic.trackId) };
+  } else if (event.invitationMusic?.source === 'custom' && event.invitationMusic.s3Key) {
+    const cdn = process.env.CLOUDFRONT_DOMAIN;
+    music = cdn
+      ? { url: `https://${cdn}/${event.invitationMusic.s3Key}`, title: event.invitationMusic.title }
+      : null;
+  }
 
   const accentColor = event.theme?.primaryColor ?? 'oklch(72% 0.09 20)';
 
@@ -98,6 +125,9 @@ export default async function EventPreviewPage({
           formattedDate={eventDateCompact}
           venueName={event.venue?.name}
           accentColor={accentColor}
+          eventDate={event.eventDate}
+          cinematic={cinematic}
+          music={music}
         >
           <article className="container-page mx-auto flex w-full max-w-2xl flex-col gap-16 py-16 sm:py-24">
             {/* Header couple */}

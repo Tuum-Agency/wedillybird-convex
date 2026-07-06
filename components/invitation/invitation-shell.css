@@ -1,0 +1,119 @@
+/* Porte d'entrée (musique) + bouton sourdine flottant de l'invitation. */
+
+.inv-gate {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(70% 55% at 50% 34%, oklch(96% 0.026 30 / 0.85) 0%, transparent 72%),
+    radial-gradient(90% 80% at 50% 120%, oklch(94% 0.03 60 / 0.6), transparent 60%),
+    var(--color-ivory-50);
+}
+.inv-gate-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  text-align: center;
+  animation: invGateIn 0.9s var(--ease-out-quint) both;
+}
+@keyframes invGateIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.inv-gate-mono {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 44px;
+  letter-spacing: -0.02em;
+  color: var(--color-ink-900);
+}
+.inv-gate-rule {
+  width: 54px;
+  height: 1px;
+  background: var(--color-gold-500);
+}
+.inv-gate-btn {
+  cursor: pointer;
+  border: 1px solid var(--color-gold-500);
+  border-radius: 999px;
+  padding: 13px 30px;
+  background: oklch(99% 0.008 85 / 0.7);
+  backdrop-filter: blur(4px);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--color-ink-900);
+  transition:
+    background 0.25s ease,
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
+  animation: invGatePulse 2.6s ease-in-out 1.2s infinite;
+}
+.inv-gate-btn:hover {
+  background: oklch(97% 0.02 85 / 0.9);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 22px oklch(48% 0.085 22 / 0.16);
+}
+@keyframes invGatePulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 oklch(76% 0.1 82 / 0.35);
+  }
+  50% {
+    box-shadow: 0 0 0 9px oklch(76% 0.1 82 / 0);
+  }
+}
+.inv-gate-note {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-ink-500);
+  max-width: 250px;
+  line-height: 1.6;
+}
+
+.inv-audio-btn {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 70;
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  border-radius: 50%;
+  border: 1px solid oklch(86% 0.04 78);
+  background: oklch(99% 0.008 85 / 0.85);
+  backdrop-filter: blur(6px);
+  color: var(--color-ink-700, var(--color-ink-900));
+  box-shadow: 0 6px 18px oklch(30% 0.04 40 / 0.18);
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease,
+    opacity 0.3s ease;
+}
+.inv-audio-btn:hover {
+  transform: scale(1.06);
+}
+.inv-audio-btn[data-state='off'] {
+  opacity: 0.82;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .inv-gate-inner,
+  .inv-gate-btn {
+    animation: none;
+  }
+}

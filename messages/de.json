@@ -1011,7 +1011,12 @@
     "weddingDayArrived": "Der grosse Tag ist da.",
     "cinematicSkip": "Überspringen",
     "cinematicSkipAria": "Cinematic überspringen",
-    "scrollToDiscover": "Zum Entdecken scrollen"
+    "scrollToDiscover": "Zum Entdecken scrollen",
+    "openInvitation": "Einladung öffnen",
+    "musicHint": "Diese Einladung wird von Musik begleitet",
+    "musicPlayAria": "Musik abspielen",
+    "musicMuteAria": "Musik stummschalten",
+    "musicUnmuteAria": "Musik wieder einschalten"
   },
   "OrgPublic": {
     "poweredBy": "Bereitgestellt von",
@@ -4897,7 +4902,11 @@
       "Africa/Douala": "Afrika/Douala (UTC+1)",
       "Indian/Antananarivo": "Indik/Antananarivo (UTC+3)",
       "Indian/Mauritius": "Indik/Mauritius (UTC+4)"
-    }
+    },
+    "editInvitationSectionTitle": "Einladung",
+    "editInvitationSectionDescription": "Eröffnungs-Cinematic und Musik für eure Gäste.",
+    "editCinematicLabel": "Cinematic",
+    "editMusicLabel": "Musik"
   },
   "MonMariage": {
     "common": {
@@ -5187,7 +5196,8 @@
       "preview": "Vorschau",
       "qrTitle": "QR-Code der Einladung",
       "qrDesc": "Zum Ausdrucken oder Anzeigen am großen Tag.",
-      "planTitle": "Planung"
+      "planTitle": "Planung",
+      "customize": "Personalisieren"
     },
     "nav": {
       "budget": "Budget",
@@ -5634,6 +5644,72 @@
     "yourTurn": {
       "empty": "Im Moment gibt es für Sie nichts zu tun. Ihre Agentur meldet sich, sobald eine Aktion auf Sie wartet.",
       "title": "Sie sind dran"
+    }
+  },
+  "InvitationDesign": {
+    "chooseFile": "Datei auswählen",
+    "cinematicSection": "Eröffnungs-Cinematic",
+    "customMusic": "Eure Musik",
+    "customMusicHint": "MP3 oder M4A, max. 10 MB",
+    "done": "Fertig",
+    "eyebrow": "Einladung",
+    "lockedBody": "Die Wahl der Cinematic und der Musik ist im Premium-Paket enthalten.",
+    "musicNone": "Ohne Musik",
+    "musicNoneDesc": "Die Einladung öffnet sich still",
+    "musicSection": "Musik",
+    "pause": "Stoppen",
+    "play": "Anhören",
+    "preview": "Vorschau",
+    "title": "Einladung personalisieren",
+    "uploading": "Wird hochgeladen…",
+    "themes": {
+      "seal": {
+        "name": "Das Siegel",
+        "desc": "Der versiegelte Umschlag öffnet sich in echter Tiefe – der Signature-Klassiker."
+      },
+      "floral": {
+        "name": "Die Blüte",
+        "desc": "Ein Strauß wächst und erblüht; die Karte erscheint zwischen Pfingstrosen."
+      },
+      "cake": {
+        "name": "Die Hochzeitstorte",
+        "desc": "Die Etagen stapeln sich, Kerzen leuchten – die Karte erscheint im Konfettiregen."
+      },
+      "voyage": {
+        "name": "Das Boarding",
+        "desc": "Das Kabinenfenster öffnet sich zur Morgendämmerung; die Karte kommt wie eine Bordkarte."
+      },
+      "theatre": {
+        "name": "Der Vorhang",
+        "desc": "Der Samt öffnet sich über einem mondbeschienenen See – zwei Schwäne formen ein Herz."
+      }
+    },
+    "tracks": {
+      "aurore": {
+        "name": "Aurore",
+        "desc": "Intimes Klavier, morgendliche Wärme"
+      },
+      "jardin": {
+        "name": "Jardin",
+        "desc": "Fließende Harfe, Tautropfenglanz"
+      },
+      "celebration": {
+        "name": "Célébration",
+        "desc": "Hüpfende Marimba, Festlaune"
+      },
+      "envol": {
+        "name": "Envol",
+        "desc": "Luftige Arpeggien, weiter Himmel"
+      },
+      "harmonie": {
+        "name": "Harmonie",
+        "desc": "Weite Streicher, Mondlicht"
+      }
+    },
+    "uploadErrors": {
+      "type": "Nicht unterstütztes Format (MP3 oder M4A)",
+      "size": "Datei zu groß (max. 10 MB)",
+      "network": "Upload fehlgeschlagen – bitte erneut versuchen"
     }
   }
 }

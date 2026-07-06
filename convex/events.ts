@@ -4,6 +4,7 @@ import { internal } from './_generated/api';
 import type { Doc, Id } from './_generated/dataModel';
 import { pickUniqueSlug } from './lib/uniqueSlug';
 import { eventQuotaForTier } from './lib/entitlements';
+import { assertInvitationDesignAllowed } from './lib/invitationDesign';
 import { assertEventAccess } from './lib/eventAuth';
 import { assertOrgWrite } from './lib/orgAuth';
 import { BUDGET_CURRENCY } from './lib/currency';
@@ -64,11 +65,27 @@ export const update = mutation({
         fontFamily: v.string(),
       }),
     ),
+    /** Cinématique d'ouverture (id du registre front). Gaté Premium/Pro hors sceau. */
+    invitationCinematic: v.optional(v.string()),
+    /** Musique de l'invitation. Gaté Premium/Pro. */
+    invitationMusic: v.optional(
+      v.object({
+        source: v.union(v.literal('library'), v.literal('custom')),
+        trackId: v.optional(v.string()),
+        s3Key: v.optional(v.string()),
+        title: v.optional(v.string()),
+      }),
+    ),
+    clearInvitationMusic: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const ev = await ctx.db.get(args.eventId);
     if (!ev) throw new Error('EVENT_NOT_FOUND');
     if (ev.ownerId !== args.requesterId) throw new Error('FORBIDDEN');
+    assertInvitationDesignAllowed(ev, {
+      cinematic: args.invitationCinematic,
+      music: args.invitationMusic,
+    });
 
     const patch: Partial<Doc<'events'>> = {};
 
@@ -108,6 +125,24 @@ export const update = mutation({
 
     if (args.theme) {
       patch.theme = args.theme;
+    }
+
+    if (args.invitationCinematic !== undefined) {
+      // Le sceau est le défaut : on ne stocke rien (champ retiré au patch).
+      patch.invitationCinematic =
+        args.invitationCinematic === 'seal' ? undefined : args.invitationCinematic;
+    }
+    if (args.clearInvitationMusic) {
+      patch.invitationMusic = undefined;
+    } else if (args.invitationMusic) {
+      patch.invitationMusic =
+        args.invitationMusic.source === 'library'
+          ? { source: 'library', trackId: args.invitationMusic.trackId }
+          : {
+              source: 'custom',
+              s3Key: args.invitationMusic.s3Key,
+              title: args.invitationMusic.title?.slice(0, 120),
+            };
     }
 
     patch.updatedAt = Date.now();

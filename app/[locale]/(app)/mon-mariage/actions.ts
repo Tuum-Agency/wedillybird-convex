@@ -40,6 +40,10 @@ const KNOWN_ERRORS = [
   'INVALID_STATUS',
   'INVALID_LABEL',
   'INVITATION_LIMIT_REACHED',
+  'INVALID_CINEMATIC',
+  'INVALID_MUSIC_TRACK',
+  'INVALID_MUSIC_KEY',
+  'INVALID_CONTENT_TYPE',
 ] as const;
 
 function mapError(err: unknown): { ok: false; error: string } {
@@ -346,4 +350,45 @@ export async function mmAssignGuestTableAction(
     });
     return { ok: true as const };
   });
+}
+
+/* ============== Invitation (cinématique + musique) ============== */
+
+export async function mmSetInvitationDesignAction(input: {
+  eventId: string;
+  cinematic?: string;
+  music?: { source: 'library' | 'custom'; trackId?: string; s3Key?: string; title?: string };
+  clearMusic?: boolean;
+}): Promise<MmActionResult> {
+  return run(async (userId) => {
+    const convex = getConvexServerClient();
+    await convex.mutation(convexApi.coupleSetInvitationDesign, {
+      eventId: input.eventId,
+      requesterId: userId,
+      cinematic: input.cinematic,
+      music: input.music,
+      clearMusic: input.clearMusic,
+    });
+    return { ok: true as const };
+  });
+}
+
+/** Presigned PUT S3 pour la musique personnalisée (≤ 10 Mo, audio/*). */
+export async function mmCreateMusicUploadUrlAction(input: {
+  eventId: string;
+  contentType: string;
+}): Promise<{ ok: true; uploadUrl: string; s3Key: string } | { ok: false; error: string }> {
+  const session = await getSession();
+  if (!session) return { ok: false, error: 'UNAUTHENTICATED' };
+  try {
+    const convex = getConvexServerClient();
+    const res = await convex.action(convexApi.createInvitationMusicUploadUrl, {
+      eventId: input.eventId,
+      requesterId: session.userId,
+      contentType: input.contentType,
+    });
+    return { ok: true, ...res };
+  } catch (err) {
+    return mapError(err);
+  }
 }

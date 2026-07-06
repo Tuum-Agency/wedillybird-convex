@@ -1011,7 +1011,12 @@
     "weddingDayArrived": "Le grand jour est arrivé.",
     "cinematicSkip": "Passer",
     "cinematicSkipAria": "Passer la cinématique",
-    "scrollToDiscover": "Faites défiler pour découvrir"
+    "scrollToDiscover": "Faites défiler pour découvrir",
+    "openInvitation": "Ouvrir l'invitation",
+    "musicHint": "Une musique accompagne cette invitation",
+    "musicPlayAria": "Lancer la musique",
+    "musicMuteAria": "Couper la musique",
+    "musicUnmuteAria": "Réactiver la musique"
   },
   "OrgPublic": {
     "poweredBy": "Propulsé par",
@@ -4897,7 +4902,11 @@
       "Africa/Douala": "Afrique/Douala (UTC+1)",
       "Indian/Antananarivo": "Océan Indien/Antananarivo (UTC+3)",
       "Indian/Mauritius": "Océan Indien/Maurice (UTC+4)"
-    }
+    },
+    "editInvitationSectionTitle": "Invitation",
+    "editInvitationSectionDescription": "Cinématique d'ouverture et musique vues par vos invités.",
+    "editCinematicLabel": "Cinématique",
+    "editMusicLabel": "Musique"
   },
   "MonMariage": {
     "common": {
@@ -5187,7 +5196,8 @@
       "preview": "Aperçu",
       "qrTitle": "QR code de l’invitation",
       "qrDesc": "À imprimer ou afficher le jour J.",
-      "planTitle": "Rétroplanning"
+      "planTitle": "Rétroplanning",
+      "customize": "Personnaliser"
     },
     "nav": {
       "budget": "Budget",
@@ -5634,6 +5644,72 @@
     "yourTurn": {
       "empty": "Rien à faire de votre côté pour l'instant. Votre agence vous préviendra dès qu'une action vous attend.",
       "title": "À vous de jouer"
+    }
+  },
+  "InvitationDesign": {
+    "chooseFile": "Choisir un fichier",
+    "cinematicSection": "Cinématique d'ouverture",
+    "customMusic": "Votre musique",
+    "customMusicHint": "MP3 ou M4A, 10 Mo max",
+    "done": "Terminé",
+    "eyebrow": "Invitation",
+    "lockedBody": "Le choix de la cinématique et la musique sont inclus avec Premium.",
+    "musicNone": "Sans musique",
+    "musicNoneDesc": "L'invitation s'ouvre en silence",
+    "musicSection": "Musique",
+    "pause": "Arrêter",
+    "play": "Écouter",
+    "preview": "Aperçu",
+    "title": "Personnaliser l'invitation",
+    "uploading": "Envoi…",
+    "themes": {
+      "seal": {
+        "name": "Le Sceau",
+        "desc": "L'enveloppe scellée s'ouvre en profondeur — le classique signature."
+      },
+      "floral": {
+        "name": "L'Éclosion",
+        "desc": "Un bouquet s'élance et fleurit, la carte naît au cœur des pivoines."
+      },
+      "cake": {
+        "name": "La Pièce montée",
+        "desc": "Les étages s'empilent, les bougies s'allument — la carte jaillit sous les confettis."
+      },
+      "voyage": {
+        "name": "L'Embarquement",
+        "desc": "Le hublot s'ouvre sur l'aube, la carte arrive comme une carte d'embarquement."
+      },
+      "theatre": {
+        "name": "Le Lever de rideau",
+        "desc": "Le velours s'ouvre sur un lac au clair de lune — deux cygnes composent un cœur."
+      }
+    },
+    "tracks": {
+      "aurore": {
+        "name": "Aurore",
+        "desc": "Piano intime, chaleur du matin"
+      },
+      "jardin": {
+        "name": "Jardin",
+        "desc": "Harpe qui ruisselle, éclats de rosée"
+      },
+      "celebration": {
+        "name": "Célébration",
+        "desc": "Marimba bondissante, esprit de fête"
+      },
+      "envol": {
+        "name": "Envol",
+        "desc": "Arpèges aériens, grand ciel"
+      },
+      "harmonie": {
+        "name": "Harmonie",
+        "desc": "Cordes amples, clair de lune"
+      }
+    },
+    "uploadErrors": {
+      "type": "Format non pris en charge (MP3 ou M4A)",
+      "size": "Fichier trop lourd (10 Mo max)",
+      "network": "Échec de l'envoi — réessayez"
     }
   }
 }

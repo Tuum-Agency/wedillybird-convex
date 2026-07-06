@@ -1,0 +1,639 @@
+/* Wedillybird — Cinématique « L'Éclosion » (floral).
+   Bouquet CSS 3D : tiges qui s'élancent, pivoines en pétales clip/rotate,
+   éclosion étagée, carte qui monte derrière le bouquet, guirlande apaisée.
+   Phases (classes cumulatives) : grow · bud · bloom · reveal · settled */
+
+.cineF-stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(70% 55% at 50% 30%, oklch(97% 0.022 84 / 0.9) 0%, transparent 72%),
+    radial-gradient(90% 70% at 50% 118%, oklch(93% 0.035 140 / 0.35), transparent 62%),
+    var(--color-ivory-50);
+  --c-petal: oklch(88% 0.055 18);
+  --c-petal-dk: oklch(80% 0.075 20);
+  --c-petal-deep: oklch(70% 0.09 22);
+  --c-leaf: oklch(64% 0.062 148);
+  --c-leaf-dk: oklch(50% 0.06 150);
+  --c-accent: var(--color-blush-700);
+  --c-paper: oklch(98.5% 0.008 85);
+  --c-paper-2: oklch(95.5% 0.02 32);
+}
+
+.cineF-scene {
+  position: relative;
+  width: 360px;
+  height: 560px;
+  perspective: 1400px;
+  perspective-origin: 50% 44%;
+  transform: scale(var(--cine-scale, 1));
+  transform-origin: center center;
+}
+@media (min-width: 900px) {
+  .cineF-stage.live .cineF-scene {
+    --cine-scale: 1.22;
+  }
+}
+
+/* Caméra : plongée douce sur le parterre, puis se pose face au bouquet. */
+.fx-camera {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  transform: rotateX(9deg) translateZ(-64px) scale(0.968);
+  transition: transform 1.25s cubic-bezier(0.3, 0.75, 0.25, 1);
+}
+.cineF.grow .fx-camera {
+  transform: rotateX(6.5deg) translateZ(-46px) scale(0.978);
+}
+.cineF.bud .fx-camera {
+  transform: rotateX(4.5deg) translateZ(-30px) scale(0.988);
+}
+.cineF.bloom .fx-camera {
+  transform: rotateX(2.5deg) translateZ(-12px) scale(0.995);
+}
+.cineF.reveal .fx-camera,
+.cineF.settled .fx-camera {
+  transform: rotateX(0deg) translateZ(0px) scale(1);
+  transition: transform 1.5s cubic-bezier(0.3, 0.75, 0.25, 1);
+}
+
+.fx-par {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  transition: transform 0.5s var(--ease-out-quint);
+}
+
+/* Key light qui suit la parallaxe. */
+.fx-light {
+  position: absolute;
+  inset: -12%;
+  pointer-events: none;
+  z-index: 3;
+  opacity: 0.5;
+  background: radial-gradient(
+    46% 34% at calc(50% + var(--ry, 0deg) * 2.4%) calc(30% - var(--rx, 0deg) * 2.2%),
+    oklch(99% 0.015 95 / 0.5),
+    transparent 70%
+  );
+  transition: opacity 0.8s ease;
+  mix-blend-mode: soft-light;
+}
+.cineF.settled .fx-light {
+  opacity: 0.32;
+}
+
+/* Poussière dorée (pollen) — visible dès l'éclosion. */
+.fx-dust {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  pointer-events: none;
+}
+.fx-dust span {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, oklch(92% 0.08 88), oklch(76% 0.1 82));
+  box-shadow: 0 0 6px oklch(85% 0.09 85 / 0.8);
+  opacity: 0;
+  transform: translateZ(var(--dz, 40px));
+}
+.cineF.bloom .fx-dust span,
+.cineF.reveal .fx-dust span,
+.cineF.settled .fx-dust span {
+  animation: cineFDust 6.5s ease-in-out var(--dd, 0s) infinite;
+}
+@keyframes cineFDust {
+  0%,
+  100% {
+    opacity: 0;
+    transform: translateZ(var(--dz, 40px)) translateY(6px);
+  }
+  30%,
+  70% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 0.85;
+    transform: translateZ(var(--dz, 40px)) translateY(-10px);
+  }
+}
+
+/* ------------------------------- bouquet ------------------------------- */
+
+.bouquet {
+  position: absolute;
+  left: 50%;
+  bottom: 66px;
+  width: 2px;
+  height: 2px;
+  transform-style: preserve-3d;
+  transition:
+    transform 1.1s cubic-bezier(0.3, 0.75, 0.25, 1),
+    opacity 1s ease;
+}
+.b-shadow {
+  position: absolute;
+  left: -110px;
+  bottom: -18px;
+  width: 220px;
+  height: 34px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, oklch(50% 0.06 150 / 0.24), transparent 72%);
+  filter: blur(7px);
+  transform: translateZ(-24px);
+}
+.b-glow {
+  position: absolute;
+  left: -125px;
+  bottom: 60px;
+  width: 250px;
+  height: 230px;
+  border-radius: 50%;
+  filter: blur(10px);
+  opacity: 0;
+  background: radial-gradient(
+    closest-side,
+    oklch(97% 0.035 80 / 0.8),
+    oklch(95% 0.03 60 / 0.25) 55%,
+    transparent 78%
+  );
+  transition: opacity 0.9s ease;
+}
+.cineF.bud .b-glow,
+.cineF.bloom .b-glow {
+  opacity: 1;
+}
+.cineF.reveal .b-glow,
+.cineF.settled .b-glow {
+  opacity: 0;
+}
+
+/* Une tige = un groupe pivotant depuis la base du bouquet. */
+.stemg {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 2px;
+  height: var(--h);
+  transform-origin: bottom center;
+  transform: rotate(var(--a)) translateZ(6px);
+  transition: transform 1.05s cubic-bezier(0.34, 0.9, 0.3, 1.02);
+}
+.stem {
+  position: absolute;
+  left: -1.5px;
+  bottom: 0;
+  width: 3px;
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(to top, var(--c-leaf-dk), var(--c-leaf));
+  transform-origin: bottom center;
+  transform: scaleY(0);
+  transition: transform 0.95s var(--ease-out-expo) var(--sd);
+}
+.cineF.grow .stem {
+  transform: scaleY(1);
+}
+
+.leaf {
+  position: absolute;
+  width: 22px;
+  height: 12px;
+  background: linear-gradient(115deg, var(--c-leaf), var(--c-leaf-dk));
+  border-radius: 0 100% 0 100%;
+  transform: scale(0);
+  transition: transform 0.6s var(--ease-out-quint) calc(var(--sd) + 0.4s);
+}
+.leaf.ll {
+  left: -21px;
+  bottom: 38%;
+  transform-origin: right bottom;
+  rotate: -38deg;
+}
+.leaf.lr {
+  left: 1px;
+  bottom: 56%;
+  transform-origin: left bottom;
+  rotate: 214deg;
+}
+.cineF.grow .leaf {
+  transform: scale(1);
+}
+
+/* Fleur au sommet — contre-rotation pour rester droite. */
+.flower {
+  position: absolute;
+  left: 50%;
+  top: calc(var(--fs) * -0.42);
+  width: var(--fs);
+  height: var(--fs);
+  margin-left: calc(var(--fs) * -0.5);
+  transform: rotate(calc(var(--a) * -1));
+  transform-style: preserve-3d;
+}
+.f-bud {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: calc(var(--fs) * 0.34);
+  height: calc(var(--fs) * 0.4);
+  margin: calc(var(--fs) * -0.2) 0 0 calc(var(--fs) * -0.17);
+  border-radius: 50% 50% 44% 44% / 62% 62% 38% 38%;
+  background: linear-gradient(to top, var(--c-leaf), var(--c-petal));
+  transform: scale(0);
+  transition:
+    transform 0.55s cubic-bezier(0.34, 1.4, 0.5, 1) calc(var(--sd) * 0.8),
+    opacity 0.4s ease;
+}
+.cineF.bud .f-bud {
+  transform: scale(1);
+}
+.cineF.bloom .f-bud {
+  transform: scale(0.4);
+  opacity: 0;
+}
+
+.petal {
+  position: absolute;
+  left: 50%;
+  bottom: 50%;
+  width: calc(var(--fs) * 0.36);
+  height: calc(var(--fs) * 0.55);
+  margin-left: calc(var(--fs) * -0.18);
+  border-radius: 55% 55% 48% 48% / 68% 68% 34% 34%;
+  transform-origin: 50% 100%;
+  transform: rotate(var(--r)) scale(0);
+  background: linear-gradient(to top, var(--c-petal-dk), var(--c-petal) 70%);
+  box-shadow: inset 0 -2px 4px oklch(66% 0.08 22 / 0.25);
+  transition: transform 0.7s cubic-bezier(0.34, 1.35, 0.45, 1) calc(var(--sd) + var(--pd));
+}
+.petal.pi {
+  width: calc(var(--fs) * 0.28);
+  height: calc(var(--fs) * 0.42);
+  margin-left: calc(var(--fs) * -0.14);
+  background: linear-gradient(to top, var(--c-petal-deep), var(--c-petal-dk) 75%);
+}
+.cineF.bloom .petal {
+  transform: rotate(var(--r)) scale(1);
+}
+.heart {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: calc(var(--fs) * 0.2);
+  height: calc(var(--fs) * 0.2);
+  margin: calc(var(--fs) * -0.1) 0 0 calc(var(--fs) * -0.1);
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 32%, oklch(90% 0.09 90), var(--color-gold-500));
+  box-shadow: 0 0 8px oklch(85% 0.09 85 / 0.7);
+  transform: scale(0);
+  transition: transform 0.5s cubic-bezier(0.34, 1.5, 0.5, 1) calc(var(--sd) + 0.34s);
+}
+.cineF.bloom .heart {
+  transform: scale(1);
+}
+
+/* Reveal : le bouquet s'écarte en éventail devant la carte (profondeur). */
+.cineF.reveal .stemg {
+  transform: rotate(calc(var(--a) * 2.1)) translateZ(34px);
+}
+.cineF.reveal .stemg.sg2 {
+  transform: rotate(0deg) translateZ(44px) translateY(26px) scale(1.02);
+}
+/* Settled : guirlande fantôme au pied du compte à rebours. */
+.cineF.settled .bouquet {
+  transform: translateY(104px) translateZ(-70px) scale(0.6);
+  opacity: 0.34;
+}
+.cineF.settled .stemg {
+  transform: rotate(calc(var(--a) * 2.4)) translateZ(0px);
+}
+.cineF.settled .stemg.sg2 {
+  transform: rotate(0deg) translateY(10px);
+}
+
+/* Pétales qui se détachent (settled). */
+.fall {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.fall span {
+  position: absolute;
+  left: var(--fx);
+  top: 24%;
+  width: 12px;
+  height: 17px;
+  border-radius: 55% 55% 48% 48% / 68% 68% 34% 34%;
+  background: linear-gradient(to top, var(--c-petal-dk), var(--c-petal));
+  opacity: 0;
+}
+.cineF.settled .fall span {
+  animation: cineFFall var(--ft, 10s) linear var(--fd, 0s) infinite;
+}
+@keyframes cineFFall {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, -10px, 30px) rotate(0deg);
+  }
+  8% {
+    opacity: 0.75;
+  }
+  50% {
+    transform: translate3d(-22px, 160px, 30px) rotate(150deg);
+  }
+  88% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(14px, 330px, 30px) rotate(300deg);
+  }
+}
+
+/* -------------------------------- carte -------------------------------- */
+
+.cineF .card3d {
+  position: absolute;
+  left: 40px;
+  top: 92px;
+  width: 280px;
+  height: 340px;
+  transform-style: preserve-3d;
+  transform: translateY(120px) translateZ(-40px) scale(0.94);
+  opacity: 0;
+  transition:
+    transform 1.35s cubic-bezier(0.45, 0.05, 0.55, 0.95),
+    opacity 0.6s ease;
+}
+.cineF.reveal .card3d {
+  opacity: 1;
+  transform: translateY(0px) translateZ(2px) scale(1);
+}
+.cineF.settled .card3d {
+  opacity: 1;
+  transform: translateY(-26px) translateZ(10px) rotateX(-1deg);
+  transition: transform 1.1s cubic-bezier(0.45, 0.05, 0.55, 0.95);
+}
+
+.cineF .card-face {
+  position: absolute;
+  inset: 0;
+  border-radius: 8px;
+  padding: 30px 26px;
+  text-align: center;
+  background: linear-gradient(176deg, var(--c-paper), var(--c-paper-2));
+  border: 1px solid oklch(86% 0.03 70);
+  box-shadow:
+    0 22px 40px oklch(48% 0.07 145 / 0.2),
+    inset 0 1px 0 oklch(99% 0.006 85);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+.cineF .card-sheen {
+  position: absolute;
+  inset: 0;
+  border-radius: 8px;
+  overflow: hidden;
+  pointer-events: none;
+}
+.cineF .card-sheen::before {
+  content: '';
+  position: absolute;
+  top: -30%;
+  left: -70%;
+  width: 45%;
+  height: 160%;
+  transform: skewX(-16deg);
+  background: linear-gradient(100deg, transparent, oklch(99% 0.02 92 / 0.55), transparent);
+  opacity: 0;
+}
+.cineF.reveal .card-sheen::before {
+  animation: cineFSheen 1.15s cubic-bezier(0.4, 0.1, 0.3, 1) 0.55s 1 forwards;
+}
+@keyframes cineFSheen {
+  0% {
+    left: -70%;
+    opacity: 1;
+  }
+  100% {
+    left: 150%;
+    opacity: 1;
+  }
+}
+
+.cineF .cf-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--color-ink-500);
+  opacity: 0;
+  transform: translateY(6px);
+  transition:
+    opacity 0.5s ease 0.3s,
+    transform 0.5s ease 0.3s;
+}
+.cineF .cf-rule {
+  width: 54px;
+  height: 1px;
+  background: var(--color-gold-500);
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 0.6s var(--ease-out-quint) 0.35s;
+}
+.cineF.reveal .cf-eyebrow,
+.cineF.settled .cf-eyebrow {
+  opacity: 1;
+  transform: none;
+}
+.cineF.reveal .cf-rule,
+.cineF.settled .cf-rule {
+  transform: scaleX(1);
+}
+.cineF .cf-names {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+.cineF .cf-clip {
+  overflow: hidden;
+  line-height: 1.02;
+}
+.cineF .cf-line {
+  display: block;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 46px;
+  letter-spacing: -0.025em;
+  color: var(--color-ink-900);
+  transform: translateY(115%);
+  transition: transform 0.7s var(--ease-out-expo) 0.4s;
+}
+.cineF .cf-amp {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 19px;
+  color: var(--c-accent);
+  letter-spacing: 0.2em;
+  margin: 5px 0;
+  opacity: 0;
+  transition: opacity 0.5s ease 0.7s;
+}
+.cineF.reveal .cf-line,
+.cineF.settled .cf-line {
+  transform: translateY(0);
+}
+.cineF.reveal .cf-line.l2 {
+  transition-delay: 0.52s;
+}
+.cineF.settled .cf-line.l2 {
+  transition-delay: 0s;
+}
+.cineF.reveal .cf-amp,
+.cineF.settled .cf-amp {
+  opacity: 1;
+}
+.cineF .cf-date {
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-ink-500);
+  max-width: 210px;
+  opacity: 0;
+  transition: opacity 0.5s ease 0.85s;
+}
+.cineF.reveal .cf-date,
+.cineF.settled .cf-date {
+  opacity: 1;
+}
+
+/* --------------------------- compte à rebours --------------------------- */
+
+.cineF-after {
+  position: absolute;
+  left: 50%;
+  bottom: 26px;
+  transform: translateX(-50%);
+  width: 320px;
+  text-align: center;
+  opacity: 0;
+  transition: opacity 0.7s ease 0.4s;
+}
+.cineF.settled .cineF-after {
+  opacity: 1;
+}
+.cineF-after .lbl {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--color-ink-500);
+  margin-bottom: 10px;
+}
+.cineF-after .cd {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+.cineF-after .cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 52px;
+}
+.cineF-after .n {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 30px;
+  color: var(--c-accent);
+  line-height: 1;
+}
+.cineF-after .u {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-muted-foreground);
+}
+.cineF-after .sep {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 22px;
+  color: var(--color-gold-500);
+}
+
+.cineF-cue {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  color: var(--color-ink-500);
+  transition: opacity 0.6s ease;
+  pointer-events: none;
+}
+.cineF-cue .t {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+}
+
+/* ------------------------- reduced / frozen ---------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .cineF *,
+  .cineF *::before {
+    transition-duration: 0.01ms !important;
+    animation: none !important;
+  }
+  .cineF .fx-dust,
+  .cineF .fall {
+    display: none;
+  }
+  .cineF .fx-camera {
+    transform: none !important;
+  }
+}
+.cineF.reduced *,
+.cineF.reduced *::before {
+  transition: none !important;
+  animation: none !important;
+}
+.cineF.reduced .fx-dust,
+.cineF.reduced .fall,
+.cineF.reduced .fx-light {
+  display: none;
+}
+.cineF.reduced .fx-camera {
+  transform: none !important;
+}
+.cineF.frozen .fx-dust span {
+  animation: none;
+  opacity: 0.6;
+}
+.cineF.frozen .fall span {
+  animation: none;
+}
+.cineF.frozen .card-sheen::before {
+  animation: none;
+}

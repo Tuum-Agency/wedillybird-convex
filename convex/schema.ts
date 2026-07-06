@@ -222,6 +222,28 @@ export default defineSchema({
         fontFamily: v.string(),
       }),
     ),
+    /**
+     * Cinématique d'ouverture de l'invitation publique — id du registre
+     * front (`components/invitation/cinematics/registry.ts`) : seal ·
+     * floral · cake · voyage · theatre. Absent = sceau (défaut historique).
+     * Choisir un thème non-sceau est gaté `cinematicInvitation` (Premium/Pro).
+     */
+    invitationCinematic: v.optional(v.string()),
+    /**
+     * Musique de l'invitation publique. Absent = silence (défaut).
+     * `library` → `trackId` d'une piste maison (`lib/invitation/music.ts`) ;
+     * `custom` → `s3Key` sous `audio/{eventId}/…` (upload du couple, servi
+     * CloudFront, hors préfixe `incoming/` donc hors modération Lambda).
+     * Gaté `cinematicInvitation` (Premium/Pro).
+     */
+    invitationMusic: v.optional(
+      v.object({
+        source: v.union(v.literal('library'), v.literal('custom')),
+        trackId: v.optional(v.string()),
+        s3Key: v.optional(v.string()),
+        title: v.optional(v.string()),
+      }),
+    ),
     status: v.union(
       v.literal('draft'),
       v.literal('active'),
