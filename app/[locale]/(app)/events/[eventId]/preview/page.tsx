@@ -188,7 +188,7 @@ export default async function EventPreviewPage({
             </section>
 
             {/* Détails — date + lieu */}
-            <section className="flex flex-col gap-6 rounded-3xl border border-[color:var(--color-border)] bg-white p-8 shadow-[var(--shadow-soft)]">
+            <section className="inv-card flex flex-col gap-6 rounded-3xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-8 shadow-[var(--shadow-soft)]">
               <div className="flex items-start gap-4">
                 <span
                   aria-hidden
@@ -232,7 +232,7 @@ export default async function EventPreviewPage({
             </section>
 
             {/* Placeholder RSVP — pas de form en mode aperçu */}
-            <section className="flex flex-col items-center gap-4 rounded-3xl border border-dashed border-[color:var(--color-border-strong)] bg-white/60 p-8 text-center">
+            <section className="inv-card flex flex-col items-center gap-4 rounded-3xl border border-dashed border-[color:var(--color-border-strong)] bg-[color:var(--color-surface)]/60 p-8 text-center">
               <span className="font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-ink-500)] uppercase">
                 {t('previewRsvpEyebrow')}
               </span>
@@ -251,7 +251,7 @@ export default async function EventPreviewPage({
             </section>
 
             {/* Lien galerie (statique en preview) */}
-            <div className="group flex items-center justify-between gap-4 rounded-2xl border border-[color:var(--color-border)] bg-white px-6 py-5 opacity-80">
+            <div className="group inv-card flex items-center justify-between gap-4 rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-6 py-5 opacity-80">
               <span className="flex items-center gap-3">
                 <span
                   aria-hidden

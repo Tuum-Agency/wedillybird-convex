@@ -4,7 +4,10 @@ import { AnimatePresence, motion } from 'motion/react';
 import { useTranslations } from 'next-intl';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { CinematicPlayer } from './cinematics/player';
+import { asCinematicId } from './cinematics/registry';
+import { InvitationThemeDecor } from './invitation-theme-decor';
 import './invitation-shell.css';
+import './invitation-themes.css';
 
 /**
  * InvitationShell — orchestre la cinématique d'ouverture puis dévoile le
@@ -185,9 +188,13 @@ export function InvitationShell({
   const gateVisible = hasMusic && !entered && !cinematicDone;
   const cinematicVisible = !cinematicDone && (!hasMusic || entered);
   const initials = `${(partnerA.trim()[0] ?? '').toUpperCase()} & ${(partnerB.trim()[0] ?? '').toUpperCase()}`;
+  // La page porte l'ADN de la cinématique choisie : tokens remappés via
+  // data-inv-theme + décor ambiant fixe sous le contenu (invitation-themes.css).
+  const themeId = asCinematicId(cinematic);
 
   return (
     <>
+      <InvitationThemeDecor theme={themeId} />
       {hasMusic && <audio ref={audioRef} src={music.url} preload="auto" loop aria-hidden="true" />}
 
       <AnimatePresence>
@@ -249,10 +256,13 @@ export function InvitationShell({
 
       {/* Contenu invitation — SSR-friendly, simplement scrollable une fois
           la cinematic terminée. On masque visuellement avant pour éviter
-          le flash sous l'overlay. */}
+          le flash sous l'overlay. z-index 1 : au-dessus du décor de thème. */}
       <div
         aria-hidden={!cinematicDone}
+        data-inv-theme={themeId}
         style={{
+          position: 'relative',
+          zIndex: 1,
           opacity: cinematicDone ? 1 : 0,
           pointerEvents: cinematicDone ? 'auto' : 'none',
           transition: 'opacity 0.5s ease-out 0.1s',

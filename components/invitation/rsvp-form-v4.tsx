@@ -134,7 +134,7 @@ export function RsvpFormV4({ token, plusOnesAllowed, accentColor, initial }: Pro
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: 'easeOut' }}
-        className="flex flex-col items-center gap-5 rounded-3xl border bg-white p-8 text-center shadow-[var(--shadow-blush)]"
+        className="inv-card flex flex-col items-center gap-5 rounded-3xl border bg-[color:var(--color-surface)] p-8 text-center shadow-[var(--shadow-blush)]"
         style={{ borderColor: accent }}
       >
         <motion.span
@@ -183,7 +183,7 @@ export function RsvpFormV4({ token, plusOnesAllowed, accentColor, initial }: Pro
   return (
     <form
       action={handleSubmit}
-      className="flex flex-col gap-7 rounded-3xl border border-[color:var(--color-border)] bg-white p-6 shadow-[var(--shadow-soft)] sm:p-8"
+      className="inv-card flex flex-col gap-7 rounded-3xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-6 shadow-[var(--shadow-soft)] sm:p-8"
       data-testid="rsvp-form"
     >
       <fieldset className="flex flex-col gap-4">

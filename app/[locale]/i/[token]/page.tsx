@@ -162,7 +162,7 @@ export default async function InvitationPage({
           </section>
 
           {/* Détails — date + lieu */}
-          <section className="flex flex-col gap-6 rounded-3xl border border-[color:var(--color-border)] bg-white p-8 shadow-[var(--shadow-soft)]">
+          <section className="inv-card flex flex-col gap-6 rounded-3xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-8 shadow-[var(--shadow-soft)]">
             <div className="flex items-start gap-4">
               <span
                 aria-hidden
@@ -226,7 +226,7 @@ export default async function InvitationPage({
           {/* Lien galerie */}
           <Link
             href={`/i/${token}/gallery`}
-            className="focus-ring group flex items-center justify-between gap-4 rounded-2xl border border-[color:var(--color-border)] bg-white px-6 py-5 transition-all hover:border-[color:var(--color-border-strong)] hover:shadow-[var(--shadow-soft)]"
+            className="focus-ring group inv-card flex items-center justify-between gap-4 rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-6 py-5 transition-all hover:border-[color:var(--color-border-strong)] hover:shadow-[var(--shadow-soft)]"
           >
             <span className="flex items-center gap-3">
               <span
