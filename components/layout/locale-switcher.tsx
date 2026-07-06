@@ -4,18 +4,9 @@ import { useLocale } from 'next-intl';
 import { useEffect, useRef, useState, useTransition } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { usePathname, useRouter } from '@/i18n/navigation';
-import { LOCALE_NATIVE_NAMES, routing, type Locale } from '@/i18n/routing';
+import { LOCALE_FLAGS, LOCALE_NATIVE_NAMES, routing, type Locale } from '@/i18n/routing';
+import { useCurrencyStore } from '@/stores/currency-store';
 import { cn } from '@/lib/cn';
-
-const LOCALE_FLAGS: Record<Locale, string> = {
-  fr: '🇫🇷',
-  en: '🇬🇧',
-  es: '🇪🇸',
-  it: '🇮🇹',
-  pt: '🇵🇹',
-  de: '🇩🇪',
-  ar: '🇸🇦',
-};
 
 export function LocaleSwitcher({ className }: { className?: string }) {
   const locale = useLocale() as Locale;
@@ -46,6 +37,9 @@ export function LocaleSwitcher({ className }: { className?: string }) {
   function onSelect(next: Locale) {
     setOpen(false);
     if (next === locale) return;
+    // Changer de langue réinitialise l'override devise : la nouvelle locale
+    // impose sa devise par défaut (en → USD, langues européennes → EUR).
+    useCurrencyStore.getState().clearCurrency();
     startTransition(() => {
       router.replace(pathname, { locale: next });
     });

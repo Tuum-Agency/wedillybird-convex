@@ -2,6 +2,11 @@ import { describe, expect, it } from 'vitest';
 
 import { PLANS, POST_EVENT_UPSELL, getPlanPrice, getUpsellPrice } from '@/lib/payments/plans';
 import { getRegionalPlanPrice, getRegionalUpsellPrice } from '@/lib/payments/region';
+import {
+  PAYG_PRO_PRICE,
+  SUBSCRIPTION_TIER_ANNUAL_PRICES,
+  SUBSCRIPTION_TIER_PRICES,
+} from '@/lib/payments/subscriptions';
 import { convertFromEur } from '@/lib/payments/currency';
 
 /**
@@ -39,5 +44,22 @@ describe('grille USD marché (overrides)', () => {
     expect(getRegionalPlanPrice('premium', 'americas', 'USD')).toBe(8000);
     expect(getRegionalUpsellPrice('americas', 'USD')).toBe(3000);
     expect(getRegionalPlanPrice('essential', 'europe', 'EUR')).toBe(2900);
+  });
+
+  it('applique la parité numérique USD sur la grille pro', () => {
+    expect(SUBSCRIPTION_TIER_PRICES.starter.prices.USD).toBe(9900); // $99
+    expect(SUBSCRIPTION_TIER_PRICES.business.prices.USD).toBe(21900); // $219
+    expect(SUBSCRIPTION_TIER_PRICES.agency.prices.USD).toBe(44900); // $449
+    expect(SUBSCRIPTION_TIER_ANNUAL_PRICES.starter.prices.USD).toBe(95100); // $951
+    expect(SUBSCRIPTION_TIER_ANNUAL_PRICES.business.prices.USD).toBe(210300); // $2,103
+    expect(SUBSCRIPTION_TIER_ANNUAL_PRICES.agency.prices.USD).toBe(431100); // $4,311
+    expect(PAYG_PRO_PRICE.prices.USD).toBe(7900); // $79
+  });
+
+  it('ne touche pas aux montants pro EUR ni aux dérivés MAD', () => {
+    expect(SUBSCRIPTION_TIER_PRICES.starter.prices.EUR).toBe(9900);
+    expect(SUBSCRIPTION_TIER_ANNUAL_PRICES.agency.prices.EUR).toBe(431100);
+    expect(SUBSCRIPTION_TIER_PRICES.starter.prices.MAD).toBe(convertFromEur(9900, 'MAD'));
+    expect(PAYG_PRO_PRICE.prices.EUR).toBe(7900);
   });
 });

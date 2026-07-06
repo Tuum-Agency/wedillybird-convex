@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react';
 import { X } from 'lucide-react';
 import { usePathname, useRouter } from '@/i18n/navigation';
 import type { Locale } from '@/i18n/routing';
+import { useCurrencyStore } from '@/stores/currency-store';
 import { cn } from '@/lib/cn';
 
 const ONE_YEAR_SECONDS = 60 * 60 * 24 * 365;
@@ -36,6 +37,9 @@ export function LocaleSuggestionBannerClient({
 
   function handleAccept() {
     setDismissCookie(dismissCookieName);
+    // Accepter la langue suggérée réinitialise l'override devise : la nouvelle
+    // locale impose sa devise par défaut (en → USD, langues européennes → EUR).
+    useCurrencyStore.getState().clearCurrency();
     startTransition(() => {
       router.replace(pathname, { locale: suggestedLocale });
     });

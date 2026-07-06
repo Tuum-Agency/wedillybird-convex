@@ -250,7 +250,7 @@
       "article3Title": "3. Account and access",
       "article3Body": "Access to the Service requires creating an account by verifying a phone number. The User is responsible for the confidentiality of their number and for any action taken from their account. Any unauthorised use must be reported immediately.",
       "article4Title": "4. Pricing and payment",
-      "article4Body": "The Service is offered with no free tier. For individuals planning a wedding, two one-shot plans are available: Essential (€29, core features + 30-day gallery) and Premium (€59, Essential + 6-month gallery + PDF album). A post-wedding upsell (+€29) extends the gallery to 5 years and adds the HD photo book. For professionals, monthly or annual subscriptions (Starter €99/month, Business €219/month, Agency €449/month, -20% annual) or pay-as-you-go (€79 per event). Payments are processed by Stripe. Full refund within 7 days if the event has not been sent. If the wedding is cancelled, free postponement to another date.",
+      "article4Body": "The Service is offered with no free tier. For individuals planning a wedding, two one-shot plans are available: Essential ($40 / €29, core features + 30-day gallery) and Premium ($80 / €59, Essential + 6-month gallery + PDF album). A post-wedding upsell (+$30 / +€29) extends the gallery to 5 years and adds the HD photo book. For professionals, monthly or annual subscriptions (Starter $99 / €99 per month, Business $219 / €219 per month, Agency $449 / €449 per month, -20% annual) or pay-as-you-go ($79 / €79 per event). Payments are processed by Stripe. Full refund within 7 days if the event has not been sent. If the wedding is cancelled, free postponement to another date.",
       "article5Title": "5. Intellectual property",
       "article5Body": "The User retains ownership of the content they upload. They grant Wedillybird a non-exclusive licence to use this content solely for the operation of the Service. Wedillybird retains ownership of the platform, its code and brand.",
       "article6Title": "6. Liability",
@@ -410,7 +410,7 @@
       },
       "pricing": {
         "q": "What are the prices?",
-        "a": "Two one-shot plans per wedding: Essential (€29) for text invitations, RSVP, QR check-in and dashboard; Premium (€59) which adds a 6-month shared photo gallery and the final PDF album. A post-wedding upsell at +€29 lets you keep your gallery for 5 years with an HD photo book and high-definition export."
+        "a": "Two one-shot plans per wedding: Essential ($40 / €29) for text invitations, RSVP, QR check-in and dashboard; Premium ($80 / €59) which adds a 6-month shared photo gallery and the final PDF album. A post-wedding upsell at +$30 (+€29) lets you keep your gallery for 5 years with an HD photo book and high-definition export."
       },
       "support": {
         "q": "How do I contact support?",
@@ -530,7 +530,11 @@
       "gallery": {
         "title": "Moderated shared gallery",
         "description": "Guests and witnesses drop their photos from their link. Automatic moderation before publication, final PDF album and an optional HD photo book delivered to your door.",
-        "highlights": ["AI + manual moderation", "Printable PDF album", "Kept for up to 5 years"]
+        "highlights": [
+          "AI + manual moderation",
+          "Printable PDF album",
+          "Kept for up to 5 years"
+        ]
       },
       "visuals": {
         "invitationSent": "Invitation sent ·",
@@ -651,7 +655,7 @@
         },
         "afterEvent": {
           "q": "What do we keep after the wedding?",
-          "a": "With Premium: moderated gallery for 6 months + final PDF album. With the post-wedding upsell at €29: we extend the gallery to 5 years, print an HD photo book and deliver a high-definition ZIP of every photo."
+          "a": "With Premium: moderated gallery for 6 months + final PDF album. With the post-wedding upsell at $30 (€29): we extend the gallery to 5 years, print an HD photo book and deliver a high-definition ZIP of every photo."
         },
         "africa3g": {
           "q": "How does it work without stable 4G?",
@@ -3623,7 +3627,7 @@
         "hdUpsell": {
           "label": "Perpetual HD gallery",
           "detail": "HD archive with no time limit, offered to the couple.",
-          "price": "+€29"
+          "price": "+$30"
         },
         "extraSeat": {
           "label": "Extra seat",
@@ -3859,8 +3863,8 @@
     "alreadyPremium": "You're already on the most complete plan.",
     "galleryRetention": "Gallery active {days, plural, =1 {# day} other {# days}} after the wedding",
     "plans": {
-      "essential": "Essential — €29",
-      "premium": "Premium — €59"
+      "essential": "Essential — $40",
+      "premium": "Premium — $80"
     },
     "successTitle": "Payment confirmed",
     "successBody": "Your event is now on the {plan} plan. Gallery active until D+{days}.",

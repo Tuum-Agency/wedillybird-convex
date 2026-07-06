@@ -4,24 +4,24 @@
  * Source de vérité : `.context/redesign-direction.md` section "Pricing figé"
  * et CLAUDE.md.
  *
- * Tarifs mensuels :
- *   Starter 89 € / Business 179 € / Agency 349 €
+ * Tarifs mensuels (grille v2) :
+ *   Starter 99 € / Business 219 € / Agency 449 €
  *
  * Variantes annuelles : -20 % sur le total annuel (= mensuel × 12 × 0.80),
  * arrondi à l'euro supérieur. Convention figée pour cette première version.
  *
- *   Starter annual = 89 × 12 × 0.80 = 854,40 → 855 € (∼71,25 €/mois équivalent)
- *   Business annual = 179 × 12 × 0.80 = 1718,40 → 1719 € (∼143,25 €/mois équivalent)
- *   Agency annual = 349 × 12 × 0.80 = 3350,40 → 3351 € (∼279,25 €/mois équivalent)
+ *   Starter annual = 99 × 12 × 0.80 = 950,40 → 951 €
+ *   Business annual = 219 × 12 × 0.80 = 2102,40 → 2103 €
+ *   Agency annual = 449 × 12 × 0.80 = 4310,40 → 4311 €
  *
- * Pay-as-you-go : tier one-shot 69 €/event pour les pros qui ne veulent pas
- * d'abonnement. Code-side l'intégration n'est PAS encore branchée — seul le
- * Stripe Price est créé pour pouvoir basculer plus tard sans déploiement.
- * Cf. BACKLOG "Pay-as-you-go pro code-side".
+ * Pay-as-you-go : tier one-shot 79 €/event pour les pros qui ne veulent pas
+ * d'abonnement.
  *
- * **EUR est la source unique** — USD/MAD/TND/XOF sont dérivés via
- * `convertFromEur` (cf. `lib/payments/currency.ts`). Pas d'overlay régional :
- * un Starter à 89 € reste 89 € converti pour tout le monde.
+ * **EUR est la source unique** pour MAD/TND/XOF (dérivés via `convertFromEur`).
+ * **USD est posé en parité numérique** (v2.3, 2026-07-06, cf. `.context/
+ * pricing-v2.md` § « Grille USD ») : un Starter à 99 € coûte $99 — même
+ * chiffre, devise locale — au lieu de l'illisible $106.92 (×1,08). Même
+ * convention annuelle qu'en EUR (ceil du total remisé).
  *
  * Multi-devises : EUR + USD + MAD réglés via Stripe. XOF/TND restent des
  * devises d'affichage uniquement (pas de processeur de paiement).
@@ -63,6 +63,11 @@ const STARTER_EUR = 9900; // 99 € (grille v2)
 const BUSINESS_EUR = 21900; // 219 € (grille v2)
 const AGENCY_EUR = 44900; // 449 € (grille v2)
 
+// USD marché — parité numérique avec l'EUR (99 € ↔ $99), cf. doc d'en-tête.
+const STARTER_USD = 9900; // $99
+const BUSINESS_USD = 21900; // $219
+const AGENCY_USD = 44900; // $449
+
 export const SUBSCRIPTION_TIER_PRICES: Record<SubscriptionTier, SubscriptionTierDefinition> = {
   starter: {
     amountMinor: STARTER_EUR,
@@ -72,7 +77,7 @@ export const SUBSCRIPTION_TIER_PRICES: Record<SubscriptionTier, SubscriptionTier
     featureKeys: ['events3', 'whatsapp2k', 'brandingWedillybird', 'supportEmail48h'],
     activeEventsQuota: 5,
     whatsappMessagesIncluded: 3000,
-    prices: pricesFromEur(STARTER_EUR),
+    prices: { ...pricesFromEur(STARTER_EUR), USD: STARTER_USD },
   },
   business: {
     amountMinor: BUSINESS_EUR,
@@ -82,7 +87,7 @@ export const SUBSCRIPTION_TIER_PRICES: Record<SubscriptionTier, SubscriptionTier
     featureKeys: ['events10', 'whatsapp6k', 'brandingLogoSubdomain', 'supportPriority24h'],
     activeEventsQuota: 20,
     whatsappMessagesIncluded: 10000,
-    prices: pricesFromEur(BUSINESS_EUR),
+    prices: { ...pricesFromEur(BUSINESS_EUR), USD: BUSINESS_USD },
   },
   agency: {
     amountMinor: AGENCY_EUR,
@@ -92,7 +97,7 @@ export const SUBSCRIPTION_TIER_PRICES: Record<SubscriptionTier, SubscriptionTier
     featureKeys: ['eventsUnlimited', 'whatsapp20k', 'brandingWhiteLabel', 'accountManager'],
     activeEventsQuota: 50,
     whatsappMessagesIncluded: 25000,
-    prices: pricesFromEur(AGENCY_EUR),
+    prices: { ...pricesFromEur(AGENCY_EUR), USD: AGENCY_USD },
   },
 };
 
@@ -105,13 +110,28 @@ const STARTER_ANNUAL_EUR = 95100; // 951 € (99 × 12 × 0,80 = 950,40 → ceil
 const BUSINESS_ANNUAL_EUR = 210300; // 2 103 € (219 × 12 × 0,80 = 2102,40 → ceil 2103)
 const AGENCY_ANNUAL_EUR = 431100; // 4 311 € (449 × 12 × 0,80 = 4310,40 → ceil 4311)
 
+// USD annuels : même convention que l'EUR (ceil(mensuel USD × 12 × 0,80)) —
+// parité numérique oblige, les montants coïncident avec l'EUR.
+const STARTER_ANNUAL_USD = 95100; // $951
+const BUSINESS_ANNUAL_USD = 210300; // $2,103
+const AGENCY_ANNUAL_USD = 431100; // $4,311
+
 export const SUBSCRIPTION_TIER_ANNUAL_PRICES: Record<
   SubscriptionTier,
   { amountMinor: number; prices: Record<Currency, number> }
 > = {
-  starter: { amountMinor: STARTER_ANNUAL_EUR, prices: pricesFromEur(STARTER_ANNUAL_EUR) },
-  business: { amountMinor: BUSINESS_ANNUAL_EUR, prices: pricesFromEur(BUSINESS_ANNUAL_EUR) },
-  agency: { amountMinor: AGENCY_ANNUAL_EUR, prices: pricesFromEur(AGENCY_ANNUAL_EUR) },
+  starter: {
+    amountMinor: STARTER_ANNUAL_EUR,
+    prices: { ...pricesFromEur(STARTER_ANNUAL_EUR), USD: STARTER_ANNUAL_USD },
+  },
+  business: {
+    amountMinor: BUSINESS_ANNUAL_EUR,
+    prices: { ...pricesFromEur(BUSINESS_ANNUAL_EUR), USD: BUSINESS_ANNUAL_USD },
+  },
+  agency: {
+    amountMinor: AGENCY_ANNUAL_EUR,
+    prices: { ...pricesFromEur(AGENCY_ANNUAL_EUR), USD: AGENCY_ANNUAL_USD },
+  },
 };
 
 /**
@@ -120,6 +140,7 @@ export const SUBSCRIPTION_TIER_ANNUAL_PRICES: Record<
  * `payg` côté schema/code aujourd'hui (cf. BACKLOG).
  */
 const PAYG_EUR = 7900; // 79 € (grille v2)
+const PAYG_USD = 7900; // $79 — parité numérique
 
 export const PAYG_PRO_PRICE: {
   amountMinor: number;
@@ -130,7 +151,7 @@ export const PAYG_PRO_PRICE: {
   amountMinor: PAYG_EUR,
   currency: 'EUR',
   label: 'Pay-as-you-go',
-  prices: pricesFromEur(PAYG_EUR),
+  prices: { ...pricesFromEur(PAYG_EUR), USD: PAYG_USD },
 };
 
 export function isSubscriptionTier(value: unknown): value is SubscriptionTier {

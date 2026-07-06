@@ -9,15 +9,15 @@
 Résumé impératif :
 
 - **Pas de tier `free`** côté particuliers. (Supprimé du code ✅ — `PlanTier = 'essential' | 'premium'`.)
-- **Particuliers (one-shot)** :
-  - Essentiel **29 €** — 100 invités max — 5 Go galerie 12 mois
-  - Premium **59 €** — 250 invités max — 25 Go HD 12 mois
-  - Upsell HD post-event **+29 €** — archive perpétuelle
+- **Particuliers (one-shot)** — EUR canonique · **USD posé en valeur marché** (v2.3 : $40/$80/+$30, plus de conversion ×1,08 ; pros en parité $99/$219/$449/$79) :
+  - Essentiel **29 € / $40** — 100 invités max — 5 Go galerie 12 mois
+  - Premium **59 € / $80** — 250 invités max — 25 Go HD 12 mois
+  - Upsell HD post-event **+29 € / +$30** — archive perpétuelle
 - **Pros (mensuel · -20 % en annuel)** :
-  - Starter **99 €/mois** (79 €/mois annuel) — 5 events × 150 invités — 50 Go
-  - Business **219 €/mois** (175 €/mois annuel) — 20 events × 150 invités — 200 Go
-  - Agency **449 €/mois** (359 €/mois annuel) — 50 events × 150 invités — 500 Go
-  - Pay-as-you-go **79 €/event** — 150 invités max — 25 Go
+  - Starter **99 €/mois / $99** (79 €/mois annuel) — 5 events × 150 invités — 50 Go
+  - Business **219 €/mois / $219** (175 €/mois annuel) — 20 events × 150 invités — 200 Go
+  - Agency **449 €/mois / $449** (359 €/mois annuel) — 50 events × 150 invités — 500 Go
+  - Pay-as-you-go **79 €/event / $79** — 150 invités max — 25 Go
 - **Dépassements** :
   - SMS / WhatsApp au-delà bundle : **0,06 €/msg**
   - Invité au-delà du cap : **0,25 €/invité**
