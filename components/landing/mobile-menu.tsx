@@ -5,7 +5,8 @@ import { useLocale, useTranslations } from 'next-intl';
 import { Check, Menu, X } from 'lucide-react';
 import { Link, usePathname, useRouter } from '@/i18n/navigation';
 import { Drawer, DrawerContent, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer';
-import { LOCALE_NATIVE_NAMES, routing, type Locale } from '@/i18n/routing';
+import { LOCALE_FLAGS, LOCALE_NATIVE_NAMES, routing, type Locale } from '@/i18n/routing';
+import { useCurrencyStore } from '@/stores/currency-store';
 import { cn } from '@/lib/cn';
 import { analytics } from '@/lib/analytics/posthog-client';
 
@@ -16,16 +17,6 @@ const SECTION_ITEMS: ReadonlyArray<{ id: string; key: string }> = [
   { id: 'pricing-pros', key: 'pricingPros' },
   { id: 'faq', key: 'faq' },
 ];
-
-const LOCALE_FLAGS: Record<Locale, string> = {
-  fr: '🇫🇷',
-  en: '🇬🇧',
-  es: '🇪🇸',
-  it: '🇮🇹',
-  pt: '🇵🇹',
-  de: '🇩🇪',
-  ar: '🇸🇦',
-};
 
 /**
  * Mobile menu — déclenché par hamburger sur header mobile.
@@ -48,6 +39,9 @@ export function MobileMenu() {
       setOpen(false);
       return;
     }
+    // Changer de langue réinitialise l'override devise : la nouvelle locale
+    // impose sa devise par défaut (en → USD, langues européennes → EUR).
+    useCurrencyStore.getState().clearCurrency();
     startTransition(() => {
       router.replace(pathname, { locale: next });
       setOpen(false);

@@ -13,11 +13,11 @@ Résumé impératif :
   - Essentiel **29 € / $40** — 100 invitations max — sans galerie partagée
   - Premium **59 € / $80** — 250 invitations max — galerie partagée HD 6 mois + album PDF
   - Upsell HD post-event **+29 € / +$30** — rétention galerie 5 ans + export ZIP HD + livre photo
-- **Pros (mensuel · -20 % en annuel)** :
-  - Starter **99 €/mois** (79 €/mois annuel) — 5 events × 150 invités — 50 Go
-  - Business **219 €/mois** (175 €/mois annuel) — 20 events × 150 invités — 200 Go
-  - Agency **449 €/mois** (359 €/mois annuel) — 50 events × 150 invités — 500 Go
-  - Pay-as-you-go **79 €/event** — 150 invités max — 25 Go
+- **Pros (mensuel · -20 % en annuel)** — USD = **parité numérique** (99 € ↔ $99, v2.3) :
+  - Starter **99 €/mois / $99** (79 €/mois annuel) — 5 events × 150 invités — 50 Go
+  - Business **219 €/mois / $219** (175 €/mois annuel) — 20 events × 150 invités — 200 Go
+  - Agency **449 €/mois / $449** (359 €/mois annuel) — 50 events × 150 invités — 500 Go
+  - Pay-as-you-go **79 €/event / $79** — 150 invités max — 25 Go
 - **Dépassements** :
   - SMS / WhatsApp au-delà bundle : **0,06 €/msg**
   - Invité au-delà du cap : **0,25 €/invité**

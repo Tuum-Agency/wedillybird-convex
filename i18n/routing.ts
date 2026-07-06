@@ -27,3 +27,20 @@ export const LOCALE_NATIVE_NAMES: Record<Locale, string> = {
   de: 'Deutsch',
   ar: 'العربية',
 };
+
+/**
+ * Drapeaux du sélecteur de langue — source unique (sélecteur desktop, menu
+ * mobile, bannière de suggestion). L'anglais porte le drapeau **américain** :
+ * le lancement EN cible US/Canada et la locale `en` affiche les prix en USD
+ * (cf. `LOCALE_DEFAULT_CURRENCY` dans `lib/payments/currency.ts`) — décision
+ * 2026-07-06.
+ */
+export const LOCALE_FLAGS: Record<Locale, string> = {
+  fr: '🇫🇷',
+  en: '🇺🇸',
+  es: '🇪🇸',
+  it: '🇮🇹',
+  pt: '🇵🇹',
+  de: '🇩🇪',
+  ar: '🇸🇦',
+};
