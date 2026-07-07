@@ -9,6 +9,7 @@
  */
 
 import type * as admin from "../admin.js";
+import type * as affiliate from "../affiliate.js";
 import type * as analytics from "../analytics.js";
 import type * as auth from "../auth.js";
 import type * as budget from "../budget.js";
@@ -22,6 +23,7 @@ import type * as guests from "../guests.js";
 import type * as http from "../http.js";
 import type * as invitationActions from "../invitationActions.js";
 import type * as invitationAudio from "../invitationAudio.js";
+import type * as lib_affiliate from "../lib/affiliate.js";
 import type * as lib_analytics from "../lib/analytics.js";
 import type * as lib_autoplace from "../lib/autoplace.js";
 import type * as lib_channelRouting from "../lib/channelRouting.js";
@@ -73,6 +75,7 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   admin: typeof admin;
+  affiliate: typeof affiliate;
   analytics: typeof analytics;
   auth: typeof auth;
   budget: typeof budget;
@@ -86,6 +89,7 @@ declare const fullApi: ApiFromModules<{
   http: typeof http;
   invitationActions: typeof invitationActions;
   invitationAudio: typeof invitationAudio;
+  "lib/affiliate": typeof lib_affiliate;
   "lib/analytics": typeof lib_analytics;
   "lib/autoplace": typeof lib_autoplace;
   "lib/channelRouting": typeof lib_channelRouting;

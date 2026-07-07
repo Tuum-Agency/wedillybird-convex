@@ -33,4 +33,9 @@ crons.cron(
   {},
 );
 
+// Daily at 03:00 UTC: vest affiliate/referral rewards whose hold has elapsed
+// (pending → vested once the event date / J+7 floor is passed). Idempotent;
+// no-op when there's nothing due.
+crons.cron('vest affiliate rewards', '0 3 * * *', internal.affiliate.vestDueReferrals, {});
+
 export default crons;
