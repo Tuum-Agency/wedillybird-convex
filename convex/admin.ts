@@ -2,6 +2,7 @@ import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
 import type { Id } from './_generated/dataModel';
 import { computePlatformAnalytics, computeRefundOutcome } from './lib/analytics';
+import { reverseReferralBySession } from './affiliate';
 
 async function assertAdmin(
   ctx: { db: { get: (id: Id<'users'>) => Promise<{ role: string } | null> } },
@@ -315,6 +316,17 @@ export const markPaymentRefunded = mutation({
       stripeRefundId: stripeRefundId ?? p.stripeRefundId,
       updatedAt: Date.now(),
     });
+
+    // Affiliation : rembourser une vente annule la commission liée (best-effort,
+    // idempotent — sans effet si déjà versée ou inexistante).
+    if (p.affiliateId) {
+      try {
+        await reverseReferralBySession(ctx, p.providerSessionId);
+      } catch {
+        // best-effort — le remboursement prime.
+      }
+    }
+
     await ctx.db.insert('adminAuditLog', {
       adminId,
       action: status === 'refunded' ? 'refund_payment' : 'partial_refund_payment',
