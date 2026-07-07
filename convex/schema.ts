@@ -619,6 +619,9 @@ export default defineSchema({
     provider: v.union(v.literal('stripe'), v.literal('mock')),
     providerSessionId: v.string(),
     providerEventId: v.optional(v.string()),
+    /** Affilié/parrain attribué (posé au checkout via `?ref`). Le referral est
+     *  enregistré dans le ledger à la confirmation du paiement (`markSucceeded`). */
+    affiliateId: v.optional(v.id('affiliates')),
     status: v.union(
       v.literal('pending'),
       v.literal('succeeded'),

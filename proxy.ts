@@ -67,15 +67,34 @@ function resolveOrgSlug(req: NextRequest): string | null {
   return preview.toLowerCase();
 }
 
+const AFFILIATE_REF_RE = /^[A-Za-z0-9]{3,24}$/;
+
 export default function proxy(request: NextRequest) {
+  // Attribution affiliation : premier `?ref=CODE` valide capté → cookie
+  // first-party 30 j (httpOnly, lu côté serveur au checkout). Zéro friction.
+  const rawRef = request.nextUrl.searchParams.get('ref');
+  const ref = rawRef && AFFILIATE_REF_RE.test(rawRef) ? rawRef.toUpperCase() : null;
+
   const slug = resolveOrgSlug(request);
-  if (slug && !isAlreadyOrgPath(request.nextUrl.pathname)) {
-    const rewriteUrl = buildRewriteUrl(request, slug);
-    const response = NextResponse.rewrite(rewriteUrl);
-    response.headers.set('x-org-slug', slug);
-    return response;
+  const response =
+    slug && !isAlreadyOrgPath(request.nextUrl.pathname)
+      ? (() => {
+          const rewriteUrl = buildRewriteUrl(request, slug);
+          const res = NextResponse.rewrite(rewriteUrl);
+          res.headers.set('x-org-slug', slug);
+          return res;
+        })()
+      : intlMiddleware(request);
+
+  if (ref && response) {
+    response.cookies.set('wdb_ref', ref, {
+      maxAge: 30 * 24 * 60 * 60,
+      httpOnly: true,
+      sameSite: 'lax',
+      path: '/',
+    });
   }
-  return intlMiddleware(request);
+  return response;
 }
 
 export const config = {

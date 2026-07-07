@@ -94,6 +94,7 @@ export const stripeDriver: PaymentDriver = {
         eventId: input.eventId,
         userId: input.userId,
         plan: input.plan,
+        ...(input.affiliateId ? { affiliateId: input.affiliateId } : {}),
       },
       client_reference_id: `${input.userId}:${input.eventId}`,
       locale: 'auto',

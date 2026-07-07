@@ -8,7 +8,7 @@
  * branche par-dessus (phase suivante) — ici on ne calcule et ne suit que le dû.
  */
 import { v } from 'convex/values';
-import { mutation, query, internalMutation } from './_generated/server';
+import { mutation, query, internalMutation, type MutationCtx } from './_generated/server';
 import type { Id } from './_generated/dataModel';
 import {
   isRewardConfigSafe,
@@ -126,11 +126,74 @@ export const getAffiliateByCode = query({
 });
 
 /**
- * Écrit (idempotent) une ligne de ledger pour une vente attribuée. Appelée par
- * le webhook `checkout.session.completed` (interne, gardée par le secret
- * webhook côté route). Anti-self-referral appliqué ici. Retourne l'issue pour
- * l'observabilité (deduped / self_referral / recorded).
+ * Cœur d'écriture du ledger — helper Convex réutilisable DANS une transaction
+ * existante (pas un endpoint) : appelé par `payments.markSucceeded` à la
+ * confirmation d'un paiement attribué, en best-effort. Idempotent sur
+ * `sourceSessionId` (webhook Stripe rejoué safe), anti-self-referral, récompense
+ * calculée sur le net, vesting à la date event.
  */
+export async function applyReferral(
+  ctx: MutationCtx,
+  args: {
+    affiliateId: Id<'affiliates'>;
+    sourceSessionId: string;
+    grossMinor: number;
+    netMinor: number;
+    currency: string;
+    purchasedAt: number;
+    eventDate?: number;
+    eventId?: Id<'events'>;
+    buyerUserId?: Id<'users'>;
+    buyerEmail?: string | null;
+  },
+): Promise<
+  | { outcome: 'deduped'; referralId: Id<'affiliateReferrals'> }
+  | { outcome: 'inactive' }
+  | { outcome: 'self_referral' }
+  | { outcome: 'recorded'; referralId: Id<'affiliateReferrals'> }
+> {
+  const dup = await ctx.db
+    .query('affiliateReferrals')
+    .withIndex('by_source_session', (q) => q.eq('sourceSessionId', args.sourceSessionId))
+    .first();
+  if (dup) return { outcome: 'deduped', referralId: dup._id };
+
+  const aff = await ctx.db.get(args.affiliateId);
+  if (!aff || aff.status !== 'active') return { outcome: 'inactive' };
+
+  if (
+    isSelfReferral({
+      affiliateOwnerUserId: aff.ownerUserId ?? null,
+      buyerUserId: args.buyerUserId ?? null,
+      affiliateEmail: aff.ownerEmail ?? null,
+      buyerEmail: args.buyerEmail ?? null,
+    })
+  ) {
+    return { outcome: 'self_referral' };
+  }
+
+  const now = Date.now();
+  const referralId = await ctx.db.insert('affiliateReferrals', {
+    affiliateId: aff._id,
+    code: aff.code,
+    sourceSessionId: args.sourceSessionId,
+    paymentId: undefined,
+    eventId: args.eventId,
+    buyerUserId: args.buyerUserId,
+    grossMinor: args.grossMinor,
+    netMinor: args.netMinor,
+    currency: args.currency,
+    rewardMinor: rewardMinor(args.netMinor, aff.rateBps),
+    rewardType: aff.rewardType,
+    status: 'pending',
+    vestsAt: computeVestsAt(args.eventDate ?? Number.NaN, args.purchasedAt),
+    createdAt: now,
+    updatedAt: now,
+  });
+  return { outcome: 'recorded', referralId };
+}
+
+/** Wrapper interne (ops / rejeu manuel). Le flux nominal passe par markSucceeded. */
 export const recordReferral = internalMutation({
   args: {
     affiliateId: v.id('affiliates'),
@@ -144,70 +207,34 @@ export const recordReferral = internalMutation({
     buyerUserId: v.optional(v.id('users')),
     buyerEmail: v.optional(v.string()),
   },
-  handler: async (ctx, args) => {
-    // Idempotence : une seule ligne par Session Stripe (webhook rejoué safe).
-    const dup = await ctx.db
-      .query('affiliateReferrals')
-      .withIndex('by_source_session', (q) => q.eq('sourceSessionId', args.sourceSessionId))
-      .first();
-    if (dup) return { outcome: 'deduped' as const, referralId: dup._id };
-
-    const aff = await ctx.db.get(args.affiliateId);
-    if (!aff || aff.status !== 'active') return { outcome: 'inactive' as const };
-
-    // Anti-self-referral : un affilié ne touche pas sur son propre achat.
-    if (
-      isSelfReferral({
-        affiliateOwnerUserId: aff.ownerUserId ?? null,
-        buyerUserId: args.buyerUserId ?? null,
-        affiliateEmail: aff.ownerEmail ?? null,
-        buyerEmail: args.buyerEmail ?? null,
-      })
-    ) {
-      return { outcome: 'self_referral' as const };
-    }
-
-    const now = Date.now();
-    const referralId = await ctx.db.insert('affiliateReferrals', {
-      affiliateId: aff._id,
-      code: aff.code,
-      sourceSessionId: args.sourceSessionId,
-      paymentId: undefined,
-      eventId: args.eventId,
-      buyerUserId: args.buyerUserId,
-      grossMinor: args.grossMinor,
-      netMinor: args.netMinor,
-      currency: args.currency,
-      rewardMinor: rewardMinor(args.netMinor, aff.rateBps),
-      rewardType: aff.rewardType,
-      status: 'pending',
-      vestsAt: computeVestsAt(args.eventDate ?? Number.NaN, args.purchasedAt),
-      createdAt: now,
-      updatedAt: now,
-    });
-    return { outcome: 'recorded' as const, referralId };
-  },
+  handler: (ctx, args) => applyReferral(ctx, args),
 });
 
 /**
  * Annule une récompense (remboursement / litige) tant qu'elle n'est pas versée.
+ * Helper réutilisable dans une transaction (appelé par la mutation de refund).
  * Idempotent et sans effet si déjà terminale (paid/credited/reversed).
  */
+export async function reverseReferralBySession(
+  ctx: MutationCtx,
+  sourceSessionId: string,
+): Promise<{ outcome: 'noop' } | { outcome: 'reversed'; referralId: Id<'affiliateReferrals'> }> {
+  const ref = await ctx.db
+    .query('affiliateReferrals')
+    .withIndex('by_source_session', (q) => q.eq('sourceSessionId', sourceSessionId))
+    .first();
+  if (!ref || !canReverse(ref.status)) return { outcome: 'noop' };
+  await ctx.db.patch(ref._id, {
+    status: 'reversed',
+    reversedAt: Date.now(),
+    updatedAt: Date.now(),
+  });
+  return { outcome: 'reversed', referralId: ref._id };
+}
+
 export const reverseReferral = internalMutation({
   args: { sourceSessionId: v.string() },
-  handler: async (ctx, { sourceSessionId }) => {
-    const ref = await ctx.db
-      .query('affiliateReferrals')
-      .withIndex('by_source_session', (q) => q.eq('sourceSessionId', sourceSessionId))
-      .first();
-    if (!ref || !canReverse(ref.status)) return { outcome: 'noop' as const };
-    await ctx.db.patch(ref._id, {
-      status: 'reversed',
-      reversedAt: Date.now(),
-      updatedAt: Date.now(),
-    });
-    return { outcome: 'reversed' as const, referralId: ref._id };
-  },
+  handler: (ctx, { sourceSessionId }) => reverseReferralBySession(ctx, sourceSessionId),
 });
 
 /* ============================ Vesting (cron) ============================ */

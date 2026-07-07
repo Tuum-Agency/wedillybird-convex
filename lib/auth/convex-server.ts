@@ -827,9 +827,76 @@ export const convexApi = {
       amountMinor: number;
       provider: 'stripe' | 'mock';
       providerSessionId: string;
+      affiliateId?: string;
     },
     { id: string }
   >('payments:recordIntent'),
+  getAffiliateByCode: makeFunctionReference<
+    'query',
+    { code: string },
+    {
+      id: string;
+      code: string;
+      kind: 'referral' | 'partner';
+      rewardType: 'credit' | 'cash';
+      buyerDiscountBps: number;
+    } | null
+  >('affiliate:getAffiliateByCode'),
+  createAffiliate: makeFunctionReference<
+    'mutation',
+    {
+      adminId: string;
+      code: string;
+      kind: 'referral' | 'partner';
+      rewardType: 'credit' | 'cash';
+      rateBps: number;
+      buyerDiscountBps: number;
+      ownerUserId?: string;
+      ownerEmail?: string;
+      displayName?: string;
+    },
+    { id: string; code: string }
+  >('affiliate:createAffiliate'),
+  setAffiliateStatus: makeFunctionReference<
+    'mutation',
+    { adminId: string; affiliateId: string; status: 'active' | 'disabled' },
+    null
+  >('affiliate:setAffiliateStatus'),
+  listAffiliates: makeFunctionReference<
+    'query',
+    { adminId: string },
+    Array<{
+      id: string;
+      code: string;
+      kind: 'referral' | 'partner';
+      rewardType: 'credit' | 'cash';
+      rateBps: number;
+      buyerDiscountBps: number;
+      ownerEmail: string | null;
+      displayName: string | null;
+      status: 'active' | 'disabled';
+      createdAt: number;
+    }>
+  >('affiliate:listAffiliates'),
+  listReferrals: makeFunctionReference<
+    'query',
+    {
+      adminId: string;
+      status?: 'pending' | 'vested' | 'paid' | 'credited' | 'reversed';
+    },
+    Array<{
+      id: string;
+      affiliateId: string;
+      code: string;
+      status: 'pending' | 'vested' | 'paid' | 'credited' | 'reversed';
+      rewardType: 'credit' | 'cash';
+      rewardMinor: number;
+      netMinor: number;
+      currency: string;
+      vestsAt: number;
+      createdAt: number;
+    }>
+  >('affiliate:listReferrals'),
   findPaymentBySession: makeFunctionReference<
     'query',
     { provider: 'stripe' | 'mock'; providerSessionId: string },

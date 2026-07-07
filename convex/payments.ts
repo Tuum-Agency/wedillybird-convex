@@ -4,6 +4,7 @@ import { internal } from './_generated/api';
 import { toIntlTag } from '../lib/i18n/locale-tags';
 import { assertOrgRead } from './lib/orgAuth';
 import { proTierAtLeast } from './lib/entitlements';
+import { applyReferral } from './affiliate';
 
 function ownerLocaleToIntlTag(locale: string | undefined): string {
   return toIntlTag(locale);
@@ -69,6 +70,8 @@ export const recordIntent = mutation({
     amountMinor: v.number(),
     provider: PROVIDER,
     providerSessionId: v.string(),
+    /** Affilié/parrain attribué (résolu du cookie `wdb_ref` au checkout). */
+    affiliateId: v.optional(v.id('affiliates')),
   },
   handler: async (ctx, args) => {
     const event = await ctx.db.get(args.eventId);
@@ -83,6 +86,7 @@ export const recordIntent = mutation({
       amountMinor: args.amountMinor,
       provider: args.provider,
       providerSessionId: args.providerSessionId,
+      affiliateId: args.affiliateId,
       status: 'pending',
       createdAt: Date.now(),
       updatedAt: Date.now(),
@@ -173,6 +177,29 @@ export const markSucceeded = mutation({
     // Only sent on the first transition to `succeeded` — repeat webhooks for
     // an already-applied payment must not retrigger the email.
     const owner = await ctx.db.get(payment.userId);
+
+    // Affiliation : paiement attribué → on écrit la ligne de ledger (idempotente
+    // sur la session). BEST-EFFORT strict — une erreur ici ne DOIT jamais faire
+    // échouer la confirmation du paiement (sinon Stripe rejoue et le couple
+    // reste bloqué). On avale donc l'exception.
+    if (payment.affiliateId) {
+      try {
+        await applyReferral(ctx, {
+          affiliateId: payment.affiliateId,
+          sourceSessionId: payment.providerSessionId,
+          grossMinor: payment.amountMinor,
+          netMinor: payment.amountMinor,
+          currency: payment.currency,
+          purchasedAt: now,
+          eventDate: event?.eventDate,
+          eventId: payment.eventId,
+          buyerUserId: payment.userId,
+          buyerEmail: owner?.email ?? null,
+        });
+      } catch {
+        // best-effort — la confirmation du paiement prime.
+      }
+    }
     if (owner?.email) {
       const amountFormatted = formatAmount(payment.amountMinor, payment.currency);
       const eventTitle = event?.title ?? '';

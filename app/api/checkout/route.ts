@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 import { z } from 'zod';
 import { getSession } from '@/lib/auth/session';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
@@ -40,6 +41,22 @@ export async function POST(req: Request): Promise<Response> {
   const successUrl = `${origin}/events/${parsed.eventId}/upgrade/success`;
   const cancelUrl = `${origin}/events/${parsed.eventId}/upgrade/cancelled`;
 
+  // Attribution affiliation : le proxy pose le cookie `wdb_ref` sur `?ref=CODE`.
+  // On le résout en id d'affilié — best-effort strict : ne jamais bloquer le
+  // checkout si la résolution échoue ou si le code est inconnu/inactif.
+  let affiliateId: string | undefined;
+  const refCode = (await cookies()).get('wdb_ref')?.value;
+  if (refCode) {
+    try {
+      const aff = await getConvexServerClient().query(convexApi.getAffiliateByCode, {
+        code: refCode,
+      });
+      if (aff) affiliateId = aff.id;
+    } catch {
+      // best-effort — l'attribution ne bloque jamais l'achat.
+    }
+  }
+
   const driver = getPaymentDriver(routing.provider);
   let session_;
   try {
@@ -52,6 +69,7 @@ export async function POST(req: Request): Promise<Response> {
       userId: session.userId,
       successUrl,
       cancelUrl,
+      affiliateId,
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'UNKNOWN';
@@ -68,6 +86,7 @@ export async function POST(req: Request): Promise<Response> {
       amountMinor,
       provider: driver.name,
       providerSessionId: session_.providerSessionId,
+      affiliateId,
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'UNKNOWN';

@@ -14,6 +14,8 @@ export interface CheckoutInput {
   customerEmail?: string;
   /** Optional — téléphone client. */
   customerPhone?: string;
+  /** Optional — id d'affilié attribué (posé en metadata de la session + PI). */
+  affiliateId?: string;
 }
 
 export interface CheckoutSession {
