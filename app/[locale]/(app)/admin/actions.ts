@@ -552,3 +552,51 @@ export async function adminUpdatePhotoBookStatusAction(
     return { ok: false, error: msg(e) };
   }
 }
+
+/* -------------------------------------------------------------------------- */
+/*  Affiliation — création d'affilié (invitation-only) + activation           */
+/* -------------------------------------------------------------------------- */
+
+export async function adminCreateAffiliateAction(input: {
+  code: string;
+  kind: 'referral' | 'partner';
+  rewardType: 'credit' | 'cash';
+  rateBps: number;
+  buyerDiscountBps: number;
+  ownerEmail?: string;
+  displayName?: string;
+}): Promise<ActionResult> {
+  try {
+    const adminId = await requireAdmin();
+    const convex = getConvexServerClient();
+    await convex.mutation(convexApi.createAffiliate, {
+      adminId,
+      code: input.code,
+      kind: input.kind,
+      rewardType: input.rewardType,
+      rateBps: input.rateBps,
+      buyerDiscountBps: input.buyerDiscountBps,
+      ...(input.ownerEmail ? { ownerEmail: input.ownerEmail } : {}),
+      ...(input.displayName ? { displayName: input.displayName } : {}),
+    });
+    revalidatePath('/admin/affiliates');
+    return { ok: true };
+  } catch (e: unknown) {
+    return { ok: false, error: msg(e) };
+  }
+}
+
+export async function adminSetAffiliateStatusAction(
+  affiliateId: string,
+  status: 'active' | 'disabled',
+): Promise<ActionResult> {
+  try {
+    const adminId = await requireAdmin();
+    const convex = getConvexServerClient();
+    await convex.mutation(convexApi.setAffiliateStatus, { adminId, affiliateId, status });
+    revalidatePath('/admin/affiliates');
+    return { ok: true };
+  } catch (e: unknown) {
+    return { ok: false, error: msg(e) };
+  }
+}
