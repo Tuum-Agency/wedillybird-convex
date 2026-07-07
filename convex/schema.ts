@@ -1363,4 +1363,77 @@ export default defineSchema({
     .index('by_event', ['eventId'])
     .index('by_vendor', ['vendorId'])
     .index('by_vendor_event', ['vendorId', 'eventId']),
+
+  /**
+   * Programme d'affiliation / parrainage. Décision conseil (llm-council) : le
+   * LEDGER est le vrai actif — attribution + calcul + statuts vivent ici,
+   * indépendamment du mécanisme de versement (crédit auto pour la boucle
+   * particulier ; cash groupé puis Connect Express pour les partenaires).
+   *
+   * `kind` : 'referral' (client-parrain, récompense en CRÉDIT, zéro KYC) ou
+   * 'partner' (créateur/planner invité, récompense en CASH, payout différé).
+   * Logique pure et bornes dans `convex/lib/affiliate.ts`.
+   */
+  affiliates: defineTable({
+    /** Code lisible partagé (?ref=CODE), unique, normalisé A-Z0-9. */
+    code: v.string(),
+    kind: v.union(v.literal('referral'), v.literal('partner')),
+    /** Récompense : crédit in-app (100 % auto) ou cash (payout différé). */
+    rewardType: v.union(v.literal('credit'), v.literal('cash')),
+    /** Commission affilié en basis points (2000 = 20,00 %). */
+    rateBps: v.number(),
+    /** Remise offerte au filleul en basis points (0 = aucune). */
+    buyerDiscountBps: v.number(),
+    /** Parrain (referral) ou compte partenaire, si rattaché à un user. */
+    ownerUserId: v.optional(v.id('users')),
+    /** Email partenaire (anti-self-referral + contact payout). */
+    ownerEmail: v.optional(v.string()),
+    displayName: v.optional(v.string()),
+    status: v.union(v.literal('active'), v.literal('disabled')),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index('by_code', ['code'])
+    .index('by_owner', ['ownerUserId'])
+    .index('by_kind', ['kind']),
+
+  /**
+   * Ledger d'attribution : une ligne par vente attribuée à un affilié.
+   * Idempotent sur `sourceSessionId` (webhooks Stripe at-least-once).
+   * `status` : pending → vested (à la date d'event) → paid|credited | reversed.
+   * Montants en CENTIMES, devise native (jamais de conversion dans le ledger).
+   */
+  affiliateReferrals: defineTable({
+    affiliateId: v.id('affiliates'),
+    code: v.string(),
+    /** Clé d'idempotence = Checkout Session Stripe (unique). */
+    sourceSessionId: v.string(),
+    paymentId: v.optional(v.id('payments')),
+    eventId: v.optional(v.id('events')),
+    buyerUserId: v.optional(v.id('users')),
+    grossMinor: v.number(),
+    /** Net encaissé après remise = base de calcul de la récompense. */
+    netMinor: v.number(),
+    currency: v.string(),
+    /** Récompense calculée (commission cash OU crédit), centimes. */
+    rewardMinor: v.number(),
+    rewardType: v.union(v.literal('credit'), v.literal('cash')),
+    status: v.union(
+      v.literal('pending'),
+      v.literal('vested'),
+      v.literal('paid'),
+      v.literal('credited'),
+      v.literal('reversed'),
+    ),
+    /** Récompense « acquise » à cette date (= date event, plancher J+7). */
+    vestsAt: v.number(),
+    paidAt: v.optional(v.number()),
+    reversedAt: v.optional(v.number()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index('by_affiliate', ['affiliateId'])
+    .index('by_source_session', ['sourceSessionId'])
+    .index('by_status', ['status'])
+    .index('by_status_vests', ['status', 'vestsAt']),
 });
