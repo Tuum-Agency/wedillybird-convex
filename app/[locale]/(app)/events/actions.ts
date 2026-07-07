@@ -273,6 +273,20 @@ export async function updateEventAction(
     };
   }
 
+  // Photo du couple : la clé S3 (prefix `invitation/{eventId}/`) est validée
+  // côté Convex ; on ne transmet que la clé + dimensions post-compression.
+  const rawPhotoKey = formData.get('invitationPhotoKey');
+  const rawPhotoW = formData.get('invitationPhotoWidth');
+  const rawPhotoH = formData.get('invitationPhotoHeight');
+  const clearInvitationPhoto = formData.get('clearInvitationPhoto') === '1';
+  const invitationPhoto = rawPhotoKey
+    ? {
+        s3Key: String(rawPhotoKey),
+        width: rawPhotoW ? Number(rawPhotoW) : undefined,
+        height: rawPhotoH ? Number(rawPhotoH) : undefined,
+      }
+    : undefined;
+
   const convex = getConvexServerClient();
   try {
     await convex.mutation(convexApi.updateEvent, {
@@ -289,6 +303,8 @@ export async function updateEventAction(
       ...(invitationCinematic ? { invitationCinematic } : {}),
       ...(invitationMusic ? { invitationMusic } : {}),
       ...(clearInvitationMusic ? { clearInvitationMusic: true } : {}),
+      ...(invitationPhoto ? { invitationPhoto } : {}),
+      ...(clearInvitationPhoto ? { clearInvitationPhoto: true } : {}),
     });
     revalidatePath(`/fr/events/${eventId}`);
     return { ok: true };
@@ -311,6 +327,30 @@ export async function createEventMusicUploadUrlAction(
   try {
     const convex = getConvexServerClient();
     const res = await convex.action(convexApi.createInvitationMusicUploadUrl, {
+      eventId,
+      requesterId: session.userId,
+      contentType,
+    });
+    return { ok: true, ...res };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : 'UNKNOWN' };
+  }
+}
+
+/**
+ * Presigned PUT S3 pour la photo du couple (édition event côté owner/agence).
+ * Mêmes gardes que la musique : owner + feature `cinematicInvitation`, préfixe
+ * `invitation/{eventId}/`. Fichier compressé côté client avant l'envoi.
+ */
+export async function createEventInvitationPhotoUploadUrlAction(
+  eventId: string,
+  contentType: string,
+): Promise<{ ok: true; uploadUrl: string; s3Key: string } | { ok: false; error: string }> {
+  const session = await getSession();
+  if (!session) return { ok: false, error: 'UNAUTHENTICATED' };
+  try {
+    const convex = getConvexServerClient();
+    const res = await convex.action(convexApi.createInvitationPhotoUploadUrl, {
       eventId,
       requesterId: session.userId,
       contentType,

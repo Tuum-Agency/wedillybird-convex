@@ -5651,6 +5651,17 @@
     }
   },
   "InvitationDesign": {
+    "photoSection": "Foto de la pareja",
+    "photoHint": "JPEG, PNG o WebP · se recomienda formato vertical",
+    "photoAdd": "Añade vuestra foto",
+    "photoChange": "Vuestra foto",
+    "photoReplace": "Reemplazar",
+    "photoRemove": "Quitar la foto",
+    "photoUploadErrors": {
+      "type": "Formato no admitido (JPEG, PNG o WebP)",
+      "size": "Imagen demasiado pesada (máx. 15 MB)",
+      "network": "Error al subir — inténtalo de nuevo"
+    },
     "chooseFile": "Elegir un archivo",
     "cinematicSection": "Cinemática de apertura",
     "customMusic": "Vuestra música",

@@ -3,7 +3,7 @@
 import { useRef, useState, useTransition } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
-import { ExternalLink, Loader2, Save, Upload } from 'lucide-react';
+import { ExternalLink, ImagePlus, Loader2, Save, Trash2, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -15,11 +15,13 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
+  createEventInvitationPhotoUploadUrlAction,
   createEventMusicUploadUrlAction,
   updateEventAction,
 } from '@/app/[locale]/(app)/events/actions';
 import { CINEMATIC_IDS } from '@/components/invitation/cinematics/registry';
 import { MUSIC_TRACK_IDS } from '@/lib/invitation/music';
+import { compressForUpload, isAllowedContentType, MAX_UPLOAD_BYTES } from '@/lib/photos/compress';
 
 interface InitialValues {
   title: string;
@@ -37,6 +39,8 @@ interface InitialValues {
   /** 'none' | trackId bibliothèque | 'custom' (fichier déjà uploadé). */
   musicChoice: string;
   musicCustomTitle: string;
+  /** URL CDN de la photo du couple déjà enregistrée (vide = aucune). */
+  invitationPhotoUrl: string;
 }
 
 const AUDIO_TYPES = ['audio/mpeg', 'audio/mp3', 'audio/mp4', 'audio/x-m4a', 'audio/aac'];
@@ -93,6 +97,21 @@ export function EventEditForm({
   const [uploadingMusic, setUploadingMusic] = useState(false);
   const [musicError, setMusicError] = useState<'type' | 'size' | 'network' | null>(null);
   const musicFileRef = useRef<HTMLInputElement | null>(null);
+  /** Photo uploadée pendant la session (persistée au submit) ; `url` = aperçu. */
+  const [pendingPhoto, setPendingPhoto] = useState<{
+    s3Key: string;
+    url: string;
+    width?: number;
+    height?: number;
+  } | null>(null);
+  /** L'utilisateur a retiré une photo existante (clear au submit). */
+  const [photoRemoved, setPhotoRemoved] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [photoError, setPhotoError] = useState<'type' | 'size' | 'network' | null>(null);
+  const photoFileRef = useRef<HTMLInputElement | null>(null);
+  // Aperçu affiché : nouvel upload > photo existante (sauf si retirée).
+  const photoPreviewUrl =
+    pendingPhoto?.url ?? (photoRemoved ? null : initialValues.invitationPhotoUrl || null);
 
   async function onMusicFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -133,6 +152,51 @@ export function EventEditForm({
     }
   }
 
+  async function onPhotoFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    if (!isAllowedContentType(file.type)) {
+      setPhotoError('type');
+      return;
+    }
+    if (file.size > MAX_UPLOAD_BYTES) {
+      setPhotoError('size');
+      return;
+    }
+    setPhotoError(null);
+    setUploadingPhoto(true);
+    try {
+      const { file: blob, width, height, contentType } = await compressForUpload(file);
+      const pres = await createEventInvitationPhotoUploadUrlAction(eventId, contentType);
+      if (!pres.ok) {
+        setPhotoError('network');
+        return;
+      }
+      const put = await fetch(pres.uploadUrl, {
+        method: 'PUT',
+        headers: { 'Content-Type': contentType },
+        body: blob,
+      });
+      if (!put.ok) {
+        setPhotoError('network');
+        return;
+      }
+      setPhotoRemoved(false);
+      setPendingPhoto({ s3Key: pres.s3Key, url: URL.createObjectURL(blob), width, height });
+    } catch {
+      setPhotoError('network');
+    } finally {
+      setUploadingPhoto(false);
+    }
+  }
+
+  function removePhoto() {
+    setPendingPhoto(null);
+    setPhotoRemoved(true);
+    setPhotoError(null);
+  }
+
   function submit() {
     setError(null);
     setFieldErrors({});
@@ -164,6 +228,13 @@ export function EventEditForm({
         // custom sans nouvel upload = fichier existant, rien à changer.
       } else {
         fd.set('invitationMusicTrack', form.musicChoice);
+      }
+      if (pendingPhoto) {
+        fd.set('invitationPhotoKey', pendingPhoto.s3Key);
+        if (pendingPhoto.width) fd.set('invitationPhotoWidth', String(pendingPhoto.width));
+        if (pendingPhoto.height) fd.set('invitationPhotoHeight', String(pendingPhoto.height));
+      } else if (photoRemoved && initialValues.invitationPhotoUrl) {
+        fd.set('clearInvitationPhoto', '1');
       }
     }
 
@@ -410,6 +481,65 @@ export function EventEditForm({
                   onChange={(e) => void onMusicFile(e)}
                 />
               </div>
+            </div>
+
+            {/* Photo du couple — portrait de tête de l'invitation. */}
+            <div className="flex items-center gap-4 rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-3">
+              <span className="flex h-16 w-[3.25rem] flex-none items-center justify-center overflow-hidden rounded-[42%_42%_8px_8px] border border-[color:var(--color-gold-300)] bg-[color:var(--color-ivory-100)] text-[color:var(--color-ink-500)]">
+                {photoPreviewUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element -- object URL / URL CDN externe
+                  <img
+                    src={photoPreviewUrl}
+                    alt=""
+                    className="h-full w-full object-cover"
+                    style={{ objectPosition: 'center 32%' }}
+                  />
+                ) : (
+                  <ImagePlus className="h-5 w-5" strokeWidth={1.7} aria-hidden />
+                )}
+              </span>
+              <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                <Label>{tDesign('photoSection')}</Label>
+                <span className="text-xs text-[color:var(--color-ink-500)]">
+                  {photoError ? tDesign(`photoUploadErrors.${photoError}`) : tDesign('photoHint')}
+                </span>
+              </div>
+              {photoPreviewUrl ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={removePhoto}
+                  aria-label={tDesign('photoRemove')}
+                >
+                  <Trash2 className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />
+                </Button>
+              ) : null}
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                disabled={uploadingPhoto}
+                onClick={() => photoFileRef.current?.click()}
+              >
+                {uploadingPhoto ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" strokeWidth={2} aria-hidden />
+                ) : (
+                  <Upload className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />
+                )}
+                {uploadingPhoto
+                  ? tDesign('uploading')
+                  : photoPreviewUrl
+                    ? tDesign('photoReplace')
+                    : tDesign('chooseFile')}
+              </Button>
+              <input
+                ref={photoFileRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                hidden
+                onChange={(e) => void onPhotoFile(e)}
+              />
             </div>
           </>
         )}

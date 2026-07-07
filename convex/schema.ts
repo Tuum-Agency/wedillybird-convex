@@ -244,6 +244,22 @@ export default defineSchema({
         title: v.optional(v.string()),
       }),
     ),
+    /**
+     * Photo du couple affichée en tête de l'invitation publique (portrait
+     * dévoilé quand la cinématique se lève). Absent = pas de photo (défaut).
+     * `s3Key` sous `invitation/{eventId}/…` (upload du couple/agence, servi
+     * CloudFront, hors préfixe `incoming/` donc hors modération Lambda —
+     * c'est la photo du couple lui-même, pas un contenu invité).
+     * `width`/`height` (post-compression) fixent le ratio → zéro CLS.
+     * Gaté `cinematicInvitation` (Premium/Pro).
+     */
+    invitationPhoto: v.optional(
+      v.object({
+        s3Key: v.string(),
+        width: v.optional(v.number()),
+        height: v.optional(v.number()),
+      }),
+    ),
     status: v.union(
       v.literal('draft'),
       v.literal('active'),

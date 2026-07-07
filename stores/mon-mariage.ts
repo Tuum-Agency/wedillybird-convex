@@ -113,13 +113,15 @@ export interface MonMariageState {
   removePayment: (id: string) => Promise<void>;
   setBudgetTotal: (major: number) => Promise<void>;
 
-  /** Cinématique + musique de l'invitation publique (optimiste sur `event`). */
+  /** Cinématique + musique + photo de l'invitation publique (optimiste sur `event`). */
   setInvitationDesign: (input: {
     cinematic?: string;
     music?:
       | { source: 'library'; trackId: string }
       | { source: 'custom'; s3Key: string; title: string }
       | null;
+    /** `url` = aperçu local (object URL) affiché immédiatement ; `s3Key` persisté. */
+    photo?: { s3Key: string; url: string; width?: number; height?: number } | null;
   }) => Promise<void>;
 
   ensurePlanning: () => Promise<void>;
@@ -426,6 +428,12 @@ export const useMonMariage = create<MonMariageState>()((set, get) => {
               : input.cinematic
             : event.invitationCinematic,
         invitationMusic: input.music !== undefined ? input.music : event.invitationMusic,
+        invitationPhoto:
+          input.photo !== undefined
+            ? input.photo
+              ? { url: input.photo.url, width: input.photo.width, height: input.photo.height }
+              : null
+            : event.invitationPhoto,
       };
       set({ event: next });
       const res = get().demo
@@ -435,6 +443,10 @@ export const useMonMariage = create<MonMariageState>()((set, get) => {
             cinematic: input.cinematic,
             music: input.music ?? undefined,
             clearMusic: input.music === null ? true : undefined,
+            photo: input.photo
+              ? { s3Key: input.photo.s3Key, width: input.photo.width, height: input.photo.height }
+              : undefined,
+            clearPhoto: input.photo === null ? true : undefined,
           });
       if (!res.ok) {
         set({ event });

@@ -352,13 +352,15 @@ export async function mmAssignGuestTableAction(
   });
 }
 
-/* ============== Invitation (cinématique + musique) ============== */
+/* ============== Invitation (cinématique + musique + photo) ============== */
 
 export async function mmSetInvitationDesignAction(input: {
   eventId: string;
   cinematic?: string;
   music?: { source: 'library' | 'custom'; trackId?: string; s3Key?: string; title?: string };
   clearMusic?: boolean;
+  photo?: { s3Key: string; width?: number; height?: number };
+  clearPhoto?: boolean;
 }): Promise<MmActionResult> {
   return run(async (userId) => {
     const convex = getConvexServerClient();
@@ -368,6 +370,8 @@ export async function mmSetInvitationDesignAction(input: {
       cinematic: input.cinematic,
       music: input.music,
       clearMusic: input.clearMusic,
+      photo: input.photo,
+      clearPhoto: input.clearPhoto,
     });
     return { ok: true as const };
   });
@@ -383,6 +387,26 @@ export async function mmCreateMusicUploadUrlAction(input: {
   try {
     const convex = getConvexServerClient();
     const res = await convex.action(convexApi.createInvitationMusicUploadUrl, {
+      eventId: input.eventId,
+      requesterId: session.userId,
+      contentType: input.contentType,
+    });
+    return { ok: true, ...res };
+  } catch (err) {
+    return mapError(err);
+  }
+}
+
+/** Presigned PUT S3 pour la photo du couple (JPEG/PNG/WebP, compressée client). */
+export async function mmCreateInvitationPhotoUploadUrlAction(input: {
+  eventId: string;
+  contentType: string;
+}): Promise<{ ok: true; uploadUrl: string; s3Key: string } | { ok: false; error: string }> {
+  const session = await getSession();
+  if (!session) return { ok: false, error: 'UNAUTHENTICATED' };
+  try {
+    const convex = getConvexServerClient();
+    const res = await convex.action(convexApi.createInvitationPhotoUploadUrl, {
       eventId: input.eventId,
       requesterId: session.userId,
       contentType: input.contentType,

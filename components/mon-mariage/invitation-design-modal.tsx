@@ -16,7 +16,11 @@ import {
   type CinematicId,
 } from '@/components/invitation/cinematics/registry';
 import { MUSIC_TRACK_IDS, musicTrackSrc, type MusicTrackId } from '@/lib/invitation/music';
-import { mmCreateMusicUploadUrlAction } from '@/app/[locale]/(app)/mon-mariage/actions';
+import { compressForUpload, isAllowedContentType, MAX_UPLOAD_BYTES } from '@/lib/photos/compress';
+import {
+  mmCreateMusicUploadUrlAction,
+  mmCreateInvitationPhotoUploadUrlAction,
+} from '@/app/[locale]/(app)/mon-mariage/actions';
 import { Icon } from './icons';
 import { McModal } from './modal';
 import { McBtn } from './parts';
@@ -71,8 +75,11 @@ export function InvitationDesignModal({
   const [playing, setPlaying] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<'type' | 'size' | 'network' | null>(null);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [photoError, setPhotoError] = useState<'type' | 'size' | 'network' | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const fileRef = useRef<HTMLInputElement | null>(null);
+  const photoRef = useRef<HTMLInputElement | null>(null);
 
   // Stoppe la pré-écoute à la fermeture/démontage.
   useEffect(() => {
@@ -86,6 +93,7 @@ export function InvitationDesignModal({
   const unlocked = event.cinematicUnlocked;
   const selected = (event.invitationCinematic ?? 'seal') as string;
   const music = event.invitationMusic;
+  const photo = event.invitationPhoto;
 
   function previewHref(id: CinematicId): string {
     const m =
@@ -168,6 +176,60 @@ export function InvitationDesignModal({
     } finally {
       setUploading(false);
     }
+  }
+
+  async function onPhotoFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file || !unlocked) return;
+    if (!isAllowedContentType(file.type)) {
+      setPhotoError('type');
+      return;
+    }
+    if (file.size > MAX_UPLOAD_BYTES) {
+      setPhotoError('size');
+      return;
+    }
+    setPhotoError(null);
+    setUploadingPhoto(true);
+    try {
+      // Compression client (≤ 2 Mo, ≤ 2000 px) : léger pour les invités mobiles.
+      const { file: blob, width, height, contentType } = await compressForUpload(file);
+      // Aperçu immédiat (object URL) le temps que le CDN prenne le relais.
+      const url = URL.createObjectURL(blob);
+      if (demo) {
+        void setDesign({
+          photo: { s3Key: `invitation/demo/${width ?? 0}x${height ?? 0}`, url, width, height },
+        });
+        return;
+      }
+      const pres = await mmCreateInvitationPhotoUploadUrlAction({ eventId, contentType });
+      if (!pres.ok) {
+        URL.revokeObjectURL(url);
+        setPhotoError('network');
+        return;
+      }
+      const put = await fetch(pres.uploadUrl, {
+        method: 'PUT',
+        headers: { 'Content-Type': contentType },
+        body: blob,
+      });
+      if (!put.ok) {
+        URL.revokeObjectURL(url);
+        setPhotoError('network');
+        return;
+      }
+      await setDesign({ photo: { s3Key: pres.s3Key, url, width, height } });
+    } catch {
+      setPhotoError('network');
+    } finally {
+      setUploadingPhoto(false);
+    }
+  }
+
+  function removePhoto() {
+    if (!unlocked || !photo) return;
+    void setDesign({ photo: null });
   }
 
   const trackRow = (id: MusicTrackId) => {
@@ -320,6 +382,53 @@ export function InvitationDesignModal({
             onChange={(e) => void onFile(e)}
           />
         </div>
+      </div>
+
+      <div className="mc-field-label mc-cinelabel">{t('photoSection')}</div>
+      <div className={'mc-photorow' + (photo ? ' sel' : '') + (!unlocked ? ' locked' : '')}>
+        <span className="mc-photothumb" aria-hidden>
+          {photo ? (
+            // eslint-disable-next-line @next/next/no-img-element -- object URL / URL CDN externe
+            <img src={photo.url} alt="" />
+          ) : (
+            <Icon name="Image" size={18} stroke={1.7} />
+          )}
+        </span>
+        <div className="mc-musicpick">
+          <b>{photo ? t('photoChange') : t('photoAdd')}</b>
+          <span>{photoError ? t(`photoUploadErrors.${photoError}`) : t('photoHint')}</span>
+        </div>
+        {photo && (
+          <button
+            type="button"
+            className="mc-photoremove"
+            onClick={removePhoto}
+            disabled={!unlocked}
+            aria-label={t('photoRemove')}
+          >
+            <Icon name="Trash2" size={14} stroke={2} />
+          </button>
+        )}
+        <McBtn
+          variant="outline"
+          size="sm"
+          disabled={uploadingPhoto || !unlocked}
+          onClick={() => photoRef.current?.click()}
+        >
+          {uploadingPhoto ? (
+            <Icon name="Loader" size={14} stroke={2} />
+          ) : (
+            <Icon name="Upload" size={14} stroke={2} />
+          )}
+          {uploadingPhoto ? t('uploading') : photo ? t('photoReplace') : t('chooseFile')}
+        </McBtn>
+        <input
+          ref={photoRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          hidden
+          onChange={(e) => void onPhotoFile(e)}
+        />
       </div>
     </McModal>
   );

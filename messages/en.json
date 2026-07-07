@@ -5647,6 +5647,17 @@
     }
   },
   "InvitationDesign": {
+    "photoSection": "Couple photo",
+    "photoHint": "JPEG, PNG or WebP · a vertical portrait works best",
+    "photoAdd": "Add your photo",
+    "photoChange": "Your photo",
+    "photoReplace": "Replace",
+    "photoRemove": "Remove photo",
+    "photoUploadErrors": {
+      "type": "Unsupported format (JPEG, PNG or WebP)",
+      "size": "Image too large (15 MB max)",
+      "network": "Upload failed — please try again"
+    },
     "chooseFile": "Choose a file",
     "cinematicSection": "Opening cinematic",
     "customMusic": "Your music",

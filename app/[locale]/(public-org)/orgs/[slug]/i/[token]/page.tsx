@@ -6,6 +6,7 @@ import { Link } from '@/i18n/navigation';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
 import { resolveInvitationMusic } from '@/lib/invitation/music';
 import { InvitationShell } from '@/components/invitation/invitation-shell';
+import { InvitationPortrait } from '@/components/invitation/invitation-portrait';
 import { WeddingCountdown } from '@/components/invitation/wedding-countdown';
 import { RsvpFormV4 } from '@/components/invitation/rsvp-form-v4';
 import { TrackOnMount } from '@/components/analytics/track-on-mount';
@@ -76,6 +77,10 @@ export default async function PublicOrgInvitationPage({
       >
         <article className="container-page mx-auto flex w-full max-w-2xl flex-col gap-16 py-16 sm:py-24">
           <header className="flex flex-col items-center gap-5 text-center">
+            <InvitationPortrait
+              photo={event.invitationPhoto}
+              alt={`${event.coupleNames.partnerA} & ${event.coupleNames.partnerB}`}
+            />
             <span className="font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-ink-500)] uppercase">
               {t('youreInvited')}
             </span>

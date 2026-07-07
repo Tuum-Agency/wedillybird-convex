@@ -77,6 +77,15 @@ export const update = mutation({
       }),
     ),
     clearInvitationMusic: v.optional(v.boolean()),
+    /** Photo du couple (portrait de tête). Gaté Premium/Pro. */
+    invitationPhoto: v.optional(
+      v.object({
+        s3Key: v.string(),
+        width: v.optional(v.number()),
+        height: v.optional(v.number()),
+      }),
+    ),
+    clearInvitationPhoto: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const ev = await ctx.db.get(args.eventId);
@@ -85,6 +94,7 @@ export const update = mutation({
     assertInvitationDesignAllowed(ev, {
       cinematic: args.invitationCinematic,
       music: args.invitationMusic,
+      photo: args.invitationPhoto,
     });
 
     const patch: Partial<Doc<'events'>> = {};
@@ -143,6 +153,15 @@ export const update = mutation({
               s3Key: args.invitationMusic.s3Key,
               title: args.invitationMusic.title?.slice(0, 120),
             };
+    }
+    if (args.clearInvitationPhoto) {
+      patch.invitationPhoto = undefined;
+    } else if (args.invitationPhoto) {
+      patch.invitationPhoto = {
+        s3Key: args.invitationPhoto.s3Key,
+        width: args.invitationPhoto.width,
+        height: args.invitationPhoto.height,
+      };
     }
 
     patch.updatedAt = Date.now();

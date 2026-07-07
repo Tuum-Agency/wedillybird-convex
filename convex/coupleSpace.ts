@@ -9,7 +9,11 @@ import {
 import type { Doc, Id } from './_generated/dataModel';
 import { eventHasFeature } from './lib/entitlements';
 import { DEFAULT_PLANNING, isCoupleVendorCat, isCoupleVendorStatus } from './lib/coupleModel';
-import { assertInvitationDesignAllowed, musicForClient } from './lib/invitationDesign';
+import {
+  assertInvitationDesignAllowed,
+  musicForClient,
+  photoForClient,
+} from './lib/invitationDesign';
 
 /**
  * Espace couple self-serve « /mon-mariage » — backend du produit one-shot.
@@ -154,6 +158,7 @@ export const bundle = query({
         seatingUnlocked: eventHasFeature(event, 'seatingPlan'),
         invitationCinematic: event.invitationCinematic ?? null,
         invitationMusic: musicForClient(event.invitationMusic),
+        invitationPhoto: photoForClient(event.invitationPhoto),
         cinematicUnlocked: eventHasFeature(event, 'cinematicInvitation'),
       },
       guests: guests.map((g) => ({
@@ -434,9 +439,10 @@ export const setBudgetEnvelope = mutation({
 /* ==================== Personnalisation de l'invitation ==================== */
 
 /**
- * Choix de la cinématique d'ouverture + musique de l'invitation publique.
- * Sceau (défaut) libre ; autre thème ou musique = feature `cinematicInvitation`
- * (Premium). `clearMusic` retire la musique. Owner-gated.
+ * Choix de la cinématique d'ouverture + musique + photo du couple de
+ * l'invitation publique. Sceau (défaut) libre ; autre thème, musique ou photo
+ * = feature `cinematicInvitation` (Premium). `clearMusic`/`clearPhoto`
+ * retirent respectivement la musique / la photo. Owner-gated.
  */
 export const setInvitationDesign = mutation({
   args: {
@@ -452,10 +458,22 @@ export const setInvitationDesign = mutation({
       }),
     ),
     clearMusic: v.optional(v.boolean()),
+    photo: v.optional(
+      v.object({
+        s3Key: v.string(),
+        width: v.optional(v.number()),
+        height: v.optional(v.number()),
+      }),
+    ),
+    clearPhoto: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const event = await assertOwnedEvent(ctx, args.eventId, args.requesterId);
-    assertInvitationDesignAllowed(event, { cinematic: args.cinematic, music: args.music });
+    assertInvitationDesignAllowed(event, {
+      cinematic: args.cinematic,
+      music: args.music,
+      photo: args.photo,
+    });
 
     const patch: Partial<Doc<'events'>> = { updatedAt: Date.now() };
     if (args.cinematic !== undefined) {
@@ -470,16 +488,26 @@ export const setInvitationDesign = mutation({
           ? { source: 'library', trackId: args.music.trackId }
           : { source: 'custom', s3Key: args.music.s3Key, title: args.music.title?.slice(0, 120) };
     }
+    if (args.clearPhoto) {
+      patch.invitationPhoto = undefined;
+    } else if (args.photo) {
+      patch.invitationPhoto = {
+        s3Key: args.photo.s3Key,
+        width: args.photo.width,
+        height: args.photo.height,
+      };
+    }
     await ctx.db.patch(args.eventId, patch);
     return null;
   },
 });
 
 /**
- * Garde d'accès pour l'action d'upload de musique (les actions n'ont pas de
- * `ctx.db`) : propriétaire + feature `cinematicInvitation` exigés.
+ * Garde d'accès pour les actions d'upload des médias d'invitation (musique,
+ * photo) — les actions n'ont pas de `ctx.db` : propriétaire + feature
+ * `cinematicInvitation` exigés.
  */
-export const assertOwnerCanUploadMusic = internalQuery({
+export const assertOwnerCanCustomizeInvitation = internalQuery({
   args: { eventId: v.id('events'), requesterId: v.id('users') },
   handler: async (ctx, { eventId, requesterId }) => {
     const event = await assertOwnedEvent(ctx, eventId, requesterId);

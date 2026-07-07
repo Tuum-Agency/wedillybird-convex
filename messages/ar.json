@@ -5647,6 +5647,17 @@
     }
   },
   "InvitationDesign": {
+    "photoSection": "صورة العروسين",
+    "photoHint": "JPEG أو PNG أو WebP · يُفضّل الوضع العمودي",
+    "photoAdd": "أضِف صورتكما",
+    "photoChange": "صورتكما",
+    "photoReplace": "استبدال",
+    "photoRemove": "إزالة الصورة",
+    "photoUploadErrors": {
+      "type": "صيغة غير مدعومة (JPEG أو PNG أو WebP)",
+      "size": "الصورة كبيرة جدًا (15 ميغابايت كحد أقصى)",
+      "network": "فشل الرفع — أعِد المحاولة"
+    },
     "chooseFile": "اختيار ملف",
     "cinematicSection": "مشهد الافتتاح",
     "customMusic": "موسيقاكما",

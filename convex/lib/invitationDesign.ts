@@ -1,5 +1,5 @@
 /**
- * Personnalisation de l'invitation publique — cinématique + musique.
+ * Personnalisation de l'invitation publique — cinématique + musique + photo.
  *
  * Volontairement **convex-local** (pas d'import `lib/` app-side : le bundler
  * Convex ne suit pas ces imports). Miroirs à garder en phase :
@@ -40,6 +40,12 @@ export interface StoredInvitationMusic {
   title?: string;
 }
 
+export interface StoredInvitationPhoto {
+  s3Key: string;
+  width?: number;
+  height?: number;
+}
+
 /** URL CloudFront d'une clé S3 — null si l'env n'est pas configurée. */
 export function cdnUrl(s3Key: string): string | null {
   const domain = process.env.CLOUDFRONT_DOMAIN;
@@ -68,11 +74,26 @@ export function musicForClient(music: StoredInvitationMusic | undefined | null):
 }
 
 /**
+ * Projection client de la photo du couple : jamais la clé S3 brute, mais
+ * l'URL CloudFront résolue. `width`/`height` fixent le ratio côté rendu.
+ */
+export function photoForClient(photo: StoredInvitationPhoto | undefined | null): {
+  url: string;
+  width?: number;
+  height?: number;
+} | null {
+  if (!photo?.s3Key) return null;
+  const url = cdnUrl(photo.s3Key);
+  if (!url) return null;
+  return { url, width: photo.width, height: photo.height };
+}
+
+/**
  * Valide une demande de personnalisation et applique le gating Premium/Pro :
- * le sceau (défaut) reste ouvert à tous ; choisir un AUTRE thème ou une
- * musique requiert la feature `cinematicInvitation` (Premium particuliers,
- * incluse sur tous les events Pro). Lève des erreurs codées (mapError côté
- * server actions).
+ * le sceau (défaut) reste ouvert à tous ; choisir un AUTRE thème, une
+ * musique ou une photo du couple requiert la feature `cinematicInvitation`
+ * (Premium particuliers, incluse sur tous les events Pro). Lève des erreurs
+ * codées (mapError côté server actions).
  */
 export function assertInvitationDesignAllowed(
   event: {
@@ -80,7 +101,7 @@ export function assertInvitationDesignAllowed(
     planTier?: 'essential' | 'premium';
     organizationId?: unknown;
   },
-  args: { cinematic?: string; music?: StoredInvitationMusic },
+  args: { cinematic?: string; music?: StoredInvitationMusic; photo?: StoredInvitationPhoto },
 ): void {
   if (args.cinematic !== undefined && !isCinematicId(args.cinematic)) {
     throw new Error('INVALID_CINEMATIC');
@@ -96,8 +117,17 @@ export function assertInvitationDesignAllowed(
       if (!key.startsWith(`audio/${String(event._id)}/`)) throw new Error('INVALID_MUSIC_KEY');
     }
   }
+  if (args.photo !== undefined) {
+    // Même garde que la musique : clé sous invitation/{eventId}/ (hors
+    // `incoming/` donc hors modération Lambda, et cloisonnée par event).
+    if (!args.photo.s3Key.startsWith(`invitation/${String(event._id)}/`)) {
+      throw new Error('INVALID_PHOTO_KEY');
+    }
+  }
   const wantsPremium =
-    (args.cinematic !== undefined && args.cinematic !== 'seal') || args.music !== undefined;
+    (args.cinematic !== undefined && args.cinematic !== 'seal') ||
+    args.music !== undefined ||
+    args.photo !== undefined;
   if (wantsPremium && !eventHasFeature(event, 'cinematicInvitation')) {
     throw new Error('FEATURE_LOCKED');
   }

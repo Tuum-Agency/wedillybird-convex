@@ -5651,6 +5651,17 @@
     }
   },
   "InvitationDesign": {
+    "photoSection": "Paarfoto",
+    "photoHint": "JPEG, PNG oder WebP · Hochformat empfohlen",
+    "photoAdd": "Foto hinzufügen",
+    "photoChange": "Euer Foto",
+    "photoReplace": "Ersetzen",
+    "photoRemove": "Foto entfernen",
+    "photoUploadErrors": {
+      "type": "Format nicht unterstützt (JPEG, PNG oder WebP)",
+      "size": "Bild zu groß (max. 15 MB)",
+      "network": "Upload fehlgeschlagen — bitte erneut versuchen"
+    },
     "chooseFile": "Datei auswählen",
     "cinematicSection": "Eröffnungs-Cinematic",
     "customMusic": "Eure Musik",

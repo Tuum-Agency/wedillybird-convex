@@ -37,7 +37,9 @@ export interface MmEvent {
   invitationCinematic: string | null;
   /** Musique de l'invitation (résolue côté serveur) — null = silence. */
   invitationMusic: MmInvitationMusic | null;
-  /** Choix de cinématique + musique débloqués (Premium). */
+  /** Photo du couple (URL résolue côté serveur) — null = pas de photo. */
+  invitationPhoto: MmInvitationPhoto | null;
+  /** Choix de cinématique + musique + photo débloqués (Premium). */
   cinematicUnlocked: boolean;
 }
 
@@ -46,6 +48,12 @@ export interface MmInvitationMusic {
   trackId?: string;
   title?: string;
   customUrl?: string;
+}
+
+export interface MmInvitationPhoto {
+  url: string;
+  width?: number;
+  height?: number;
 }
 
 export type MmRsvpStatus = 'pending' | 'attending' | 'declined' | 'maybe';

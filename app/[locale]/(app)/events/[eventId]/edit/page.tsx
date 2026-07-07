@@ -92,6 +92,10 @@ export default async function EditEventPage({
                 ? 'custom'
                 : (event.invitationMusic?.trackId ?? 'none'),
             musicCustomTitle: event.invitationMusic?.title ?? '',
+            invitationPhotoUrl:
+              event.invitationPhoto?.s3Key && process.env.CLOUDFRONT_DOMAIN
+                ? `https://${process.env.CLOUDFRONT_DOMAIN}/${event.invitationPhoto.s3Key}`
+                : '',
           }}
         />
       </div>

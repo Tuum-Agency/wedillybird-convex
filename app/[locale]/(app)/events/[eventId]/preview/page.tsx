@@ -8,6 +8,7 @@ import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
 import { asCinematicId, isCinematicId } from '@/components/invitation/cinematics/registry';
 import { isMusicTrackId, musicTrackSrc } from '@/lib/invitation/music';
 import { InvitationShell } from '@/components/invitation/invitation-shell';
+import { InvitationPortrait } from '@/components/invitation/invitation-portrait';
 import { WeddingCountdown } from '@/components/invitation/wedding-countdown';
 import { LandingFooterRich } from '@/components/landing/footer-rich';
 import { InvitationFooter } from '@/components/invitation/invitation-footer';
@@ -72,6 +73,17 @@ export default async function EventPreviewPage({
       : null;
   }
 
+  // Photo du couple — même résolution CDN que la musique (event brut côté owner).
+  const cdnDomain = process.env.CLOUDFRONT_DOMAIN;
+  const photo =
+    event.invitationPhoto?.s3Key && cdnDomain
+      ? {
+          url: `https://${cdnDomain}/${event.invitationPhoto.s3Key}`,
+          width: event.invitationPhoto.width,
+          height: event.invitationPhoto.height,
+        }
+      : null;
+
   const accentColor = event.theme?.primaryColor ?? 'oklch(72% 0.09 20)';
 
   const eventDateFormatted = new Intl.DateTimeFormat(locale, {
@@ -133,6 +145,10 @@ export default async function EventPreviewPage({
           <article className="container-page mx-auto flex w-full max-w-2xl flex-col gap-16 py-16 sm:py-24">
             {/* Header couple */}
             <header className="flex flex-col items-center gap-5 text-center">
+              <InvitationPortrait
+                photo={photo}
+                alt={`${event.coupleNames.partnerA} & ${event.coupleNames.partnerB}`}
+              />
               <span className="font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-ink-500)] uppercase">
                 {tInv('youreInvited')}
               </span>

@@ -270,6 +270,8 @@ export const convexApi = {
         title?: string;
       };
       clearInvitationMusic?: boolean;
+      invitationPhoto?: { s3Key: string; width?: number; height?: number };
+      clearInvitationPhoto?: boolean;
     },
     { ok: true }
   >('events:update'),
@@ -310,6 +312,7 @@ export const convexApi = {
         s3Key?: string;
         title?: string;
       };
+      invitationPhoto?: { s3Key: string; width?: number; height?: number };
       messagingConfig?: {
         templateStyle: 'classic' | 'warm' | 'african' | 'minimal' | 'festive';
         personalMessage?: string;
@@ -613,6 +616,8 @@ export const convexApi = {
         title?: string;
       };
       clearMusic?: boolean;
+      photo?: { s3Key: string; width?: number; height?: number };
+      clearPhoto?: boolean;
     },
     null
   >('coupleSpace:setInvitationDesign'),
@@ -621,6 +626,11 @@ export const convexApi = {
     { eventId: string; requesterId: string; contentType: string },
     { uploadUrl: string; s3Key: string }
   >('invitationAudio:createInvitationMusicUploadUrl'),
+  createInvitationPhotoUploadUrl: makeFunctionReference<
+    'action',
+    { eventId: string; requesterId: string; contentType: string },
+    { uploadUrl: string; s3Key: string }
+  >('invitationAudio:createInvitationPhotoUploadUrl'),
   getGuestByToken: makeFunctionReference<
     'query',
     { token: string },
@@ -650,6 +660,7 @@ export const convexApi = {
           title?: string;
           customUrl?: string;
         } | null;
+        invitationPhoto: { url: string; width?: number; height?: number } | null;
       };
     } | null
   >('guests:getByToken'),

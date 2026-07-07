@@ -63,6 +63,7 @@ export function buildDemoBundle(): MmBundle {
       seatingUnlocked: true,
       invitationCinematic: 'floral',
       invitationMusic: { source: 'library', trackId: 'jardin' },
+      invitationPhoto: null,
       cinematicUnlocked: true,
     },
     guests: demoGuests(),
