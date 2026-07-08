@@ -14,6 +14,7 @@ import type { CinematicSceneProps } from './shared';
  * importé statiquement — c'est le chemin le plus fréquent.
  */
 const THEMES: Record<Exclude<CinematicId, 'seal'>, ComponentType<CinematicSceneProps>> = {
+  fairepart: dynamic(() => import('./fairepart').then((m) => m.CinematicFairepart)),
   floral: dynamic(() => import('./floral').then((m) => m.CinematicFloral)),
   cake: dynamic(() => import('./cake').then((m) => m.CinematicCake)),
   voyage: dynamic(() => import('./voyage').then((m) => m.CinematicVoyage)),

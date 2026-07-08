@@ -170,6 +170,7 @@ export const bundle = query({
         invitationCinematic: event.invitationCinematic ?? null,
         invitationMusic: musicForClient(event.invitationMusic),
         invitationPhoto: photoForClient(event.invitationPhoto),
+        ceremonySchedule: event.ceremonySchedule ?? [],
         cinematicUnlocked: eventHasFeature(event, 'cinematicInvitation'),
       },
       referral: {
@@ -513,6 +514,41 @@ export const setInvitationDesign = mutation({
       };
     }
     await ctx.db.patch(args.eventId, patch);
+    return null;
+  },
+});
+
+/**
+ * Déroulé de la journée (planning de cérémonie) affiché sur l'invitation.
+ * Owner-gated. Sanitize + borne (≤ 20 étapes, libellés courts). Un tableau vide
+ * efface le programme.
+ */
+export const setCeremonySchedule = mutation({
+  args: {
+    eventId: v.id('events'),
+    requesterId: v.id('users'),
+    schedule: v.array(
+      v.object({
+        time: v.string(),
+        title: v.string(),
+        note: v.optional(v.string()),
+      }),
+    ),
+  },
+  handler: async (ctx, args) => {
+    await assertOwnedEvent(ctx, args.eventId, args.requesterId);
+    const cleaned = args.schedule
+      .slice(0, 20)
+      .map((s) => ({
+        time: s.time.trim().slice(0, 40),
+        title: s.title.trim().slice(0, 120),
+        note: s.note?.trim().slice(0, 200) || undefined,
+      }))
+      .filter((s) => s.title.length > 0 || s.time.length > 0);
+    await ctx.db.patch(args.eventId, {
+      ceremonySchedule: cleaned.length > 0 ? cleaned : undefined,
+      updatedAt: Date.now(),
+    });
     return null;
   },
 });

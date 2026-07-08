@@ -11,7 +11,8 @@ import type { CinematicId } from './cinematics/registry';
  * n'est alors jamais chargé).
  */
 export function InvitationThemeDecor({ theme }: { theme: CinematicId }) {
-  if (theme === 'seal') return null;
+  // `seal` et `fairepart` = page éditoriale light, sans décor ambiant dédié.
+  if (theme === 'seal' || theme === 'fairepart') return null;
 
   if (theme === 'floral') {
     return (

@@ -260,6 +260,20 @@ export default defineSchema({
         height: v.optional(v.number()),
       }),
     ),
+    /**
+     * Déroulé de la journée / planning de la cérémonie (guest-facing) — affiché
+     * sur la page d'invitation. Édité depuis l'espace couple/agence. Chaque
+     * étape : heure (libre, ex « 15 h 00 ») + intitulé + note optionnelle.
+     */
+    ceremonySchedule: v.optional(
+      v.array(
+        v.object({
+          time: v.string(),
+          title: v.string(),
+          note: v.optional(v.string()),
+        }),
+      ),
+    ),
     status: v.union(
       v.literal('draft'),
       v.literal('active'),
@@ -1475,4 +1489,30 @@ export default defineSchema({
     referralIds: v.array(v.id('affiliateReferrals')),
     createdAt: v.number(),
   }).index('by_reservation', ['reservationId']),
+
+  /**
+   * Rapports de bug soumis depuis l'app (bouton flottant couple/agence). La
+   * capture d'écran est stockée INLINE (data URL JPEG compressé, ≤ 800 Ko) —
+   * volume interne faible, pas d'aller-retour S3. Sert au triage produit.
+   */
+  bugReports: defineTable({
+    /** Auteur (session) — optionnel si soumis hors session. */
+    reporterId: v.optional(v.id('users')),
+    /** URL complète et chemin où le bug a été repéré. */
+    url: v.string(),
+    pathname: v.string(),
+    /** Description saisie/vérifiée par l'utilisateur. */
+    description: v.string(),
+    userAgent: v.optional(v.string()),
+    viewport: v.optional(v.string()),
+    locale: v.optional(v.string()),
+    /** Capture d'écran (data URL image compressée) ou absente. */
+    screenshot: v.optional(v.string()),
+    /** Dernières erreurs console captées automatiquement (aide au diagnostic). */
+    consoleErrors: v.optional(v.array(v.string())),
+    status: v.union(v.literal('open'), v.literal('triaged'), v.literal('resolved')),
+    createdAt: v.number(),
+  })
+    .index('by_status', ['status'])
+    .index('by_created', ['createdAt']),
 });

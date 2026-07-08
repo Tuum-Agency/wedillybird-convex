@@ -18,7 +18,8 @@
       "newsletter": "Newsletter",
       "auditLog": "Audit-Protokoll",
       "affiliates": "Affiliate",
-      "promotions": "Aktionen"
+      "promotions": "Aktionen",
+      "bugReports": "Bugs"
     },
     "common": {
       "back": "Zurück",
@@ -563,6 +564,31 @@
       "cardKicker": "WIR HEIRATEN",
       "cardDate": "8. JUNI 2026"
     },
+    "universes": {
+      "chapter": "KAPITEL 04B — DIE WELTEN",
+      "title": "Zwölf Öffnungen. Zwölf Welten.",
+      "subtitle": "Das Siegel ist erst der Anfang. Wähle die Inszenierung — ein sich hebender Vorhang, ein Feuerwerk, die erste Schneeflocke — und die ganze Einladungsseite kleidet sich in dasselbe Thema: Farben, Dekor, Countdown, bis zur Fußzeile.",
+      "galleryNote": "Dieselbe Karte, zwölf Themen",
+      "signatureBadge": "Signatur",
+      "custom": {
+        "heading": "Und alles lässt sich anpassen",
+        "cinematic": {
+          "title": "Die Inszenierung",
+          "desc": "Zwölf Öffnungen zur Wahl, jederzeit erneut abspielbar."
+        },
+        "music": {
+          "title": "Die Musik",
+          "desc": "Fünf hauseigene Stücke — oder eure eigene Datei."
+        },
+        "musicYours": "+ eure",
+        "photo": {
+          "title": "Euer Foto",
+          "desc": "Eures, im Herzen der Karte."
+        },
+        "included": "In Premium und allen Pro-Tarifen enthalten."
+      },
+      "liveTag": "Animiert"
+    },
     "testimonials": {
       "chapter": "KAPITEL 05 — DIE STIMMEN",
       "eyebrow": "Für den Ernstfall gebaut",
@@ -1021,7 +1047,9 @@
     "passDate": "Datum",
     "passGate": "Gate",
     "passSeat": "Sitz",
-    "actOne": "Akt I"
+    "actOne": "Akt I",
+    "tapSeal": "Auf das Siegel tippen",
+    "scheduleTitle": "Der Ablauf des Tages"
   },
   "OrgPublic": {
     "poweredBy": "Bereitgestellt von",
@@ -5691,6 +5719,10 @@
         "name": "Das Siegel",
         "desc": "Der versiegelte Umschlag öffnet sich in echter Tiefe – der Signature-Klassiker."
       },
+      "fairepart": {
+        "name": "Die Einladungskarte",
+        "desc": "Drücke auf das Wachssiegel: es springt in 3D und die Karte öffnet sich zu eurem Foto."
+      },
       "floral": {
         "name": "Die Blüte",
         "desc": "Der Garten erwacht: Eure Namen werden unter dem Blütenbogen mit Tinte geschrieben."
@@ -5759,5 +5791,33 @@
       "size": "Datei zu groß (max. 10 MB)",
       "network": "Upload fehlgeschlagen – bitte erneut versuchen"
     }
+  },
+  "BugReport": {
+    "open": "Fehler melden",
+    "cta": "Fehler melden",
+    "title": "Fehler melden",
+    "subtitle": "Sag uns, was schiefgelaufen ist. Ein Screenshot hilft sehr.",
+    "descLabel": "Was ist passiert?",
+    "descPlaceholder": "Z. B.: Der Button «Senden» reagiert nicht, nachdem ich einen Gast hinzugefügt habe…",
+    "captureLabel": "Screenshot (optional)",
+    "captureBtn": "Bildschirm aufnehmen",
+    "uploadBtn": "Bild auswählen",
+    "removeShot": "Screenshot entfernen",
+    "captureError": "Aufnahme nicht möglich – du kannst stattdessen ein Bild anhängen.",
+    "contextPage": "Seite",
+    "contextErrors": "{count, plural, one {# technischer Fehler automatisch angehängt} other {# technische Fehler automatisch angehängt}}",
+    "thanks": "Danke! Deine Meldung hilft uns, die App zu verbessern.",
+    "cancel": "Abbrechen",
+    "submit": "Meldung senden"
+  },
+  "CeremonySchedule": {
+    "section": "Ablauf des Tages",
+    "hint": "Die wichtigsten Momente des großen Tages (Zeremonie, Empfang, Dinner…), auf der Einladung sichtbar.",
+    "timeLabel": "Uhrzeit",
+    "timePlaceholder": "15:00",
+    "titleLabel": "Schritt",
+    "titlePlaceholder": "Zeremonie",
+    "add": "Schritt hinzufügen",
+    "remove": "Schritt entfernen"
   }
 }

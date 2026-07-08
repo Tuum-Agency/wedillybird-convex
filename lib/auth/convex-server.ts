@@ -272,6 +272,7 @@ export const convexApi = {
       clearInvitationMusic?: boolean;
       invitationPhoto?: { s3Key: string; width?: number; height?: number };
       clearInvitationPhoto?: boolean;
+      ceremonySchedule?: Array<{ time: string; title: string; note?: string }>;
     },
     { ok: true }
   >('events:update'),
@@ -313,6 +314,7 @@ export const convexApi = {
         title?: string;
       };
       invitationPhoto?: { s3Key: string; width?: number; height?: number };
+      ceremonySchedule?: Array<{ time: string; title: string; note?: string }>;
       messagingConfig?: {
         templateStyle: 'classic' | 'warm' | 'african' | 'minimal' | 'festive';
         personalMessage?: string;
@@ -621,6 +623,15 @@ export const convexApi = {
     },
     null
   >('coupleSpace:setInvitationDesign'),
+  coupleSetCeremonySchedule: makeFunctionReference<
+    'mutation',
+    {
+      eventId: string;
+      requesterId: string;
+      schedule: Array<{ time: string; title: string; note?: string }>;
+    },
+    null
+  >('coupleSpace:setCeremonySchedule'),
   createInvitationMusicUploadUrl: makeFunctionReference<
     'action',
     { eventId: string; requesterId: string; contentType: string },
@@ -661,6 +672,7 @@ export const convexApi = {
           customUrl?: string;
         } | null;
         invitationPhoto: { url: string; width?: number; height?: number } | null;
+        ceremonySchedule?: Array<{ time: string; title: string; note?: string }>;
       };
     } | null
   >('guests:getByToken'),
@@ -2649,6 +2661,59 @@ export const convexApi = {
     { contractId: string; requesterId: string },
     { ok: true }
   >('contracts:remove'),
+  submitBugReport: makeFunctionReference<
+    'mutation',
+    {
+      reporterId?: string;
+      url: string;
+      pathname: string;
+      description: string;
+      userAgent?: string;
+      viewport?: string;
+      locale?: string;
+      screenshot?: string;
+      consoleErrors?: string[];
+    },
+    { id: string }
+  >('bugReports:submitBugReport'),
+  listBugReports: makeFunctionReference<
+    'query',
+    { requesterId: string; status?: 'open' | 'triaged' | 'resolved'; limit?: number },
+    Array<{
+      _id: string;
+      _creationTime: number;
+      reporterId?: string;
+      url: string;
+      pathname: string;
+      description: string;
+      userAgent?: string;
+      viewport?: string;
+      locale?: string;
+      consoleErrors?: string[];
+      status: 'open' | 'triaged' | 'resolved';
+      createdAt: number;
+      hasScreenshot: boolean;
+    }>
+  >('bugReports:listBugReports'),
+  getBugReport: makeFunctionReference<
+    'query',
+    { requesterId: string; reportId: string },
+    {
+      _id: string;
+      description: string;
+      url: string;
+      pathname: string;
+      screenshot?: string;
+      consoleErrors?: string[];
+      status: 'open' | 'triaged' | 'resolved';
+      createdAt: number;
+    } | null
+  >('bugReports:getBugReport'),
+  updateBugReportStatus: makeFunctionReference<
+    'mutation',
+    { requesterId: string; reportId: string; status: 'open' | 'triaged' | 'resolved' },
+    null
+  >('bugReports:updateBugReportStatus'),
 } satisfies Record<
   string,
   FunctionReference<'query' | 'mutation' | 'action', 'public', Args, unknown>

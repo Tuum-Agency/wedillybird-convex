@@ -3915,3 +3915,78 @@
   color: var(--color-destructive, oklch(58% 0.14 25));
   border-color: var(--color-destructive, oklch(58% 0.14 25));
 }
+
+/* ---- Déroulé de la journée (planning cérémonie) --------------------- */
+.mc-sched {
+  margin-top: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-start;
+}
+.mc-sched-hint {
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--color-ink-500);
+  margin: -4px 0 2px;
+}
+.mc-sched-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+.mc-sched-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.mc-sched-time,
+.mc-sched-title {
+  height: 38px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-surface);
+  padding: 0 12px;
+  font-size: 13.5px;
+  color: var(--color-ink-900);
+  transition: border-color 0.15s ease;
+}
+.mc-sched-time {
+  width: 104px;
+  flex: none;
+  font-variant-numeric: tabular-nums;
+}
+.mc-sched-title {
+  flex: 1;
+  min-width: 0;
+}
+.mc-sched-time:focus-visible,
+.mc-sched-title:focus-visible {
+  outline: none;
+  border-color: var(--color-blush-400, oklch(78% 0.075 22));
+}
+.mc-sched-time::placeholder,
+.mc-sched-title::placeholder {
+  color: var(--color-ink-500);
+}
+.mc-sched-del {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-surface);
+  color: var(--color-ink-500);
+  cursor: pointer;
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease;
+}
+.mc-sched-del:hover {
+  color: var(--color-destructive, oklch(58% 0.14 25));
+  border-color: var(--color-destructive, oklch(58% 0.14 25));
+}

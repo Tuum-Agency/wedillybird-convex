@@ -3,6 +3,7 @@ import { redirect } from '@/i18n/navigation';
 import { getSession } from '@/lib/auth/session';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
 import { PostHogIdentify } from '@/components/analytics/posthog-identify';
+import { BugReportWidget } from '@/components/bug-report/bug-report-widget';
 
 export default async function AppLayout({
   children,
@@ -37,6 +38,7 @@ export default async function AppLayout({
         />
       ) : null}
       {children}
+      <BugReportWidget />
     </div>
   );
 }

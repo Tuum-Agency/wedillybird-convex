@@ -18,7 +18,8 @@
       "newsletter": "Newsletter",
       "auditLog": "Audit log",
       "affiliates": "Affiliates",
-      "promotions": "Promotions"
+      "promotions": "Promotions",
+      "bugReports": "Bugs"
     },
     "common": {
       "back": "Back",
@@ -559,6 +560,31 @@
       "cardKicker": "WE'RE GETTING MARRIED",
       "cardDate": "8 JUNE 2026"
     },
+    "universes": {
+      "chapter": "CHAPTER 04B — THE WORLDS",
+      "title": "Twelve openings. Twelve worlds.",
+      "subtitle": "The seal is only the beginning. Pick the cinematic — a rising curtain, fireworks, a first snowflake — and the whole invitation page dresses in the same theme: colors, decor, countdown, right down to the footer.",
+      "galleryNote": "The same card, twelve themes",
+      "signatureBadge": "Signature",
+      "custom": {
+        "heading": "Tune every detail",
+        "cinematic": {
+          "title": "The cinematic",
+          "desc": "Twelve openings to choose from, replay anytime."
+        },
+        "music": {
+          "title": "The music",
+          "desc": "Five in-house tracks, or your own file."
+        },
+        "musicYours": "+ yours",
+        "photo": {
+          "title": "Your photo",
+          "desc": "Yours, at the heart of the card."
+        },
+        "included": "Included with Premium and every Pro plan."
+      },
+      "liveTag": "Animated"
+    },
     "testimonials": {
       "chapter": "CHAPTER 05 — THE VOICES",
       "eyebrow": "Built for the day itself",
@@ -1017,7 +1043,9 @@
     "passDate": "Date",
     "passGate": "Gate",
     "passSeat": "Seat",
-    "actOne": "Act I"
+    "actOne": "Act I",
+    "tapSeal": "Tap the seal",
+    "scheduleTitle": "The order of the day"
   },
   "OrgPublic": {
     "poweredBy": "Powered by",
@@ -5687,6 +5715,10 @@
         "name": "The Seal",
         "desc": "The sealed envelope opens in real depth — the signature classic."
       },
+      "fairepart": {
+        "name": "The Invitation",
+        "desc": "Press the wax seal: it pops in 3D and the card opens onto your photo."
+      },
       "floral": {
         "name": "The Bloom",
         "desc": "The garden wakes: your names are inked beneath a blooming arch."
@@ -5755,5 +5787,33 @@
       "size": "File too large (10 MB max)",
       "network": "Upload failed — try again"
     }
+  },
+  "BugReport": {
+    "open": "Report a bug",
+    "cta": "Report a bug",
+    "title": "Report a bug",
+    "subtitle": "Tell us what went wrong. A screenshot helps a lot.",
+    "descLabel": "What happened?",
+    "descPlaceholder": "E.g. the 'Send' button doesn't respond after adding a guest…",
+    "captureLabel": "Screenshot (optional)",
+    "captureBtn": "Capture screen",
+    "uploadBtn": "Choose an image",
+    "removeShot": "Remove screenshot",
+    "captureError": "Couldn't capture — you can attach an image instead.",
+    "contextPage": "Page",
+    "contextErrors": "{count, plural, one {# technical error attached automatically} other {# technical errors attached automatically}}",
+    "thanks": "Thanks! Your report helps us improve the app.",
+    "cancel": "Cancel",
+    "submit": "Send report"
+  },
+  "CeremonySchedule": {
+    "section": "Order of the day",
+    "hint": "The key moments of the big day (ceremony, cocktail, dinner…), shown on the invitation.",
+    "timeLabel": "Time",
+    "timePlaceholder": "3:00 PM",
+    "titleLabel": "Step",
+    "titlePlaceholder": "Ceremony",
+    "add": "Add a step",
+    "remove": "Remove step"
   }
 }

@@ -39,8 +39,17 @@ export interface MmEvent {
   invitationMusic: MmInvitationMusic | null;
   /** Photo du couple (URL résolue côté serveur) — null = pas de photo. */
   invitationPhoto: MmInvitationPhoto | null;
+  /** Déroulé de la journée affiché sur l'invitation (vide = non renseigné). */
+  ceremonySchedule: CeremonyStep[];
   /** Choix de cinématique + musique + photo débloqués (Premium). */
   cinematicUnlocked: boolean;
+}
+
+/** Une étape du déroulé de la journée (guest-facing). */
+export interface CeremonyStep {
+  time: string;
+  title: string;
+  note?: string;
 }
 
 export interface MmInvitationMusic {

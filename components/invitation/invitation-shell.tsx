@@ -42,6 +42,8 @@ export interface InvitationShellProps {
   accentColor?: string;
   /** Date de l'événement (epoch ms ou ISO) — compte à rebours de la cinématique. */
   eventDate?: number | string;
+  /** Photo du couple (URL CloudFront) — affichée par le thème faire-part. */
+  photoUrl?: string;
   /** Token de l'invitation, sert de clé sessionStorage pour le replay. */
   token: string;
   /** Thème de cinématique (`invitationCinematic`) — défaut : sceau. */
@@ -86,6 +88,7 @@ export function InvitationShell({
   venueName,
   accentColor,
   eventDate,
+  photoUrl,
   token,
   cinematic,
   music,
@@ -234,6 +237,7 @@ export function InvitationShell({
               venueName={venueName}
               accentColor={accentColor}
               eventDate={eventDate}
+              photoUrl={photoUrl}
               onDone={handleComplete}
             />
           </motion.div>

@@ -9,6 +9,7 @@ import { asCinematicId, isCinematicId } from '@/components/invitation/cinematics
 import { isMusicTrackId, musicTrackSrc } from '@/lib/invitation/music';
 import { InvitationShell } from '@/components/invitation/invitation-shell';
 import { InvitationPortrait } from '@/components/invitation/invitation-portrait';
+import { InvitationSchedule } from '@/components/invitation/invitation-schedule';
 import { WeddingCountdown } from '@/components/invitation/wedding-countdown';
 import { LandingFooterRich } from '@/components/landing/footer-rich';
 import { InvitationFooter } from '@/components/invitation/invitation-footer';
@@ -139,6 +140,7 @@ export default async function EventPreviewPage({
           venueName={event.venue?.name}
           accentColor={accentColor}
           eventDate={event.eventDate}
+          photoUrl={photo?.url}
           cinematic={cinematic}
           music={music}
         >
@@ -247,6 +249,12 @@ export default async function EventPreviewPage({
                 </div>
               ) : null}
             </section>
+
+            {/* Déroulé de la journée */}
+            <InvitationSchedule
+              schedule={event.ceremonySchedule ?? []}
+              title={tInv('scheduleTitle')}
+            />
 
             {/* Placeholder RSVP — pas de form en mode aperçu */}
             <section className="inv-card flex flex-col items-center gap-4 rounded-3xl border border-dashed border-[color:var(--color-border-strong)] bg-[color:var(--color-surface)]/60 p-8 text-center">

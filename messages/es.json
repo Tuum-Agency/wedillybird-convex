@@ -18,7 +18,8 @@
       "newsletter": "Newsletter",
       "auditLog": "Registro de auditoría",
       "affiliates": "Afiliación",
-      "promotions": "Promociones"
+      "promotions": "Promociones",
+      "bugReports": "Bugs"
     },
     "common": {
       "back": "Volver",
@@ -563,6 +564,31 @@
       "cardKicker": "NOS CASAMOS",
       "cardDate": "8 DE JUNIO DE 2026"
     },
+    "universes": {
+      "chapter": "CAPÍTULO 04B — LOS UNIVERSOS",
+      "title": "Doce aperturas. Doce mundos.",
+      "subtitle": "El sello es solo el principio. Elige la cinemática —un telón que se alza, fuegos artificiales, el primer copo de nieve— y toda la página de invitación se viste del mismo tema: colores, decoración, cuenta atrás, hasta el pie de página.",
+      "galleryNote": "La misma tarjeta, doce temas",
+      "signatureBadge": "Clásico",
+      "custom": {
+        "heading": "Y todo se ajusta",
+        "cinematic": {
+          "title": "La cinemática",
+          "desc": "Doce aperturas a elegir, para volver a verlas cuando queráis."
+        },
+        "music": {
+          "title": "La música",
+          "desc": "Cinco pistas de la casa, o vuestro propio archivo."
+        },
+        "musicYours": "+ la vuestra",
+        "photo": {
+          "title": "Vuestra foto",
+          "desc": "La vuestra, en el corazón de la tarjeta."
+        },
+        "included": "Incluido con Premium y todos los planes Pro."
+      },
+      "liveTag": "Animado"
+    },
     "testimonials": {
       "chapter": "CAPÍTULO 05 — LAS VOCES",
       "eyebrow": "Diseñado para el terreno",
@@ -1021,7 +1047,9 @@
     "passDate": "Fecha",
     "passGate": "Puerta",
     "passSeat": "Asiento",
-    "actOne": "Acto I"
+    "actOne": "Acto I",
+    "tapSeal": "Pulsa el sello",
+    "scheduleTitle": "El programa del día"
   },
   "OrgPublic": {
     "poweredBy": "Desarrollado con",
@@ -5691,6 +5719,10 @@
         "name": "El Sello",
         "desc": "El sobre lacrado se abre en profundidad: el clásico de la casa."
       },
+      "fairepart": {
+        "name": "La Invitación",
+        "desc": "Pulsa el sello de cera: salta en 3D y la tarjeta se abre sobre vuestra foto."
+      },
       "floral": {
         "name": "La Floración",
         "desc": "El jardín despierta: vuestros nombres se escriben a tinta bajo el arco en flor."
@@ -5759,5 +5791,33 @@
       "size": "Archivo demasiado grande (máx. 10 MB)",
       "network": "Error al subir: inténtalo de nuevo"
     }
+  },
+  "BugReport": {
+    "open": "Informar de un error",
+    "cta": "Informar de un error",
+    "title": "Informar de un error",
+    "subtitle": "Cuéntanos qué ha fallado. Una captura ayuda mucho.",
+    "descLabel": "¿Qué ha pasado?",
+    "descPlaceholder": "Ej.: el botón «Enviar» no responde tras añadir un invitado…",
+    "captureLabel": "Captura de pantalla (opcional)",
+    "captureBtn": "Capturar pantalla",
+    "uploadBtn": "Elegir una imagen",
+    "removeShot": "Quitar la captura",
+    "captureError": "No se pudo capturar; puedes adjuntar una imagen.",
+    "contextPage": "Página",
+    "contextErrors": "{count, plural, one {# error técnico adjuntado automáticamente} other {# errores técnicos adjuntados automáticamente}}",
+    "thanks": "¡Gracias! Tu informe nos ayuda a mejorar la aplicación.",
+    "cancel": "Cancelar",
+    "submit": "Enviar informe"
+  },
+  "CeremonySchedule": {
+    "section": "Programa del día",
+    "hint": "Los momentos clave del gran día (ceremonia, cóctel, cena…), visibles en la invitación.",
+    "timeLabel": "Hora",
+    "timePlaceholder": "15:00",
+    "titleLabel": "Etapa",
+    "titlePlaceholder": "Ceremonia",
+    "add": "Añadir una etapa",
+    "remove": "Quitar etapa"
   }
 }

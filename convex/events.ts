@@ -86,6 +86,10 @@ export const update = mutation({
       }),
     ),
     clearInvitationPhoto: v.optional(v.boolean()),
+    /** Déroulé de la journée — array vide = efface le programme. */
+    ceremonySchedule: v.optional(
+      v.array(v.object({ time: v.string(), title: v.string(), note: v.optional(v.string()) })),
+    ),
   },
   handler: async (ctx, args) => {
     const ev = await ctx.db.get(args.eventId);
@@ -162,6 +166,17 @@ export const update = mutation({
         width: args.invitationPhoto.width,
         height: args.invitationPhoto.height,
       };
+    }
+    if (args.ceremonySchedule !== undefined) {
+      const cleaned = args.ceremonySchedule
+        .map((s) => ({
+          time: s.time.trim().slice(0, 40),
+          title: s.title.trim().slice(0, 120),
+          note: s.note?.trim().slice(0, 200) || undefined,
+        }))
+        .filter((s) => s.title.length > 0 || s.time.length > 0)
+        .slice(0, 20);
+      patch.ceremonySchedule = cleaned.length > 0 ? cleaned : undefined;
     }
 
     patch.updatedAt = Date.now();

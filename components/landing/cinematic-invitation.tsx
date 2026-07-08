@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { Cinematic2 } from '@/components/invitation/cinematic2';
+import { SAMPLE_EVENT_DATE_ISO, formatSampleDate } from '@/lib/invitation/sample-date';
 
 /**
  * Landing — Ouverture cinématique 2.5D (même composant que la page d'invitation :
@@ -13,6 +14,7 @@ import { Cinematic2 } from '@/components/invitation/cinematic2';
  */
 export function LandingCinematicInvitation() {
   const t = useTranslations('Landing.cinematic');
+  const locale = useLocale();
   const stageRef = useRef<HTMLDivElement>(null);
   const [armed, setArmed] = useState(false);
   const [playKey, setPlayKey] = useState(0);
@@ -71,7 +73,7 @@ export function LandingCinematicInvitation() {
         {/* Lecteur encadré — l'ouverture cinématique 2.5D */}
         <div
           ref={stageRef}
-          className="relative mx-auto mt-14 h-[560px] w-full max-w-[760px] overflow-hidden rounded-[var(--radius-3xl)] border border-[color:var(--color-border)] sm:h-[620px]"
+          className="relative mx-auto mt-14 h-[600px] w-full max-w-[760px] overflow-hidden rounded-[var(--radius-3xl)] border border-[color:var(--color-border)] [--cine-scale:0.66] sm:h-[700px] sm:[--cine-scale:0.8]"
           style={{ background: 'var(--color-surface)', boxShadow: 'var(--shadow-lifted)' }}
         >
           <Cinematic2
@@ -80,8 +82,8 @@ export function LandingCinematicInvitation() {
             parallax
             partnerA="Camille"
             partnerB="Hugo"
-            formattedDate={t('cardDate')}
-            eventDate="2026-09-12T15:00:00"
+            formattedDate={formatSampleDate(locale)}
+            eventDate={SAMPLE_EVENT_DATE_ISO}
           />
         </div>
       </div>

@@ -14,6 +14,7 @@ import type {
   McVendor,
 } from '@/components/mon-mariage/data';
 import type {
+  CeremonyStep,
   MmBundle,
   MmEvent,
   MmGuest,
@@ -54,6 +55,7 @@ import {
   mmRemoveVendorAction,
   mmSaveRoomAction,
   mmSetBudgetEnvelopeAction,
+  mmSetCeremonyScheduleAction,
   mmSetInvitationDesignAction,
   mmSetPaymentPaidAction,
   mmSetTaskStatusAction,
@@ -132,6 +134,9 @@ export interface MonMariageState {
     /** `url` = aperçu local (object URL) affiché immédiatement ; `s3Key` persisté. */
     photo?: { s3Key: string; url: string; width?: number; height?: number } | null;
   }) => Promise<void>;
+
+  /** Déroulé de la journée affiché sur l'invitation (optimiste sur `event`). */
+  setCeremonySchedule: (schedule: CeremonyStep[]) => Promise<void>;
 
   ensurePlanning: () => Promise<void>;
   addPhase: (label: string, sub?: string) => Promise<void>;
@@ -460,6 +465,27 @@ export const useMonMariage = create<MonMariageState>()((set, get) => {
               : undefined,
             clearPhoto: input.photo === null ? true : undefined,
           });
+      if (!res.ok) {
+        set({ event });
+        failToast();
+      }
+    },
+
+    setCeremonySchedule: async (schedule) => {
+      const event = get().event;
+      if (!event) return;
+      const cleaned = schedule
+        .map((s) => ({
+          time: s.time.trim(),
+          title: s.title.trim(),
+          note: s.note?.trim() || undefined,
+        }))
+        .filter((s) => s.title.length > 0 || s.time.length > 0)
+        .slice(0, 20);
+      set({ event: { ...event, ceremonySchedule: cleaned } });
+      const res = get().demo
+        ? ({ ok: true } as { ok: true })
+        : await mmSetCeremonyScheduleAction({ eventId: event.id, schedule: cleaned });
       if (!res.ok) {
         set({ event });
         failToast();

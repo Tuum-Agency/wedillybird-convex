@@ -3,7 +3,7 @@
 import { useRef, useState, useTransition } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
-import { ExternalLink, ImagePlus, Loader2, Save, Trash2, Upload } from 'lucide-react';
+import { ExternalLink, ImagePlus, Loader2, Plus, Save, Trash2, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -41,6 +41,8 @@ interface InitialValues {
   musicCustomTitle: string;
   /** URL CDN de la photo du couple déjà enregistrée (vide = aucune). */
   invitationPhotoUrl: string;
+  /** Déroulé de la journée affiché sur l'invitation. */
+  ceremonySchedule: Array<{ time: string; title: string; note?: string }>;
 }
 
 const AUDIO_TYPES = ['audio/mpeg', 'audio/mp3', 'audio/mp4', 'audio/x-m4a', 'audio/aac'];
@@ -86,6 +88,7 @@ export function EventEditForm({
   const tCommon = useTranslations('Common');
   const t = useTranslations('Events');
   const tDesign = useTranslations('InvitationDesign');
+  const tSched = useTranslations('CeremonySchedule');
   const locale = useLocale();
   const router = useRouter();
   const [form, setForm] = useState<InitialValues>(initialValues);
@@ -237,6 +240,8 @@ export function EventEditForm({
         fd.set('clearInvitationPhoto', '1');
       }
     }
+    // Déroulé (non gaté) — toujours transmis (array vide = efface le programme).
+    fd.set('ceremonySchedule', JSON.stringify(form.ceremonySchedule));
 
     startTransition(async () => {
       const result = await updateEventAction(eventId, fd);
@@ -254,6 +259,24 @@ export function EventEditForm({
       }
       setError(t('editErrorSave'));
     });
+  }
+
+  // Déroulé de la journée — édition locale, sérialisée au submit.
+  function setSchedRow(i: number, patch: Partial<{ time: string; title: string }>) {
+    setForm((f) => ({
+      ...f,
+      ceremonySchedule: f.ceremonySchedule.map((r, idx) => (idx === i ? { ...r, ...patch } : r)),
+    }));
+  }
+  function addSchedRow() {
+    setForm((f) =>
+      f.ceremonySchedule.length >= 20
+        ? f
+        : { ...f, ceremonySchedule: [...f.ceremonySchedule, { time: '', title: '' }] },
+    );
+  }
+  function removeSchedRow(i: number) {
+    setForm((f) => ({ ...f, ceremonySchedule: f.ceremonySchedule.filter((_, idx) => idx !== i) }));
   }
 
   return (
@@ -543,6 +566,44 @@ export function EventEditForm({
             </div>
           </>
         )}
+      </Section>
+
+      <Section title={tSched('section')} description={tSched('hint')}>
+        <div className="flex flex-col gap-2">
+          {form.ceremonySchedule.map((row, i) => (
+            <div key={i} className="flex items-center gap-2">
+              <Input
+                value={row.time}
+                placeholder={tSched('timePlaceholder')}
+                aria-label={tSched('timeLabel')}
+                onChange={(e) => setSchedRow(i, { time: e.target.value })}
+                className="w-28 flex-none tabular-nums"
+              />
+              <Input
+                value={row.title}
+                placeholder={tSched('titlePlaceholder')}
+                aria-label={tSched('titleLabel')}
+                onChange={(e) => setSchedRow(i, { title: e.target.value })}
+                className="flex-1"
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => removeSchedRow(i)}
+                aria-label={tSched('remove')}
+              >
+                <Trash2 className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />
+              </Button>
+            </div>
+          ))}
+        </div>
+        {form.ceremonySchedule.length < 20 ? (
+          <Button type="button" variant="outline" size="sm" onClick={addSchedRow}>
+            <Plus className="h-3.5 w-3.5" strokeWidth={2.2} aria-hidden />
+            {tSched('add')}
+          </Button>
+        ) : null}
       </Section>
 
       {error ? (

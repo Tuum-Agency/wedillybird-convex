@@ -8,6 +8,7 @@ import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
 import { resolveInvitationMusic } from '@/lib/invitation/music';
 import { InvitationShell } from '@/components/invitation/invitation-shell';
 import { InvitationPortrait } from '@/components/invitation/invitation-portrait';
+import { InvitationSchedule } from '@/components/invitation/invitation-schedule';
 import { WeddingCountdown } from '@/components/invitation/wedding-countdown';
 import { RsvpFormV4 } from '@/components/invitation/rsvp-form-v4';
 import { LandingFooterRich } from '@/components/landing/footer-rich';
@@ -109,6 +110,7 @@ export default async function InvitationPage({
         venueName={event.venue?.name}
         accentColor={accentColor}
         eventDate={event.eventDate}
+        photoUrl={event.invitationPhoto?.url}
         cinematic={event.invitationCinematic}
         music={resolveInvitationMusic(event.invitationMusic)}
       >
@@ -209,6 +211,9 @@ export default async function InvitationPage({
               </div>
             ) : null}
           </section>
+
+          {/* Déroulé de la journée */}
+          <InvitationSchedule schedule={event.ceremonySchedule ?? []} title={t('scheduleTitle')} />
 
           {/* RSVP form */}
           <section className="flex flex-col gap-5">

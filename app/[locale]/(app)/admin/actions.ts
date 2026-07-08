@@ -554,6 +554,44 @@ export async function adminUpdatePhotoBookStatusAction(
 }
 
 /* -------------------------------------------------------------------------- */
+/*  Rapports de bug — triage                                                  */
+/* -------------------------------------------------------------------------- */
+
+export async function adminUpdateBugStatusAction(
+  reportId: string,
+  status: 'open' | 'triaged' | 'resolved',
+): Promise<ActionResult> {
+  try {
+    const adminId = await requireAdmin();
+    await getConvexServerClient().mutation(convexApi.updateBugReportStatus, {
+      requesterId: adminId,
+      reportId,
+      status,
+    });
+    revalidatePath('/admin/bug-reports');
+    return { ok: true };
+  } catch (e: unknown) {
+    return { ok: false, error: msg(e) };
+  }
+}
+
+/** Récupère la capture (data URL) d'un rapport à la demande (exclue de la liste). */
+export async function adminGetBugScreenshotAction(
+  reportId: string,
+): Promise<{ ok: true; screenshot: string | null } | { ok: false; error: string }> {
+  try {
+    const adminId = await requireAdmin();
+    const report = await getConvexServerClient().query(convexApi.getBugReport, {
+      requesterId: adminId,
+      reportId,
+    });
+    return { ok: true, screenshot: report?.screenshot ?? null };
+  } catch (e: unknown) {
+    return { ok: false, error: msg(e) };
+  }
+}
+
+/* -------------------------------------------------------------------------- */
 /*  Affiliation — création d'affilié (invitation-only) + activation           */
 /* -------------------------------------------------------------------------- */
 

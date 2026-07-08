@@ -377,6 +377,22 @@ export async function mmSetInvitationDesignAction(input: {
   });
 }
 
+/** Déroulé de la journée (planning de cérémonie) affiché sur l'invitation. */
+export async function mmSetCeremonyScheduleAction(input: {
+  eventId: string;
+  schedule: Array<{ time: string; title: string; note?: string }>;
+}): Promise<MmActionResult> {
+  return run(async (userId) => {
+    const convex = getConvexServerClient();
+    await convex.mutation(convexApi.coupleSetCeremonySchedule, {
+      eventId: input.eventId,
+      requesterId: userId,
+      schedule: input.schedule,
+    });
+    return { ok: true as const };
+  });
+}
+
 /** Presigned PUT S3 pour la musique personnalisée (≤ 10 Mo, audio/*). */
 export async function mmCreateMusicUploadUrlAction(input: {
   eventId: string;

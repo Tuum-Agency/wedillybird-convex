@@ -15,6 +15,7 @@ import {
   CINEMATIC_META,
   type CinematicId,
 } from '@/components/invitation/cinematics/registry';
+import { THEME_SWATCH } from '@/components/invitation/cinematics/theme-visuals';
 import { MUSIC_TRACK_IDS, musicTrackSrc, type MusicTrackId } from '@/lib/invitation/music';
 import { compressForUpload, isAllowedContentType, MAX_UPLOAD_BYTES } from '@/lib/photos/compress';
 import {
@@ -24,9 +25,11 @@ import {
 import { Icon } from './icons';
 import { McModal } from './modal';
 import { McBtn } from './parts';
+import { CeremonyScheduleEditor } from './ceremony-schedule-editor';
 
 const THEME_ICON: Record<CinematicId, string> = {
   seal: 'Mail',
+  fairepart: 'Image',
   floral: 'Flower',
   cake: 'CakeSlice',
   voyage: 'Send',
@@ -37,21 +40,6 @@ const THEME_ICON: Record<CinematicId, string> = {
   feux: 'PartyPopper',
   deco: 'Gem',
   neige: 'Snowflake',
-};
-
-/** Vignette dégradée évoquant chaque scène (pas de screenshot à charger). */
-const THEME_SWATCH: Record<CinematicId, string> = {
-  seal: 'linear-gradient(135deg, oklch(96% 0.02 84), oklch(88% 0.055 24))',
-  floral: 'linear-gradient(135deg, oklch(97% 0.015 140), oklch(88% 0.055 18))',
-  cake: 'linear-gradient(135deg, oklch(30% 0.035 55), oklch(84% 0.06 22))',
-  voyage: 'linear-gradient(135deg, oklch(72% 0.06 262), oklch(92% 0.05 70))',
-  theatre: 'linear-gradient(135deg, oklch(22% 0.03 290), oklch(42% 0.12 18))',
-  etoiles: 'linear-gradient(135deg, oklch(16% 0.03 268), oklch(38% 0.05 280))',
-  lanternes: 'linear-gradient(135deg, oklch(24% 0.04 290), oklch(62% 0.11 52))',
-  rivage: 'linear-gradient(135deg, oklch(76% 0.075 210), oklch(90% 0.03 78))',
-  feux: 'linear-gradient(135deg, oklch(14% 0.022 278), oklch(60% 0.1 82))',
-  deco: 'linear-gradient(135deg, oklch(13% 0.008 80), oklch(66% 0.09 84))',
-  neige: 'linear-gradient(135deg, oklch(90% 0.02 240), oklch(72% 0.035 235))',
 };
 
 const AUDIO_TYPES = ['audio/mpeg', 'audio/mp3', 'audio/mp4', 'audio/x-m4a', 'audio/aac'];
@@ -430,6 +418,8 @@ export function InvitationDesignModal({
           onChange={(e) => void onPhotoFile(e)}
         />
       </div>
+
+      <CeremonyScheduleEditor />
     </McModal>
   );
 }

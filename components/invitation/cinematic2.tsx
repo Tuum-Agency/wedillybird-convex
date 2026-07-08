@@ -39,6 +39,8 @@ export interface Cinematic2Props {
   accentColor?: string;
   /** Date de l'événement (epoch ms ou ISO) — affiche le compte à rebours si fourni. */
   eventDate?: number | string;
+  /** Photo du couple (URL) — ignorée par le sceau ; incluse pour le contrat commun. */
+  photoUrl?: string;
   /** Force le mouvement réduit (sinon dérivé de prefers-reduced-motion). */
   reduced?: boolean;
   /** Parallaxe au pointeur (desktop). */

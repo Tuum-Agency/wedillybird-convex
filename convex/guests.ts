@@ -206,6 +206,7 @@ export const getByToken = query({
         invitationCinematic: event.invitationCinematic,
         invitationMusic: musicForClient(event.invitationMusic),
         invitationPhoto: photoForClient(event.invitationPhoto),
+        ceremonySchedule: event.ceremonySchedule,
       },
     };
   },

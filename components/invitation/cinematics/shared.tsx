@@ -30,6 +30,8 @@ export interface CinematicSceneProps {
   accentColor?: string;
   /** Date de l'événement (epoch ms ou ISO) — affiche le compte à rebours si fourni. */
   eventDate?: number | string;
+  /** Photo du couple (URL) — utilisée par les thèmes qui l'affichent (faire-part). */
+  photoUrl?: string;
   /** Force le mouvement réduit (sinon dérivé de prefers-reduced-motion). */
   reduced?: boolean;
   /** Parallaxe au pointeur (desktop) / gyroscope (mobile). */

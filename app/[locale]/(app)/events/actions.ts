@@ -287,11 +287,35 @@ export async function updateEventAction(
       }
     : undefined;
 
+  // Déroulé de la journée : sérialisé en JSON par le form (array vide = efface).
+  // Champ absent → on n'y touche pas ; présent (même vide) → on remplace.
+  const rawSchedule = formData.get('ceremonySchedule');
+  let ceremonySchedule: Array<{ time: string; title: string; note?: string }> | undefined;
+  if (typeof rawSchedule === 'string') {
+    try {
+      const parsed = JSON.parse(rawSchedule) as unknown;
+      if (Array.isArray(parsed)) {
+        ceremonySchedule = parsed
+          .filter((s): s is Record<string, unknown> => !!s && typeof s === 'object')
+          .map((s) => ({
+            time: String(s.time ?? '').slice(0, 40),
+            title: String(s.title ?? '').slice(0, 120),
+            note: s.note ? String(s.note).slice(0, 200) : undefined,
+          }))
+          .filter((s) => s.title.length > 0 || s.time.length > 0)
+          .slice(0, 20);
+      }
+    } catch {
+      // JSON malformé → on ignore ce champ.
+    }
+  }
+
   const convex = getConvexServerClient();
   try {
     await convex.mutation(convexApi.updateEvent, {
       eventId,
       requesterId: session.userId,
+      ...(ceremonySchedule !== undefined ? { ceremonySchedule } : {}),
       ...(data.title !== undefined ? { title: data.title } : {}),
       ...(data.partnerA !== undefined ? { partnerA: data.partnerA } : {}),
       ...(data.partnerB !== undefined ? { partnerB: data.partnerB } : {}),

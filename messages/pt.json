@@ -18,7 +18,8 @@
       "newsletter": "Newsletter",
       "auditLog": "Registro de auditoria",
       "affiliates": "Afiliação",
-      "promotions": "Promoções"
+      "promotions": "Promoções",
+      "bugReports": "Bugs"
     },
     "common": {
       "back": "Voltar",
@@ -563,6 +564,31 @@
       "cardKicker": "VAMOS CASAR",
       "cardDate": "8 DE JUNHO DE 2026"
     },
+    "universes": {
+      "chapter": "CAPÍTULO 04B — OS MUNDOS",
+      "title": "Doze aberturas. Doze mundos.",
+      "subtitle": "O selo é apenas o início. Escolhe a cinemática — uma cortina que se levanta, fogo de artifício, o primeiro floco de neve — e toda a página do convite se veste do mesmo tema: cores, decoração, contagem decrescente, até ao rodapé.",
+      "galleryNote": "O mesmo cartão, doze temas",
+      "signatureBadge": "Clássico",
+      "custom": {
+        "heading": "E tudo se ajusta",
+        "cinematic": {
+          "title": "A cinemática",
+          "desc": "Doze aberturas à escolha, para rever quando quiserem."
+        },
+        "music": {
+          "title": "A música",
+          "desc": "Cinco faixas da casa, ou o vosso próprio ficheiro."
+        },
+        "musicYours": "+ a vossa",
+        "photo": {
+          "title": "A vossa foto",
+          "desc": "A vossa, no centro do cartão."
+        },
+        "included": "Incluído no Premium e em todos os planos Pro."
+      },
+      "liveTag": "Animado"
+    },
     "testimonials": {
       "chapter": "CAPÍTULO 05 — AS VOZES",
       "eyebrow": "Feito para o terreno",
@@ -1021,7 +1047,9 @@
     "passDate": "Data",
     "passGate": "Portão",
     "passSeat": "Assento",
-    "actOne": "Ato I"
+    "actOne": "Ato I",
+    "tapSeal": "Toque no selo",
+    "scheduleTitle": "O programa do dia"
   },
   "OrgPublic": {
     "poweredBy": "Com tecnologia",
@@ -5691,6 +5719,10 @@
         "name": "O Selo",
         "desc": "O envelope lacrado abre-se em profundidade — o clássico da casa."
       },
+      "fairepart": {
+        "name": "O Convite",
+        "desc": "Prime o selo de cera: salta em 3D e o cartão abre-se sobre a vossa foto."
+      },
       "floral": {
         "name": "O Desabrochar",
         "desc": "O jardim desperta: os vossos nomes são escritos a tinta sob o arco florido."
@@ -5759,5 +5791,33 @@
       "size": "Ficheiro demasiado grande (máx. 10 MB)",
       "network": "Falha no envio — tente novamente"
     }
+  },
+  "BugReport": {
+    "open": "Reportar um erro",
+    "cta": "Reportar um erro",
+    "title": "Reportar um erro",
+    "subtitle": "Diz-nos o que correu mal. Uma captura ajuda muito.",
+    "descLabel": "O que aconteceu?",
+    "descPlaceholder": "Ex.: o botão «Enviar» não responde depois de adicionar um convidado…",
+    "captureLabel": "Captura de ecrã (opcional)",
+    "captureBtn": "Capturar ecrã",
+    "uploadBtn": "Escolher uma imagem",
+    "removeShot": "Remover a captura",
+    "captureError": "Não foi possível capturar; podes anexar uma imagem.",
+    "contextPage": "Página",
+    "contextErrors": "{count, plural, one {# erro técnico anexado automaticamente} other {# erros técnicos anexados automaticamente}}",
+    "thanks": "Obrigado! O teu relato ajuda-nos a melhorar a aplicação.",
+    "cancel": "Cancelar",
+    "submit": "Enviar relato"
+  },
+  "CeremonySchedule": {
+    "section": "Programa do dia",
+    "hint": "Os momentos-chave do grande dia (cerimónia, cocktail, jantar…), mostrados no convite.",
+    "timeLabel": "Hora",
+    "timePlaceholder": "15:00",
+    "titleLabel": "Etapa",
+    "titlePlaceholder": "Cerimónia",
+    "add": "Adicionar uma etapa",
+    "remove": "Remover etapa"
   }
 }

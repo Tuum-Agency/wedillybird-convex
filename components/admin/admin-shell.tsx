@@ -14,6 +14,7 @@ import {
   Shield,
   Mail,
   ScrollText,
+  Bug,
   LogOut,
 } from 'lucide-react';
 import { getTranslations } from 'next-intl/server';
@@ -41,6 +42,7 @@ const NAV_ITEMS = [
   { key: 'moderation', href: '/admin/moderation', icon: Shield, labelKey: 'nav.moderation' },
   { key: 'newsletter', href: '/admin/newsletter', icon: Mail, labelKey: 'nav.newsletter' },
   { key: 'audit-log', href: '/admin/audit-log', icon: ScrollText, labelKey: 'nav.auditLog' },
+  { key: 'bug-reports', href: '/admin/bug-reports', icon: Bug, labelKey: 'nav.bugReports' },
 ] as const;
 
 export type AdminSection = (typeof NAV_ITEMS)[number]['key'];

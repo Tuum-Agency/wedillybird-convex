@@ -96,6 +96,7 @@ export default async function EditEventPage({
               event.invitationPhoto?.s3Key && process.env.CLOUDFRONT_DOMAIN
                 ? `https://${process.env.CLOUDFRONT_DOMAIN}/${event.invitationPhoto.s3Key}`
                 : '',
+            ceremonySchedule: event.ceremonySchedule ?? [],
           }}
         />
       </div>

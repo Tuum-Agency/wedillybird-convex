@@ -64,6 +64,12 @@ export function buildDemoBundle(): MmBundle {
       invitationCinematic: 'floral',
       invitationMusic: { source: 'library', trackId: 'jardin' },
       invitationPhoto: null,
+      ceremonySchedule: [
+        { time: '15 h 00', title: 'Cérémonie', note: 'Domaine des Oliviers' },
+        { time: '16 h 30', title: 'Cocktail & photos' },
+        { time: '19 h 30', title: 'Dîner' },
+        { time: '22 h 00', title: 'Ouverture du bal' },
+      ],
       cinematicUnlocked: true,
     },
     guests: demoGuests(),

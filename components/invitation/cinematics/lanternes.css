@@ -340,8 +340,12 @@
 /* Les prénoms à travers le papier. */
 .ln-eyebrow {
   font-family: var(--font-mono);
-  font-size: 7px;
-  letter-spacing: 0.28em;
+  /* Le papier de lanterne se rétrécit en haut : overline étroit pour qu'il
+     tienne dans la zone lumineuse (sinon les lettres de bord tombent sur le
+     fond nuit et paraissent rognées). */
+  font-size: 6px;
+  letter-spacing: 0.14em;
+  white-space: nowrap;
   text-transform: uppercase;
   color: oklch(50% 0.07 45);
   margin-bottom: 5px;

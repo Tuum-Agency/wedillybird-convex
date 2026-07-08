@@ -13,6 +13,7 @@ import type * as affiliate from "../affiliate.js";
 import type * as analytics from "../analytics.js";
 import type * as auth from "../auth.js";
 import type * as budget from "../budget.js";
+import type * as bugReports from "../bugReports.js";
 import type * as clients from "../clients.js";
 import type * as contracts from "../contracts.js";
 import type * as coupleSpace from "../coupleSpace.js";
@@ -79,6 +80,7 @@ declare const fullApi: ApiFromModules<{
   analytics: typeof analytics;
   auth: typeof auth;
   budget: typeof budget;
+  bugReports: typeof bugReports;
   clients: typeof clients;
   contracts: typeof contracts;
   coupleSpace: typeof coupleSpace;

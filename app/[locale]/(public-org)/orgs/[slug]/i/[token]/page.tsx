@@ -9,6 +9,7 @@ import { InvitationShell } from '@/components/invitation/invitation-shell';
 import { InvitationPortrait } from '@/components/invitation/invitation-portrait';
 import { WeddingCountdown } from '@/components/invitation/wedding-countdown';
 import { RsvpFormV4 } from '@/components/invitation/rsvp-form-v4';
+import { InvitationSchedule } from '@/components/invitation/invitation-schedule';
 import { TrackOnMount } from '@/components/analytics/track-on-mount';
 
 export const dynamic = 'force-dynamic';
@@ -72,6 +73,7 @@ export default async function PublicOrgInvitationPage({
         venueName={event.venue?.name}
         accentColor={accentColor}
         eventDate={event.eventDate}
+        photoUrl={event.invitationPhoto?.url}
         cinematic={event.invitationCinematic}
         music={resolveInvitationMusic(event.invitationMusic)}
       >
@@ -169,6 +171,8 @@ export default async function PublicOrgInvitationPage({
               </div>
             ) : null}
           </section>
+
+          <InvitationSchedule schedule={event.ceremonySchedule ?? []} title={t('scheduleTitle')} />
 
           <section className="flex flex-col gap-5">
             <header className="flex flex-col items-center gap-3 text-center">

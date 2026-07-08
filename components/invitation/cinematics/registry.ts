@@ -13,6 +13,7 @@ import type { MusicTrackId } from '@/lib/invitation/music';
 
 export const CINEMATIC_IDS = [
   'seal',
+  'fairepart',
   'floral',
   'cake',
   'voyage',
@@ -47,6 +48,7 @@ export interface CinematicMeta {
 
 export const CINEMATIC_META: Record<CinematicId, CinematicMeta> = {
   seal: { id: 'seal', suggestedTrackId: 'aurore', dark: false },
+  fairepart: { id: 'fairepart', suggestedTrackId: 'aurore', dark: false },
   floral: { id: 'floral', suggestedTrackId: 'jardin', dark: false },
   cake: { id: 'cake', suggestedTrackId: 'celebration', dark: true },
   voyage: { id: 'voyage', suggestedTrackId: 'envol', dark: true },

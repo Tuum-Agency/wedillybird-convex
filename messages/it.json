@@ -18,7 +18,8 @@
       "newsletter": "Newsletter",
       "auditLog": "Registro di audit",
       "affiliates": "Affiliazione",
-      "promotions": "Promozioni"
+      "promotions": "Promozioni",
+      "bugReports": "Bugs"
     },
     "common": {
       "back": "Indietro",
@@ -563,6 +564,31 @@
       "cardKicker": "CI SPOSIAMO",
       "cardDate": "8 GIUGNO 2026"
     },
+    "universes": {
+      "chapter": "CAPITOLO 04B — I MONDI",
+      "title": "Dodici aperture. Dodici mondi.",
+      "subtitle": "Il sigillo è solo l'inizio. Scegli la cinematica — un sipario che si alza, fuochi d'artificio, il primo fiocco di neve — e tutta la pagina dell'invito si veste dello stesso tema: colori, decori, conto alla rovescia, fino al piè di pagina.",
+      "galleryNote": "La stessa carta, dodici temi",
+      "signatureBadge": "Classico",
+      "custom": {
+        "heading": "E tutto si regola",
+        "cinematic": {
+          "title": "La cinematica",
+          "desc": "Dodici aperture a scelta, da rivedere quando volete."
+        },
+        "music": {
+          "title": "La musica",
+          "desc": "Cinque brani della casa, o il vostro file."
+        },
+        "musicYours": "+ il vostro",
+        "photo": {
+          "title": "La vostra foto",
+          "desc": "La vostra, al centro della carta."
+        },
+        "included": "Incluso con Premium e tutti i piani Pro."
+      },
+      "liveTag": "Animato"
+    },
     "testimonials": {
       "chapter": "CAPITOLO 05 — LE VOCI",
       "eyebrow": "Pensato per il campo",
@@ -1021,7 +1047,9 @@
     "passDate": "Data",
     "passGate": "Gate",
     "passSeat": "Posto",
-    "actOne": "Atto I"
+    "actOne": "Atto I",
+    "tapSeal": "Tocca il sigillo",
+    "scheduleTitle": "Il programma della giornata"
   },
   "OrgPublic": {
     "poweredBy": "Powered by",
@@ -5691,6 +5719,10 @@
         "name": "Il Sigillo",
         "desc": "La busta sigillata si apre in profondità: il classico distintivo."
       },
+      "fairepart": {
+        "name": "La Partecipazione",
+        "desc": "Premi il sigillo di cera: salta in 3D e la carta si apre sulla vostra foto."
+      },
       "floral": {
         "name": "La Fioritura",
         "desc": "Il giardino si risveglia: i vostri nomi si scrivono a inchiostro sotto l'arco in fiore."
@@ -5759,5 +5791,33 @@
       "size": "File troppo grande (max 10 MB)",
       "network": "Caricamento non riuscito: riprova"
     }
+  },
+  "BugReport": {
+    "open": "Segnala un problema",
+    "cta": "Segnala un problema",
+    "title": "Segnala un problema",
+    "subtitle": "Raccontaci cosa non va. Uno screenshot aiuta molto.",
+    "descLabel": "Cosa è successo?",
+    "descPlaceholder": "Es.: il pulsante «Invia» non risponde dopo aver aggiunto un invitato…",
+    "captureLabel": "Screenshot (facoltativo)",
+    "captureBtn": "Cattura schermo",
+    "uploadBtn": "Scegli un'immagine",
+    "removeShot": "Rimuovi lo screenshot",
+    "captureError": "Cattura non riuscita: puoi allegare un'immagine.",
+    "contextPage": "Pagina",
+    "contextErrors": "{count, plural, one {# errore tecnico allegato automaticamente} other {# errori tecnici allegati automaticamente}}",
+    "thanks": "Grazie! La tua segnalazione ci aiuta a migliorare l'app.",
+    "cancel": "Annulla",
+    "submit": "Invia segnalazione"
+  },
+  "CeremonySchedule": {
+    "section": "Programma della giornata",
+    "hint": "I momenti chiave del gran giorno (cerimonia, cocktail, cena…), mostrati sull'invito.",
+    "timeLabel": "Ora",
+    "timePlaceholder": "15:00",
+    "titleLabel": "Fase",
+    "titlePlaceholder": "Cerimonia",
+    "add": "Aggiungi una fase",
+    "remove": "Rimuovi fase"
   }
 }
