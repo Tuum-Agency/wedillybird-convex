@@ -2,7 +2,7 @@ import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
 import type { Id } from './_generated/dataModel';
 import { computePlatformAnalytics, computeRefundOutcome } from './lib/analytics';
-import { reverseReferralBySession } from './affiliate';
+import { reverseReferralBySession, restoreCreditForRefundedSession } from './affiliate';
 
 async function assertAdmin(
   ctx: { db: { get: (id: Id<'users'>) => Promise<{ role: string } | null> } },
@@ -317,14 +317,19 @@ export const markPaymentRefunded = mutation({
       updatedAt: Date.now(),
     });
 
-    // Affiliation : rembourser une vente annule la commission liée (best-effort,
-    // idempotent — sans effet si déjà versée ou inexistante).
-    if (p.affiliateId) {
-      try {
-        await reverseReferralBySession(ctx, p.providerSessionId);
-      } catch {
-        // best-effort — le remboursement prime.
-      }
+    // Affiliation : rembourser une vente (a) annule la commission qu'elle a
+    // GÉNÉRÉE pour le parrain de l'acheteur, et (b) RESTITUE le crédit que
+    // l'acheteur avait DÉPENSÉ sur cet achat (lignes `credited` → `vested`).
+    // Best-effort, idempotent.
+    try {
+      await reverseReferralBySession(ctx, p.providerSessionId);
+    } catch {
+      // best-effort — le remboursement prime.
+    }
+    try {
+      await restoreCreditForRefundedSession(ctx, p.providerSessionId);
+    } catch {
+      // best-effort
     }
 
     await ctx.db.insert('adminAuditLog', {

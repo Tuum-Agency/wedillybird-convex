@@ -383,7 +383,12 @@ export const markReferralSettled = internalMutation({
 
 /* ======================= Parrainage — code + crédit ======================= */
 
-/** Récompenses `vested` de type crédit d'un user, devise-matchées, triées FIFO. */
+/**
+ * Récompenses `vested` de type crédit d'un user, devise-matchées, NON réservées,
+ * triées FIFO. « Disponible » = dépensable maintenant (exclut le crédit déjà
+ * réservé par un checkout en cours → cohérent avec l'anti double-dépense).
+ * Lecture bornée via l'index `by_affiliate_status`.
+ */
 export async function collectVestedCredit(
   ctx: QueryCtx,
   userId: Id<'users'>,
@@ -398,10 +403,10 @@ export async function collectVestedCredit(
     if (aff.rewardType !== 'credit') continue;
     const refs = await ctx.db
       .query('affiliateReferrals')
-      .withIndex('by_affiliate', (q) => q.eq('affiliateId', aff._id))
+      .withIndex('by_affiliate_status', (q) => q.eq('affiliateId', aff._id).eq('status', 'vested'))
       .collect();
     for (const r of refs) {
-      if (r.status === 'vested' && r.currency === currency) {
+      if (r.currency === currency && !r.reservedForSession) {
         rows.push({ id: r._id, rewardMinor: r.rewardMinor, createdAt: r.createdAt });
       }
     }
@@ -473,90 +478,84 @@ export const referralForUser = query({
 });
 
 /**
- * Aperçu (lecture seule) du crédit applicable à une commande : sélectionne les
- * récompenses `vested` (crédit) ENTIÈRES dont le cumul reste ≤ `orderMinor`.
+ * RÉSERVE atomiquement le crédit d'un user pour un checkout, AVANT la création du
+ * coupon Stripe (le montant réservé = le montant du coupon → jamais de sur-remise
+ * ni de crédit gratuit). Sélectionne les lignes `vested` NON réservées (FIFO,
+ * entières, cumul ≤ orderMinor) et les marque `reservedForSession = reservationId`
+ * dans UNE seule mutation → l'OCC de Convex empêche la double-réservation
+ * concurrente (deux checkouts ne peuvent pas réserver la même ligne). Idempotent
+ * par `reservationId`. Retourne le montant réellement réservé.
  */
-export const previewCreditApplication = query({
-  args: { userId: v.id('users'), currency: v.string(), orderMinor: v.number() },
-  handler: async (ctx, { userId, currency, orderMinor }) => {
+export const reserveCreditForCheckout = mutation({
+  args: {
+    userId: v.id('users'),
+    reservationId: v.string(),
+    currency: v.string(),
+    orderMinor: v.number(),
+  },
+  handler: async (ctx, { userId, reservationId, currency, orderMinor }) => {
+    const empty = { appliedMinor: 0, referralIds: [] as Id<'affiliateReferrals'>[] };
+    const dup = await ctx.db
+      .query('pendingCreditApplications')
+      .withIndex('by_reservation', (q) => q.eq('reservationId', reservationId))
+      .first();
+    if (dup) return { appliedMinor: dup.appliedMinor, referralIds: dup.referralIds };
+
+    // collectVestedCredit exclut déjà les lignes réservées ailleurs.
     const vested = await collectVestedCredit(ctx, userId, currency);
-    const { referralIds, consumedMinor } = selectReferralsToConsume(
+    const { referralIds } = selectReferralsToConsume(
       vested.map((r) => ({ id: r.id, rewardMinor: r.rewardMinor })),
       orderMinor,
     );
-    return { appliedMinor: consumedMinor, referralIds };
-  },
-});
+    if (referralIds.length === 0) return empty;
 
-/**
- * Réserve le crédit pour un checkout : re-valide côté serveur (vested + crédit +
- * owner + devise) et pose une ligne `pendingCreditApplications` liée à la
- * session. Idempotent par session. Consommée à la confirmation.
- */
-export const registerCreditApplication = mutation({
-  args: {
-    userId: v.id('users'),
-    sourceSessionId: v.string(),
-    currency: v.string(),
-    referralIds: v.array(v.id('affiliateReferrals')),
-  },
-  handler: async (ctx, { userId, sourceSessionId, currency, referralIds }) => {
-    const dup = await ctx.db
-      .query('pendingCreditApplications')
-      .withIndex('by_source_session', (q) => q.eq('sourceSessionId', sourceSessionId))
-      .first();
-    if (dup) return { appliedMinor: dup.appliedMinor };
-
-    const owned = new Set(
-      (
-        await ctx.db
-          .query('affiliates')
-          .withIndex('by_owner', (q) => q.eq('ownerUserId', userId))
-          .collect()
-      )
-        .filter((a) => a.rewardType === 'credit')
-        .map((a) => a._id as string),
-    );
-    const valid: Id<'affiliateReferrals'>[] = [];
+    const now = Date.now();
+    const reserved: Id<'affiliateReferrals'>[] = [];
     let appliedMinor = 0;
     for (const id of referralIds) {
-      const r = await ctx.db.get(id);
+      const r = await ctx.db.get(id as Id<'affiliateReferrals'>);
+      // Re-vérif dans la mutation (fenêtre OCC) : encore vested, crédit, bonne
+      // devise, NON réservée.
       if (
         r &&
         r.status === 'vested' &&
         r.rewardType === 'credit' &&
         r.currency === currency &&
-        owned.has(r.affiliateId as string)
+        !r.reservedForSession
       ) {
-        valid.push(id);
+        await ctx.db.patch(r._id, { reservedForSession: reservationId, updatedAt: now });
+        reserved.push(r._id);
         appliedMinor += r.rewardMinor;
       }
     }
-    if (valid.length === 0) return { appliedMinor: 0 };
+    if (reserved.length === 0) return empty;
     await ctx.db.insert('pendingCreditApplications', {
-      sourceSessionId,
+      reservationId,
       userId,
       currency,
       appliedMinor,
-      referralIds: valid,
-      createdAt: Date.now(),
+      referralIds: reserved,
+      createdAt: now,
     });
-    return { appliedMinor };
+    return { appliedMinor, referralIds: reserved };
   },
 });
 
 /**
- * Consomme la réservation de crédit d'une session à la confirmation (plan ou
- * upsell) : passe les lignes réservées en `credited` et supprime la réservation.
- * Idempotent (2e appel = pas de réservation → noop). Helper intra-Convex.
+ * Consomme une réservation à la confirmation du paiement (plan/upsell) : lignes
+ * réservées → `credited`, trace `consumedBySession` (= session d'achat, pour
+ * restitution au refund), efface la réservation. Idempotent (réservation absente
+ * → noop ; ligne déjà non-`vested` → ignorée). Helper intra-Convex.
  */
-export async function consumePendingCreditApplication(
+export async function consumeCreditReservation(
   ctx: MutationCtx,
-  sourceSessionId: string,
+  reservationId: string | undefined | null,
+  purchaseSessionId: string,
 ): Promise<{ consumedMinor: number; count: number }> {
+  if (!reservationId) return { consumedMinor: 0, count: 0 };
   const pending = await ctx.db
     .query('pendingCreditApplications')
-    .withIndex('by_source_session', (q) => q.eq('sourceSessionId', sourceSessionId))
+    .withIndex('by_reservation', (q) => q.eq('reservationId', reservationId))
     .first();
   if (!pending) return { consumedMinor: 0, count: 0 };
   const now = Date.now();
@@ -565,7 +564,13 @@ export async function consumePendingCreditApplication(
   for (const id of pending.referralIds) {
     const r = await ctx.db.get(id);
     if (r && r.status === 'vested') {
-      await ctx.db.patch(id, { status: 'credited', paidAt: now, updatedAt: now });
+      await ctx.db.patch(id, {
+        status: 'credited',
+        reservedForSession: undefined,
+        consumedBySession: purchaseSessionId,
+        paidAt: now,
+        updatedAt: now,
+      });
       consumedMinor += r.rewardMinor;
       count += 1;
     }
@@ -573,3 +578,89 @@ export async function consumePendingCreditApplication(
   await ctx.db.delete(pending._id);
   return { consumedMinor, count };
 }
+
+/**
+ * Relâche une réservation NON consommée (checkout échoué/abandonné) : ré-ouvre
+ * les lignes (`reservedForSession` effacé, restent `vested`) et supprime la
+ * réservation. Idempotent — le crédit redevient dépensable.
+ */
+export async function releaseCreditReservation(
+  ctx: MutationCtx,
+  reservationId: string | undefined | null,
+): Promise<{ released: number }> {
+  if (!reservationId) return { released: 0 };
+  const pending = await ctx.db
+    .query('pendingCreditApplications')
+    .withIndex('by_reservation', (q) => q.eq('reservationId', reservationId))
+    .first();
+  if (!pending) return { released: 0 };
+  const now = Date.now();
+  let released = 0;
+  for (const id of pending.referralIds) {
+    const r = await ctx.db.get(id);
+    if (r && r.reservedForSession === reservationId) {
+      await ctx.db.patch(id, { reservedForSession: undefined, updatedAt: now });
+      released += 1;
+    }
+  }
+  await ctx.db.delete(pending._id);
+  return { released };
+}
+
+/** Mutation publique : la route relâche la réservation si le checkout échoue. */
+export const releaseCreditReservationMutation = mutation({
+  args: { reservationId: v.string() },
+  handler: (ctx, { reservationId }) => releaseCreditReservation(ctx, reservationId),
+});
+
+/**
+ * RESTITUE le crédit dépensé sur un achat REMBOURSÉ : les lignes `credited` dont
+ * `consumedBySession` == la session remboursée repassent `vested` (crédit
+ * ré-ouvert pour le parrain). Appelé par `markPaymentRefunded`. Idempotent.
+ */
+export async function restoreCreditForRefundedSession(
+  ctx: MutationCtx,
+  purchaseSessionId: string,
+): Promise<{ restored: number; restoredMinor: number }> {
+  const rows = await ctx.db
+    .query('affiliateReferrals')
+    .withIndex('by_consumed_session', (q) => q.eq('consumedBySession', purchaseSessionId))
+    .collect();
+  const now = Date.now();
+  let restored = 0;
+  let restoredMinor = 0;
+  for (const r of rows) {
+    if (r.status === 'credited') {
+      await ctx.db.patch(r._id, {
+        status: 'vested',
+        consumedBySession: undefined,
+        paidAt: undefined,
+        updatedAt: now,
+      });
+      restored += 1;
+      restoredMinor += r.rewardMinor;
+    }
+  }
+  return { restored, restoredMinor };
+}
+
+/**
+ * GC (cron) : relâche les réservations orphelines (checkout jamais confirmé),
+ * plus vieilles que le `redeem_by` du coupon (24 h) → le crédit redevient
+ * disponible. Lot borné.
+ */
+export const releaseStaleCreditReservations = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+    const rows = await ctx.db.query('pendingCreditApplications').take(200);
+    let released = 0;
+    for (const p of rows) {
+      if (p.createdAt < cutoff) {
+        await releaseCreditReservation(ctx, p.reservationId);
+        released += 1;
+      }
+    }
+    return { released };
+  },
+});

@@ -58,26 +58,42 @@ export async function POST(req: Request): Promise<Response> {
     }
   }
 
-  // Crédit de parrainage : le user applique son crédit disponible à cet achat
-  // (coupon Stripe à usage unique = montant du crédit consommé). Best-effort.
+  // Crédit de parrainage : on RÉSERVE le crédit AVANT de créer le coupon — le
+  // montant réservé == le montant du coupon (jamais de sur-remise ni de crédit
+  // gratuit). `reservationId` (token) est porté par la session (metadata) puis le
+  // paiement, et consommé à la confirmation. Best-effort strict.
+  const reservationId = crypto.randomUUID();
   let discountCouponId: string | undefined;
-  let creditReferralIds: string[] = [];
+  let creditReserved = false;
   if (routing.provider === 'stripe') {
     try {
       const convex = getConvexServerClient();
-      const preview = await convex.query(convexApi.previewCreditApplication, {
+      const reserved = await convex.mutation(convexApi.reserveCreditForCheckout, {
         userId: session.userId,
+        reservationId,
         currency: routing.currency,
         orderMinor: amountMinor,
       });
-      if (preview.appliedMinor > 0) {
-        discountCouponId = await createOneTimeAmountCoupon(preview.appliedMinor, routing.currency);
-        creditReferralIds = preview.referralIds;
+      if (reserved.appliedMinor > 0) {
+        creditReserved = true;
+        discountCouponId = await createOneTimeAmountCoupon(reserved.appliedMinor, routing.currency);
       }
     } catch {
-      // best-effort — le crédit ne bloque jamais l'achat.
+      // reserve OU création du coupon a échoué → relâche si on avait réservé.
+      if (creditReserved) {
+        try {
+          await getConvexServerClient().mutation(convexApi.releaseCreditReservation, {
+            reservationId,
+          });
+        } catch {
+          // le GC cron rattrape.
+        }
+      }
+      creditReserved = false;
+      discountCouponId = undefined;
     }
   }
+  const creditReservationId = creditReserved ? reservationId : undefined;
 
   const driver = getPaymentDriver(routing.provider);
   let session_;
@@ -93,8 +109,19 @@ export async function POST(req: Request): Promise<Response> {
       cancelUrl,
       affiliateId,
       discountCouponId,
+      creditReservationId,
     });
   } catch (err) {
+    // Session non créée → relâche le crédit réservé (sinon bloqué jusqu'au GC).
+    if (creditReserved) {
+      try {
+        await getConvexServerClient().mutation(convexApi.releaseCreditReservation, {
+          reservationId,
+        });
+      } catch {
+        // le GC cron rattrape.
+      }
+    }
     const message = err instanceof Error ? err.message : 'UNKNOWN';
     return NextResponse.json({ error: message }, { status: 502 });
   }
@@ -110,6 +137,7 @@ export async function POST(req: Request): Promise<Response> {
       provider: driver.name,
       providerSessionId: session_.providerSessionId,
       affiliateId,
+      creditReservationId,
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'UNKNOWN';
@@ -117,21 +145,6 @@ export async function POST(req: Request): Promise<Response> {
       return NextResponse.json({ error: 'FORBIDDEN' }, { status: 403 });
     }
     return NextResponse.json({ error: 'PAYMENT_RECORD_FAILED' }, { status: 500 });
-  }
-
-  // Réserve le crédit sélectionné pour cette session — consommé (lignes ledger
-  // → `credited`) à la confirmation du paiement. Best-effort.
-  if (discountCouponId && creditReferralIds.length > 0) {
-    try {
-      await getConvexServerClient().mutation(convexApi.registerCreditApplication, {
-        userId: session.userId,
-        sourceSessionId: session_.providerSessionId,
-        currency: routing.currency,
-        referralIds: creditReferralIds,
-      });
-    } catch {
-      // best-effort — le crédit ne bloque jamais l'achat.
-    }
   }
 
   // Analytics serveur : `checkout_started` est fiable même si le JS client est

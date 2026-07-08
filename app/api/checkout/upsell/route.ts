@@ -66,23 +66,36 @@ export async function POST(req: Request): Promise<Response> {
   const successUrl = `${origin}/events/${parsed.eventId}/upsell/success`;
   const cancelUrl = `${origin}/events/${parsed.eventId}/upgrade/cancelled`;
 
-  // Crédit de parrainage : le user dépense son crédit sur l'upsell HD (le cas de
-  // rachat le plus fréquent pour un couple one-shot). Best-effort.
+  // Crédit de parrainage : le parrain dépense son crédit sur l'upsell HD (le
+  // rachat le plus fréquent pour un couple one-shot). On RÉSERVE avant de créer
+  // le coupon ; le token voyage par la metadata de session et est consommé à la
+  // confirmation (`applyPostEventUpsell`). Best-effort strict.
+  const reservationId = crypto.randomUUID();
   let discountCouponId: string | undefined;
-  let creditReferralIds: string[] = [];
+  let creditReserved = false;
   try {
-    const preview = await convex.query(convexApi.previewCreditApplication, {
+    const reserved = await convex.mutation(convexApi.reserveCreditForCheckout, {
       userId: session.userId,
+      reservationId,
       currency: routing.currency,
       orderMinor: amountMinor,
     });
-    if (preview.appliedMinor > 0) {
-      discountCouponId = await createOneTimeAmountCoupon(preview.appliedMinor, routing.currency);
-      creditReferralIds = preview.referralIds;
+    if (reserved.appliedMinor > 0) {
+      creditReserved = true;
+      discountCouponId = await createOneTimeAmountCoupon(reserved.appliedMinor, routing.currency);
     }
   } catch {
-    // best-effort — le crédit ne bloque jamais l'achat.
+    if (creditReserved) {
+      try {
+        await convex.mutation(convexApi.releaseCreditReservation, { reservationId });
+      } catch {
+        // le GC cron rattrape.
+      }
+    }
+    creditReserved = false;
+    discountCouponId = undefined;
   }
+  const creditReservationId = creditReserved ? reservationId : undefined;
 
   let checkout;
   try {
@@ -94,25 +107,18 @@ export async function POST(req: Request): Promise<Response> {
       successUrl,
       cancelUrl,
       discountCouponId,
+      creditReservationId,
     });
   } catch (err) {
+    if (creditReserved) {
+      try {
+        await convex.mutation(convexApi.releaseCreditReservation, { reservationId });
+      } catch {
+        // le GC cron rattrape.
+      }
+    }
     const message = err instanceof Error ? err.message : 'UNKNOWN';
     return NextResponse.json({ error: message }, { status: 502 });
-  }
-
-  // Réserve le crédit sélectionné pour cette session (consommé à la confirmation
-  // via `applyPostEventUpsell`). Best-effort.
-  if (discountCouponId && creditReferralIds.length > 0) {
-    try {
-      await convex.mutation(convexApi.registerCreditApplication, {
-        userId: session.userId,
-        sourceSessionId: checkout.providerSessionId,
-        currency: routing.currency,
-        referralIds: creditReferralIds,
-      });
-    } catch {
-      // best-effort
-    }
   }
 
   await captureServer({

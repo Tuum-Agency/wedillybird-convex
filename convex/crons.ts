@@ -38,4 +38,14 @@ crons.cron(
 // no-op when there's nothing due.
 crons.cron('vest affiliate rewards', '0 3 * * *', internal.affiliate.vestDueReferrals, {});
 
+// Hourly: release orphan referral-credit reservations (checkout started but
+// never confirmed, older than the coupon's 24h redeem window) so the credit
+// becomes spendable again. Idempotent.
+crons.cron(
+  'release stale credit reservations',
+  '0 * * * *',
+  internal.affiliate.releaseStaleCreditReservations,
+  {},
+);
+
 export default crons;

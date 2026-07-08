@@ -622,6 +622,9 @@ export default defineSchema({
     /** Affilié/parrain attribué (posé au checkout via `?ref`). Le referral est
      *  enregistré dans le ledger à la confirmation du paiement (`markSucceeded`). */
     affiliateId: v.optional(v.id('affiliates')),
+    /** Token de réservation du crédit de parrainage appliqué à ce checkout —
+     *  consommé (lignes → `credited`) à la confirmation. */
+    creditReservationId: v.optional(v.string()),
     status: v.union(
       v.literal('pending'),
       v.literal('succeeded'),
@@ -1432,28 +1435,44 @@ export default defineSchema({
     vestsAt: v.number(),
     paidAt: v.optional(v.number()),
     reversedAt: v.optional(v.number()),
+    /**
+     * RÉSERVATION : token du checkout qui a réservé cette ligne de crédit (le
+     * crédit n'est plus re-sélectionnable tant qu'il est réservé → anti
+     * double-dépense). Effacé à la consommation OU au relâchement (échec /
+     * abandon / GC). Posé atomiquement par `reserveCreditForCheckout`.
+     */
+    reservedForSession: v.optional(v.string()),
+    /**
+     * Session d'ACHAT qui a consommé ce crédit (le parrain l'a dépensé ici) —
+     * permet de RESTITUER le crédit si cet achat est remboursé.
+     */
+    consumedBySession: v.optional(v.string()),
     createdAt: v.number(),
     updatedAt: v.number(),
   })
     .index('by_affiliate', ['affiliateId'])
     .index('by_source_session', ['sourceSessionId'])
     .index('by_status', ['status'])
-    .index('by_status_vests', ['status', 'vestsAt']),
+    .index('by_status_vests', ['status', 'vestsAt'])
+    .index('by_affiliate_status', ['affiliateId', 'status'])
+    .index('by_reserved_session', ['reservedForSession'])
+    .index('by_consumed_session', ['consumedBySession']),
 
   /**
    * Crédit de parrainage RÉSERVÉ pour un checkout en cours (parrain qui dépense
-   * son crédit). Posé à la création de la session (avec le coupon Stripe), puis
+   * son crédit). Posé AVANT le coupon Stripe (`reserveCreditForCheckout`), puis
    * consommé à la confirmation du paiement (plan `markSucceeded` OU upsell
-   * `applyPostEventUpsell`) — table pivot pour uniformiser les deux flux. Une
-   * ligne par session ; supprimée après consommation (idempotence par session).
+   * `applyPostEventUpsell`). Clé = `reservationId` (token généré par la route,
+   * transmis en metadata de session Stripe). GC des orphelins après 24 h.
    */
   pendingCreditApplications: defineTable({
-    sourceSessionId: v.string(),
+    /** Token de réservation (uuid) — clé d'idempotence, ≠ session Stripe. */
+    reservationId: v.string(),
     userId: v.id('users'),
     currency: v.string(),
     appliedMinor: v.number(),
-    /** Lignes de ledger (crédit vested) à passer en `credited` à la confirmation. */
+    /** Lignes de ledger (crédit) réservées → `credited` à la confirmation. */
     referralIds: v.array(v.id('affiliateReferrals')),
     createdAt: v.number(),
-  }).index('by_source_session', ['sourceSessionId']),
+  }).index('by_reservation', ['reservationId']),
 });

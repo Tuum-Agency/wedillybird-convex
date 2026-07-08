@@ -95,6 +95,7 @@ export const stripeDriver: PaymentDriver = {
         userId: input.userId,
         plan: input.plan,
         ...(input.affiliateId ? { affiliateId: input.affiliateId } : {}),
+        ...(input.creditReservationId ? { creditReservationId: input.creditReservationId } : {}),
       },
       client_reference_id: `${input.userId}:${input.eventId}`,
       locale: 'auto',
@@ -340,6 +341,8 @@ export type PostEventUpsellCheckoutInput = {
   cancelUrl: string;
   /** Optional — coupon Stripe (crédit de parrainage appliqué). */
   discountCouponId?: string;
+  /** Optional — token de réservation du crédit (metadata de session). */
+  creditReservationId?: string;
 };
 
 const POST_EVENT_UPSELL_LABEL = 'Wedillybird — Archive HD (galerie 5 ans)';
@@ -386,6 +389,7 @@ export async function createPostEventUpsellCheckout(
       kind: 'post-event-upsell',
       eventId: input.eventId,
       requesterId: input.userId,
+      ...(input.creditReservationId ? { creditReservationId: input.creditReservationId } : {}),
     },
     client_reference_id: `${input.userId}:${input.eventId}`,
     locale: 'auto',
@@ -405,6 +409,8 @@ export interface PostEventUpsellWebhookEvent {
   stripeSessionId: string;
   amountMinor: number;
   currency: Currency;
+  /** Token de réservation du crédit de parrainage (metadata de session), si posé. */
+  creditReservationId?: string;
 }
 
 /**
@@ -424,6 +430,7 @@ export function classifyPostEventUpsellSession(
   if (!isCurrency(currencyRaw)) return null;
   const stripeAmount = session.amount_total ?? 0;
   const override = STRIPE_CURRENCY_DIVISOR_OVERRIDE[currencyRaw];
+  const creditReservationId = session.metadata.creditReservationId;
   return {
     kind: 'post-event-upsell',
     eventId,
@@ -431,6 +438,7 @@ export function classifyPostEventUpsellSession(
     stripeSessionId: session.id,
     amountMinor: override ? stripeAmount * override : stripeAmount,
     currency: currencyRaw,
+    ...(creditReservationId ? { creditReservationId } : {}),
   };
 }
 

@@ -828,6 +828,7 @@ export const convexApi = {
       provider: 'stripe' | 'mock';
       providerSessionId: string;
       affiliateId?: string;
+      creditReservationId?: string;
     },
     { id: string }
   >('payments:recordIntent'),
@@ -897,16 +898,16 @@ export const convexApi = {
       createdAt: number;
     }>
   >('affiliate:listReferrals'),
-  previewCreditApplication: makeFunctionReference<
-    'query',
-    { userId: string; currency: string; orderMinor: number },
-    { appliedMinor: number; referralIds: string[] }
-  >('affiliate:previewCreditApplication'),
-  registerCreditApplication: makeFunctionReference<
+  reserveCreditForCheckout: makeFunctionReference<
     'mutation',
-    { userId: string; sourceSessionId: string; currency: string; referralIds: string[] },
-    { appliedMinor: number }
-  >('affiliate:registerCreditApplication'),
+    { userId: string; reservationId: string; currency: string; orderMinor: number },
+    { appliedMinor: number; referralIds: string[] }
+  >('affiliate:reserveCreditForCheckout'),
+  releaseCreditReservation: makeFunctionReference<
+    'mutation',
+    { reservationId: string },
+    { released: number }
+  >('affiliate:releaseCreditReservationMutation'),
   referralForUser: makeFunctionReference<
     'query',
     { userId: string; currency: string },
@@ -971,6 +972,7 @@ export const convexApi = {
       providerSessionId: string;
       amountMinor: number;
       currency: 'EUR' | 'USD' | 'XOF' | 'MAD' | 'TND';
+      creditReservationId?: string;
     },
     { ok: true; alreadyApplied: boolean }
   >('payments:applyPostEventUpsell'),

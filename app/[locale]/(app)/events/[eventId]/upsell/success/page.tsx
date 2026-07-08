@@ -47,6 +47,7 @@ export default async function UpsellSuccessPage({
           providerSessionId: upsell.stripeSessionId,
           amountMinor: upsell.amountMinor,
           currency: upsell.currency,
+          creditReservationId: upsell.creditReservationId,
         });
       } else if (upsell && !webhookSecret) {
         reconciliationFailed = true;

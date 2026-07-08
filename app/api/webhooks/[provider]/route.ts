@@ -102,6 +102,7 @@ export async function POST(
             providerSessionId: subscriptionEvent.stripeSessionId,
             amountMinor: subscriptionEvent.amountMinor,
             currency: subscriptionEvent.currency,
+            creditReservationId: subscriptionEvent.creditReservationId,
           });
 
           // Revenu : `purchase_completed` une seule fois (idempotence via

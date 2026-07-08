@@ -86,7 +86,10 @@ export default function proxy(request: NextRequest) {
         })()
       : intlMiddleware(request);
 
-  if (ref && response) {
+  // First-touch : on ne pose le cookie que s'il n'existe pas déjà (le premier
+  // parrain qui amène le visiteur garde l'attribution — pas de vol en fin de
+  // parcours par un second lien).
+  if (ref && response && !request.cookies.get('wdb_ref')) {
     response.cookies.set('wdb_ref', ref, {
       maxAge: 30 * 24 * 60 * 60,
       httpOnly: true,

@@ -7,7 +7,8 @@ import { proTierAtLeast } from './lib/entitlements';
 import {
   applyReferral,
   ensureReferralAffiliate,
-  consumePendingCreditApplication,
+  consumeCreditReservation,
+  releaseCreditReservation,
 } from './affiliate';
 
 function ownerLocaleToIntlTag(locale: string | undefined): string {
@@ -76,6 +77,8 @@ export const recordIntent = mutation({
     providerSessionId: v.string(),
     /** Affilié/parrain attribué (résolu du cookie `wdb_ref` au checkout). */
     affiliateId: v.optional(v.id('affiliates')),
+    /** Token de réservation du crédit de parrainage appliqué (consommé à la confirmation). */
+    creditReservationId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const event = await ctx.db.get(args.eventId);
@@ -91,6 +94,7 @@ export const recordIntent = mutation({
       provider: args.provider,
       providerSessionId: args.providerSessionId,
       affiliateId: args.affiliateId,
+      creditReservationId: args.creditReservationId,
       status: 'pending',
       createdAt: Date.now(),
       updatedAt: Date.now(),
@@ -173,19 +177,14 @@ export const markSucceeded = mutation({
       }
     }
 
-    if (alreadyApplied) {
-      return { ok: true as const, alreadyApplied: true };
-    }
-
-    // Best-effort owner notification (only if owner has an email on file).
-    // Only sent on the first transition to `succeeded` — repeat webhooks for
-    // an already-applied payment must not retrigger the email.
     const owner = await ctx.db.get(payment.userId);
 
-    // Affiliation : paiement attribué → on écrit la ligne de ledger (idempotente
-    // sur la session). BEST-EFFORT strict — une erreur ici ne DOIT jamais faire
-    // échouer la confirmation du paiement (sinon Stripe rejoue et le couple
-    // reste bloqué). On avale donc l'exception.
+    // Parrainage / affiliation — exécuté à CHAQUE appel (y compris rejeu du
+    // webhook), AVANT le court-circuit `alreadyApplied` : ces opérations sont
+    // toutes idempotentes ET font partie du money-path. Si un premier passage a
+    // marqué le paiement `succeeded` mais a échoué ici, le rejeu rattrape (le
+    // crédit doit être consommé, sinon il reste dépensable). Best-effort strict —
+    // ne DOIT jamais faire échouer la confirmation du paiement.
     if (payment.affiliateId) {
       try {
         await applyReferral(ctx, {
@@ -204,20 +203,22 @@ export const markSucceeded = mutation({
         // best-effort — la confirmation du paiement prime.
       }
     }
-
-    // Parrainage : tout acheteur devient parrain (code auto), et on consomme le
-    // crédit éventuellement réservé pour ce checkout. Best-effort strict — ne
-    // doit jamais faire échouer la confirmation du paiement.
     try {
       await ensureReferralAffiliate(ctx, payment.userId);
     } catch {
       // best-effort
     }
     try {
-      await consumePendingCreditApplication(ctx, payment.providerSessionId);
+      await consumeCreditReservation(ctx, payment.creditReservationId, payment.providerSessionId);
     } catch {
       // best-effort
     }
+
+    if (alreadyApplied) {
+      return { ok: true as const, alreadyApplied: true };
+    }
+
+    // Notification + reçu au propriétaire — première confirmation seulement.
     if (owner?.email) {
       const amountFormatted = formatAmount(payment.amountMinor, payment.currency);
       const eventTitle = event?.title ?? '';
@@ -297,6 +298,13 @@ export const markFailed = mutation({
       failureReason: args.failureReason,
       updatedAt: Date.now(),
     });
+
+    // Checkout échoué/annulé → relâche le crédit de parrainage réservé (best-effort).
+    try {
+      await releaseCreditReservation(ctx, payment.creditReservationId);
+    } catch {
+      // best-effort — le GC cron rattrape sinon.
+    }
     return { ok: true as const, alreadyApplied: false };
   },
 });
@@ -366,6 +374,8 @@ export const applyPostEventUpsell = mutation({
     providerSessionId: v.string(),
     amountMinor: v.number(),
     currency: CURRENCY,
+    /** Token de réservation du crédit de parrainage (metadata de session). */
+    creditReservationId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const expected = process.env.CONVEX_WEBHOOK_SECRET;
@@ -418,10 +428,10 @@ export const applyPostEventUpsell = mutation({
       updatedAt: now,
     });
 
-    // Parrainage : consomme le crédit éventuellement réservé pour cet upsell
-    // (le parrain dépense son crédit). Best-effort strict.
+    // Parrainage : consomme le crédit réservé pour cet upsell (le parrain dépense
+    // son crédit). Best-effort strict.
     try {
-      await consumePendingCreditApplication(ctx, args.providerSessionId);
+      await consumeCreditReservation(ctx, args.creditReservationId, args.providerSessionId);
     } catch {
       // best-effort — la confirmation prime.
     }
