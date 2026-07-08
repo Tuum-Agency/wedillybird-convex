@@ -5108,6 +5108,14 @@
       }
     },
     "home": {
+      "referral": {
+        "title": "Parrainez vos amis",
+        "desc": "Partagez votre lien : chaque ami qui réserve vous offre du crédit.",
+        "credit": "{amount} de crédit disponible",
+        "copy": "Copier",
+        "copied": "Copié",
+        "linkAria": "Votre lien de parrainage"
+      },
       "hello": "Bienvenue dans votre espace",
       "heroAria": "Aperçu de votre mariage",
       "navAria": "Accès rapides",

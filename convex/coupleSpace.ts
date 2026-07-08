@@ -14,6 +14,7 @@ import {
   musicForClient,
   photoForClient,
 } from './lib/invitationDesign';
+import { collectVestedCredit } from './affiliate';
 
 /**
  * Espace couple self-serve « /mon-mariage » — backend du produit one-shot.
@@ -137,6 +138,16 @@ export const bundle = query({
 
     const storageBytes = photos.reduce((acc, p) => acc + (p.sizeBytes ?? 0), 0);
 
+    // Parrainage : code du couple + crédit disponible (récompenses vested).
+    const currency = event.currency ?? 'EUR';
+    const ownerAffiliates = await ctx.db
+      .query('affiliates')
+      .withIndex('by_owner', (q) => q.eq('ownerUserId', event.ownerId))
+      .collect();
+    const referralAff = ownerAffiliates.find((a) => a.kind === 'referral');
+    const vestedCredit = await collectVestedCredit(ctx, event.ownerId, currency);
+    const referralCreditMinor = vestedCredit.reduce((s, r) => s + r.rewardMinor, 0);
+
     return {
       event: {
         id: event._id,
@@ -160,6 +171,10 @@ export const bundle = query({
         invitationMusic: musicForClient(event.invitationMusic),
         invitationPhoto: photoForClient(event.invitationPhoto),
         cinematicUnlocked: eventHasFeature(event, 'cinematicInvitation'),
+      },
+      referral: {
+        code: referralAff?.code ?? null,
+        availableMinor: referralCreditMinor,
       },
       guests: guests.map((g) => ({
         id: g._id,

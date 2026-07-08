@@ -176,6 +176,7 @@ export function buildDemoBundle(): MmBundle {
       invitations: MC_USAGE.guests,
       storageBytes: Math.round(MC_USAGE.storageGo * 1e9),
     },
+    referral: { code: 'WBDEMO', availableMinor: 4000 },
   };
 }
 

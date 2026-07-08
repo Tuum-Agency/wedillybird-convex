@@ -8,6 +8,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useRouter } from '@/i18n/navigation';
 import { Icon, Mark } from './icons';
 import { McBtn, Ornament, CoupleNames } from './parts';
+import { ReferralCard } from './referral-card';
 import { mcDateLong, mcDateShort, mcJ, type McCouple, type McRsvp } from './data';
 import { rsvpFromGuests } from '@/lib/mon-mariage/adapt';
 import { useMonMariage } from '@/stores/mon-mariage';
@@ -228,6 +229,7 @@ export function HomeScreen({ empty, onNav }: HomeScreenProps) {
           <HomeNavGrid couple={couple} onNav={onNav} />
         </>
       )}
+      <ReferralCard />
     </>
   );
 }

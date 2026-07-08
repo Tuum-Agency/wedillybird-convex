@@ -1439,4 +1439,21 @@ export default defineSchema({
     .index('by_source_session', ['sourceSessionId'])
     .index('by_status', ['status'])
     .index('by_status_vests', ['status', 'vestsAt']),
+
+  /**
+   * Crédit de parrainage RÉSERVÉ pour un checkout en cours (parrain qui dépense
+   * son crédit). Posé à la création de la session (avec le coupon Stripe), puis
+   * consommé à la confirmation du paiement (plan `markSucceeded` OU upsell
+   * `applyPostEventUpsell`) — table pivot pour uniformiser les deux flux. Une
+   * ligne par session ; supprimée après consommation (idempotence par session).
+   */
+  pendingCreditApplications: defineTable({
+    sourceSessionId: v.string(),
+    userId: v.id('users'),
+    currency: v.string(),
+    appliedMinor: v.number(),
+    /** Lignes de ledger (crédit vested) à passer en `credited` à la confirmation. */
+    referralIds: v.array(v.id('affiliateReferrals')),
+    createdAt: v.number(),
+  }).index('by_source_session', ['sourceSessionId']),
 });

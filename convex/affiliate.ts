@@ -8,9 +8,16 @@
  * branche par-dessus (phase suivante) — ici on ne calcule et ne suit que le dû.
  */
 import { v } from 'convex/values';
-import { mutation, query, internalMutation, type MutationCtx } from './_generated/server';
+import {
+  mutation,
+  query,
+  internalMutation,
+  type MutationCtx,
+  type QueryCtx,
+} from './_generated/server';
 import type { Id } from './_generated/dataModel';
 import {
+  DEFAULT_RATE_BPS,
   isRewardConfigSafe,
   isSelfReferral,
   isValidAffiliateCode,
@@ -20,6 +27,8 @@ import {
   vestsAt as computeVestsAt,
   isVestable,
   canReverse,
+  generateReferralCode,
+  selectReferralsToConsume,
 } from './lib/affiliate';
 
 /** Garde admin (miroir de `admin.ts`, volontairement convex-local). */
@@ -371,3 +380,196 @@ export const markReferralSettled = internalMutation({
     return { outcome: 'settled' as const };
   },
 });
+
+/* ======================= Parrainage — code + crédit ======================= */
+
+/** Récompenses `vested` de type crédit d'un user, devise-matchées, triées FIFO. */
+export async function collectVestedCredit(
+  ctx: QueryCtx,
+  userId: Id<'users'>,
+  currency: string,
+): Promise<Array<{ id: Id<'affiliateReferrals'>; rewardMinor: number; createdAt: number }>> {
+  const affiliates = await ctx.db
+    .query('affiliates')
+    .withIndex('by_owner', (q) => q.eq('ownerUserId', userId))
+    .collect();
+  const rows: Array<{ id: Id<'affiliateReferrals'>; rewardMinor: number; createdAt: number }> = [];
+  for (const aff of affiliates) {
+    if (aff.rewardType !== 'credit') continue;
+    const refs = await ctx.db
+      .query('affiliateReferrals')
+      .withIndex('by_affiliate', (q) => q.eq('affiliateId', aff._id))
+      .collect();
+    for (const r of refs) {
+      if (r.status === 'vested' && r.currency === currency) {
+        rows.push({ id: r._id, rewardMinor: r.rewardMinor, createdAt: r.createdAt });
+      }
+    }
+  }
+  rows.sort((a, b) => a.createdAt - b.createdAt); // FIFO
+  return rows;
+}
+
+/**
+ * Garantit qu'un user a son code de parrainage (kind referral / crédit, taux
+ * défaut, 0 % de remise filleul). Idempotent — retourne l'existant, sinon crée
+ * avec un code déterministe unique (collision → tentative suivante). Helper
+ * appelé à la confirmation d'un achat ET par l'espace couple.
+ */
+export async function ensureReferralAffiliate(
+  ctx: MutationCtx,
+  userId: Id<'users'>,
+): Promise<{ affiliateId: Id<'affiliates'>; code: string }> {
+  const existing = await ctx.db
+    .query('affiliates')
+    .withIndex('by_owner', (q) => q.eq('ownerUserId', userId))
+    .collect();
+  const referral = existing.find((a) => a.kind === 'referral');
+  if (referral) return { affiliateId: referral._id, code: referral.code };
+
+  let code = generateReferralCode(userId, 0);
+  for (let attempt = 1; attempt < 12; attempt++) {
+    const clash = await ctx.db
+      .query('affiliates')
+      .withIndex('by_code', (q) => q.eq('code', code))
+      .first();
+    if (!clash) break;
+    code = generateReferralCode(userId, attempt);
+  }
+  const now = Date.now();
+  const affiliateId = await ctx.db.insert('affiliates', {
+    code,
+    kind: 'referral',
+    rewardType: 'credit',
+    rateBps: DEFAULT_RATE_BPS,
+    buyerDiscountBps: 0,
+    ownerUserId: userId,
+    status: 'active',
+    createdAt: now,
+    updatedAt: now,
+  });
+  return { affiliateId, code };
+}
+
+/** Mutation publique : l'espace couple garantit/récupère son code de parrainage. */
+export const ensureReferralCode = mutation({
+  args: { userId: v.id('users') },
+  handler: (ctx, { userId }) => ensureReferralAffiliate(ctx, userId),
+});
+
+/** Code de parrainage + crédit disponible d'un user (espace couple). */
+export const referralForUser = query({
+  args: { userId: v.id('users'), currency: v.string() },
+  handler: async (ctx, { userId, currency }) => {
+    const affiliates = await ctx.db
+      .query('affiliates')
+      .withIndex('by_owner', (q) => q.eq('ownerUserId', userId))
+      .collect();
+    const referral = affiliates.find((a) => a.kind === 'referral');
+    const vested = await collectVestedCredit(ctx, userId, currency);
+    const availableMinor = vested.reduce((s, r) => s + r.rewardMinor, 0);
+    return { code: referral?.code ?? null, availableMinor };
+  },
+});
+
+/**
+ * Aperçu (lecture seule) du crédit applicable à une commande : sélectionne les
+ * récompenses `vested` (crédit) ENTIÈRES dont le cumul reste ≤ `orderMinor`.
+ */
+export const previewCreditApplication = query({
+  args: { userId: v.id('users'), currency: v.string(), orderMinor: v.number() },
+  handler: async (ctx, { userId, currency, orderMinor }) => {
+    const vested = await collectVestedCredit(ctx, userId, currency);
+    const { referralIds, consumedMinor } = selectReferralsToConsume(
+      vested.map((r) => ({ id: r.id, rewardMinor: r.rewardMinor })),
+      orderMinor,
+    );
+    return { appliedMinor: consumedMinor, referralIds };
+  },
+});
+
+/**
+ * Réserve le crédit pour un checkout : re-valide côté serveur (vested + crédit +
+ * owner + devise) et pose une ligne `pendingCreditApplications` liée à la
+ * session. Idempotent par session. Consommée à la confirmation.
+ */
+export const registerCreditApplication = mutation({
+  args: {
+    userId: v.id('users'),
+    sourceSessionId: v.string(),
+    currency: v.string(),
+    referralIds: v.array(v.id('affiliateReferrals')),
+  },
+  handler: async (ctx, { userId, sourceSessionId, currency, referralIds }) => {
+    const dup = await ctx.db
+      .query('pendingCreditApplications')
+      .withIndex('by_source_session', (q) => q.eq('sourceSessionId', sourceSessionId))
+      .first();
+    if (dup) return { appliedMinor: dup.appliedMinor };
+
+    const owned = new Set(
+      (
+        await ctx.db
+          .query('affiliates')
+          .withIndex('by_owner', (q) => q.eq('ownerUserId', userId))
+          .collect()
+      )
+        .filter((a) => a.rewardType === 'credit')
+        .map((a) => a._id as string),
+    );
+    const valid: Id<'affiliateReferrals'>[] = [];
+    let appliedMinor = 0;
+    for (const id of referralIds) {
+      const r = await ctx.db.get(id);
+      if (
+        r &&
+        r.status === 'vested' &&
+        r.rewardType === 'credit' &&
+        r.currency === currency &&
+        owned.has(r.affiliateId as string)
+      ) {
+        valid.push(id);
+        appliedMinor += r.rewardMinor;
+      }
+    }
+    if (valid.length === 0) return { appliedMinor: 0 };
+    await ctx.db.insert('pendingCreditApplications', {
+      sourceSessionId,
+      userId,
+      currency,
+      appliedMinor,
+      referralIds: valid,
+      createdAt: Date.now(),
+    });
+    return { appliedMinor };
+  },
+});
+
+/**
+ * Consomme la réservation de crédit d'une session à la confirmation (plan ou
+ * upsell) : passe les lignes réservées en `credited` et supprime la réservation.
+ * Idempotent (2e appel = pas de réservation → noop). Helper intra-Convex.
+ */
+export async function consumePendingCreditApplication(
+  ctx: MutationCtx,
+  sourceSessionId: string,
+): Promise<{ consumedMinor: number; count: number }> {
+  const pending = await ctx.db
+    .query('pendingCreditApplications')
+    .withIndex('by_source_session', (q) => q.eq('sourceSessionId', sourceSessionId))
+    .first();
+  if (!pending) return { consumedMinor: 0, count: 0 };
+  const now = Date.now();
+  let consumedMinor = 0;
+  let count = 0;
+  for (const id of pending.referralIds) {
+    const r = await ctx.db.get(id);
+    if (r && r.status === 'vested') {
+      await ctx.db.patch(id, { status: 'credited', paidAt: now, updatedAt: now });
+      consumedMinor += r.rewardMinor;
+      count += 1;
+    }
+  }
+  await ctx.db.delete(pending._id);
+  return { consumedMinor, count };
+}

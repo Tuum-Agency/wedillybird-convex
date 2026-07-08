@@ -12,6 +12,8 @@ import {
   isSelfReferral,
   normalizeAffiliateCode,
   isValidAffiliateCode,
+  generateReferralCode,
+  selectReferralsToConsume,
 } from '../../../convex/lib/affiliate';
 
 describe('rewardMinor — commission/crédit sur le NET', () => {
@@ -124,5 +126,76 @@ describe('code affilié — normalisation & validation', () => {
     expect(isValidAffiliateCode('AB')).toBe(false); // trop court
     expect(isValidAffiliateCode('bad-code')).toBe(false); // minuscules + tiret
     expect(isValidAffiliateCode('')).toBe(false);
+  });
+});
+
+describe('generateReferralCode — code parrain auto', () => {
+  it('produit toujours un code VALIDE (A-Z0-9, 3-24 car.)', () => {
+    for (const seed of ['user_abc', 'x', 'ZZZ999', 'utilisateur-éàü']) {
+      for (let a = 0; a < 5; a++) {
+        expect(isValidAffiliateCode(generateReferralCode(seed, a))).toBe(true);
+      }
+    }
+  });
+  it('déterministe (même seed+attempt → même code)', () => {
+    expect(generateReferralCode('user_1', 0)).toBe(generateReferralCode('user_1', 0));
+  });
+  it('la tentative change le code (résolution de collision)', () => {
+    expect(generateReferralCode('user_1', 0)).not.toBe(generateReferralCode('user_1', 1));
+  });
+});
+
+describe('selectReferralsToConsume — application du crédit (FIFO, atomique)', () => {
+  it('consomme les récompenses entières dont le cumul reste ≤ commande', () => {
+    const rewards = [
+      { id: 'a', rewardMinor: 800 },
+      { id: 'b', rewardMinor: 800 },
+    ];
+    // commande $12 : on prend $8 (a), $8+$8=$16 > $12 donc on s'arrête → $8.
+    expect(selectReferralsToConsume(rewards, 1200)).toEqual({
+      referralIds: ['a'],
+      consumedMinor: 800,
+    });
+  });
+  it('prend tout si la commande couvre le cumul', () => {
+    const rewards = [
+      { id: 'a', rewardMinor: 800 },
+      { id: 'b', rewardMinor: 800 },
+    ];
+    expect(selectReferralsToConsume(rewards, 4000)).toEqual({
+      referralIds: ['a', 'b'],
+      consumedMinor: 1600,
+    });
+  });
+  it('packe une récompense plus petite quand la grosse déborde', () => {
+    const rewards = [
+      { id: 'big', rewardMinor: 2000 },
+      { id: 'small', rewardMinor: 500 },
+    ];
+    // commande $10 : big ($20) déborde → skip ; small ($5) rentre → $5.
+    expect(selectReferralsToConsume(rewards, 1000)).toEqual({
+      referralIds: ['small'],
+      consumedMinor: 500,
+    });
+  });
+  it('rien si commande ≤ 0 ou aucune récompense ne rentre', () => {
+    expect(selectReferralsToConsume([{ id: 'a', rewardMinor: 800 }], 0)).toEqual({
+      referralIds: [],
+      consumedMinor: 0,
+    });
+    expect(selectReferralsToConsume([{ id: 'a', rewardMinor: 800 }], 500)).toEqual({
+      referralIds: [],
+      consumedMinor: 0,
+    });
+  });
+  it('ignore les montants non positifs', () => {
+    const rewards = [
+      { id: 'z', rewardMinor: 0 },
+      { id: 'a', rewardMinor: 800 },
+    ];
+    expect(selectReferralsToConsume(rewards, 4000)).toEqual({
+      referralIds: ['a'],
+      consumedMinor: 800,
+    });
   });
 });

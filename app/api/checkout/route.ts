@@ -6,6 +6,7 @@ import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
 import { PLANS } from '@/lib/payments/plans';
 import { detectCountryFromHeaders, routePayment } from '@/lib/payments/country';
 import { getPaymentDriver } from '@/lib/payments';
+import { createOneTimeAmountCoupon } from '@/lib/payments/drivers/stripe';
 import { captureServer, EVENTS } from '@/lib/analytics/posthog-server';
 
 const bodySchema = z.object({
@@ -57,6 +58,27 @@ export async function POST(req: Request): Promise<Response> {
     }
   }
 
+  // Crédit de parrainage : le user applique son crédit disponible à cet achat
+  // (coupon Stripe à usage unique = montant du crédit consommé). Best-effort.
+  let discountCouponId: string | undefined;
+  let creditReferralIds: string[] = [];
+  if (routing.provider === 'stripe') {
+    try {
+      const convex = getConvexServerClient();
+      const preview = await convex.query(convexApi.previewCreditApplication, {
+        userId: session.userId,
+        currency: routing.currency,
+        orderMinor: amountMinor,
+      });
+      if (preview.appliedMinor > 0) {
+        discountCouponId = await createOneTimeAmountCoupon(preview.appliedMinor, routing.currency);
+        creditReferralIds = preview.referralIds;
+      }
+    } catch {
+      // best-effort — le crédit ne bloque jamais l'achat.
+    }
+  }
+
   const driver = getPaymentDriver(routing.provider);
   let session_;
   try {
@@ -70,6 +92,7 @@ export async function POST(req: Request): Promise<Response> {
       successUrl,
       cancelUrl,
       affiliateId,
+      discountCouponId,
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'UNKNOWN';
@@ -94,6 +117,21 @@ export async function POST(req: Request): Promise<Response> {
       return NextResponse.json({ error: 'FORBIDDEN' }, { status: 403 });
     }
     return NextResponse.json({ error: 'PAYMENT_RECORD_FAILED' }, { status: 500 });
+  }
+
+  // Réserve le crédit sélectionné pour cette session — consommé (lignes ledger
+  // → `credited`) à la confirmation du paiement. Best-effort.
+  if (discountCouponId && creditReferralIds.length > 0) {
+    try {
+      await getConvexServerClient().mutation(convexApi.registerCreditApplication, {
+        userId: session.userId,
+        sourceSessionId: session_.providerSessionId,
+        currency: routing.currency,
+        referralIds: creditReferralIds,
+      });
+    } catch {
+      // best-effort — le crédit ne bloque jamais l'achat.
+    }
   }
 
   // Analytics serveur : `checkout_started` est fiable même si le JS client est

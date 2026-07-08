@@ -5104,6 +5104,14 @@
       }
     },
     "home": {
+      "referral": {
+        "title": "Refer your friends",
+        "desc": "Share your link — each friend who books earns you credit.",
+        "credit": "{amount} credit available",
+        "copy": "Copy",
+        "copied": "Copied",
+        "linkAria": "Your referral link"
+      },
       "hello": "Welcome to your space",
       "heroAria": "Your wedding at a glance",
       "navAria": "Quick access",

@@ -897,6 +897,26 @@ export const convexApi = {
       createdAt: number;
     }>
   >('affiliate:listReferrals'),
+  previewCreditApplication: makeFunctionReference<
+    'query',
+    { userId: string; currency: string; orderMinor: number },
+    { appliedMinor: number; referralIds: string[] }
+  >('affiliate:previewCreditApplication'),
+  registerCreditApplication: makeFunctionReference<
+    'mutation',
+    { userId: string; sourceSessionId: string; currency: string; referralIds: string[] },
+    { appliedMinor: number }
+  >('affiliate:registerCreditApplication'),
+  referralForUser: makeFunctionReference<
+    'query',
+    { userId: string; currency: string },
+    { code: string | null; availableMinor: number }
+  >('affiliate:referralForUser'),
+  ensureReferralCode: makeFunctionReference<
+    'mutation',
+    { userId: string },
+    { affiliateId: string; code: string }
+  >('affiliate:ensureReferralCode'),
   findPaymentBySession: makeFunctionReference<
     'query',
     { provider: 'stripe' | 'mock'; providerSessionId: string },

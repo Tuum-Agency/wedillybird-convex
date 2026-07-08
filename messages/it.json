@@ -5108,6 +5108,14 @@
       }
     },
     "home": {
+      "referral": {
+        "title": "Invita i tuoi amici",
+        "desc": "Condividi il tuo link: ogni amico che prenota ti fa guadagnare credito.",
+        "credit": "{amount} di credito disponibile",
+        "copy": "Copia",
+        "copied": "Copiato",
+        "linkAria": "Il tuo link di invito"
+      },
       "hello": "Benvenuti nel vostro spazio",
       "heroAria": "Le vostre nozze in sintesi",
       "navAria": "Accessi rapidi",

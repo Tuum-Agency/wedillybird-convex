@@ -138,3 +138,47 @@ export function normalizeAffiliateCode(raw: string): string {
 export function isValidAffiliateCode(code: string): boolean {
   return /^[A-Z0-9]{3,24}$/.test(code);
 }
+
+/**
+ * Code de parrainage déterministe à partir d'un id + tentative (en cas de
+ * collision, l'appelant réessaie avec attempt+1). Hash djb2 → base36, préfixe
+ * `WB`, borné ≤ 10 car. Toujours un code valide (A-Z0-9, ≥ 3 car).
+ */
+export function generateReferralCode(seed: string, attempt = 0): string {
+  let h = 5381;
+  const s = `${seed}#${attempt}`;
+  for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) >>> 0;
+  const base = h
+    .toString(36)
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, '');
+  return `WB${base || '0'}`.slice(0, 10);
+}
+
+/* --------------------------- application du crédit --------------------------- */
+
+/**
+ * Sélection FIFO des récompenses `vested` (crédit) à consommer pour une
+ * commande. Récompenses ENTIÈRES (atomiques — une ligne de ledger est créditée
+ * ou non), on n'en prend une que si le cumul reste ≤ `orderMinor`. Garantit que
+ * le coupon appliqué == crédit réellement consommé (aucune perte pour le
+ * parrain, aucune sur-remise pour nous). `rewards` supposé trié (FIFO).
+ */
+export function selectReferralsToConsume(
+  rewards: ReadonlyArray<{ id: string; rewardMinor: number }>,
+  orderMinor: number,
+): { referralIds: string[]; consumedMinor: number } {
+  if (!Number.isFinite(orderMinor) || orderMinor <= 0) {
+    return { referralIds: [], consumedMinor: 0 };
+  }
+  let consumedMinor = 0;
+  const referralIds: string[] = [];
+  for (const r of rewards) {
+    if (!Number.isFinite(r.rewardMinor) || r.rewardMinor <= 0) continue;
+    if (consumedMinor + r.rewardMinor <= orderMinor) {
+      consumedMinor += r.rewardMinor;
+      referralIds.push(r.id);
+    }
+  }
+  return { referralIds, consumedMinor };
+}

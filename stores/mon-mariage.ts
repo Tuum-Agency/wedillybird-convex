@@ -13,7 +13,14 @@ import type {
   McPhase,
   McVendor,
 } from '@/components/mon-mariage/data';
-import type { MmBundle, MmEvent, MmGuest, MmInvoice, MmRoom } from '@/lib/mon-mariage/types';
+import type {
+  MmBundle,
+  MmEvent,
+  MmGuest,
+  MmInvoice,
+  MmReferral,
+  MmRoom,
+} from '@/lib/mon-mariage/types';
 import {
   activeFromEvent,
   coupleFromEvent,
@@ -82,6 +89,8 @@ export interface MonMariageState {
   seatTables: SeatTable[];
   room: MmRoom | null;
   invoices: MmInvoice[];
+  /** Parrainage : code du couple + crédit disponible (récompenses vested). */
+  referral: MmReferral | null;
 
   hydrate: (bundle: MmBundle | null, now: number) => void;
   refresh: () => Promise<void>;
@@ -161,6 +170,7 @@ export const useMonMariage = create<MonMariageState>()((set, get) => {
         seatTables: [],
         room: null,
         invoices: [],
+        referral: null,
       });
       return;
     }
@@ -184,6 +194,7 @@ export const useMonMariage = create<MonMariageState>()((set, get) => {
       seatTables: bundle.tables.map(seatTableFromMm),
       room: bundle.room,
       invoices: bundle.invoices,
+      referral: bundle.referral,
     });
   }
 
@@ -203,6 +214,7 @@ export const useMonMariage = create<MonMariageState>()((set, get) => {
     seatTables: [],
     room: null,
     invoices: [],
+    referral: null,
 
     hydrate: (bundle, now) => applyBundle(bundle, now),
 

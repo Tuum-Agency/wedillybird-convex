@@ -5108,6 +5108,14 @@
       }
     },
     "home": {
+      "referral": {
+        "title": "Freunde empfehlen",
+        "desc": "Teile deinen Link — jeder Freund, der bucht, bringt dir Guthaben.",
+        "credit": "{amount} Guthaben verfügbar",
+        "copy": "Kopieren",
+        "copied": "Kopiert",
+        "linkAria": "Dein Empfehlungslink"
+      },
       "hello": "Willkommen in Ihrem Bereich",
       "heroAria": "Ihre Hochzeit im Überblick",
       "navAria": "Schnellzugriffe",

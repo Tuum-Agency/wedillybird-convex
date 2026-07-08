@@ -4,7 +4,10 @@ import { getSession } from '@/lib/auth/session';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
 import { getUpsellPrice } from '@/lib/payments/plans';
 import { detectCountryFromHeaders, routePayment } from '@/lib/payments/country';
-import { createPostEventUpsellCheckout } from '@/lib/payments/drivers/stripe';
+import {
+  createPostEventUpsellCheckout,
+  createOneTimeAmountCoupon,
+} from '@/lib/payments/drivers/stripe';
 import { captureServer, EVENTS } from '@/lib/analytics/posthog-server';
 
 /**
@@ -63,6 +66,24 @@ export async function POST(req: Request): Promise<Response> {
   const successUrl = `${origin}/events/${parsed.eventId}/upsell/success`;
   const cancelUrl = `${origin}/events/${parsed.eventId}/upgrade/cancelled`;
 
+  // Crédit de parrainage : le user dépense son crédit sur l'upsell HD (le cas de
+  // rachat le plus fréquent pour un couple one-shot). Best-effort.
+  let discountCouponId: string | undefined;
+  let creditReferralIds: string[] = [];
+  try {
+    const preview = await convex.query(convexApi.previewCreditApplication, {
+      userId: session.userId,
+      currency: routing.currency,
+      orderMinor: amountMinor,
+    });
+    if (preview.appliedMinor > 0) {
+      discountCouponId = await createOneTimeAmountCoupon(preview.appliedMinor, routing.currency);
+      creditReferralIds = preview.referralIds;
+    }
+  } catch {
+    // best-effort — le crédit ne bloque jamais l'achat.
+  }
+
   let checkout;
   try {
     checkout = await createPostEventUpsellCheckout({
@@ -72,10 +93,26 @@ export async function POST(req: Request): Promise<Response> {
       amountMinor,
       successUrl,
       cancelUrl,
+      discountCouponId,
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'UNKNOWN';
     return NextResponse.json({ error: message }, { status: 502 });
+  }
+
+  // Réserve le crédit sélectionné pour cette session (consommé à la confirmation
+  // via `applyPostEventUpsell`). Best-effort.
+  if (discountCouponId && creditReferralIds.length > 0) {
+    try {
+      await convex.mutation(convexApi.registerCreditApplication, {
+        userId: session.userId,
+        sourceSessionId: checkout.providerSessionId,
+        currency: routing.currency,
+        referralIds: creditReferralIds,
+      });
+    } catch {
+      // best-effort
+    }
   }
 
   await captureServer({

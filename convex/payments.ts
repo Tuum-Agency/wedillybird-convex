@@ -4,7 +4,11 @@ import { internal } from './_generated/api';
 import { toIntlTag } from '../lib/i18n/locale-tags';
 import { assertOrgRead } from './lib/orgAuth';
 import { proTierAtLeast } from './lib/entitlements';
-import { applyReferral } from './affiliate';
+import {
+  applyReferral,
+  ensureReferralAffiliate,
+  consumePendingCreditApplication,
+} from './affiliate';
 
 function ownerLocaleToIntlTag(locale: string | undefined): string {
   return toIntlTag(locale);
@@ -199,6 +203,20 @@ export const markSucceeded = mutation({
       } catch {
         // best-effort — la confirmation du paiement prime.
       }
+    }
+
+    // Parrainage : tout acheteur devient parrain (code auto), et on consomme le
+    // crédit éventuellement réservé pour ce checkout. Best-effort strict — ne
+    // doit jamais faire échouer la confirmation du paiement.
+    try {
+      await ensureReferralAffiliate(ctx, payment.userId);
+    } catch {
+      // best-effort
+    }
+    try {
+      await consumePendingCreditApplication(ctx, payment.providerSessionId);
+    } catch {
+      // best-effort
     }
     if (owner?.email) {
       const amountFormatted = formatAmount(payment.amountMinor, payment.currency);
@@ -399,6 +417,14 @@ export const applyPostEventUpsell = mutation({
       createdAt: now,
       updatedAt: now,
     });
+
+    // Parrainage : consomme le crédit éventuellement réservé pour cet upsell
+    // (le parrain dépense son crédit). Best-effort strict.
+    try {
+      await consumePendingCreditApplication(ctx, args.providerSessionId);
+    } catch {
+      // best-effort — la confirmation prime.
+    }
 
     // Notification + reçu au propriétaire (best-effort, première application
     // seulement). Mêmes canaux que `markSucceeded`.

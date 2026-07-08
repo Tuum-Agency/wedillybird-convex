@@ -5108,6 +5108,14 @@
       }
     },
     "home": {
+      "referral": {
+        "title": "Recomienda a tus amigos",
+        "desc": "Comparte tu enlace: cada amigo que reserve te da crédito.",
+        "credit": "{amount} de crédito disponible",
+        "copy": "Copiar",
+        "copied": "Copiado",
+        "linkAria": "Tu enlace de recomendación"
+      },
       "hello": "Bienvenidos a vuestro espacio",
       "heroAria": "Vuestra boda de un vistazo",
       "navAria": "Accesos rápidos",

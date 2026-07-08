@@ -164,6 +164,13 @@ export interface MmUsage {
   storageBytes: number;
 }
 
+export interface MmReferral {
+  /** Code de parrainage du couple (lien `?ref=CODE`) — null si pas encore créé. */
+  code: string | null;
+  /** Crédit disponible (récompenses vested), centimes dans la devise de l'event. */
+  availableMinor: number;
+}
+
 export interface MmBundle {
   event: MmEvent;
   guests: MmGuest[];
@@ -174,4 +181,5 @@ export interface MmBundle {
   tables: MmTable[];
   invoices: MmInvoice[];
   usage: MmUsage;
+  referral: MmReferral;
 }

@@ -98,9 +98,11 @@ export const stripeDriver: PaymentDriver = {
       },
       client_reference_id: `${input.userId}:${input.eventId}`,
       locale: 'auto',
-      // Permet aux couples de saisir un code promo (coupons plateforme) sur le
-      // checkout one-shot Essentiel/Premium — comme les abos pro et le PAYG.
-      allow_promotion_codes: true,
+      // Crédit de parrainage appliqué → coupon dédié (Stripe interdit `discounts`
+      // + `allow_promotion_codes` ensemble). Sinon, champ code promo ouvert.
+      ...(input.discountCouponId
+        ? { discounts: [{ coupon: input.discountCouponId }] }
+        : { allow_promotion_codes: true }),
     });
 
     if (!session.url) throw new Error('STRIPE_NO_REDIRECT_URL');
@@ -336,6 +338,8 @@ export type PostEventUpsellCheckoutInput = {
   amountMinor: number;
   successUrl: string;
   cancelUrl: string;
+  /** Optional — coupon Stripe (crédit de parrainage appliqué). */
+  discountCouponId?: string;
 };
 
 const POST_EVENT_UPSELL_LABEL = 'Wedillybird — Archive HD (galerie 5 ans)';
@@ -385,7 +389,10 @@ export async function createPostEventUpsellCheckout(
     },
     client_reference_id: `${input.userId}:${input.eventId}`,
     locale: 'auto',
-    allow_promotion_codes: true,
+    // Crédit de parrainage appliqué → coupon dédié (exclut le champ code promo).
+    ...(input.discountCouponId
+      ? { discounts: [{ coupon: input.discountCouponId }] }
+      : { allow_promotion_codes: true }),
   });
   if (!session.url) throw new Error('STRIPE_NO_REDIRECT_URL');
   return { providerSessionId: session.id, redirectUrl: session.url };
@@ -1251,6 +1258,28 @@ function mapCoupon(c: Stripe.Coupon): AdminCoupon {
     createdAt: (c.created ?? 0) * 1000,
     appliesToProducts: c.applies_to?.products ?? [],
   };
+}
+
+/**
+ * Coupon Stripe montant-fixe à usage unique — crédit de parrainage appliqué à
+ * un checkout précis. `amount_off` dans la devise, `duration: once`, 1 seule
+ * redemption, expiration courte (24 h). Retourne l'id du coupon.
+ */
+export async function createOneTimeAmountCoupon(
+  amountOffMinor: number,
+  currency: Currency,
+): Promise<string> {
+  const stripe = getStripe();
+  const coupon = await stripe.coupons.create({
+    amount_off: toStripeAmount(amountOffMinor, currency),
+    currency: currency.toLowerCase(),
+    duration: 'once',
+    max_redemptions: 1,
+    redeem_by: Math.floor((Date.now() + 24 * 60 * 60 * 1000) / 1000),
+    name: 'Crédit de parrainage Wedillybird',
+    metadata: { wedillybird: 'referral_credit' },
+  });
+  return coupon.id;
 }
 
 /**
