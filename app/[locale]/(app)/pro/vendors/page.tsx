@@ -4,7 +4,8 @@ import { requireProContext } from '@/lib/pro/require-pro-context';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
 import { ProSidebarShell } from '@/components/pro/pro-sidebar-shell';
 import { VendorsBoard } from '@/components/pro/vendors/vendors-board';
-import { PRO_TIER_LIMITS } from '@/lib/payments/entitlements';
+import { PlanRequiredBanner } from '@/components/pro/plan-required-banner';
+import { PRO_TIER_LIMITS, orgHasActiveAccess } from '@/lib/payments/entitlements';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('ProPages');
@@ -17,6 +18,7 @@ export default async function ProVendorsPage({ params }: { params: Promise<{ loc
   const { session, org, user } = await requireProContext(locale);
   const tier = org.subscriptionTier ?? null;
   const cap = tier ? PRO_TIER_LIMITS[tier].vendorDirectoryCap : 25;
+  const hasAccess = orgHasActiveAccess(org);
 
   const convex = getConvexServerClient();
   const [vendors, orgEvents, engagements] = await Promise.all([
@@ -42,6 +44,11 @@ export default async function ProVendorsPage({ params }: { params: Promise<{ loc
       org={{ name: org.name, primaryColor: org.primaryColor, tier, role: org.myRole }}
       user={{ name: user?.fullName }}
     >
+      {!hasAccess ? (
+        <div className="container-page pt-8">
+          <PlanRequiredBanner feature="l’annuaire prestataires" />
+        </div>
+      ) : null}
       <VendorsBoard
         vendors={vendors}
         canWrite={org.myRole !== 'viewer'}

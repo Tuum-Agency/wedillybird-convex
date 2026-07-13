@@ -3,7 +3,7 @@ import { internalQuery, mutation, query } from './_generated/server';
 import { internal } from './_generated/api';
 import type { Doc, Id } from './_generated/dataModel';
 import { pickUniqueSlug } from './lib/uniqueSlug';
-import { eventQuotaForTier } from './lib/entitlements';
+import { eventQuotaForTier, orgHasActiveAccess } from './lib/entitlements';
 import { assertEventAccess } from './lib/eventAuth';
 import { assertOrgWrite } from './lib/orgAuth';
 import { normalizePhone, isValidE164 } from './lib/phone';
@@ -218,6 +218,18 @@ export const create = mutation({
   handler: async (ctx, args) => {
     const owner = await ctx.db.get(args.ownerId);
     if (!owner) throw new Error('OWNER_NOT_FOUND');
+
+    // Garde-fou agence : un mariage rattaché à une organisation exige que (a) le
+    // demandeur soit un membre habilité de l'orga et (b) l'orga ait **choisi un
+    // forfait** (abonnement actif/essai ou crédit Pay-as-you-go). Sans forfait,
+    // la création est refusée — une agence fraîchement onboardée doit d'abord
+    // s'abonner. Miroir du publish gate ; le parcours couple (sans orga) n'est
+    // pas concerné.
+    if (args.organizationId) {
+      await assertOrgWrite(ctx, args.organizationId, args.ownerId);
+      const org = await ctx.db.get(args.organizationId);
+      if (!orgHasActiveAccess(org)) throw new Error('SUBSCRIPTION_REQUIRED');
+    }
 
     const title = args.title.trim();
     const partnerA = args.partnerA.trim();

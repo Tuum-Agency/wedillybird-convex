@@ -10,12 +10,25 @@
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { Plus, X, Calendar, MapPin, Heart } from 'lucide-react';
+import { Plus, X, Calendar, MapPin, Heart, Sparkles } from 'lucide-react';
+import { Link } from '@/i18n/navigation';
 import { cn } from '@/lib/cn';
 import { buttonVariants } from '@/components/ui/button';
 import { createOrgWeddingAction } from '@/app/[locale]/(app)/pro/actions';
 
-export function NewWeddingLauncher({ autoOpen = false }: { autoOpen?: boolean }) {
+/**
+ * `canCreate` = l'agence a un forfait actif (abonnement ou crédit PAYG). Quand
+ * `false`, le bouton « Nouveau mariage » est remplacé par un CTA vers la
+ * Facturation : impossible de créer un mariage sans forfait (la mutation Convex
+ * refuse de toute façon avec `SUBSCRIPTION_REQUIRED`).
+ */
+export function NewWeddingLauncher({
+  autoOpen = false,
+  canCreate = true,
+}: {
+  autoOpen?: boolean;
+  canCreate?: boolean;
+}) {
   const t = useTranslations('Pro.weddings');
   const router = useRouter();
   const [open, setOpen] = useState(autoOpen);
@@ -54,10 +67,29 @@ export function NewWeddingLauncher({ autoOpen = false }: { autoOpen?: boolean })
         router.refresh();
       } else {
         setError(
-          res.error === 'INVALID_NAMES' ? t('launcher.errInvalidNames') : t('launcher.errCreate'),
+          res.error === 'INVALID_NAMES'
+            ? t('launcher.errInvalidNames')
+            : res.error === 'SUBSCRIPTION_REQUIRED'
+              ? 'Choisissez un forfait pour créer un mariage.'
+              : t('launcher.errCreate'),
         );
       }
     });
+  }
+
+  // Sans forfait actif : CTA « Choisir un forfait » à la place du bouton de
+  // création (l'ouverture du dialog / le deep-link ?new=1 sont neutralisés).
+  if (!canCreate) {
+    return (
+      <Link
+        href="/pro/billing"
+        data-testid="wedding-choose-plan"
+        className={cn(buttonVariants({ variant: 'primary', size: 'md' }))}
+      >
+        <Sparkles className="h-4 w-4" strokeWidth={2} aria-hidden />
+        Choisir un forfait
+      </Link>
+    );
   }
 
   return (

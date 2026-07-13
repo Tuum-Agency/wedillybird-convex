@@ -496,6 +496,9 @@ export const myOrganization = query({
       subscriptionTier: org.subscriptionTier,
       subscriptionStatus: org.subscriptionStatus,
       subscriptionPeriodEnd: org.subscriptionPeriodEnd,
+      // Crédits Pay-as-you-go : nécessaires côté UI pour décider de l'accès
+      // back-office (une agence sans abonnement mais avec crédit PAYG a accès).
+      paygCredits: org.paygCredits ?? 0,
       myRole: membership.role,
     };
   },
