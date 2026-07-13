@@ -6,6 +6,8 @@ import { nowMs } from '@/lib/pro/format';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
 import { ProSidebarShell } from '@/components/pro/pro-sidebar-shell';
 import { PlanningBoard } from '@/components/pro/planning/planning-board';
+import { PlanRequiredBanner } from '@/components/pro/plan-required-banner';
+import { orgHasActiveAccess } from '@/lib/payments/entitlements';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('ProPages');
@@ -30,6 +32,7 @@ export default async function ProPlanningPage({
     tier: org.subscriptionTier ?? null,
     role: org.myRole,
   };
+  const hasAccess = orgHasActiveAccess(org);
 
   const convex = getConvexServerClient();
   const events = await convex.query(convexApi.listOrgEvents, {
@@ -59,6 +62,7 @@ export default async function ProPlanningPage({
               {t('planningTitle')}
             </h1>
           </header>
+          {!hasAccess ? <PlanRequiredBanner feature="le rétroplanning" /> : null}
           <div className="rounded-3xl border border-dashed border-[color:var(--color-border-strong)] bg-[color:var(--color-surface)]/40 px-8 py-16 text-center text-sm text-[color:var(--color-muted-foreground)]">
             {t('planningEmpty')}
           </div>
@@ -101,6 +105,11 @@ export default async function ProPlanningPage({
 
   return (
     <ProSidebarShell current="planning" org={shellOrg} user={{ name: user?.fullName }}>
+      {!hasAccess ? (
+        <div className="container-page pt-8">
+          <PlanRequiredBanner feature="le rétroplanning" />
+        </div>
+      ) : null}
       <PlanningBoard
         events={eventOptions}
         selectedEventId={selectedId}

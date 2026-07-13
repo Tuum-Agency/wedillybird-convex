@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import type { Route } from 'next';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
@@ -20,7 +21,11 @@ export function OrgOnboardingForm() {
     startTransition(async () => {
       const result = await createOrganizationAction(formData);
       if (result.ok) {
-        router.push('/pro/dashboard');
+        // Après création de l'organisation, on dirige vers la Facturation :
+        // l'agence DOIT choisir un forfait avant d'accéder aux fonctionnalités
+        // (créer un mariage, rétroplanning…). Sans forfait actif, le back-office
+        // reste verrouillé côté serveur.
+        router.push('/pro/billing' as Route);
         router.refresh();
         return;
       }

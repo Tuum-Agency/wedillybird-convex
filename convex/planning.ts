@@ -1,7 +1,7 @@
 import { v } from 'convex/values';
 import { mutation, query, type MutationCtx } from './_generated/server';
 import type { Id } from './_generated/dataModel';
-import { assertOrgRead, assertOrgWrite } from './lib/orgAuth';
+import { assertOrgRead, assertOrgWrite, assertOrgProvisioned } from './lib/orgAuth';
 
 /**
  * Rétroplanning — back-office agence (tous tiers). Tâches par phase rattachées à
@@ -80,6 +80,8 @@ export const createTask = mutation({
     const event = await ctx.db.get(args.eventId);
     if (!event || !event.organizationId) throw new Error('NOT_AN_ORG_EVENT');
     await assertOrgWrite(ctx, event.organizationId, args.requesterId);
+    // Garde-fou forfait : pas de rétroplanning sans abonnement actif / crédit PAYG.
+    await assertOrgProvisioned(ctx, event.organizationId);
     const title = args.title.trim();
     if (title.length < 1 || title.length > 200) throw new Error('INVALID_TITLE');
     const now = Date.now();
@@ -111,6 +113,8 @@ export const createTasks = mutation({
     const event = await ctx.db.get(eventId);
     if (!event || !event.organizationId) throw new Error('NOT_AN_ORG_EVENT');
     await assertOrgWrite(ctx, event.organizationId, requesterId);
+    // Garde-fou forfait : pas de rétroplanning sans abonnement actif / crédit PAYG.
+    await assertOrgProvisioned(ctx, event.organizationId);
     const now = Date.now();
     let i = 0;
     for (const t of tasks) {
@@ -251,6 +255,8 @@ export const saveTemplateFromEvent = mutation({
     const event = await ctx.db.get(eventId);
     if (!event || !event.organizationId) throw new Error('NOT_AN_ORG_EVENT');
     await assertOrgWrite(ctx, event.organizationId, requesterId);
+    // Garde-fou forfait : pas de modèle de rétroplanning sans abonnement / crédit.
+    await assertOrgProvisioned(ctx, event.organizationId);
 
     const cleanName = name.trim();
     if (cleanName.length < 1 || cleanName.length > 80) throw new Error('INVALID_NAME');
@@ -294,6 +300,8 @@ export const applyTemplate = mutation({
     const event = await ctx.db.get(eventId);
     if (!event || !event.organizationId) throw new Error('NOT_AN_ORG_EVENT');
     await assertOrgWrite(ctx, event.organizationId, requesterId);
+    // Garde-fou forfait : pas d'application de modèle sans abonnement / crédit.
+    await assertOrgProvisioned(ctx, event.organizationId);
 
     const template = await ctx.db.get(templateId);
     if (!template) throw new Error('TEMPLATE_NOT_FOUND');

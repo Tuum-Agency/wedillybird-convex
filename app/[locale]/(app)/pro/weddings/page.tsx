@@ -4,10 +4,10 @@ import { Calendar, Users, ArrowUpRight, MapPin } from 'lucide-react';
 import { Link, redirect } from '@/i18n/navigation';
 import { getSession } from '@/lib/auth/session';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
-import { buttonVariants } from '@/components/ui/button';
 import { ProSidebarShell } from '@/components/pro/pro-sidebar-shell';
 import { NewWeddingLauncher } from '@/components/pro/weddings/new-wedding-launcher';
-import { cn } from '@/lib/cn';
+import { PlanRequiredBanner } from '@/components/pro/plan-required-banner';
+import { orgHasActiveAccess } from '@/lib/payments/entitlements';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('ProPages');
@@ -79,6 +79,7 @@ export default async function ProWeddingsPage({
     convex.query(convexApi.currentUser, { userId: session!.userId }),
   ]);
   const activeCount = events.filter((e) => e.status === 'active').length;
+  const hasAccess = orgHasActiveAccess(org!);
 
   return (
     <ProSidebarShell
@@ -93,6 +94,7 @@ export default async function ProWeddingsPage({
       eventsUsed={activeCount}
     >
       <div className="container-page flex flex-col gap-8 py-8 sm:py-10">
+        {!hasAccess ? <PlanRequiredBanner feature="la création de mariages" /> : null}
         <header className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
           <div className="flex flex-col gap-1.5">
             <span className="font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-muted-foreground)] uppercase">
@@ -110,7 +112,7 @@ export default async function ProWeddingsPage({
               {t('weddingsTitle')}
             </h1>
           </div>
-          <NewWeddingLauncher autoOpen={sp.new === '1'} />
+          <NewWeddingLauncher autoOpen={sp.new === '1'} canCreate={hasAccess} />
         </header>
 
         {events.length === 0 ? (
