@@ -1,5 +1,6 @@
 import type { MutationCtx, QueryCtx } from '../_generated/server';
 import type { Doc, Id } from '../_generated/dataModel';
+import { orgHasActiveAccess } from './entitlements';
 
 /**
  * Helpers d'autorisation organisation (back-office agence), partagés par les
@@ -59,4 +60,24 @@ export async function assertOrgManage(
   const m = await assertOrgRead(ctx, organizationId, userId);
   if (m.role !== 'owner' && m.role !== 'admin') throw new Error('FORBIDDEN');
   return m;
+}
+
+/**
+ * Garde-fou « forfait choisi » : l'organisation doit avoir un abonnement actif
+ * (`active`/`trialing`) ou des crédits Pay-as-you-go pour accéder aux
+ * fonctionnalités du back-office (créer un mariage, rétroplanning, prestataires…).
+ * Throw `SUBSCRIPTION_REQUIRED` sinon.
+ *
+ * Distinct de l'autorisation (`assertOrgWrite`) : celui-ci ne juge QUE de l'état
+ * d'abonnement, pas du rôle. À composer APRÈS `assertOrgWrite` sur les mutations
+ * de création. Retourne le doc organisation (déjà chargé) pour réutilisation.
+ */
+export async function assertOrgProvisioned(
+  ctx: Ctx,
+  organizationId: Id<'organizations'>,
+): Promise<Doc<'organizations'>> {
+  const org = await ctx.db.get(organizationId);
+  if (!org) throw new Error('NOT_FOUND');
+  if (!orgHasActiveAccess(org)) throw new Error('SUBSCRIPTION_REQUIRED');
+  return org;
 }

@@ -113,3 +113,33 @@ export function vendorCapForTier(
 ): number | null {
   return tier === 'business' || tier === 'agency' ? null : 25;
 }
+
+/**
+ * État d'abonnement minimal d'une organisation, suffisant pour décider de
+ * l'accès aux fonctionnalités du back-office.
+ */
+export type OrgSubscriptionState = {
+  subscriptionStatus?: 'trialing' | 'active' | 'past_due' | 'canceled' | 'unpaid';
+  paygCredits?: number;
+};
+
+/**
+ * L'organisation a-t-elle **choisi un forfait** et donc accès aux
+ * fonctionnalités du back-office (créer un mariage, rétroplanning, prestataires…) ?
+ *
+ * `true` si : abonnement `active` ou `trialing`, OU crédits Pay-as-you-go > 0
+ * (l'agence a payé au moins un événement). `false` sinon — notamment une agence
+ * fraîchement onboardée qui n'a encore rien choisi (aucun statut, 0 crédit), ou
+ * dont l'abonnement est `past_due`/`canceled`/`unpaid` sans crédit PAYG.
+ *
+ * Aligné sur `decidePublishGate` (convex/events.ts) : mêmes statuts « actifs »
+ * (active/trialing) + repli PAYG. Le back-office est donc verrouillé tant que
+ * l'agence n'a pas d'abonnement ou de crédit — impossible de créer mariages /
+ * rétroplanning sans avoir choisi un forfait. Miroir app-side :
+ * `lib/payments/entitlements.ts:orgHasActiveAccess`.
+ */
+export function orgHasActiveAccess(org: OrgSubscriptionState | null | undefined): boolean {
+  if (!org) return false;
+  if (org.subscriptionStatus === 'active' || org.subscriptionStatus === 'trialing') return true;
+  return (org.paygCredits ?? 0) > 0;
+}

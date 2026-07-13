@@ -132,6 +132,36 @@ export function tierAtLeast(a: SubscriptionTier | null | undefined, b: Subscript
 }
 
 /* -------------------------------------------------------------------------- */
+/*  Accès back-office : l'agence a-t-elle choisi un forfait ?                   */
+/* -------------------------------------------------------------------------- */
+
+export type SubscriptionStatus = 'trialing' | 'active' | 'past_due' | 'canceled' | 'unpaid';
+
+/** État d'abonnement minimal d'une organisation (côté UI). */
+export interface OrgAccessState {
+  subscriptionStatus?: SubscriptionStatus | null;
+  paygCredits?: number | null;
+}
+
+/**
+ * L'organisation a-t-elle **choisi un forfait** et donc accès aux
+ * fonctionnalités du back-office (créer un mariage, rétroplanning, prestataires…) ?
+ *
+ * `true` si abonnement `active`/`trialing`, OU crédits Pay-as-you-go > 0 (au
+ * moins un événement payé). `false` pour une agence fraîchement onboardée (rien
+ * choisi) ou un abonnement `past_due`/`canceled`/`unpaid` sans crédit PAYG.
+ *
+ * **Miroir exact** de `convex/lib/entitlements.ts:orgHasActiveAccess` (le
+ * garde-fou serveur qui fait foi) — garder les deux en phase. Sert à afficher
+ * la bannière « choisir un forfait » et à masquer les actions de création.
+ */
+export function orgHasActiveAccess(org: OrgAccessState | null | undefined): boolean {
+  if (!org) return false;
+  if (org.subscriptionStatus === 'active' || org.subscriptionStatus === 'trialing') return true;
+  return (org.paygCredits ?? 0) > 0;
+}
+
+/* -------------------------------------------------------------------------- */
 /*  Quotas : statut d'usage (pur)                                              */
 /* -------------------------------------------------------------------------- */
 

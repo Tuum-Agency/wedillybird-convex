@@ -1,7 +1,7 @@
 import { v } from 'convex/values';
 import { mutation, query, type MutationCtx } from './_generated/server';
 import type { Id } from './_generated/dataModel';
-import { assertOrgRead, assertOrgWrite } from './lib/orgAuth';
+import { assertOrgRead, assertOrgWrite, assertOrgProvisioned } from './lib/orgAuth';
 import { vendorCapForTier } from './lib/entitlements';
 
 /**
@@ -65,12 +65,14 @@ export const create = mutation({
   },
   handler: async (ctx, args) => {
     await assertOrgWrite(ctx, args.organizationId, args.requesterId);
+    // Garde-fou forfait : pas d'ajout de prestataire sans abonnement actif / crédit
+    // PAYG (agence non finalisée). Réutilise le doc org pour le plafond annuaire.
+    const org = await assertOrgProvisioned(ctx, args.organizationId);
     const name = args.name.trim();
     if (name.length < 1 || name.length > 120) throw new Error('INVALID_NAME');
 
     // Plafond annuaire (Starter ≤ 25).
-    const org = await ctx.db.get(args.organizationId);
-    const cap = vendorCapForTier(org?.subscriptionTier);
+    const cap = vendorCapForTier(org.subscriptionTier);
     if (cap !== null) {
       const existing = await ctx.db
         .query('vendors')

@@ -5,6 +5,8 @@ import { getSession } from '@/lib/auth/session';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
 import { ProSidebarShell } from '@/components/pro/pro-sidebar-shell';
 import { Cockpit } from '@/components/pro/cockpit';
+import { PlanRequiredBanner } from '@/components/pro/plan-required-banner';
+import { orgHasActiveAccess } from '@/lib/payments/entitlements';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('ProPages');
@@ -36,6 +38,10 @@ export default async function ProDashboardPage({
   ]);
   if (!data) redirect({ href: '/pro/onboarding', locale });
 
+  // Sans forfait actif (ni abonnement ni crédit PAYG), le back-office est
+  // verrouillé côté serveur : on affiche la bannière « choisir un forfait ».
+  const hasAccess = orgHasActiveAccess(data!.org);
+
   return (
     <ProSidebarShell
       current="dashboard"
@@ -48,6 +54,11 @@ export default async function ProDashboardPage({
       user={{ name: user?.fullName }}
       eventsUsed={data!.usage.activeEvents}
     >
+      {!hasAccess ? (
+        <div className="container-page pt-8">
+          <PlanRequiredBanner />
+        </div>
+      ) : null}
       <Cockpit
         org={data!.org}
         usage={data!.usage}

@@ -3,7 +3,7 @@ import { internalQuery, mutation, query } from './_generated/server';
 import { internal } from './_generated/api';
 import type { Doc, Id } from './_generated/dataModel';
 import { pickUniqueSlug } from './lib/uniqueSlug';
-import { eventQuotaForTier } from './lib/entitlements';
+import { eventQuotaForTier, orgHasActiveAccess } from './lib/entitlements';
 import { assertInvitationDesignAllowed } from './lib/invitationDesign';
 import { assertEventAccess } from './lib/eventAuth';
 import { assertOrgWrite } from './lib/orgAuth';
@@ -292,6 +292,18 @@ export const create = mutation({
 
     // Devise du budget : explicite > devise de l'org > préférence du couple.
     const orgForCurrency = args.organizationId ? await ctx.db.get(args.organizationId) : null;
+
+    // Garde-fou agence : un mariage rattaché à une organisation exige que (a) le
+    // demandeur soit un membre habilité de l'orga et (b) l'orga ait **choisi un
+    // forfait** (abonnement actif/essai ou crédit Pay-as-you-go). Sans forfait,
+    // la création est refusée — une agence fraîchement onboardée doit d'abord
+    // s'abonner. Miroir du publish gate ; le parcours couple (sans orga) n'est
+    // pas concerné.
+    if (args.organizationId) {
+      await assertOrgWrite(ctx, args.organizationId, args.ownerId);
+      if (!orgHasActiveAccess(orgForCurrency)) throw new Error('SUBSCRIPTION_REQUIRED');
+    }
+
     const currency = args.currency ?? orgForCurrency?.currency ?? owner.preferredCurrency;
 
     const title = args.title.trim();
