@@ -18,10 +18,12 @@
  * d'abonnement.
  *
  * **EUR est la source unique** pour MAD/TND/XOF (dérivés via `convertFromEur`).
- * **USD est posé en parité numérique** (v2.3, 2026-07-06, cf. `.context/
- * pricing-v2.md` § « Grille USD ») : un Starter à 99 € coûte $99 — même
- * chiffre, devise locale — au lieu de l'illisible $106.92 (×1,08). Même
- * convention annuelle qu'en EUR (ceil du total remisé).
+ * **USD est posé en valeur marché** (v2.4, 2026-07-12, cf. `.context/
+ * pricing-v2.md` § « Grille USD pro ») : nombres ronds ancrés sur la WTP US,
+ * **toujours ≥ l'équivalent EUR converti** (règle : le signe de l'écart ne
+ * s'inverse jamais — cf. règle devise). Un Starter à 99 € = **$109** (au lieu
+ * de l'ex-parité $99, qui facturait le pro US ~8 % SOUS l'euro sur un revenu
+ * récurrent). Même convention annuelle qu'en EUR (ceil du total remisé).
  *
  * Multi-devises : EUR + USD + MAD réglés via Stripe. XOF/TND restent des
  * devises d'affichage uniquement (pas de processeur de paiement).
@@ -63,10 +65,12 @@ const STARTER_EUR = 9900; // 99 € (grille v2)
 const BUSINESS_EUR = 21900; // 219 € (grille v2)
 const AGENCY_EUR = 44900; // 449 € (grille v2)
 
-// USD marché — parité numérique avec l'EUR (99 € ↔ $99), cf. doc d'en-tête.
-const STARTER_USD = 9900; // $99
-const BUSINESS_USD = 21900; // $219
-const AGENCY_USD = 44900; // $449
+// USD marché — valeur marché US, nombres ronds ≥ équivalent EUR (×1,08), cf.
+// doc d'en-tête. 99 €→$109 (>$106.92), 219 €→$239 (>$236.52),
+// 449 €→$489 (>$484.92). Corrige l'ex-parité qui bradait le pro US.
+const STARTER_USD = 10900; // $109
+const BUSINESS_USD = 23900; // $239
+const AGENCY_USD = 48900; // $489
 
 export const SUBSCRIPTION_TIER_PRICES: Record<SubscriptionTier, SubscriptionTierDefinition> = {
   starter: {
@@ -110,11 +114,11 @@ const STARTER_ANNUAL_EUR = 95100; // 951 € (99 × 12 × 0,80 = 950,40 → ceil
 const BUSINESS_ANNUAL_EUR = 210300; // 2 103 € (219 × 12 × 0,80 = 2102,40 → ceil 2103)
 const AGENCY_ANNUAL_EUR = 431100; // 4 311 € (449 × 12 × 0,80 = 4310,40 → ceil 4311)
 
-// USD annuels : même convention que l'EUR (ceil(mensuel USD × 12 × 0,80)) —
-// parité numérique oblige, les montants coïncident avec l'EUR.
-const STARTER_ANNUAL_USD = 95100; // $951
-const BUSINESS_ANNUAL_USD = 210300; // $2,103
-const AGENCY_ANNUAL_USD = 431100; // $4,311
+// USD annuels : même convention que l'EUR (ceil(mensuel USD × 12 × 0,80)) sur
+// la grille USD marché — $109/$239/$489.
+const STARTER_ANNUAL_USD = 104700; // $1,047 (109 × 12 × 0,80 = 1046,40 → ceil 1047)
+const BUSINESS_ANNUAL_USD = 229500; // $2,295 (239 × 12 × 0,80 = 2294,40 → ceil 2295)
+const AGENCY_ANNUAL_USD = 469500; // $4,695 (489 × 12 × 0,80 = 4694,40 → ceil 4695)
 
 export const SUBSCRIPTION_TIER_ANNUAL_PRICES: Record<
   SubscriptionTier,
@@ -140,7 +144,7 @@ export const SUBSCRIPTION_TIER_ANNUAL_PRICES: Record<
  * `payg` côté schema/code aujourd'hui (cf. BACKLOG).
  */
 const PAYG_EUR = 7900; // 79 € (grille v2)
-const PAYG_USD = 7900; // $79 — parité numérique
+const PAYG_USD = 8900; // $89 — valeur marché US, ≥ 79 €×1,08 ($85.32)
 
 export const PAYG_PRO_PRICE: {
   amountMinor: number;

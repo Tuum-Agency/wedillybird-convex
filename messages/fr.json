@@ -3789,6 +3789,7 @@
     }
   },
   "Plans": {
+    "usTaxNote": "Prix hors taxes. La taxe locale éventuelle s'ajoute au paiement.",
     "tiers": {
       "essential": "Essentiel",
       "premium": "Premium"
@@ -5722,6 +5723,10 @@
       "fairepart": {
         "name": "Le Faire-part",
         "desc": "Appuyez sur le sceau de cire : il saute en 3D et la carte s'ouvre sur votre photo."
+      },
+      "royal": {
+        "name": "L'Invitation royale",
+        "desc": "Les portes du palais s'ouvrent sur vos prénoms gravés en or — feu d'artifice au final."
       },
       "floral": {
         "name": "L'Éclosion",

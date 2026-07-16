@@ -21,10 +21,39 @@ import {
 import {
   isSubscriptionTier,
   isSubscriptionBilling,
+  priceIdForTier,
   type SubscriptionTier,
   type SubscriptionBilling,
 } from '@/lib/payments/subscriptions';
-import { routePayment } from '@/lib/payments/country';
+import { detectCountryFromHeaders, routePayment } from '@/lib/payments/country';
+import type { Currency } from '@/lib/payments/plans';
+
+/**
+ * Devise de facturation d'un abonnement pro, dérivée du PAYS de facturation
+ * (géoIP), pas de la langue d'UI — cf. `.context/pricing-v2.md` § « Règle
+ * devise ». Corrige le mismatch historique où le pro US voyait « $99/mo » mais
+ * était débité 99 € (la devise n'était jamais transmise → fallback EUR).
+ *
+ * Filet de sécurité : on ne facture dans la devise géo que si un Stripe Price
+ * est bien configuré pour elle (`STRIPE_PRICE_<TIER>[_ANNUAL]_<CURRENCY>`) ;
+ * sinon on retombe sur EUR. Ça évite un crash `MISSING_…` si le code est
+ * déployé avant que la sync Stripe (`scripts/sync-stripe-prices.ts`) n'ait créé
+ * les Prices USD et posé les env vars.
+ */
+async function resolveProBillingCurrency(
+  tier: SubscriptionTier,
+  billing: SubscriptionBilling,
+): Promise<Currency> {
+  const country = detectCountryFromHeaders(await headers());
+  const preferred = routePayment(country).currency;
+  if (preferred === 'EUR') return 'EUR';
+  try {
+    priceIdForTier(tier, billing, preferred);
+    return preferred;
+  } catch {
+    return 'EUR';
+  }
+}
 
 async function appOrigin(): Promise<string> {
   const explicit = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '');
@@ -55,12 +84,14 @@ export async function subscribeAction(formData: FormData): Promise<void> {
   const user = await convex.query(convexApi.getUserById, { userId: session.userId });
   if (!user?.email) redirectUnsafe('/pro/billing?status=error&code=email_required');
 
+  const currency = await resolveProBillingCurrency(tier, billing);
   const origin = await appOrigin();
   const checkout = await createSubscriptionCheckout({
     organizationId: org._id,
     requesterId: session.userId,
     tier,
     billing,
+    currency,
     customerEmail: user.email,
     stripeCustomerId: org.stripeCustomerId,
     successUrl: `${origin}/pro/billing?status=success`,
@@ -86,7 +117,11 @@ export async function payAsYouGoAction(): Promise<void> {
   if (!user?.email) redirectUnsafe('/pro/billing?status=error&code=email_required');
 
   const origin = await appOrigin();
-  const { currency } = routePayment(undefined);
+  // Devise = pays de facturation (géoIP), avec fallback EUR si le Price PAYG USD
+  // n'est pas configuré (même logique de sécurité que les abonnements).
+  const preferred = routePayment(detectCountryFromHeaders(await headers())).currency;
+  const currency: Currency =
+    preferred === 'USD' && process.env.STRIPE_PRICE_PAYG_EVENT_USD ? 'USD' : 'EUR';
   const checkout = await createPaygCheckout({
     organizationId: org._id,
     requesterId: session.userId,

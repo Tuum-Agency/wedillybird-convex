@@ -3789,6 +3789,7 @@
     }
   },
   "Plans": {
+    "usTaxNote": "Precios sin impuestos. El impuesto local se añade al pagar.",
     "tiers": {
       "essential": "Esencial",
       "premium": "Premium"
@@ -5722,6 +5723,10 @@
       "fairepart": {
         "name": "La Invitación",
         "desc": "Pulsa el sello de cera: salta en 3D y la tarjeta se abre sobre vuestra foto."
+      },
+      "royal": {
+        "name": "La invitación real",
+        "desc": "Las puertas del palacio se abren sobre vuestros nombres grabados en oro — fuegos artificiales al final."
       },
       "floral": {
         "name": "La Floración",

@@ -476,6 +476,13 @@ export function LandingPricingPros({
             <li>{tPlans('pro.overflow.event')}</li>
           </ul>
         </motion.div>
+
+        {/* Mention fiscale — uniquement en USD (prix affichés HT). */}
+        {currency === 'USD' && (
+          <p className="mx-auto mt-6 max-w-6xl text-center text-xs text-[color:var(--color-ink-500)]">
+            {tPlans('usTaxNote')}
+          </p>
+        )}
       </div>
     </section>
   );

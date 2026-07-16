@@ -49,6 +49,22 @@ export const useCurrencyStore = create<CurrencyState>()(
 const emptySubscribe = () => () => {};
 
 /**
+ * Devise par défaut dérivée de la GÉOGRAPHIE, lue depuis le cookie `wbb_ccy`
+ * posé par `proxy.ts` à partir du header géoIP Vercel. C'est le pivot du
+ * découplage devise↔langue : le défaut suit le pays de facturation, pas la
+ * langue d'UI. Retourne `null` côté serveur, si le cookie est absent (dev/local
+ * sans signal géo) ou si sa valeur est corrompue → l'appelant retombe alors sur
+ * le défaut locale.
+ */
+export function readGeoCurrencyCookie(): Currency | null {
+  if (typeof document === 'undefined') return null;
+  const match = document.cookie.match(/(?:^|;\s*)wbb_ccy=([^;]+)/);
+  if (!match) return null;
+  const value = decodeURIComponent(match[1]!);
+  return isCurrency(value) ? value : null;
+}
+
+/**
  * `true` après le premier paint côté client, `false` pendant SSR et au tout
  * premier render client (avant l'hydratation React). Sert à différer la lecture
  * d'une valeur persistée pour matcher exactement le SSR — sans ça, un
@@ -64,16 +80,20 @@ function useHasHydrated(): boolean {
 }
 
 /**
- * Hook pratique : renvoie la devise effective à afficher, en prenant l'override
- * utilisateur si défini, sinon la devise par défaut passée en argument (en
- * général issue de la locale côté server).
+ * Hook pratique : renvoie la devise effective à afficher. Ordre de priorité :
+ *  1. Override explicite de l'utilisateur (sélecteur footer, persisté).
+ *  2. Devise géo (cookie `wbb_ccy`, pays de facturation) — le découplage
+ *     devise↔langue : le prix suit la géographie, pas la langue d'UI.
+ *  3. `defaultCurrency` passé en argument (dérivé de la locale côté server) —
+ *     ultime filet quand aucun signal géo n'est disponible (dev/local).
  *
  * Pendant la phase d'hydratation initiale, retourne `defaultCurrency` pour
- * éviter les mismatches SSR. Le composant ré-rend une fois le store hydraté.
+ * éviter les mismatches SSR. Le composant ré-rend une fois le store hydraté,
+ * moment où le cookie géo et l'override localStorage deviennent lisibles.
  */
 export function useEffectiveCurrency(defaultCurrency: Currency): Currency {
   const selected = useCurrencyStore((state) => state.selected);
   const mounted = useHasHydrated();
   if (!mounted) return defaultCurrency;
-  return selected ?? defaultCurrency;
+  return selected ?? readGeoCurrencyCookie() ?? defaultCurrency;
 }

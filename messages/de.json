@@ -3789,6 +3789,7 @@
     }
   },
   "Plans": {
+    "usTaxNote": "Preise ohne Steuer. Eine lokale Steuer wird beim Bezahlen hinzugefügt.",
     "tiers": {
       "essential": "Essentiel",
       "premium": "Premium"
@@ -5722,6 +5723,10 @@
       "fairepart": {
         "name": "Die Einladungskarte",
         "desc": "Drücke auf das Wachssiegel: es springt in 3D und die Karte öffnet sich zu eurem Foto."
+      },
+      "royal": {
+        "name": "Die königliche Einladung",
+        "desc": "Die Palasttore öffnen sich zu euren in Gold gravierten Namen — Feuerwerk zum Finale."
       },
       "floral": {
         "name": "Die Blüte",

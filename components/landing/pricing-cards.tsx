@@ -325,6 +325,14 @@ export function LandingPricingCards({ defaultCurrency }: Props) {
             {t('pricing.trust.freePostpone')}
           </li>
         </motion.ul>
+
+        {/* Mention fiscale — uniquement en USD (marché US : prix affichés HT,
+            la sales tax locale s'ajoute à la caisse). */}
+        {currency === 'USD' && (
+          <p className="mx-auto mt-4 max-w-3xl text-center text-xs text-[color:var(--color-ink-500)]">
+            {tPlans('usTaxNote')}
+          </p>
+        )}
       </div>
     </section>
   );

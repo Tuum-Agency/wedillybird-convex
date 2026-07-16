@@ -15,7 +15,6 @@ const SECTION_ITEMS: ReadonlyArray<{ id: string; key: string }> = [
   { id: 'testimonials', key: 'testimonials' },
   { id: 'pricing', key: 'pricing' },
   { id: 'pricing-pros', key: 'pricingPros' },
-  { id: 'faq', key: 'faq' },
 ];
 
 /**

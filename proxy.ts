@@ -2,6 +2,7 @@ import createIntlMiddleware from 'next-intl/middleware';
 import { NextResponse, type NextRequest } from 'next/server';
 import { routing } from './i18n/routing';
 import { extractOrgSlug } from './lib/subdomain/extract-org-slug';
+import { currencyForCountry, detectCountryFromHeaders } from './lib/payments/country';
 
 /**
  * Proxy Next 16 — gère deux responsabilités côté edge :
@@ -93,6 +94,22 @@ export default function proxy(request: NextRequest) {
     response.cookies.set('wdb_ref', ref, {
       maxAge: 30 * 24 * 60 * 60,
       httpOnly: true,
+      sameSite: 'lax',
+      path: '/',
+    });
+  }
+
+  // Devise par défaut pilotée par la GÉOGRAPHIE (pays de facturation), pas par
+  // la langue d'UI — cf. `.context/pricing-v2.md` § « Règle devise ». Le client
+  // lit ce cookie comme défaut d'affichage (non httpOnly) ; le sélecteur footer
+  // reste prioritaire (override explicite persisté en localStorage). On ne pose
+  // le cookie que si Vercel fournit un signal géo (`x-vercel-ip-country`) —
+  // sinon (dev/local) on laisse le fallback locale opérer côté client.
+  const geoCountry = detectCountryFromHeaders(request.headers);
+  if (response && geoCountry) {
+    response.cookies.set('wbb_ccy', currencyForCountry(geoCountry), {
+      maxAge: 30 * 24 * 60 * 60,
+      httpOnly: false,
       sameSite: 'lax',
       path: '/',
     });

@@ -3789,6 +3789,7 @@
     }
   },
   "Plans": {
+    "usTaxNote": "Preços sem impostos. Qualquer imposto local é adicionado no pagamento.",
     "tiers": {
       "essential": "Essencial",
       "premium": "Premium"
@@ -5722,6 +5723,10 @@
       "fairepart": {
         "name": "O Convite",
         "desc": "Prime o selo de cera: salta em 3D e o cartão abre-se sobre a vossa foto."
+      },
+      "royal": {
+        "name": "O convite real",
+        "desc": "As portas do palácio abrem-se sobre os vossos nomes gravados a ouro — fogo de artifício no final."
       },
       "floral": {
         "name": "O Desabrochar",

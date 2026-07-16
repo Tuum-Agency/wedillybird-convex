@@ -3785,6 +3785,7 @@
     }
   },
   "Plans": {
+    "usTaxNote": "Prices exclude tax. Any local sales tax is added at checkout.",
     "tiers": {
       "essential": "Essential",
       "premium": "Premium"
@@ -5718,6 +5719,10 @@
       "fairepart": {
         "name": "The Invitation",
         "desc": "Press the wax seal: it pops in 3D and the card opens onto your photo."
+      },
+      "royal": {
+        "name": "The Royal Invitation",
+        "desc": "The palace doors swing open on your names engraved in gold — fireworks finale."
       },
       "floral": {
         "name": "The Bloom",
