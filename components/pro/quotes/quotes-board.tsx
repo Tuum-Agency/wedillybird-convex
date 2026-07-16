@@ -778,8 +778,8 @@ function QuoteBuilder({
           </Card>
 
           <Card title={t('builder.linesCard')}>
-            <div className="flex flex-col gap-2">
-              <div className="grid grid-cols-[1fr_64px_88px_88px_32px] gap-2 px-1 font-mono text-[9px] tracking-[0.14em] text-[color:var(--color-muted-foreground)] uppercase">
+            <div className="flex flex-col gap-2 overflow-x-auto">
+              <div className="grid min-w-[420px] grid-cols-[1fr_64px_88px_88px_32px] gap-2 px-1 font-mono text-[9px] tracking-[0.14em] text-[color:var(--color-muted-foreground)] uppercase">
                 <span>{t('builder.colLabel')}</span>
                 <span className="text-right">{t('builder.colQty')}</span>
                 <span className="text-right">{t('builder.colUnitPrice')}</span>
@@ -789,7 +789,7 @@ function QuoteBuilder({
               {lines.map((l, i) => (
                 <div
                   key={i}
-                  className="grid grid-cols-[1fr_64px_88px_88px_32px] items-center gap-2"
+                  className="grid min-w-[420px] grid-cols-[1fr_64px_88px_88px_32px] items-center gap-2"
                 >
                   <input
                     value={l.label}

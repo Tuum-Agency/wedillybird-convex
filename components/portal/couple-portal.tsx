@@ -75,7 +75,9 @@ const NAV: ReadonlyArray<{ key: NavKey; Icon: LucideIcon }> = [
   { key: 'gallery', Icon: ImageIcon },
   { key: 'messages', Icon: MessageCircle },
 ];
-const TABS: NavKey[] = ['dashboard', 'planning', 'budget', 'documents', 'gallery'];
+// Barre d'onglets mobile : inclut `guests` (sinon la liste d'invités est
+// injoignable sur téléphone) ; `messages` reste accessible via l'icône du topbar.
+const TABS: NavKey[] = ['dashboard', 'planning', 'budget', 'documents', 'guests', 'gallery'];
 
 interface BudgetLine {
   category: string;

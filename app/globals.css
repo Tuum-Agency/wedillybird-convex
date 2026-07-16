@@ -45,12 +45,14 @@
 
   /* Sage — success doux (jamais primary) */
   --color-sage-50: oklch(96% 0.018 145);
+  --color-sage-100: oklch(94% 0.03 145);
   --color-sage-300: oklch(82% 0.045 145);
   --color-sage-500: oklch(68% 0.08 145);
   --color-sage-700: oklch(50% 0.08 145);
 
   /* Ink — texte (charbon brun-rosé chaud, jamais noir pur) */
   --color-ink-300: oklch(58% 0.022 28);
+  --color-ink-400: oklch(50% 0.022 28);
   --color-ink-500: oklch(42% 0.022 28);
   --color-ink-700: oklch(28% 0.02 28);
   --color-ink-900: oklch(18% 0.018 28);
@@ -103,7 +105,13 @@
   /* Gold ornement — accent papeterie premium (✦ fleurons, séparateurs, sceaux). */
   --color-gold-300: oklch(88% 0.05 80);
   --color-gold-500: oklch(78% 0.075 78);
-  --color-gold-700: oklch(58% 0.075 80);
+  --color-gold-600: oklch(66% 0.08 80);
+  /* gold-700 assombri (58→55 %) : passe AA en texte (eyebrows) tout en restant
+     doré pour filets/bordures/ornements. */
+  --color-gold-700: oklch(55% 0.085 80);
+  /* gold-800 : nuance texte lisible (AA ≥ 6:1 sur ivoire) — les eyebrows/liens
+     gold utilisent celle-ci ; gold-500/700 restent pour ornements & filets. */
+  --color-gold-800: oklch(50% 0.09 78);
   --color-gold-soft: oklch(96% 0.022 85);
 
   --color-success: var(--color-sage-500);
@@ -111,6 +119,14 @@
   --color-danger: oklch(58% 0.19 25);
   --color-info: oklch(65% 0.11 220);
   --color-destructive: var(--color-danger);
+
+  /* Fonds « soft » des status pills (badges) — thème-aware : clairs en light,
+     charbon teinté en dark, pour ne pas trouer le back-office sombre avec des
+     pastilles pastel. Le texte est dérivé par color-mix côté composant. */
+  --color-success-soft: var(--color-sage-100);
+  --color-warning-soft: oklch(95% 0.05 85);
+  --color-danger-soft: oklch(94% 0.04 25);
+  --color-info-soft: oklch(95% 0.035 220);
 
   /* ---------- Typo ---------- */
   --font-sans: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
@@ -182,6 +198,7 @@
 
   /* Tokens ink (texte primaire) inversés */
   --color-ink-300: oklch(58% 0.018 65);
+  --color-ink-400: oklch(65% 0.018 65);
   --color-ink-500: oklch(72% 0.018 65);
   --color-ink-700: oklch(85% 0.015 70);
   --color-ink-900: oklch(94% 0.012 70);
@@ -199,6 +216,13 @@
   /* Accent champagne — décalé vers le clair */
   --color-accent: var(--color-champagne-300);
   --color-accent-soft: oklch(28% 0.05 80);
+
+  /* Status pills en dark : charbon teinté (pas de pastel clair sur le sombre) */
+  --color-sage-100: oklch(30% 0.04 150);
+  --color-success-soft: oklch(30% 0.04 150);
+  --color-warning-soft: oklch(33% 0.055 80);
+  --color-danger-soft: oklch(32% 0.06 25);
+  --color-info-soft: oklch(30% 0.05 235);
 
   /* Ombres — plus marquées sur fond dark pour lift sensible */
   --shadow-soft: 0 1px 2px oklch(0% 0 0 / 25%), 0 4px 12px oklch(0% 0 0 / 40%);
@@ -353,6 +377,21 @@ h3,
   mix-blend-mode: multiply;
   background-image: url("data:image/svg+xml;utf8,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   background-size: 220px;
+}
+
+/*
+ * Canvas de plan de table : le pan/zoom custom (drag au pointeur fin) ne doit
+ * PAS confisquer le scroll tactile — sinon, sur téléphone, le doigt reste piégé
+ * sur le canvas et la page ne défile plus. Sur pointeur grossier on laisse donc
+ * le navigateur gérer le défilement ; le drag précis reste réservé à la souris.
+ */
+.wbb-plan-canvas {
+  touch-action: pan-x pan-y;
+}
+@media (pointer: fine) {
+  .wbb-plan-canvas {
+    touch-action: none;
+  }
 }
 
 /* Filet ornemental gold — séparateur entre sections premium */

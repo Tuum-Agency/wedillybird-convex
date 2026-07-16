@@ -174,7 +174,7 @@ export function LandingFeaturesGrid() {
                       >
                         <Check
                           aria-hidden
-                          className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-[color:var(--color-gold-500)]"
+                          className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-[color:var(--color-gold-700)]"
                           strokeWidth={2}
                         />
                         {t(`${key}.highlights.${i}`)}

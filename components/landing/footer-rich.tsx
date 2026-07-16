@@ -77,7 +77,7 @@ export function LandingFooterRich() {
                 name="email"
                 required
                 placeholder={t('newsletterPlaceholder')}
-                className="focus-ring flex-1 rounded-full border border-[color:var(--color-border-strong)] bg-white px-5 py-3 text-sm text-[color:var(--color-ink-900)] placeholder:text-[color:var(--color-ink-300)]"
+                className="focus-ring flex-1 rounded-full border border-[color:var(--color-border-strong)] bg-white px-5 py-3 text-sm text-[color:var(--color-ink-900)] placeholder:text-[color:var(--color-ink-400)]"
               />
               <button
                 type="submit"
@@ -142,7 +142,7 @@ export function LandingFooterRich() {
         </div>
 
         {/* Copyright */}
-        <div className="mt-10 border-t border-[color:var(--color-border)] pt-8 font-mono text-[10px] tracking-[0.24em] text-[color:var(--color-ink-300)] uppercase">
+        <div className="mt-10 border-t border-[color:var(--color-border)] pt-8 font-mono text-[10px] tracking-[0.24em] text-[color:var(--color-ink-400)] uppercase">
           © {year} Wedillybird · {t('rights')}
         </div>
       </div>

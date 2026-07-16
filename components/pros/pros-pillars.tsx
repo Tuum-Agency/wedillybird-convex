@@ -71,7 +71,7 @@ export function ProsPillars() {
           >
             <span className="inline-flex items-center gap-1.5 text-xs text-[color:var(--color-ink-500)]">
               <Check
-                className="h-3.5 w-3.5 text-[color:var(--color-gold-500)]"
+                className="h-3.5 w-3.5 text-[color:var(--color-gold-700)]"
                 strokeWidth={2}
                 aria-hidden
               />
@@ -147,7 +147,7 @@ export function ProsPillars() {
                         <div className="flex items-center gap-2">
                           {f.tier === 'all' && (
                             <Check
-                              className="h-3.5 w-3.5 flex-shrink-0 text-[color:var(--color-gold-500)]"
+                              className="h-3.5 w-3.5 flex-shrink-0 text-[color:var(--color-gold-700)]"
                               strokeWidth={2}
                               aria-hidden
                             />

@@ -79,7 +79,7 @@ export function LandingCtaFinal() {
             aria-hidden
           />
         </Link>
-        <p className="mt-7 text-xs text-[color:var(--color-ink-300)]">{t('trust')}</p>
+        <p className="mt-7 text-xs text-[color:var(--color-ink-400)]">{t('trust')}</p>
       </motion.div>
     </section>
   );

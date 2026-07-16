@@ -249,7 +249,7 @@ export function EventMessagingForm({
               placeholder={t('messagingPersonalPlaceholder')}
               value={personalMessage}
               onChange={(e) => setPersonalMessage(e.target.value)}
-              className="focus-ring resize-vertical w-full rounded-xl border border-[color:var(--color-border-strong)] bg-white px-4 py-3 text-sm text-[color:var(--color-ink-900)] placeholder:text-[color:var(--color-ink-300)]"
+              className="focus-ring resize-vertical w-full rounded-xl border border-[color:var(--color-border-strong)] bg-white px-4 py-3 text-sm text-[color:var(--color-ink-900)] placeholder:text-[color:var(--color-ink-400)]"
             />
             <p className="text-right font-mono text-[10px] tracking-[0.18em] text-[color:var(--color-ink-500)] uppercase">
               {personalMessage.length}/{PERSONAL_MESSAGE_MAX}

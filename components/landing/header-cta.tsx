@@ -45,7 +45,8 @@ export function HeaderCta({
       onClick={() => analytics.ctaClicked({ source, destination, plan, billing, audience })}
       className={cn(
         buttonVariants({ variant: 'primary', size: 'sm' }),
-        'whitespace-nowrap',
+        // 44px de cible tactile sur mobile (barre sticky), compact ≥ md.
+        'h-11 whitespace-nowrap md:h-9',
         className,
       )}
     >

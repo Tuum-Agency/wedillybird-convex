@@ -114,7 +114,7 @@ export function CustomTemplateForm({ eventId, defaultNotifyChannel = 'email' }: 
           onChange={(e) => setBodyText(e.target.value)}
           maxLength={BODY_MAX + 200}
           className={cn(
-            'focus-ring resize-vertical w-full rounded-xl border bg-white px-4 py-3 font-mono text-sm leading-relaxed text-[color:var(--color-ink-900)] placeholder:text-[color:var(--color-ink-300)]',
+            'focus-ring resize-vertical w-full rounded-xl border bg-white px-4 py-3 font-mono text-sm leading-relaxed text-[color:var(--color-ink-900)] placeholder:text-[color:var(--color-ink-400)]',
             bodyTooShort || bodyTooLong || !hasGuestVar
               ? 'border-[color:var(--color-blush-400)]'
               : 'border-[color:var(--color-border-strong)]',

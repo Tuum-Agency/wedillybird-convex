@@ -83,7 +83,7 @@ export function NewsletterForm() {
               name="email"
               required
               placeholder={t('newsletterPlaceholder')}
-              className="focus-ring flex-1 rounded-full border border-[color:var(--color-border-strong)] bg-white px-5 py-3 text-sm text-[color:var(--color-ink-900)] placeholder:text-[color:var(--color-ink-300)]"
+              className="focus-ring flex-1 rounded-full border border-[color:var(--color-border-strong)] bg-white px-5 py-3 text-sm text-[color:var(--color-ink-900)] placeholder:text-[color:var(--color-ink-400)]"
             />
             {/* Honeypot */}
             <input

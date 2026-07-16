@@ -333,7 +333,7 @@ export function LandingPricingPros({
                     <li key={key} className="flex items-start gap-2.5">
                       <Check
                         aria-hidden
-                        className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-[color:var(--color-gold-500)]"
+                        className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-[color:var(--color-gold-700)]"
                         strokeWidth={2}
                       />
                       <span className="leading-relaxed text-[color:var(--color-ink-700)]">

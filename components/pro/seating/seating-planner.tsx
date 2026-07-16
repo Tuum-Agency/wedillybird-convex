@@ -456,8 +456,7 @@ export function SeatingPlanner({
           ref={wrapRef}
           onPointerDown={onBgDown}
           onWheel={onWheel}
-          className="relative h-[clamp(420px,62vh,760px)] cursor-grab overflow-hidden rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-ink-700)]/20 active:cursor-grabbing"
-          style={{ touchAction: 'none' }}
+          className="wbb-plan-canvas relative h-[clamp(420px,62vh,760px)] cursor-grab overflow-hidden rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-ink-700)]/20 active:cursor-grabbing"
         >
           {board.tables.length === 0 ? (
             <EmptyCanvas onAdd={() => setAddOpen(true)} onAuto={() => setAutoOpen(true)} />
