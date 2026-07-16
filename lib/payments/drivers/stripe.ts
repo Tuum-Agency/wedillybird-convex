@@ -1261,11 +1261,15 @@ function mapPromotionCode(pc: Stripe.PromotionCode): AdminPromotionCode {
   const coupon = pc.promotion?.coupon ?? null;
   const couponObj = coupon && typeof coupon === 'object' ? coupon : null;
   const label = couponObj
-    ? couponObj.percent_off
-      ? `${couponObj.percent_off}%`
-      : couponObj.amount_off
-        ? `${(couponObj.amount_off / 100).toFixed(0)} ${(couponObj.currency ?? '').toUpperCase()}`
-        : (couponObj.name ?? couponObj.id)
+    ? couponObj.percent_off === 100 &&
+      couponObj.duration === 'repeating' &&
+      couponObj.duration_in_months
+      ? `${couponObj.duration_in_months} mois offerts`
+      : couponObj.percent_off
+        ? `${couponObj.percent_off}%`
+        : couponObj.amount_off
+          ? `${(couponObj.amount_off / 100).toFixed(0)} ${(couponObj.currency ?? '').toUpperCase()}`
+          : (couponObj.name ?? couponObj.id)
     : typeof coupon === 'string'
       ? coupon
       : '—';

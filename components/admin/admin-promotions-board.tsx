@@ -72,7 +72,13 @@ const DURATION_LABEL: Record<string, string> = {
   forever: 'Permanent',
 };
 
+/** Un coupon 100 % récurrent sur N mois = « essai gratuit » (mois offerts). */
+function isTrialCoupon(c: Coupon): boolean {
+  return c.percentOff === 100 && c.duration === 'repeating' && (c.durationInMonths ?? 0) > 0;
+}
+
 function couponValue(c: Coupon): string {
+  if (isTrialCoupon(c)) return `${c.durationInMonths} mois offerts`;
   if (c.percentOff != null) return `−${c.percentOff} %`;
   if (c.amountOffMinor != null)
     return `−${(c.amountOffMinor / 100).toFixed(0)} ${c.currency ?? 'EUR'}`;
@@ -101,8 +107,8 @@ export function AdminPromotionsBoard({
           <div>
             <h2 className="font-display text-lg italic">Coupons</h2>
             <p className="text-sm text-[color:var(--color-muted-foreground)]">
-              Réductions réutilisables (% ou montant), applicables aux forfaits couples et aux
-              abonnements pros.
+              Réductions réutilisables (%, montant ou mois d&apos;essai offerts), applicables aux
+              forfaits couples et aux abonnements pros.
             </p>
           </div>
           <CreateCouponDialog onDone={() => router.refresh()} />
@@ -140,6 +146,7 @@ export function AdminPromotionsBoard({
                     <td className="px-4 py-3 font-medium">
                       <span className="flex items-center gap-2">
                         {c.name ?? c.id}
+                        {isTrialCoupon(c) ? <Badge variant="success">Essai</Badge> : null}
                         {c.appliesToProducts && c.appliesToProducts.length > 0 ? (
                           <Badge variant="neutral">Pros</Badge>
                         ) : null}
@@ -372,12 +379,13 @@ function CreateCouponDialog({ onDone }: { onDone: () => void }) {
   const [error, setError] = useState<string | null>(null);
 
   const [name, setName] = useState('');
-  const [kind, setKind] = useState<'percent' | 'amount'>('percent');
+  const [kind, setKind] = useState<'percent' | 'amount' | 'trial'>('percent');
   const [percentOff, setPercentOff] = useState('20');
   const [amountOff, setAmountOff] = useState('10');
   const [currency, setCurrency] = useState<'EUR' | 'USD' | 'MAD'>('EUR');
   const [duration, setDuration] = useState<'once' | 'repeating' | 'forever'>('once');
   const [durationInMonths, setDurationInMonths] = useState('3');
+  const [trialMonths, setTrialMonths] = useState('1');
   const [maxRedemptions, setMaxRedemptions] = useState('');
   const [redeemBy, setRedeemBy] = useState('');
   const [promoCode, setPromoCode] = useState('');
@@ -389,20 +397,34 @@ function CreateCouponDialog({ onDone }: { onDone: () => void }) {
       setError('Le nom est requis.');
       return;
     }
-    const input: CreateCouponInput = {
-      name: name.trim(),
-      kind,
-      duration,
-      ...(kind === 'percent' ? { percentOff: Number(percentOff) } : {}),
-      ...(kind === 'amount'
-        ? { amountOffMajor: Number(amountOff.replace(',', '.')), currency }
-        : {}),
-      ...(duration === 'repeating' ? { durationInMonths: Number(durationInMonths) } : {}),
-      ...(maxRedemptions ? { maxRedemptions: Number(maxRedemptions) } : {}),
-      ...(redeemBy ? { redeemBy: new Date(redeemBy).getTime() } : {}),
-      ...(promoCode.trim() ? { promoCode: promoCode.trim().toUpperCase() } : {}),
-      ...(restrictToPro ? { restrictToProProducts: true } : {}),
-    };
+    const input: CreateCouponInput =
+      kind === 'trial'
+        ? {
+            name: name.trim(),
+            kind: 'trial',
+            // Un essai est un coupon 100 % récurrent ; la durée et la restriction
+            // pros sont imposées côté serveur — on ne fait que porter les mois.
+            duration: 'repeating',
+            trialMonths: Number(trialMonths),
+            restrictToProProducts: true,
+            ...(maxRedemptions ? { maxRedemptions: Number(maxRedemptions) } : {}),
+            ...(redeemBy ? { redeemBy: new Date(redeemBy).getTime() } : {}),
+            ...(promoCode.trim() ? { promoCode: promoCode.trim().toUpperCase() } : {}),
+          }
+        : {
+            name: name.trim(),
+            kind,
+            duration,
+            ...(kind === 'percent' ? { percentOff: Number(percentOff) } : {}),
+            ...(kind === 'amount'
+              ? { amountOffMajor: Number(amountOff.replace(',', '.')), currency }
+              : {}),
+            ...(duration === 'repeating' ? { durationInMonths: Number(durationInMonths) } : {}),
+            ...(maxRedemptions ? { maxRedemptions: Number(maxRedemptions) } : {}),
+            ...(redeemBy ? { redeemBy: new Date(redeemBy).getTime() } : {}),
+            ...(promoCode.trim() ? { promoCode: promoCode.trim().toUpperCase() } : {}),
+            ...(restrictToPro ? { restrictToProProducts: true } : {}),
+          };
     startTransition(async () => {
       const res = await adminCreateCouponAction(input);
       if (!res.ok) {
@@ -446,13 +468,17 @@ function CreateCouponDialog({ onDone }: { onDone: () => void }) {
 
           <div className="grid grid-cols-2 gap-3">
             <Field label="Type">
-              <Select value={kind} onValueChange={(v) => setKind(v as 'percent' | 'amount')}>
+              <Select
+                value={kind}
+                onValueChange={(v) => setKind(v as 'percent' | 'amount' | 'trial')}
+              >
                 <SelectTrigger className={inputCls}>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="percent">Pourcentage</SelectItem>
                   <SelectItem value="amount">Montant fixe</SelectItem>
+                  <SelectItem value="trial">Mois offerts (essai)</SelectItem>
                 </SelectContent>
               </Select>
             </Field>
@@ -467,7 +493,7 @@ function CreateCouponDialog({ onDone }: { onDone: () => void }) {
                   className={inputCls}
                 />
               </Field>
-            ) : (
+            ) : kind === 'amount' ? (
               <Field label="Montant">
                 <div className="flex gap-2">
                   <input
@@ -489,36 +515,49 @@ function CreateCouponDialog({ onDone }: { onDone: () => void }) {
                   </Select>
                 </div>
               </Field>
-            )}
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="Durée (abonnements)">
-              <Select value={duration} onValueChange={(v) => setDuration(v as typeof duration)}>
-                <SelectTrigger className={inputCls}>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="once">Une fois</SelectItem>
-                  <SelectItem value="repeating">Récurrent</SelectItem>
-                  <SelectItem value="forever">Permanent</SelectItem>
-                </SelectContent>
-              </Select>
-            </Field>
-            {duration === 'repeating' ? (
-              <Field label="Nombre de mois">
+            ) : (
+              <Field label="Mois offerts">
                 <input
                   type="number"
                   min={1}
-                  value={durationInMonths}
-                  onChange={(e) => setDurationInMonths(e.target.value)}
+                  max={24}
+                  value={trialMonths}
+                  onChange={(e) => setTrialMonths(e.target.value)}
                   className={inputCls}
                 />
               </Field>
-            ) : (
-              <div />
             )}
           </div>
+
+          {kind !== 'trial' ? (
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Durée (abonnements)">
+                <Select value={duration} onValueChange={(v) => setDuration(v as typeof duration)}>
+                  <SelectTrigger className={inputCls}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="once">Une fois</SelectItem>
+                    <SelectItem value="repeating">Récurrent</SelectItem>
+                    <SelectItem value="forever">Permanent</SelectItem>
+                  </SelectContent>
+                </Select>
+              </Field>
+              {duration === 'repeating' ? (
+                <Field label="Nombre de mois">
+                  <input
+                    type="number"
+                    min={1}
+                    value={durationInMonths}
+                    onChange={(e) => setDurationInMonths(e.target.value)}
+                    className={inputCls}
+                  />
+                </Field>
+              ) : (
+                <div />
+              )}
+            </div>
+          ) : null}
 
           <div className="grid grid-cols-2 gap-3">
             <Field label="Max utilisations (optionnel)">
@@ -551,21 +590,33 @@ function CreateCouponDialog({ onDone }: { onDone: () => void }) {
             />
           </Field>
 
-          <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-3">
-            <input
-              type="checkbox"
-              checked={restrictToPro}
-              onChange={(e) => setRestrictToPro(e.target.checked)}
-              className="mt-0.5 h-4 w-4 flex-shrink-0 accent-[color:var(--brand-500)]"
-            />
-            <span className="flex flex-col gap-0.5">
-              <span className="text-sm font-medium">Réserver aux forfaits pros</span>
-              <span className="text-xs text-[color:var(--color-muted-foreground)]">
-                Limite la réduction aux abonnements pros (Starter / Business / Agency, mensuel &amp;
-                annuel). Ne s&apos;applique pas aux forfaits couples ni au PAYG.
+          {kind === 'trial' ? (
+            <p className="rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-3 text-xs text-[color:var(--color-muted-foreground)]">
+              Le pro saisit ce code au paiement de son abonnement et bénéficie de{' '}
+              <span className="font-medium text-[color:var(--color-foreground)]">
+                {trialMonths || '0'} mois à 0 €
               </span>
-            </span>
-          </label>
+              , puis le tarif normal reprend automatiquement (carte enregistrée dès l&apos;essai).
+              Réservé aux forfaits pros (Starter / Business / Agency) — sans effet sur les forfaits
+              couples ni le PAYG.
+            </p>
+          ) : (
+            <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-3">
+              <input
+                type="checkbox"
+                checked={restrictToPro}
+                onChange={(e) => setRestrictToPro(e.target.checked)}
+                className="mt-0.5 h-4 w-4 flex-shrink-0 accent-[color:var(--brand-500)]"
+              />
+              <span className="flex flex-col gap-0.5">
+                <span className="text-sm font-medium">Réserver aux forfaits pros</span>
+                <span className="text-xs text-[color:var(--color-muted-foreground)]">
+                  Limite la réduction aux abonnements pros (Starter / Business / Agency, mensuel
+                  &amp; annuel). Ne s&apos;applique pas aux forfaits couples ni au PAYG.
+                </span>
+              </span>
+            </label>
+          )}
         </div>
 
         {error ? <p className="mt-3 text-sm text-red-400">{error}</p> : null}
