@@ -9,6 +9,7 @@ import {
   reactivatePlatformSubscription,
   listSubscriptionInvoices,
   createCoupon,
+  resolveProPlanProductIds,
   listCoupons,
   deleteCoupon,
   createPromotionCode,
@@ -273,16 +274,25 @@ export async function adminListPromotionsAction(): Promise<PromotionsResult> {
 
 export type CreateCouponInput = {
   name: string;
-  kind: 'percent' | 'amount';
+  // `trial` = mois offerts : coupon 100 % pendant `trialMonths` mois. C'est le
+  // seul mécanisme Stripe qui offre des mois gratuits via un CODE PROMO saisi au
+  // checkout (le trial natif ne s'attache pas à un code). Toujours réservé aux
+  // forfaits pros (abonnement récurrent) — voir `adminCreateCouponAction`.
+  kind: 'percent' | 'amount' | 'trial';
   percentOff?: number;
   amountOffMajor?: number; // saisi en unité majeure (€), converti en minor
   currency?: Currency;
   duration: 'once' | 'repeating' | 'forever';
   durationInMonths?: number;
+  // Nombre de mois offerts pour un essai (`kind === 'trial'`).
+  trialMonths?: number;
   maxRedemptions?: number;
   redeemBy?: number; // ms epoch
   // Génère aussi un code promo lisible rattaché au coupon.
   promoCode?: string;
+  // Restreint le coupon aux forfaits pros (Starter/Business/Agency, mensuel +
+  // annuel) — ne s'applique alors ni aux forfaits couples ni au PAYG.
+  restrictToProProducts?: boolean;
 };
 
 export async function adminCreateCouponAction(input: CreateCouponInput): Promise<ActionResult> {
@@ -290,20 +300,49 @@ export async function adminCreateCouponAction(input: CreateCouponInput): Promise
     const adminId = await requireAdmin();
     const convex = getConvexServerClient();
 
+    const isTrial = input.kind === 'trial';
+
+    // Essai gratuit = coupon 100 % pendant N mois (duration `repeating`). Card on
+    // file au checkout, N mois à 0 €, puis le tarif normal de l'abonnement reprend.
+    if (isTrial && (input.trialMonths == null || input.trialMonths < 1)) {
+      return { ok: false, error: 'TRIAL_NEEDS_MONTHS' };
+    }
+
+    const percentOff = isTrial ? 100 : input.kind === 'percent' ? input.percentOff : undefined;
     const amountOffMinor =
       input.kind === 'amount' && input.amountOffMajor != null
         ? Math.round(input.amountOffMajor * 100)
         : undefined;
+    const duration = isTrial ? ('repeating' as const) : input.duration;
+    const durationInMonths = isTrial ? input.trialMonths : input.durationInMonths;
+
+    // Restriction « forfaits pros » : on résout les produits Stripe des abos
+    // pros dans l'environnement courant. Si aucun n'est résolu (env vars prix
+    // manquantes), on refuse plutôt que de créer par erreur un coupon sans
+    // restriction (qui s'appliquerait aussi aux forfaits couples).
+    //
+    // Forcée pour un essai : un coupon récurrent 100 % appliqué à un forfait
+    // couple / PAYG one-shot offrirait le forfait entier — un essai n'a de sens
+    // que sur un abonnement pro mensuel.
+    const restrictToPro = Boolean(input.restrictToProProducts) || isTrial;
+    let appliesToProducts: string[] | undefined;
+    if (restrictToPro) {
+      appliesToProducts = await resolveProPlanProductIds();
+      if (appliesToProducts.length === 0) {
+        return { ok: false, error: 'NO_PRO_PRODUCTS_RESOLVED' };
+      }
+    }
 
     const coupon = await createCoupon({
       name: input.name,
-      percentOff: input.kind === 'percent' ? input.percentOff : undefined,
+      percentOff,
       amountOffMinor,
       currency: input.currency,
-      duration: input.duration,
-      durationInMonths: input.durationInMonths,
+      duration,
+      durationInMonths,
       maxRedemptions: input.maxRedemptions,
       redeemBy: input.redeemBy,
+      appliesToProducts,
     });
 
     let promoCode: string | undefined;
@@ -317,7 +356,13 @@ export async function adminCreateCouponAction(input: CreateCouponInput): Promise
       action: 'create_coupon',
       targetType: 'coupon',
       targetId: coupon.id,
-      details: JSON.stringify({ name: input.name, kind: input.kind, promoCode }),
+      details: JSON.stringify({
+        name: input.name,
+        kind: input.kind,
+        promoCode,
+        ...(isTrial ? { trialMonths: input.trialMonths } : {}),
+        ...(restrictToPro ? { restrictToProProducts: true } : {}),
+      }),
     });
     revalidatePath('/admin/promotions');
     return { ok: true };
