@@ -44,15 +44,12 @@ describe('resolvePostAuthDestination — aiguillage agence vs particulier', () =
     );
   });
 
-  it('admin AVEC organisation → back-office pro (admin = rôle agence)', () => {
+  it('admin → console /admin, indépendamment de toute organisation', () => {
     expect(resolvePostAuthDestination({ role: 'admin', fullName: 'Yacine Sow' }, true)).toBe(
-      '/pro/dashboard',
+      '/admin',
     );
-  });
-
-  it('admin SANS organisation → onboarding pro', () => {
     expect(resolvePostAuthDestination({ role: 'admin', fullName: 'Yacine Sow' }, false)).toBe(
-      '/pro/onboarding',
+      '/admin',
     );
   });
 });
@@ -79,7 +76,13 @@ describe('exhaustivité des rôles', () => {
     'admin',
   ];
   it('chaque rôle onboardé produit une destination connue', () => {
-    const allowed = new Set(['/onboarding', '/pro/onboarding', '/pro/dashboard', '/dashboard']);
+    const allowed = new Set([
+      '/onboarding',
+      '/pro/onboarding',
+      '/pro/dashboard',
+      '/dashboard',
+      '/admin',
+    ]);
     for (const role of roles) {
       const dest = resolvePostAuthDestination({ role, fullName: 'Test' }, false);
       expect(allowed.has(dest)).toBe(true);

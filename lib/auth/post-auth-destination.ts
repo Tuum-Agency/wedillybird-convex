@@ -6,7 +6,9 @@
  * **particulier** (couple) :
  *
  *  - Pas encore onboardée (rôle `guest`, ou pas de nom) → `/onboarding`.
- *  - Agence (rôle `pro`/`admin`) :
+ *  - Admin plateforme (rôle `admin`) → `/admin` (console d'administration),
+ *    directement, sans dépendre d'une organisation agence.
+ *  - Agence (rôle `pro`) :
  *      - membre actif d'une organisation → `/pro/dashboard` (le back-office) ;
  *      - sinon → `/pro/onboarding` (créer/rejoindre l'organisation d'abord).
  *  - Particulier (rôle `couple`) → `/dashboard`.
@@ -33,7 +35,8 @@ export type PostAuthDestination =
   | '/onboarding'
   | '/pro/onboarding'
   | '/pro/dashboard'
-  | '/dashboard';
+  | '/dashboard'
+  | '/admin';
 
 /** Rôles considérés comme « agence » (back-office pro). */
 export function isAgencyRole(role: PostAuthRole | null | undefined): boolean {
@@ -54,6 +57,12 @@ export function resolvePostAuthDestination(
   // Onboarding non terminé : pas de nom, pas de rôle, ou rôle invité.
   if (!user || !user.fullName || !user.role || user.role === 'guest') {
     return '/onboarding';
+  }
+
+  // Admin plateforme → console d'administration, quel que soit l'état
+  // d'organisation (le back-office pro n'est pas sa surface par défaut).
+  if (user.role === 'admin') {
+    return '/admin';
   }
 
   if (isAgencyRole(user.role)) {
