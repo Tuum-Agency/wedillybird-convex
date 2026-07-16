@@ -1102,6 +1102,16 @@ export interface AdminPromotionCode {
 }
 
 function mapCoupon(c: Stripe.Coupon): AdminCoupon {
+  // L'API Stripe « 2026-04-22.dahlia » ne renvoie plus `applies_to` sur l'objet
+  // coupon (la restriction produit reste bien ENFORCÉE côté Stripe à la
+  // redemption — vérifié — mais n'est plus lisible en lecture). On retombe donc
+  // sur la metadata `wedillybird_applies_to` posée à la création (cf.
+  // createCoupon) pour continuer d'afficher la restriction « forfaits pros ».
+  const appliesToProducts =
+    c.applies_to?.products ??
+    (c.metadata?.wedillybird_applies_to
+      ? c.metadata.wedillybird_applies_to.split(',').filter(Boolean)
+      : []);
   return {
     id: c.id,
     name: c.name ?? null,
@@ -1115,7 +1125,7 @@ function mapCoupon(c: Stripe.Coupon): AdminCoupon {
     redeemBy: c.redeem_by ? c.redeem_by * 1000 : null,
     valid: c.valid,
     createdAt: (c.created ?? 0) * 1000,
-    appliesToProducts: c.applies_to?.products ?? [],
+    appliesToProducts,
   };
 }
 
@@ -1161,7 +1171,13 @@ export async function createCoupon(input: {
     ...(input.maxRedemptions != null ? { max_redemptions: input.maxRedemptions } : {}),
     ...(input.redeemBy != null ? { redeem_by: Math.floor(input.redeemBy / 1000) } : {}),
     ...(input.appliesToProducts && input.appliesToProducts.length > 0
-      ? { applies_to: { products: input.appliesToProducts } }
+      ? {
+          applies_to: { products: input.appliesToProducts },
+          // Trace la restriction en metadata : l'API dahlia ne renvoie plus
+          // `applies_to` en lecture, donc mapCoupon la relit ici pour l'affichage
+          // (le filtrage produit lui-même reste appliqué par Stripe).
+          metadata: { wedillybird_applies_to: input.appliesToProducts.join(',') },
+        }
       : {}),
   };
   const coupon = await stripe.coupons.create(params);
