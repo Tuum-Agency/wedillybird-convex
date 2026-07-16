@@ -190,7 +190,7 @@ export function InvitationCard3D() {
           </div>
 
           {/* RSVP hint en bas */}
-          <p className="absolute right-7 bottom-6 left-7 text-center font-mono text-[9px] tracking-[0.32em] text-[color:var(--color-ink-300)] uppercase">
+          <p className="absolute right-7 bottom-6 left-7 text-center font-mono text-[9px] tracking-[0.32em] text-[color:var(--color-ink-400)] uppercase">
             {t('rsvpHint')}
           </p>
 

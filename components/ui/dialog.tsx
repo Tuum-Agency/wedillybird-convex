@@ -38,7 +38,7 @@ export function DialogContent({
         {showClose ? (
           <DialogPrimitive.Close
             aria-label={t('close')}
-            className="focus-ring absolute top-4 right-4 rounded-lg p-1 text-[color:var(--color-muted-foreground)] transition-colors hover:bg-[color:var(--color-surface-elevated)] hover:text-[color:var(--color-foreground)]"
+            className="focus-ring absolute top-3 right-3 rounded-lg p-2.5 text-[color:var(--color-muted-foreground)] transition-colors hover:bg-[color:var(--color-surface-elevated)] hover:text-[color:var(--color-foreground)]"
           >
             <X className="h-4 w-4" strokeWidth={2} aria-hidden />
           </DialogPrimitive.Close>

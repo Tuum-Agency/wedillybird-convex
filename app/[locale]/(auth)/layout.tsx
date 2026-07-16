@@ -120,7 +120,7 @@ function AuthFooter() {
   const t = useTranslations('Auth');
   return (
     <footer className="flex justify-center px-6 pb-8 lg:pb-10">
-      <p className="max-w-sm text-center font-mono text-[10px] leading-relaxed tracking-[0.16em] text-[color:var(--color-ink-300)] uppercase">
+      <p className="max-w-sm text-center font-mono text-[10px] leading-relaxed tracking-[0.16em] text-[color:var(--color-ink-400)] uppercase">
         {t('privacy')}
       </p>
     </footer>

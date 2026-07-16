@@ -11,12 +11,13 @@ describe('<Badge />', () => {
   it('applique la variante primary', () => {
     render(<Badge variant="primary">Recommandé</Badge>);
     expect(screen.getByText('Recommandé').className).toContain(
-      'bg-[color:var(--color-terracotta-100)]',
+      'bg-[color:var(--color-primary-soft)]',
     );
   });
 
   it('applique la variante destructive', () => {
     render(<Badge variant="destructive">Erreur</Badge>);
-    expect(screen.getByText('Erreur').className).toContain('bg-red-100');
+    // Fond « soft » thème-aware (plus de pastille pastel fixe type bg-red-100).
+    expect(screen.getByText('Erreur').className).toContain('bg-[color:var(--color-danger-soft)]');
   });
 });

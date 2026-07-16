@@ -117,8 +117,8 @@ function UserRow({ user }: { user: User }) {
     <tr className="border-b border-[color:var(--color-border)] last:border-0 hover:bg-[color:var(--color-surface-elevated)]/50">
       <td className="px-4 py-3 font-medium">{user.fullName ?? '—'}</td>
       <td className="px-4 py-3 text-[color:var(--color-muted-foreground)]">
-        <div className="flex flex-col gap-0.5">
-          {user.email ? <span>{user.email}</span> : null}
+        <div className="flex min-w-0 flex-col gap-0.5">
+          {user.email ? <span className="break-all">{user.email}</span> : null}
           {user.phone ? <span className="font-mono text-xs">{user.phone}</span> : null}
         </div>
       </td>

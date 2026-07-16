@@ -203,7 +203,7 @@ export function OwnerGallery({ eventId, initialPhotos, canDownloadZip = true }: 
         </p>
       ) : (
         <ul
-          className="columns-2 gap-3 [column-fill:_balance] sm:columns-3 md:columns-4"
+          className="columns-1 gap-3 [column-fill:_balance] sm:columns-2 md:columns-3 lg:columns-4"
           data-testid="photo-grid"
         >
           {filtered.map((p) => (

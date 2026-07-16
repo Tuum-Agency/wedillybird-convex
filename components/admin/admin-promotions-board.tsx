@@ -466,7 +466,7 @@ function CreateCouponDialog({ onDone }: { onDone: () => void }) {
             />
           </Field>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <Field label="Type">
               <Select
                 value={kind}
@@ -530,7 +530,7 @@ function CreateCouponDialog({ onDone }: { onDone: () => void }) {
           </div>
 
           {kind !== 'trial' ? (
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <Field label="Durée (abonnements)">
                 <Select value={duration} onValueChange={(v) => setDuration(v as typeof duration)}>
                   <SelectTrigger className={inputCls}>
@@ -559,7 +559,7 @@ function CreateCouponDialog({ onDone }: { onDone: () => void }) {
             </div>
           ) : null}
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <Field label="Max utilisations (optionnel)">
               <input
                 type="number"
