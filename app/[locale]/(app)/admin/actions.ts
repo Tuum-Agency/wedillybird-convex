@@ -9,6 +9,7 @@ import {
   reactivatePlatformSubscription,
   listSubscriptionInvoices,
   createCoupon,
+  resolveProPlanProductIds,
   listCoupons,
   deleteCoupon,
   createPromotionCode,
@@ -283,6 +284,9 @@ export type CreateCouponInput = {
   redeemBy?: number; // ms epoch
   // Génère aussi un code promo lisible rattaché au coupon.
   promoCode?: string;
+  // Restreint le coupon aux forfaits pros (Starter/Business/Agency, mensuel +
+  // annuel) — ne s'applique alors ni aux forfaits couples ni au PAYG.
+  restrictToProProducts?: boolean;
 };
 
 export async function adminCreateCouponAction(input: CreateCouponInput): Promise<ActionResult> {
@@ -295,6 +299,18 @@ export async function adminCreateCouponAction(input: CreateCouponInput): Promise
         ? Math.round(input.amountOffMajor * 100)
         : undefined;
 
+    // Restriction « forfaits pros » : on résout les produits Stripe des abos
+    // pros dans l'environnement courant. Si aucun n'est résolu (env vars prix
+    // manquantes), on refuse plutôt que de créer par erreur un coupon sans
+    // restriction (qui s'appliquerait aussi aux forfaits couples).
+    let appliesToProducts: string[] | undefined;
+    if (input.restrictToProProducts) {
+      appliesToProducts = await resolveProPlanProductIds();
+      if (appliesToProducts.length === 0) {
+        return { ok: false, error: 'NO_PRO_PRODUCTS_RESOLVED' };
+      }
+    }
+
     const coupon = await createCoupon({
       name: input.name,
       percentOff: input.kind === 'percent' ? input.percentOff : undefined,
@@ -304,6 +320,7 @@ export async function adminCreateCouponAction(input: CreateCouponInput): Promise
       durationInMonths: input.durationInMonths,
       maxRedemptions: input.maxRedemptions,
       redeemBy: input.redeemBy,
+      appliesToProducts,
     });
 
     let promoCode: string | undefined;
@@ -317,7 +334,12 @@ export async function adminCreateCouponAction(input: CreateCouponInput): Promise
       action: 'create_coupon',
       targetType: 'coupon',
       targetId: coupon.id,
-      details: JSON.stringify({ name: input.name, kind: input.kind, promoCode }),
+      details: JSON.stringify({
+        name: input.name,
+        kind: input.kind,
+        promoCode,
+        ...(input.restrictToProProducts ? { restrictToProProducts: true } : {}),
+      }),
     });
     revalidatePath('/admin/promotions');
     return { ok: true };

@@ -44,6 +44,7 @@ type Coupon = {
   redeemBy: number | null;
   valid: boolean;
   createdAt: number;
+  appliesToProducts?: string[];
 };
 
 type PromoCode = {
@@ -136,7 +137,14 @@ export function AdminPromotionsBoard({
                     key={c.id}
                     className="border-b border-[color:var(--color-border)] last:border-0 hover:bg-[color:var(--color-surface-elevated)]/50"
                   >
-                    <td className="px-4 py-3 font-medium">{c.name ?? c.id}</td>
+                    <td className="px-4 py-3 font-medium">
+                      <span className="flex items-center gap-2">
+                        {c.name ?? c.id}
+                        {c.appliesToProducts && c.appliesToProducts.length > 0 ? (
+                          <Badge variant="neutral">Pros</Badge>
+                        ) : null}
+                      </span>
+                    </td>
                     <td className="px-4 py-3 font-mono">{couponValue(c)}</td>
                     <td className="px-4 py-3 text-[color:var(--color-muted-foreground)]">
                       {DURATION_LABEL[c.duration]}
@@ -373,6 +381,7 @@ function CreateCouponDialog({ onDone }: { onDone: () => void }) {
   const [maxRedemptions, setMaxRedemptions] = useState('');
   const [redeemBy, setRedeemBy] = useState('');
   const [promoCode, setPromoCode] = useState('');
+  const [restrictToPro, setRestrictToPro] = useState(false);
 
   function submit() {
     setError(null);
@@ -392,6 +401,7 @@ function CreateCouponDialog({ onDone }: { onDone: () => void }) {
       ...(maxRedemptions ? { maxRedemptions: Number(maxRedemptions) } : {}),
       ...(redeemBy ? { redeemBy: new Date(redeemBy).getTime() } : {}),
       ...(promoCode.trim() ? { promoCode: promoCode.trim().toUpperCase() } : {}),
+      ...(restrictToPro ? { restrictToProProducts: true } : {}),
     };
     startTransition(async () => {
       const res = await adminCreateCouponAction(input);
@@ -402,6 +412,7 @@ function CreateCouponDialog({ onDone }: { onDone: () => void }) {
       setOpen(false);
       setName('');
       setPromoCode('');
+      setRestrictToPro(false);
       onDone();
     });
   }
@@ -539,6 +550,22 @@ function CreateCouponDialog({ onDone }: { onDone: () => void }) {
               className={`${inputCls} font-mono`}
             />
           </Field>
+
+          <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-3">
+            <input
+              type="checkbox"
+              checked={restrictToPro}
+              onChange={(e) => setRestrictToPro(e.target.checked)}
+              className="mt-0.5 h-4 w-4 flex-shrink-0 accent-[color:var(--brand-500)]"
+            />
+            <span className="flex flex-col gap-0.5">
+              <span className="text-sm font-medium">Réserver aux forfaits pros</span>
+              <span className="text-xs text-[color:var(--color-muted-foreground)]">
+                Limite la réduction aux abonnements pros (Starter / Business / Agency, mensuel &amp;
+                annuel). Ne s&apos;applique pas aux forfaits couples ni au PAYG.
+              </span>
+            </span>
+          </label>
         </div>
 
         {error ? <p className="mt-3 text-sm text-red-400">{error}</p> : null}
