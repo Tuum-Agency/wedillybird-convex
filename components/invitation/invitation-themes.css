@@ -1151,3 +1151,128 @@
   backdrop-filter: blur(4px);
   border-radius: 22px;
 }
+
+/* --------------------------------- ROYAL --------------------------------- */
+
+[data-inv-theme='royal'] {
+  --color-ivory-50: oklch(14% 0.016 291);
+  --color-ivory-100: oklch(17% 0.018 290);
+  --color-ivory-200: oklch(20.5% 0.02 289);
+  --color-surface: oklch(19% 0.018 290);
+  --color-surface-elevated: oklch(22% 0.02 289);
+  --color-surface-warm: oklch(19.5% 0.022 300);
+  --color-blush-50: oklch(19% 0.022 310);
+  --color-ink-900: oklch(93% 0.03 87);
+  --color-ink-700: oklch(82% 0.025 86);
+  --color-ink-500: oklch(65% 0.022 85);
+  --color-border: oklch(31% 0.022 292);
+  --color-border-strong: oklch(43% 0.03 295);
+  --color-muted-foreground: oklch(59% 0.022 86);
+  --shadow-soft: 0 20px 48px oklch(4% 0.008 288 / 0.65);
+  --shadow-blush: 0 20px 48px oklch(4% 0.008 288 / 0.65);
+}
+.invd-royal .invd-bg {
+  background:
+    radial-gradient(74% 42% at 50% -8%, oklch(24% 0.03 292 / 0.9), transparent 70%),
+    radial-gradient(80% 40% at 50% 112%, oklch(24% 0.045 62 / 0.5), transparent 62%),
+    linear-gradient(180deg, oklch(15.5% 0.018 292), oklch(11% 0.013 286));
+}
+/* Écho de la baie en plein cintre, en filigrane au sommet. */
+.invd-y-arch {
+  left: 50%;
+  top: -54px;
+  width: 300px;
+  height: 210px;
+  margin-left: -150px;
+  border-radius: 150px 150px 0 0;
+  border: 1.5px solid oklch(62% 0.08 82 / 0.4);
+  border-bottom: none;
+  box-shadow:
+    inset 0 0 34px oklch(72% 0.085 84 / 0.1),
+    0 0 30px oklch(70% 0.085 82 / 0.12);
+}
+.invd-y-arch::before {
+  content: '';
+  position: absolute;
+  inset: 8px 8px 0;
+  border-radius: 142px 142px 0 0;
+  border: 1px solid oklch(62% 0.08 82 / 0.22);
+  border-bottom: none;
+}
+/* Pilastres en pénombre aux extrémités. */
+.invd-y-col {
+  top: -2%;
+  bottom: -2%;
+  width: 20px;
+  background:
+    repeating-linear-gradient(90deg, oklch(0% 0 0 / 0.3) 0 1px, transparent 1px 4.5px),
+    linear-gradient(90deg, oklch(11% 0.012 290), oklch(22% 0.024 292) 50%, oklch(10% 0.011 288));
+  box-shadow: 0 0 24px oklch(5% 0.008 288 / 0.7);
+  opacity: 0.85;
+}
+.invd-y-col.wl {
+  left: 0;
+}
+.invd-y-col.wr {
+  right: 0;
+}
+/* Bougies au pied de page. */
+.invd-y-candle {
+  bottom: 26px;
+  width: 4px;
+  height: 18px;
+  border-radius: 2px;
+  background: linear-gradient(to bottom, oklch(95% 0.014 88), oklch(84% 0.03 80));
+}
+.invd-y-candle.ka {
+  left: 7%;
+}
+.invd-y-candle.kb {
+  right: 7%;
+}
+.invd-y-candle::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: -11px;
+  width: 7px;
+  height: 11px;
+  margin-left: -3.5px;
+  border-radius: 50% 50% 50% 50% / 64% 64% 36% 36%;
+  background: radial-gradient(
+    circle at 50% 74%,
+    oklch(98% 0.05 95),
+    oklch(85% 0.13 78) 58%,
+    oklch(70% 0.15 55)
+  );
+  box-shadow: 0 0 12px oklch(88% 0.12 85 / 0.85);
+  transform-origin: bottom center;
+  animation: invdYFlick 0.38s ease-in-out infinite alternate;
+}
+.invd-y-candle.kb::after {
+  animation-delay: 0.2s;
+}
+@keyframes invdYFlick {
+  0% {
+    transform: scale(1) skewX(0deg);
+  }
+  100% {
+    transform: scale(0.86, 1.1) skewX(4deg);
+  }
+}
+[data-inv-theme='royal'] .inv-wcd-cell {
+  background: oklch(20% 0.02 290 / 0.9);
+  box-shadow: inset 0 0 0 1px oklch(56% 0.07 82 / 0.5);
+}
+[data-inv-theme='royal'] .inv-wcd-num {
+  font-family: var(--font-display) !important;
+  font-style: italic;
+  font-weight: 500 !important;
+  color: oklch(88% 0.075 86) !important;
+  text-shadow: 0 0 18px oklch(80% 0.09 85 / 0.35);
+}
+[data-inv-theme='royal'] .inv-card {
+  background:
+    linear-gradient(180deg, oklch(24% 0.022 292 / 0.6), transparent 30%), oklch(19% 0.018 290);
+  border: 1px solid oklch(56% 0.07 82 / 0.45);
+}

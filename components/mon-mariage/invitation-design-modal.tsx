@@ -30,6 +30,7 @@ import { CeremonyScheduleEditor } from './ceremony-schedule-editor';
 const THEME_ICON: Record<CinematicId, string> = {
   seal: 'Mail',
   fairepart: 'Image',
+  royal: 'Crown',
   floral: 'Flower',
   cake: 'CakeSlice',
   voyage: 'Send',
@@ -40,6 +41,7 @@ const THEME_ICON: Record<CinematicId, string> = {
   feux: 'PartyPopper',
   deco: 'Gem',
   neige: 'Snowflake',
+  'jardin-japonais': 'Moon',
 };
 
 const AUDIO_TYPES = ['audio/mpeg', 'audio/mp3', 'audio/mp4', 'audio/x-m4a', 'audio/aac'];

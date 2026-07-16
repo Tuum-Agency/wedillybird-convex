@@ -10,6 +10,8 @@ import { eventHasFeature } from './entitlements';
 
 export const CINEMATIC_IDS = [
   'seal',
+  'fairepart',
+  'royal',
   'floral',
   'cake',
   'voyage',

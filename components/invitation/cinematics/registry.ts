@@ -14,6 +14,7 @@ import type { MusicTrackId } from '@/lib/invitation/music';
 export const CINEMATIC_IDS = [
   'seal',
   'fairepart',
+  'royal',
   'floral',
   'cake',
   'voyage',
@@ -24,6 +25,7 @@ export const CINEMATIC_IDS = [
   'feux',
   'deco',
   'neige',
+  'jardin-japonais',
 ] as const;
 export type CinematicId = (typeof CINEMATIC_IDS)[number];
 
@@ -49,6 +51,7 @@ export interface CinematicMeta {
 export const CINEMATIC_META: Record<CinematicId, CinematicMeta> = {
   seal: { id: 'seal', suggestedTrackId: 'aurore', dark: false },
   fairepart: { id: 'fairepart', suggestedTrackId: 'aurore', dark: false },
+  royal: { id: 'royal', suggestedTrackId: 'celebration', dark: true },
   floral: { id: 'floral', suggestedTrackId: 'jardin', dark: false },
   cake: { id: 'cake', suggestedTrackId: 'celebration', dark: true },
   voyage: { id: 'voyage', suggestedTrackId: 'envol', dark: true },
@@ -59,4 +62,5 @@ export const CINEMATIC_META: Record<CinematicId, CinematicMeta> = {
   feux: { id: 'feux', suggestedTrackId: 'celebration', dark: true },
   deco: { id: 'deco', suggestedTrackId: 'harmonie', dark: true },
   neige: { id: 'neige', suggestedTrackId: 'aurore', dark: false },
+  'jardin-japonais': { id: 'jardin-japonais', suggestedTrackId: 'jardin', dark: false },
 };

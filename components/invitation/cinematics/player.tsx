@@ -15,6 +15,7 @@ import type { CinematicSceneProps } from './shared';
  */
 const THEMES: Record<Exclude<CinematicId, 'seal'>, ComponentType<CinematicSceneProps>> = {
   fairepart: dynamic(() => import('./fairepart').then((m) => m.CinematicFairepart)),
+  royal: dynamic(() => import('./royal').then((m) => m.CinematicRoyal)),
   floral: dynamic(() => import('./floral').then((m) => m.CinematicFloral)),
   cake: dynamic(() => import('./cake').then((m) => m.CinematicCake)),
   voyage: dynamic(() => import('./voyage').then((m) => m.CinematicVoyage)),
@@ -25,6 +26,9 @@ const THEMES: Record<Exclude<CinematicId, 'seal'>, ComponentType<CinematicSceneP
   feux: dynamic(() => import('./feux').then((m) => m.CinematicFeux)),
   deco: dynamic(() => import('./deco').then((m) => m.CinematicDeco)),
   neige: dynamic(() => import('./neige').then((m) => m.CinematicNeige)),
+  'jardin-japonais': dynamic(() =>
+    import('./jardin-japonais').then((m) => m.CinematicJardinJaponais),
+  ),
 };
 
 export type CinematicPlayerProps = CinematicSceneProps & {

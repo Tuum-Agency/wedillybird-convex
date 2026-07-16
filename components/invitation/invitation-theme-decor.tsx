@@ -14,6 +14,22 @@ export function InvitationThemeDecor({ theme }: { theme: CinematicId }) {
   // `seal` et `fairepart` = page éditoriale light, sans décor ambiant dédié.
   if (theme === 'seal' || theme === 'fairepart') return null;
 
+  if (theme === 'royal') {
+    return (
+      <div className="invd invd-royal" aria-hidden>
+        <span className="invd-bg" />
+        <span className="invd-y-arch" />
+        <span className="invd-y-col wl" />
+        <span className="invd-y-col wr" />
+        <span className="invd-y-candle ka" />
+        <span className="invd-y-candle kb" />
+        <span className="invd-dust d1" />
+        <span className="invd-dust d2" />
+        <span className="invd-dust d3" />
+      </div>
+    );
+  }
+
   if (theme === 'floral') {
     return (
       <div className="invd invd-floral" aria-hidden>

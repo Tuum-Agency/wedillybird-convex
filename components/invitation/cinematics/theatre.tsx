@@ -17,27 +17,54 @@ import './theatre.css';
  * « Le Lever de rideau » — l'acte des cygnes. AUCUNE carte : les prénoms
  * sont LE TITRE DU SPECTACLE.
  *
- * Théâtre à l'italienne, caméra frontale quasi fixe — c'est la LUMIÈRE qui
- * met en scène : le projecteur balaie le velours, le rideau se lève sur un
- * lac au clair de lune, deux cygnes glissent l'un vers l'autre… puis une
- * ENSEIGNE descend des cintres au bout de ses cordes, portant les prénoms
- * en lettres d'or — ses AMPOULES s'allument une à une. Un panneau « Acte I »
- * entre côté cour avec la date pendant que les cygnes composent leur cœur.
- * Compte à rebours final en chiffres de music-hall entre deux rangées de
- * loupiotes.
+ * Théâtre à l'italienne — c'est la LUMIÈRE qui met en scène : rideau fermé,
+ * le projecteur balaie le velours qui RESPIRE (nappe de lumière + poussière
+ * dans le faisceau), puis le rideau SE LÈVE à l'autrichienne — vague de plis
+ * qui se froncent, ourlet festonné passepoilé d'or. Derrière : lac au clair
+ * de lune, brume qui dérive, deux cygnes qui tanguent l'un vers l'autre…
+ * L'ENSEIGNE descend des cintres au bout de ses cordes (elle se balance avec
+ * elles), ses AMPOULES s'allument une à une et son or se reflète sur l'eau.
+ * Panneau « Acte I » côté cour, cœur des cygnes, puis chase d'ampoules
+ * music-hall et compte à rebours entre deux rangées de loupiotes.
  *
  * Phases : 0 rideau fermé · 1 rise (lever) · 2 scene (lac + cygnes) ·
  *          3 title (enseigne + ampoules) · 4 act (Acte I + cœur) · 5 settled
  */
-const WAITS = [950, 950, 1200, 1050, 900];
+const WAITS = [950, 1100, 1200, 1050, 900];
 const PHASES = ['', 'rise', 'scene', 'title', 'act', 'settled'] as const;
 
+/** Plis du rideau à l'autrichienne : largeur relative + délai de respiration. */
+const FOLDS: ReadonlyArray<{ g: number; b: number }> = [
+  { g: 1.06, b: 0.4 },
+  { g: 0.92, b: 2.1 },
+  { g: 1.1, b: 1.2 },
+  { g: 0.9, b: 3.4 },
+  { g: 1.04, b: 0 },
+  { g: 0.94, b: 2.8 },
+  { g: 1.08, b: 1.7 },
+  { g: 0.9, b: 3.9 },
+  { g: 1.02, b: 0.8 },
+];
+
+/** Poussière en suspension dans le faisceau du projecteur. */
+const MOTES: ReadonlyArray<{ x: number; d: number; t: number }> = [
+  { x: 46, d: 0, t: 7.5 },
+  { x: 52, d: 1.9, t: 9 },
+  { x: 42, d: 3.4, t: 8 },
+  { x: 58, d: 0.9, t: 10 },
+  { x: 49, d: 5.2, t: 7 },
+  { x: 55, d: 2.7, t: 8.6 },
+  { x: 44, d: 6.1, t: 9.4 },
+  { x: 61, d: 4.3, t: 7.8 },
+];
+
+/* y ≥ 12 % : au-dessus, le ciel est masqué par le lambrequin du rideau levé. */
 const STARS: ReadonlyArray<{ x: number; y: number; s: number; d: number }> = [
-  { x: 12, y: 8, s: 2.5, d: 0 },
+  { x: 10, y: 21, s: 2.5, d: 0 },
   { x: 26, y: 16, s: 1.8, d: 1.3 },
-  { x: 44, y: 6, s: 2.2, d: 2.4 },
+  { x: 44, y: 12, s: 2.2, d: 2.4 },
   { x: 60, y: 14, s: 1.6, d: 0.7 },
-  { x: 74, y: 9, s: 2.4, d: 1.9 },
+  { x: 74, y: 13, s: 2.4, d: 1.9 },
   { x: 88, y: 18, s: 1.8, d: 3.1 },
   { x: 18, y: 26, s: 1.5, d: 2.7 },
   { x: 52, y: 22, s: 1.4, d: 3.6 },
@@ -123,6 +150,7 @@ export function CinematicTheatre({
     ? ({
         '--c-curt': shiftL(accentColor, -0.18),
         '--c-curt-dk': shiftL(accentColor, -0.34),
+        '--c-curt-lt': shiftL(accentColor, -0.08),
       } as CSSProperties)
     : {};
 
@@ -176,45 +204,53 @@ export function CinematicTheatre({
               <span className="mtn m2" />
               <span className="lake" />
               <span className="moonpath" />
+              <span className="mist mi1" />
+              <span className="mist mi2" />
               <span className="bk-dim" />
             </div>
 
-            {/* Les cygnes + ondulations + cœur */}
+            {/* Les cygnes + ondulations + reflet de l'enseigne + cœur */}
             <div className="swans" aria-hidden>
+              <span className="t-lakeglow" />
               <Swan side="l" />
               <Swan side="r" />
               <span className="rip r1" />
               <span className="rip r2" />
+              <span className="rip r3" />
               <span className="heart-glow" />
               <span className="spark">✦</span>
             </div>
 
-            {/* L'ENSEIGNE volée des cintres : les prénoms en titre */}
+            {/* L'ENSEIGNE volée des cintres : les prénoms en titre.
+                `t-swing` = cordes + panneau, qui se balancent D'UN BLOC
+                autour du point d'accroche aux cintres. */}
             <div className="t-flying">
-              <span className="t-rope ra" aria-hidden />
-              <span className="t-rope rb" aria-hidden />
-              <div className="t-board">
-                {BULBS.map((b, i) => (
-                  <span
-                    key={i}
-                    className="t-bulb"
-                    aria-hidden
-                    style={
-                      {
-                        left: `${b.x}px`,
-                        top: `${b.y}px`,
-                        '--bd': `${i * 0.07}s`,
-                        '--bi': i,
-                      } as CSSProperties
-                    }
-                  />
-                ))}
-                <span className="t-eyebrow">{t('youreInvited')}</span>
-                <b className="t-name">{partnerA}</b>
-                <span className="t-star" aria-hidden>
-                  ✦
-                </span>
-                <b className="t-name">{partnerB}</b>
+              <div className="t-swing">
+                <span className="t-rope ra" aria-hidden />
+                <span className="t-rope rb" aria-hidden />
+                <div className="t-board">
+                  {BULBS.map((b, i) => (
+                    <span
+                      key={i}
+                      className="t-bulb"
+                      aria-hidden
+                      style={
+                        {
+                          left: `${b.x}px`,
+                          top: `${b.y}px`,
+                          '--bd': `${i * 0.07}s`,
+                          '--bi': i,
+                        } as CSSProperties
+                      }
+                    />
+                  ))}
+                  <span className="t-eyebrow">{t('youreInvited')}</span>
+                  <b className="t-name">{partnerA}</b>
+                  <span className="t-star" aria-hidden>
+                    ✦
+                  </span>
+                  <b className="t-name">{partnerB}</b>
+                </div>
               </div>
             </div>
 
@@ -225,16 +261,44 @@ export function CinematicTheatre({
               {venueName ? <i>{venueName}</i> : null}
             </div>
 
-            {/* Cône du projecteur */}
-            <span className="spot-cone" aria-hidden />
+            {/* Cône du projecteur + poussière en suspension dans le faisceau
+                (les motes sont ROGNÉS par le clip-path du cône) */}
+            <span className="spot-cone" aria-hidden>
+              {MOTES.map((m, i) => (
+                <i
+                  key={i}
+                  style={
+                    { '--mx': `${m.x}%`, '--md': `${m.d}s`, '--mt': `${m.t}s` } as CSSProperties
+                  }
+                />
+              ))}
+            </span>
 
-            {/* Rideau + cadre de scène (au premier plan) */}
-            <div className="curt cl" aria-hidden />
-            <div className="curt cr" aria-hidden />
+            {/* Rideau à l'autrichienne : vague de plis qui SE LÈVENT */}
+            <div className="curt" aria-hidden>
+              {FOLDS.map((f, i) => (
+                <span
+                  key={i}
+                  className="fold"
+                  style={
+                    {
+                      '--fg': f.g,
+                      '--fi': Math.abs(i - 4),
+                      '--fb': `${f.b}s`,
+                    } as CSSProperties
+                  }
+                />
+              ))}
+            </div>
             <div className="valance" aria-hidden />
             <span className="pro-arch" aria-hidden />
           </div>
         </div>
+
+        {/* Nappe du projecteur SUR le velours — voile PLAT hors du contexte 3D
+            (sinon z-fighting avec les plis du rideau). Balaie le tissu tant
+            qu'il est fermé, s'efface au lever. */}
+        <span className="spot-wash" aria-hidden />
 
         {/* Compte à rebours music-hall */}
         {target != null && (
