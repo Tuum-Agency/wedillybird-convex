@@ -3,6 +3,13 @@ import { cookies } from 'next/headers';
 
 const COOKIE_NAME = 'wdb_session';
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
+/**
+ * Durée de vie absolue d'une session, vérifiée CÔTÉ SERVEUR dans `decodeSession`
+ * (le `maxAge` du cookie n'est qu'un indice client, ignorable par un token
+ * rejoué). Aligné sur le maxAge du cookie : c'est donc un no-op pour les
+ * sessions actuellement valides, mais borne la durée de vie d'un token exfiltré.
+ */
+const SESSION_MAX_AGE_MS = COOKIE_MAX_AGE * 1000;
 
 export interface SessionPayload {
   userId: string;
@@ -63,7 +70,20 @@ export async function decodeSession(token: string): Promise<SessionPayload | nul
     const bytes = new Uint8Array(decoded.length);
     for (let i = 0; i < decoded.length; i++) bytes[i] = decoded.charCodeAt(i);
     const json = new TextDecoder().decode(bytes);
-    return JSON.parse(json) as SessionPayload;
+    const payload = JSON.parse(json) as SessionPayload;
+    // Expiration côté serveur : refuse un token sans `issuedAt` valide ou dont
+    // l'âge dépasse la fenêtre. Défense en profondeur contre le rejeu d'un token
+    // exfiltré après la disparition du cookie (le maxAge cookie ne protège pas
+    // un token présenté directement). La révocation active (suspend / rotation
+    // de rôle / sign-out global) nécessitera en plus un store de sessions.
+    if (
+      typeof payload.issuedAt !== 'number' ||
+      !Number.isFinite(payload.issuedAt) ||
+      Date.now() - payload.issuedAt > SESSION_MAX_AGE_MS
+    ) {
+      return null;
+    }
+    return payload;
   } catch {
     return null;
   }
