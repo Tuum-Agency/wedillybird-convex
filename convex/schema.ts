@@ -271,6 +271,45 @@ export default defineSchema({
         ),
       }),
     ),
+    /**
+     * Configuration du formulaire RSVP présenté à l'invité sur la page
+     * d'invitation. Permet au couple / à l'agence de piloter les champs
+     * demandés au lieu des 4 champs figés historiques.
+     *
+     * - `askDietary` / `askNotes` / `askPlusOnes` : (dé)activer les champs
+     *   built-in. `undefined` = comportement historique (champ affiché).
+     * - `dietaryLabel` / `notesLabel` : renommer le libellé (sinon fallback i18n).
+     * - `customQuestions` : questions additionnelles typées — feature gated
+     *   Premium/Pro (cf. `convex/lib/entitlements.ts:customRsvpQuestions`). Les
+     *   réponses sont stockées dans `guests.customAnswers`.
+     */
+    rsvpConfig: v.optional(
+      v.object({
+        askDietary: v.optional(v.boolean()),
+        dietaryLabel: v.optional(v.string()),
+        askNotes: v.optional(v.boolean()),
+        notesLabel: v.optional(v.string()),
+        askPlusOnes: v.optional(v.boolean()),
+        customQuestions: v.optional(
+          v.array(
+            v.object({
+              id: v.string(),
+              type: v.union(
+                v.literal('short_text'),
+                v.literal('long_text'),
+                v.literal('single_choice'),
+                v.literal('multi_choice'),
+                v.literal('boolean'),
+              ),
+              label: v.string(),
+              options: v.optional(v.array(v.string())),
+              required: v.optional(v.boolean()),
+              onlyIfAttending: v.optional(v.boolean()),
+            }),
+          ),
+        ),
+      }),
+    ),
     createdAt: v.number(),
     updatedAt: v.number(),
   })
@@ -296,6 +335,19 @@ export default defineSchema({
     rsvpRespondedAt: v.optional(v.number()),
     dietaryRestrictions: v.optional(v.string()),
     notes: v.optional(v.string()),
+    /**
+     * Réponses aux questions custom (`events.rsvpConfig.customQuestions`).
+     * Une entrée par question répondue ; `values` porte 1 valeur (texte /
+     * choix unique / booléen `'yes'|'no'`) ou N (choix multiple).
+     */
+    customAnswers: v.optional(
+      v.array(
+        v.object({
+          questionId: v.string(),
+          values: v.array(v.string()),
+        }),
+      ),
+    ),
     qrCodeToken: v.string(),
     checkedInAt: v.optional(v.number()),
     checkedInBy: v.optional(v.id('users')),

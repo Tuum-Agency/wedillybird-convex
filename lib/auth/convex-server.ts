@@ -30,6 +30,27 @@ type QuoteDocStatus =
 /** Union des statuts d'un contrat (cf. `lib/pro/contracts.ts`). */
 type ContractStatus = 'draft' | 'sent' | 'signed_client' | 'countersigned' | 'active' | 'cancelled';
 
+/** Forme d'une question RSVP custom (cf. `lib/rsvp/questions.ts`). */
+type RsvpQuestionShape = {
+  id: string;
+  type: 'short_text' | 'long_text' | 'single_choice' | 'multi_choice' | 'boolean';
+  label: string;
+  options?: string[];
+  required?: boolean;
+  onlyIfAttending?: boolean;
+};
+/** Config du formulaire RSVP (`events.rsvpConfig`). */
+type RsvpConfigShape = {
+  askDietary?: boolean;
+  dietaryLabel?: string;
+  askNotes?: boolean;
+  notesLabel?: string;
+  askPlusOnes?: boolean;
+  customQuestions?: RsvpQuestionShape[];
+};
+/** Réponse d'un invité à une question custom (`guests.customAnswers`). */
+type CustomAnswerShape = { questionId: string; values: string[] };
+
 export const convexApi = {
   requestOtp: makeFunctionReference<'action', { phone: string; ipAddress?: string }>(
     'auth:requestOtp',
@@ -293,6 +314,7 @@ export const convexApi = {
         customTemplateId?: string;
         templateNotifyChannel?: 'whatsapp' | 'email' | 'both';
       };
+      rsvpConfig?: RsvpConfigShape;
       updatedAt: number;
     } | null
   >('events:getById'),
@@ -388,9 +410,12 @@ export const convexApi = {
       email?: string;
       category?: string;
       plusOnesAllowed: number;
+      plusOnesNames?: string[];
       rsvpStatus: 'pending' | 'attending' | 'declined' | 'maybe';
       invitationSentAt?: number;
+      dietaryRestrictions?: string;
       notes?: string;
+      customAnswers?: CustomAnswerShape[];
       qrCodeToken: string;
       createdAt: number;
       updatedAt: number;
@@ -422,6 +447,7 @@ export const convexApi = {
         plusOnesNames?: string[];
         dietaryRestrictions?: string;
         notes?: string;
+        customAnswers?: CustomAnswerShape[];
       };
       event: {
         _id: string;
@@ -431,6 +457,7 @@ export const convexApi = {
         timezone: string;
         venue?: { name: string; address: string; lat?: number; lng?: number };
         theme?: { primaryColor: string; accentColor: string; fontFamily: string };
+        rsvpConfig?: RsvpConfigShape;
       };
     } | null
   >('guests:getByToken'),
@@ -442,9 +469,15 @@ export const convexApi = {
       plusOnesNames?: string[];
       dietaryRestrictions?: string;
       notes?: string;
+      customAnswers?: CustomAnswerShape[];
     },
     { ok: true }
   >('rsvps:submit'),
+  updateRsvpConfig: makeFunctionReference<
+    'mutation',
+    { eventId: string; requesterId: string; config: RsvpConfigShape },
+    { ok: true }
+  >('events:updateRsvpConfig'),
   listGuestsForCheckIn: makeFunctionReference<
     'query',
     { eventId: string; requesterId: string },

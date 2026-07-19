@@ -962,7 +962,8 @@
     "errors": {
       "submit": "Couldn't add the invitation. Try again.",
       "limitReached": "Invitation quota reached for this plan. Upgrade to add more."
-    }
+    },
+    "answersDietary": "Dietary"
   },
   "Invitation": {
     "youreInvited": "You're invited",
@@ -992,7 +993,8 @@
       "notFound": "Invitation not found or expired",
       "eventClosed": "This event no longer accepts replies",
       "plusOnesExceeded": "Too many plus-ones listed",
-      "unknown": "Something went wrong. Try again."
+      "unknown": "Something went wrong. Try again.",
+      "answerRequired": "Please answer this question"
     },
     "countdownLabel": "Countdown",
     "countdownDays": "Days",
@@ -1006,7 +1008,12 @@
     "weddingDayArrived": "The big day is here.",
     "cinematicSkip": "Skip",
     "cinematicSkipAria": "Skip cinematic",
-    "scrollToDiscover": "Scroll to discover"
+    "scrollToDiscover": "Scroll to discover",
+    "rsvpPrompt": "We would be honored by your presence",
+    "galleryHint": "Photos shared by guests",
+    "booleanYes": "Yes",
+    "booleanNo": "No",
+    "requiredMark": "Required"
   },
   "OrgPublic": {
     "poweredBy": "Powered by",
@@ -3766,7 +3773,8 @@
       "cinematicInvitation": "Invitation cinematic: envelope opening, seal cracking",
       "photoVariants": "Photos optimised in 3 WebP resolutions for smooth display even on 3G",
       "galleryZipDownload": "Download the entire gallery as a ZIP in one click",
-      "seatingPlan": "Drag-and-drop seating plan: assign your confirmed guests to tables"
+      "seatingPlan": "Drag-and-drop seating plan: assign your confirmed guests to tables",
+      "customRsvpQuestions": "Custom RSVP questions: add your own questions to the reply form"
     },
     "allEssentialIncluded": "Everything in Essential included",
     "pro": {
@@ -5297,5 +5305,45 @@
       "empty": "Nothing on your plate for now. Your agency will let you know as soon as an action is waiting for you.",
       "title": "Your turn"
     }
+  },
+  "RsvpEditor": {
+    "title": "RSVP questions",
+    "subtitle": "Choose what you ask your guests when they reply.",
+    "lockedBody": "Customizing the RSVP form is included in the Premium plan (and all pro plans).",
+    "lockedCta": "Upgrade to Premium",
+    "builtinSectionTitle": "Standard fields",
+    "fieldPlusOnes": "Plus-ones",
+    "fieldPlusOnesHint": "Let guests add the names of their companions (within their allowance).",
+    "fieldDietary": "Dietary requirements",
+    "fieldNotes": "A note for the couple",
+    "labelOverride": "Displayed label",
+    "labelOverridePlaceholder": "Custom label (optional)",
+    "customSectionTitle": "Custom questions",
+    "customSectionHint": "Add up to {max} tailored questions.",
+    "addQuestion": "Add a question",
+    "empty": "No custom questions yet.",
+    "questionLabel": "Question",
+    "questionLabelPlaceholder": "e.g. Will you take the shuttle?",
+    "typeLabel": "Answer type",
+    "type": {
+      "short_text": "Short text",
+      "long_text": "Long text",
+      "single_choice": "Single choice",
+      "multi_choice": "Multiple choice",
+      "boolean": "Yes / No"
+    },
+    "optionsLabel": "Options",
+    "optionPlaceholder": "Option {index}",
+    "addOption": "Add an option",
+    "removeOption": "Remove option",
+    "requiredLabel": "Required answer",
+    "onlyIfAttendingLabel": "Only if attending",
+    "removeQuestion": "Remove",
+    "moveUp": "Move up",
+    "moveDown": "Move down",
+    "save": "Save questions",
+    "saved": "Questions saved",
+    "errorSave": "Couldn't save. Try again.",
+    "maxReached": "Maximum of {max} questions reached"
   }
 }

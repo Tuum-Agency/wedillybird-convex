@@ -160,9 +160,12 @@ export const listByEvent = query({
       email: g.email,
       category: g.category,
       plusOnesAllowed: g.plusOnesAllowed,
+      plusOnesNames: g.plusOnesNames,
       rsvpStatus: g.rsvpStatus,
       invitationSentAt: g.invitationSentAt,
+      dietaryRestrictions: g.dietaryRestrictions,
       notes: g.notes,
+      customAnswers: g.customAnswers,
       qrCodeToken: g.qrCodeToken,
       createdAt: g.createdAt,
       updatedAt: g.updatedAt,
@@ -193,6 +196,7 @@ export const getByToken = query({
         plusOnesNames: guest.plusOnesNames,
         dietaryRestrictions: guest.dietaryRestrictions,
         notes: guest.notes,
+        customAnswers: guest.customAnswers,
       },
       event: {
         _id: event._id,
@@ -202,6 +206,7 @@ export const getByToken = query({
         timezone: event.timezone,
         venue: event.venue,
         theme: event.theme,
+        rsvpConfig: event.rsvpConfig,
       },
     };
   },

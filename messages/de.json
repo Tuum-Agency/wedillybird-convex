@@ -966,7 +966,8 @@
     "errors": {
       "submit": "Einladung konnte nicht hinzugefügt werden. Bitte erneut versuchen.",
       "limitReached": "Einladungs-Kontingent für dieses Paket erreicht. Wechsle zu einem höheren Paket, um weitere hinzuzufügen."
-    }
+    },
+    "answersDietary": "Ernährung"
   },
   "Invitation": {
     "youreInvited": "Du bist eingeladen",
@@ -996,7 +997,8 @@
       "notFound": "Einladung nicht gefunden oder abgelaufen",
       "eventClosed": "Dieses Event nimmt keine Antworten mehr an",
       "plusOnesExceeded": "Zu viele Begleiter angegeben",
-      "unknown": "Ein Fehler ist aufgetreten. Bitte erneut versuchen."
+      "unknown": "Ein Fehler ist aufgetreten. Bitte erneut versuchen.",
+      "answerRequired": "Bitte beantworten Sie diese Frage"
     },
     "countdownLabel": "Countdown",
     "countdownDays": "Tage",
@@ -1010,7 +1012,12 @@
     "weddingDayArrived": "Der grosse Tag ist da.",
     "cinematicSkip": "Überspringen",
     "cinematicSkipAria": "Cinematic überspringen",
-    "scrollToDiscover": "Zum Entdecken scrollen"
+    "scrollToDiscover": "Zum Entdecken scrollen",
+    "rsvpPrompt": "Wir würden uns über Ihr Kommen sehr freuen",
+    "galleryHint": "Von Gästen geteilte Fotos",
+    "booleanYes": "Ja",
+    "booleanNo": "Nein",
+    "requiredMark": "Erforderlich"
   },
   "OrgPublic": {
     "poweredBy": "Bereitgestellt von",
@@ -3770,7 +3777,8 @@
       "cinematicInvitation": "Einladungsinszenierung: Umschlag öffnet sich, Siegel zerbricht",
       "photoVariants": "Fotos in 3 WebP-Auflösungen optimiert für flüssige Anzeige selbst in 3G",
       "galleryZipDownload": "Download der gesamten Galerie als ZIP mit einem Klick",
-      "seatingPlan": "Sitzplan per Drag-and-drop: weisen Sie zugesagte Gäste den Tischen zu"
+      "seatingPlan": "Sitzplan per Drag-and-drop: weisen Sie zugesagte Gäste den Tischen zu",
+      "customRsvpQuestions": "Individuelle RSVP-Fragen: Fügen Sie eigene Fragen zum Antwortformular hinzu"
     },
     "allEssentialIncluded": "Alles aus Essentiel inbegriffen",
     "pro": {
@@ -5301,5 +5309,45 @@
       "empty": "Im Moment gibt es für Sie nichts zu tun. Ihre Agentur meldet sich, sobald eine Aktion auf Sie wartet.",
       "title": "Sie sind dran"
     }
+  },
+  "RsvpEditor": {
+    "title": "RSVP-Fragen",
+    "subtitle": "Legen Sie fest, was Sie Ihre Gäste bei der Antwort fragen.",
+    "lockedBody": "Die Anpassung des RSVP-Formulars ist im Premium-Tarif (und allen Pro-Tarifen) enthalten.",
+    "lockedCta": "Auf Premium upgraden",
+    "builtinSectionTitle": "Standardfelder",
+    "fieldPlusOnes": "Begleitung",
+    "fieldPlusOnesHint": "Erlauben Sie, die Namen der Begleitpersonen anzugeben (je nach Kontingent).",
+    "fieldDietary": "Ernährungswünsche",
+    "fieldNotes": "Eine Nachricht an das Paar",
+    "labelOverride": "Angezeigte Bezeichnung",
+    "labelOverridePlaceholder": "Eigene Bezeichnung (optional)",
+    "customSectionTitle": "Eigene Fragen",
+    "customSectionHint": "Fügen Sie bis zu {max} eigene Fragen hinzu.",
+    "addQuestion": "Frage hinzufügen",
+    "empty": "Noch keine eigenen Fragen.",
+    "questionLabel": "Frage",
+    "questionLabelPlaceholder": "z. B. Nehmen Sie den Shuttle?",
+    "typeLabel": "Antworttyp",
+    "type": {
+      "short_text": "Kurztext",
+      "long_text": "Langtext",
+      "single_choice": "Einfachauswahl",
+      "multi_choice": "Mehrfachauswahl",
+      "boolean": "Ja / Nein"
+    },
+    "optionsLabel": "Optionen",
+    "optionPlaceholder": "Option {index}",
+    "addOption": "Option hinzufügen",
+    "removeOption": "Option entfernen",
+    "requiredLabel": "Pflichtantwort",
+    "onlyIfAttendingLabel": "Nur bei Zusage",
+    "removeQuestion": "Entfernen",
+    "moveUp": "Nach oben",
+    "moveDown": "Nach unten",
+    "save": "Fragen speichern",
+    "saved": "Fragen gespeichert",
+    "errorSave": "Speichern fehlgeschlagen. Erneut versuchen.",
+    "maxReached": "Maximum von {max} Fragen erreicht"
   }
 }

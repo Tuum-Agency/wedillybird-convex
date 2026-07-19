@@ -966,7 +966,8 @@
     "errors": {
       "submit": "Impossibile aggiungere l'invito. Riprova.",
       "limitReached": "Quota di inviti raggiunta per questa formula. Passa a una formula superiore per aggiungerne altri."
-    }
+    },
+    "answersDietary": "Dieta"
   },
   "Invitation": {
     "youreInvited": "Sei invitato/a",
@@ -996,7 +997,8 @@
       "notFound": "Invito non trovato o scaduto",
       "eventClosed": "Questo evento non accetta più risposte",
       "plusOnesExceeded": "Troppi accompagnatori indicati",
-      "unknown": "Si è verificato un errore. Riprova."
+      "unknown": "Si è verificato un errore. Riprova.",
+      "answerRequired": "Rispondi a questa domanda, per favore"
     },
     "countdownLabel": "Conto alla rovescia",
     "countdownDays": "Giorni",
@@ -1010,7 +1012,12 @@
     "weddingDayArrived": "Il grande giorno è arrivato.",
     "cinematicSkip": "Salta",
     "cinematicSkipAria": "Salta cinematica",
-    "scrollToDiscover": "Scorri per scoprire"
+    "scrollToDiscover": "Scorri per scoprire",
+    "rsvpPrompt": "Saremmo onorati della tua presenza",
+    "galleryHint": "Foto condivise dagli invitati",
+    "booleanYes": "Sì",
+    "booleanNo": "No",
+    "requiredMark": "Obbligatorio"
   },
   "OrgPublic": {
     "poweredBy": "Powered by",
@@ -3770,7 +3777,8 @@
       "cinematicInvitation": "Cinematica d'invito: busta che si apre, sigillo che si rompe",
       "photoVariants": "Foto ottimizzate in 3 risoluzioni WebP per una visualizzazione fluida anche in 3G",
       "galleryZipDownload": "Download di tutta la galleria in ZIP con un clic",
-      "seatingPlan": "Disposizione dei tavoli con trascinamento: assegna gli invitati confermati ai tavoli"
+      "seatingPlan": "Disposizione dei tavoli con trascinamento: assegna gli invitati confermati ai tavoli",
+      "customRsvpQuestions": "Domande RSVP personalizzate: aggiungi le tue domande al modulo di risposta"
     },
     "allEssentialIncluded": "Tutto l'Essenziale incluso",
     "pro": {
@@ -5301,5 +5309,45 @@
       "empty": "Per ora non c'è nulla da fare da parte tua. La tua agenzia ti avviserà non appena ci sarà un'azione in attesa.",
       "title": "Tocca a voi"
     }
+  },
+  "RsvpEditor": {
+    "title": "Domande del RSVP",
+    "subtitle": "Scegli cosa chiedere ai tuoi invitati al momento della risposta.",
+    "lockedBody": "La personalizzazione del modulo RSVP è inclusa nel piano Premium (e in tutti i piani pro).",
+    "lockedCta": "Passa a Premium",
+    "builtinSectionTitle": "Campi standard",
+    "fieldPlusOnes": "Accompagnatori",
+    "fieldPlusOnesHint": "Consenti di indicare il nome degli accompagnatori (in base al limite per invitato).",
+    "fieldDietary": "Esigenze alimentari",
+    "fieldNotes": "Un messaggio per gli sposi",
+    "labelOverride": "Etichetta mostrata",
+    "labelOverridePlaceholder": "Etichetta personalizzata (facoltativa)",
+    "customSectionTitle": "Domande personalizzate",
+    "customSectionHint": "Aggiungi fino a {max} domande su misura.",
+    "addQuestion": "Aggiungi una domanda",
+    "empty": "Nessuna domanda personalizzata per ora.",
+    "questionLabel": "Domanda",
+    "questionLabelPlaceholder": "Es. Prenderai la navetta?",
+    "typeLabel": "Tipo di risposta",
+    "type": {
+      "short_text": "Testo breve",
+      "long_text": "Testo lungo",
+      "single_choice": "Scelta singola",
+      "multi_choice": "Scelta multipla",
+      "boolean": "Sì / No"
+    },
+    "optionsLabel": "Opzioni",
+    "optionPlaceholder": "Opzione {index}",
+    "addOption": "Aggiungi un'opzione",
+    "removeOption": "Rimuovi opzione",
+    "requiredLabel": "Risposta obbligatoria",
+    "onlyIfAttendingLabel": "Solo se presente",
+    "removeQuestion": "Rimuovi",
+    "moveUp": "Sposta su",
+    "moveDown": "Sposta giù",
+    "save": "Salva le domande",
+    "saved": "Domande salvate",
+    "errorSave": "Impossibile salvare. Riprova.",
+    "maxReached": "Massimo {max} domande raggiunto"
   }
 }

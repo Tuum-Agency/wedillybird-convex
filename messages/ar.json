@@ -962,7 +962,8 @@
     "errors": {
       "submit": "تعذّر إضافة الدعوة. حاول مجددًا.",
       "limitReached": "تم بلوغ حصة الدعوات لهذه الباقة. ارتقِ إلى باقة أعلى لإضافة المزيد."
-    }
+    },
+    "answersDietary": "النظام الغذائي"
   },
   "Invitation": {
     "youreInvited": "أنتم مدعوون",
@@ -992,7 +993,8 @@
       "notFound": "الدعوة غير موجودة أو منتهية الصلاحية",
       "eventClosed": "هذا الحدث لم يَعُد يقبل ردودًا",
       "plusOnesExceeded": "عدد المرافقين أكثر من المسموح",
-      "unknown": "حدث خطأ ما. حاول مجددًا."
+      "unknown": "حدث خطأ ما. حاول مجددًا.",
+      "answerRequired": "يرجى الإجابة على هذا السؤال"
     },
     "countdownLabel": "العد التنازلي",
     "countdownDays": "أيام",
@@ -1006,7 +1008,12 @@
     "weddingDayArrived": "وصل اليوم الكبير.",
     "cinematicSkip": "تخطي",
     "cinematicSkipAria": "تخطي السينمائية",
-    "scrollToDiscover": "مرّر للاكتشاف"
+    "scrollToDiscover": "مرّر للاكتشاف",
+    "rsvpPrompt": "يشرّفنا حضوركم",
+    "galleryHint": "صور شاركها الضيوف",
+    "booleanYes": "نعم",
+    "booleanNo": "لا",
+    "requiredMark": "إلزامي"
   },
   "OrgPublic": {
     "poweredBy": "مُقدَّم من",
@@ -3766,7 +3773,8 @@
       "cinematicInvitation": "عرض سينمائي للدعوة: مظروف يُفتَح، ختم يُكسَر",
       "photoVariants": "صور مُحسَّنة بثلاث دقات WebP لعرض سلس حتى على 3G",
       "galleryZipDownload": "تنزيل المعرض كاملًا بصيغة ZIP بنقرة واحدة",
-      "seatingPlan": "مخطط الجلوس بالسحب والإفلات: عيّن ضيوفك المؤكَّدين على الطاولات"
+      "seatingPlan": "مخطط الجلوس بالسحب والإفلات: عيّن ضيوفك المؤكَّدين على الطاولات",
+      "customRsvpQuestions": "أسئلة تأكيد حضور مخصّصة: أضف أسئلتك الخاصة إلى نموذج الرد"
     },
     "allEssentialIncluded": "كل ميزات Essentiel مُضمَّنة",
     "pro": {
@@ -5297,5 +5305,45 @@
       "empty": "لا شيء عليك القيام به في الوقت الحالي. ستُعلمك وكالتك بمجرد أن ينتظرك إجراء ما.",
       "title": "دوركم الآن"
     }
+  },
+  "RsvpEditor": {
+    "title": "أسئلة تأكيد الحضور",
+    "subtitle": "اختر ما تطلبه من ضيوفك عند الرد.",
+    "lockedBody": "تخصيص نموذج تأكيد الحضور متضمَّن في باقة بريميوم (وجميع الباقات الاحترافية).",
+    "lockedCta": "الترقية إلى بريميوم",
+    "builtinSectionTitle": "الحقول القياسية",
+    "fieldPlusOnes": "المرافقون",
+    "fieldPlusOnesHint": "اسمح بإضافة أسماء المرافقين (وفقًا للحد المسموح لكل ضيف).",
+    "fieldDietary": "متطلبات غذائية",
+    "fieldNotes": "رسالة إلى العروسين",
+    "labelOverride": "التسمية المعروضة",
+    "labelOverridePlaceholder": "تسمية مخصّصة (اختياري)",
+    "customSectionTitle": "أسئلة مخصّصة",
+    "customSectionHint": "أضف حتى {max} أسئلة مخصّصة.",
+    "addQuestion": "إضافة سؤال",
+    "empty": "لا توجد أسئلة مخصّصة بعد.",
+    "questionLabel": "السؤال",
+    "questionLabelPlaceholder": "مثال: هل ستستقل الحافلة؟",
+    "typeLabel": "نوع الإجابة",
+    "type": {
+      "short_text": "نص قصير",
+      "long_text": "نص طويل",
+      "single_choice": "اختيار واحد",
+      "multi_choice": "اختيار متعدد",
+      "boolean": "نعم / لا"
+    },
+    "optionsLabel": "الخيارات",
+    "optionPlaceholder": "الخيار {index}",
+    "addOption": "إضافة خيار",
+    "removeOption": "حذف الخيار",
+    "requiredLabel": "إجابة إلزامية",
+    "onlyIfAttendingLabel": "فقط عند الحضور",
+    "removeQuestion": "حذف",
+    "moveUp": "تحريك لأعلى",
+    "moveDown": "تحريك لأسفل",
+    "save": "حفظ الأسئلة",
+    "saved": "تم حفظ الأسئلة",
+    "errorSave": "تعذّر الحفظ. حاول مرة أخرى.",
+    "maxReached": "تم بلوغ الحد الأقصى {max} أسئلة"
   }
 }

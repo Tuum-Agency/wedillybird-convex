@@ -9,6 +9,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/cn';
 import { analytics } from '@/lib/analytics/posthog-client';
+import {
+  normalizeRsvpConfig,
+  type RsvpConfig,
+  type RsvpQuestion,
+  type CustomAnswer,
+} from '@/lib/rsvp/questions';
 import { submitRsvpAction, type RsvpActionResult } from '@/app/[locale]/i/[token]/actions';
 
 type RsvpStatus = 'attending' | 'declined' | 'maybe';
@@ -17,11 +23,14 @@ interface Props {
   token: string;
   plusOnesAllowed: number;
   accentColor?: string;
+  /** Config du formulaire (champs pilotés par le couple / l'agence). */
+  config?: RsvpConfig | null;
   initial: {
     rsvpStatus: 'pending' | RsvpStatus;
     plusOnesNames?: string[];
     dietaryRestrictions?: string;
     notes?: string;
+    customAnswers?: CustomAnswer[];
   };
 }
 
@@ -37,20 +46,17 @@ const STATUS_OPTIONS: Array<{
 /**
  * RSVP form V4 — refonte premium pour la page invitation publique.
  *
- * - 3 boutons radio cards iconisés (Heart / HelpCircle / X) au lieu de
- *   simples labels textuels
- * - Animation Motion sur la sélection (border + halo blush)
- * - Submit success → canvas-confetti blush + état confirmation animé
- * - Compatible accessibilité (radio role native + ARIA)
- *
- * Conserve la même server action `submitRsvpAction` que la V3 pour ne
- * pas dupliquer la logique métier.
+ * Les champs affichés sont pilotés par `config` (`events.rsvpConfig`) : le
+ * couple / l'agence active, renomme les champs standard et ajoute des questions
+ * custom typées. Les réponses custom sont sérialisées en JSON dans le champ
+ * `customAnswers` (la mutation Convex re-valide de façon autoritaire).
  */
-export function RsvpFormV4({ token, plusOnesAllowed, accentColor, initial }: Props) {
+export function RsvpFormV4({ token, plusOnesAllowed, accentColor, config, initial }: Props) {
   const t = useTranslations('Invitation');
   const tCommon = useTranslations('Common');
   const reduced = useReducedMotion();
   const accent = accentColor ?? 'oklch(72% 0.09 20)';
+  const cfg = normalizeRsvpConfig(config);
 
   const [status, setStatus] = useState<RsvpStatus | null>(
     initial.rsvpStatus === 'pending' ? null : initial.rsvpStatus,
@@ -62,10 +68,22 @@ export function RsvpFormV4({ token, plusOnesAllowed, accentColor, initial }: Pro
   );
   const [dietary, setDietary] = useState(initial.dietaryRestrictions ?? '');
   const [notes, setNotes] = useState(initial.notes ?? '');
+  const [answers, setAnswers] = useState<Record<string, string[]>>(() => {
+    const init: Record<string, string[]> = {};
+    for (const a of initial.customAnswers ?? []) init[a.questionId] = a.values;
+    return init;
+  });
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string | undefined>>({});
   const [success, setSuccess] = useState(initial.rsvpStatus !== 'pending');
   const [pending, startTransition] = useTransition();
+
+  const showPlusOnes = cfg.askPlusOnes && plusOnesAllowed > 0;
+
+  function setAnswer(id: string, values: string[]) {
+    setAnswers((prev) => ({ ...prev, [id]: values }));
+    setFieldErrors((prev) => ({ ...prev, [id]: undefined }));
+  }
 
   function fireConfetti() {
     if (reduced) return;
@@ -95,13 +113,39 @@ export function RsvpFormV4({ token, plusOnesAllowed, accentColor, initial }: Pro
       setError(t('errors.pickStatus'));
       return;
     }
+
+    // Questions applicables (les `onlyIfAttending` seulement si présent).
+    const applicable = cfg.customQuestions.filter(
+      (q) => !q.onlyIfAttending || status === 'attending',
+    );
+    const errs: Record<string, string> = {};
+    for (const q of applicable) {
+      if (q.required) {
+        const vals = (answers[q.id] ?? []).filter((v) => v.trim().length > 0);
+        if (vals.length === 0) errs[q.id] = t('errors.answerRequired');
+      }
+    }
+    if (Object.keys(errs).length > 0) {
+      setFieldErrors(errs);
+      setError(t('errors.answerRequired'));
+      return;
+    }
+
     formData.set('rsvpStatus', status);
     formData.delete('plusOnesNames');
-    if (status === 'attending') {
+    if (status === 'attending' && showPlusOnes) {
       for (const n of names) {
         if (n.trim().length > 0) formData.append('plusOnesNames', n.trim());
       }
     }
+
+    const builtAnswers = applicable
+      .map((q) => ({
+        questionId: q.id,
+        values: (answers[q.id] ?? []).map((v) => v.trim()).filter((v) => v.length > 0),
+      }))
+      .filter((a) => a.values.length > 0);
+    formData.set('customAnswers', JSON.stringify(builtAnswers));
 
     startTransition(async () => {
       const result: RsvpActionResult = await submitRsvpAction(token, formData);
@@ -123,6 +167,7 @@ export function RsvpFormV4({ token, plusOnesAllowed, accentColor, initial }: Pro
       if (result.error === 'INVITATION_NOT_FOUND') setError(t('errors.notFound'));
       else if (result.error === 'EVENT_CLOSED') setError(t('errors.eventClosed'));
       else if (result.error === 'PLUS_ONES_EXCEEDED') setError(t('errors.plusOnesExceeded'));
+      else if (result.error === 'CUSTOM_ANSWER_REQUIRED') setError(t('errors.answerRequired'));
       else setError(t('errors.unknown'));
     });
   }
@@ -273,7 +318,7 @@ export function RsvpFormV4({ token, plusOnesAllowed, accentColor, initial }: Pro
       </fieldset>
 
       <AnimatePresence initial={false}>
-        {status === 'attending' && plusOnesAllowed > 0 ? (
+        {status === 'attending' && showPlusOnes ? (
           <motion.fieldset
             key="plus-ones"
             initial={{ opacity: 0, height: 0 }}
@@ -309,7 +354,7 @@ export function RsvpFormV4({ token, plusOnesAllowed, accentColor, initial }: Pro
           </motion.fieldset>
         ) : null}
 
-        {status === 'attending' ? (
+        {status === 'attending' && cfg.askDietary ? (
           <motion.div
             key="dietary"
             initial={{ opacity: 0, height: 0 }}
@@ -318,7 +363,7 @@ export function RsvpFormV4({ token, plusOnesAllowed, accentColor, initial }: Pro
             transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
             className="flex flex-col gap-2"
           >
-            <Label htmlFor="dietaryRestrictions">{t('dietaryLabel')}</Label>
+            <Label htmlFor="dietaryRestrictions">{cfg.dietaryLabel ?? t('dietaryLabel')}</Label>
             <Input
               id="dietaryRestrictions"
               name="dietaryRestrictions"
@@ -330,16 +375,37 @@ export function RsvpFormV4({ token, plusOnesAllowed, accentColor, initial }: Pro
         ) : null}
       </AnimatePresence>
 
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="notes">{t('notesLabel')}</Label>
-        <Input
-          id="notes"
-          name="notes"
-          placeholder={t('notesPlaceholder')}
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-        />
-      </div>
+      {/* Questions personnalisées (couple / agence) */}
+      {status
+        ? cfg.customQuestions
+            .filter((q) => !q.onlyIfAttending || status === 'attending')
+            .map((q) => (
+              <CustomQuestionField
+                key={q.id}
+                question={q}
+                value={answers[q.id] ?? []}
+                onChange={(v) => setAnswer(q.id, v)}
+                error={fieldErrors[q.id]}
+                accent={accent}
+                yesLabel={t('booleanYes')}
+                noLabel={t('booleanNo')}
+                requiredLabel={t('requiredMark')}
+              />
+            ))
+        : null}
+
+      {cfg.askNotes ? (
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="notes">{cfg.notesLabel ?? t('notesLabel')}</Label>
+          <Input
+            id="notes"
+            name="notes"
+            placeholder={t('notesPlaceholder')}
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+          />
+        </div>
+      ) : null}
 
       {error ? (
         <p id="rsvp-error" role="alert" className="text-sm text-[color:var(--color-destructive)]">
@@ -351,5 +417,141 @@ export function RsvpFormV4({ token, plusOnesAllowed, accentColor, initial }: Pro
         {pending ? tCommon('loading') : t('submit')}
       </Button>
     </form>
+  );
+}
+
+/** Rendu d'une question custom selon son type. Contrôlé (valeurs en `string[]`). */
+function CustomQuestionField({
+  question,
+  value,
+  onChange,
+  error,
+  accent,
+  yesLabel,
+  noLabel,
+  requiredLabel,
+}: {
+  question: RsvpQuestion;
+  value: string[];
+  onChange: (values: string[]) => void;
+  error?: string;
+  accent: string;
+  yesLabel: string;
+  noLabel: string;
+  requiredLabel: string;
+}) {
+  const { type, label, options = [] } = question;
+  const single = value[0] ?? '';
+
+  const legend = (
+    <span className="font-medium text-[color:var(--color-ink-900)]">
+      {label}
+      {question.required ? (
+        <span className="ml-1 text-[color:var(--color-blush-700)]" aria-label={requiredLabel}>
+          *
+        </span>
+      ) : null}
+    </span>
+  );
+
+  const pill = (selected: boolean) =>
+    cn(
+      'focus-ring cursor-pointer rounded-full border px-4 py-2 text-sm transition-all',
+      selected
+        ? 'font-medium text-[color:var(--color-ink-900)] shadow-[var(--shadow-blush)]'
+        : 'border-[color:var(--color-border)] text-[color:var(--color-ink-700)] hover:border-[color:var(--color-border-strong)]',
+    );
+
+  return (
+    <fieldset className="flex flex-col gap-2.5">
+      <legend className="mb-1">{legend}</legend>
+
+      {type === 'short_text' ? (
+        <Input
+          value={single}
+          onChange={(e) => onChange([e.target.value])}
+          aria-invalid={!!error}
+          aria-label={label}
+        />
+      ) : null}
+
+      {type === 'long_text' ? (
+        <textarea
+          value={single}
+          onChange={(e) => onChange([e.target.value])}
+          aria-invalid={!!error}
+          aria-label={label}
+          rows={3}
+          className="focus-ring w-full rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-4 py-2.5 text-sm text-[color:var(--color-foreground)] placeholder:text-[color:var(--color-muted-foreground)]"
+        />
+      ) : null}
+
+      {type === 'boolean' ? (
+        <div className="flex gap-2">
+          {[
+            { v: 'yes', l: yesLabel },
+            { v: 'no', l: noLabel },
+          ].map(({ v, l }) => {
+            const selected = single === v;
+            return (
+              <button
+                key={v}
+                type="button"
+                onClick={() => onChange([v])}
+                className={pill(selected)}
+                style={selected ? { borderColor: accent } : undefined}
+                aria-pressed={selected}
+              >
+                {l}
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
+
+      {type === 'single_choice' ? (
+        <div className="flex flex-wrap gap-2">
+          {options.map((opt) => {
+            const selected = single === opt;
+            return (
+              <button
+                key={opt}
+                type="button"
+                onClick={() => onChange([opt])}
+                className={pill(selected)}
+                style={selected ? { borderColor: accent } : undefined}
+                aria-pressed={selected}
+              >
+                {opt}
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
+
+      {type === 'multi_choice' ? (
+        <div className="flex flex-wrap gap-2">
+          {options.map((opt) => {
+            const selected = value.includes(opt);
+            return (
+              <button
+                key={opt}
+                type="button"
+                onClick={() =>
+                  onChange(selected ? value.filter((v) => v !== opt) : [...value, opt])
+                }
+                className={pill(selected)}
+                style={selected ? { borderColor: accent } : undefined}
+                aria-pressed={selected}
+              >
+                {opt}
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
+
+      {error ? <p className="text-xs text-[color:var(--color-destructive)]">{error}</p> : null}
+    </fieldset>
   );
 }

@@ -10,6 +10,7 @@ import {
 } from '@/lib/validators/events';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
 import { getSession } from '@/lib/auth/session';
+import { sanitizeRsvpConfig, type RsvpConfig } from '@/lib/rsvp/questions';
 
 export type CreateEventResult =
   | { ok: true; slug: string }
@@ -400,4 +401,40 @@ export async function submitCustomTemplateAction(
 
   revalidatePath(`/fr/events/${eventId}/messaging`);
   return { ok: true, templateId, metaTemplateId, mock };
+}
+
+export type UpdateRsvpConfigResult =
+  | { ok: true }
+  | { ok: false; error: 'UNAUTHENTICATED' | 'FEATURE_LOCKED' | 'FORBIDDEN' | 'UNKNOWN' };
+
+/**
+ * Met à jour la config du formulaire RSVP d'un event (`events.rsvpConfig`).
+ * Reçoit un objet sérialisable (pas de FormData) car la config est imbriquée.
+ * Sanitisée app-side (miroir de la mutation Convex qui fait autorité). Réservé
+ * Premium/Pro côté Convex (`FEATURE_LOCKED` sinon).
+ */
+export async function updateRsvpConfigAction(
+  eventId: string,
+  config: RsvpConfig,
+): Promise<UpdateRsvpConfigResult> {
+  const session = await getSession();
+  if (!session) return { ok: false, error: 'UNAUTHENTICATED' };
+
+  const clean = sanitizeRsvpConfig(config);
+  const convex = getConvexServerClient();
+  try {
+    await convex.mutation(convexApi.updateRsvpConfig, {
+      eventId,
+      requesterId: session.userId,
+      config: clean,
+    });
+    revalidatePath(`/fr/events/${eventId}/edit`);
+    revalidatePath(`/fr/events/${eventId}`);
+    return { ok: true };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'UNKNOWN';
+    if (message.includes('FEATURE_LOCKED')) return { ok: false, error: 'FEATURE_LOCKED' };
+    if (message.includes('FORBIDDEN')) return { ok: false, error: 'FORBIDDEN' };
+    return { ok: false, error: 'UNKNOWN' };
+  }
 }

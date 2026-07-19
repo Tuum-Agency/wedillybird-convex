@@ -6,6 +6,8 @@ import { getSession } from '@/lib/auth/session';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
 import { AppShell } from '@/components/app/app-shell';
 import { EventEditForm } from '@/components/events/event-edit-form';
+import { RsvpQuestionsEditor } from '@/components/events/rsvp-questions-editor';
+import { eventHasPremiumOnlyFeature } from '@/lib/payments/entitlements';
 
 /**
  * Page d'édition des détails d'un événement.
@@ -82,6 +84,13 @@ export default async function EditEventPage({
             themeAccent: event.theme?.accentColor ?? '#2B2B2B',
             themeFont: event.theme?.fontFamily ?? 'Playfair Display',
           }}
+        />
+
+        <RsvpQuestionsEditor
+          eventId={eventId}
+          initialConfig={event.rsvpConfig}
+          unlocked={eventHasPremiumOnlyFeature(event)}
+          upgradeHref={`/events/${eventId}`}
         />
       </div>
     </AppShell>

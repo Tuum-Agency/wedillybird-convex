@@ -1,5 +1,6 @@
 import { v } from 'convex/values';
 import { mutation } from './_generated/server';
+import { sanitizeCustomAnswers } from '../lib/rsvp/questions';
 
 const MAX_NOTES_LENGTH = 500;
 const MAX_DIETARY_LENGTH = 200;
@@ -12,6 +13,15 @@ export const submit = mutation({
     plusOnesNames: v.optional(v.array(v.string())),
     dietaryRestrictions: v.optional(v.string()),
     notes: v.optional(v.string()),
+    /** Réponses aux questions custom (`events.rsvpConfig.customQuestions`). */
+    customAnswers: v.optional(
+      v.array(
+        v.object({
+          questionId: v.string(),
+          values: v.array(v.string()),
+        }),
+      ),
+    ),
   },
   handler: async (ctx, args) => {
     const guest = await ctx.db
@@ -37,12 +47,24 @@ export const submit = mutation({
     const dietary = args.dietaryRestrictions?.trim().slice(0, MAX_DIETARY_LENGTH) || undefined;
     const notes = args.notes?.trim().slice(0, MAX_NOTES_LENGTH) || undefined;
 
+    // Réponses custom : validées/nettoyées contre la config de l'event (autorité
+    // serveur — écarte les inconnues, force les options, saute les questions
+    // conditionnelles quand l'invité n'est pas présent).
+    const attending = args.rsvpStatus === 'attending';
+    const { answers, errors } = sanitizeCustomAnswers(
+      event.rsvpConfig,
+      args.customAnswers ?? [],
+      attending,
+    );
+    if (Object.keys(errors).length > 0) throw new Error('CUSTOM_ANSWER_REQUIRED');
+
     await ctx.db.patch(guest._id, {
       rsvpStatus: args.rsvpStatus,
       rsvpRespondedAt: Date.now(),
-      plusOnesNames: args.rsvpStatus === 'attending' ? names : undefined,
-      dietaryRestrictions: args.rsvpStatus === 'attending' ? dietary : undefined,
+      plusOnesNames: attending ? names : undefined,
+      dietaryRestrictions: attending ? dietary : undefined,
       notes,
+      customAnswers: answers.length > 0 ? answers : undefined,
       updatedAt: Date.now(),
     });
 

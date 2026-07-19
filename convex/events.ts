@@ -3,11 +3,12 @@ import { internalQuery, mutation, query } from './_generated/server';
 import { internal } from './_generated/api';
 import type { Doc, Id } from './_generated/dataModel';
 import { pickUniqueSlug } from './lib/uniqueSlug';
-import { eventQuotaForTier, orgHasActiveAccess } from './lib/entitlements';
+import { eventQuotaForTier, eventHasFeature, orgHasActiveAccess } from './lib/entitlements';
 import { assertEventAccess } from './lib/eventAuth';
 import { assertOrgWrite } from './lib/orgAuth';
 import { normalizePhone, isValidE164 } from './lib/phone';
 import { summarizeGuestRsvp } from './lib/guestStats';
+import { sanitizeRsvpConfig } from '../lib/rsvp/questions';
 
 function toSlugBase(partnerA: string, partnerB: string): string {
   const raw = `${partnerA}-${partnerB}`
@@ -182,6 +183,66 @@ export const updateMessagingConfig = mutation({
       updatedAt: Date.now(),
     });
 
+    return { ok: true as const };
+  },
+});
+
+/**
+ * Met à jour la configuration du formulaire RSVP (`events.rsvpConfig`) :
+ * (dé)activation + renommage des champs built-in et questions custom typées.
+ *
+ * Accès : propriétaire OU collaborateur gestionnaire (couple rattaché / planner
+ * d'agence). Feature **gated Premium/Pro** (`customRsvpQuestions`) — un event
+ * Essentiel ou non payé est refusé (`FEATURE_LOCKED`). Les entrées sont
+ * nettoyées via `sanitizeRsvpConfig` (labels clampés, options dédoublonnées,
+ * questions plafonnées, ids jamais fabriqués).
+ */
+export const updateRsvpConfig = mutation({
+  args: {
+    eventId: v.id('events'),
+    requesterId: v.id('users'),
+    config: v.object({
+      askDietary: v.optional(v.boolean()),
+      dietaryLabel: v.optional(v.string()),
+      askNotes: v.optional(v.boolean()),
+      notesLabel: v.optional(v.string()),
+      askPlusOnes: v.optional(v.boolean()),
+      customQuestions: v.optional(
+        v.array(
+          v.object({
+            id: v.string(),
+            type: v.union(
+              v.literal('short_text'),
+              v.literal('long_text'),
+              v.literal('single_choice'),
+              v.literal('multi_choice'),
+              v.literal('boolean'),
+            ),
+            label: v.string(),
+            options: v.optional(v.array(v.string())),
+            required: v.optional(v.boolean()),
+            onlyIfAttending: v.optional(v.boolean()),
+          }),
+        ),
+      ),
+    }),
+  },
+  handler: async (ctx, args) => {
+    const event = await assertEventAccess(ctx, args.eventId, args.requesterId, { write: true });
+    if (!eventHasFeature(event, 'customRsvpQuestions')) throw new Error('FEATURE_LOCKED');
+
+    const clean = sanitizeRsvpConfig(args.config);
+    await ctx.db.patch(args.eventId, {
+      rsvpConfig: {
+        askDietary: clean.askDietary ?? true,
+        askNotes: clean.askNotes ?? true,
+        askPlusOnes: clean.askPlusOnes ?? true,
+        customQuestions: clean.customQuestions ?? [],
+        ...(clean.dietaryLabel ? { dietaryLabel: clean.dietaryLabel } : {}),
+        ...(clean.notesLabel ? { notesLabel: clean.notesLabel } : {}),
+      },
+      updatedAt: Date.now(),
+    });
     return { ok: true as const };
   },
 });
