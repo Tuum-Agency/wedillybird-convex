@@ -5368,6 +5368,7 @@
       "attending": "Nimmt teil",
       "declined": "Nimmt nicht teil",
       "maybe": "Vielleicht"
-    }
+    },
+    "andMore": "und {count} weitere"
   }
 }

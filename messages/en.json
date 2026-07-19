@@ -5364,6 +5364,7 @@
       "attending": "Attending",
       "declined": "Not attending",
       "maybe": "Maybe"
-    }
+    },
+    "andMore": "and {count} more"
   }
 }

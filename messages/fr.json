@@ -5368,6 +5368,7 @@
       "attending": "Présent·e",
       "declined": "Absent·e",
       "maybe": "Peut-être"
-    }
+    },
+    "andMore": "et {count} de plus"
   }
 }

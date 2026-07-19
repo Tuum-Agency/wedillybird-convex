@@ -5364,6 +5364,7 @@
       "attending": "سيحضر",
       "declined": "لن يحضر",
       "maybe": "ربما"
-    }
+    },
+    "andMore": "و{count} أخرى"
   }
 }

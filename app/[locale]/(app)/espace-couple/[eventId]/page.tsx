@@ -6,6 +6,7 @@ import { redirect } from '@/i18n/navigation';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
 import { AppShell } from '@/components/app/app-shell';
 import { GuestsManager } from '@/components/guests/guests-manager';
+import { NotificationsPanel } from '@/components/notifications/notifications-panel';
 import { RsvpQuestionsEditor } from '@/components/events/rsvp-questions-editor';
 import { eventHasPremiumOnlyFeature } from '@/lib/payments/entitlements';
 import { nowMs } from '@/lib/pro/format';
@@ -129,6 +130,9 @@ export default async function CoupleEventPage({
           {stat(t('statPending'), s.pending)}
           {stat(t('statExpected'), s.expectedHeadcount)}
         </section>
+
+        {/* Notifications du couple (réponses invités, infos de l'agence…) */}
+        <NotificationsPanel userId={session!.userId} />
 
         {/* Invités (capacité 2) — composant partagé */}
         <section className="flex flex-col gap-5">

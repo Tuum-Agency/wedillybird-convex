@@ -6,7 +6,8 @@ import { useTranslations, useLocale } from 'next-intl';
 import { Bell, CheckCheck, Inbox } from 'lucide-react';
 import { Link } from '@/i18n/navigation';
 import { cn } from '@/lib/cn';
-import { clientApi, type NotificationItem } from '@/lib/convex/client-api';
+import { clientApi } from '@/lib/convex/client-api';
+import { renderNotificationText, relativeTime } from '@/lib/notifications/render';
 
 /**
  * Cloche de notifications in-app — réactive (`useQuery`, mise à jour en direct).
@@ -29,32 +30,6 @@ export function NotificationBell({ userId }: { userId: string }) {
   function toggle() {
     setNow(Date.now());
     setOpen((v) => !v);
-  }
-
-  function relTime(ts: number): string {
-    const rtf = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
-    const mins = Math.round((ts - now) / 60000);
-    if (Math.abs(mins) < 60) return rtf.format(mins, 'minute');
-    const hours = Math.round(mins / 60);
-    if (Math.abs(hours) < 24) return rtf.format(hours, 'hour');
-    return rtf.format(Math.round(hours / 24), 'day');
-  }
-
-  function renderText(n: NotificationItem): string {
-    const d = n.data ?? {};
-    switch (n.type) {
-      case 'rsvp_response':
-        return t('rsvpResponse', {
-          name: d.guestName ?? t('someone'),
-          status: d.rsvpStatus ? t(`status.${d.rsvpStatus}` as 'status.attending') : '',
-        });
-      case 'rsvp_config_changed':
-        return t('configChanged', { name: d.actorName ?? t('theCouple') });
-      case 'planning_task':
-        return t('planningTask', { title: d.taskTitle ?? '' });
-      default:
-        return d.text ?? '';
-    }
   }
 
   return (
@@ -134,10 +109,10 @@ export function NotificationBell({ userId }: { userId: string }) {
                           />
                           <span className="flex flex-col gap-0.5">
                             <span className="text-sm leading-snug text-[color:var(--color-foreground)]">
-                              {renderText(n)}
+                              {renderNotificationText(t, n)}
                             </span>
                             <span className="text-[11px] text-[color:var(--color-muted-foreground)]">
-                              {relTime(n.createdAt)}
+                              {relativeTime(locale, n.createdAt, now)}
                             </span>
                           </span>
                         </span>

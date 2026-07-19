@@ -5368,6 +5368,7 @@
       "attending": "Presente",
       "declined": "Assente",
       "maybe": "Forse"
-    }
+    },
+    "andMore": "e altre {count}"
   }
 }
