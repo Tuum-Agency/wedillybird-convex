@@ -24,37 +24,39 @@ const FAQ_KEYS = [
  * 8 questions/réponses, 1 seule ouverte à la fois (single-expand). Animation
  * height fluide via Motion. ARIA expanded + section landmark.
  */
-export function LandingFaqAccordion() {
+export function LandingFaqAccordion({ showHeader = true }: { showHeader?: boolean } = {}) {
   const t = useTranslations('Landing.faq');
   const [openKey, setOpenKey] = useState<(typeof FAQ_KEYS)[number] | null>('whyWhatsapp');
 
   return (
-    <section id="faq" className="container-page py-28">
-      <motion.div
-        initial="hidden"
-        whileInView="visible"
-        viewport={inViewOnce}
-        variants={scrollRevealParent}
-        className="mx-auto mb-12 flex max-w-3xl flex-col items-center gap-3 text-center"
-      >
-        <motion.span
-          variants={scrollReveal}
-          className="text-xs font-medium tracking-[0.2em] text-[color:var(--color-champagne-700)] uppercase"
+    <section id="faq" className={`container-page pb-28 ${showHeader ? 'pt-28' : 'pt-10'}`}>
+      {showHeader ? (
+        <motion.div
+          initial="hidden"
+          whileInView="visible"
+          viewport={inViewOnce}
+          variants={scrollRevealParent}
+          className="mx-auto mb-12 flex max-w-3xl flex-col items-center gap-3 text-center"
         >
-          {t('eyebrow')}
-        </motion.span>
-        <motion.h2
-          variants={scrollReveal}
-          className="font-display text-balance italic"
-          style={{
-            fontSize: 'clamp(2rem, 5vw, 3.5rem)',
-            lineHeight: 1.05,
-            letterSpacing: '-0.022em',
-          }}
-        >
-          {t('title')}
-        </motion.h2>
-      </motion.div>
+          <motion.span
+            variants={scrollReveal}
+            className="text-xs font-medium tracking-[0.2em] text-[color:var(--color-champagne-700)] uppercase"
+          >
+            {t('eyebrow')}
+          </motion.span>
+          <motion.h2
+            variants={scrollReveal}
+            className="font-display text-balance italic"
+            style={{
+              fontSize: 'clamp(2rem, 5vw, 3.5rem)',
+              lineHeight: 1.05,
+              letterSpacing: '-0.022em',
+            }}
+          >
+            {t('title')}
+          </motion.h2>
+        </motion.div>
+      ) : null}
 
       <motion.dl
         initial="hidden"
