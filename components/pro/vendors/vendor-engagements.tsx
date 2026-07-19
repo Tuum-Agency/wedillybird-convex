@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Heart, Plus, Star, Trash2, X, Wallet, BadgeCheck, Users } from 'lucide-react';
 import { Button, buttonVariants } from '@/components/ui/button';
+import { useConfirm } from '@/components/ui/confirm-dialog';
 import {
   Select,
   SelectContent,
@@ -69,6 +70,7 @@ export function VendorEngagements({
   const [selectedEventId, setSelectedEventId] = useState<string>(events[0]?._id ?? '');
   const [attachOpen, setAttachOpen] = useState(false);
   const [pending, startTransition] = useTransition();
+  const { confirm, confirmDialog } = useConfirm();
 
   const eventEngagements = useMemo(
     () => engagements.filter((e) => e.eventId === selectedEventId),
@@ -89,8 +91,14 @@ export function VendorEngagements({
     });
   }
 
-  function onDetach(row: EngagementRow) {
-    if (!confirm(t('engagements.confirmDetach', { name: row.vendorName }))) return;
+  async function onDetach(row: EngagementRow) {
+    if (
+      !(await confirm({
+        title: t('engagements.confirmDetach', { name: row.vendorName }),
+        destructive: true,
+      }))
+    )
+      return;
     setEngagements((list) => list.filter((e) => e._id !== row._id));
     startTransition(async () => {
       const res = await detachVendorAction(row._id);
@@ -313,6 +321,7 @@ export function VendorEngagements({
           }}
         />
       ) : null}
+      {confirmDialog}
     </div>
   );
 }

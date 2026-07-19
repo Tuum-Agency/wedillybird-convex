@@ -156,7 +156,7 @@ export default async function AdminAnalyticsPage({
             </CardHeader>
             <CardContent>
               <div className="flex flex-col gap-1">
-                <span className="flex items-center gap-2 text-3xl font-semibold tracking-tight text-amber-400">
+                <span className="flex items-center gap-2 text-3xl font-semibold tracking-tight text-[color:var(--color-warning)]">
                   <Percent className="h-5 w-5" />
                   {pct(a.checkout.abandonmentRate)}
                 </span>
@@ -383,7 +383,7 @@ function TrendTile({
           </span>
           {delta ? (
             <span
-              className={`flex items-center gap-1 text-xs font-medium ${delta.up ? 'text-emerald-400' : 'text-red-400'}`}
+              className={`flex items-center gap-1 text-xs font-medium ${delta.up ? 'text-[color:var(--color-success)]' : 'text-[color:var(--color-danger)]'}`}
             >
               {delta.up ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
               {delta.label}
@@ -506,7 +506,7 @@ function SubStat({ label, value, tone }: { label: string; value: number; tone?: 
         {label}
       </p>
       <p
-        className={`mt-1 text-xl font-semibold ${tone === 'danger' && value > 0 ? 'text-red-400' : ''}`}
+        className={`mt-1 text-xl font-semibold ${tone === 'danger' && value > 0 ? 'text-[color:var(--color-danger)]' : ''}`}
       >
         {value}
       </p>

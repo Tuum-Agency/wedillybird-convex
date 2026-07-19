@@ -119,7 +119,7 @@ export default async function ProWeddingHubPage({
           seatingPlan,
         }}
       />
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-4 pb-12 sm:px-6">
+      <div className="container-page flex flex-col gap-4 pb-12">
         <Link
           href={`/pro/weddings/${event!._id}/rsvp` as never}
           className="focus-ring group flex items-center justify-between gap-4 rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-6 py-5 transition-colors hover:border-[color:var(--color-border-strong)]"

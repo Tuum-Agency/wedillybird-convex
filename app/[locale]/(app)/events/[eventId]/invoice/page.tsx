@@ -130,95 +130,97 @@ export default async function EventInvoicePage({
             className="overflow-hidden rounded-3xl border border-[color:var(--color-border)] bg-white shadow-[var(--shadow-soft)]"
             data-testid="invoice-list"
           >
-            <table className="w-full text-left text-sm">
-              <thead>
-                <tr className="border-b border-[color:var(--color-border)] bg-[color:var(--color-ivory-50)]">
-                  <th
-                    scope="col"
-                    className="px-5 py-3 font-mono text-[10px] tracking-[0.18em] text-[color:var(--color-ink-500)] uppercase"
-                  >
-                    {t('columnDate')}
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-5 py-3 font-mono text-[10px] tracking-[0.18em] text-[color:var(--color-ink-500)] uppercase"
-                  >
-                    {t('columnPlan')}
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-5 py-3 font-mono text-[10px] tracking-[0.18em] text-[color:var(--color-ink-500)] uppercase"
-                  >
-                    {t('columnAmount')}
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-5 py-3 font-mono text-[10px] tracking-[0.18em] text-[color:var(--color-ink-500)] uppercase"
-                  >
-                    {t('columnStatus')}
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-5 py-3 text-right font-mono text-[10px] tracking-[0.18em] text-[color:var(--color-ink-500)] uppercase"
-                  >
-                    {t('columnActions')}
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {succeeded.map((payment) => {
-                  const dateLabel = new Intl.DateTimeFormat(locale, {
-                    day: 'numeric',
-                    month: 'long',
-                    year: 'numeric',
-                  }).format(new Date(payment.createdAt));
-                  const status = STATUS_STYLES[payment.status];
-                  return (
-                    <tr
-                      key={payment._id}
-                      data-testid="invoice-row"
-                      data-payment-id={payment._id}
-                      className="border-b border-[color:var(--color-border)] last:border-b-0"
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[560px] text-left text-sm">
+                <thead>
+                  <tr className="border-b border-[color:var(--color-border)] bg-[color:var(--color-ivory-50)]">
+                    <th
+                      scope="col"
+                      className="px-5 py-3 font-mono text-[10px] tracking-[0.18em] text-[color:var(--color-ink-500)] uppercase"
                     >
-                      <td className="px-5 py-4 text-[color:var(--color-ink-700)]">{dateLabel}</td>
-                      <td className="px-5 py-4 text-[color:var(--color-ink-900)]">
-                        {planLabel[payment.plan]}
-                      </td>
-                      <td className="px-5 py-4 font-medium text-[color:var(--color-ink-900)] tabular-nums">
-                        {formatAmount(payment.amountMinor, payment.currency)}
-                      </td>
-                      <td className="px-5 py-4">
-                        <span
-                          className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-mono text-[9px] tracking-[0.18em] uppercase"
-                          style={{ background: status.bg, color: status.fg }}
-                        >
+                      {t('columnDate')}
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-5 py-3 font-mono text-[10px] tracking-[0.18em] text-[color:var(--color-ink-500)] uppercase"
+                    >
+                      {t('columnPlan')}
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-5 py-3 font-mono text-[10px] tracking-[0.18em] text-[color:var(--color-ink-500)] uppercase"
+                    >
+                      {t('columnAmount')}
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-5 py-3 font-mono text-[10px] tracking-[0.18em] text-[color:var(--color-ink-500)] uppercase"
+                    >
+                      {t('columnStatus')}
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-5 py-3 text-right font-mono text-[10px] tracking-[0.18em] text-[color:var(--color-ink-500)] uppercase"
+                    >
+                      {t('columnActions')}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {succeeded.map((payment) => {
+                    const dateLabel = new Intl.DateTimeFormat(locale, {
+                      day: 'numeric',
+                      month: 'long',
+                      year: 'numeric',
+                    }).format(new Date(payment.createdAt));
+                    const status = STATUS_STYLES[payment.status];
+                    return (
+                      <tr
+                        key={payment._id}
+                        data-testid="invoice-row"
+                        data-payment-id={payment._id}
+                        className="border-b border-[color:var(--color-border)] last:border-b-0"
+                      >
+                        <td className="px-5 py-4 text-[color:var(--color-ink-700)]">{dateLabel}</td>
+                        <td className="px-5 py-4 text-[color:var(--color-ink-900)]">
+                          {planLabel[payment.plan]}
+                        </td>
+                        <td className="px-5 py-4 font-medium text-[color:var(--color-ink-900)] tabular-nums">
+                          {formatAmount(payment.amountMinor, payment.currency)}
+                        </td>
+                        <td className="px-5 py-4">
                           <span
-                            aria-hidden
-                            className="inline-block h-1.5 w-1.5 rounded-full"
-                            style={{ background: status.dot }}
-                          />
-                          {statusLabel[payment.status]}
-                        </span>
-                      </td>
-                      <td className="px-5 py-4 text-right">
-                        <a
-                          href={`/api/payments/${payment._id}/invoice.pdf`}
-                          download
-                          className={cn(
-                            buttonVariants({ variant: 'outline', size: 'sm' }),
-                            'inline-flex',
-                          )}
-                          data-testid="invoice-download"
-                        >
-                          <Download className="h-4 w-4" strokeWidth={2} aria-hidden />
-                          {t('downloadCta')}
-                        </a>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                            className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-mono text-[9px] tracking-[0.18em] uppercase"
+                            style={{ background: status.bg, color: status.fg }}
+                          >
+                            <span
+                              aria-hidden
+                              className="inline-block h-1.5 w-1.5 rounded-full"
+                              style={{ background: status.dot }}
+                            />
+                            {statusLabel[payment.status]}
+                          </span>
+                        </td>
+                        <td className="px-5 py-4 text-right">
+                          <a
+                            href={`/api/payments/${payment._id}/invoice.pdf`}
+                            download
+                            className={cn(
+                              buttonVariants({ variant: 'outline', size: 'sm' }),
+                              'inline-flex',
+                            )}
+                            data-testid="invoice-download"
+                          >
+                            <Download className="h-4 w-4" strokeWidth={2} aria-hidden />
+                            {t('downloadCta')}
+                          </a>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </section>
         )}
       </div>

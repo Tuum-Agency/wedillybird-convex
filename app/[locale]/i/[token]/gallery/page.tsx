@@ -24,7 +24,7 @@ export default async function GuestGalleryPage({
   const t = await getTranslations('Gallery');
 
   return (
-    <main className="container-page flex min-h-screen flex-1 flex-col gap-6 px-4 py-10">
+    <main className="container-page flex min-h-screen flex-1 flex-col gap-6 py-10">
       {/* Vue galerie publique (boucle virale invité). */}
       <TrackOnMount event="gallery_viewed" />
       <header className="flex flex-col gap-2">
@@ -34,7 +34,7 @@ export default async function GuestGalleryPage({
         >
           ← {t('backToInvitation')}
         </Link>
-        <h1 className="font-display text-3xl font-semibold tracking-tight">
+        <h1 className="font-display text-3xl tracking-tight italic">
           {data.event.coupleNames.partnerA} &amp; {data.event.coupleNames.partnerB}
         </h1>
         <p className="text-sm text-[color:var(--color-muted)]">{t('guestHeader')}</p>

@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { useConfirm } from '@/components/ui/confirm-dialog';
 import {
   Select,
   SelectContent,
@@ -166,6 +167,7 @@ export function TeamManager({
   const [tab, setTab] = useState<'members' | 'roles'>('members');
   const [inviteOpen, setInviteOpen] = useState(false);
   const [pending, start] = useTransition();
+  const { confirm, confirmDialog } = useConfirm();
 
   const seat = useMemo(() => seatUsage(members, seatLimitForTier(tier)), [members, tier]);
   const activeMembers = members.filter((m) => m.status !== 'pending');
@@ -321,8 +323,13 @@ export function TeamManager({
                         </button>
                         <button
                           type="button"
-                          onClick={() => {
-                            if (confirm(t('team.confirmCancelInvite')))
+                          onClick={async () => {
+                            if (
+                              await confirm({
+                                title: t('team.confirmCancelInvite'),
+                                destructive: true,
+                              })
+                            )
                               run(
                                 () => cancelInviteAction(m._id),
                                 () => setMembers((p) => p.filter((x) => x._id !== m._id)),
@@ -441,8 +448,13 @@ export function TeamManager({
                         {canManage && !isOwner ? (
                           <RowActions
                             status={m.status}
-                            onRevoke={() => {
-                              if (confirm(t('team.confirmRevoke', { name })))
+                            onRevoke={async () => {
+                              if (
+                                await confirm({
+                                  title: t('team.confirmRevoke', { name }),
+                                  destructive: true,
+                                })
+                              )
                                 run(
                                   () => revokeMemberAction(m._id),
                                   () =>
@@ -483,6 +495,7 @@ export function TeamManager({
       ) : (
         <RolesTab counts={members} />
       )}
+      {confirmDialog}
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useLocale } from 'next-intl';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   Dialog,
   DialogClose,
@@ -76,12 +77,11 @@ export function AdminNewsletterComposer({
           <span className="font-mono text-[10px] tracking-[0.16em] text-[color:var(--color-muted-foreground)] uppercase">
             Objet
           </span>
-          <input
+          <Input
             type="text"
             value={subject}
             onChange={(e) => setSubject(e.target.value)}
             placeholder="Ex. Les nouveautés Wedillybird de juin"
-            className="h-10 w-full rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-surface-elevated)] px-3 text-sm text-[color:var(--color-foreground)] focus:ring-1 focus:ring-[color:var(--color-border-strong)] focus:outline-none"
           />
         </label>
 
@@ -96,12 +96,14 @@ export function AdminNewsletterComposer({
             placeholder={
               'Bonjour,\n\nVoici les dernières nouvelles…\n\nLaissez une ligne vide entre les paragraphes. Les liens https://… deviennent cliquables.'
             }
-            className="w-full resize-y rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-surface-elevated)] px-3 py-2 text-sm leading-relaxed text-[color:var(--color-foreground)] focus:ring-1 focus:ring-[color:var(--color-border-strong)] focus:outline-none"
+            className="focus-ring w-full resize-y rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-4 py-3 text-sm leading-relaxed text-[color:var(--color-foreground)] placeholder:text-[color:var(--color-muted-foreground)]"
           />
         </label>
 
         {feedback ? (
-          <p className={`text-sm ${feedback.kind === 'ok' ? 'text-emerald-400' : 'text-red-400'}`}>
+          <p
+            className={`text-sm ${feedback.kind === 'ok' ? 'text-[color:var(--color-success)]' : 'text-[color:var(--color-danger)]'}`}
+          >
             {feedback.text}
           </p>
         ) : null}
@@ -169,8 +171,12 @@ export function AdminNewsletterComposer({
                       </Badge>
                     </td>
                     <td className="px-4 py-3 font-mono">{c.totalRecipients}</td>
-                    <td className="px-4 py-3 font-mono text-emerald-400">{c.sentCount}</td>
-                    <td className="px-4 py-3 font-mono text-red-400">{c.failedCount || '—'}</td>
+                    <td className="px-4 py-3 font-mono text-[color:var(--color-success)]">
+                      {c.sentCount}
+                    </td>
+                    <td className="px-4 py-3 font-mono text-[color:var(--color-danger)]">
+                      {c.failedCount || '—'}
+                    </td>
                     <td className="px-4 py-3 text-[color:var(--color-muted-foreground)]">
                       {new Intl.DateTimeFormat(locale, {
                         dateStyle: 'medium',

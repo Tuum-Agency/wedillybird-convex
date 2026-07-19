@@ -37,6 +37,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
+import { useConfirm } from '@/components/ui/confirm-dialog';
 import { cn } from '@/lib/cn';
 import { parseEurToMinor, nowMs } from '@/lib/pro/format';
 import { toast } from '@/components/ui/toast';
@@ -859,7 +860,7 @@ function BuilderView({
                   {esign.label}
                 </span>
               </div>
-              <div className="grid gap-2.5 sm:grid-cols-2">
+              <div className="grid gap-2.5 sm:grid-cols-2 sm:items-end">
                 <label className="flex flex-col gap-1">
                   <span className="font-mono text-[9px] tracking-[0.16em] text-[color:var(--color-muted-foreground)] uppercase">
                     {t('builder.jurisdiction')}
@@ -1107,6 +1108,7 @@ function DetailView({
 }) {
   const t = useTranslations('Pro.contractsBoard');
   const format = useFormatter();
+  const { confirm, confirmDialog } = useConfirm();
   const mfAgency = t('mergeFields.agency');
   const mfAgreedDate = t('mergeFields.agreedDate');
   const mfAgreedVenue = t('mergeFields.agreedVenue');
@@ -1196,8 +1198,8 @@ function DetailView({
       onRefresh();
     });
   }
-  function cancel() {
-    if (!confirm(t('detail.confirmCancel'))) return;
+  async function cancel() {
+    if (!(await confirm({ title: t('detail.confirmCancel'), destructive: true }))) return;
     start(async () => {
       const res = await cancelContractAction(contract._id);
       if (res.ok) onPatch({ ...contract, status: 'cancelled', updatedAt: nowMs() });
@@ -1371,6 +1373,7 @@ function DetailView({
           </div>
         </div>
       </div>
+      {confirmDialog}
     </div>
   );
 }
@@ -1438,7 +1441,7 @@ function CreateForm({
           </SelectContent>
         </Select>
       </label>
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-2 sm:items-end">
         <label className="flex flex-col gap-1.5">
           <span className="text-xs font-medium text-[color:var(--color-muted-foreground)]">
             {t('builder.service')}

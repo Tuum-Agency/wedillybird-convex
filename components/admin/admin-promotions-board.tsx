@@ -365,8 +365,8 @@ function DiscountSection({
               </Button>
             </div>
           </div>
-          {error ? <p className="text-sm text-red-400">{error}</p> : null}
-          {ok ? <p className="text-sm text-emerald-400">{ok}</p> : null}
+          {error ? <p className="text-sm text-[color:var(--color-danger)]">{error}</p> : null}
+          {ok ? <p className="text-sm text-[color:var(--color-success)]">{ok}</p> : null}
         </>
       )}
     </section>
@@ -466,7 +466,7 @@ function CreateCouponDialog({ onDone }: { onDone: () => void }) {
             />
           </Field>
 
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:items-end">
             <Field label="Type">
               <Select
                 value={kind}
@@ -530,7 +530,7 @@ function CreateCouponDialog({ onDone }: { onDone: () => void }) {
           </div>
 
           {kind !== 'trial' ? (
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:items-end">
               <Field label="Durée (abonnements)">
                 <Select value={duration} onValueChange={(v) => setDuration(v as typeof duration)}>
                   <SelectTrigger className={inputCls}>
@@ -559,8 +559,8 @@ function CreateCouponDialog({ onDone }: { onDone: () => void }) {
             </div>
           ) : null}
 
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <Field label="Max utilisations (optionnel)">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:items-end">
+            <Field label="Max utilisations">
               <input
                 type="number"
                 min={1}
@@ -570,7 +570,7 @@ function CreateCouponDialog({ onDone }: { onDone: () => void }) {
                 className={inputCls}
               />
             </Field>
-            <Field label="Expire le (optionnel)">
+            <Field label="Expire le">
               <input
                 type="date"
                 value={redeemBy}
@@ -619,7 +619,7 @@ function CreateCouponDialog({ onDone }: { onDone: () => void }) {
           )}
         </div>
 
-        {error ? <p className="mt-3 text-sm text-red-400">{error}</p> : null}
+        {error ? <p className="mt-3 text-sm text-[color:var(--color-danger)]">{error}</p> : null}
 
         <DialogFooter>
           <DialogClose asChild>
@@ -647,7 +647,7 @@ function DeleteCouponButton({ couponId, onDone }: { couponId: string; onDone: ()
         })
       }
       disabled={pending}
-      className="rounded-md px-2 py-1 text-xs font-medium text-red-400 transition-colors hover:bg-red-400/10 disabled:opacity-50"
+      className="rounded-md px-2 py-1 text-xs font-medium text-[color:var(--color-danger)] transition-colors hover:bg-[color:var(--color-danger)]/10 disabled:opacity-50"
     >
       {pending ? '…' : 'Supprimer'}
     </button>

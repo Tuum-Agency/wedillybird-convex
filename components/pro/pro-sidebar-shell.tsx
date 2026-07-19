@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, type ReactNode } from 'react';
+import { ThemeProvider } from '@/components/ui/theme-provider';
 import {
   LayoutDashboard,
   Users,
@@ -223,240 +224,244 @@ export function ProSidebarShell({
   const roleLabel = t(ROLE_LABEL_KEY[org.role] as Parameters<typeof t>[0]);
 
   return (
-    <div
-      data-theme="dark"
-      className={cn(
-        'grid min-h-screen bg-[color:var(--color-background)] text-[color:var(--color-foreground)]',
-        collapsed ? 'lg:grid-cols-[76px_1fr]' : 'lg:grid-cols-[256px_1fr]',
-      )}
-    >
-      {/* Backdrop mobile */}
+    <ThemeProvider theme="dark">
       <div
-        aria-hidden
-        onClick={() => setMobileOpen(false)}
+        data-theme="dark"
         className={cn(
-          'fixed inset-0 z-40 bg-black/60 backdrop-blur-sm transition-opacity lg:hidden',
-          mobileOpen ? 'opacity-100' : 'pointer-events-none opacity-0',
-        )}
-      />
-
-      {/* Sidebar — collée au viewport (sticky, hauteur d'écran) pour que le pied
-          (utilisateur + déconnexion) reste toujours en bas de l'écran, même si le
-          contenu de la page dépasse la hauteur du viewport. */}
-      <aside
-        className={cn(
-          'fixed inset-y-0 left-0 z-50 flex h-dvh w-[256px] flex-col border-r border-[color:var(--color-border)] bg-[color:var(--color-surface)] transition-transform duration-300 lg:sticky lg:top-0 lg:z-auto lg:h-screen lg:translate-x-0 lg:self-start',
-          collapsed ? 'lg:w-[76px]' : 'lg:w-[256px]',
-          mobileOpen ? 'translate-x-0' : '-translate-x-full',
+          'grid min-h-screen bg-[color:var(--color-background)] text-[color:var(--color-foreground)]',
+          collapsed ? 'lg:grid-cols-[76px_1fr]' : 'lg:grid-cols-[256px_1fr]',
         )}
       >
-        {/* Brand — hauteur alignée sur la top bar (même filet horizontal). */}
-        <div className="flex h-16 flex-shrink-0 items-center justify-between gap-2 border-b border-[color:var(--color-border)] px-4">
-          <Link
-            href="/pro/dashboard"
-            className="focus-ring flex min-w-0 items-center gap-2.5 rounded-lg"
-            title={org.name}
-          >
-            <span
-              aria-hidden
-              className="inline-block h-2.5 w-2.5 flex-shrink-0 rounded-full"
-              style={{ background: dot }}
-            />
-            {!collapsed ? (
-              <span className="flex min-w-0 flex-col">
-                <span className="font-display truncate text-lg leading-tight italic">
-                  {org.name}
-                </span>
-                <span className="font-mono text-[9px] tracking-[0.18em] text-[color:var(--color-muted-foreground)] uppercase">
-                  {tier ? t('sidebar.planLabel', { tier: TIER_LABEL[tier] }) : t('sidebar.noPlan')}
-                </span>
-              </span>
-            ) : null}
-          </Link>
-          <button
-            type="button"
-            onClick={() => setCollapsed((c) => !c)}
-            aria-pressed={collapsed}
-            aria-label={collapsed ? t('sidebar.expandMenu') : t('sidebar.collapseMenu')}
-            className="focus-ring hidden flex-shrink-0 rounded-lg p-1.5 text-[color:var(--color-muted-foreground)] transition-colors hover:bg-[color:var(--color-surface-elevated)] hover:text-[color:var(--color-foreground)] lg:inline-flex"
-          >
-            {collapsed ? (
-              <PanelLeftOpen className="h-4 w-4" strokeWidth={1.85} />
-            ) : (
-              <PanelLeftClose className="h-4 w-4" strokeWidth={1.85} />
-            )}
-          </button>
-          <button
-            type="button"
-            onClick={() => setMobileOpen(false)}
-            aria-label={t('sidebar.closeMenu')}
-            className="focus-ring flex-shrink-0 rounded-lg p-1.5 text-[color:var(--color-muted-foreground)] hover:bg-[color:var(--color-surface-elevated)] lg:hidden"
-          >
-            <X className="h-4 w-4" strokeWidth={1.85} />
-          </button>
-        </div>
-
-        {/* Nav */}
-        <nav
-          aria-label={t('sidebar.mainNavAria')}
-          className="flex-1 overflow-y-auto px-3 py-4"
+        {/* Backdrop mobile */}
+        <div
+          aria-hidden
           onClick={() => setMobileOpen(false)}
-        >
-          {NAV_GROUPS.map((group) => {
-            const groupLabel = t(group.labelKey as Parameters<typeof t>[0]);
-            return (
-              <div key={group.labelKey} className="mb-5 flex flex-col gap-0.5">
-                {!collapsed ? (
-                  <p className="mb-1.5 px-2 font-mono text-[9px] tracking-[0.22em] text-[color:var(--color-muted-foreground)] uppercase">
-                    {groupLabel}
-                  </p>
-                ) : (
-                  <span aria-hidden className="mx-2 mb-1.5 h-px bg-[color:var(--color-border)]" />
-                )}
-                {group.items.map((item) => {
-                  const active = item.key === current;
-                  const locked = item.feature ? !tierHasFeature(tier, item.feature) : false;
-                  const itemLabel = t(item.labelKey as Parameters<typeof t>[0]);
-                  return (
-                    <Link
-                      key={item.key}
-                      href={item.href}
-                      aria-current={active ? 'page' : undefined}
-                      title={itemLabel}
-                      className={cn(
-                        'focus-ring group flex items-center gap-3 rounded-lg px-2.5 py-2 text-sm transition-colors',
-                        collapsed && 'justify-center',
-                        active
-                          ? 'bg-[color:var(--color-surface-elevated)] font-medium text-[color:var(--color-foreground)]'
-                          : 'text-[color:var(--color-muted-foreground)] hover:bg-[color:var(--color-surface-elevated)] hover:text-[color:var(--color-foreground)]',
-                      )}
-                    >
-                      <span
-                        aria-hidden
-                        className={cn(
-                          'flex-shrink-0',
-                          active ? 'text-[color:var(--color-blush-300)]' : '',
-                        )}
-                      >
-                        <item.Icon className="h-[18px] w-[18px]" strokeWidth={1.85} />
-                      </span>
-                      {!collapsed ? (
-                        <>
-                          <span className="flex-1 truncate">{itemLabel}</span>
-                          {locked ? (
-                            <Lock
-                              className="h-3.5 w-3.5 flex-shrink-0 text-[color:var(--color-muted-foreground)]"
-                              strokeWidth={1.85}
-                              aria-label={t('sidebar.lockedFeatureAria')}
-                            />
-                          ) : null}
-                        </>
-                      ) : null}
-                    </Link>
-                  );
-                })}
-              </div>
-            );
-          })}
-        </nav>
+          className={cn(
+            'fixed inset-0 z-40 bg-black/60 backdrop-blur-sm transition-opacity lg:hidden',
+            mobileOpen ? 'opacity-100' : 'pointer-events-none opacity-0',
+          )}
+        />
 
-        {/* Footer : utilisateur connecté + déconnexion (icône seule, à droite) */}
-        <div className="border-t border-[color:var(--color-border)] p-3">
-          <div
-            className={cn('flex items-center gap-2.5 px-0.5 py-1', collapsed && 'justify-center')}
-          >
-            <span
-              aria-hidden
-              className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[color:var(--color-surface-elevated)] font-mono text-[11px] text-[color:var(--color-blush-300)]"
+        {/* Sidebar — collée au viewport (sticky, hauteur d'écran) pour que le pied
+          (utilisateur + déconnexion) reste toujours en bas de l'écran, même si le
+          contenu de la page dépasse la hauteur du viewport. */}
+        <aside
+          className={cn(
+            'fixed inset-y-0 left-0 z-50 flex h-dvh w-[256px] flex-col border-r border-[color:var(--color-border)] bg-[color:var(--color-surface)] transition-transform duration-300 lg:sticky lg:top-0 lg:z-auto lg:h-screen lg:translate-x-0 lg:self-start',
+            collapsed ? 'lg:w-[76px]' : 'lg:w-[256px]',
+            mobileOpen ? 'translate-x-0' : '-translate-x-full',
+          )}
+        >
+          {/* Brand — hauteur alignée sur la top bar (même filet horizontal). */}
+          <div className="flex h-16 flex-shrink-0 items-center justify-between gap-2 border-b border-[color:var(--color-border)] px-4">
+            <Link
+              href="/pro/dashboard"
+              className="focus-ring flex min-w-0 items-center gap-2.5 rounded-lg"
+              title={org.name}
             >
-              {initialsOf(user.name)}
-            </span>
-            {!collapsed ? (
-              <>
-                <span className="flex min-w-0 flex-1 flex-col">
-                  <span className="truncate text-sm font-medium text-[color:var(--color-foreground)]">
-                    {user.name ?? '—'}
+              <span
+                aria-hidden
+                className="inline-block h-2.5 w-2.5 flex-shrink-0 rounded-full"
+                style={{ background: dot }}
+              />
+              {!collapsed ? (
+                <span className="flex min-w-0 flex-col">
+                  <span className="font-display truncate text-lg leading-tight italic">
+                    {org.name}
                   </span>
                   <span className="font-mono text-[9px] tracking-[0.18em] text-[color:var(--color-muted-foreground)] uppercase">
-                    {roleLabel}
+                    {tier
+                      ? t('sidebar.planLabel', { tier: TIER_LABEL[tier] })
+                      : t('sidebar.noPlan')}
                   </span>
                 </span>
-                <form action={signOutAction} className="flex-shrink-0">
-                  <button
-                    type="submit"
-                    aria-label={t('sidebar.signOut')}
-                    title={t('sidebar.signOut')}
-                    className="focus-ring grid h-8 w-8 place-items-center rounded-lg text-[color:var(--color-muted-foreground)] transition-colors hover:bg-[color:var(--color-surface-elevated)] hover:text-[color:var(--color-foreground)]"
-                  >
-                    <LogOut className="h-4 w-4" strokeWidth={1.85} aria-hidden />
-                  </button>
-                </form>
-              </>
-            ) : null}
+              ) : null}
+            </Link>
+            <button
+              type="button"
+              onClick={() => setCollapsed((c) => !c)}
+              aria-pressed={collapsed}
+              aria-label={collapsed ? t('sidebar.expandMenu') : t('sidebar.collapseMenu')}
+              className="focus-ring hidden flex-shrink-0 rounded-lg p-1.5 text-[color:var(--color-muted-foreground)] transition-colors hover:bg-[color:var(--color-surface-elevated)] hover:text-[color:var(--color-foreground)] lg:inline-flex"
+            >
+              {collapsed ? (
+                <PanelLeftOpen className="h-4 w-4" strokeWidth={1.85} />
+              ) : (
+                <PanelLeftClose className="h-4 w-4" strokeWidth={1.85} />
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={() => setMobileOpen(false)}
+              aria-label={t('sidebar.closeMenu')}
+              className="focus-ring flex-shrink-0 rounded-lg p-1.5 text-[color:var(--color-muted-foreground)] hover:bg-[color:var(--color-surface-elevated)] lg:hidden"
+            >
+              <X className="h-4 w-4" strokeWidth={1.85} />
+            </button>
           </div>
-          {collapsed ? (
-            <form action={signOutAction} className="mt-1 flex justify-center">
-              <button
-                type="submit"
-                aria-label={t('sidebar.signOut')}
-                title={t('sidebar.signOut')}
-                className="focus-ring grid h-8 w-8 place-items-center rounded-lg text-[color:var(--color-muted-foreground)] transition-colors hover:bg-[color:var(--color-surface-elevated)] hover:text-[color:var(--color-foreground)]"
-              >
-                <LogOut className="h-4 w-4" strokeWidth={1.85} aria-hidden />
-              </button>
-            </form>
-          ) : null}
-        </div>
-      </aside>
 
-      {/* Body */}
-      <div className="flex min-w-0 flex-col">
-        {/* Top bar */}
-        <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-[color:var(--color-border)] bg-[color:var(--color-background)]/85 px-4 backdrop-blur supports-[backdrop-filter]:bg-[color:var(--color-background)]/65 sm:px-6">
-          <button
-            type="button"
-            onClick={() => setMobileOpen(true)}
-            aria-label={t('sidebar.openMenu')}
-            className="focus-ring rounded-lg p-1.5 text-[color:var(--color-muted-foreground)] hover:bg-[color:var(--color-surface-elevated)] lg:hidden"
+          {/* Nav */}
+          <nav
+            aria-label={t('sidebar.mainNavAria')}
+            className="flex-1 overflow-y-auto px-3 py-4"
+            onClick={() => setMobileOpen(false)}
           >
-            <Menu className="h-5 w-5" strokeWidth={1.85} />
-          </button>
+            {NAV_GROUPS.map((group) => {
+              const groupLabel = t(group.labelKey as Parameters<typeof t>[0]);
+              return (
+                <div key={group.labelKey} className="mb-5 flex flex-col gap-0.5">
+                  {!collapsed ? (
+                    <p className="mb-1.5 px-2 font-mono text-[9px] tracking-[0.22em] text-[color:var(--color-muted-foreground)] uppercase">
+                      {groupLabel}
+                    </p>
+                  ) : (
+                    <span aria-hidden className="mx-2 mb-1.5 h-px bg-[color:var(--color-border)]" />
+                  )}
+                  {group.items.map((item) => {
+                    const active = item.key === current;
+                    const locked = item.feature ? !tierHasFeature(tier, item.feature) : false;
+                    const itemLabel = t(item.labelKey as Parameters<typeof t>[0]);
+                    return (
+                      <Link
+                        key={item.key}
+                        href={item.href}
+                        aria-current={active ? 'page' : undefined}
+                        title={itemLabel}
+                        className={cn(
+                          'focus-ring group flex items-center gap-3 rounded-lg px-2.5 py-2 text-sm transition-colors',
+                          collapsed && 'justify-center',
+                          active
+                            ? 'bg-[color:var(--color-surface-elevated)] font-medium text-[color:var(--color-foreground)]'
+                            : 'text-[color:var(--color-muted-foreground)] hover:bg-[color:var(--color-surface-elevated)] hover:text-[color:var(--color-foreground)]',
+                        )}
+                      >
+                        <span
+                          aria-hidden
+                          className={cn(
+                            'flex-shrink-0',
+                            active ? 'text-[color:var(--color-blush-300)]' : '',
+                          )}
+                        >
+                          <item.Icon className="h-[18px] w-[18px]" strokeWidth={1.85} />
+                        </span>
+                        {!collapsed ? (
+                          <>
+                            <span className="flex-1 truncate">{itemLabel}</span>
+                            {locked ? (
+                              <Lock
+                                className="h-3.5 w-3.5 flex-shrink-0 text-[color:var(--color-muted-foreground)]"
+                                strokeWidth={1.85}
+                                aria-label={t('sidebar.lockedFeatureAria')}
+                              />
+                            ) : null}
+                          </>
+                        ) : null}
+                      </Link>
+                    );
+                  })}
+                </div>
+              );
+            })}
+          </nav>
 
-          <label className="relative hidden max-w-sm flex-1 items-center sm:flex">
-            <Search
-              className="pointer-events-none absolute left-3 h-4 w-4 text-[color:var(--color-muted-foreground)]"
-              strokeWidth={1.9}
-              aria-hidden
-            />
-            <input
-              type="search"
-              placeholder={t('sidebar.searchPlaceholder')}
-              aria-label={t('sidebar.searchAria')}
-              className="focus-ring h-9 w-full rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-surface)] pr-3 pl-9 text-sm text-[color:var(--color-foreground)] placeholder:text-[color:var(--color-muted-foreground)]"
-            />
-          </label>
-
-          <div className="flex flex-1 items-center justify-end gap-2 sm:gap-3">
-            {eventsCap != null ? (
-              <span className="hidden items-center gap-1.5 rounded-full border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-3 py-1.5 font-mono text-[10px] tracking-[0.12em] text-[color:var(--color-muted-foreground)] sm:inline-flex">
-                <span
-                  aria-hidden
-                  className="inline-block h-1.5 w-1.5 rounded-full"
-                  style={{ background: dot }}
-                />
-                <b className="text-[color:var(--color-foreground)]">{eventsUsed ?? 0}</b>/
-                {eventsCap} {t('sidebar.weddingsUnit')}
+          {/* Footer : utilisateur connecté + déconnexion (icône seule, à droite) */}
+          <div className="border-t border-[color:var(--color-border)] p-3">
+            <div
+              className={cn('flex items-center gap-2.5 px-0.5 py-1', collapsed && 'justify-center')}
+            >
+              <span
+                aria-hidden
+                className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[color:var(--color-surface-elevated)] font-mono text-[11px] text-[color:var(--color-blush-300)]"
+              >
+                {initialsOf(user.name)}
               </span>
+              {!collapsed ? (
+                <>
+                  <span className="flex min-w-0 flex-1 flex-col">
+                    <span className="truncate text-sm font-medium text-[color:var(--color-foreground)]">
+                      {user.name ?? '—'}
+                    </span>
+                    <span className="font-mono text-[9px] tracking-[0.18em] text-[color:var(--color-muted-foreground)] uppercase">
+                      {roleLabel}
+                    </span>
+                  </span>
+                  <form action={signOutAction} className="flex-shrink-0">
+                    <button
+                      type="submit"
+                      aria-label={t('sidebar.signOut')}
+                      title={t('sidebar.signOut')}
+                      className="focus-ring grid h-8 w-8 place-items-center rounded-lg text-[color:var(--color-muted-foreground)] transition-colors hover:bg-[color:var(--color-surface-elevated)] hover:text-[color:var(--color-foreground)]"
+                    >
+                      <LogOut className="h-4 w-4" strokeWidth={1.85} aria-hidden />
+                    </button>
+                  </form>
+                </>
+              ) : null}
+            </div>
+            {collapsed ? (
+              <form action={signOutAction} className="mt-1 flex justify-center">
+                <button
+                  type="submit"
+                  aria-label={t('sidebar.signOut')}
+                  title={t('sidebar.signOut')}
+                  className="focus-ring grid h-8 w-8 place-items-center rounded-lg text-[color:var(--color-muted-foreground)] transition-colors hover:bg-[color:var(--color-surface-elevated)] hover:text-[color:var(--color-foreground)]"
+                >
+                  <LogOut className="h-4 w-4" strokeWidth={1.85} aria-hidden />
+                </button>
+              </form>
             ) : null}
-
-            <LocaleSwitcher />
           </div>
-        </header>
+        </aside>
 
-        <main id="main-content" className="flex-1" tabIndex={-1}>
-          {children}
-        </main>
+        {/* Body */}
+        <div className="flex min-w-0 flex-col">
+          {/* Top bar */}
+          <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-[color:var(--color-border)] bg-[color:var(--color-background)]/85 px-4 backdrop-blur supports-[backdrop-filter]:bg-[color:var(--color-background)]/65 sm:px-6">
+            <button
+              type="button"
+              onClick={() => setMobileOpen(true)}
+              aria-label={t('sidebar.openMenu')}
+              className="focus-ring rounded-lg p-1.5 text-[color:var(--color-muted-foreground)] hover:bg-[color:var(--color-surface-elevated)] lg:hidden"
+            >
+              <Menu className="h-5 w-5" strokeWidth={1.85} />
+            </button>
+
+            <label className="relative hidden max-w-sm flex-1 items-center sm:flex">
+              <Search
+                className="pointer-events-none absolute left-3 h-4 w-4 text-[color:var(--color-muted-foreground)]"
+                strokeWidth={1.9}
+                aria-hidden
+              />
+              <input
+                type="search"
+                placeholder={t('sidebar.searchPlaceholder')}
+                aria-label={t('sidebar.searchAria')}
+                className="focus-ring h-9 w-full rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-surface)] pr-3 pl-9 text-sm text-[color:var(--color-foreground)] placeholder:text-[color:var(--color-muted-foreground)]"
+              />
+            </label>
+
+            <div className="flex flex-1 items-center justify-end gap-2 sm:gap-3">
+              {eventsCap != null ? (
+                <span className="hidden items-center gap-1.5 rounded-full border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-3 py-1.5 font-mono text-[10px] tracking-[0.12em] text-[color:var(--color-muted-foreground)] sm:inline-flex">
+                  <span
+                    aria-hidden
+                    className="inline-block h-1.5 w-1.5 rounded-full"
+                    style={{ background: dot }}
+                  />
+                  <b className="text-[color:var(--color-foreground)]">{eventsUsed ?? 0}</b>/
+                  {eventsCap} {t('sidebar.weddingsUnit')}
+                </span>
+              ) : null}
+
+              <LocaleSwitcher />
+            </div>
+          </header>
+
+          <main id="main-content" className="flex-1" tabIndex={-1}>
+            {children}
+          </main>
+        </div>
       </div>
-    </div>
+    </ThemeProvider>
   );
 }

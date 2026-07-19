@@ -226,7 +226,7 @@ function AlertChip({
       href={href as never}
       className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
         tone === 'destructive'
-          ? 'border-red-400/30 bg-red-400/10 text-red-300 hover:bg-red-400/20'
+          ? 'border-[color:var(--color-danger)]/30 bg-[color:var(--color-danger)]/10 text-[color:var(--color-danger)] hover:bg-[color:var(--color-danger)]/20'
           : 'border-[color:var(--color-border)] bg-[color:var(--color-surface)] text-[color:var(--color-muted-foreground)] hover:bg-[color:var(--color-surface-elevated)]'
       }`}
     >
@@ -257,7 +257,7 @@ function KpiCard({
           <span className="font-mono text-[10px] tracking-[0.2em] uppercase">{label}</span>
         </div>
         <p
-          className={`mt-2 text-2xl font-semibold tracking-tight ${variant === 'destructive' ? 'text-red-400' : ''}`}
+          className={`mt-2 text-2xl font-semibold tracking-tight ${variant === 'destructive' ? 'text-[color:var(--color-danger)]' : ''}`}
         >
           {value}
         </p>

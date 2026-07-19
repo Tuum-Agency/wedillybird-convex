@@ -5,6 +5,7 @@ import { X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import type { ComponentProps, ReactNode } from 'react';
 import { cn } from '@/lib/cn';
+import { useUiTheme } from './theme-provider';
 
 /**
  * Dialog (shadcn/Radix) — **le** pattern modal du projet. À utiliser pour toute
@@ -24,10 +25,14 @@ export function DialogContent({
   ...props
 }: ComponentProps<typeof DialogPrimitive.Content> & { showClose?: boolean }) {
   const t = useTranslations('Common');
+  // Le portail sort du wrapper `data-theme` du shell → on réapplique le thème du
+  // sous-arbre (dark agence / light couple) via le contexte, qui traverse le portail.
+  const theme = useUiTheme();
   return (
     <DialogPrimitive.Portal>
       <DialogPrimitive.Overlay className="animate-fade-in fixed inset-0 z-50 bg-black/55 backdrop-blur-sm" />
       <DialogPrimitive.Content
+        data-theme={theme === 'dark' ? 'dark' : undefined}
         className={cn(
           'animate-scale-in fixed top-1/2 left-1/2 z-50 flex max-h-[90dvh] w-[calc(100vw-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-2xl border border-[color:var(--color-border-strong)] bg-[color:var(--color-surface)] shadow-[var(--shadow-popover)] focus:outline-none',
           className,
