@@ -9,6 +9,7 @@ import { assertOrgWrite } from './lib/orgAuth';
 import { normalizePhone, isValidE164 } from './lib/phone';
 import { summarizeGuestRsvp } from './lib/guestStats';
 import { sanitizeRsvpConfig } from '../lib/rsvp/questions';
+import { notifyEventParties } from './lib/notify';
 
 function toSlugBase(partnerA: string, partnerB: string): string {
   const raw = `${partnerA}-${partnerB}`
@@ -207,6 +208,7 @@ export const updateRsvpConfig = mutation({
       askNotes: v.optional(v.boolean()),
       notesLabel: v.optional(v.string()),
       askPlusOnes: v.optional(v.boolean()),
+      coupleCanEdit: v.optional(v.boolean()),
       customQuestions: v.optional(
         v.array(
           v.object({
@@ -231,18 +233,56 @@ export const updateRsvpConfig = mutation({
     const event = await assertEventAccess(ctx, args.eventId, args.requesterId, { write: true });
     if (!eventHasFeature(event, 'customRsvpQuestions')) throw new Error('FEATURE_LOCKED');
 
+    const previous = event.rsvpConfig;
+    const isOwner = event.ownerId === args.requesterId;
+
+    // Le couple rattaché (collaborateur rôle `couple`) ne peut modifier le
+    // questionnaire que si l'agence l'y a autorisé. Le personnel d'agence
+    // (co_owner / planner) et le propriétaire ne sont pas concernés par ce gate.
+    let isDelegateCouple = false;
+    if (!isOwner) {
+      const collab = await ctx.db
+        .query('eventCollaborators')
+        .withIndex('by_event_user', (q) =>
+          q.eq('eventId', args.eventId).eq('userId', args.requesterId),
+        )
+        .first();
+      isDelegateCouple = collab?.role === 'couple';
+    }
+    if (isDelegateCouple && previous?.coupleCanEdit !== true) throw new Error('FORBIDDEN');
+
+    // Seul le propriétaire (l'agence) contrôle la délégation ; les autres
+    // conservent la valeur existante.
+    const coupleCanEdit = isOwner
+      ? (args.config.coupleCanEdit ?? previous?.coupleCanEdit ?? false)
+      : (previous?.coupleCanEdit ?? false);
+
     const clean = sanitizeRsvpConfig(args.config);
     await ctx.db.patch(args.eventId, {
       rsvpConfig: {
         askDietary: clean.askDietary ?? true,
         askNotes: clean.askNotes ?? true,
         askPlusOnes: clean.askPlusOnes ?? true,
+        coupleCanEdit,
         customQuestions: clean.customQuestions ?? [],
         ...(clean.dietaryLabel ? { dietaryLabel: clean.dietaryLabel } : {}),
         ...(clean.notesLabel ? { notesLabel: clean.notesLabel } : {}),
       },
       updatedAt: Date.now(),
     });
+
+    // Le couple a modifié le questionnaire d'un event d'agence → prévenir l'agence.
+    if (isDelegateCouple && event.organizationId) {
+      const actor = await ctx.db.get(args.requesterId);
+      await notifyEventParties(ctx, {
+        eventId: args.eventId,
+        type: 'rsvp_config_changed',
+        data: actor?.fullName ? { actorName: actor.fullName } : undefined,
+        excludeUserId: args.requesterId,
+        includeCouple: false,
+      });
+    }
+
     return { ok: true as const };
   },
 });

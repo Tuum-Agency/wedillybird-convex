@@ -2,6 +2,7 @@ import { v } from 'convex/values';
 import { mutation, query, type MutationCtx } from './_generated/server';
 import type { Id } from './_generated/dataModel';
 import { assertOrgRead, assertOrgWrite, assertOrgProvisioned } from './lib/orgAuth';
+import { notifyEventParties } from './lib/notify';
 
 /**
  * Rétroplanning — back-office agence (tous tiers). Tâches par phase rattachées à
@@ -98,6 +99,16 @@ export const createTask = mutation({
       createdAt: now,
       updatedAt: now,
     });
+
+    // Prévenir le couple rattaché que l'agence a ajouté une tâche / un rendez-vous.
+    await notifyEventParties(ctx, {
+      eventId: args.eventId,
+      type: 'planning_task',
+      data: { taskTitle: title },
+      excludeUserId: args.requesterId,
+      includeOwner: false,
+    });
+
     return { id };
   },
 });

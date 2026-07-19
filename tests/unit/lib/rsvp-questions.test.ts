@@ -30,6 +30,13 @@ describe('normalizeRsvpConfig', () => {
     expect(n.dietaryLabel).toBeUndefined();
   });
 
+  it('coupleCanEdit : défaut false, respecté si true (normalize + sanitize)', () => {
+    expect(normalizeRsvpConfig(undefined).coupleCanEdit).toBe(false);
+    expect(normalizeRsvpConfig({ coupleCanEdit: true }).coupleCanEdit).toBe(true);
+    expect(sanitizeRsvpConfig({ coupleCanEdit: true }).coupleCanEdit).toBe(true);
+    expect(sanitizeRsvpConfig({}).coupleCanEdit).toBe(false);
+  });
+
   it('écarte les questions mal formées (choix sans options, label vide)', () => {
     const n = normalizeRsvpConfig({
       customQuestions: [

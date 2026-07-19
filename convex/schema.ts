@@ -290,6 +290,11 @@ export default defineSchema({
         askNotes: v.optional(v.boolean()),
         notesLabel: v.optional(v.string()),
         askPlusOnes: v.optional(v.boolean()),
+        /**
+         * Event d'agence : le couple rattaché peut-il modifier ce questionnaire ?
+         * Défaut absent = `false`. Seul le propriétaire (agence) bascule ce flag.
+         */
+        coupleCanEdit: v.optional(v.boolean()),
         customQuestions: v.optional(
           v.array(
             v.object({
@@ -381,6 +386,38 @@ export default defineSchema({
     .index('by_qr_token', ['qrCodeToken'])
     .index('by_phone', ['phone'])
     .index('by_table', ['tableId']),
+
+  /**
+   * Notifications in-app par utilisateur. Créées à la volée (réponse RSVP,
+   * modification du questionnaire par le couple, tâche/rendez-vous d'agence…).
+   * Stockage **structuré** (`type` + `data`) → rendu localisé côté client.
+   */
+  notifications: defineTable({
+    userId: v.id('users'),
+    type: v.union(
+      v.literal('rsvp_response'),
+      v.literal('rsvp_config_changed'),
+      v.literal('planning_task'),
+      v.literal('generic'),
+    ),
+    eventId: v.optional(v.id('events')),
+    data: v.optional(
+      v.object({
+        guestName: v.optional(v.string()),
+        rsvpStatus: v.optional(v.string()),
+        actorName: v.optional(v.string()),
+        taskTitle: v.optional(v.string()),
+        coupleLabel: v.optional(v.string()),
+        text: v.optional(v.string()),
+      }),
+    ),
+    /** Lien relatif de destination (résolu selon le rôle du destinataire). */
+    link: v.optional(v.string()),
+    readAt: v.optional(v.number()),
+    createdAt: v.number(),
+  })
+    .index('by_user', ['userId'])
+    .index('by_user_created', ['userId', 'createdAt']),
 
   /**
    * Tables du plan de placement (seating) d'un event. Une row par table

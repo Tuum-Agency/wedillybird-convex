@@ -208,6 +208,7 @@
     }
   },
   "Common": {
+    "confirm": "Bestätigen",
     "appName": "Wedillybird",
     "tagline": "Deine Hochzeit, stressfrei organisiert",
     "signIn": "Anmelden",
@@ -5349,6 +5350,24 @@
     "save": "Fragen speichern",
     "saved": "Fragen gespeichert",
     "errorSave": "Speichern fehlgeschlagen. Erneut versuchen.",
-    "maxReached": "Maximum von {max} Fragen erreicht"
+    "maxReached": "Maximum von {max} Fragen erreicht",
+    "delegationLabel": "Dem Paar erlauben, die Fragen zu bearbeiten",
+    "delegationHint": "Das Paar kann den Fragebogen in seinem Bereich anpassen. Deaktiviert behalten Sie die Kontrolle.",
+    "readOnlyBody": "Ihre Agentur verwaltet den RSVP-Fragebogen für dieses Event."
+  },
+  "Notifications": {
+    "title": "Benachrichtigungen",
+    "markAllRead": "Alle als gelesen markieren",
+    "empty": "Noch keine Benachrichtigungen.",
+    "someone": "Jemand",
+    "theCouple": "Das Paar",
+    "rsvpResponse": "{name} hat geantwortet: {status}",
+    "configChanged": "{name} hat den RSVP-Fragebogen bearbeitet",
+    "planningTask": "Neue Aufgabe: {title}",
+    "status": {
+      "attending": "Nimmt teil",
+      "declined": "Nimmt nicht teil",
+      "maybe": "Vielleicht"
+    }
   }
 }

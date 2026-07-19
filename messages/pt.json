@@ -208,6 +208,7 @@
     }
   },
   "Common": {
+    "confirm": "Confirmar",
     "appName": "Wedillybird",
     "tagline": "O teu casamento, organizado sem stress",
     "signIn": "Iniciar sessão",
@@ -5349,6 +5350,24 @@
     "save": "Guardar perguntas",
     "saved": "Perguntas guardadas",
     "errorSave": "Não foi possível guardar. Tente novamente.",
-    "maxReached": "Máximo de {max} perguntas atingido"
+    "maxReached": "Máximo de {max} perguntas atingido",
+    "delegationLabel": "Permitir que o casal edite as perguntas",
+    "delegationHint": "O casal poderá ajustar o questionário no seu espaço. Desativado, mantém o controlo.",
+    "readOnlyBody": "A sua agência gere o questionário RSVP deste evento."
+  },
+  "Notifications": {
+    "title": "Notificações",
+    "markAllRead": "Marcar tudo como lido",
+    "empty": "Ainda não há notificações.",
+    "someone": "Alguém",
+    "theCouple": "O casal",
+    "rsvpResponse": "{name} respondeu: {status}",
+    "configChanged": "{name} editou o questionário RSVP",
+    "planningTask": "Nova tarefa: {title}",
+    "status": {
+      "attending": "Presente",
+      "declined": "Ausente",
+      "maybe": "Talvez"
+    }
   }
 }

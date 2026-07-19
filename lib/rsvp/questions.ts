@@ -53,6 +53,13 @@ export interface RsvpConfig {
   notesLabel?: string;
   askPlusOnes?: boolean;
   customQuestions?: RsvpQuestion[];
+  /**
+   * Événement d'agence : le couple rattaché est-il autorisé à modifier ce
+   * questionnaire ? Défaut `false` (l'agence garde la main — évite qu'un couple
+   * modifie sans le savoir des questions posées pour une surprise). Seul le
+   * propriétaire (agence) peut basculer ce flag.
+   */
+  coupleCanEdit?: boolean;
 }
 
 /** Config avec valeurs par défaut résolues (built-in affichés par défaut). */
@@ -63,6 +70,7 @@ export interface NormalizedRsvpConfig {
   notesLabel?: string;
   askPlusOnes: boolean;
   customQuestions: RsvpQuestion[];
+  coupleCanEdit: boolean;
 }
 
 export interface CustomAnswer {
@@ -116,6 +124,7 @@ export function normalizeRsvpConfig(config?: RsvpConfig | null): NormalizedRsvpC
     notesLabel: nonEmpty(config?.notesLabel),
     askPlusOnes: config?.askPlusOnes ?? true,
     customQuestions: (config?.customQuestions ?? []).filter(isValidQuestionShape),
+    coupleCanEdit: config?.coupleCanEdit ?? false,
   };
 }
 
@@ -150,6 +159,7 @@ export function sanitizeRsvpConfig(config?: RsvpConfig | null): RsvpConfig {
     notesLabel: nonEmpty(config?.notesLabel)?.slice(0, MAX_QUESTION_LABEL),
     askPlusOnes: config?.askPlusOnes ?? true,
     customQuestions: questions,
+    coupleCanEdit: config?.coupleCanEdit ?? false,
   };
 }
 

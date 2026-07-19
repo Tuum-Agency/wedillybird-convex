@@ -38,6 +38,10 @@ export default async function EditEventPage({
   // local timezone du browser. On reconstruit côté client à partir d'ISO.
   const initialIsoDate = new Date(event.eventDate).toISOString().slice(0, 16);
 
+  // Propriétaire (couple solo ou agence) vs couple rattaché : ce dernier ne peut
+  // éditer le questionnaire que si l'agence l'a autorisé (rsvpConfig.coupleCanEdit).
+  const isOwner = event.ownerId === session!.userId;
+
   const t = await getTranslations('CoupleSpace');
 
   return (
@@ -91,6 +95,8 @@ export default async function EditEventPage({
           initialConfig={event.rsvpConfig}
           unlocked={eventHasPremiumOnlyFeature(event)}
           upgradeHref={`/events/${eventId}`}
+          canEdit={isOwner || (event.rsvpConfig?.coupleCanEdit ?? false)}
+          showDelegation={isOwner && !!event.organizationId}
         />
       </div>
     </AppShell>

@@ -1,6 +1,7 @@
 import { v } from 'convex/values';
 import { mutation } from './_generated/server';
 import { sanitizeCustomAnswers } from '../lib/rsvp/questions';
+import { notifyEventParties } from './lib/notify';
 
 const MAX_NOTES_LENGTH = 500;
 const MAX_DIETARY_LENGTH = 200;
@@ -66,6 +67,14 @@ export const submit = mutation({
       notes,
       customAnswers: answers.length > 0 ? answers : undefined,
       updatedAt: Date.now(),
+    });
+
+    // Prévenir les organisateurs (couple solo/agence + couples rattachés) qu'un
+    // invité a répondu à l'invitation.
+    await notifyEventParties(ctx, {
+      eventId: guest.eventId,
+      type: 'rsvp_response',
+      data: { guestName: guest.fullName, rsvpStatus: args.rsvpStatus },
     });
 
     return { ok: true as const };

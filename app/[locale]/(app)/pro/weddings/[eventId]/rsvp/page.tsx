@@ -64,6 +64,7 @@ export default async function ProWeddingRsvpPage({
           initialConfig={event!.rsvpConfig}
           unlocked={eventHasPremiumOnlyFeature(event!)}
           upgradeHref="/pro"
+          showDelegation={event!.ownerId === session.userId}
         />
       </div>
     </ProSidebarShell>

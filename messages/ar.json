@@ -208,6 +208,7 @@
     }
   },
   "Common": {
+    "confirm": "تأكيد",
     "appName": "Wedillybird",
     "tagline": "زفافكما، منظَّم دون توتر",
     "signIn": "تسجيل الدخول",
@@ -5345,6 +5346,24 @@
     "save": "حفظ الأسئلة",
     "saved": "تم حفظ الأسئلة",
     "errorSave": "تعذّر الحفظ. حاول مرة أخرى.",
-    "maxReached": "تم بلوغ الحد الأقصى {max} أسئلة"
+    "maxReached": "تم بلوغ الحد الأقصى {max} أسئلة",
+    "delegationLabel": "السماح للثنائي بتعديل الأسئلة",
+    "delegationHint": "سيتمكن الثنائي من تعديل الاستبيان من مساحته. عند الإيقاف، تحتفظ أنت بالتحكم.",
+    "readOnlyBody": "تدير وكالتك استبيان تأكيد الحضور لهذا الحدث."
+  },
+  "Notifications": {
+    "title": "الإشعارات",
+    "markAllRead": "تحديد الكل كمقروء",
+    "empty": "لا توجد إشعارات بعد.",
+    "someone": "شخص ما",
+    "theCouple": "الثنائي",
+    "rsvpResponse": "{name} ردّ: {status}",
+    "configChanged": "{name} عدّل استبيان تأكيد الحضور",
+    "planningTask": "مهمة جديدة: {title}",
+    "status": {
+      "attending": "سيحضر",
+      "declined": "لن يحضر",
+      "maybe": "ربما"
+    }
   }
 }

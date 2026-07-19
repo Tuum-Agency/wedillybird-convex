@@ -39,6 +39,10 @@ interface Props {
   unlocked: boolean;
   /** Lien vers l'upgrade (checkout / tarifs) montré quand verrouillé. */
   upgradeHref: string;
+  /** L'utilisateur peut-il éditer ? `false` = lecture seule (couple non autorisé). */
+  canEdit?: boolean;
+  /** Afficher le toggle de délégation « autoriser le couple » (agence/proprio). */
+  showDelegation?: boolean;
 }
 
 /**
@@ -49,7 +53,14 @@ interface Props {
  * Placé hors du `<form>` d'édition de l'event (formulaire autonome, propre
  * bouton d'enregistrement).
  */
-export function RsvpQuestionsEditor({ eventId, initialConfig, unlocked, upgradeHref }: Props) {
+export function RsvpQuestionsEditor({
+  eventId,
+  initialConfig,
+  unlocked,
+  upgradeHref,
+  canEdit = true,
+  showDelegation = false,
+}: Props) {
   const t = useTranslations('RsvpEditor');
   const n = normalizeRsvpConfig(initialConfig);
 
@@ -58,6 +69,7 @@ export function RsvpQuestionsEditor({ eventId, initialConfig, unlocked, upgradeH
   const [dietaryLabel, setDietaryLabel] = useState(n.dietaryLabel ?? '');
   const [askNotes, setAskNotes] = useState(n.askNotes);
   const [notesLabel, setNotesLabel] = useState(n.notesLabel ?? '');
+  const [coupleCanEdit, setCoupleCanEdit] = useState(n.coupleCanEdit);
   const [questions, setQuestions] = useState<RsvpQuestion[]>(n.customQuestions);
   const [status, setStatus] = useState<'idle' | 'saved' | 'error'>('idle');
   const [pending, startTransition] = useTransition();
@@ -136,6 +148,9 @@ export function RsvpQuestionsEditor({ eventId, initialConfig, unlocked, upgradeH
       dietaryLabel: dietaryLabel.trim() || undefined,
       notesLabel: notesLabel.trim() || undefined,
       customQuestions: questions,
+      // Le flag de délégation n'est envoyé que par le propriétaire (agence) ;
+      // la mutation ignore la valeur pour les autres.
+      ...(showDelegation ? { coupleCanEdit } : {}),
     };
     startTransition(async () => {
       const res = await updateRsvpConfigAction(eventId, config);
@@ -169,9 +184,52 @@ export function RsvpQuestionsEditor({ eventId, initialConfig, unlocked, upgradeH
     );
   }
 
+  if (!canEdit) {
+    const activeQuestions = questions.filter((q) => q.label.trim().length > 0);
+    return (
+      <section className="flex flex-col gap-5 rounded-3xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-7 shadow-[var(--shadow-soft)] sm:p-9">
+        <SectionHeader title={t('title')} subtitle={t('subtitle')} />
+        <div className="flex items-start gap-3 rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface-elevated)] px-4 py-3">
+          <Lock
+            className="mt-0.5 h-4 w-4 flex-shrink-0 text-[color:var(--color-muted-foreground)]"
+            strokeWidth={1.75}
+            aria-hidden
+          />
+          <p className="text-sm leading-relaxed text-[color:var(--color-foreground)]">
+            {t('readOnlyBody')}
+          </p>
+        </div>
+        {activeQuestions.length > 0 ? (
+          <ul className="flex flex-col gap-2">
+            {activeQuestions.map((q) => (
+              <li
+                key={q.id}
+                className="rounded-xl border border-[color:var(--color-border)] px-4 py-2.5 text-sm text-[color:var(--color-foreground)]"
+              >
+                {q.label}
+              </li>
+            ))}
+          </ul>
+        ) : null}
+      </section>
+    );
+  }
+
   return (
     <section className="flex flex-col gap-8 rounded-3xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-7 shadow-[var(--shadow-soft)] sm:p-9">
       <SectionHeader title={t('title')} subtitle={t('subtitle')} />
+
+      {showDelegation ? (
+        <ToggleRow
+          label={t('delegationLabel')}
+          hint={t('delegationHint')}
+          on={coupleCanEdit}
+          onChange={(v) => {
+            setStatus('idle');
+            setCoupleCanEdit(v);
+          }}
+        />
+      ) : null}
 
       {/* Champs standard */}
       <div className="flex flex-col gap-4">

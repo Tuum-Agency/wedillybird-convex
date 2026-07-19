@@ -46,6 +46,7 @@ type RsvpConfigShape = {
   askNotes?: boolean;
   notesLabel?: string;
   askPlusOnes?: boolean;
+  coupleCanEdit?: boolean;
   customQuestions?: RsvpQuestionShape[];
 };
 /** Réponse d'un invité à une question custom (`guests.customAnswers`). */
