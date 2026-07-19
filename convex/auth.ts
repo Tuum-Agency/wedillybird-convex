@@ -246,13 +246,13 @@ export const userByPhone = query({
       .withIndex('by_phone', (q) => q.eq('phone', phone))
       .first();
     if (!user) return null;
+    // Surface minimale : `dev-login` (seul appelant, route prod-bloquée) n'a
+    // besoin que de l'id + du téléphone. On n'expose PAS email/nom/rôle par
+    // numéro — une query publique complète = énumération de comptes + fuite PII
+    // via un appel direct à l'URL Convex. Cf. audit archi 2026-07-19.
     return {
       _id: user._id,
       phone: user.phone,
-      email: user.email,
-      fullName: user.fullName,
-      role: user.role,
-      locale: user.locale,
     };
   },
 });

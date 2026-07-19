@@ -84,6 +84,7 @@ export async function POST(
 
         if (subscriptionEvent.kind === 'payg.purchased') {
           await convex.mutation(convexApi.markPaygPurchase, {
+            webhookSecret,
             organizationId: subscriptionEvent.organizationId,
             requesterId: subscriptionEvent.requesterId,
             stripeSessionId: subscriptionEvent.stripeSessionId,
@@ -218,8 +219,16 @@ export async function POST(
 
   try {
     const convex = getConvexServerClient();
+    // Secret partagé Vercel ⇄ Convex : `markSucceeded`/`markFailed` débloquent
+    // la galerie payante. Sans ce secret, un appel direct à `*.convex.cloud`
+    // pouvait marquer un paiement encaissé sans jamais payer (forge F-01).
+    const webhookSecret = process.env.CONVEX_WEBHOOK_SECRET;
+    if (!webhookSecret) {
+      return NextResponse.json({ error: 'WEBHOOK_SECRET_NOT_CONFIGURED' }, { status: 500 });
+    }
     if (event.status === 'succeeded') {
       const result = await convex.mutation(convexApi.markPaymentSucceeded, {
+        webhookSecret,
         provider,
         providerSessionId: event.providerSessionId,
         providerEventId: event.providerEventId,
@@ -254,6 +263,7 @@ export async function POST(
       return NextResponse.json({ ok: true, alreadyApplied: result.alreadyApplied });
     }
     const result = await convex.mutation(convexApi.markPaymentFailed, {
+      webhookSecret,
       provider,
       providerSessionId: event.providerSessionId,
       providerEventId: event.providerEventId,

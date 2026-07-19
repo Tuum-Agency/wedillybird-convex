@@ -98,10 +98,6 @@ export const convexApi = {
     {
       _id: string;
       phone?: string;
-      email?: string;
-      fullName?: string;
-      role: 'couple' | 'pro' | 'guest' | 'admin';
-      locale: 'fr';
     } | null
   >('auth:userByPhone'),
   createEvent: makeFunctionReference<
@@ -653,6 +649,7 @@ export const convexApi = {
   markPaymentSucceeded: makeFunctionReference<
     'mutation',
     {
+      webhookSecret: string;
       provider: 'stripe' | 'mock';
       providerSessionId: string;
       providerEventId: string;
@@ -662,6 +659,7 @@ export const convexApi = {
   markPaymentFailed: makeFunctionReference<
     'mutation',
     {
+      webhookSecret: string;
       provider: 'stripe' | 'mock';
       providerSessionId: string;
       providerEventId: string;
@@ -1619,6 +1617,7 @@ export const convexApi = {
   markPaygPurchase: makeFunctionReference<
     'mutation',
     {
+      webhookSecret: string;
       organizationId: string;
       requesterId: string;
       stripeSessionId: string;
@@ -1758,6 +1757,7 @@ export const convexApi = {
   applyWhatsappTemplateWebhook: makeFunctionReference<
     'mutation',
     {
+      webhookSecret: string;
       metaTemplateId: string;
       metaName?: string;
       status: string;

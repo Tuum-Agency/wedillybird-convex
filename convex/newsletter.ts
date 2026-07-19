@@ -103,7 +103,7 @@ export const unsubscribe = mutation({
  * Pour l'instant pas exposé via une page UI, mais la requête est là pour
  * le moment où on en aura besoin.
  */
-export const listActive = query({
+export const listActive = internalQuery({
   args: { limit: v.optional(v.number()) },
   handler: async (ctx, { limit }) => {
     const subscribers = await ctx.db
@@ -121,7 +121,7 @@ export const listActive = query({
   },
 });
 
-export const countActive = query({
+export const countActive = internalQuery({
   args: {},
   handler: async (ctx) => {
     const all = await ctx.db

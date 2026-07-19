@@ -1,5 +1,6 @@
 import { v } from 'convex/values';
 import { internalMutation, mutation, query } from './_generated/server';
+import { assertWebhookSecret } from './lib/webhookSecret';
 import { internal } from './_generated/api';
 import { toIntlTag } from '../lib/i18n/locale-tags';
 import { assertOrgRead } from './lib/orgAuth';
@@ -105,11 +106,16 @@ export const findBySession = query({
 
 export const markSucceeded = mutation({
   args: {
+    // Secret partagé Vercel ⇄ Convex : cette mutation débloque la galerie
+    // payante (réconciliation planTier/paidAt), elle ne doit JAMAIS être
+    // appelable directement sur `*.convex.cloud` sans passer par le webhook.
+    webhookSecret: v.string(),
     provider: PROVIDER,
     providerSessionId: v.string(),
     providerEventId: v.string(),
   },
-  handler: async (ctx, { provider, providerSessionId, providerEventId }) => {
+  handler: async (ctx, { webhookSecret, provider, providerSessionId, providerEventId }) => {
+    assertWebhookSecret(webhookSecret);
     const payment = await ctx.db
       .query('payments')
       .withIndex('by_session', (q) =>
@@ -223,6 +229,7 @@ function formatAmount(amountMinor: number, currency: string): string {
 
 export const markFailed = mutation({
   args: {
+    webhookSecret: v.string(),
     provider: PROVIDER,
     providerSessionId: v.string(),
     providerEventId: v.string(),
@@ -230,6 +237,7 @@ export const markFailed = mutation({
     failureReason: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    assertWebhookSecret(args.webhookSecret);
     const payment = await ctx.db
       .query('payments')
       .withIndex('by_session', (q) =>

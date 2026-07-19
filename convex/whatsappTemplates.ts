@@ -21,6 +21,7 @@ import {
 } from './_generated/server';
 import { internal } from './_generated/api';
 import type { Id } from './_generated/dataModel';
+import { assertWebhookSecret } from './lib/webhookSecret';
 
 // Meta : nom de template = 1-512 chars, lowercase alphanumeric + underscore.
 const NAME_MAX = 512;
@@ -393,12 +394,16 @@ export const getByMetaId = query({
  */
 export const applyWebhookStatusUpdate = mutation({
   args: {
+    // Secret partagé Vercel ⇄ Convex : un appel direct pouvait sinon marquer
+    // un template `approved` (broadcast d'un template non validé) ou `disabled`.
+    webhookSecret: v.string(),
     metaTemplateId: v.string(),
     metaName: v.optional(v.string()),
     status: v.string(),
     reason: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    assertWebhookSecret(args.webhookSecret);
     const tpl = await ctx.db
       .query('whatsappTemplates')
       .withIndex('by_meta_id', (q) => q.eq('metaTemplateId', args.metaTemplateId))

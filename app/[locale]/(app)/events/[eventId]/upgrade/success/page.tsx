@@ -40,7 +40,10 @@ export default async function UpgradeSuccessPage({
       const driver = getPaymentDriver(provider);
       const status = await driver.retrieveSessionStatus(sp.session_id);
       if (status.paid) {
+        const webhookSecret = process.env.CONVEX_WEBHOOK_SECRET;
+        if (!webhookSecret) throw new Error('WEBHOOK_SECRET_NOT_CONFIGURED');
         await convex.mutation(convexApi.markPaymentSucceeded, {
+          webhookSecret,
           provider,
           providerSessionId: status.providerSessionId,
           providerEventId: status.providerEventId,

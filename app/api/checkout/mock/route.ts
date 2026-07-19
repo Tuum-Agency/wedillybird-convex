@@ -27,14 +27,22 @@ export async function GET(req: Request): Promise<Response> {
 
   try {
     const convex = getConvexServerClient();
+    // Route dev/E2E uniquement (refusée en prod plus haut). Le secret partagé
+    // est requis depuis que `markSucceeded`/`markFailed` sont verrouillées.
+    const webhookSecret = process.env.CONVEX_WEBHOOK_SECRET;
+    if (!webhookSecret) {
+      return NextResponse.json({ error: 'WEBHOOK_SECRET_NOT_CONFIGURED' }, { status: 500 });
+    }
     if (status === 'succeeded') {
       await convex.mutation(convexApi.markPaymentSucceeded, {
+        webhookSecret,
         provider: 'mock',
         providerSessionId: sessionId,
         providerEventId: `mock_evt_${sessionId}`,
       });
     } else {
       await convex.mutation(convexApi.markPaymentFailed, {
+        webhookSecret,
         provider: 'mock',
         providerSessionId: sessionId,
         providerEventId: `mock_evt_${sessionId}`,
