@@ -4588,7 +4588,8 @@
     "billingInvoicePeriod": "Period",
     "billingInvoiceAmount": "Amount",
     "billingInvoiceStatus": "Status",
-    "billingInvoiceDocument": "Document"
+    "billingInvoiceDocument": "Document",
+    "backToWedding": "Back to wedding"
   },
   "CoupleSpace": {
     "eyebrow": "Couple space",

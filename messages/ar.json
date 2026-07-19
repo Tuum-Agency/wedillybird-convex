@@ -4588,7 +4588,8 @@
     "billingInvoicePeriod": "الفترة",
     "billingInvoiceAmount": "المبلغ",
     "billingInvoiceStatus": "الحالة",
-    "billingInvoiceDocument": "المستند"
+    "billingInvoiceDocument": "المستند",
+    "backToWedding": "العودة إلى الزفاف"
   },
   "CoupleSpace": {
     "eyebrow": "مساحة الثنائي",

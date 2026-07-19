@@ -145,16 +145,16 @@ export function RsvpQuestionsEditor({ eventId, initialConfig, unlocked, upgradeH
 
   if (!unlocked) {
     return (
-      <section className="flex flex-col gap-5 rounded-3xl border border-[color:var(--color-border)] bg-white p-7 shadow-[var(--shadow-soft)] sm:p-9">
+      <section className="flex flex-col gap-5 rounded-3xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-7 shadow-[var(--shadow-soft)] sm:p-9">
         <SectionHeader title={t('title')} subtitle={t('subtitle')} />
-        <div className="flex flex-col items-center gap-4 rounded-2xl border border-dashed border-[color:var(--color-border-strong)] bg-[color:var(--color-blush-50)] px-6 py-10 text-center">
+        <div className="flex flex-col items-center gap-4 rounded-2xl border border-dashed border-[color:var(--color-border-strong)] bg-[color:var(--color-primary-soft)] px-6 py-10 text-center">
           <span
             aria-hidden
-            className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-[color:var(--color-blush-700)] shadow-[var(--shadow-soft)]"
+            className="flex h-12 w-12 items-center justify-center rounded-full bg-[color:var(--color-surface)] text-[color:var(--color-primary)] shadow-[var(--shadow-soft)]"
           >
             <Lock className="h-5 w-5" strokeWidth={1.75} />
           </span>
-          <p className="max-w-sm text-sm leading-relaxed text-[color:var(--color-ink-700)] sm:text-base">
+          <p className="max-w-sm text-sm leading-relaxed text-[color:var(--color-foreground)] sm:text-base">
             {t('lockedBody')}
           </p>
           <Link
@@ -170,12 +170,12 @@ export function RsvpQuestionsEditor({ eventId, initialConfig, unlocked, upgradeH
   }
 
   return (
-    <section className="flex flex-col gap-8 rounded-3xl border border-[color:var(--color-border)] bg-white p-7 shadow-[var(--shadow-soft)] sm:p-9">
+    <section className="flex flex-col gap-8 rounded-3xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-7 shadow-[var(--shadow-soft)] sm:p-9">
       <SectionHeader title={t('title')} subtitle={t('subtitle')} />
 
       {/* Champs standard */}
       <div className="flex flex-col gap-4">
-        <h3 className="font-mono text-[10px] tracking-[0.28em] text-[color:var(--color-ink-500)] uppercase">
+        <h3 className="font-mono text-[10px] tracking-[0.28em] text-[color:var(--color-muted-foreground)] uppercase">
           {t('builtinSectionTitle')}
         </h3>
         <ToggleRow
@@ -232,16 +232,16 @@ export function RsvpQuestionsEditor({ eventId, initialConfig, unlocked, upgradeH
       {/* Questions personnalisées */}
       <div className="flex flex-col gap-4 border-t border-[color:var(--color-border)] pt-7">
         <div className="flex flex-col gap-1">
-          <h3 className="font-mono text-[10px] tracking-[0.28em] text-[color:var(--color-ink-500)] uppercase">
+          <h3 className="font-mono text-[10px] tracking-[0.28em] text-[color:var(--color-muted-foreground)] uppercase">
             {t('customSectionTitle')}
           </h3>
-          <p className="text-sm text-[color:var(--color-ink-500)]">
+          <p className="text-sm text-[color:var(--color-muted-foreground)]">
             {t('customSectionHint', { max: MAX_CUSTOM_QUESTIONS })}
           </p>
         </div>
 
         {questions.length === 0 ? (
-          <p className="rounded-2xl border border-dashed border-[color:var(--color-border)] px-5 py-6 text-center text-sm text-[color:var(--color-ink-500)]">
+          <p className="rounded-2xl border border-dashed border-[color:var(--color-border)] px-5 py-6 text-center text-sm text-[color:var(--color-muted-foreground)]">
             {t('empty')}
           </p>
         ) : (
@@ -283,7 +283,7 @@ export function RsvpQuestionsEditor({ eventId, initialConfig, unlocked, upgradeH
       {/* Barre d'enregistrement */}
       <div className="flex flex-col gap-3 border-t border-[color:var(--color-border)] pt-6 sm:flex-row sm:items-center sm:justify-end">
         {status === 'saved' ? (
-          <p className="text-sm text-[color:var(--color-sage-700)] sm:mr-auto" role="status">
+          <p className="text-sm text-[color:var(--color-success)] sm:mr-auto" role="status">
             {t('saved')}
           </p>
         ) : null}
@@ -310,12 +310,12 @@ function SectionHeader({ title, subtitle }: { title: string; subtitle: string })
           fontSize: 'clamp(1.25rem, 1.8vw, 1.5rem)',
           lineHeight: 1.2,
           letterSpacing: '-0.018em',
-          color: 'var(--color-ink-900)',
+          color: 'var(--color-foreground)',
         }}
       >
         {title}
       </h2>
-      <p className="text-sm text-[color:var(--color-ink-500)]">{subtitle}</p>
+      <p className="text-sm text-[color:var(--color-muted-foreground)]">{subtitle}</p>
     </div>
   );
 }
@@ -338,8 +338,10 @@ function ToggleRow({
     <div className="flex flex-col gap-3 rounded-2xl border border-[color:var(--color-border)] p-4">
       <div className="flex items-start justify-between gap-4">
         <div className="flex flex-col gap-0.5">
-          <span className="text-sm font-medium text-[color:var(--color-ink-900)]">{label}</span>
-          {hint ? <span className="text-xs text-[color:var(--color-ink-500)]">{hint}</span> : null}
+          <span className="text-sm font-medium text-[color:var(--color-foreground)]">{label}</span>
+          {hint ? (
+            <span className="text-xs text-[color:var(--color-muted-foreground)]">{hint}</span>
+          ) : null}
         </div>
         <button
           type="button"
@@ -349,7 +351,7 @@ function ToggleRow({
           onClick={() => onChange(!on)}
           className={cn(
             'focus-ring relative h-6 w-11 flex-shrink-0 rounded-full transition-colors',
-            on ? 'bg-[color:var(--color-blush-700)]' : 'bg-[color:var(--color-ivory-200)]',
+            on ? 'bg-[color:var(--color-primary)]' : 'bg-[color:var(--color-border-strong)]',
           )}
         >
           <span
@@ -392,7 +394,7 @@ function QuestionCard({
 }) {
   const isChoice = CHOICE_TYPES.has(q.type);
   return (
-    <li className="flex flex-col gap-4 rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-ivory-50)] p-5">
+    <li className="flex flex-col gap-4 rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface-elevated)] p-5">
       <div className="flex items-start gap-3">
         <div className="flex flex-1 flex-col gap-2">
           <Label htmlFor={`q-label-${q.id}`}>{t('questionLabel')}</Label>
@@ -409,7 +411,7 @@ function QuestionCard({
             aria-label={t('moveUp')}
             disabled={index === 0}
             onClick={() => onMove(q.id, -1)}
-            className="focus-ring flex h-7 w-7 items-center justify-center rounded-lg text-[color:var(--color-ink-500)] transition-colors hover:bg-[color:var(--color-ivory-100)] disabled:opacity-30"
+            className="focus-ring flex h-7 w-7 items-center justify-center rounded-lg text-[color:var(--color-muted-foreground)] transition-colors hover:bg-[color:var(--color-surface-elevated)] disabled:opacity-30"
           >
             <ChevronUp className="h-4 w-4" strokeWidth={2} aria-hidden />
           </button>
@@ -418,7 +420,7 @@ function QuestionCard({
             aria-label={t('moveDown')}
             disabled={index === total - 1}
             onClick={() => onMove(q.id, 1)}
-            className="focus-ring flex h-7 w-7 items-center justify-center rounded-lg text-[color:var(--color-ink-500)] transition-colors hover:bg-[color:var(--color-ivory-100)] disabled:opacity-30"
+            className="focus-ring flex h-7 w-7 items-center justify-center rounded-lg text-[color:var(--color-muted-foreground)] transition-colors hover:bg-[color:var(--color-surface-elevated)] disabled:opacity-30"
           >
             <ChevronDown className="h-4 w-4" strokeWidth={2} aria-hidden />
           </button>
@@ -430,7 +432,7 @@ function QuestionCard({
         <Select value={q.type} onValueChange={(v) => onChangeType(q.id, v as QuestionType)}>
           <SelectTrigger
             id={`q-type-${q.id}`}
-            className="focus-ring h-11 rounded-lg border border-[color:var(--color-border)] bg-white px-3 text-sm"
+            className="focus-ring h-11 rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-3 text-sm"
           >
             <SelectValue />
           </SelectTrigger>
@@ -459,7 +461,7 @@ function QuestionCard({
                   type="button"
                   aria-label={t('removeOption')}
                   onClick={() => onRemoveOption(q.id, idx)}
-                  className="focus-ring flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg text-[color:var(--color-ink-500)] transition-colors hover:bg-[color:var(--color-blush-50)] hover:text-[color:var(--color-blush-700)]"
+                  className="focus-ring flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg text-[color:var(--color-muted-foreground)] transition-colors hover:bg-[color:var(--color-primary-soft)] hover:text-[color:var(--color-primary)]"
                 >
                   <Trash2 className="h-4 w-4" strokeWidth={1.75} aria-hidden />
                 </button>
@@ -470,7 +472,7 @@ function QuestionCard({
             type="button"
             onClick={() => onAddOption(q.id)}
             disabled={(q.options ?? []).length >= MAX_OPTIONS}
-            className="focus-ring inline-flex w-fit items-center gap-1.5 text-sm font-medium text-[color:var(--color-blush-700)] transition-opacity hover:opacity-80 disabled:opacity-40"
+            className="focus-ring inline-flex w-fit items-center gap-1.5 text-sm font-medium text-[color:var(--color-primary)] transition-opacity hover:opacity-80 disabled:opacity-40"
           >
             <Plus className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />
             {t('addOption')}
@@ -492,7 +494,7 @@ function QuestionCard({
         <button
           type="button"
           onClick={() => onRemove(q.id)}
-          className="focus-ring ml-auto inline-flex items-center gap-1.5 text-sm text-[color:var(--color-ink-500)] transition-colors hover:text-[color:var(--color-blush-700)]"
+          className="focus-ring ml-auto inline-flex items-center gap-1.5 text-sm text-[color:var(--color-muted-foreground)] transition-colors hover:text-[color:var(--color-primary)]"
         >
           <Trash2 className="h-4 w-4" strokeWidth={1.75} aria-hidden />
           {t('removeQuestion')}
@@ -512,7 +514,7 @@ function InlineToggle({
   onChange: (v: boolean) => void;
 }) {
   return (
-    <label className="flex cursor-pointer items-center gap-2 text-sm text-[color:var(--color-ink-700)]">
+    <label className="flex cursor-pointer items-center gap-2 text-sm text-[color:var(--color-foreground)]">
       <button
         type="button"
         role="switch"
@@ -521,7 +523,7 @@ function InlineToggle({
         onClick={() => onChange(!on)}
         className={cn(
           'focus-ring relative h-5 w-9 flex-shrink-0 rounded-full transition-colors',
-          on ? 'bg-[color:var(--color-blush-700)]' : 'bg-[color:var(--color-ivory-200)]',
+          on ? 'bg-[color:var(--color-primary)]' : 'bg-[color:var(--color-border-strong)]',
         )}
       >
         <span
