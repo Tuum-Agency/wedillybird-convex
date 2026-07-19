@@ -50,7 +50,7 @@ export default async function AdminDashboardPage({
 
   return (
     <AdminShell current="overview" adminName={user?.fullName}>
-      <div className="flex flex-col gap-8">
+      <div className="flex flex-col gap-6">
         <header>
           <h1
             className="font-display italic"

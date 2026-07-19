@@ -119,10 +119,19 @@ function useCategoryLabel() {
 
 /** Couleurs des pastilles de statut (les libellés viennent de l'i18n). */
 const STATUS_PILL_TONE: Record<LineStatus, { bg: string; fg: string }> = {
-  todo: { bg: 'oklch(28% 0.015 60)', fg: 'oklch(80% 0.02 60)' },
-  partial: { bg: 'oklch(30% 0.05 85)', fg: 'oklch(88% 0.08 85)' },
-  paid: { bg: 'oklch(27% 0.05 145)', fg: 'oklch(83% 0.08 145)' },
-  overdue: { bg: 'oklch(28% 0.06 25)', fg: 'oklch(85% 0.08 25)' },
+  todo: { bg: 'var(--color-surface-elevated)', fg: 'var(--color-muted-foreground)' },
+  partial: {
+    bg: 'var(--color-warning-soft)',
+    fg: 'color-mix(in oklab, var(--color-warning), var(--color-foreground) 55%)',
+  },
+  paid: {
+    bg: 'var(--color-success-soft)',
+    fg: 'color-mix(in oklab, var(--color-success), var(--color-foreground) 42%)',
+  },
+  overdue: {
+    bg: 'var(--color-danger-soft)',
+    fg: 'color-mix(in oklab, var(--color-danger), var(--color-foreground) 40%)',
+  },
 };
 
 /** Codes d'erreur serveur disposant d'un libellé dédié (sinon message générique). */

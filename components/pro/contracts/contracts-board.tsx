@@ -120,10 +120,11 @@ function fmtDate(format: Fmt, ms: number | null | undefined): string {
 
 const TONE: Record<ContractTone, string> = {
   muted: 'bg-[color:var(--color-surface-elevated)] text-[color:var(--color-muted-foreground)]',
-  info: 'bg-[oklch(28%_0.05_255)] text-[oklch(84%_0.08_258)]',
-  warn: 'bg-[oklch(29%_0.05_80)] text-[oklch(87%_0.09_85)]',
-  ok: 'bg-[oklch(26%_0.045_150)] text-[oklch(84%_0.09_150)]',
-  danger: 'bg-[oklch(28%_0.05_25)] text-[oklch(84%_0.09_25)]',
+  info: 'bg-[color:var(--color-info-soft)] text-[color:color-mix(in_oklab,var(--color-info),var(--color-foreground)_40%)]',
+  warn: 'bg-[color:var(--color-warning-soft)] text-[color:color-mix(in_oklab,var(--color-warning),var(--color-foreground)_55%)]',
+  ok: 'bg-[color:var(--color-success-soft)] text-[color:color-mix(in_oklab,var(--color-success),var(--color-foreground)_42%)]',
+  danger:
+    'bg-[color:var(--color-danger-soft)] text-[color:color-mix(in_oklab,var(--color-danger),var(--color-foreground)_40%)]',
 };
 
 function StatusPill({ status }: { status: ContractStatus }) {

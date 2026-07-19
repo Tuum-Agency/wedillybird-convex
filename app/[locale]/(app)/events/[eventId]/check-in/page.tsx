@@ -37,7 +37,7 @@ export default async function CheckInPage({
 
   return (
     <AppShell userName={user?.fullName}>
-      <div className="container-page flex flex-col gap-8 py-10">
+      <div className="container-page flex flex-col gap-8 py-12 sm:py-16">
         <header className="flex flex-col gap-3">
           <Link
             href={`/events/${eventId}`}
