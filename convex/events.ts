@@ -10,6 +10,7 @@ import { normalizePhone, isValidE164 } from './lib/phone';
 import { summarizeGuestRsvp } from './lib/guestStats';
 import { sanitizeRsvpConfig } from '../lib/rsvp/questions';
 import { notifyEventParties } from './lib/notify';
+import { decideRsvpConfigWrite } from './lib/rsvpAuth';
 
 function toSlugBase(partnerA: string, partnerB: string): string {
   const raw = `${partnerA}-${partnerB}`
@@ -233,7 +234,6 @@ export const updateRsvpConfig = mutation({
     const event = await assertEventAccess(ctx, args.eventId, args.requesterId, { write: true });
     if (!eventHasFeature(event, 'customRsvpQuestions')) throw new Error('FEATURE_LOCKED');
 
-    const previous = event.rsvpConfig;
     const isOwner = event.ownerId === args.requesterId;
 
     // Le couple rattaché (collaborateur rôle `couple`) ne peut modifier le
@@ -249,13 +249,17 @@ export const updateRsvpConfig = mutation({
         .first();
       isDelegateCouple = collab?.role === 'couple';
     }
-    if (isDelegateCouple && previous?.coupleCanEdit !== true) throw new Error('FORBIDDEN');
 
-    // Seul le propriétaire (l'agence) contrôle la délégation ; les autres
-    // conservent la valeur existante.
-    const coupleCanEdit = isOwner
-      ? (args.config.coupleCanEdit ?? previous?.coupleCanEdit ?? false)
-      : (previous?.coupleCanEdit ?? false);
+    // Décision d'autorité pure (testée) : refus si couple non autorisé ; seul le
+    // propriétaire pilote le flag de délégation.
+    const decision = decideRsvpConfigWrite({
+      isOwner,
+      isDelegateCouple,
+      previousCoupleCanEdit: event.rsvpConfig?.coupleCanEdit,
+      incomingCoupleCanEdit: args.config.coupleCanEdit,
+    });
+    if (!decision.allowed) throw new Error('FORBIDDEN');
+    const coupleCanEdit = decision.coupleCanEdit;
 
     const clean = sanitizeRsvpConfig(args.config);
     await ctx.db.patch(args.eventId, {
