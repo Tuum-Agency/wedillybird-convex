@@ -73,7 +73,9 @@ export default async function EventInvoicePage({
   const user = await convex.query(convexApi.currentUser, { userId: session!.userId });
   const t = await getTranslations('InvoicePage');
 
-  const succeeded = payments.filter((p) => p.status === 'succeeded');
+  const succeeded = payments.filter(
+    (p): p is (typeof payments)[number] & { status: 'succeeded' } => p.status === 'succeeded',
+  );
 
   const planLabel: Record<PlanTier, string> = {
     essential: t('planEssential'),

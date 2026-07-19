@@ -381,7 +381,10 @@ export async function submitCustomTemplateAction(
       return { ok: false, error: submitted.error ?? 'SUBMIT_FAILED' };
     }
     mock = submitted.mock ?? false;
-    metaTemplateId = submitted.metaTemplateId;
+    // `metaTemplateId` n'existe que sur la branche `mock: false` du type RÉEL
+    // (l'ancien client tapé main le déclarait toujours présent — bug latent de
+    // typage révélé par la migration vers l'API générée).
+    metaTemplateId = submitted.mock === false ? submitted.metaTemplateId : undefined;
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : 'SUBMIT_FAILED' };
   }
