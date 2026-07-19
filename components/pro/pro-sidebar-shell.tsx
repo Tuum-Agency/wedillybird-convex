@@ -30,6 +30,7 @@ import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { signOutAction } from '@/app/[locale]/(auth)/actions';
 import { LocaleSwitcher } from '@/components/layout/locale-switcher';
+import { StoreNotificationBell } from '@/components/notifications/store-notification-bell';
 import { cn } from '@/lib/cn';
 import { PRO_TIER_LIMITS, tierHasFeature, type ProFeature } from '@/lib/payments/entitlements';
 import type { SubscriptionTier } from '@/lib/payments/subscriptions';
@@ -453,6 +454,7 @@ export function ProSidebarShell({
                 </span>
               ) : null}
 
+              <StoreNotificationBell />
               <LocaleSwitcher />
             </div>
           </header>
