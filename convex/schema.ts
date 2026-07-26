@@ -208,6 +208,43 @@ export default defineSchema({
      * l'event est définitivement archivé / supprimé (cf. BACKLOG).
      */
     faceCollectionId: v.optional(v.string()),
+    /**
+     * Reco-faciale (Lane T3, F7) — OFF par défaut (`undefined`/`false`). Le
+     * couple/l'agence opt-in explicitement via `events:setFaceSearchEnabled`,
+     * qui REFUSE l'activation si `weddingState` ∈ `BIOMETRIC_BANNED_STATES`
+     * (`convex/lib/biometricConsent.ts` — IL/TX/WA) et persiste
+     * `faceSearchConsent` au moment de l'opt-in. C'est le seul flag qui
+     * autorise le Lambda de modération (`infra/lambdas/moderation.ts`) à
+     * appeler `IndexFacesCommand` (vérifié via l'endpoint HTTP signé
+     * `/lambda/face-search-enabled`) — AVANT ce Lane, aucun gate n'existait.
+     */
+    faceSearchEnabled: v.optional(v.boolean()),
+    /**
+     * Preuve de consentement à l'opt-in reco-faciale — seule trace en base
+     * qu'un humain a explicitement accepté (avant ce Lane, l'écran de
+     * consentement du *chercheur* dans `face-search-modal.tsx` ne
+     * sauvegardait jamais rien). Réécrit à chaque nouvelle activation ;
+     * conservé tel quel si l'event désactive ensuite la feature (preuve
+     * historique qu'un consentement a bien eu lieu).
+     */
+    faceSearchConsent: v.optional(
+      v.object({
+        enabledAt: v.number(),
+        /** Version de la notice de consentement affichée (cf. FACE_SEARCH_NOTICE_VERSION). */
+        noticeVersion: v.string(),
+        byUserId: v.id('users'),
+      }),
+    ),
+    /**
+     * État/province US ou Canada où le mariage a lieu, déclaré par le couple
+     * (ex. `"IL"`, `"TX"`, `"CA-QC"`) — codes bruts USPS pour les États US,
+     * préfixés `CA-` pour les provinces canadiennes (cf. `lib/geo/regions.ts`
+     * côté app). `undefined` = hors US/Canada ou non renseigné : le geofence
+     * biométrique ne s'applique qu'aux codes listés dans
+     * `BIOMETRIC_BANNED_STATES`. Ne PAS inférer depuis l'indicatif `+1`
+     * (couvre US ET Canada) — champ déclaratif volontairement structuré.
+     */
+    weddingState: v.optional(v.string()),
     theme: v.optional(
       v.object({
         primaryColor: v.string(),
@@ -321,7 +358,12 @@ export default defineSchema({
     .index('by_owner', ['ownerId'])
     .index('by_slug', ['slug'])
     .index('by_status', ['status'])
-    .index('by_organization', ['organizationId']),
+    .index('by_organization', ['organizationId'])
+    // Cron quotidien des rappels J-7/J-1 (`reminders.ts:listEventsInWindow`) :
+    // sans cet index, le scan fait un `.filter()` sur `.collect()` intégral de
+    // la table `events` chaque jour — coût O(tous les events) qui grossit sans
+    // borne (F6, audit archi 2026-07-19). Permet `.withIndex('by_eventDate', …)`.
+    .index('by_eventDate', ['eventDate']),
 
   guests: defineTable({
     eventId: v.id('events'),
@@ -518,7 +560,12 @@ export default defineSchema({
   })
     .index('by_user', ['userId'])
     .index('by_event', ['eventId'])
-    .index('by_session', ['provider', 'providerSessionId']),
+    .index('by_session', ['provider', 'providerSessionId'])
+    // Cron de réconciliation Stripe↔Convex (`payments.ts:listStalePending`,
+    // T2-2) : retrouve les paiements `pending` plus vieux que N minutes sans
+    // scanner toute la table. `status` d'abord (cardinalité faible, filtre
+    // fort) puis `createdAt` pour la borne d'âge.
+    .index('by_status_createdAt', ['status', 'createdAt']),
 
   photos: defineTable({
     eventId: v.id('events'),
@@ -1209,4 +1256,40 @@ export default defineSchema({
     .index('by_event', ['eventId'])
     .index('by_vendor', ['vendorId'])
     .index('by_vendor_event', ['vendorId', 'eventId']),
+
+  /**
+   * Journal de livraison SMS (Twilio). Une ligne par message envoyé, mise à jour
+   * par le webhook StatusCallback (`/api/webhooks/twilio`). SOURCE DE VÉRITÉ de
+   * la livraison réelle : le HTTP 200 de Twilio ne signifie que « accepté en
+   * file », jamais « reçu » — les carriers A2P US peuvent filtrer en silence.
+   * Sans ce journal, l'UI affichait « envoyé » pour un message jamais reçu (F4).
+   */
+  smsDeliveries: defineTable({
+    twilioSid: v.string(),
+    kind: v.union(
+      v.literal('invitation'),
+      v.literal('reminder'),
+      v.literal('otp'),
+      v.literal('unknown'),
+    ),
+    status: v.union(
+      v.literal('queued'),
+      v.literal('sent'),
+      v.literal('delivered'),
+      v.literal('undelivered'),
+      v.literal('failed'),
+      v.literal('unknown'),
+    ),
+    guestId: v.optional(v.id('guests')),
+    eventId: v.optional(v.id('events')),
+    to: v.optional(v.string()),
+    /** Code d'erreur Twilio (ex. 30007/30008 = message filtré par le carrier). */
+    errorCode: v.optional(v.string()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index('by_twilio_sid', ['twilioSid'])
+    .index('by_guest', ['guestId'])
+    .index('by_event', ['eventId'])
+    .index('by_event_status', ['eventId', 'status']),
 });

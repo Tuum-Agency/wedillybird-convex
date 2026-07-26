@@ -68,6 +68,7 @@ const rawConvexApi = {
   completeOnboarding: api.users.completeOnboarding,
   userByPhone: api.auth.userByPhone,
   createEvent: api.events.create,
+  smsApplyStatusWebhook: api.smsDeliveries.applyStatusWebhook,
   publishEvent: api.events.publish,
   unpublishEvent: api.events.unpublish,
   orgPublishQuotaStatus: api.events.orgPublishQuotaStatus,
@@ -85,6 +86,7 @@ const rawConvexApi = {
   updateEvent: api.events.update,
   reconcileEventMaxGuests: api.events.reconcileMaxGuests,
   getEventById: api.events.getById,
+  setFaceSearchEnabled: api.events.setFaceSearchEnabled,
 
   // ---- Espace couple (mariages d'agence) ----
   linkCouple: api.events.linkCouple,
@@ -117,6 +119,10 @@ const rawConvexApi = {
   markPaymentSucceeded: api.payments.markSucceeded,
   markPaymentFailed: api.payments.markFailed,
   listPaymentsByEvent: api.payments.listByEvent,
+  // ---- Observabilité T2 (health-check, cron réconciliation, monitor entitlement) ----
+  verifyWebhookSecretHealth: api.health.verifyWebhookSecret,
+  listStalePendingPayments: api.payments.listStalePending,
+  scanOrphanedEntitlements: api.payments.scanOrphanedEntitlements,
   getPaymentForInvoice: api.paymentsInvoice.getForInvoice,
   createOrganization: api.organizations.create,
   myOrganization: api.organizations.myOrganization,
