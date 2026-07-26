@@ -207,6 +207,10 @@ export const getByToken = query({
         venue: event.venue,
         theme: event.theme,
         rsvpConfig: event.rsvpConfig,
+        // Reco-faciale opt-in (Lane T3, F7) : la page galerie invité s'en sert
+        // pour masquer le bouton « Find my photos » quand l'event n'a pas
+        // activé la feature.
+        faceSearchEnabled: event.faceSearchEnabled === true,
       },
     };
   },

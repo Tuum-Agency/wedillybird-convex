@@ -227,7 +227,7 @@
     "skipToContent": "Skip to main content",
     "home": "Home",
     "meta": {
-      "organizationDescription": "WhatsApp-first wedding-planning SaaS platform: invitations, RSVP, check-in, shared gallery. France and French-speaking West Africa."
+      "organizationDescription": "Wedding SaaS platform: digital invitations, RSVP, guest check-in, and a shared photo gallery."
     },
     "close": "Close"
   },
@@ -258,7 +258,9 @@
       "article6Body": "The Service is provided \"as is\". Wedillybird strives to ensure maximum availability but does not guarantee uninterrupted service. Wedillybird's liability is limited to the amount paid by the User over the past 12 months.",
       "article7Title": "7. Governing law and disputes",
       "article7Body": "These Terms are governed by French law. Any dispute relating to their performance shall fall within the exclusive jurisdiction of the Paris courts, except for any contrary provision of public policy.",
-      "description": "Wedillybird Service Terms of Service: account, pricing, intellectual property, liability, governing law."
+      "description": "Wedillybird Service Terms of Service: account, pricing, intellectual property, liability, governing law.",
+      "article8Title": "8. Photos, guests and biometric data",
+      "article8Body": "The User who uploads photos of guests (typically the couple) represents and warrants that they have informed their guests that photos will be shared through the Service and, where the optional face-search feature is enabled, that guests' faces will be processed to let them find their own photos, and that they have obtained any consent required under applicable law. The User is responsible for complying with the law of the place where the wedding is held regarding the biometric data of the people they invite. Wedillybird does not offer face search for weddings held in Illinois, Texas, or Washington."
     },
     "privacy": {
       "title": "Privacy Policy",
@@ -272,9 +274,11 @@
       "legalBasisTitle": "Legal bases (GDPR)",
       "legalBasisBody": "Performance of the contract (account, payments, features), legitimate interest (security, abuse prevention), consent (non-essential cookies, marketing communications).",
       "retentionTitle": "Retention period",
-      "retentionBody": "Account data: duration of the subscription + 3 years. Payment data: legal duration (10 years for invoicing). Technical logs: 12 months maximum.",
+      "retentionBody": "Account data: duration of the subscription + 3 years. Payment data: legal duration (10 years for invoicing). Technical logs: 12 months maximum. Biometric face data (face search, when enabled): until the gallery expires or the feature is disabled, whichever comes first — see “Biometric data” below.",
       "subprocessorsTitle": "Subprocessors",
-      "subprocessorsBody": "Convex (database, US), Vercel (hosting, US/EU), Stripe (payments, EU/US), Twilio (SMS delivery, US/Canada), Meta WhatsApp Cloud API (message delivery, EU/US), Amazon Rekognition Faces (temporary face indexing for photo search, EU). Data is minimised, never resold or shared with third parties for marketing. All bound by standard contractual clauses or equivalent mechanisms.",
+      "subprocessorsBody": "Convex (database, US), Vercel (hosting, US/EU), Stripe (payments, EU/US), Twilio (SMS delivery, US/Canada), Meta WhatsApp Cloud API (message delivery, EU/US), Amazon Rekognition Faces (biometric face indexing for the optional face-search feature, only for weddings where the couple has explicitly opted in — see “Biometric data” below, EU). Data is minimised, never resold or shared with third parties for marketing. All bound by standard contractual clauses or equivalent mechanisms.",
+      "biometricsTitle": "Biometric data (face search)",
+      "biometricsBody": "Face search is an optional, opt-in feature: it is OFF by default and only processes guests' faces for weddings where the couple has explicitly enabled it, after reviewing this notice. Legal basis: explicit consent, given by the couple on behalf of the wedding (see Terms of Service). Data processed: facial geometry extracted from approved gallery photos (Amazon Rekognition), used only to match a guest's selfie against the gallery — the selfie itself is never stored. Retention: until the gallery expires or the couple disables the feature, whichever comes first; deleted automatically within 24 hours by a daily purge job, or sooner on request. This feature is not offered for weddings held in Illinois, Texas, or Washington.",
       "rightsTitle": "Your rights",
       "rightsBody": "Access, rectification, erasure, objection, portability, restriction. To exercise a right, write to privacy@wedillybird.com. You can also file a complaint with the CNIL.",
       "contactTitle": "Contact",
@@ -1101,7 +1105,8 @@
         "forbidden": "You don't have access to this gallery.",
         "rateLimited": "Too many recent searches. Please wait a moment before trying again.",
         "notInPlan": "Premium plan only. Upgrade to Premium to use face search.",
-        "unknown": "Something went wrong. Try again."
+        "unknown": "Something went wrong. Try again.",
+        "disabled": "Face search isn't enabled for this wedding."
       },
       "cancel": "Cancel"
     }
@@ -4072,7 +4077,8 @@
     "categoryTooLong": "Category too long",
     "notesTooLong": "Notes too long",
     "plusOnesRange": "0 to 10 plus-ones",
-    "plusOnesOnlyAttending": "Plus-ones only allowed if attending"
+    "plusOnesOnlyAttending": "Plus-ones only allowed if attending",
+    "weddingStateInvalid": "Invalid state/province code"
   },
   "WhatsApp": {
     "templateStatus": {
@@ -5366,5 +5372,29 @@
       "maybe": "Maybe"
     },
     "andMore": "and {count} more"
+  },
+  "FaceSearchPrivacy": {
+    "title": "Privacy & face search",
+    "subtitle": "Control whether guests can find their photos by face — off by default, your choice.",
+    "lockedBody": "Face search is included in the Premium plan (and all pro plans).",
+    "lockedCta": "Upgrade to Premium",
+    "stateLabel": "Wedding state / province",
+    "stateHint": "Required to enable face search if your wedding is in the United States or Canada — some states restrict biometric data.",
+    "stateNotApplicable": "Outside the US / Canada",
+    "stateGroupUs": "United States",
+    "stateGroupCa": "Canada",
+    "toggleLabel": "Enable face search for guests",
+    "toggleHint": "Lets guests find their own photos by uploading a selfie. Off by default.",
+    "consentNoticeBody": "Turning this on indexes guests' faces (Amazon Rekognition) so they can search their own photos with a selfie. By enabling it, you confirm you have informed your guests that face search is active for this wedding. You can turn it off at any time; indexed faces are deleted when the gallery expires or when you disable this setting.",
+    "consentRecordedAt": "Consent recorded on {date}",
+    "bannedNotice": "Face search isn't available for weddings in Illinois, Texas, or Washington — these states have specific biometric-data laws. This is a permanent restriction, not a bug.",
+    "save": "Save",
+    "saved": "Saved",
+    "errorSave": "Couldn't save. Try again.",
+    "errorStateBanned": "Face search can't be enabled for this state.",
+    "errorStateRequired": "Choose your wedding's state or province first. It's required to turn on face search.",
+    "statePlaceholder": "Select your wedding's location…",
+    "errorFeatureNotInPlan": "Face search is only available on the Premium plan (or pro plans).",
+    "errorForbidden": "You don't have permission to change this setting."
   }
 }

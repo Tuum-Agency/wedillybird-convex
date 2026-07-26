@@ -59,6 +59,7 @@ export async function createEventAction(formData: FormData): Promise<CreateEvent
     themeAccent: formData.get('themeAccent') ?? undefined,
     themeFont: formData.get('themeFont') ?? undefined,
     pendingPlanTier: formData.get('pendingPlanTier') ?? undefined,
+    weddingState: formData.get('weddingState') ?? undefined,
   });
 
   if (!parsed.success) {
@@ -438,6 +439,62 @@ export async function updateRsvpConfigAction(
     const message = err instanceof Error ? err.message : 'UNKNOWN';
     if (message.includes('FEATURE_LOCKED')) return { ok: false, error: 'FEATURE_LOCKED' };
     if (message.includes('FORBIDDEN')) return { ok: false, error: 'FORBIDDEN' };
+    return { ok: false, error: 'UNKNOWN' };
+  }
+}
+
+export type SetFaceSearchEnabledResult =
+  | { ok: true; enabled: boolean; weddingState?: string }
+  | {
+      ok: false;
+      error:
+        | 'UNAUTHENTICATED'
+        | 'FACE_SEARCH_STATE_REQUIRED'
+        | 'FACE_SEARCH_STATE_BANNED'
+        | 'FEATURE_NOT_IN_PLAN'
+        | 'FORBIDDEN'
+        | 'EVENT_NOT_FOUND'
+        | 'UNKNOWN';
+    };
+
+/**
+ * Active/désactive la reco-faciale d'un event (Lane T3, F7) et, dans le même
+ * appel, persiste l'État/province déclaré — évite toute race entre « je
+ * choisis mon État » et « j'active la feature » (cf. commentaire de la
+ * mutation Convex `events.setFaceSearchEnabled`). `weddingState` vide
+ * (chaîne vide) efface le champ ; `undefined` le laisse inchangé.
+ */
+export async function setFaceSearchEnabledAction(
+  eventId: string,
+  enabled: boolean,
+  weddingState?: string,
+): Promise<SetFaceSearchEnabledResult> {
+  const session = await getSession();
+  if (!session) return { ok: false, error: 'UNAUTHENTICATED' };
+
+  const convex = getConvexServerClient();
+  try {
+    const result = await convex.mutation(convexApi.setFaceSearchEnabled, {
+      eventId,
+      requesterId: session.userId,
+      enabled,
+      ...(weddingState !== undefined ? { weddingState } : {}),
+    });
+    revalidatePath(`/fr/events/${eventId}/edit`);
+    revalidatePath(`/fr/events/${eventId}/gallery`);
+    return { ok: true, enabled: result.enabled, weddingState: result.weddingState };
+  } catch (err) {
+    console.error('[setFaceSearchEnabledAction] failed', err);
+    const message = err instanceof Error ? err.message : 'UNKNOWN';
+    if (message.includes('FACE_SEARCH_STATE_REQUIRED')) {
+      return { ok: false, error: 'FACE_SEARCH_STATE_REQUIRED' };
+    }
+    if (message.includes('FACE_SEARCH_STATE_BANNED')) {
+      return { ok: false, error: 'FACE_SEARCH_STATE_BANNED' };
+    }
+    if (message.includes('FEATURE_NOT_IN_PLAN')) return { ok: false, error: 'FEATURE_NOT_IN_PLAN' };
+    if (message.includes('FORBIDDEN')) return { ok: false, error: 'FORBIDDEN' };
+    if (message.includes('EVENT_NOT_FOUND')) return { ok: false, error: 'EVENT_NOT_FOUND' };
     return { ok: false, error: 'UNKNOWN' };
   }
 }

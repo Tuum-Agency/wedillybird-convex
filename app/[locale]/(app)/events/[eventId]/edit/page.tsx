@@ -7,6 +7,7 @@ import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
 import { AppShell } from '@/components/app/app-shell';
 import { EventEditForm } from '@/components/events/event-edit-form';
 import { RsvpQuestionsEditor } from '@/components/events/rsvp-questions-editor';
+import { FaceSearchPrivacySection } from '@/components/events/face-search-privacy-section';
 import { eventHasPremiumOnlyFeature } from '@/lib/payments/entitlements';
 
 /**
@@ -97,6 +98,15 @@ export default async function EditEventPage({
           upgradeHref={`/events/${eventId}`}
           canEdit={isOwner || (event.rsvpConfig?.coupleCanEdit ?? false)}
           showDelegation={isOwner && !!event.organizationId}
+        />
+
+        <FaceSearchPrivacySection
+          eventId={eventId}
+          initialWeddingState={event.weddingState}
+          initialFaceSearchEnabled={event.faceSearchEnabled === true}
+          consentAt={event.faceSearchConsent?.enabledAt}
+          unlocked={eventHasPremiumOnlyFeature(event)}
+          upgradeHref={`/events/${eventId}`}
         />
       </div>
     </AppShell>

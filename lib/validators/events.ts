@@ -71,6 +71,20 @@ export const themeSchema = z
 
 export const planTierSchema = z.enum(['essential', 'premium']);
 
+/**
+ * État US (2 lettres) ou province canadienne (`CA-` + 2 lettres) — cf.
+ * `lib/geo/regions.ts` / `convex/schema.ts:events.weddingState`. Optionnel :
+ * seuls les mariages US/Canada le renseignent utilement, mais rien ne
+ * l'impose côté validateur (la mutation d'opt-in reco-faciale est l'autorité
+ * qui en a réellement besoin).
+ */
+export const weddingStateSchema = z
+  .string()
+  .trim()
+  .toUpperCase()
+  .regex(/^([A-Z]{2}|CA-[A-Z]{2})$/, 'Validation.weddingStateInvalid')
+  .optional();
+
 export const createEventSchema = z.object({
   title: eventTitleSchema,
   partnerA: partnerNameSchema,
@@ -83,6 +97,7 @@ export const createEventSchema = z.object({
   themeAccent: z.string().regex(HEX_COLOR, 'Validation.colorInvalid').optional(),
   themeFont: z.string().trim().max(80).optional(),
   pendingPlanTier: planTierSchema.optional(),
+  weddingState: weddingStateSchema,
 });
 
 export type CreateEventInput = z.infer<typeof createEventSchema>;
@@ -117,6 +132,7 @@ export interface NormalizedEventInput {
   venue?: { name: string; address: string };
   theme?: { primaryColor: string; accentColor: string; fontFamily: string };
   pendingPlanTier?: 'essential' | 'premium';
+  weddingState?: string;
 }
 
 export function normalizeCreateEvent(input: CreateEventInput): NormalizedEventInput {
@@ -141,5 +157,6 @@ export function normalizeCreateEvent(input: CreateEventInput): NormalizedEventIn
     ...(venue ? { venue } : {}),
     ...(theme ? { theme } : {}),
     ...(input.pendingPlanTier ? { pendingPlanTier: input.pendingPlanTier } : {}),
+    ...(input.weddingState ? { weddingState: input.weddingState } : {}),
   };
 }

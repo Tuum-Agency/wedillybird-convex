@@ -227,7 +227,7 @@
     "skipToContent": "Ir al contenido principal",
     "home": "Inicio",
     "meta": {
-      "organizationDescription": "Plataforma SaaS de organización de bodas WhatsApp-first: invitaciones, RSVP, check-in, galería compartida. Francia y África Occidental francófona."
+      "organizationDescription": "Plataforma SaaS para bodas: invitaciones digitales, RSVP, check-in de invitados y galería de fotos compartida."
     },
     "close": "Cerrar"
   },
@@ -258,7 +258,9 @@
       "article6Body": "El Servicio se proporciona «tal cual». Wedillybird se esfuerza por garantizar la máxima disponibilidad, pero no garantiza la ausencia de interrupciones. La responsabilidad de Wedillybird se limita al importe abonado por el Usuario en los últimos 12 meses.",
       "article7Title": "7. Legislación aplicable y litigios",
       "article7Body": "Estos Términos y Condiciones se rigen por el derecho francés. Cualquier litigio relativo a su ejecución será competencia exclusiva de los tribunales de París, salvo disposición de orden público en contrario.",
-      "description": "Términos y Condiciones de uso del Servicio Wedillybird: cuenta, tarifas, propiedad intelectual, responsabilidad, legislación aplicable."
+      "description": "Términos y Condiciones de uso del Servicio Wedillybird: cuenta, tarifas, propiedad intelectual, responsabilidad, legislación aplicable.",
+      "article8Title": "8. Fotos, invitados y datos biométricos",
+      "article8Body": "El Usuario que suba fotos de invitados (normalmente la pareja) declara y garantiza haber informado a sus invitados de que sus fotos se compartirán a través del Servicio y, si la búsqueda facial está activada, de que su rostro será tratado para que puedan encontrar sus propias fotos, y haber obtenido cualquier consentimiento exigido por la ley aplicable. El Usuario es responsable de cumplir la legislación del lugar donde se celebre la boda respecto a los datos biométricos de las personas que invita. Wedillybird no ofrece la búsqueda facial para bodas celebradas en Illinois, Texas o Washington."
     },
     "privacy": {
       "title": "Política de privacidad",
@@ -272,9 +274,11 @@
       "legalBasisTitle": "Bases legales (RGPD)",
       "legalBasisBody": "Ejecución del contrato (cuenta, pagos, funcionalidades), interés legítimo (seguridad, prevención de abusos), consentimiento (cookies no esenciales, comunicaciones de marketing).",
       "retentionTitle": "Plazo de conservación",
-      "retentionBody": "Datos de la cuenta: duración de la suscripción + 3 años. Datos de pago: plazo legal (10 años para la facturación). Logs técnicos: 12 meses como máximo.",
+      "retentionBody": "Datos de la cuenta: duración de la suscripción + 3 años. Datos de pago: plazo legal (10 años para la facturación). Logs técnicos: 12 meses como máximo. Datos biométricos faciales (búsqueda facial, si está activada): hasta que expire la galería o se desactive la función, lo que ocurra primero — véase «Datos biométricos» más abajo.",
       "subprocessorsTitle": "Subencargados",
-      "subprocessorsBody": "Convex (base de datos, EE. UU.), Vercel (alojamiento, EE. UU./UE), Stripe (pago, UE/EE. UU.), Meta WhatsApp Cloud API (envío de mensajes, UE/EE. UU.), Amazon Rekognition Faces (indexación temporal de rostros para la búsqueda de fotos, UE). Datos minimizados, sin reventa ni compartición con fines de marketing con terceros. Todos están vinculados por cláusulas contractuales tipo o mecanismos equivalentes.",
+      "subprocessorsBody": "Convex (base de datos, EE. UU.), Vercel (alojamiento, EE. UU./UE), Stripe (pago, UE/EE. UU.), Meta WhatsApp Cloud API (envío de mensajes, UE/EE. UU.), Amazon Rekognition Faces (indexación biométrica de rostros para la función opcional de búsqueda facial, activa solo en las bodas donde la pareja la ha activado explícitamente — ver «Datos biométricos» más abajo, UE). Datos minimizados, sin reventa ni compartición con fines de marketing con terceros. Todos están vinculados por cláusulas contractuales tipo o mecanismos equivalentes.",
+      "biometricsTitle": "Datos biométricos (búsqueda facial)",
+      "biometricsBody": "La búsqueda facial es una función opcional y activada por decisión propia: desactivada por defecto, solo procesa los rostros de los invitados en las bodas donde la pareja la ha activado explícitamente, tras leer este aviso. Base legal: consentimiento explícito, otorgado por la pareja en nombre de la boda (véanse los Términos y Condiciones). Datos tratados: geometría facial extraída de las fotos aprobadas de la galería (Amazon Rekognition), utilizada únicamente para comparar el selfie de un invitado con la galería — el selfie en sí nunca se almacena. Conservación: hasta que expire la galería o se desactive la función, lo que ocurra primero; eliminación automática en un plazo de 24 horas mediante una purga diaria, o antes si se solicita. Esta función no está disponible para bodas celebradas en Illinois, Texas o Washington.",
       "rightsTitle": "Tus derechos",
       "rightsBody": "Acceso, rectificación, supresión, oposición, portabilidad, limitación. Para ejercer un derecho, escribe a privacy@wedillybird.com. También puedes presentar una reclamación ante la CNIL.",
       "contactTitle": "Contacto",
@@ -1105,7 +1109,8 @@
         "forbidden": "No tienes acceso a esta galería.",
         "rateLimited": "Demasiadas búsquedas recientes. Espera unos instantes antes de volver a intentarlo.",
         "notInPlan": "Solo en el plan Premium. Cambia a Premium para usar la búsqueda facial.",
-        "unknown": "Se ha producido un error. Inténtalo de nuevo."
+        "unknown": "Se ha producido un error. Inténtalo de nuevo.",
+        "disabled": "La búsqueda facial no está activada para esta boda."
       },
       "cancel": "Cancelar"
     }
@@ -4076,7 +4081,8 @@
     "categoryTooLong": "Categoría demasiado larga",
     "notesTooLong": "Notas demasiado largas",
     "plusOnesRange": "De 0 a 10 acompañantes",
-    "plusOnesOnlyAttending": "Acompañantes permitidos solo si confirmas asistencia"
+    "plusOnesOnlyAttending": "Acompañantes permitidos solo si confirmas asistencia",
+    "weddingStateInvalid": "Código de estado/provincia no válido"
   },
   "WhatsApp": {
     "reminders": {
@@ -5370,5 +5376,29 @@
       "maybe": "Quizás"
     },
     "andMore": "y {count} más"
+  },
+  "FaceSearchPrivacy": {
+    "title": "Privacidad y búsqueda facial",
+    "subtitle": "Decide si los invitados pueden encontrar sus fotos por reconocimiento facial — desactivado por defecto, tú decides.",
+    "lockedBody": "La búsqueda facial está incluida en el plan Premium (y en todos los planes profesionales).",
+    "lockedCta": "Pasar a Premium",
+    "stateLabel": "Estado / provincia de la boda",
+    "stateHint": "Obligatorio para activar la búsqueda facial si la boda es en Estados Unidos o Canadá — algunos estados regulan estrictamente los datos biométricos.",
+    "stateNotApplicable": "Fuera de EE. UU. / Canadá",
+    "stateGroupUs": "Estados Unidos",
+    "stateGroupCa": "Canadá",
+    "toggleLabel": "Activar la búsqueda de fotos por rostro",
+    "toggleHint": "Permite a los invitados encontrar sus propias fotos enviando un selfie. Desactivado por defecto.",
+    "consentNoticeBody": "Al activar esta opción se indexa el rostro de los invitados (Amazon Rekognition) para que puedan encontrar sus fotos con un selfie. Al activarla, confirmas que has informado a tus invitados de que la búsqueda facial está activa en esta boda. Puedes desactivarla en cualquier momento; los rostros indexados se eliminan al expirar la galería o al desactivar la función.",
+    "consentRecordedAt": "Consentimiento registrado el {date}",
+    "bannedNotice": "La búsqueda facial no está disponible para bodas en Illinois, Texas o Washington — estos estados regulan específicamente los datos biométricos. Es una restricción permanente, no un error.",
+    "save": "Guardar",
+    "saved": "Guardado",
+    "errorSave": "No se pudo guardar. Inténtalo de nuevo.",
+    "errorStateBanned": "La búsqueda facial no se puede activar para este estado.",
+    "errorStateRequired": "Elige primero el estado o la provincia de la boda. Es obligatorio para activar la búsqueda facial.",
+    "statePlaceholder": "Elige la ubicación de la boda…",
+    "errorFeatureNotInPlan": "La búsqueda facial solo está disponible en el plan Premium (o planes profesionales).",
+    "errorForbidden": "No tienes permiso para cambiar este ajuste."
   }
 }

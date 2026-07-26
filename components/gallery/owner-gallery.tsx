@@ -52,11 +52,24 @@ interface Props {
    * Défaut `true` pour rétro-compat.
    */
   canDownloadZip?: boolean;
+  /**
+   * Reco-faciale opt-in explicite (Lane T3, F7) — `event.faceSearchEnabled`.
+   * Défaut `false` (fail-safe) : masque le bouton « Find me in the photos »
+   * tant que le couple n'a pas activé la feature depuis la page d'édition
+   * (`FaceSearchPrivacySection`). L'action serveur reste de toute façon
+   * gardée par la même règle (`FACE_SEARCH_DISABLED`).
+   */
+  faceSearchEnabled?: boolean;
 }
 
 const FILTERS = ['all', 'pending', 'approved', 'rejected'] as const;
 
-export function OwnerGallery({ eventId, initialPhotos, canDownloadZip = true }: Props) {
+export function OwnerGallery({
+  eventId,
+  initialPhotos,
+  canDownloadZip = true,
+  faceSearchEnabled = false,
+}: Props) {
   const t = useTranslations('Gallery');
   const locale = useLocale();
   const router = useRouter();
@@ -147,16 +160,18 @@ export function OwnerGallery({ eventId, initialPhotos, canDownloadZip = true }: 
           ))}
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            size="md"
-            onClick={() => setFaceSearchOpen(true)}
-            data-testid="face-search-trigger"
-          >
-            <ScanFace className="h-4 w-4" aria-hidden strokeWidth={1.75} />
-            {t('faceSearch.trigger')}
-          </Button>
+          {faceSearchEnabled ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="md"
+              onClick={() => setFaceSearchOpen(true)}
+              data-testid="face-search-trigger"
+            >
+              <ScanFace className="h-4 w-4" aria-hidden strokeWidth={1.75} />
+              {t('faceSearch.trigger')}
+            </Button>
+          ) : null}
           {faceMatchedIds !== null ? (
             <Button
               type="button"

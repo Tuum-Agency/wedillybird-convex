@@ -1,5 +1,11 @@
 import { v } from 'convex/values';
-import { internalQuery, mutation, query } from './_generated/server';
+import {
+  internalMutation,
+  internalQuery,
+  mutation,
+  query,
+  type MutationCtx,
+} from './_generated/server';
 import { internal } from './_generated/api';
 import type { Doc, Id } from './_generated/dataModel';
 import { pickUniqueSlug } from './lib/uniqueSlug';
@@ -11,6 +17,7 @@ import { summarizeGuestRsvp } from './lib/guestStats';
 import { sanitizeRsvpConfig } from '../lib/rsvp/questions';
 import { notifyEventParties } from './lib/notify';
 import { decideRsvpConfigWrite } from './lib/rsvpAuth';
+import { decideFaceSearchOptIn, FACE_SEARCH_NOTICE_VERSION } from './lib/biometricConsent';
 
 function toSlugBase(partnerA: string, partnerB: string): string {
   const raw = `${partnerA}-${partnerB}`
@@ -291,6 +298,92 @@ export const updateRsvpConfig = mutation({
   },
 });
 
+/**
+ * Active/désactive la recherche de photos par visage (reco-faciale) sur un
+ * event — opt-in explicite (Lane T3, F7), pas un simple champ parmi d'autres.
+ *
+ * Peut mettre à jour `weddingState` dans le même appel (pour que le geofence
+ * évalue la valeur qu'on est en train de choisir, pas une valeur persistée
+ * potentiellement obsolète — évite toute race entre « je choisis mon État »
+ * et « j'active la feature » côté UI). `weddingState: ''` efface le champ ;
+ * `undefined` laisse la valeur existante inchangée.
+ *
+ * Activation :
+ *  - Refusée (`FEATURE_NOT_IN_PLAN`) si l'event n'a pas la feature `faceSearch`
+ *    dans son forfait (Essentiel n'y a jamais accès) — défense en profondeur,
+ *    l'UI masque déjà le toggle dans ce cas.
+ *  - Refusée (`FACE_SEARCH_STATE_BANNED`) si le `weddingState` effectif est
+ *    dans `BIOMETRIC_BANNED_STATES` (IL/TX/WA — `lib/biometricConsent.ts`).
+ *  - Sinon, persiste `faceSearchConsent` (horodatage + version de notice +
+ *    user qui a cliqué) — SEULE preuve de consentement en base ; avant ce
+ *    Lane, l'écran de consentement (`face-search-modal.tsx`) demandait bien un
+ *    accord mais ne le sauvegardait JAMAIS.
+ *
+ * Désactivation : toujours autorisée, ne touche pas l'historique de
+ * consentement (preuve qu'il a existé) — seul `faceSearchEnabled` repasse à
+ * `false`. Une ré-activation ultérieure réécrit un nouveau consentement.
+ *
+ * Accès : owner OU collaborateur habilité en écriture (couple rattaché agence
+ * inclus, cf. `assertEventAccess`) — c'est le couple, propriétaire direct ou
+ * rattaché à une agence, qui porte la garantie d'avoir informé ses invités
+ * (cf. `Legal.terms` clause biométrie).
+ */
+export const setFaceSearchEnabled = mutation({
+  args: {
+    eventId: v.id('events'),
+    requesterId: v.id('users'),
+    enabled: v.boolean(),
+    weddingState: v.optional(v.string()),
+  },
+  handler: async (ctx, { eventId, requesterId, enabled, weddingState }) => {
+    const event = await assertEventAccess(ctx, eventId, requesterId, { write: true });
+
+    const nextWeddingState =
+      weddingState !== undefined
+        ? weddingState.trim().length > 0
+          ? weddingState.trim().toUpperCase()
+          : undefined
+        : event.weddingState;
+
+    if (!enabled) {
+      await ctx.db.patch(eventId, {
+        faceSearchEnabled: false,
+        weddingState: nextWeddingState,
+        updatedAt: Date.now(),
+      });
+      return { ok: true as const, enabled: false as const, weddingState: nextWeddingState };
+    }
+
+    if (!eventHasFeature(event, 'faceSearch')) {
+      throw new Error('FEATURE_NOT_IN_PLAN');
+    }
+
+    const decision = decideFaceSearchOptIn(nextWeddingState);
+    if (!decision.ok) {
+      // STATE_REQUIRED : opt-in tenté sans juridiction déclarée (fail-closed) ;
+      // STATE_BANNED : IL/TX/WA. Deux erreurs distinctes pour un message UI clair.
+      throw new Error(
+        decision.error === 'STATE_REQUIRED'
+          ? 'FACE_SEARCH_STATE_REQUIRED'
+          : 'FACE_SEARCH_STATE_BANNED',
+      );
+    }
+
+    const now = Date.now();
+    await ctx.db.patch(eventId, {
+      faceSearchEnabled: true,
+      weddingState: nextWeddingState,
+      faceSearchConsent: {
+        enabledAt: now,
+        noticeVersion: FACE_SEARCH_NOTICE_VERSION,
+        byUserId: requesterId,
+      },
+      updatedAt: now,
+    });
+    return { ok: true as const, enabled: true as const, weddingState: nextWeddingState };
+  },
+});
+
 export const create = mutation({
   args: {
     ownerId: v.id('users'),
@@ -319,6 +412,8 @@ export const create = mutation({
      */
     pendingPlanTier: v.optional(v.union(v.literal('essential'), v.literal('premium'))),
     organizationId: v.optional(v.id('organizations')),
+    /** État/province déclaré à la création (cf. `events.weddingState`). Optionnel. */
+    weddingState: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const owner = await ctx.db.get(args.ownerId);
@@ -365,6 +460,9 @@ export const create = mutation({
       // planTier left undefined until the owner pays (Essentiel or Premium).
       ...(args.pendingPlanTier ? { pendingPlanTier: args.pendingPlanTier } : {}),
       ...(args.organizationId ? { organizationId: args.organizationId } : {}),
+      ...(args.weddingState?.trim()
+        ? { weddingState: args.weddingState.trim().toUpperCase() }
+        : {}),
       maxGuests: ANTI_ABUSE_GUEST_CAP,
       createdAt: now,
       updatedAt: now,
@@ -609,6 +707,35 @@ export const orgPublishQuotaStatus = query({
 });
 
 /**
+ * Cleanup biométrique partagé : supprime les rows `photoFaces` d'un event et
+ * schedule (best-effort) la suppression de sa Face Collection Rekognition.
+ * N'écrit PAS `events.faceCollectionId` / `faceSearchEnabled` — à la charge du
+ * caller (qui fait déjà son propre `ctx.db.patch` pour ses autres champs).
+ *
+ * Réutilisé par `archive()` (archivage manuel owner) ET
+ * `purgeExpiredBiometricData` (cron quotidien Lane T3, F7) — même logique,
+ * deux déclencheurs.
+ */
+async function cleanupEventFaceCollection(
+  ctx: MutationCtx,
+  eventId: Id<'events'>,
+  faceCollectionId: string | undefined,
+): Promise<void> {
+  const photoFaceRows = await ctx.db
+    .query('photoFaces')
+    .withIndex('by_event', (q) => q.eq('eventId', eventId))
+    .collect();
+  for (const row of photoFaceRows) {
+    await ctx.db.delete(row._id);
+  }
+  if (faceCollectionId) {
+    await ctx.scheduler.runAfter(0, internal.photosFaceSearch.deleteFaceCollection, {
+      collectionId: faceCollectionId,
+    });
+  }
+}
+
+/**
  * Archive un event (soft delete). Owner-only. Bascule le status à `archived`
  * et déclenche le cleanup AWS associé (Face Collection Rekognition + rows
  * `photoFaces` côté DB). Pas de hard-delete des `events` ni des `photos` :
@@ -627,33 +754,54 @@ export const archive = mutation({
       return { ok: true as const, alreadyArchived: true as const };
     }
 
-    const collectionId = ev.faceCollectionId;
     const now = Date.now();
-
-    // Cleanup DB : supprime les rows `photoFaces` de l'event. Le
-    // `DeleteCollection` Rekognition libère côté AWS, mais on veut aussi
-    // les rows DB nettoyées pour ne pas laisser de pointers orphelins.
-    const photoFaceRows = await ctx.db
-      .query('photoFaces')
-      .withIndex('by_event', (q) => q.eq('eventId', eventId))
-      .collect();
-    for (const row of photoFaceRows) {
-      await ctx.db.delete(row._id);
-    }
-
-    // Cleanup AWS : delete la Face Collection en best-effort.
-    if (collectionId) {
-      await ctx.scheduler.runAfter(0, internal.photosFaceSearch.deleteFaceCollection, {
-        collectionId,
-      });
-    }
+    await cleanupEventFaceCollection(ctx, eventId, ev.faceCollectionId);
 
     await ctx.db.patch(eventId, {
       status: 'archived' as const,
       faceCollectionId: undefined,
+      faceSearchEnabled: false,
       updatedAt: now,
     });
     return { ok: true as const, alreadyArchived: false as const };
+  },
+});
+
+/**
+ * Purge biométrique automatique (Lane T3, F7) : pour tout event dont
+ * `galleryExpiresAt` est dépassé et qui porte encore une Face Collection
+ * (`faceCollectionId` set), supprime les visages indexés — même cleanup que
+ * `archive()`, déclenché par expiration plutôt que par un archivage manuel
+ * (un event qui expire sans jamais être archivé ne doit PAS garder ses
+ * visages indexés indéfiniment). Repasse aussi `faceSearchEnabled` à `false`
+ * (plus de collection à interroger).
+ *
+ * Idempotent : un event déjà purgé (`faceCollectionId` undefined) est ignoré
+ * dès le filtre — un re-run (retry cron, double invocation) ne fait rien de
+ * plus. Scan complet de `events` : cron quotidien à faible fréquence sur une
+ * table encore modeste (pas d'index dédié pour l'instant) — à indexer sur
+ * `galleryExpiresAt` si ça devient un point chaud, même logique que
+ * `by_eventDate` pour les reminders (cf. schema.ts).
+ */
+export const purgeExpiredBiometricData = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const now = Date.now();
+    const events = await ctx.db.query('events').collect();
+    let purged = 0;
+    for (const event of events) {
+      if (!event.faceCollectionId) continue;
+      if (event.galleryExpiresAt === undefined || event.galleryExpiresAt > now) continue;
+
+      await cleanupEventFaceCollection(ctx, event._id, event.faceCollectionId);
+      await ctx.db.patch(event._id, {
+        faceCollectionId: undefined,
+        faceSearchEnabled: false,
+        updatedAt: now,
+      });
+      purged += 1;
+    }
+    return { ok: true as const, purged };
   },
 });
 

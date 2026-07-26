@@ -39,6 +39,7 @@ export default async function TermsPage() {
       <EditorialSection title={t('article5Title')} body={t('article5Body')} />
       <EditorialSection title={t('article6Title')} body={t('article6Body')} />
       <EditorialSection title={t('article7Title')} body={t('article7Body')} />
+      <EditorialSection title={t('article8Title')} body={t('article8Body')} />
     </EditorialPage>
   );
 }

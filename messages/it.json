@@ -227,7 +227,7 @@
     "skipToContent": "Vai al contenuto principale",
     "home": "Home",
     "meta": {
-      "organizationDescription": "Piattaforma SaaS per l'organizzazione di matrimoni WhatsApp-first: inviti, RSVP, check-in, galleria condivisa. Francia e Africa occidentale francofona."
+      "organizationDescription": "Piattaforma SaaS per matrimoni: inviti digitali, RSVP, check-in degli ospiti e galleria fotografica condivisa."
     },
     "close": "Chiudi"
   },
@@ -258,7 +258,9 @@
       "article6Body": "Il Servizio è fornito \"così com'è\". Wedillybird si impegna a garantire la massima disponibilità ma non garantisce l'assenza di interruzioni. La responsabilità di Wedillybird è limitata all'importo pagato dall'Utente negli ultimi 12 mesi.",
       "article7Title": "7. Legge applicabile e controversie",
       "article7Body": "I presenti Termini sono regolati dal diritto francese. Qualsiasi controversia relativa alla loro esecuzione sarà di competenza esclusiva dei tribunali di Parigi, salvo disposizione di ordine pubblico contraria.",
-      "description": "Termini e condizioni d'uso del Servizio Wedillybird: account, tariffe, proprietà intellettuale, responsabilità, legge applicabile."
+      "description": "Termini e condizioni d'uso del Servizio Wedillybird: account, tariffe, proprietà intellettuale, responsabilità, legge applicabile.",
+      "article8Title": "8. Foto, invitati e dati biometrici",
+      "article8Body": "L'Utente che carica foto di invitati (in genere la coppia) dichiara e garantisce di aver informato i propri invitati che le loro foto saranno condivise tramite il Servizio e, se la ricerca per volto è attiva, che il loro volto sarà trattato per permettere loro di ritrovare le proprie foto, e di aver ottenuto qualsiasi consenso richiesto dalla legge applicabile. L'Utente è responsabile del rispetto della legge del luogo in cui si svolge il matrimonio riguardo ai dati biometrici delle persone che invita. Wedillybird non offre la ricerca per volto per i matrimoni celebrati in Illinois, Texas o Washington."
     },
     "privacy": {
       "title": "Informativa sulla privacy",
@@ -272,9 +274,11 @@
       "legalBasisTitle": "Basi giuridiche (GDPR)",
       "legalBasisBody": "Esecuzione del contratto (account, pagamenti, funzionalità), interesse legittimo (sicurezza, prevenzione abusi), consenso (cookie non essenziali, comunicazioni marketing).",
       "retentionTitle": "Periodo di conservazione",
-      "retentionBody": "Dati dell'account: durata dell'abbonamento + 3 anni. Dati di pagamento: durata legale (10 anni per la fatturazione). Log tecnici: 12 mesi massimo.",
+      "retentionBody": "Dati dell'account: durata dell'abbonamento + 3 anni. Dati di pagamento: durata legale (10 anni per la fatturazione). Log tecnici: 12 mesi massimo. Dati biometrici del volto (ricerca per volto, se attivata): fino alla scadenza della galleria o alla disattivazione della funzione, a seconda di quale evento si verifichi prima — vedi «Dati biometrici» qui sotto.",
       "subprocessorsTitle": "Sub-responsabili",
-      "subprocessorsBody": "Convex (database, US), Vercel (hosting, US/EU), Stripe (pagamenti, EU/US), Meta WhatsApp Cloud API (invio messaggi, EU/US), Amazon Rekognition Faces (indicizzazione temporanea dei volti per la ricerca foto, EU). Dati minimizzati, nessuna rivendita né condivisione marketing con terze parti. Tutti vincolati da clausole contrattuali tipo o meccanismi equivalenti.",
+      "subprocessorsBody": "Convex (database, US), Vercel (hosting, US/EU), Stripe (pagamenti, EU/US), Meta WhatsApp Cloud API (invio messaggi, EU/US), Amazon Rekognition Faces (indicizzazione biometrica dei volti per la funzione opzionale di ricerca per volto, attiva solo per i matrimoni in cui la coppia l'ha esplicitamente attivata — vedi «Dati biometrici» qui sotto, EU). Dati minimizzati, nessuna rivendita né condivisione marketing con terze parti. Tutti vincolati da clausole contrattuali tipo o meccanismi equivalenti.",
+      "biometricsTitle": "Dati biometrici (ricerca per volto)",
+      "biometricsBody": "La ricerca per volto è una funzione opzionale, attivabile su richiesta: disattivata di default, elabora i volti degli invitati solo per i matrimoni in cui la coppia l'ha esplicitamente attivata, dopo aver preso visione di questa informativa. Base giuridica: consenso esplicito, fornito dalla coppia per conto del matrimonio (vedi Termini di Servizio). Dati trattati: geometria facciale estratta dalle foto approvate della galleria (Amazon Rekognition), utilizzata solo per confrontare il selfie di un invitato con la galleria — il selfie stesso non viene mai conservato. Conservazione: fino alla scadenza della galleria o alla disattivazione della funzione, a seconda di quale evento si verifichi prima; cancellazione automatica entro 24 ore tramite una pulizia quotidiana, o prima su richiesta. Questa funzione non è offerta per i matrimoni celebrati in Illinois, Texas o Washington.",
       "rightsTitle": "I tuoi diritti",
       "rightsBody": "Accesso, rettifica, cancellazione, opposizione, portabilità, limitazione. Per esercitare un diritto, scrivi a privacy@wedillybird.com. Puoi anche presentare un reclamo presso la CNIL.",
       "contactTitle": "Contatti",
@@ -1105,7 +1109,8 @@
         "forbidden": "Non hai accesso a questa galleria.",
         "rateLimited": "Troppe ricerche recenti. Attendi qualche istante prima di riprovare.",
         "notInPlan": "Solo con il piano Premium. Passa a Premium per usare la ricerca per volto.",
-        "unknown": "Si è verificato un errore. Riprova."
+        "unknown": "Si è verificato un errore. Riprova.",
+        "disabled": "La ricerca per volto non è attiva per questo matrimonio."
       },
       "cancel": "Annulla"
     }
@@ -4076,7 +4081,8 @@
     "categoryTooLong": "Categoria troppo lunga",
     "notesTooLong": "Note troppo lunghe",
     "plusOnesRange": "Da 0 a 10 accompagnatori",
-    "plusOnesOnlyAttending": "Accompagnatori consentiti solo se presenza confermata"
+    "plusOnesOnlyAttending": "Accompagnatori consentiti solo se presenza confermata",
+    "weddingStateInvalid": "Codice Stato/provincia non valido"
   },
   "WhatsApp": {
     "reminders": {
@@ -5370,5 +5376,29 @@
       "maybe": "Forse"
     },
     "andMore": "e altre {count}"
+  },
+  "FaceSearchPrivacy": {
+    "title": "Privacy e ricerca per volto",
+    "subtitle": "Decidi se gli invitati possono ritrovare le proprie foto tramite riconoscimento facciale — disattivata di default, la scelta è tua.",
+    "lockedBody": "La ricerca per volto è inclusa nel piano Premium (e in tutti i piani pro).",
+    "lockedCta": "Passa a Premium",
+    "stateLabel": "Stato / provincia del matrimonio",
+    "stateHint": "Obbligatorio per attivare la ricerca per volto se il matrimonio si svolge negli Stati Uniti o in Canada — alcuni Stati regolano rigorosamente i dati biometrici.",
+    "stateNotApplicable": "Fuori da Stati Uniti / Canada",
+    "stateGroupUs": "Stati Uniti",
+    "stateGroupCa": "Canada",
+    "toggleLabel": "Attiva la ricerca foto per volto",
+    "toggleHint": "Permette agli invitati di ritrovare le proprie foto inviando un selfie. Disattivata di default.",
+    "consentNoticeBody": "Attivando questa opzione vengono indicizzati i volti degli invitati (Amazon Rekognition) per permettere loro di ritrovare le proprie foto con un selfie. Attivandola, confermi di aver informato i tuoi invitati che la ricerca per volto è attiva per questo matrimonio. Puoi disattivarla in qualsiasi momento; i volti indicizzati vengono eliminati alla scadenza della galleria o alla disattivazione della funzione.",
+    "consentRecordedAt": "Consenso registrato il {date}",
+    "bannedNotice": "La ricerca per volto non è disponibile per i matrimoni in Illinois, Texas o Washington — questi Stati regolano specificamente i dati biometrici. È una restrizione permanente, non un errore.",
+    "save": "Salva",
+    "saved": "Salvato",
+    "errorSave": "Salvataggio non riuscito. Riprova.",
+    "errorStateBanned": "La ricerca per volto non può essere attivata per questo Stato.",
+    "errorStateRequired": "Scegli prima lo Stato o la provincia del matrimonio. È obbligatorio per attivare la ricerca per volto.",
+    "statePlaceholder": "Scegli il luogo del matrimonio…",
+    "errorFeatureNotInPlan": "La ricerca per volto è disponibile solo con il piano Premium (o i piani pro).",
+    "errorForbidden": "Non hai il permesso di modificare questa impostazione."
   }
 }

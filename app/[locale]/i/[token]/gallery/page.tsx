@@ -40,7 +40,12 @@ export default async function GuestGalleryPage({
         <p className="text-sm text-[color:var(--color-muted)]">{t('guestHeader')}</p>
       </header>
 
-      <GuestGallery token={token} inviteeName={data.guest.fullName} initialPhotos={photos} />
+      <GuestGallery
+        token={token}
+        inviteeName={data.guest.fullName}
+        initialPhotos={photos}
+        faceSearchEnabled={data.event.faceSearchEnabled === true}
+      />
     </main>
   );
 }

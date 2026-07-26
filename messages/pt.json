@@ -227,7 +227,7 @@
     "skipToContent": "Ir para o conteúdo principal",
     "home": "Início",
     "meta": {
-      "organizationDescription": "Plataforma SaaS de organização de casamentos WhatsApp-first: convites, RSVP, check-in, galeria partilhada. França e África Ocidental francófona."
+      "organizationDescription": "Plataforma SaaS para casamentos: convites digitais, RSVP, check-in de convidados e galeria de fotos partilhada."
     },
     "close": "Fechar"
   },
@@ -258,7 +258,9 @@
       "article6Body": "O Serviço é fornecido «tal como está». A Wedillybird envida esforços para garantir a máxima disponibilidade, mas não garante a ausência de interrupções. A responsabilidade da Wedillybird limita-se ao montante pago pelo Utilizador nos últimos 12 meses.",
       "article7Title": "7. Direito aplicável e litígios",
       "article7Body": "Os presentes Termos regem-se pelo direito francês. Qualquer litígio relativo à sua execução é da competência exclusiva dos tribunais de Paris, salvo disposição de ordem pública em contrário.",
-      "description": "Termos e condições de utilização do Serviço Wedillybird: conta, preços, propriedade intelectual, responsabilidade, direito aplicável."
+      "description": "Termos e condições de utilização do Serviço Wedillybird: conta, preços, propriedade intelectual, responsabilidade, direito aplicável.",
+      "article8Title": "8. Fotografias, convidados e dados biométricos",
+      "article8Body": "O Utilizador que carrega fotografias de convidados (normalmente o casal) declara e garante ter informado os seus convidados de que as suas fotografias serão partilhadas através do Serviço e, caso a pesquisa por rosto esteja ativada, de que o seu rosto será tratado para lhes permitir encontrar as suas próprias fotografias, e ter obtido qualquer consentimento exigido pela lei aplicável. O Utilizador é responsável pelo cumprimento da lei do local onde o casamento se realiza relativamente aos dados biométricos das pessoas que convida. A Wedillybird não disponibiliza a pesquisa por rosto para casamentos realizados em Illinois, Texas ou Washington."
     },
     "privacy": {
       "title": "Política de privacidade",
@@ -272,9 +274,11 @@
       "legalBasisTitle": "Bases legais (RGPD)",
       "legalBasisBody": "Execução do contrato (conta, pagamentos, funcionalidades), interesse legítimo (segurança, prevenção de abusos), consentimento (cookies não essenciais, comunicações de marketing).",
       "retentionTitle": "Período de conservação",
-      "retentionBody": "Dados da conta: duração da subscrição + 3 anos. Dados de pagamento: duração legal (10 anos para faturação). Registos técnicos: 12 meses no máximo.",
+      "retentionBody": "Dados da conta: duração da subscrição + 3 anos. Dados de pagamento: duração legal (10 anos para faturação). Registos técnicos: 12 meses no máximo. Dados biométricos do rosto (pesquisa por rosto, quando ativada): até a galeria expirar ou a funcionalidade ser desativada, o que ocorrer primeiro — ver «Dados biométricos» abaixo.",
       "subprocessorsTitle": "Subcontratantes",
-      "subprocessorsBody": "Convex (base de dados, EUA), Vercel (alojamento, EUA/UE), Stripe (pagamento, UE/EUA), Meta WhatsApp Cloud API (envio de mensagens, UE/EUA), Amazon Rekognition Faces (indexação temporária dos rostos para a pesquisa de fotografias, UE). Dados minimizados, sem revenda nem partilha de marketing com terceiros. Todos vinculados por cláusulas contratuais-tipo ou mecanismos equivalentes.",
+      "subprocessorsBody": "Convex (base de dados, EUA), Vercel (alojamento, EUA/UE), Stripe (pagamento, UE/EUA), Meta WhatsApp Cloud API (envio de mensagens, UE/EUA), Amazon Rekognition Faces (indexação biométrica dos rostos para a funcionalidade opcional de pesquisa por rosto, ativa apenas nos casamentos em que o casal a ativou explicitamente — ver «Dados biométricos» abaixo, UE). Dados minimizados, sem revenda nem partilha de marketing com terceiros. Todos vinculados por cláusulas contratuais-tipo ou mecanismos equivalentes.",
+      "biometricsTitle": "Dados biométricos (pesquisa por rosto)",
+      "biometricsBody": "A pesquisa por rosto é uma funcionalidade opcional, ativada por escolha própria: desativada por predefinição, só processa o rosto dos convidados nos casamentos em que o casal a ativou explicitamente, após tomar conhecimento deste aviso. Base legal: consentimento explícito, dado pelo casal em nome do casamento (ver Termos de Serviço). Dados tratados: geometria facial extraída das fotografias aprovadas da galeria (Amazon Rekognition), utilizada apenas para comparar a selfie de um convidado com a galeria — a selfie em si nunca é armazenada. Conservação: até a galeria expirar ou a funcionalidade ser desativada, o que ocorrer primeiro; eliminação automática no prazo de 24 horas através de uma purga diária, ou antes a pedido. Esta funcionalidade não é disponibilizada para casamentos realizados em Illinois, Texas ou Washington.",
       "rightsTitle": "Os teus direitos",
       "rightsBody": "Acesso, retificação, eliminação, oposição, portabilidade, limitação. Para exercer um direito, escreve para privacy@wedillybird.com. Podes também apresentar uma reclamação junto da CNIL.",
       "contactTitle": "Contacto",
@@ -1105,7 +1109,8 @@
         "forbidden": "Não tens acesso a esta galeria.",
         "rateLimited": "Demasiadas pesquisas recentes. Aguarda alguns instantes antes de tentares de novo.",
         "notInPlan": "Apenas no plano Premium. Mude para Premium para usar a busca facial.",
-        "unknown": "Ocorreu um erro. Tenta de novo."
+        "unknown": "Ocorreu um erro. Tenta de novo.",
+        "disabled": "A pesquisa por rosto não está ativada para este casamento."
       },
       "cancel": "Cancelar"
     }
@@ -4076,7 +4081,8 @@
     "categoryTooLong": "Categoria demasiado longa",
     "notesTooLong": "Notas demasiado longas",
     "plusOnesRange": "0 a 10 acompanhantes",
-    "plusOnesOnlyAttending": "Acompanhantes permitidos apenas se confirmares presença"
+    "plusOnesOnlyAttending": "Acompanhantes permitidos apenas se confirmares presença",
+    "weddingStateInvalid": "Código de Estado/província inválido"
   },
   "WhatsApp": {
     "templateStatus": {
@@ -5370,5 +5376,29 @@
       "maybe": "Talvez"
     },
     "andMore": "e mais {count}"
+  },
+  "FaceSearchPrivacy": {
+    "title": "Privacidade e pesquisa por rosto",
+    "subtitle": "Decida se os convidados podem encontrar as suas fotografias por reconhecimento facial — desativado por predefinição, a escolha é sua.",
+    "lockedBody": "A pesquisa por rosto está incluída no plano Premium (e em todos os planos pro).",
+    "lockedCta": "Mudar para Premium",
+    "stateLabel": "Estado / província do casamento",
+    "stateHint": "Obrigatório para ativar a pesquisa por rosto se o casamento se realizar nos Estados Unidos ou no Canadá — alguns estados regulam de forma estrita os dados biométricos.",
+    "stateNotApplicable": "Fora dos EUA / Canadá",
+    "stateGroupUs": "Estados Unidos",
+    "stateGroupCa": "Canadá",
+    "toggleLabel": "Ativar a pesquisa de fotografias por rosto",
+    "toggleHint": "Permite aos convidados encontrar as suas próprias fotografias enviando uma selfie. Desativado por predefinição.",
+    "consentNoticeBody": "Ao ativar esta opção, o rosto dos convidados é indexado (Amazon Rekognition) para que possam encontrar as suas fotografias com uma selfie. Ao ativá-la, confirma que informou os seus convidados de que a pesquisa por rosto está ativa neste casamento. Pode desativá-la a qualquer momento; os rostos indexados são eliminados quando a galeria expira ou quando a funcionalidade é desativada.",
+    "consentRecordedAt": "Consentimento registado a {date}",
+    "bannedNotice": "A pesquisa por rosto não está disponível para casamentos em Illinois, Texas ou Washington — estes estados regulam especificamente os dados biométricos. Trata-se de uma restrição permanente, não de uma falha.",
+    "save": "Guardar",
+    "saved": "Guardado",
+    "errorSave": "Não foi possível guardar. Tente novamente.",
+    "errorStateBanned": "A pesquisa por rosto não pode ser ativada para este estado.",
+    "errorStateRequired": "Escolhe primeiro o estado ou a província do casamento. É obrigatório para ativar a pesquisa por rosto.",
+    "statePlaceholder": "Escolhe o local do casamento…",
+    "errorFeatureNotInPlan": "A pesquisa por rosto está disponível apenas no plano Premium (ou nos planos pro).",
+    "errorForbidden": "Não tem permissão para alterar esta definição."
   }
 }

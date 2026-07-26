@@ -40,6 +40,12 @@ interface Props {
   token: string;
   inviteeName: string;
   initialPhotos: GuestPhotoItem[];
+  /**
+   * Reco-faciale opt-in explicite (Lane T3, F7) — `event.faceSearchEnabled`.
+   * Défaut `false` (fail-safe) : masque le bouton « Find my photos » tant que
+   * le couple/l'agence n'a pas activé la feature.
+   */
+  faceSearchEnabled?: boolean;
 }
 
 /** Fenêtre de polling après upload pour qu'un invité voie sa photo apparaître
@@ -49,7 +55,12 @@ interface Props {
 const RECENT_UPLOAD_WINDOW_MS = 30 * 1000;
 const POLL_INTERVAL_MS = 5 * 1000;
 
-export function GuestGallery({ token, inviteeName, initialPhotos }: Props) {
+export function GuestGallery({
+  token,
+  inviteeName,
+  initialPhotos,
+  faceSearchEnabled = false,
+}: Props) {
   const t = useTranslations('Gallery');
   const router = useRouter();
   const [faceSearchOpen, setFaceSearchOpen] = useState(false);
@@ -90,16 +101,18 @@ export function GuestGallery({ token, inviteeName, initialPhotos }: Props) {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-[color:var(--color-muted)]">{t('guestIntro')}</p>
         <div className="flex flex-wrap items-center gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            size="md"
-            onClick={() => setFaceSearchOpen(true)}
-            data-testid="face-search-trigger"
-          >
-            <ScanFace className="h-4 w-4" aria-hidden strokeWidth={1.75} />
-            {t('faceSearch.triggerGuest')}
-          </Button>
+          {faceSearchEnabled ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="md"
+              onClick={() => setFaceSearchOpen(true)}
+              data-testid="face-search-trigger"
+            >
+              <ScanFace className="h-4 w-4" aria-hidden strokeWidth={1.75} />
+              {t('faceSearch.triggerGuest')}
+            </Button>
+          ) : null}
           {faceMatchedIds !== null ? (
             <Button
               type="button"
