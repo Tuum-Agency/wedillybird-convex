@@ -9,6 +9,7 @@ import { AppShell } from '@/components/app/app-shell';
 import { getPaymentDriver } from '@/lib/payments';
 import type { ProviderName } from '@/lib/payments/country';
 import { cn } from '@/lib/cn';
+import { captureServer, EVENTS } from '@/lib/analytics/posthog-server';
 
 function isProviderName(value: string | undefined): value is ProviderName {
   return value === 'stripe' || value === 'mock';
@@ -35,8 +36,8 @@ export default async function UpgradeSuccessPage({
   // Fallback finalization (idempotent) si webhook pas encore arrivé.
   let reconciliationFailed = false;
   if (sp.session_id) {
+    const provider: ProviderName = isProviderName(sp.provider) ? sp.provider : 'stripe';
     try {
-      const provider: ProviderName = isProviderName(sp.provider) ? sp.provider : 'stripe';
       const driver = getPaymentDriver(provider);
       const status = await driver.retrieveSessionStatus(sp.session_id);
       if (status.paid) {
@@ -49,8 +50,22 @@ export default async function UpgradeSuccessPage({
           providerEventId: status.providerEventId,
         });
       }
-    } catch {
+    } catch (err) {
       reconciliationFailed = true;
+      // T2-3 : ce filet était catché puis affiché à l'utilisateur mais jamais
+      // remonté ops — silence exact relevé au premortem. `captureServer`
+      // n'échoue jamais (garde interne), donc ne bloque pas le rendu de page.
+      const message = err instanceof Error ? err.message : 'UNKNOWN';
+      await captureServer({
+        distinctId: session!.userId,
+        event: EVENTS.paymentReconciliationFailed,
+        properties: {
+          event_id: eventId,
+          provider,
+          session_id: sp.session_id,
+          message,
+        },
+      });
     }
   }
 

@@ -7,7 +7,12 @@ import { InvitationShell } from '@/components/invitation/invitation-shell';
 import { InvitationContent } from '@/components/invitation/invitation-content';
 import { TrackOnMount } from '@/components/analytics/track-on-mount';
 
-export const dynamic = 'force-dynamic';
+// T2-5 : cache court plutôt que `force-dynamic` (qui retapait Convex à chaque
+// vue — coûteux sous pic viral, F6 audit archi 2026-07-19). 30 s reste
+// imperceptible pour un invité, et l'invalidation ciblée au submit RSVP
+// (`revalidatePath('/i/${token}')`, cf. `actions.ts`) garde le statut RSVP à
+// jour immédiatement sans attendre l'expiration du cache.
+export const revalidate = 30;
 
 /**
  * Metadata invitation personnelle — `noindex` strict.
