@@ -80,6 +80,7 @@ const PREMIUM_EXTRA_FEATURES = [
   'photoVariants',
   'galleryZipDownload',
   'seatingPlan',
+  'customRsvpQuestions',
 ] as const;
 
 const ESSENTIAL_EUR = 2900; // 29 €

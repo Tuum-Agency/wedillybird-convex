@@ -242,7 +242,7 @@ function RefundDialog({ payment: p, remaining }: { payment: Payment; remaining: 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <button className="rounded-md px-2 py-1 text-xs font-medium text-red-400 transition-colors hover:bg-red-400/10">
+        <button className="rounded-md px-2 py-1 text-xs font-medium text-[color:var(--color-danger)] transition-colors hover:bg-[color:var(--color-danger)]/10">
           {t('payments.refund.trigger')}
         </button>
       </DialogTrigger>
@@ -262,33 +262,35 @@ function RefundDialog({ payment: p, remaining }: { payment: Payment; remaining: 
           </DialogDescription>
         </DialogHeader>
 
-        <label className="flex items-center gap-2 text-sm">
-          <input
-            type="checkbox"
-            checked={partial}
-            onChange={(e) => setPartial(e.target.checked)}
-            className="h-4 w-4 rounded border-[color:var(--color-border)]"
-          />
-          {t('payments.refund.partialLabel')}
-        </label>
-
-        {partial ? (
-          <div className="mt-3 flex items-center gap-2">
+        <div className="flex flex-col gap-3">
+          <label className="flex items-center gap-2 text-sm">
             <input
-              type="text"
-              inputMode="decimal"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              placeholder={maxMajor.toFixed(div === 1 ? 0 : 2)}
-              className="w-32 rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-3 py-2 font-mono text-sm text-[color:var(--color-foreground)] focus:ring-1 focus:ring-[color:var(--color-border-strong)] focus:outline-none"
+              type="checkbox"
+              checked={partial}
+              onChange={(e) => setPartial(e.target.checked)}
+              className="h-4 w-4 rounded border-[color:var(--color-border)] accent-[color:var(--color-primary)]"
             />
-            <span className="font-mono text-xs text-[color:var(--color-muted-foreground)]">
-              {p.currency}
-            </span>
-          </div>
-        ) : null}
+            {t('payments.refund.partialLabel')}
+          </label>
 
-        {error ? <p className="mt-3 text-sm text-red-400">{error}</p> : null}
+          {partial ? (
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                inputMode="decimal"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                placeholder={maxMajor.toFixed(div === 1 ? 0 : 2)}
+                className="focus-ring w-32 rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-3 py-2 font-mono text-sm text-[color:var(--color-foreground)]"
+              />
+              <span className="font-mono text-xs text-[color:var(--color-muted-foreground)]">
+                {p.currency}
+              </span>
+            </div>
+          ) : null}
+
+          {error ? <p className="text-sm text-[color:var(--color-danger)]">{error}</p> : null}
+        </div>
 
         <DialogFooter>
           <DialogClose asChild>

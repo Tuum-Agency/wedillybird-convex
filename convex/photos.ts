@@ -489,10 +489,33 @@ export const _resolveSearchAccess = internalQuery({
       return { ok: false as const, error: 'FEATURE_NOT_IN_PLAN' as const };
     }
 
+    // Gate opt-in (Lane T3, F7) : même un event dans le bon forfait ne peut
+    // PAS chercher tant que le couple n'a pas explicitement activé la reco-
+    // faciale (`events:setFaceSearchEnabled`). Défaut OFF — cf.
+    // `events.faceSearchEnabled` sur schema.ts.
+    if (event.faceSearchEnabled !== true) {
+      return { ok: false as const, error: 'FACE_SEARCH_DISABLED' as const };
+    }
+
     return {
       ok: true as const,
       faceCollectionId: event.faceCollectionId,
     };
+  },
+});
+
+/**
+ * Lecture minimale exposée au Lambda de modération via l'endpoint HTTP signé
+ * `/lambda/face-search-enabled` (`convex/http.ts`) — appelée AVANT tout
+ * `IndexFacesCommand` : c'est le vrai gate d'indexation biométrique (Lane T3,
+ * F7). `false` si l'event n'existe plus ou n'a pas opt-in — fail-closed,
+ * ne jamais indexer par défaut.
+ */
+export const _isFaceSearchEnabled = internalQuery({
+  args: { eventId: v.id('events') },
+  handler: async (ctx, { eventId }) => {
+    const event = await ctx.db.get(eventId);
+    return { enabled: event?.faceSearchEnabled === true };
   },
 });
 
@@ -692,6 +715,7 @@ export type SearchPhotosByFaceResult =
         | 'FORBIDDEN'
         | 'INVALID_TOKEN'
         | 'FEATURE_NOT_IN_PLAN'
+        | 'FACE_SEARCH_DISABLED'
         | 'RATE_LIMITED'
         | 'UNKNOWN';
     };
@@ -734,6 +758,9 @@ export const searchPhotosByFace = action({
       }
       if (access.error === 'FEATURE_NOT_IN_PLAN') {
         return { ok: false as const, error: 'FEATURE_NOT_IN_PLAN' as const };
+      }
+      if (access.error === 'FACE_SEARCH_DISABLED') {
+        return { ok: false as const, error: 'FACE_SEARCH_DISABLED' as const };
       }
       return { ok: false as const, error: 'UNKNOWN' as const };
     }

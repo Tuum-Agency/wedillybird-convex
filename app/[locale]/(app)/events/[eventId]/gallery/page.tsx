@@ -107,6 +107,7 @@ export default async function GalleryPage({
             eventId={eventId}
             initialPhotos={photos}
             canDownloadZip={event.planTier === 'premium' || Boolean(event.organizationId)}
+            faceSearchEnabled={event.faceSearchEnabled === true}
           />
         )}
       </div>

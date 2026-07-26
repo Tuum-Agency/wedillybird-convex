@@ -589,9 +589,55 @@ async function callbackFacesConvex(payload: {
 }
 
 /**
+ * Vrai gate d'INDEXATION biométrique (Lane T3, F7) : interroge Convex pour
+ * savoir si le couple a explicitement opt-in la reco-faciale sur cet event
+ * (`events.faceSearchEnabled`), AVANT tout `IndexFacesCommand`. Signé HMAC
+ * comme les autres callbacks de ce fichier.
+ *
+ * **Fail-closed** : toute erreur (réseau, HTTP non-2xx, JSON invalide) est
+ * traitée comme `false` — en cas de doute, on n'indexe JAMAIS. C'est le
+ * comportement inverse de tous les autres callbacks best-effort de ce
+ * fichier (qui avalent l'erreur pour ne pas bloquer un pipeline déjà commité)
+ * parce qu'ici la conséquence d'un faux `true` serait d'indexer des visages
+ * sans consentement — le risque juridique (BIPA) prime sur la continuité du
+ * pipeline.
+ */
+async function isFaceSearchEnabled(eventId: string): Promise<boolean> {
+  try {
+    const url = `${requireEnv('CONVEX_SITE_URL')}/lambda/face-search-enabled`;
+    const secret = requireEnv('LAMBDA_CALLBACK_SECRET');
+    const body = JSON.stringify({ eventId });
+    const timestamp = String(Date.now());
+    const signature = signPayload(secret, timestamp, body);
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-wedillybird-signature': signature,
+        'x-wedillybird-timestamp': timestamp,
+      },
+      body,
+    });
+    if (!response.ok) {
+      console.warn(`[faces] face-search-enabled check HTTP ${response.status} for ${eventId}`);
+      return false;
+    }
+    const json = (await response.json()) as { enabled?: boolean };
+    return json.enabled === true;
+  } catch (err) {
+    console.warn(
+      `[faces] face-search-enabled check errored for ${eventId}: ${err instanceof Error ? err.message : err}`,
+    );
+    return false;
+  }
+}
+
+/**
  * Indexe une photo approuvée dans la Face Collection de l'event puis POST le
- * résultat à Convex. Best-effort : toute exception est logguée et avalée pour
- * ne pas bloquer le pipeline (la modération est déjà commitée à ce stade).
+ * résultat à Convex. Best-effort (hors gate opt-in) : toute exception est
+ * logguée et avalée pour ne pas bloquer le pipeline (la modération est déjà
+ * commitée à ce stade).
  */
 async function indexAndCallbackFaces(s3Key: string, bytes: Buffer): Promise<void> {
   try {
@@ -600,6 +646,16 @@ async function indexAndCallbackFaces(s3Key: string, bytes: Buffer): Promise<void
       console.warn(`[faces] cannot extract eventId from s3Key=${s3Key}, skipping`);
       return;
     }
+
+    // Gate opt-in (Lane T3, F7) — AVANT tout appel Rekognition IndexFaces.
+    // Défaut OFF côté Convex : un event qui n'a jamais activé la feature (ou
+    // dont le check échoue) n'est JAMAIS indexé.
+    const enabled = await isFaceSearchEnabled(eventId);
+    if (!enabled) {
+      console.log(`[faces] face search disabled for event=${eventId}, skipping IndexFaces`);
+      return;
+    }
+
     const collectionId = collectionIdForEvent(eventId);
     await ensureFaceCollection(collectionId);
     const faces = await indexFacesForPhoto(collectionId, bytes, s3Key);

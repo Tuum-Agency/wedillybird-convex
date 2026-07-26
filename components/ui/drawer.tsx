@@ -3,6 +3,7 @@
 import { Drawer as VaulDrawer } from 'vaul';
 import { cn } from '@/lib/cn';
 import type { ComponentProps, ReactNode } from 'react';
+import { useUiTheme } from './theme-provider';
 
 /**
  * Vaul wrapper — drawer mobile-first (bottom sheet) avec rebond et pull-to-close
@@ -19,10 +20,13 @@ export function DrawerContent({
   children,
   ...props
 }: ComponentProps<typeof VaulDrawer.Content> & { children: ReactNode }) {
+  // Portail hors du wrapper `data-theme` → on relit le thème du sous-arbre.
+  const theme = useUiTheme();
   return (
     <VaulDrawer.Portal>
       <VaulDrawer.Overlay className="fixed inset-0 z-40 bg-[color:var(--color-night-900)]/40 backdrop-blur-[2px]" />
       <VaulDrawer.Content
+        data-theme={theme === 'dark' ? 'dark' : undefined}
         className={cn(
           'fixed inset-x-0 bottom-0 z-50 mt-24 flex flex-col rounded-t-3xl',
           'border-t border-[color:var(--color-border-strong)]',

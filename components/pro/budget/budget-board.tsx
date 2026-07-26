@@ -29,6 +29,7 @@ import { createVendorAction } from '@/app/[locale]/(app)/pro/vendors/actions';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useConfirm } from '@/components/ui/confirm-dialog';
 import {
   Select,
   SelectContent,
@@ -118,10 +119,19 @@ function useCategoryLabel() {
 
 /** Couleurs des pastilles de statut (les libellés viennent de l'i18n). */
 const STATUS_PILL_TONE: Record<LineStatus, { bg: string; fg: string }> = {
-  todo: { bg: 'oklch(28% 0.015 60)', fg: 'oklch(80% 0.02 60)' },
-  partial: { bg: 'oklch(30% 0.05 85)', fg: 'oklch(88% 0.08 85)' },
-  paid: { bg: 'oklch(27% 0.05 145)', fg: 'oklch(83% 0.08 145)' },
-  overdue: { bg: 'oklch(28% 0.06 25)', fg: 'oklch(85% 0.08 25)' },
+  todo: { bg: 'var(--color-surface-elevated)', fg: 'var(--color-muted-foreground)' },
+  partial: {
+    bg: 'var(--color-warning-soft)',
+    fg: 'color-mix(in oklab, var(--color-warning), var(--color-foreground) 55%)',
+  },
+  paid: {
+    bg: 'var(--color-success-soft)',
+    fg: 'color-mix(in oklab, var(--color-success), var(--color-foreground) 42%)',
+  },
+  overdue: {
+    bg: 'var(--color-danger-soft)',
+    fg: 'color-mix(in oklab, var(--color-danger), var(--color-foreground) 40%)',
+  },
 };
 
 /** Codes d'erreur serveur disposant d'un libellé dédié (sinon message générique). */
@@ -394,6 +404,7 @@ export function BudgetBoard({
   const [presetCategory, setPresetCategory] = useState<string>('Lieu');
   const [formError, setFormError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const { confirm, confirmDialog } = useConfirm();
   /** Lignes dont l'historique de paiements est déplié. */
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   /** Ligne ciblée par le dialogue « enregistrer un paiement » (null = fermé). */
@@ -504,8 +515,11 @@ export function BudgetBoard({
     });
   }
 
-  function onRemove(line: BudgetLineRow) {
-    if (!confirm(t('confirmRemoveLine', { label: line.label }))) return;
+  async function onRemove(line: BudgetLineRow) {
+    if (
+      !(await confirm({ title: t('confirmRemoveLine', { label: line.label }), destructive: true }))
+    )
+      return;
     setLines((prev) => prev.filter((l) => l._id !== line._id));
     startTransition(async () => {
       const res = await removeBudgetLineAction(line._id);
@@ -626,8 +640,14 @@ export function BudgetBoard({
     });
   }
 
-  function onRemovePayment(line: BudgetLineRow, payment: BudgetPaymentRow) {
-    if (!confirm(t('confirmRemovePayment', { amount: fmtEur(payment.amountMinor) }))) return;
+  async function onRemovePayment(line: BudgetLineRow, payment: BudgetPaymentRow) {
+    if (
+      !(await confirm({
+        title: t('confirmRemovePayment', { amount: fmtEur(payment.amountMinor) }),
+        destructive: true,
+      }))
+    )
+      return;
     setLines((prev) =>
       prev.map((l) =>
         l._id === line._id
@@ -1062,7 +1082,7 @@ export function BudgetBoard({
             onSubmit={onSubmit}
             className="flex flex-col gap-4 pb-2"
           >
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:items-end">
               <label className="flex flex-col gap-1.5 sm:col-span-2">
                 <span className="text-xs font-medium text-[color:var(--color-muted-foreground)]">
                   {t('lineDialog.labelLabel')}
@@ -1204,7 +1224,7 @@ export function BudgetBoard({
                   onSubmit={onSubmitPayment}
                   className="flex flex-col gap-4"
                 >
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:items-end">
                     <label className="flex flex-col gap-1.5">
                       <span className="text-xs font-medium text-[color:var(--color-muted-foreground)]">
                         {t('paymentDialog.amountReceivedLabel')}
@@ -1391,6 +1411,7 @@ export function BudgetBoard({
           ) : null}
         </DialogContent>
       </Dialog>
+      {confirmDialog}
     </div>
   );
 }

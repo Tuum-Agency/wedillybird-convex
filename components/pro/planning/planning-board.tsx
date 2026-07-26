@@ -729,7 +729,7 @@ export function PlanningBoard({
                 defaultValue={editing?.title ?? ''}
               />
             </label>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 items-end gap-3">
               <div className="flex flex-col gap-1.5">
                 <span className="text-xs font-medium text-[color:var(--color-muted-foreground)]">
                   {t('dialog.phaseLabel')}
@@ -754,7 +754,7 @@ export function PlanningBoard({
                 <Input name="dueDate" type="date" defaultValue={editDue} />
               </label>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 items-end gap-3">
               <div className="flex flex-col gap-1.5">
                 <span className="text-xs font-medium text-[color:var(--color-muted-foreground)]">
                   {t('dialog.priorityLabel')}

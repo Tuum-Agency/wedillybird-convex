@@ -33,4 +33,15 @@ crons.cron(
   {},
 );
 
+// Daily at 03:00 UTC: purge biometric face data (Rekognition Face Collection +
+// `photoFaces` rows) for any event whose gallery retention window has expired,
+// even if it was never explicitly archived. Privacy/BIPA requirement (Lane T3,
+// F7) — indexed faces must not outlive the gallery. Idempotent.
+crons.cron(
+  'purge expired biometric face data',
+  '0 3 * * *',
+  internal.events.purgeExpiredBiometricData,
+  {},
+);
+
 export default crons;

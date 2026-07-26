@@ -208,6 +208,7 @@
     }
   },
   "Common": {
+    "confirm": "Bestätigen",
     "appName": "Wedillybird",
     "tagline": "Deine Hochzeit, stressfrei organisiert",
     "signIn": "Anmelden",
@@ -226,7 +227,7 @@
     "skipToContent": "Zum Hauptinhalt springen",
     "home": "Startseite",
     "meta": {
-      "organizationDescription": "WhatsApp-first SaaS-Plattform zur Hochzeitsorganisation: Einladungen, RSVP, Check-in, geteilte Galerie. Frankreich und französischsprachiges Westafrika."
+      "organizationDescription": "SaaS-Plattform für Hochzeiten: digitale Einladungen, RSVP, Gäste-Check-in und geteilte Fotogalerie."
     },
     "close": "Schließen"
   },
@@ -257,7 +258,9 @@
       "article6Body": "Der Dienst wird „wie besehen\" bereitgestellt. Wedillybird bemüht sich um eine größtmögliche Verfügbarkeit, garantiert jedoch keine unterbrechungsfreie Nutzung. Die Haftung von Wedillybird ist auf den Betrag begrenzt, den der Nutzer in den letzten 12 Monaten gezahlt hat.",
       "article7Title": "7. Anwendbares Recht und Streitigkeiten",
       "article7Body": "Diese AGB unterliegen dem französischen Recht. Für sämtliche Streitigkeiten im Zusammenhang mit ihrer Ausführung sind ausschließlich die Gerichte von Paris zuständig, sofern keine zwingenden gegenteiligen Bestimmungen entgegenstehen.",
-      "description": "Allgemeine Geschäftsbedingungen für den Wedillybird-Dienst: Konto, Preise, geistiges Eigentum, Haftung, anwendbares Recht."
+      "description": "Allgemeine Geschäftsbedingungen für den Wedillybird-Dienst: Konto, Preise, geistiges Eigentum, Haftung, anwendbares Recht.",
+      "article8Title": "8. Fotos, Gäste und biometrische Daten",
+      "article8Body": "Der Nutzer, der Fotos von Gästen hochlädt (in der Regel das Brautpaar), sichert zu und gewährleistet, seine Gäste darüber informiert zu haben, dass ihre Fotos über den Dienst geteilt werden, und – falls die Gesichtssuche aktiviert ist – dass ihr Gesicht verarbeitet wird, damit sie ihre eigenen Fotos finden können, sowie jede nach geltendem Recht erforderliche Einwilligung eingeholt zu haben. Der Nutzer ist dafür verantwortlich, das Recht des Ortes einzuhalten, an dem die Hochzeit stattfindet, soweit es die biometrischen Daten der eingeladenen Personen betrifft. Wedillybird bietet die Gesichtssuche für Hochzeiten in Illinois, Texas oder Washington nicht an."
     },
     "privacy": {
       "title": "Datenschutzerklärung",
@@ -271,9 +274,11 @@
       "legalBasisTitle": "Rechtsgrundlagen (DSGVO)",
       "legalBasisBody": "Vertragserfüllung (Konto, Zahlungen, Funktionen), berechtigtes Interesse (Sicherheit, Missbrauchsprävention), Einwilligung (nicht essenzielle Cookies, Marketing-Kommunikation).",
       "retentionTitle": "Aufbewahrungsdauer",
-      "retentionBody": "Kontodaten: Dauer des Abonnements + 3 Jahre. Zahlungsdaten: gesetzliche Frist (10 Jahre für die Rechnungsstellung). Technische Logs: maximal 12 Monate.",
+      "retentionBody": "Kontodaten: Dauer des Abonnements + 3 Jahre. Zahlungsdaten: gesetzliche Frist (10 Jahre für die Rechnungsstellung). Technische Logs: maximal 12 Monate. Biometrische Gesichtsdaten (Gesichtssuche, falls aktiviert): bis zum Ablauf der Galerie oder zur Deaktivierung der Funktion, je nachdem, was zuerst eintritt — siehe „Biometrische Daten“ unten.",
       "subprocessorsTitle": "Auftragsverarbeiter",
-      "subprocessorsBody": "Convex (Datenbank, USA), Vercel (Hosting, USA/EU), Stripe (Zahlung, EU/USA), Meta WhatsApp Cloud API (Nachrichtenversand, EU/USA), Amazon Rekognition Faces (temporäre Indexierung von Gesichtern für die Fotosuche, EU). Datenminimierung, kein Weiterverkauf, kein Marketing-Sharing mit Dritten. Alle gebunden durch Standardvertragsklauseln oder gleichwertige Mechanismen.",
+      "subprocessorsBody": "Convex (Datenbank, USA), Vercel (Hosting, USA/EU), Stripe (Zahlung, EU/USA), Meta WhatsApp Cloud API (Nachrichtenversand, EU/USA), Amazon Rekognition Faces (biometrische Gesichtsindexierung für die optionale Gesichtssuche-Funktion, nur aktiv für Hochzeiten, bei denen das Paar sie ausdrücklich aktiviert hat — siehe „Biometrische Daten“ unten, EU). Datenminimierung, kein Weiterverkauf, kein Marketing-Sharing mit Dritten. Alle gebunden durch Standardvertragsklauseln oder gleichwertige Mechanismen.",
+      "biometricsTitle": "Biometrische Daten (Gesichtssuche)",
+      "biometricsBody": "Die Gesichtssuche ist eine optionale, aktiv zu wählende Funktion: standardmäßig deaktiviert, verarbeitet sie die Gesichter von Gästen nur bei Hochzeiten, bei denen das Paar sie nach Kenntnisnahme dieses Hinweises ausdrücklich aktiviert hat. Rechtsgrundlage: ausdrückliche Einwilligung, erteilt vom Paar im Namen der Hochzeit (siehe AGB). Verarbeitete Daten: aus genehmigten Galeriefotos extrahierte Gesichtsgeometrie (Amazon Rekognition), ausschließlich verwendet, um das Selfie eines Gastes mit der Galerie abzugleichen — das Selfie selbst wird nie gespeichert. Aufbewahrung: bis zum Ablauf der Galerie oder zur Deaktivierung der Funktion, je nachdem, was zuerst eintritt; automatische Löschung innerhalb von 24 Stunden durch eine tägliche Bereinigung, auf Anfrage auch früher. Diese Funktion wird für Hochzeiten in Illinois, Texas oder Washington nicht angeboten.",
       "rightsTitle": "Ihre Rechte",
       "rightsBody": "Auskunft, Berichtigung, Löschung, Widerspruch, Datenübertragbarkeit, Einschränkung. Zur Ausübung eines Rechts schreiben Sie an privacy@wedillybird.com. Sie können sich auch an die CNIL wenden.",
       "contactTitle": "Kontakt",
@@ -966,7 +971,8 @@
     "errors": {
       "submit": "Einladung konnte nicht hinzugefügt werden. Bitte erneut versuchen.",
       "limitReached": "Einladungs-Kontingent für dieses Paket erreicht. Wechsle zu einem höheren Paket, um weitere hinzuzufügen."
-    }
+    },
+    "answersDietary": "Ernährung"
   },
   "Invitation": {
     "youreInvited": "Du bist eingeladen",
@@ -996,7 +1002,8 @@
       "notFound": "Einladung nicht gefunden oder abgelaufen",
       "eventClosed": "Dieses Event nimmt keine Antworten mehr an",
       "plusOnesExceeded": "Zu viele Begleiter angegeben",
-      "unknown": "Ein Fehler ist aufgetreten. Bitte erneut versuchen."
+      "unknown": "Ein Fehler ist aufgetreten. Bitte erneut versuchen.",
+      "answerRequired": "Bitte beantworten Sie diese Frage"
     },
     "countdownLabel": "Countdown",
     "countdownDays": "Tage",
@@ -1010,7 +1017,12 @@
     "weddingDayArrived": "Der grosse Tag ist da.",
     "cinematicSkip": "Überspringen",
     "cinematicSkipAria": "Cinematic überspringen",
-    "scrollToDiscover": "Zum Entdecken scrollen"
+    "scrollToDiscover": "Zum Entdecken scrollen",
+    "rsvpPrompt": "Wir würden uns über Ihr Kommen sehr freuen",
+    "galleryHint": "Von Gästen geteilte Fotos",
+    "booleanYes": "Ja",
+    "booleanNo": "Nein",
+    "requiredMark": "Erforderlich"
   },
   "OrgPublic": {
     "poweredBy": "Bereitgestellt von",
@@ -1097,7 +1109,8 @@
         "forbidden": "Du hast keinen Zugriff auf diese Galerie.",
         "rateLimited": "Zu viele Suchen in kurzer Zeit. Warte einen Moment, bevor du es erneut versuchst.",
         "notInPlan": "Nur im Premium-Tarif. Wechseln Sie zu Premium, um die Gesichtssuche zu nutzen.",
-        "unknown": "Ein Fehler ist aufgetreten. Bitte erneut versuchen."
+        "unknown": "Ein Fehler ist aufgetreten. Bitte erneut versuchen.",
+        "disabled": "Die Gesichtssuche ist für diese Hochzeit nicht aktiviert."
       },
       "cancel": "Abbrechen"
     }
@@ -3770,7 +3783,8 @@
       "cinematicInvitation": "Einladungsinszenierung: Umschlag öffnet sich, Siegel zerbricht",
       "photoVariants": "Fotos in 3 WebP-Auflösungen optimiert für flüssige Anzeige selbst in 3G",
       "galleryZipDownload": "Download der gesamten Galerie als ZIP mit einem Klick",
-      "seatingPlan": "Sitzplan per Drag-and-drop: weisen Sie zugesagte Gäste den Tischen zu"
+      "seatingPlan": "Sitzplan per Drag-and-drop: weisen Sie zugesagte Gäste den Tischen zu",
+      "customRsvpQuestions": "Individuelle RSVP-Fragen: Fügen Sie eigene Fragen zum Antwortformular hinzu"
     },
     "allEssentialIncluded": "Alles aus Essentiel inbegriffen",
     "pro": {
@@ -4067,7 +4081,8 @@
     "categoryTooLong": "Kategorie zu lang",
     "notesTooLong": "Notizen zu lang",
     "plusOnesRange": "0 bis 10 Begleitpersonen",
-    "plusOnesOnlyAttending": "Begleitpersonen nur erlaubt bei bestätigter Teilnahme"
+    "plusOnesOnlyAttending": "Begleitpersonen nur erlaubt bei bestätigter Teilnahme",
+    "weddingStateInvalid": "Ungültiger Bundesstaat-/Provinzcode"
   },
   "WhatsApp": {
     "templateStatus": {
@@ -4584,7 +4599,8 @@
     "billingInvoicePeriod": "Zeitraum",
     "billingInvoiceAmount": "Betrag",
     "billingInvoiceStatus": "Status",
-    "billingInvoiceDocument": "Dokument"
+    "billingInvoiceDocument": "Dokument",
+    "backToWedding": "Zurück zur Hochzeit"
   },
   "CoupleSpace": {
     "eyebrow": "Paarbereich",
@@ -5301,5 +5317,88 @@
       "empty": "Im Moment gibt es für Sie nichts zu tun. Ihre Agentur meldet sich, sobald eine Aktion auf Sie wartet.",
       "title": "Sie sind dran"
     }
+  },
+  "RsvpEditor": {
+    "title": "RSVP-Fragen",
+    "subtitle": "Legen Sie fest, was Sie Ihre Gäste bei der Antwort fragen.",
+    "lockedBody": "Die Anpassung des RSVP-Formulars ist im Premium-Tarif (und allen Pro-Tarifen) enthalten.",
+    "lockedCta": "Auf Premium upgraden",
+    "builtinSectionTitle": "Standardfelder",
+    "fieldPlusOnes": "Begleitung",
+    "fieldPlusOnesHint": "Erlauben Sie, die Namen der Begleitpersonen anzugeben (je nach Kontingent).",
+    "fieldDietary": "Ernährungswünsche",
+    "fieldNotes": "Eine Nachricht an das Paar",
+    "labelOverride": "Angezeigte Bezeichnung",
+    "labelOverridePlaceholder": "Eigene Bezeichnung (optional)",
+    "customSectionTitle": "Eigene Fragen",
+    "customSectionHint": "Fügen Sie bis zu {max} eigene Fragen hinzu.",
+    "addQuestion": "Frage hinzufügen",
+    "empty": "Noch keine eigenen Fragen.",
+    "questionLabel": "Frage",
+    "questionLabelPlaceholder": "z. B. Nehmen Sie den Shuttle?",
+    "typeLabel": "Antworttyp",
+    "type": {
+      "short_text": "Kurztext",
+      "long_text": "Langtext",
+      "single_choice": "Einfachauswahl",
+      "multi_choice": "Mehrfachauswahl",
+      "boolean": "Ja / Nein"
+    },
+    "optionsLabel": "Optionen",
+    "optionPlaceholder": "Option {index}",
+    "addOption": "Option hinzufügen",
+    "removeOption": "Option entfernen",
+    "requiredLabel": "Pflichtantwort",
+    "onlyIfAttendingLabel": "Nur bei Zusage",
+    "removeQuestion": "Entfernen",
+    "moveUp": "Nach oben",
+    "moveDown": "Nach unten",
+    "save": "Fragen speichern",
+    "saved": "Fragen gespeichert",
+    "errorSave": "Speichern fehlgeschlagen. Erneut versuchen.",
+    "maxReached": "Maximum von {max} Fragen erreicht",
+    "delegationLabel": "Dem Paar erlauben, die Fragen zu bearbeiten",
+    "delegationHint": "Das Paar kann den Fragebogen in seinem Bereich anpassen. Deaktiviert behalten Sie die Kontrolle.",
+    "readOnlyBody": "Ihre Agentur verwaltet den RSVP-Fragebogen für dieses Event."
+  },
+  "Notifications": {
+    "title": "Benachrichtigungen",
+    "markAllRead": "Alle als gelesen markieren",
+    "empty": "Noch keine Benachrichtigungen.",
+    "someone": "Jemand",
+    "theCouple": "Das Paar",
+    "rsvpResponse": "{name} hat geantwortet: {status}",
+    "configChanged": "{name} hat den RSVP-Fragebogen bearbeitet",
+    "planningTask": "Neue Aufgabe: {title}",
+    "status": {
+      "attending": "Nimmt teil",
+      "declined": "Nimmt nicht teil",
+      "maybe": "Vielleicht"
+    },
+    "andMore": "und {count} weitere"
+  },
+  "FaceSearchPrivacy": {
+    "title": "Datenschutz & Gesichtssuche",
+    "subtitle": "Entscheiden Sie, ob Gäste ihre Fotos per Gesichtserkennung finden können — standardmäßig deaktiviert, Ihre Entscheidung.",
+    "lockedBody": "Die Gesichtssuche ist im Premium-Plan (und allen Pro-Plänen) enthalten.",
+    "lockedCta": "Auf Premium upgraden",
+    "stateLabel": "Bundesstaat / Provinz der Hochzeit",
+    "stateHint": "Erforderlich, um die Gesichtssuche zu aktivieren, wenn Ihre Hochzeit in den USA oder Kanada stattfindet — manche Bundesstaaten regeln biometrische Daten streng.",
+    "stateNotApplicable": "Außerhalb der USA / Kanadas",
+    "stateGroupUs": "USA",
+    "stateGroupCa": "Kanada",
+    "toggleLabel": "Fotosuche per Gesicht für Gäste aktivieren",
+    "toggleHint": "Ermöglicht Gästen, ihre eigenen Fotos per Selfie zu finden. Standardmäßig deaktiviert.",
+    "consentNoticeBody": "Beim Aktivieren werden die Gesichter der Gäste indexiert (Amazon Rekognition), damit sie ihre Fotos per Selfie finden können. Mit der Aktivierung bestätigen Sie, dass Sie Ihre Gäste darüber informiert haben, dass die Gesichtssuche für diese Hochzeit aktiv ist. Sie können sie jederzeit wieder deaktivieren; indexierte Gesichter werden gelöscht, sobald die Galerie abläuft oder die Funktion deaktiviert wird.",
+    "consentRecordedAt": "Einwilligung erfasst am {date}",
+    "bannedNotice": "Die Gesichtssuche ist für Hochzeiten in Illinois, Texas oder Washington nicht verfügbar — diese Bundesstaaten regeln biometrische Daten gesondert. Das ist eine dauerhafte Einschränkung, kein Fehler.",
+    "save": "Speichern",
+    "saved": "Gespeichert",
+    "errorSave": "Speichern fehlgeschlagen. Bitte erneut versuchen.",
+    "errorStateBanned": "Die Gesichtssuche kann für diesen Bundesstaat nicht aktiviert werden.",
+    "errorStateRequired": "Wähle zuerst den Bundesstaat oder die Provinz der Hochzeit. Erforderlich, um die Gesichtssuche zu aktivieren.",
+    "statePlaceholder": "Ort der Hochzeit auswählen…",
+    "errorFeatureNotInPlan": "Die Gesichtssuche ist nur im Premium-Plan (oder den Pro-Plänen) verfügbar.",
+    "errorForbidden": "Sie sind nicht berechtigt, diese Einstellung zu ändern."
   }
 }

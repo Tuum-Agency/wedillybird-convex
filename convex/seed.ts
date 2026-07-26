@@ -1,6 +1,6 @@
 import { v } from 'convex/values';
 import type { Id } from './_generated/dataModel';
-import { internalMutation, mutation } from './_generated/server';
+import { internalMutation } from './_generated/server';
 
 const TEST_USERS = [
   {
@@ -41,7 +41,7 @@ const TEST_USERS = [
   },
 ];
 
-export const seedTestUsers = mutation({
+export const seedTestUsers = internalMutation({
   args: {},
   handler: async (ctx) => {
     const now = Date.now();
@@ -85,7 +85,7 @@ export const seedTestUsers = mutation({
  * correspond au fixture admin de `lib/dev/test-users.ts` (porte d'entrée
  * `/dev-login`).
  */
-export const seedAdminUser = mutation({
+export const seedAdminUser = internalMutation({
   args: {},
   handler: async (ctx) => {
     const now = Date.now();
@@ -118,7 +118,7 @@ export const seedAdminUser = mutation({
  * d'un user qui s'est connecté via magic link sans encore lier son
  * WhatsApp. Idempotent.
  */
-export const seedEmailOnlyUser = mutation({
+export const seedEmailOnlyUser = internalMutation({
   args: { email: v.string() },
   handler: async (ctx, { email }) => {
     const normalized = email.trim().toLowerCase();
@@ -312,7 +312,7 @@ function makeQrToken(): string {
  *
  * Retourne l'URL publique de l'invitation à charger pour les captures vidéo.
  */
-export const seedLaunchDemo = mutation({
+export const seedLaunchDemo = internalMutation({
   args: {},
   handler: async (ctx) => {
     const now = Date.now();
@@ -486,7 +486,7 @@ export const _resetLaunchDemo = internalMutation({
  *    (5 events actifs = quota Starter) + 1 event draft à publier → publication
  *    BLOQUÉE (`EVENT_QUOTA_EXCEEDED`, bouton pré-désactivé + hint).
  */
-export const seedTierFixtures = mutation({
+export const seedTierFixtures = internalMutation({
   args: {},
   handler: async (ctx) => {
     const now = Date.now();

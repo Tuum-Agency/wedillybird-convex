@@ -21,6 +21,7 @@ import { Button, buttonVariants } from '@/components/ui/button';
 import { AppShell } from '@/components/app/app-shell';
 import { BroadcastInvitationsCard } from '@/components/events/broadcast-invitations-card';
 import { LiveGuestStats } from '@/components/events/live-guest-stats';
+import { NotificationsPanel } from '@/components/notifications/notifications-panel';
 import { UpgradeCard } from '@/components/payments/upgrade-card';
 import { routePayment } from '@/lib/payments/country';
 import { togglePublishAction } from '@/app/[locale]/(app)/events/actions';
@@ -465,6 +466,7 @@ export default async function EventDetailPage({
               (stats live, broadcast quotidien) et les actions invités. */}
         {headerSection}
         {detailsSection}
+        <NotificationsPanel userId={session!.userId} />
         {isDraft ? (
           <>
             {pilotSection}

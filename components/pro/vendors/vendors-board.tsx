@@ -23,6 +23,7 @@ import {
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
+import { useConfirm } from '@/components/ui/confirm-dialog';
 import {
   Select,
   SelectContent,
@@ -259,6 +260,7 @@ export function VendorsBoard({
   const [detailVendor, setDetailVendor] = useState<VendorRow | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const { confirm, confirmDialog } = useConfirm();
 
   const categories = useMemo(() => usedCategories(vendors), [vendors]);
   const filtered = useMemo(
@@ -328,8 +330,9 @@ export function VendorsBoard({
     });
   }
 
-  function onRemove(v: VendorRow) {
-    if (!confirm(t('confirmRemove', { name: v.name }))) return;
+  async function onRemove(v: VendorRow) {
+    if (!(await confirm({ title: t('confirmRemove', { name: v.name }), destructive: true })))
+      return;
     setVendors((prev) => prev.filter((x) => x._id !== v._id));
     startTransition(async () => {
       const res = await removeVendorAction(v._id);
@@ -670,7 +673,7 @@ export function VendorsBoard({
             onSubmit={onSubmit}
             className="flex flex-col gap-4 pb-2"
           >
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:items-end">
               <label className="flex flex-col gap-1.5 sm:col-span-2">
                 <span className="text-xs font-medium text-[color:var(--color-muted-foreground)]">
                   {t('form.name')} *
@@ -898,6 +901,7 @@ export function VendorsBoard({
           ) : null}
         </DrawerContent>
       </Drawer>
+      {confirmDialog}
     </div>
   );
 }

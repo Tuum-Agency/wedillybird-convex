@@ -106,10 +106,11 @@ const SUBTABS: { k: SubTab; labelKey: `subtabs.${SubTab}`; Icon: LucideIcon }[] 
 type Tone = 'ok' | 'warn' | 'danger' | 'info' | 'muted';
 
 const PILL_TONE: Record<Tone, string> = {
-  ok: 'bg-[oklch(26%_0.045_150)] text-[oklch(84%_0.09_150)]',
-  warn: 'bg-[oklch(29%_0.05_80)] text-[oklch(87%_0.09_85)]',
-  danger: 'bg-[oklch(28%_0.05_25)] text-[oklch(84%_0.09_25)]',
-  info: 'bg-[oklch(28%_0.045_255)] text-[oklch(85%_0.08_258)]',
+  ok: 'bg-[color:var(--color-success-soft)] text-[color:color-mix(in_oklab,var(--color-success),var(--color-foreground)_42%)]',
+  warn: 'bg-[color:var(--color-warning-soft)] text-[color:color-mix(in_oklab,var(--color-warning),var(--color-foreground)_55%)]',
+  danger:
+    'bg-[color:var(--color-danger-soft)] text-[color:color-mix(in_oklab,var(--color-danger),var(--color-foreground)_40%)]',
+  info: 'bg-[color:var(--color-info-soft)] text-[color:color-mix(in_oklab,var(--color-info),var(--color-foreground)_40%)]',
   muted: 'bg-[color:var(--color-surface-elevated)] text-[color:var(--color-muted-foreground)]',
 };
 

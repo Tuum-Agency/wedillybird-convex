@@ -1,6 +1,7 @@
 import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
 import { internal } from './_generated/api';
+import { assertWebhookSecret } from './lib/webhookSecret';
 
 const CURRENCY = v.union(
   v.literal('EUR'),
@@ -20,6 +21,9 @@ const CURRENCY = v.union(
  */
 export const markPurchase = mutation({
   args: {
+    // Secret partagé Vercel ⇄ Convex : crédite un slot d'event pro (79 €).
+    // Sans ce garde, un appel direct anonyme offrait des crédits à volonté.
+    webhookSecret: v.string(),
     organizationId: v.id('organizations'),
     requesterId: v.id('users'),
     stripeSessionId: v.string(),
@@ -27,6 +31,7 @@ export const markPurchase = mutation({
     currency: CURRENCY,
   },
   handler: async (ctx, args) => {
+    assertWebhookSecret(args.webhookSecret);
     const existing = await ctx.db
       .query('paygPurchases')
       .withIndex('by_session', (q) => q.eq('stripeSessionId', args.stripeSessionId))

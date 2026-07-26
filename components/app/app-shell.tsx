@@ -1,10 +1,12 @@
 import type { ReactNode } from 'react';
-import { useTranslations } from 'next-intl';
+import { getTranslations } from 'next-intl/server';
 import { LogOut } from 'lucide-react';
 import { Link } from '@/i18n/navigation';
 import { signOutAction } from '@/app/[locale]/(auth)/actions';
 import { LocaleSwitcher } from '@/components/layout/locale-switcher';
 import { WedillybirdLogo } from '@/components/brand/wedillybird-logo';
+import { getSession } from '@/lib/auth/session';
+import { NotificationBell } from '@/components/notifications/notification-bell';
 
 /**
  * AppShell V4 — header sticky réutilisable pour toutes les pages app
@@ -28,8 +30,9 @@ export interface AppShellProps {
   userName?: string;
 }
 
-export function AppShell({ children, nav, userName }: AppShellProps) {
-  const tCommon = useTranslations('Common');
+export async function AppShell({ children, nav, userName }: AppShellProps) {
+  const tCommon = await getTranslations('Common');
+  const session = await getSession();
 
   return (
     <div className="paper-grain flex min-h-screen flex-col bg-[color:var(--color-ivory-50)]">
@@ -47,6 +50,7 @@ export function AppShell({ children, nav, userName }: AppShellProps) {
           </div>
 
           <div className="flex items-center gap-3">
+            {session ? <NotificationBell userId={session.userId} /> : null}
             {userName ? (
               <span className="hidden font-mono text-[10px] tracking-[0.24em] text-[color:var(--color-ink-500)] uppercase sm:inline-block">
                 {userName}

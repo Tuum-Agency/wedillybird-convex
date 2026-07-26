@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { phoneSchema } from '@/lib/validators/auth';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
 import { getSession } from '@/lib/auth/session';
+import { assertSameOrigin } from '@/lib/auth/csrf';
 
 const bodySchema = z.object({ phone: phoneSchema });
 
@@ -13,6 +14,8 @@ function clientIp(request: Request): string | undefined {
 }
 
 export async function POST(request: Request) {
+  const csrf = assertSameOrigin(request);
+  if (csrf) return csrf;
   const session = await getSession();
   if (!session) {
     return NextResponse.json({ ok: false, error: 'UNAUTHENTICATED' }, { status: 401 });

@@ -208,6 +208,7 @@
     }
   },
   "Common": {
+    "confirm": "Confirmer",
     "appName": "Wedillybird",
     "tagline": "Votre mariage, organisé sans stress",
     "signIn": "Se connecter",
@@ -226,7 +227,7 @@
     "skipToContent": "Aller au contenu principal",
     "home": "Accueil",
     "meta": {
-      "organizationDescription": "Plateforme SaaS d'organisation de mariage WhatsApp-first : invitations, RSVP, check-in, galerie partagée. France et Afrique de l'Ouest francophone."
+      "organizationDescription": "Plateforme SaaS d'organisation de mariage : invitations digitales, RSVP, check-in des invités et galerie photo partagée."
     },
     "close": "Fermer"
   },
@@ -257,7 +258,9 @@
       "article6Body": "Le Service est fourni « en l'état ». Wedillybird s'efforce d'assurer une disponibilité maximale mais ne garantit pas l'absence d'interruption. La responsabilité de Wedillybird est limitée au montant payé par l'Utilisateur sur les 12 derniers mois.",
       "article7Title": "7. Droit applicable et litiges",
       "article7Body": "Les présentes CGU sont régies par le droit français. Tout litige relatif à leur exécution sera de la compétence exclusive des tribunaux de Paris, sauf disposition d'ordre public contraire.",
-      "description": "Conditions générales d'utilisation du Service Wedillybird : compte, tarification, propriété intellectuelle, responsabilité, droit applicable."
+      "description": "Conditions générales d'utilisation du Service Wedillybird : compte, tarification, propriété intellectuelle, responsabilité, droit applicable.",
+      "article8Title": "8. Photos, invités et données biométriques",
+      "article8Body": "L'Utilisateur qui téléverse des photos d'invités (typiquement le couple) garantit avoir informé ses invités que leurs photos seront partagées via le Service et, si la reco-faciale est activée, que leur visage sera traité pour leur permettre de retrouver leurs propres photos — et avoir recueilli tout consentement requis par la loi applicable. L'Utilisateur est responsable du respect de la loi du lieu où se tient le mariage concernant les données biométriques des personnes qu'il invite. Wedillybird ne propose pas la reco-faciale pour les mariages en Illinois, au Texas ou dans l'État de Washington."
     },
     "privacy": {
       "title": "Politique de confidentialité",
@@ -271,9 +274,11 @@
       "legalBasisTitle": "Bases légales (RGPD)",
       "legalBasisBody": "Exécution du contrat (compte, paiements, fonctionnalités), intérêt légitime (sécurité, prévention des abus), consentement (cookies non-essentiels, communications marketing).",
       "retentionTitle": "Durée de conservation",
-      "retentionBody": "Données du compte : durée de l'abonnement + 3 ans. Données de paiement : durée légale (10 ans pour la facturation). Logs techniques : 12 mois maximum.",
+      "retentionBody": "Données du compte : durée de l'abonnement + 3 ans. Données de paiement : durée légale (10 ans pour la facturation). Logs techniques : 12 mois maximum. Données biométriques du visage (reco-faciale, si activée) : jusqu'à l'expiration de la galerie ou la désactivation de la fonctionnalité, selon le premier des deux — voir « Données biométriques » ci-dessous.",
       "subprocessorsTitle": "Sous-traitants",
-      "subprocessorsBody": "Convex (base de données, US), Vercel (hébergement, US/EU), Stripe (paiement, EU/US), Meta WhatsApp Cloud API (envoi messages, EU/US), Amazon Rekognition Faces (indexation temporaire des visages pour la recherche photo, EU). Données minimisées, aucune revente ni partage marketing avec des tiers. Tous engagés par des clauses contractuelles types ou des mécanismes équivalents.",
+      "subprocessorsBody": "Convex (base de données, US), Vercel (hébergement, US/EU), Stripe (paiement, EU/US), Meta WhatsApp Cloud API (envoi messages, EU/US), Amazon Rekognition Faces (indexation biométrique des visages pour la fonctionnalité optionnelle de recherche photo, active uniquement pour les mariages où le couple l'a explicitement activée — voir « Données biométriques » ci-dessous, EU). Données minimisées, aucune revente ni partage marketing avec des tiers. Tous engagés par des clauses contractuelles types ou des mécanismes équivalents.",
+      "biometricsTitle": "Données biométriques (reco-faciale)",
+      "biometricsBody": "La reco-faciale est une fonctionnalité optionnelle, activée à la demande : désactivée par défaut, elle ne traite les visages des invités que pour les mariages où le couple l'a explicitement activée, après avoir pris connaissance de cette notice. Base légale : consentement explicite, donné par le couple au nom du mariage (voir CGU). Données traitées : géométrie faciale extraite des photos approuvées de la galerie (Amazon Rekognition), utilisée uniquement pour rapprocher le selfie d'un invité de la galerie — le selfie lui-même n'est jamais stocké. Durée de conservation : jusqu'à l'expiration de la galerie ou la désactivation de la fonctionnalité, selon le premier des deux ; suppression automatique sous 24h via une purge quotidienne, ou plus tôt sur demande. Cette fonctionnalité n'est pas proposée pour les mariages en Illinois, au Texas ou dans l'État de Washington.",
       "rightsTitle": "Vos droits",
       "rightsBody": "Accès, rectification, effacement, opposition, portabilité, limitation. Pour exercer un droit, écrivez à privacy@wedillybird.com. Vous pouvez également déposer une réclamation auprès de la CNIL.",
       "contactTitle": "Contact",
@@ -966,7 +971,8 @@
     "errors": {
       "submit": "Impossible d'ajouter l'invitation. Réessayez.",
       "limitReached": "Quota d'invitations atteint pour cette formule. Passez à une formule supérieure pour en ajouter plus."
-    }
+    },
+    "answersDietary": "Régime"
   },
   "Invitation": {
     "youreInvited": "Vous êtes invité·e",
@@ -996,7 +1002,8 @@
       "notFound": "Invitation introuvable ou expirée",
       "eventClosed": "Cet événement n'accepte plus de réponses",
       "plusOnesExceeded": "Trop d'accompagnants indiqués",
-      "unknown": "Une erreur est survenue. Réessayez."
+      "unknown": "Une erreur est survenue. Réessayez.",
+      "answerRequired": "Merci de répondre à cette question"
     },
     "countdownLabel": "Compte à rebours",
     "countdownDays": "Jours",
@@ -1010,7 +1017,12 @@
     "weddingDayArrived": "Le grand jour est arrivé.",
     "cinematicSkip": "Passer",
     "cinematicSkipAria": "Passer la cinématique",
-    "scrollToDiscover": "Faites défiler pour découvrir"
+    "scrollToDiscover": "Faites défiler pour découvrir",
+    "rsvpPrompt": "Nous serions honorés de votre présence",
+    "galleryHint": "Photos partagées par les invités",
+    "booleanYes": "Oui",
+    "booleanNo": "Non",
+    "requiredMark": "Obligatoire"
   },
   "OrgPublic": {
     "poweredBy": "Propulsé par",
@@ -1097,7 +1109,8 @@
         "forbidden": "Vous n'avez pas accès à cette galerie.",
         "rateLimited": "Trop de recherches récentes. Patientez quelques instants avant de réessayer.",
         "notInPlan": "Réservé à la formule Premium. Passez en Premium pour activer la recherche par visage.",
-        "unknown": "Une erreur est survenue. Réessayez."
+        "unknown": "Une erreur est survenue. Réessayez.",
+        "disabled": "La recherche par visage n'est pas activée pour ce mariage."
       },
       "cancel": "Annuler"
     }
@@ -3770,7 +3783,8 @@
       "cinematicInvitation": "Cinématique d'invitation : enveloppe qui s'ouvre, sceau qui se brise",
       "photoVariants": "Photos optimisées en 3 résolutions WebP pour un affichage fluide même en 3G",
       "galleryZipDownload": "Téléchargement de toute la galerie en ZIP en un clic",
-      "seatingPlan": "Plan de table en glisser-déposer : placez vos invités confirmés sur les tables"
+      "seatingPlan": "Plan de table en glisser-déposer : placez vos invités confirmés sur les tables",
+      "customRsvpQuestions": "Questions RSVP personnalisées : ajoutez vos propres questions au formulaire de réponse"
     },
     "allEssentialIncluded": "Tout l'Essentiel inclus",
     "pro": {
@@ -4067,7 +4081,8 @@
     "categoryTooLong": "Catégorie trop longue",
     "notesTooLong": "Notes trop longues",
     "plusOnesRange": "0 à 10 accompagnants",
-    "plusOnesOnlyAttending": "Accompagnants autorisés uniquement si présence confirmée"
+    "plusOnesOnlyAttending": "Accompagnants autorisés uniquement si présence confirmée",
+    "weddingStateInvalid": "Code État/province invalide"
   },
   "WhatsApp": {
     "reminders": {
@@ -4584,7 +4599,8 @@
     "billingInvoicePeriod": "Période",
     "billingInvoiceAmount": "Montant",
     "billingInvoiceStatus": "Statut",
-    "billingInvoiceDocument": "Document"
+    "billingInvoiceDocument": "Document",
+    "backToWedding": "Retour au mariage"
   },
   "CoupleSpace": {
     "eyebrow": "Espace couple",
@@ -5301,5 +5317,88 @@
       "empty": "Rien à faire de votre côté pour l'instant. Votre agence vous préviendra dès qu'une action vous attend.",
       "title": "À vous de jouer"
     }
+  },
+  "RsvpEditor": {
+    "title": "Questions du RSVP",
+    "subtitle": "Choisissez ce que vous demandez à vos invités au moment de leur réponse.",
+    "lockedBody": "La personnalisation du formulaire RSVP est incluse dans le forfait Premium (et tous les forfaits pro).",
+    "lockedCta": "Passer au Premium",
+    "builtinSectionTitle": "Champs standard",
+    "fieldPlusOnes": "Accompagnants",
+    "fieldPlusOnesHint": "Proposer d'indiquer le nom des accompagnants (selon le quota par invité).",
+    "fieldDietary": "Régime alimentaire",
+    "fieldNotes": "Mot pour les mariés",
+    "labelOverride": "Libellé affiché",
+    "labelOverridePlaceholder": "Libellé personnalisé (optionnel)",
+    "customSectionTitle": "Questions personnalisées",
+    "customSectionHint": "Ajoutez jusqu’à {max} questions sur mesure.",
+    "addQuestion": "Ajouter une question",
+    "empty": "Aucune question personnalisée pour l’instant.",
+    "questionLabel": "Question",
+    "questionLabelPlaceholder": "Ex. Prendrez-vous la navette ?",
+    "typeLabel": "Type de réponse",
+    "type": {
+      "short_text": "Texte court",
+      "long_text": "Texte long",
+      "single_choice": "Choix unique",
+      "multi_choice": "Choix multiple",
+      "boolean": "Oui / Non"
+    },
+    "optionsLabel": "Options",
+    "optionPlaceholder": "Option {index}",
+    "addOption": "Ajouter une option",
+    "removeOption": "Supprimer l’option",
+    "requiredLabel": "Réponse obligatoire",
+    "onlyIfAttendingLabel": "Seulement si présent",
+    "removeQuestion": "Supprimer",
+    "moveUp": "Monter",
+    "moveDown": "Descendre",
+    "save": "Enregistrer les questions",
+    "saved": "Questions enregistrées",
+    "errorSave": "Impossible d’enregistrer. Réessayez.",
+    "maxReached": "Maximum {max} questions atteint",
+    "delegationLabel": "Autoriser le couple à modifier les questions",
+    "delegationHint": "Le couple pourra ajuster le questionnaire depuis son espace. Désactivé, vous gardez la main.",
+    "readOnlyBody": "Votre agence gère le questionnaire RSVP de cet événement."
+  },
+  "Notifications": {
+    "title": "Notifications",
+    "markAllRead": "Tout marquer comme lu",
+    "empty": "Aucune notification pour le moment.",
+    "someone": "Quelqu’un",
+    "theCouple": "Le couple",
+    "rsvpResponse": "{name} a répondu : {status}",
+    "configChanged": "{name} a modifié le questionnaire RSVP",
+    "planningTask": "Nouvelle tâche : {title}",
+    "status": {
+      "attending": "Présent·e",
+      "declined": "Absent·e",
+      "maybe": "Peut-être"
+    },
+    "andMore": "et {count} de plus"
+  },
+  "FaceSearchPrivacy": {
+    "title": "Confidentialité & reco-faciale",
+    "subtitle": "Décidez si les invités peuvent retrouver leurs photos par reconnaissance faciale — désactivé par défaut, à vous de choisir.",
+    "lockedBody": "La reco-faciale est incluse dans la formule Premium (et toutes les formules pro).",
+    "lockedCta": "Passer à Premium",
+    "stateLabel": "État / province du mariage",
+    "stateHint": "Obligatoire pour activer la reco-faciale si votre mariage a lieu aux États-Unis ou au Canada — certains États encadrent strictement les données biométriques.",
+    "stateNotApplicable": "Hors États-Unis / Canada",
+    "stateGroupUs": "États-Unis",
+    "stateGroupCa": "Canada",
+    "toggleLabel": "Activer la recherche de photos par visage",
+    "toggleHint": "Permet aux invités de retrouver leurs propres photos en envoyant un selfie. Désactivé par défaut.",
+    "consentNoticeBody": "Activer cette option indexe le visage des invités (Amazon Rekognition) pour leur permettre de retrouver leurs photos avec un selfie. En l'activant, vous confirmez avoir informé vos invités que la reco-faciale est active pour ce mariage. Vous pouvez la désactiver à tout moment ; les visages indexés sont supprimés à l'expiration de la galerie ou dès la désactivation.",
+    "consentRecordedAt": "Consentement enregistré le {date}",
+    "bannedNotice": "La reco-faciale n'est pas disponible pour les mariages en Illinois, au Texas ou dans l'État de Washington — ces États encadrent spécifiquement les données biométriques. C'est une restriction permanente, pas un bug.",
+    "save": "Enregistrer",
+    "saved": "Enregistré",
+    "errorSave": "Échec de l'enregistrement. Réessayez.",
+    "errorStateBanned": "La reco-faciale ne peut pas être activée pour cet État.",
+    "errorStateRequired": "Choisissez d'abord l'État ou la province du mariage. C'est obligatoire pour activer la reco-faciale.",
+    "statePlaceholder": "Choisissez le lieu du mariage…",
+    "errorFeatureNotInPlan": "La reco-faciale est réservée à la formule Premium (ou aux formules pro).",
+    "errorForbidden": "Vous n'avez pas la permission de modifier ce réglage."
   }
 }

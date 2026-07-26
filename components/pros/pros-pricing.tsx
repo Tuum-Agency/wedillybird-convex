@@ -165,7 +165,7 @@ export function ProsPricing({ defaultCurrency }: { defaultCurrency: Currency }) 
                   </li>
                 ))}
               </ul>
-              <p className="mt-4 text-xs leading-relaxed text-[color:var(--color-ink-400)]">
+              <p className="mt-4 text-xs leading-relaxed text-[color:var(--color-ink-500)]">
                 {t('pricing.overagesNote')}
               </p>
             </motion.div>

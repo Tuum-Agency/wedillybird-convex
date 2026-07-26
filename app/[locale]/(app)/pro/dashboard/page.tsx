@@ -4,6 +4,7 @@ import { redirect } from '@/i18n/navigation';
 import { getSession } from '@/lib/auth/session';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
 import { ProSidebarShell } from '@/components/pro/pro-sidebar-shell';
+import { NotificationsPanel } from '@/components/notifications/notifications-panel';
 import { Cockpit } from '@/components/pro/cockpit';
 import { PlanRequiredBanner } from '@/components/pro/plan-required-banner';
 import { orgHasActiveAccess } from '@/lib/payments/entitlements';
@@ -73,6 +74,9 @@ export default async function ProDashboardPage({
         userName={user?.fullName}
         locale={locale}
       />
+      <div className="container-page pb-12">
+        <NotificationsPanel userId={session!.userId} />
+      </div>
     </ProSidebarShell>
   );
 }

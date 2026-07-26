@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { cn } from '@/lib/cn';
@@ -19,7 +19,6 @@ const ITEMS: readonly SectionItem[] = [
   { id: 'features', key: 'features' },
   { id: 'testimonials', key: 'testimonials' },
   { id: 'pricing', key: 'pricing' },
-  { id: 'pricing-pros', key: 'pricingPros' },
   { id: 'faq', key: 'faq' },
 ];
 
@@ -33,6 +32,9 @@ const ITEMS: readonly SectionItem[] = [
 export function SectionNav() {
   const t = useTranslations('Landing.sectionNav');
   const [activeId, setActiveId] = useState<string | null>(null);
+  // Dernière section trackée : évite d'émettre `section_viewed` à chaque frame de
+  // scroll — on ne l'émet qu'au changement de section active.
+  const lastTrackedId = useRef<string | null>(null);
 
   useEffect(() => {
     const sections = ITEMS.map((item) => document.getElementById(item.id)).filter(
@@ -60,6 +62,12 @@ export function SectionNav() {
       }
 
       setActiveId(nextActiveId);
+
+      // Instrumentation des fuites de scroll (F9/F1) : signal une fois par section.
+      if (nextActiveId && nextActiveId !== lastTrackedId.current) {
+        lastTrackedId.current = nextActiveId;
+        analytics.sectionViewed({ id: nextActiveId });
+      }
     }
 
     function requestUpdate() {

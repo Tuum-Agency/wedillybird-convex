@@ -3,6 +3,7 @@ import { redirect } from '@/i18n/navigation';
 import { getSession } from '@/lib/auth/session';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
 import { PostHogIdentify } from '@/components/analytics/posthog-identify';
+import { SessionHydrator } from '@/components/providers/session-hydrator';
 
 export default async function AppLayout({
   children,
@@ -28,13 +29,21 @@ export default async function AppLayout({
   return (
     <div className="flex min-h-screen flex-col bg-[color:var(--color-background)]">
       {session ? (
-        <PostHogIdentify
-          userId={session.userId}
-          role={user?.role}
-          planTier={user?.planTier}
-          locale={user?.locale ?? locale}
-          createdAt={user?.createdAt}
-        />
+        <>
+          <PostHogIdentify
+            userId={session.userId}
+            role={user?.role}
+            planTier={user?.planTier}
+            locale={user?.locale ?? locale}
+            createdAt={user?.createdAt}
+          />
+          <SessionHydrator
+            userId={session.userId}
+            role={user?.role}
+            phone={user?.phone}
+            fullName={user?.fullName}
+          />
+        </>
       ) : null}
       {children}
     </div>

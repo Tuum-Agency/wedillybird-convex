@@ -75,7 +75,14 @@ export default async function GuestsPage({
           </div>
         </header>
 
-        <GuestsManager eventId={eventId} initialGuests={guests} />
+        <GuestsManager
+          eventId={eventId}
+          initialGuests={guests}
+          questions={(event.rsvpConfig?.customQuestions ?? []).map((q) => ({
+            id: q.id,
+            label: q.label,
+          }))}
+        />
       </div>
     </AppShell>
   );

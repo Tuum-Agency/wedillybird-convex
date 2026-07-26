@@ -174,7 +174,7 @@ function CancelDialog({ org: o }: { org: Org }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <button className="rounded-md px-2 py-1 text-xs font-medium text-red-400 transition-colors hover:bg-red-400/10">
+        <button className="rounded-md px-2 py-1 text-xs font-medium text-[color:var(--color-danger)] transition-colors hover:bg-[color:var(--color-danger)]/10">
           {t('common.cancel')}
         </button>
       </DialogTrigger>
@@ -222,7 +222,7 @@ function CancelDialog({ org: o }: { org: Org }) {
           </label>
         </div>
 
-        {error ? <p className="mt-3 text-sm text-red-400">{error}</p> : null}
+        {error ? <p className="mt-3 text-sm text-[color:var(--color-danger)]">{error}</p> : null}
 
         <DialogFooter>
           <DialogClose asChild>
@@ -257,11 +257,11 @@ function ReactivateButton({ org: o }: { org: Org }) {
       <button
         onClick={reactivate}
         disabled={pending}
-        className="rounded-md px-2 py-1 text-xs font-medium text-emerald-400 transition-colors hover:bg-emerald-400/10 disabled:opacity-50"
+        className="rounded-md px-2 py-1 text-xs font-medium text-[color:var(--color-success)] transition-colors hover:bg-[color:var(--color-success)]/10 disabled:opacity-50"
       >
         {pending ? t('subscriptions.reactivate.submitting') : t('subscriptions.reactivate.submit')}
       </button>
-      {error ? <span className="text-[10px] text-red-400">{error}</span> : null}
+      {error ? <span className="text-[10px] text-[color:var(--color-danger)]">{error}</span> : null}
     </span>
   );
 }
@@ -300,7 +300,7 @@ function InvoicesDialog({ org: o }: { org: Org }) {
             {t('common.loading')}
           </p>
         ) : data && !data.ok ? (
-          <p className="text-sm text-red-400">{data.error}</p>
+          <p className="text-sm text-[color:var(--color-danger)]">{data.error}</p>
         ) : data && data.ok && data.invoices.length === 0 ? (
           <p className="text-sm text-[color:var(--color-muted-foreground)]">
             {t('subscriptions.invoices.empty')}

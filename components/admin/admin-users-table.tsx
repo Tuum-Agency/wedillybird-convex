@@ -10,6 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useConfirm } from '@/components/ui/confirm-dialog';
 import { useServerAction } from '@/components/admin/use-admin-action';
 import {
   adminSuspendUserAction,
@@ -112,70 +113,77 @@ function UserRow({ user }: { user: User }) {
   const locale = useLocale();
   const { execute: suspend, loading: suspending } = useServerAction(adminSuspendUserAction);
   const { execute: changeRole, loading: changing } = useServerAction(adminChangeUserRoleAction);
+  const { confirm, confirmDialog } = useConfirm();
 
   return (
-    <tr className="border-b border-[color:var(--color-border)] last:border-0 hover:bg-[color:var(--color-surface-elevated)]/50">
-      <td className="px-4 py-3 font-medium">{user.fullName ?? '—'}</td>
-      <td className="px-4 py-3 text-[color:var(--color-muted-foreground)]">
-        <div className="flex min-w-0 flex-col gap-0.5">
-          {user.email ? <span className="break-all">{user.email}</span> : null}
-          {user.phone ? <span className="font-mono text-xs">{user.phone}</span> : null}
-        </div>
-      </td>
-      <td className="px-4 py-3">
-        <Badge variant={ROLE_VARIANT[user.role] ?? 'neutral'}>{user.role}</Badge>
-      </td>
-      <td className="px-4 py-3 text-[color:var(--color-muted-foreground)]">
-        {user.planTier ?? '—'}
-      </td>
-      <td className="px-4 py-3 text-[color:var(--color-muted-foreground)]">
-        {new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(new Date(user.createdAt))}
-      </td>
-      <td className="px-4 py-3">
-        <div className="flex items-center gap-2">
-          {user.role !== 'admin' && user.role !== 'guest' ? (
-            <button
-              onClick={() => {
-                if (
-                  confirm(
-                    t('users.confirmSuspend', {
-                      name: user.fullName ?? user.email ?? user._id,
-                    }),
-                  )
-                ) {
-                  suspend(user._id);
-                }
-              }}
-              disabled={suspending}
-              className="rounded-md px-2 py-1 text-xs font-medium text-red-400 transition-colors hover:bg-red-400/10 disabled:opacity-50"
-            >
-              {t('users.suspend')}
-            </button>
-          ) : null}
-          {user.role !== 'admin' ? (
-            <Select
-              value=""
-              disabled={changing}
-              onValueChange={(v) => {
-                const newRole = v as User['role'];
-                if (confirm(t('users.confirmChangeRole', { role: newRole }))) {
-                  changeRole(user._id, newRole);
-                }
-              }}
-            >
-              <SelectTrigger className="rounded-md border border-[color:var(--color-border)] bg-transparent px-2 py-1 text-xs text-[color:var(--color-muted-foreground)]">
-                <SelectValue placeholder={t('users.rolePlaceholder')} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="couple">{t('roles.couple')}</SelectItem>
-                <SelectItem value="pro">{t('roles.pro')}</SelectItem>
-                <SelectItem value="guest">{t('roles.guest')}</SelectItem>
-                <SelectItem value="admin">{t('roles.admin')}</SelectItem>
-              </SelectContent>
-            </Select>
-          ) : null}
-        </div>
-      </td>
-    </tr>
+    <>
+      <tr className="border-b border-[color:var(--color-border)] last:border-0 hover:bg-[color:var(--color-surface-elevated)]/50">
+        <td className="px-4 py-3 font-medium">{user.fullName ?? '—'}</td>
+        <td className="px-4 py-3 text-[color:var(--color-muted-foreground)]">
+          <div className="flex min-w-0 flex-col gap-0.5">
+            {user.email ? <span className="break-all">{user.email}</span> : null}
+            {user.phone ? <span className="font-mono text-xs">{user.phone}</span> : null}
+          </div>
+        </td>
+        <td className="px-4 py-3">
+          <Badge variant={ROLE_VARIANT[user.role] ?? 'neutral'}>{user.role}</Badge>
+        </td>
+        <td className="px-4 py-3 text-[color:var(--color-muted-foreground)]">
+          {user.planTier ?? '—'}
+        </td>
+        <td className="px-4 py-3 text-[color:var(--color-muted-foreground)]">
+          {new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(
+            new Date(user.createdAt),
+          )}
+        </td>
+        <td className="px-4 py-3">
+          <div className="flex items-center gap-2">
+            {user.role !== 'admin' && user.role !== 'guest' ? (
+              <button
+                onClick={async () => {
+                  if (
+                    await confirm({
+                      title: t('users.confirmSuspend', {
+                        name: user.fullName ?? user.email ?? user._id,
+                      }),
+                      destructive: true,
+                    })
+                  ) {
+                    suspend(user._id);
+                  }
+                }}
+                disabled={suspending}
+                className="rounded-md px-2 py-1 text-xs font-medium text-[color:var(--color-danger)] transition-colors hover:bg-[color:var(--color-danger)]/10 disabled:opacity-50"
+              >
+                {t('users.suspend')}
+              </button>
+            ) : null}
+            {user.role !== 'admin' ? (
+              <Select
+                value=""
+                disabled={changing}
+                onValueChange={async (v) => {
+                  const newRole = v as User['role'];
+                  if (await confirm({ title: t('users.confirmChangeRole', { role: newRole }) })) {
+                    changeRole(user._id, newRole);
+                  }
+                }}
+              >
+                <SelectTrigger className="rounded-md border border-[color:var(--color-border)] bg-transparent px-2 py-1 text-xs text-[color:var(--color-muted-foreground)]">
+                  <SelectValue placeholder={t('users.rolePlaceholder')} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="couple">{t('roles.couple')}</SelectItem>
+                  <SelectItem value="pro">{t('roles.pro')}</SelectItem>
+                  <SelectItem value="guest">{t('roles.guest')}</SelectItem>
+                  <SelectItem value="admin">{t('roles.admin')}</SelectItem>
+                </SelectContent>
+              </Select>
+            ) : null}
+          </div>
+        </td>
+      </tr>
+      {confirmDialog}
+    </>
   );
 }

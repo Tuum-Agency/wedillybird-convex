@@ -131,6 +131,23 @@ export function tierAtLeast(a: SubscriptionTier | null | undefined, b: Subscript
   return TIER_RANK[a] >= TIER_RANK[b];
 }
 
+/**
+ * Miroir app-side de `convex/lib/entitlements.ts:eventHasFeature`, restreint aux
+ * features **Premium-only** (dont `customRsvpQuestions`). Sert à afficher /
+ * masquer l'upsell ; la mutation Convex reste l'autorité (`FEATURE_LOCKED`).
+ * Précédence planTier > organizationId : Premium → oui, Essentiel → non, event
+ * Pro (rattaché à une orga, sans planTier) → oui, sinon non.
+ */
+export function eventHasPremiumOnlyFeature(event: {
+  planTier?: 'essential' | 'premium' | null;
+  organizationId?: string | null;
+}): boolean {
+  if (event.planTier === 'premium') return true;
+  if (event.planTier === 'essential') return false;
+  if (event.organizationId) return true;
+  return false;
+}
+
 /* -------------------------------------------------------------------------- */
 /*  Accès back-office : l'agence a-t-elle choisi un forfait ?                   */
 /* -------------------------------------------------------------------------- */

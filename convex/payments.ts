@@ -1,5 +1,6 @@
 import { v } from 'convex/values';
 import { internalMutation, mutation, query } from './_generated/server';
+import { assertWebhookSecret } from './lib/webhookSecret';
 import { internal } from './_generated/api';
 import { toIntlTag } from '../lib/i18n/locale-tags';
 import { assertOrgRead } from './lib/orgAuth';
@@ -105,11 +106,16 @@ export const findBySession = query({
 
 export const markSucceeded = mutation({
   args: {
+    // Secret partagé Vercel ⇄ Convex : cette mutation débloque la galerie
+    // payante (réconciliation planTier/paidAt), elle ne doit JAMAIS être
+    // appelable directement sur `*.convex.cloud` sans passer par le webhook.
+    webhookSecret: v.string(),
     provider: PROVIDER,
     providerSessionId: v.string(),
     providerEventId: v.string(),
   },
-  handler: async (ctx, { provider, providerSessionId, providerEventId }) => {
+  handler: async (ctx, { webhookSecret, provider, providerSessionId, providerEventId }) => {
+    assertWebhookSecret(webhookSecret);
     const payment = await ctx.db
       .query('payments')
       .withIndex('by_session', (q) =>
@@ -223,6 +229,7 @@ function formatAmount(amountMinor: number, currency: string): string {
 
 export const markFailed = mutation({
   args: {
+    webhookSecret: v.string(),
     provider: PROVIDER,
     providerSessionId: v.string(),
     providerEventId: v.string(),
@@ -230,6 +237,7 @@ export const markFailed = mutation({
     failureReason: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    assertWebhookSecret(args.webhookSecret);
     const payment = await ctx.db
       .query('payments')
       .withIndex('by_session', (q) =>
@@ -356,6 +364,74 @@ export const _repairOrphanedEventGalleries = internalMutation({
     }
 
     return { scanned, repaired, skipped };
+  },
+});
+
+/**
+ * Paiements `pending` plus vieux que `olderThanMs` (T2-2, cron de
+ * réconciliation Stripe↔Convex). Un couple qui ferme l'onglet avant
+ * `/upgrade/success` avec un webhook manqué restait bloqué indéfiniment — ce
+ * scan alimente `app/api/cron/reconcile-payments/route.ts`.
+ *
+ * PUBLIQUE mais gardée par `CONVEX_WEBHOOK_SECRET`, même patron que les
+ * mutations de bridge webhook : le cron l'appelle via `ConvexHttpClient`, qui
+ * ne peut pas invoquer d'`internalQuery`. Lecture seule (aucune écriture ici),
+ * mais expose des lignes `payments` — le secret reste la seule barrière
+ * contre un scraping direct de `*.convex.cloud`. `.take()` plafonne le coût
+ * d'un run si beaucoup de paiements restent bloqués (ex. panne Stripe).
+ */
+export const listStalePending = query({
+  args: { webhookSecret: v.string(), olderThanMs: v.number() },
+  handler: async (ctx, { webhookSecret, olderThanMs }) => {
+    assertWebhookSecret(webhookSecret);
+    const cutoff = Date.now() - olderThanMs;
+    return ctx.db
+      .query('payments')
+      .withIndex('by_status_createdAt', (q) => q.eq('status', 'pending').lt('createdAt', cutoff))
+      .take(200);
+  },
+});
+
+/**
+ * Scan **lecture seule** des events avec un `planTier` actif mais AUCUN
+ * paiement `succeeded` associé (T2-8, signe cité au premortem F3 : entitlement
+ * sans paiement). Alimente une alerte hebdo (`app/api/cron/entitlement-audit/route.ts`).
+ *
+ * Volontairement DISTINCT de `_repairOrphanedEventGalleries` : ce dernier ne
+ * scanne que les events dont `paidAt`/`galleryExpiresAt` sont incomplets (un
+ * problème de dénormalisation) et s'arrête dès que ces deux champs sont
+ * présents — un event dont ces champs auraient été renseignés SANS jamais
+ * passer par un paiement réussi (le vrai signal de contournement F3) lui
+ * échapperait. Ce scan-ci vérifie TOUT event `planTier` défini, sans
+ * pré-filtre, et ne modifie jamais rien (contrairement au repair, qui est une
+ * `internalMutation` one-shot déclenchée manuellement).
+ *
+ * PUBLIQUE mais gardée par `CONVEX_WEBHOOK_SECRET`, même patron que
+ * `listStalePending` ci-dessus.
+ */
+export const scanOrphanedEntitlements = query({
+  args: { webhookSecret: v.string() },
+  handler: async (ctx, { webhookSecret }) => {
+    assertWebhookSecret(webhookSecret);
+    const events = await ctx.db.query('events').collect();
+    const offenders: Array<{ eventId: string; planTier: 'essential' | 'premium' }> = [];
+    let scanned = 0;
+
+    for (const event of events) {
+      if (event.planTier === undefined) continue;
+      scanned += 1;
+
+      const payments = await ctx.db
+        .query('payments')
+        .withIndex('by_event', (q) => q.eq('eventId', event._id))
+        .collect();
+      const hasSucceeded = payments.some((p) => p.status === 'succeeded');
+      if (!hasSucceeded) {
+        offenders.push({ eventId: event._id, planTier: event.planTier });
+      }
+    }
+
+    return { scanned, offenders };
   },
 });
 

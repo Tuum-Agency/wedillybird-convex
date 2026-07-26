@@ -38,6 +38,7 @@ export default async function PrivacyPage() {
       <EditorialSection title={t('legalBasisTitle')} body={t('legalBasisBody')} />
       <EditorialSection title={t('retentionTitle')} body={t('retentionBody')} />
       <EditorialSection title={t('subprocessorsTitle')} body={t('subprocessorsBody')} />
+      <EditorialSection title={t('biometricsTitle')} body={t('biometricsBody')} />
       <EditorialSection title={t('rightsTitle')} body={t('rightsBody')} />
       <EditorialSection title={t('contactTitle')} body={t('contactBody')} />
     </EditorialPage>

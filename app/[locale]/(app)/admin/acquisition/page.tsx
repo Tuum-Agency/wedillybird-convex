@@ -190,7 +190,7 @@ function SetupNotice() {
   return (
     <Card>
       <CardContent className="flex flex-col gap-3 p-6">
-        <span className="flex items-center gap-2 text-base font-medium text-amber-400">
+        <span className="flex items-center gap-2 text-base font-medium text-[color:var(--color-warning)]">
           <KeyRound className="h-5 w-5" /> Analytics marketing à activer
         </span>
         <p className="text-sm text-[color:var(--color-muted-foreground)]">
@@ -210,7 +210,7 @@ function ErrorNotice({ message }: { message: string }) {
   return (
     <Card>
       <CardContent className="flex flex-col gap-2 p-6">
-        <span className="flex items-center gap-2 text-base font-medium text-red-400">
+        <span className="flex items-center gap-2 text-base font-medium text-[color:var(--color-danger)]">
           <TriangleAlert className="h-5 w-5" /> Requête PostHog en échec
         </span>
         <p className="text-sm text-[color:var(--color-muted-foreground)]">

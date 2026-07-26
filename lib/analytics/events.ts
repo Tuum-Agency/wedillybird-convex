@@ -18,6 +18,7 @@ export const EVENTS = {
   pricingPlanSelected: 'pricing_plan_selected',
   pricingBillingToggled: 'pricing_billing_toggled',
   faqOpened: 'faq_opened',
+  sectionViewed: 'section_viewed',
   newsletterSubscribed: 'newsletter_subscribed',
   contactFormSubmitted: 'contact_form_submitted',
   // --- Signup / activation ---
@@ -27,6 +28,13 @@ export const EVENTS = {
   // --- Monétisation ---
   checkoutStarted: 'checkout_started',
   purchaseCompleted: 'purchase_completed',
+  // --- Observabilité money-path (T2, plan de lancement) : chaque event
+  // ci-dessous doit déclencher une alerte PostHog active — c'est le
+  // signal qui remplace « personne ne surveille les coutures ».
+  webhookProcessingFailed: 'webhook_processing_failed',
+  paymentReconciliationFailed: 'payment_reconciliation_failed',
+  paymentReconciliationStuck: 'payment_reconciliation_stuck',
+  entitlementWithoutPayment: 'entitlement_without_payment',
   // --- Boucle virale : pages d'invitation publiques (invités) ---
   invitationViewed: 'invitation_viewed',
   rsvpSubmitted: 'rsvp_submitted',

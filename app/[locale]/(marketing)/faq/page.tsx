@@ -136,7 +136,7 @@ function FaqShell() {
           </div>
         </section>
 
-        <LandingFaqAccordion />
+        <LandingFaqAccordion showHeader={false} />
       </main>
 
       <LandingFooterRich />

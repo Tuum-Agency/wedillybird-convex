@@ -146,6 +146,9 @@ describe('TeamManager', () => {
     renderTeam(<TeamManager {...BASE} canManage initialMembers={[ownerMember, plannerMember]} />);
     await user.click(screen.getByLabelText('Actions'));
     await user.click(screen.getByTestId('revoke-member'));
+    // La confirmation passe désormais par la modale Dialog thémée (plus de confirm() natif) :
+    // on valide en cliquant le bouton « Confirmer » de la modale.
+    await user.click(await screen.findByRole('button', { name: 'Confirmer' }));
     await waitFor(() => expect(revokeMock).toHaveBeenCalledWith('m_2'));
     await waitFor(() => expect(refreshMock).toHaveBeenCalled());
   });

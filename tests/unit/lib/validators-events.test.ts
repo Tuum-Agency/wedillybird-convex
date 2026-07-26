@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { createEventSchema, normalizeCreateEvent } from '@/lib/validators/events';
+import {
+  createEventSchema,
+  normalizeCreateEvent,
+  weddingStateSchema,
+} from '@/lib/validators/events';
 
 const HOUR = 60 * 60 * 1000;
 
@@ -127,5 +131,41 @@ describe('normalizeCreateEvent', () => {
       accentColor: '#2B2B2B',
       fontFamily: 'Playfair Display',
     });
+  });
+
+  it('passes weddingState through when provided', () => {
+    const out = normalizeCreateEvent({
+      title: 'Wedding',
+      partnerA: 'A',
+      partnerB: 'B',
+      eventDate: Date.now() + 48 * HOUR,
+      timezone: 'Europe/Paris',
+      weddingState: 'IL',
+    });
+    expect(out.weddingState).toBe('IL');
+  });
+});
+
+describe('weddingStateSchema', () => {
+  it('accepts a US state code and uppercases it', () => {
+    const result = weddingStateSchema.safeParse('il');
+    expect(result.success).toBe(true);
+    if (result.success) expect(result.data).toBe('IL');
+  });
+
+  it('accepts a Canadian province code (CA- prefix)', () => {
+    const result = weddingStateSchema.safeParse('ca-qc');
+    expect(result.success).toBe(true);
+    if (result.success) expect(result.data).toBe('CA-QC');
+  });
+
+  it('is optional (undefined passes)', () => {
+    expect(weddingStateSchema.safeParse(undefined).success).toBe(true);
+  });
+
+  it('rejects a malformed code', () => {
+    expect(weddingStateSchema.safeParse('Illinois').success).toBe(false);
+    expect(weddingStateSchema.safeParse('U').success).toBe(false);
+    expect(weddingStateSchema.safeParse('USA-IL').success).toBe(false);
   });
 });

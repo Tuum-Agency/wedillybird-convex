@@ -10,6 +10,7 @@ import {
 } from '@/lib/validators/events';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
 import { getSession } from '@/lib/auth/session';
+import { sanitizeRsvpConfig, type RsvpConfig } from '@/lib/rsvp/questions';
 
 export type CreateEventResult =
   | { ok: true; slug: string }
@@ -58,6 +59,7 @@ export async function createEventAction(formData: FormData): Promise<CreateEvent
     themeAccent: formData.get('themeAccent') ?? undefined,
     themeFont: formData.get('themeFont') ?? undefined,
     pendingPlanTier: formData.get('pendingPlanTier') ?? undefined,
+    weddingState: formData.get('weddingState') ?? undefined,
   });
 
   if (!parsed.success) {
@@ -380,7 +382,10 @@ export async function submitCustomTemplateAction(
       return { ok: false, error: submitted.error ?? 'SUBMIT_FAILED' };
     }
     mock = submitted.mock ?? false;
-    metaTemplateId = submitted.metaTemplateId;
+    // `metaTemplateId` n'existe que sur la branche `mock: false` du type RÉEL
+    // (l'ancien client tapé main le déclarait toujours présent — bug latent de
+    // typage révélé par la migration vers l'API générée).
+    metaTemplateId = submitted.mock === false ? submitted.metaTemplateId : undefined;
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : 'SUBMIT_FAILED' };
   }
@@ -400,4 +405,96 @@ export async function submitCustomTemplateAction(
 
   revalidatePath(`/fr/events/${eventId}/messaging`);
   return { ok: true, templateId, metaTemplateId, mock };
+}
+
+export type UpdateRsvpConfigResult =
+  | { ok: true }
+  | { ok: false; error: 'UNAUTHENTICATED' | 'FEATURE_LOCKED' | 'FORBIDDEN' | 'UNKNOWN' };
+
+/**
+ * Met à jour la config du formulaire RSVP d'un event (`events.rsvpConfig`).
+ * Reçoit un objet sérialisable (pas de FormData) car la config est imbriquée.
+ * Sanitisée app-side (miroir de la mutation Convex qui fait autorité). Réservé
+ * Premium/Pro côté Convex (`FEATURE_LOCKED` sinon).
+ */
+export async function updateRsvpConfigAction(
+  eventId: string,
+  config: RsvpConfig,
+): Promise<UpdateRsvpConfigResult> {
+  const session = await getSession();
+  if (!session) return { ok: false, error: 'UNAUTHENTICATED' };
+
+  const clean = sanitizeRsvpConfig(config);
+  const convex = getConvexServerClient();
+  try {
+    await convex.mutation(convexApi.updateRsvpConfig, {
+      eventId,
+      requesterId: session.userId,
+      config: clean,
+    });
+    revalidatePath(`/fr/events/${eventId}/edit`);
+    revalidatePath(`/fr/events/${eventId}`);
+    return { ok: true };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'UNKNOWN';
+    if (message.includes('FEATURE_LOCKED')) return { ok: false, error: 'FEATURE_LOCKED' };
+    if (message.includes('FORBIDDEN')) return { ok: false, error: 'FORBIDDEN' };
+    return { ok: false, error: 'UNKNOWN' };
+  }
+}
+
+export type SetFaceSearchEnabledResult =
+  | { ok: true; enabled: boolean; weddingState?: string }
+  | {
+      ok: false;
+      error:
+        | 'UNAUTHENTICATED'
+        | 'FACE_SEARCH_STATE_REQUIRED'
+        | 'FACE_SEARCH_STATE_BANNED'
+        | 'FEATURE_NOT_IN_PLAN'
+        | 'FORBIDDEN'
+        | 'EVENT_NOT_FOUND'
+        | 'UNKNOWN';
+    };
+
+/**
+ * Active/désactive la reco-faciale d'un event (Lane T3, F7) et, dans le même
+ * appel, persiste l'État/province déclaré — évite toute race entre « je
+ * choisis mon État » et « j'active la feature » (cf. commentaire de la
+ * mutation Convex `events.setFaceSearchEnabled`). `weddingState` vide
+ * (chaîne vide) efface le champ ; `undefined` le laisse inchangé.
+ */
+export async function setFaceSearchEnabledAction(
+  eventId: string,
+  enabled: boolean,
+  weddingState?: string,
+): Promise<SetFaceSearchEnabledResult> {
+  const session = await getSession();
+  if (!session) return { ok: false, error: 'UNAUTHENTICATED' };
+
+  const convex = getConvexServerClient();
+  try {
+    const result = await convex.mutation(convexApi.setFaceSearchEnabled, {
+      eventId,
+      requesterId: session.userId,
+      enabled,
+      ...(weddingState !== undefined ? { weddingState } : {}),
+    });
+    revalidatePath(`/fr/events/${eventId}/edit`);
+    revalidatePath(`/fr/events/${eventId}/gallery`);
+    return { ok: true, enabled: result.enabled, weddingState: result.weddingState };
+  } catch (err) {
+    console.error('[setFaceSearchEnabledAction] failed', err);
+    const message = err instanceof Error ? err.message : 'UNKNOWN';
+    if (message.includes('FACE_SEARCH_STATE_REQUIRED')) {
+      return { ok: false, error: 'FACE_SEARCH_STATE_REQUIRED' };
+    }
+    if (message.includes('FACE_SEARCH_STATE_BANNED')) {
+      return { ok: false, error: 'FACE_SEARCH_STATE_BANNED' };
+    }
+    if (message.includes('FEATURE_NOT_IN_PLAN')) return { ok: false, error: 'FEATURE_NOT_IN_PLAN' };
+    if (message.includes('FORBIDDEN')) return { ok: false, error: 'FORBIDDEN' };
+    if (message.includes('EVENT_NOT_FOUND')) return { ok: false, error: 'EVENT_NOT_FOUND' };
+    return { ok: false, error: 'UNKNOWN' };
+  }
 }

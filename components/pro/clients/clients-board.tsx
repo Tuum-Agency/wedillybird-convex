@@ -1170,7 +1170,7 @@ function ClientForm({
   const [assigneeId, setAssigneeId] = useState(editing?.assigneeId ?? 'none');
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-4 pb-2">
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:items-end">
         <Field label={t('form.partnerA')}>
           <Input
             name="partnerA"
