@@ -1,4 +1,4 @@
-import type { S3Event } from 'aws-lambda';
+import type { S3Event, S3EventRecord, SNSEvent } from 'aws-lambda';
 import {
   RekognitionClient,
   DetectModerationLabelsCommand,
@@ -668,8 +668,29 @@ async function indexAndCallbackFaces(s3Key: string, bytes: Buffer): Promise<void
   }
 }
 
-export const handler = async (event: S3Event): Promise<void> => {
-  for (const record of event.Records) {
+/**
+ * Fan-out S3 → SNS → Lambda : l'event reçu est un SNSEvent qui enveloppe
+ * l'event S3 (un topic SNS permet modération ET variants sur le même préfixe
+ * `incoming/`, ce que la notification S3 directe interdit). On déballe chaque
+ * message SNS (JSON de l'event S3) en records S3. Compat si un event S3 direct
+ * arrive (ancien câblage).
+ */
+function extractS3Records(event: SNSEvent | S3Event): S3EventRecord[] {
+  const records = (event as { Records?: unknown[] }).Records ?? [];
+  if (records.length > 0 && (records[0] as { Sns?: unknown }).Sns) {
+    return (event as SNSEvent).Records.flatMap((r) => {
+      try {
+        return (JSON.parse(r.Sns.Message) as S3Event).Records ?? [];
+      } catch {
+        return [];
+      }
+    });
+  }
+  return (event as S3Event).Records ?? [];
+}
+
+export const handler = async (event: SNSEvent | S3Event): Promise<void> => {
+  for (const record of extractS3Records(event)) {
     const bucket = record.s3.bucket.name;
     const s3Key = decodeURIComponent(record.s3.object.key.replace(/\+/g, ' '));
 
