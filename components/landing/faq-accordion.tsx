@@ -7,13 +7,15 @@ import { ChevronDown } from 'lucide-react';
 import { analytics } from '@/lib/analytics/posthog-client';
 import { inViewOnce, scrollReveal, scrollRevealParent } from '@/lib/motion/presets';
 
+// Note : `africa3g` (invités en zone 3G Afrique) retiré du parcours couple US —
+// hors-sujet pour le marché de lancement. La clé i18n reste dans messages/* pour
+// préserver la parité ; elle n'est simplement plus rendue.
 const FAQ_KEYS = [
   'whyWhatsapp',
   'olderGuests',
   'guestLimit',
   'cancellation',
   'afterEvent',
-  'africa3g',
   'branding',
   'data',
 ] as const;
