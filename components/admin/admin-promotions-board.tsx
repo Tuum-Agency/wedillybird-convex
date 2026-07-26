@@ -560,7 +560,7 @@ function CreateCouponDialog({ onDone }: { onDone: () => void }) {
           ) : null}
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:items-end">
-            <Field label="Max utilisations">
+            <Field label="Max utilisations (optionnel)">
               <input
                 type="number"
                 min={1}
