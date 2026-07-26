@@ -75,6 +75,9 @@ export const broadcast = action({
       timeZone: event.timezone,
     }).format(new Date(event.eventDate));
     const appBaseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://wedillybird.com';
+    // URL du webhook StatusCallback Twilio : Twilio y POST le statut de livraison
+    // réel de chaque SMS (delivered/undelivered/failed) — cf. convex/smsDeliveries.
+    const smsStatusCallbackUrl = `${appBaseUrl}/api/webhooks/twilio`;
 
     const templateName = getMetaTemplateName(styleId, process.env);
     const isMock = !isWhatsAppCloudConfigured();
@@ -93,6 +96,7 @@ export const broadcast = action({
         const smsResult = await sendTwilioSms({
           to: guest.phone,
           body: `${guestFirstName}, ${coupleNames} invite you to their wedding on ${eventDateEn}. ${personalMessage} RSVP: ${rsvpUrl} Reply STOP to opt out.`,
+          statusCallback: smsStatusCallbackUrl,
         });
         if (!smsResult.ok) {
           console.error(`[broadcast] SMS failed for ${guest.phone}: ${smsResult.error}`);
@@ -106,6 +110,18 @@ export const broadcast = action({
           guestId: guest._id,
           channel: 'sms' as const,
         });
+        // Journalise l'envoi : le webhook StatusCallback mettra à jour le statut
+        // de livraison réel. Le HTTP 200 de Twilio ne prouve que la mise en file (F4).
+        if (smsResult.messageId && !smsResult.mock) {
+          await ctx.runMutation(internal.smsDeliveries.record, {
+            twilioSid: smsResult.messageId,
+            kind: 'invitation' as const,
+            guestId: guest._id,
+            eventId,
+            to: guest.phone,
+            status: 'sent' as const,
+          });
+        }
         sent++;
         continue;
       }

@@ -22,6 +22,12 @@ export interface TwilioSmsSendInput {
   to: string;
   /** Corps texte du SMS. Garder en GSM-7 (<=160 chars) pour 1 seul segment. */
   body: string;
+  /**
+   * URL `StatusCallback` Twilio. Quand fournie, Twilio POST le statut de
+   * livraison réel (delivered/undelivered/failed) à cette URL. C'est ce qui
+   * transforme « accepté en file » (HTTP 200) en livraison observée (F4).
+   */
+  statusCallback?: string;
 }
 
 export interface TwilioSmsEnv {
@@ -110,6 +116,10 @@ export async function sendTwilioSms(
     params.set('MessagingServiceSid', messagingServiceSid);
   } else if (fromNumber) {
     params.set('From', fromNumber);
+  }
+  // Statut de livraison réel poussé par Twilio à cette URL (webhook StatusCallback).
+  if (input.statusCallback) {
+    params.set('StatusCallback', input.statusCallback);
   }
 
   // Auth HTTP Basic `AccountSid:AuthToken`. `btoa` est dispo dans le runtime
