@@ -7,10 +7,62 @@ import {
   verifyAndParseSubscriptionWebhook,
   parseBudgetPaymentWebhook,
   parsePaymentLinkWebhook,
+  retrieveCheckoutSessionPromotion,
+  retrieveInvoicePromotion,
+  type AppliedPromotion,
 } from '@/lib/payments/drivers/stripe';
+import type { Currency } from '@/lib/payments/plans';
 
 function isProviderName(value: string): value is ProviderName {
   return value === 'stripe' || value === 'mock';
+}
+
+/**
+ * Affiliation influenceurs — enregistre (best-effort) la commission d'une vente
+ * attribuée à une influenceuse via son code promo. Volontairement TOLÉRANT aux
+ * erreurs : l'attribution ne doit jamais faire échouer le webhook (la vente est
+ * déjà encaissée/débloquée). La mutation Convex est idempotente par (source,
+ * sourceId), donc un renvoi de webhook ne crée pas de doublon.
+ */
+async function recordAffiliateCommission(
+  convex: ReturnType<typeof getConvexServerClient>,
+  webhookSecret: string,
+  input: {
+    source: 'payment' | 'payg' | 'subscription';
+    sourceId: string;
+    saleAmountMinor: number;
+    currency: Currency;
+    promotion: AppliedPromotion | null;
+    description?: string;
+  },
+): Promise<void> {
+  // Pas de code promo appliqué → vente non attribuable, cas nominal.
+  if (!input.promotion || (!input.promotion.couponId && !input.promotion.promotionCodeId)) {
+    return;
+  }
+  try {
+    await convex.mutation(convexApi.affiliateRecordCommissionFromSale, {
+      webhookSecret,
+      source: input.source,
+      sourceId: input.sourceId,
+      saleAmountMinor: input.saleAmountMinor,
+      currency: input.currency,
+      couponId: input.promotion.couponId ?? undefined,
+      promotionCodeId: input.promotion.promotionCodeId ?? undefined,
+      description: input.description,
+    });
+  } catch (err) {
+    await captureServer({
+      distinctId: 'system:affiliate',
+      event: EVENTS.webhookProcessingFailed,
+      properties: {
+        provider: 'stripe',
+        error: err instanceof Error ? err.message : 'UNKNOWN',
+        stage: 'affiliate_commission',
+        source: input.source,
+      },
+    });
+  }
 }
 
 function readSignatureHeader(headers: Headers, provider: ProviderName): string | null {
@@ -118,10 +170,39 @@ export async function POST(
             amountMinor: subscriptionEvent.amountMinor,
             currency: subscriptionEvent.currency,
           });
+          // Affiliation : PAYG one-shot via code promo influenceur.
+          const promotion = await retrieveCheckoutSessionPromotion(
+            subscriptionEvent.stripeSessionId,
+          ).catch(() => null);
+          await recordAffiliateCommission(convex, webhookSecret, {
+            source: 'payg',
+            sourceId: subscriptionEvent.stripeSessionId,
+            saleAmountMinor: subscriptionEvent.amountMinor,
+            currency: subscriptionEvent.currency,
+            promotion,
+            description: 'Pay-as-you-go pro',
+          });
           return NextResponse.json({ ok: true, kind: 'payg.purchased' });
         }
 
-        // invoice.paid / invoice.payment_failed: schema unchanged here.
+        // Facture d'abonnement pro payée → commission récurrente si code promo
+        // influenceur. `invoice.payment_failed` reste sans persistance ici.
+        if (subscriptionEvent.kind === 'invoice.paid' && subscriptionEvent.invoiceId) {
+          const promotion = await retrieveInvoicePromotion(subscriptionEvent.invoiceId).catch(
+            () => null,
+          );
+          await recordAffiliateCommission(convex, webhookSecret, {
+            source: 'subscription',
+            sourceId: subscriptionEvent.invoiceId,
+            saleAmountMinor: subscriptionEvent.amountMinor,
+            currency: subscriptionEvent.currency,
+            promotion,
+            description: 'Abonnement pro',
+          });
+          return NextResponse.json({ ok: true, kind: 'invoice.paid' });
+        }
+
+        // invoice.payment_failed: schema unchanged here.
         // Pro-notification emails are queued by Convex via the org subscription
         // mutation flow when needed.
         return NextResponse.json({ ok: true, kind: subscriptionEvent.kind });
@@ -283,6 +364,20 @@ export async function POST(
               provider,
               $set: { plan_tier: payment.plan },
             },
+          });
+
+          // Affiliation : forfait couple one-shot (Essentiel/Premium/upsell)
+          // acheté via un code promo influenceur.
+          const promotion = await retrieveCheckoutSessionPromotion(event.providerSessionId).catch(
+            () => null,
+          );
+          await recordAffiliateCommission(convex, webhookSecret, {
+            source: 'payment',
+            sourceId: payment._id,
+            saleAmountMinor: payment.amountMinor,
+            currency: payment.currency,
+            promotion,
+            description: `Forfait ${payment.plan}`,
           });
         }
       }

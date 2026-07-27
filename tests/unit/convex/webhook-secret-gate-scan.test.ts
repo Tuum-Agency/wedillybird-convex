@@ -91,6 +91,13 @@ const ALLOW_LIST = new Set<string>([
   'admin.ts:markSubscriptionCanceled',
   'admin.ts:markSubscriptionReactivated',
 
+  // --- Affiliation influenceurs : gardée par assertAdmin(ctx, adminId).
+  // `setConnectAccount` ne fait qu'enregistrer l'id du compte Stripe Connect
+  // de VERSEMENT de l'influenceuse (aucun encaissement, aucun entitlement) ;
+  // le rafraîchissement de statut passe par `applyConnectStatus`, elle gardée
+  // par le secret webhook (route de retour publique). ---
+  'affiliates.ts:setConnectAccount',
+
   // --- Bookkeeping "pending" : créent/attachent une session AVANT tout
   // encaissement confirmé — jamais un marquage succeeded/failed. Gardées par
   // requesterId/ownership. Symétrique de payments.ts:recordIntent. ---

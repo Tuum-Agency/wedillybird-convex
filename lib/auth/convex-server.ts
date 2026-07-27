@@ -265,6 +265,21 @@ const rawConvexApi = {
   adminLogAction: api.admin.logAction,
   adminPlatformAnalytics: api.admin.platformAnalytics,
 
+  // ---- Affiliation influenceurs (partenaires) ----
+  affiliateListInfluencers: api.affiliates.listInfluencers,
+  affiliateListCommissions: api.affiliates.listCommissions,
+  affiliateGetInfluencer: api.affiliates.getInfluencer,
+  affiliateListPendingCommissions: api.affiliates.listPendingCommissions,
+  affiliateCreateInfluencer: api.affiliates.createInfluencer,
+  affiliateUpdateInfluencer: api.affiliates.updateInfluencer,
+  affiliateAttachPromoCode: api.affiliates.attachPromoCode,
+  affiliateSetConnectAccount: api.affiliates.setConnectAccount,
+  affiliateMarkCommissionsPaid: api.affiliates.markCommissionsPaid,
+  // Bridge webhook (gardé par CONVEX_WEBHOOK_SECRET)
+  affiliateRecordCommissionFromSale: api.affiliates.recordCommissionFromSale,
+  affiliateApplyConnectStatus: api.affiliates.applyConnectStatus,
+  affiliateGetConnectForReturn: api.affiliates.getConnectForReturn,
+
   // ----- Devis & Factures (module Finances) -----
   quotesListByOrg: api.quotes.listByOrg,
   quotesGetById: api.quotes.getById,

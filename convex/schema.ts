@@ -567,6 +567,111 @@ export default defineSchema({
     // fort) puis `createdAt` pour la borne d'âge.
     .index('by_status_createdAt', ['status', 'createdAt']),
 
+  /* ===========================================================================
+   * PROGRAMME PARTENAIRES / AFFILIATION INFLUENCEURS
+   *
+   * Une influenceuse mariage reçoit un CODE PROMO (remise pour sa communauté +
+   * attribution des ventes) et une COMMISSION sur chaque vente réalisée via ce
+   * code. Le code promo est un couple Coupon + Promotion Code Stripe standard
+   * (cf. `lib/payments/drivers/stripe.ts`) ; on ne stocke ici que les IDs pour
+   * pouvoir attribuer une vente à son influenceuse au webhook.
+   * ======================================================================== */
+  influencers: defineTable({
+    name: v.string(),
+    /** Pseudo réseau social (ex. `@kmwnk`). */
+    handle: v.optional(v.string()),
+    email: v.optional(v.string()),
+    phone: v.optional(v.string()),
+    /**
+     * `active` = attribution + commissions en cours. `paused` = partenariat
+     * suspendu (on garde l'historique ; le code promo Stripe est désactivé
+     * séparément). L'attribution d'une vente reste enregistrée même si `paused`
+     * — c'est un fait comptable — l'admin peut annuler manuellement au besoin.
+     */
+    status: v.union(v.literal('active'), v.literal('paused')),
+    /** Taux de commission en POURCENTAGE (0–100), réglable par partenaire. */
+    commissionPct: v.number(),
+    /** Coupon Stripe rattaché (la remise offerte à la communauté). */
+    couponId: v.optional(v.string()),
+    /** Promotion Code Stripe (`promo_…`) — clé d'attribution au webhook. */
+    promotionCodeId: v.optional(v.string()),
+    /** Code lisible en MAJUSCULES (ex. `KMWNK15`) — pour l'affichage / recherche. */
+    code: v.optional(v.string()),
+    /** Réduction (%) accordée par le code promo à la communauté. */
+    discountPct: v.optional(v.number()),
+    /* --- Versement automatisé : compte Stripe Connect Express de l'influenceuse. --- */
+    stripeConnectAccountId: v.optional(v.string()),
+    connectChargesEnabled: v.optional(v.boolean()),
+    connectPayoutsEnabled: v.optional(v.boolean()),
+    connectDetailsSubmitted: v.optional(v.boolean()),
+    /**
+     * Perk « Premium offert pour son propre mariage » — suivi manuel : `promised`
+     * dès la signature du partenariat, `granted` une fois le forfait activé.
+     */
+    premiumPerk: v.union(v.literal('none'), v.literal('promised'), v.literal('granted')),
+    notes: v.optional(v.string()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index('by_status', ['status'])
+    .index('by_code', ['code'])
+    .index('by_promotion_code', ['promotionCodeId'])
+    .index('by_coupon', ['couponId'])
+    .index('by_connect_account', ['stripeConnectAccountId']),
+
+  /**
+   * Registre des commissions : une ligne par vente attribuée à une influenceuse.
+   * `by_source` (source + sourceId) garantit l'idempotence face aux renvois de
+   * webhook Stripe (même patron que `payments.by_session`).
+   */
+  commissions: defineTable({
+    influencerId: v.id('influencers'),
+    source: v.union(
+      // Forfait couple one-shot (Essentiel / Premium / upsell HD) — table `payments`.
+      v.literal('payment'),
+      // Achat pro Pay-as-you-go — table `paygPurchases`.
+      v.literal('payg'),
+      // Facture d'un abonnement pro récurrent (Starter / Business / Agency).
+      v.literal('subscription'),
+    ),
+    /**
+     * ID idempotent de la vente source : `payments._id` / `paygPurchases._id` /
+     * ID de facture Stripe (`in_…`). Unique par (source, sourceId).
+     */
+    sourceId: v.string(),
+    /** Montant de la vente réellement encaissé (net de remise), unités mineures. */
+    saleAmountMinor: v.number(),
+    currency: v.union(
+      v.literal('EUR'),
+      v.literal('USD'),
+      v.literal('XOF'),
+      v.literal('MAD'),
+      v.literal('TND'),
+    ),
+    /** Snapshot du taux au moment de la vente (le taux du partenaire peut changer ensuite). */
+    commissionPct: v.number(),
+    /** Montant de la commission (unités mineures) = round(saleAmountMinor × pct / 100). */
+    commissionMinor: v.number(),
+    status: v.union(
+      // Due, pas encore versée.
+      v.literal('pending'),
+      // Versée à l'influenceuse (transfer Stripe).
+      v.literal('paid'),
+      // Annulée (la vente source a été remboursée).
+      v.literal('reversed'),
+    ),
+    description: v.optional(v.string()),
+    /** ID du transfer Stripe (`tr_…`) une fois versée. */
+    stripeTransferId: v.optional(v.string()),
+    paidAt: v.optional(v.number()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index('by_influencer', ['influencerId'])
+    .index('by_source', ['source', 'sourceId'])
+    .index('by_influencer_status', ['influencerId', 'status'])
+    .index('by_status', ['status']),
+
   photos: defineTable({
     eventId: v.id('events'),
     // Exactly one of storageId (legacy Convex storage) or s3Key (current AWS S3) is set.
@@ -853,6 +958,10 @@ export default defineSchema({
       v.literal('photo'),
       v.literal('template'),
       v.literal('newsletter'),
+      // Programme partenaires / affiliation influenceurs (cf. tables
+      // `influencers` / `commissions`).
+      v.literal('influencer'),
+      v.literal('commission'),
     ),
     targetId: v.string(),
     details: v.optional(v.string()),

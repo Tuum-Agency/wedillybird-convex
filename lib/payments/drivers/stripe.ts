@@ -337,6 +337,7 @@ export type SubscriptionWebhookEvent =
     }
   | {
       kind: 'invoice.paid';
+      invoiceId: string;
       stripeCustomerId: string;
       stripeSubscriptionId: string;
       amountMinor: number;
@@ -418,6 +419,7 @@ export async function verifyAndParseSubscriptionWebhook(
     const override = STRIPE_CURRENCY_DIVISOR_OVERRIDE[currencyRaw];
     return {
       kind: 'invoice.paid',
+      invoiceId: invoice.id ?? '',
       stripeCustomerId:
         typeof invoice.customer === 'string' ? invoice.customer : (invoice.customer?.id ?? ''),
       stripeSubscriptionId: subId,
@@ -842,6 +844,63 @@ export async function retrieveConnectedAccountStatus(
 }
 
 /* -------------------------------------------------------------------------- */
+/*  Affiliation influenceurs — compte de VERSEMENT + transfers                 */
+/*                                                                            */
+/*  Contrairement aux agences (comptes Standard qui ENCAISSENT via charges     */
+/*  directes), une influenceuse ne fait que RECEVOIR ses commissions. On crée  */
+/*  donc un compte **Express** avec la seule capability `transfers` : la       */
+/*  plateforme lui envoie l'argent depuis son propre solde via `transfers`.    */
+/*  ⚠️ Nécessite Stripe Connect activé (transfers) — à vérifier en live avant  */
+/*  prod (onboarding KYC obligatoire côté influenceuse).                       */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Crée un compte connecté **Express** pour recevoir des versements de
+ * commission. `capabilities.transfers` est demandée d'emblée ; l'influenceuse
+ * complète le KYC via un `account_onboarding` link (cf. `createAccountOnboardingLink`).
+ */
+export async function createInfluencerPayoutAccount(input?: {
+  email?: string;
+  name?: string;
+  country?: string;
+}): Promise<{ accountId: string }> {
+  const stripe = getStripe();
+  const account = await stripe.accounts.create({
+    type: 'express',
+    ...(input?.country ? { country: input.country } : {}),
+    ...(input?.email ? { email: input.email } : {}),
+    capabilities: { transfers: { requested: true } },
+    business_type: 'individual',
+    ...(input?.name ? { business_profile: { name: input.name } } : {}),
+  });
+  return { accountId: account.id };
+}
+
+/**
+ * Verse une commission à l'influenceuse : transfer du solde plateforme vers son
+ * compte connecté. Un transfer = une seule devise (grouper en amont par devise,
+ * cf. `lib/payments/affiliate.ts:groupPendingForPayout`). Lève si les payouts ne
+ * sont pas encore activés côté compte (KYC incomplet).
+ */
+export async function createInfluencerTransfer(input: {
+  destinationAccountId: string;
+  amountMinor: number;
+  currency: Currency;
+  description?: string;
+  metadata?: Record<string, string>;
+}): Promise<{ transferId: string }> {
+  const stripe = getStripe();
+  const transfer = await stripe.transfers.create({
+    amount: input.amountMinor,
+    currency: input.currency.toLowerCase(),
+    destination: input.destinationAccountId,
+    ...(input.description ? { description: input.description } : {}),
+    ...(input.metadata ? { metadata: input.metadata } : {}),
+  });
+  return { transferId: transfer.id };
+}
+
+/* -------------------------------------------------------------------------- */
 /*  One-shot payment helpers (existing)                                       */
 /* -------------------------------------------------------------------------- */
 
@@ -1149,6 +1208,8 @@ export async function createCoupon(input: {
    * n'autorise pas la modif d'`applies_to`).
    */
   appliesToProducts?: string[];
+  /** Metadata additionnelle (ex. `wedillybird_influencer_id` pour l'affiliation). */
+  metadata?: Record<string, string>;
 }): Promise<AdminCoupon> {
   const stripe = getStripe();
   if ((input.percentOff == null) === (input.amountOffMinor == null)) {
@@ -1160,6 +1221,19 @@ export async function createCoupon(input: {
     throw new Error('COUPON_REPEATING_NEEDS_MONTHS');
   }
 
+  const hasProductRestriction = Boolean(
+    input.appliesToProducts && input.appliesToProducts.length > 0,
+  );
+  const metadata: Record<string, string> = {
+    ...(input.metadata ?? {}),
+    // Trace la restriction en metadata : l'API dahlia ne renvoie plus
+    // `applies_to` en lecture, donc mapCoupon la relit ici pour l'affichage
+    // (le filtrage produit lui-même reste appliqué par Stripe).
+    ...(hasProductRestriction
+      ? { wedillybird_applies_to: input.appliesToProducts!.join(',') }
+      : {}),
+  };
+
   const params: Stripe.CouponCreateParams = {
     name: input.name,
     duration: input.duration,
@@ -1170,15 +1244,8 @@ export async function createCoupon(input: {
     ...(input.duration === 'repeating' ? { duration_in_months: input.durationInMonths } : {}),
     ...(input.maxRedemptions != null ? { max_redemptions: input.maxRedemptions } : {}),
     ...(input.redeemBy != null ? { redeem_by: Math.floor(input.redeemBy / 1000) } : {}),
-    ...(input.appliesToProducts && input.appliesToProducts.length > 0
-      ? {
-          applies_to: { products: input.appliesToProducts },
-          // Trace la restriction en metadata : l'API dahlia ne renvoie plus
-          // `applies_to` en lecture, donc mapCoupon la relit ici pour l'affichage
-          // (le filtrage produit lui-même reste appliqué par Stripe).
-          metadata: { wedillybird_applies_to: input.appliesToProducts.join(',') },
-        }
-      : {}),
+    ...(hasProductRestriction ? { applies_to: { products: input.appliesToProducts! } } : {}),
+    ...(Object.keys(metadata).length > 0 ? { metadata } : {}),
   };
   const coupon = await stripe.coupons.create(params);
   return mapCoupon(coupon);
@@ -1247,11 +1314,16 @@ export async function createPromotionCode(input: {
   restrictToFirstTime?: boolean;
   minimumAmountMinor?: number;
   currency?: Currency;
+  /** Metadata additionnelle (ex. `wedillybird_influencer_id` pour l'affiliation). */
+  metadata?: Record<string, string>;
 }): Promise<AdminPromotionCode> {
   const stripe = getStripe();
   const params: Stripe.PromotionCodeCreateParams = {
     promotion: { type: 'coupon', coupon: input.couponId },
     ...(input.code ? { code: input.code } : {}),
+    ...(input.metadata && Object.keys(input.metadata).length > 0
+      ? { metadata: input.metadata }
+      : {}),
     ...(input.maxRedemptions != null ? { max_redemptions: input.maxRedemptions } : {}),
     ...(input.expiresAt != null ? { expires_at: Math.floor(input.expiresAt / 1000) } : {}),
     ...(input.restrictToFirstTime || input.minimumAmountMinor != null
@@ -1316,6 +1388,88 @@ export async function setPromotionCodeActive(
   const stripe = getStripe();
   const pc = await stripe.promotionCodes.update(promotionCodeId, { active });
   return mapPromotionCode(pc);
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Attribution affiliation — lecture du code promo appliqué à une vente       */
+/*                                                                            */
+/*  Le payload d'un webhook `checkout.session.completed` / `invoice.paid`      */
+/*  n'embarque pas de façon fiable le code promo saisi. On re-`retrieve` donc  */
+/*  l'objet avec `expand: ['discounts']` au moment de l'attribution (même      */
+/*  patron que `retrieveCheckoutReceiptUrl`). Volume de ventes faible →        */
+/*  1 appel Stripe supplémentaire par vente réussie est acceptable.            */
+/* -------------------------------------------------------------------------- */
+
+/** Coupon + Promotion Code Stripe appliqués à une vente (clé d'attribution). */
+export interface AppliedPromotion {
+  couponId: string | null;
+  promotionCodeId: string | null;
+}
+
+function extractDiscountIds(
+  discount: Stripe.Discount | { coupon?: unknown; promotion_code?: unknown } | null | undefined,
+): AppliedPromotion | null {
+  if (!discount || typeof discount !== 'object') return null;
+  const coupon = (discount as { coupon?: unknown }).coupon;
+  const promo = (discount as { promotion_code?: unknown }).promotion_code;
+  const couponId =
+    typeof coupon === 'string'
+      ? coupon
+      : coupon && typeof coupon === 'object' && 'id' in coupon
+        ? String((coupon as { id: unknown }).id)
+        : null;
+  const promotionCodeId =
+    typeof promo === 'string'
+      ? promo
+      : promo && typeof promo === 'object' && 'id' in promo
+        ? String((promo as { id: unknown }).id)
+        : null;
+  if (!couponId && !promotionCodeId) return null;
+  return { couponId, promotionCodeId };
+}
+
+/**
+ * Lit le code promo appliqué à une Checkout Session (forfait couple / PAYG).
+ * Retourne `null` si aucun code n'a été utilisé (vente non attribuable).
+ */
+export async function retrieveCheckoutSessionPromotion(
+  sessionId: string,
+): Promise<AppliedPromotion | null> {
+  const stripe = getStripe();
+  const session = await stripe.checkout.sessions.retrieve(sessionId, {
+    expand: ['discounts', 'discounts.coupon', 'discounts.promotion_code'],
+  });
+  const discounts = (session.discounts ?? []) as Array<{
+    coupon?: unknown;
+    promotion_code?: unknown;
+  }>;
+  for (const d of discounts) {
+    const found = extractDiscountIds(d);
+    if (found) return found;
+  }
+  return null;
+}
+
+/**
+ * Lit le code promo appliqué à une facture d'abonnement (Starter/Business/Agency).
+ * Retourne `null` si aucun code n'a été utilisé.
+ */
+export async function retrieveInvoicePromotion(
+  invoiceId: string,
+): Promise<AppliedPromotion | null> {
+  const stripe = getStripe();
+  const invoice = await stripe.invoices.retrieve(invoiceId, {
+    expand: ['discounts', 'discounts.coupon', 'discounts.promotion_code'],
+  });
+  const discounts = (invoice.discounts ?? []) as Array<
+    string | { coupon?: unknown; promotion_code?: unknown }
+  >;
+  for (const d of discounts) {
+    if (typeof d === 'string') continue; // non expand — ignoré (best effort)
+    const found = extractDiscountIds(d);
+    if (found) return found;
+  }
+  return null;
 }
 
 /**

@@ -327,6 +327,33 @@ export const markPaymentRefunded = mutation({
       }),
       createdAt: Date.now(),
     });
+
+    // Affiliation : si un remboursement TOTAL annule une vente attribuée à une
+    // influenceuse, on annule la commission correspondante (status `reversed`).
+    // Une commission déjà `paid` est aussi passée `reversed` — l'argent est parti,
+    // mais le registre reflète la reprise à opérer (geste manuel côté admin).
+    if (status === 'refunded') {
+      const commission = await ctx.db
+        .query('commissions')
+        .withIndex('by_source', (q) => q.eq('source', 'payment').eq('sourceId', paymentId))
+        .first();
+      if (commission && commission.status !== 'reversed') {
+        await ctx.db.patch(commission._id, { status: 'reversed', updatedAt: Date.now() });
+        await ctx.db.insert('adminAuditLog', {
+          adminId,
+          action: 'reverse_commission',
+          targetType: 'commission',
+          targetId: commission._id,
+          details: JSON.stringify({
+            reason: 'payment_refunded',
+            paymentId,
+            wasPaid: commission.status === 'paid',
+          }),
+          createdAt: Date.now(),
+        });
+      }
+    }
+
     return { ok: true, status };
   },
 });

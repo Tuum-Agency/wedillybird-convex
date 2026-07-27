@@ -17,11 +17,16 @@ import {
   setPromotionCodeActive,
   applyCouponToSubscription,
   removeSubscriptionDiscount,
+  createInfluencerPayoutAccount,
+  createInfluencerTransfer,
+  createAccountOnboardingLink,
+  retrieveConnectedAccountStatus,
   type SubscriptionInvoice,
   type AdminCoupon,
   type AdminPromotionCode,
 } from '@/lib/payments/drivers/stripe';
 import type { Currency } from '@/lib/payments/plans';
+import { groupPendingForPayout } from '@/lib/payments/affiliate';
 
 type ActionResult = { ok: true } | { ok: false; error: string };
 
@@ -480,6 +485,283 @@ export async function adminRemoveOrgDiscountAction(organizationId: string): Prom
       targetId: organizationId,
     });
     revalidatePath('/admin/subscriptions');
+    return { ok: true };
+  } catch (e: unknown) {
+    return { ok: false, error: msg(e) };
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Partenaires — affiliation influenceurs (code promo + commissions)          */
+/* -------------------------------------------------------------------------- */
+
+export type PartnerInfluencer = {
+  _id: string;
+  name: string;
+  handle: string | null;
+  email: string | null;
+  phone: string | null;
+  status: 'active' | 'paused';
+  commissionPct: number;
+  code: string | null;
+  couponId: string | null;
+  promotionCodeId: string | null;
+  discountPct: number | null;
+  stripeConnectAccountId: string | null;
+  connectPayoutsEnabled: boolean;
+  connectDetailsSubmitted: boolean;
+  premiumPerk: 'none' | 'promised' | 'granted';
+  notes: string | null;
+  createdAt: number;
+  pendingMinor: number;
+  paidMinor: number;
+  pendingCount: number;
+  salesCount: number;
+};
+
+export type PartnerCommission = {
+  _id: string;
+  influencerId: string;
+  influencerName: string;
+  source: 'payment' | 'payg' | 'subscription';
+  sourceId: string;
+  saleAmountMinor: number;
+  currency: Currency;
+  commissionPct: number;
+  commissionMinor: number;
+  status: 'pending' | 'paid' | 'reversed';
+  description: string | null;
+  stripeTransferId: string | null;
+  paidAt: number | null;
+  createdAt: number;
+};
+
+export type PartnersResult =
+  | { ok: true; influencers: PartnerInfluencer[]; commissions: PartnerCommission[] }
+  | { ok: false; error: string };
+
+export async function adminListPartnersAction(): Promise<PartnersResult> {
+  try {
+    const adminId = await requireAdmin();
+    const convex = getConvexServerClient();
+    const [influencers, commissions] = await Promise.all([
+      convex.query(convexApi.affiliateListInfluencers, { adminId }),
+      convex.query(convexApi.affiliateListCommissions, { adminId }),
+    ]);
+    return { ok: true, influencers, commissions };
+  } catch (e: unknown) {
+    return { ok: false, error: msg(e) };
+  }
+}
+
+export async function adminCreateInfluencerAction(input: {
+  name: string;
+  handle?: string;
+  email?: string;
+  phone?: string;
+  commissionPct: number;
+  premiumPerk?: 'none' | 'promised' | 'granted';
+  notes?: string;
+}): Promise<ActionResult> {
+  try {
+    const adminId = await requireAdmin();
+    const convex = getConvexServerClient();
+    await convex.mutation(convexApi.affiliateCreateInfluencer, { adminId, ...input });
+    revalidatePath('/admin/partners');
+    return { ok: true };
+  } catch (e: unknown) {
+    return { ok: false, error: msg(e) };
+  }
+}
+
+export async function adminUpdateInfluencerAction(input: {
+  influencerId: string;
+  name?: string;
+  handle?: string;
+  email?: string;
+  phone?: string;
+  commissionPct?: number;
+  status?: 'active' | 'paused';
+  premiumPerk?: 'none' | 'promised' | 'granted';
+  notes?: string;
+}): Promise<ActionResult> {
+  try {
+    const adminId = await requireAdmin();
+    const convex = getConvexServerClient();
+    await convex.mutation(convexApi.affiliateUpdateInfluencer, { adminId, ...input });
+    revalidatePath('/admin/partners');
+    return { ok: true };
+  } catch (e: unknown) {
+    return { ok: false, error: msg(e) };
+  }
+}
+
+/**
+ * Génère le code promo d'une influenceuse : coupon `%` permanent (remise
+ * communauté) + promotion code lisible, tous deux tagués `influencer_id` en
+ * metadata pour la traçabilité. Le lien code↔influenceuse (clé d'attribution)
+ * est stocké dans Convex via `attachPromoCode`.
+ */
+export async function adminGenerateInfluencerCodeAction(input: {
+  influencerId: string;
+  code: string;
+  discountPct: number;
+}): Promise<ActionResult> {
+  try {
+    const adminId = await requireAdmin();
+    const convex = getConvexServerClient();
+    const influencer = await convex.query(convexApi.affiliateGetInfluencer, {
+      adminId,
+      influencerId: input.influencerId,
+    });
+    if (influencer.promotionCodeId) return { ok: false, error: 'CODE_ALREADY_EXISTS' };
+    if (input.discountPct < 1 || input.discountPct > 100) {
+      return { ok: false, error: 'INVALID_DISCOUNT_PCT' };
+    }
+    const code = input.code.trim().toUpperCase();
+    if (!/^[A-Z0-9]{3,20}$/.test(code)) return { ok: false, error: 'INVALID_CODE_FORMAT' };
+
+    const coupon = await createCoupon({
+      name: `Affiliation ${influencer.name}`,
+      percentOff: input.discountPct,
+      duration: 'forever',
+      metadata: { wedillybird_influencer_id: input.influencerId },
+    });
+    const pc = await createPromotionCode({
+      couponId: coupon.id,
+      code,
+      metadata: { wedillybird_influencer_id: input.influencerId },
+    });
+    await convex.mutation(convexApi.affiliateAttachPromoCode, {
+      adminId,
+      influencerId: input.influencerId,
+      couponId: coupon.id,
+      promotionCodeId: pc.id,
+      code: pc.code,
+      discountPct: input.discountPct,
+    });
+    revalidatePath('/admin/partners');
+    return { ok: true };
+  } catch (e: unknown) {
+    return { ok: false, error: msg(e) };
+  }
+}
+
+export type OnboardingResult = { ok: true; url: string } | { ok: false; error: string };
+
+/**
+ * Démarre (ou reprend) l'onboarding Stripe Connect de versement d'une
+ * influenceuse : crée le compte Express au besoin, puis renvoie un lien
+ * d'onboarding hébergé. Le retour rafraîchit le statut (cf. la route
+ * `/api/stripe/connect/influencer-return`).
+ */
+export async function adminStartInfluencerOnboardingAction(input: {
+  influencerId: string;
+}): Promise<OnboardingResult> {
+  try {
+    const adminId = await requireAdmin();
+    const convex = getConvexServerClient();
+    const influencer = await convex.query(convexApi.affiliateGetInfluencer, {
+      adminId,
+      influencerId: input.influencerId,
+    });
+
+    let accountId = influencer.stripeConnectAccountId;
+    if (!accountId) {
+      const created = await createInfluencerPayoutAccount({
+        email: influencer.email ?? undefined,
+        name: influencer.name,
+      });
+      accountId = created.accountId;
+      await convex.mutation(convexApi.affiliateSetConnectAccount, {
+        adminId,
+        influencerId: input.influencerId,
+        stripeConnectAccountId: accountId,
+      });
+    }
+
+    const base = (process.env.NEXT_PUBLIC_APP_URL ?? 'https://wedillybird.com').replace(/\/$/, '');
+    const returnUrl = `${base}/api/stripe/connect/influencer-return?influencer=${input.influencerId}`;
+    const link = await createAccountOnboardingLink({
+      accountId,
+      refreshUrl: returnUrl,
+      returnUrl,
+    });
+    return { ok: true, url: link.url };
+  } catch (e: unknown) {
+    return { ok: false, error: msg(e) };
+  }
+}
+
+/** Rafraîchit manuellement le statut Connect (charges / payouts) d'une influenceuse. */
+export async function adminRefreshInfluencerConnectAction(input: {
+  influencerId: string;
+}): Promise<ActionResult> {
+  try {
+    const adminId = await requireAdmin();
+    const convex = getConvexServerClient();
+    const influencer = await convex.query(convexApi.affiliateGetInfluencer, {
+      adminId,
+      influencerId: input.influencerId,
+    });
+    if (!influencer.stripeConnectAccountId) return { ok: false, error: 'NO_CONNECT_ACCOUNT' };
+    const st = await retrieveConnectedAccountStatus(influencer.stripeConnectAccountId);
+    const webhookSecret = process.env.CONVEX_WEBHOOK_SECRET;
+    if (!webhookSecret) return { ok: false, error: 'WEBHOOK_SECRET_NOT_CONFIGURED' };
+    await convex.mutation(convexApi.affiliateApplyConnectStatus, {
+      webhookSecret,
+      influencerId: input.influencerId,
+      chargesEnabled: st.chargesEnabled,
+      detailsSubmitted: st.detailsSubmitted,
+      payoutsEnabled: st.payoutsEnabled,
+    });
+    revalidatePath('/admin/partners');
+    return { ok: true };
+  } catch (e: unknown) {
+    return { ok: false, error: msg(e) };
+  }
+}
+
+/**
+ * Verse les commissions dues d'une influenceuse : un transfer Stripe par devise
+ * (cf. `groupPendingForPayout`), puis marque chaque lot `paid`. Nécessite un
+ * compte Connect avec payouts activés (KYC terminé).
+ */
+export async function adminPayInfluencerAction(input: {
+  influencerId: string;
+}): Promise<ActionResult> {
+  try {
+    const adminId = await requireAdmin();
+    const convex = getConvexServerClient();
+    const influencer = await convex.query(convexApi.affiliateGetInfluencer, {
+      adminId,
+      influencerId: input.influencerId,
+    });
+    if (!influencer.stripeConnectAccountId) return { ok: false, error: 'NO_CONNECT_ACCOUNT' };
+    if (!influencer.connectPayoutsEnabled) return { ok: false, error: 'PAYOUTS_NOT_ENABLED' };
+
+    const pending = await convex.query(convexApi.affiliateListPendingCommissions, {
+      adminId,
+      influencerId: input.influencerId,
+    });
+    const groups = groupPendingForPayout(pending);
+    if (groups.length === 0) return { ok: false, error: 'NOTHING_DUE' };
+
+    for (const group of groups) {
+      const { transferId } = await createInfluencerTransfer({
+        destinationAccountId: influencer.stripeConnectAccountId,
+        amountMinor: group.amountMinor,
+        currency: group.currency,
+        description: `Commissions ${influencer.name}`,
+        metadata: { wedillybird_influencer_id: input.influencerId },
+      });
+      await convex.mutation(convexApi.affiliateMarkCommissionsPaid, {
+        adminId,
+        commissionIds: group.commissionIds,
+        stripeTransferId: transferId,
+      });
+    }
+    revalidatePath('/admin/partners');
     return { ok: true };
   } catch (e: unknown) {
     return { ok: false, error: msg(e) };
