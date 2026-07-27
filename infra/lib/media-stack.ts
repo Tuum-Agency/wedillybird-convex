@@ -11,6 +11,7 @@ import * as iam from 'aws-cdk-lib/aws-iam';
 import { SnsEventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
 import * as sns from 'aws-cdk-lib/aws-sns';
 import * as s3n from 'aws-cdk-lib/aws-s3-notifications';
+import * as sqs from 'aws-cdk-lib/aws-sqs';
 
 export type WedillybirdMediaStackProps = StackProps & {
   /** Bucket name. Must be globally unique. */
@@ -131,6 +132,19 @@ export class WedillybirdMediaStack extends Stack {
         { prefix: 'incoming/' },
       );
 
+      // DLQ des invocations Lambda échouées. SNS → Lambda est une invocation
+      // ASYNCHRONE : après les retries internes de Lambda, un événement en échec
+      // (callback Convex 401, timeout Sharp, quota Rekognition...) est autrement
+      // PERDU en silence — la galerie reste vide sans trace. Retenu 14 j pour
+      // inspection / replay quand le cron `photosModerationHealth` signale des
+      // photos bloquées (mode d'échec F4 du premortem).
+      const moderationDlq = new sqs.Queue(this, 'ModerationDlq', {
+        retentionPeriod: Duration.days(14),
+      });
+      const variantsDlq = new sqs.Queue(this, 'VariantsDlq', {
+        retentionPeriod: Duration.days(14),
+      });
+
       const moderationFunction = new NodejsFunction(this, 'ModerationFunction', {
         entry: path.join(__dirname, '..', 'lambdas', 'moderation.ts'),
         handler: 'handler',
@@ -138,6 +152,7 @@ export class WedillybirdMediaStack extends Stack {
         architecture: lambda.Architecture.ARM_64,
         memorySize: 512,
         timeout: Duration.seconds(30),
+        deadLetterQueue: moderationDlq,
         environment: {
           CONVEX_SITE_URL: props.convexSiteUrl,
           LAMBDA_CALLBACK_SECRET: props.lambdaCallbackSecret,
@@ -202,6 +217,7 @@ export class WedillybirdMediaStack extends Stack {
         // à la mémoire), ce qui réduit le wall-time de ~2.5x sur Sharp.
         memorySize: 1024,
         timeout: Duration.seconds(60),
+        deadLetterQueue: variantsDlq,
         environment: {
           CONVEX_SITE_URL: props.convexSiteUrl,
           LAMBDA_CALLBACK_SECRET: props.lambdaCallbackSecret,

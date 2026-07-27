@@ -60,6 +60,7 @@ import type * as photoBooks from "../photoBooks.js";
 import type * as photos from "../photos.js";
 import type * as photosActions from "../photosActions.js";
 import type * as photosFaceSearch from "../photosFaceSearch.js";
+import type * as photosModerationHealth from "../photosModerationHealth.js";
 import type * as photosReprocess from "../photosReprocess.js";
 import type * as planning from "../planning.js";
 import type * as pro from "../pro.js";
@@ -134,6 +135,7 @@ declare const fullApi: ApiFromModules<{
   photos: typeof photos;
   photosActions: typeof photosActions;
   photosFaceSearch: typeof photosFaceSearch;
+  photosModerationHealth: typeof photosModerationHealth;
   photosReprocess: typeof photosReprocess;
   planning: typeof planning;
   pro: typeof pro;
