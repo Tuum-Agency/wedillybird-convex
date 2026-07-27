@@ -152,6 +152,7 @@ export const dispatchDailyGuestReminders = internalAction({
                 bodyParams,
                 urlButtonParam: guest.qrCodeToken,
                 tier,
+                eventId: event._id as never,
               },
             );
             whatsappScheduled += 1;

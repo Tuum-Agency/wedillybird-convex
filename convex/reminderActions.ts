@@ -25,6 +25,9 @@ export const sendGuestWhatsappReminder = internalAction({
     bodyParams: v.array(v.string()),
     urlButtonParam: v.string(),
     tier: v.union(v.literal('d7'), v.literal('d1')),
+    // Optionnel (back-compat scheduler) mais toujours passé par le dispatch :
+    // permet de rattacher la ligne smsDeliveries à l'event pour summaryForEvent.
+    eventId: v.optional(v.id('events')),
   },
   handler: async (ctx, args) => {
     // Routage canal : invités +1 (US/Canada) → SMS Twilio si configuré, sinon
@@ -38,11 +41,19 @@ export const sendGuestWhatsappReminder = internalAction({
       const detail = args.bodyParams[2] ?? '';
       const appBaseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://wedillybird.com';
       const rsvpUrl = `${appBaseUrl}/en/i/${args.urlButtonParam}`;
+      // StatusCallback : Twilio POST le statut de livraison réel à cette URL
+      // (cf. smsDeliveries + /api/webhooks/twilio). Sans ça, un rappel filtré en
+      // silence par un carrier A2P US resterait « envoyé » (mode d'échec F4).
+      const smsStatusCallbackUrl = `${appBaseUrl}/api/webhooks/twilio`;
       const body =
         args.tier === 'd1'
           ? `${first}, ${couple}'s big day is tomorrow at ${detail}! Details & RSVP: ${rsvpUrl} Reply STOP to opt out.`
           : `${first}, a reminder that ${couple} are getting married on ${detail}. Please RSVP: ${rsvpUrl} Reply STOP to opt out.`;
-      const smsResult = await sendTwilioSms({ to: args.to, body });
+      const smsResult = await sendTwilioSms({
+        to: args.to,
+        body,
+        statusCallback: smsStatusCallbackUrl,
+      });
       if (!smsResult.ok) {
         console.error(`[reminder:sms] failed for ${args.to} (${args.tier}): ${smsResult.error}`);
         return { ok: false as const, error: smsResult.error ?? 'UNKNOWN' };
@@ -54,6 +65,19 @@ export const sendGuestWhatsappReminder = internalAction({
         guestId: args.guestId,
         tier: args.tier,
       });
+      // Journalise l'envoi réel : le webhook StatusCallback fera passer la ligne
+      // en delivered/undelivered/failed. Le HTTP 200 de Twilio ne prouve que la
+      // mise en file (F4). Jamais en mode mock.
+      if (smsResult.messageId && !smsResult.mock) {
+        await ctx.runMutation(internal.smsDeliveries.record, {
+          twilioSid: smsResult.messageId,
+          kind: 'reminder' as const,
+          guestId: args.guestId,
+          eventId: args.eventId,
+          to: args.to,
+          status: 'sent' as const,
+        });
+      }
       return { ok: true as const, mock: smsResult.mock ?? false };
     }
 

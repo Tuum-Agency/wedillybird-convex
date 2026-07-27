@@ -1291,5 +1291,18 @@ export default defineSchema({
     .index('by_twilio_sid', ['twilioSid'])
     .index('by_guest', ['guestId'])
     .index('by_event', ['eventId'])
-    .index('by_event_status', ['eventId', 'status']),
+    .index('by_event_status', ['eventId', 'status'])
+    // Réconciliation : retrouver les lignes non terminales (queued/sent) restées
+    // sans StatusCallback, pour aller interroger Twilio (cron de secours F4).
+    .index('by_status_updated', ['status', 'updatedAt']),
+
+  /**
+   * Anti-spam de l'alerte de livraison SMS : une ligne par event déjà alerté,
+   * pour ne pas ré-emailer l'ops à chaque passage du cron de réconciliation.
+   */
+  smsDeliveryAlerts: defineTable({
+    eventId: v.id('events'),
+    alertedAt: v.number(),
+    undeliveredRate: v.number(),
+  }).index('by_event', ['eventId']),
 });

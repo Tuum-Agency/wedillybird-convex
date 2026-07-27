@@ -69,6 +69,7 @@ const rawConvexApi = {
   userByPhone: api.auth.userByPhone,
   createEvent: api.events.create,
   smsApplyStatusWebhook: api.smsDeliveries.applyStatusWebhook,
+  deliveryForEvent: api.smsDeliveries.deliveryForEvent,
   publishEvent: api.events.publish,
   unpublishEvent: api.events.unpublish,
   orgPublishQuotaStatus: api.events.orgPublishQuotaStatus,

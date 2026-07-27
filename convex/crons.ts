@@ -44,4 +44,16 @@ crons.cron(
   {},
 );
 
+// Every 15 min: reconcile SMS deliveries stuck in a non-terminal state whose
+// Twilio StatusCallback was likely lost — poll Twilio for the real status, then
+// re-run the deliverability alert check for affected events. Safety net for the
+// webhook (`/api/webhooks/twilio`, failure mode F4). No-op when Twilio is not
+// configured (dev / not-yet-live).
+crons.cron(
+  'reconcile sms deliveries',
+  '*/15 * * * *',
+  internal.smsDeliveries.reconcileStaleDeliveries,
+  {},
+);
+
 export default crons;

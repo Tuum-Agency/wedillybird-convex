@@ -83,9 +83,13 @@ export const requestOtp = action({
 
     if (channel === 'sms') {
       const brand = process.env.SMS_BRAND_NAME ?? 'Wedillybird';
+      const appBaseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://wedillybird.com';
       const smsResult = await sendTwilioSms({
         to: normalized,
         body: `${brand}: your verification code is ${code}. It expires in 5 minutes.`,
+        // StatusCallback : un OTP filtré en silence par un carrier A2P empêche la
+        // connexion. Le webhook (/api/webhooks/twilio → smsDeliveries) le révèle.
+        statusCallback: `${appBaseUrl}/api/webhooks/twilio`,
       });
       if (!smsResult.ok) {
         if (smsResult.error === 'TWILIO_NOT_CONFIGURED') {
@@ -98,6 +102,16 @@ export const requestOtp = action({
       if (smsResult.mock) {
         console.info(`[twilio:mock] OTP ${code} -> ${normalized}`);
         return { phone: normalized, channel: 'sms' as const, provider: 'mock' as const };
+      }
+      // Journalise l'envoi réel (kind 'otp', sans guest/event) : le webhook
+      // StatusCallback mettra à jour le statut de livraison réel.
+      if (smsResult.messageId) {
+        await ctx.runMutation(internal.smsDeliveries.record, {
+          twilioSid: smsResult.messageId,
+          kind: 'otp' as const,
+          to: normalized,
+          status: 'sent' as const,
+        });
       }
       return { phone: normalized, channel: 'sms' as const, provider: 'twilio' as const };
     }

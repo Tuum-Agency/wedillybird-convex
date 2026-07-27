@@ -4838,7 +4838,14 @@
       "Africa/Douala": "África/Duala (UTC+1)",
       "Indian/Antananarivo": "Índico/Antananarivo (UTC+3)",
       "Indian/Mauritius": "Índico/Maurícia (UTC+4)"
-    }
+    },
+    "deliverySectionTitle": "Entrega de SMS",
+    "deliveryDelivered": "Entregues",
+    "deliveryPending": "Pendentes",
+    "deliveryUndelivered": "Não entregues",
+    "deliveryFailed": "Falharam",
+    "deliveryWarning": "{count, plural, one {# SMS não foi entregue — possível filtragem da operadora. Contacte o suporte se persistir.} other {# SMS não foram entregues — possível filtragem da operadora. Contacte o suporte se persistir.}}",
+    "broadcastQueuedNote": "Em fila de envio — o estado de entrega real aparece abaixo à medida que chegam as confirmações."
   },
   "MonMariage": {
     "common": {
