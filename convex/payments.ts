@@ -11,6 +11,7 @@ import {
   consumeCreditReservation,
   releaseCreditReservation,
 } from './affiliate';
+import { commissionBaseMinor } from './lib/affiliate';
 
 function ownerLocaleToIntlTag(locale: string | undefined): string {
   return toIntlTag(locale);
@@ -80,6 +81,8 @@ export const recordIntent = mutation({
     affiliateId: v.optional(v.id('affiliates')),
     /** Token de réservation du crédit de parrainage appliqué (consommé à la confirmation). */
     creditReservationId: v.optional(v.string()),
+    /** Remise « communauté » du code affilié appliquée à ce checkout (centimes). */
+    affiliateDiscountMinor: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     const event = await ctx.db.get(args.eventId);
@@ -96,6 +99,7 @@ export const recordIntent = mutation({
       providerSessionId: args.providerSessionId,
       affiliateId: args.affiliateId,
       creditReservationId: args.creditReservationId,
+      affiliateDiscountMinor: args.affiliateDiscountMinor,
       status: 'pending',
       createdAt: Date.now(),
       updatedAt: Date.now(),
@@ -197,7 +201,9 @@ export const markSucceeded = mutation({
           affiliateId: payment.affiliateId,
           sourceSessionId: payment.providerSessionId,
           grossMinor: payment.amountMinor,
-          netMinor: payment.amountMinor,
+          // Base de commission = NET après la remise « communauté » de ce code
+          // (jamais le prix catalogue) — cf. `commissionBaseMinor`.
+          netMinor: commissionBaseMinor(payment.amountMinor, payment.affiliateDiscountMinor ?? 0),
           currency: payment.currency,
           purchasedAt: now,
           eventDate: event?.eventDate,

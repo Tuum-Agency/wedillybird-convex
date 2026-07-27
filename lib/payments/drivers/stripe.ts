@@ -1294,8 +1294,9 @@ export async function createOneTimeAmountCoupon(
     duration: 'once',
     max_redemptions: 1,
     redeem_by: Math.floor((Date.now() + 24 * 60 * 60 * 1000) / 1000),
-    name: 'Crédit de parrainage Wedillybird',
-    metadata: { wedillybird: 'referral_credit' },
+    // Peut cumuler crédit de parrainage ET remise « communauté » d'un code affilié.
+    name: 'Remise Wedillybird',
+    metadata: { wedillybird: 'checkout_discount' },
   });
   return coupon.id;
 }

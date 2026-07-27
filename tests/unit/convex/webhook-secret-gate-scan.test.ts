@@ -90,6 +90,9 @@ const ALLOW_LIST = new Set<string>([
   'admin.ts:markPaymentRefunded',
   'admin.ts:markSubscriptionCanceled',
   'admin.ts:markSubscriptionReactivated',
+  // Comp : offre un forfait (planTier) sans paiement — geste admin délibéré,
+  // gardé par assertAdmin en tête. Symétrique de markPaymentRefunded.
+  'admin.ts:adminCompEventPlan',
 
   // --- Bookkeeping "pending" : créent/attachent une session AVANT tout
   // encaissement confirmé — jamais un marquage succeeded/failed. Gardées par
