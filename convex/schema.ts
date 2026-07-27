@@ -889,7 +889,12 @@ export default defineSchema({
     .index('by_event', ['eventId'])
     .index('by_event_status', ['eventId', 'status'])
     .index('by_guest_token', ['uploadedByGuestToken'])
-    .index('by_s3_key', ['s3Key']),
+    .index('by_s3_key', ['s3Key'])
+    // Réconciliation média (cron de secours F4) : retrouver les photos restées
+    // `pending` au-delà du délai de modération sans full-scan, pour détecter un
+    // pipeline Lambda cassé (secret désaligné, erreur, quota) qui laisse la
+    // galerie vide le jour J. Miroir de `smsDeliveries.by_status_updated`.
+    .index('by_status_createdAt', ['status', 'createdAt']),
 
   /**
    * Visages extraits par Rekognition `IndexFaces` pour chaque photo
@@ -1699,5 +1704,17 @@ export default defineSchema({
     eventId: v.id('events'),
     alertedAt: v.number(),
     undeliveredRate: v.number(),
+  }).index('by_event', ['eventId']),
+
+  /**
+   * Anti-spam de l'alerte « pipeline de modération photo bloqué » : une ligne par
+   * event déjà alerté, pour ne pas ré-emailer l'ops à chaque passage du cron de
+   * réconciliation média (miroir de `smsDeliveryAlerts`, mode d'échec F4 — la
+   * galerie qui reste vide quand le callback Lambda n'arrive jamais).
+   */
+  photoModerationAlerts: defineTable({
+    eventId: v.id('events'),
+    alertedAt: v.number(),
+    stalePendingCount: v.number(),
   }).index('by_event', ['eventId']),
 });
