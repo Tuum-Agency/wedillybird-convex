@@ -46,18 +46,28 @@ export function SectionNav() {
 
     function updateActiveSection() {
       frame = 0;
-      const marker = window.scrollY + 96 + window.innerHeight * 0.25;
+      const scrollY = window.scrollY;
       let nextActiveId: string | null = null;
 
-      for (const section of sections) {
-        // Position absolue dans le document via getBoundingClientRect (fiable même
-        // quand la section a un offsetParent positionné/transformé par Motion/GSAP).
-        // `offsetTop` est relatif à l'offsetParent → faussait la détection de la FAQ.
-        const top = section.getBoundingClientRect().top + window.scrollY;
-        if (top <= marker) {
-          nextActiveId = section.id;
-        } else {
-          break;
+      // Fin de page : la dernière section est active même si son haut n'atteint
+      // jamais le repère. La FAQ est en bas de page — s'il n'y a pas assez de
+      // contenu en dessous, on ne peut pas la scroller jusqu'à la ligne (le scroll
+      // est plafonné), donc le dernier lien de nav ne s'allumerait jamais.
+      const atBottom = scrollY + window.innerHeight >= document.documentElement.scrollHeight - 2;
+      if (atBottom) {
+        nextActiveId = sections[sections.length - 1]?.id ?? null;
+      } else {
+        const marker = scrollY + 96 + window.innerHeight * 0.25;
+        for (const section of sections) {
+          // Position absolue dans le document via getBoundingClientRect (fiable même
+          // quand la section a un offsetParent positionné/transformé par Motion/GSAP).
+          // `offsetTop` est relatif à l'offsetParent → faussait la détection de la FAQ.
+          const top = section.getBoundingClientRect().top + scrollY;
+          if (top <= marker) {
+            nextActiveId = section.id;
+          } else {
+            break;
+          }
         }
       }
 
