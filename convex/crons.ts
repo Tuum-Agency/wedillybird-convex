@@ -71,4 +71,17 @@ crons.cron(
   {},
 );
 
+// Every 20 min: detect photos stuck in `pending` with NO moderation verdict —
+// the Lambda moderation callback never landed (misaligned secret, Lambda error,
+// IAM, Rekognition quota), so the gallery stays empty on the wedding day. Emails
+// ops, deduped per event. Safety net for the media pipeline (failure mode F4),
+// mirror of the SMS reconciliation above. No-op when the pipeline isn't wired
+// (`LAMBDA_CALLBACK_SECRET` unset — dev / not-yet-live).
+crons.cron(
+  'reconcile stale pending photos',
+  '*/20 * * * *',
+  internal.photosModerationHealth.reconcileStalePendingPhotos,
+  {},
+);
+
 export default crons;
