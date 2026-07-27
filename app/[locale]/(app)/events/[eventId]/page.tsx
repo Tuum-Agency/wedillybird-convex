@@ -90,6 +90,14 @@ export default async function EventDetailPage({
     requesterId: session!.userId,
   });
 
+  // Livraison SMS RÉELLE (délivrés / en attente / non délivrés) — remplace le
+  // compteur trompeur « X envoyés » (F4). Rafraîchi au router.refresh() après un
+  // broadcast, mis à jour par le webhook StatusCallback + le cron de secours.
+  const delivery = await convex.query(convexApi.deliveryForEvent, {
+    eventId,
+    requesterId: session!.userId,
+  });
+
   const user = await convex.query(convexApi.currentUser, { userId: session!.userId });
   const t = await getTranslations('EventDetail');
   const tDash = await getTranslations('Dashboard');
@@ -430,6 +438,14 @@ export default async function EventDetailPage({
         total: counts.total,
         invited: counts.invited,
         withPhone: counts.withPhone,
+      }}
+      delivery={{
+        total: delivery.total,
+        delivered: delivery.delivered,
+        pending: delivery.queued + delivery.sent,
+        undelivered: delivery.undelivered,
+        failed: delivery.failed,
+        undeliveredRate: delivery.undeliveredRate,
       }}
     />
   );

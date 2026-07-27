@@ -4834,7 +4834,14 @@
       "Africa/Douala": "Africa/Douala (UTC+1)",
       "Indian/Antananarivo": "Indian/Antananarivo (UTC+3)",
       "Indian/Mauritius": "Indian/Mauritius (UTC+4)"
-    }
+    },
+    "deliverySectionTitle": "SMS delivery",
+    "deliveryDelivered": "Delivered",
+    "deliveryPending": "Pending",
+    "deliveryUndelivered": "Undelivered",
+    "deliveryFailed": "Failed",
+    "deliveryWarning": "{count, plural, one {# text wasn't delivered — possible carrier filtering. Contact support if it persists.} other {# texts weren't delivered — possible carrier filtering. Contact support if it persists.}}",
+    "broadcastQueuedNote": "Queued for sending — the real delivery status appears below as confirmations arrive."
   },
   "MonMariage": {
     "common": {

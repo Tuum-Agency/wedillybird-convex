@@ -11,6 +11,13 @@ import { sendWhatsAppCloudTemplate, isWhatsAppCloudConfigured } from './lib/what
 import { resolveChannel } from './lib/channelRouting';
 import { isTwilioConfigured, sendTwilioSms } from './lib/twilioSms';
 
+/**
+ * Délai avant le contrôle de livraison post-broadcast : on laisse les
+ * StatusCallback Twilio arriver (queued → delivered/undelivered/failed) avant de
+ * calculer le taux de non-livraison et d'alerter l'ops (mode d'échec F4).
+ */
+const DELIVERABILITY_CHECK_DELAY_MS = 15 * 60 * 1000;
+
 interface BroadcastResult {
   sent: number;
   failed: number;
@@ -164,6 +171,17 @@ export const broadcast = action({
         channel: 'whatsapp' as const,
       });
       sent++;
+    }
+
+    // Filet F4 : ~15 min après le broadcast, relire les statuts de livraison
+    // réels et alerter l'ops si le taux de non-livraison est anormal (signal d'un
+    // filtrage carrier A2P). No-op si aucun SMS réel n'atteint le seuil.
+    if (isTwilioConfigured() && sent > 0) {
+      await ctx.scheduler.runAfter(
+        DELIVERABILITY_CHECK_DELAY_MS,
+        internal.smsDeliveries.checkEventDeliverabilityAndAlert,
+        { eventId },
+      );
     }
 
     return {

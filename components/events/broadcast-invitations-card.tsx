@@ -14,6 +14,16 @@ interface Counts {
   withPhone: number;
 }
 
+/** Livraison SMS réelle (webhook StatusCallback + cron de réconciliation). */
+interface Delivery {
+  total: number;
+  delivered: number;
+  pending: number;
+  undelivered: number;
+  failed: number;
+  undeliveredRate: number;
+}
+
 type SendState =
   | { kind: 'idle' }
   | { kind: 'success'; sent: number; failed: number; total: number; mock: boolean }
@@ -35,10 +45,12 @@ export function BroadcastInvitationsCard({
   eventId,
   eventStatus,
   counts,
+  delivery,
 }: {
   eventId: string;
   eventStatus: 'draft' | 'active' | 'archived' | 'cancelled';
   counts: Counts;
+  delivery: Delivery;
 }) {
   const t = useTranslations('Events');
   const router = useRouter();
@@ -189,6 +201,11 @@ export function BroadcastInvitationsCard({
               {t('broadcastSuccess', { count: state.sent })}
               {state.failed > 0 ? ` ${t('broadcastFailures', { count: state.failed })}` : ''}
             </p>
+            {!state.mock ? (
+              <p className="text-xs leading-relaxed text-[color:var(--color-ink-500)]">
+                {t('broadcastQueuedNote')}
+              </p>
+            ) : null}
             {state.mock ? (
               <p className="font-mono text-[10px] tracking-[0.24em] text-[color:var(--color-ink-500)] uppercase">
                 {t('broadcastMockNotice')}
@@ -202,6 +219,37 @@ export function BroadcastInvitationsCard({
         <p role="alert" className="text-sm text-[color:var(--color-destructive)]">
           {state.message}
         </p>
+      ) : null}
+
+      {/* Livraison RÉELLE (F4) — remplace le compteur trompeur « X envoyés ». */}
+      {delivery.total > 0 ? (
+        <div className="flex flex-col gap-3 rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-ivory-100)] p-4">
+          <span className="font-mono text-[10px] tracking-[0.24em] text-[color:var(--color-ink-500)] uppercase">
+            {t('deliverySectionTitle')}
+          </span>
+          <div className="grid grid-cols-2 gap-x-6 gap-y-2 sm:grid-cols-4">
+            <DeliveryStat label={t('deliveryDelivered')} value={delivery.delivered} tone="ok" />
+            <DeliveryStat label={t('deliveryPending')} value={delivery.pending} tone="muted" />
+            <DeliveryStat
+              label={t('deliveryUndelivered')}
+              value={delivery.undelivered}
+              tone="warn"
+            />
+            <DeliveryStat label={t('deliveryFailed')} value={delivery.failed} tone="warn" />
+          </div>
+          {delivery.undelivered + delivery.failed > 0 ? (
+            <div className="flex items-start gap-3 rounded-lg border border-[color:var(--color-border)] bg-white p-3">
+              <AlertTriangle
+                className="mt-0.5 h-4 w-4 flex-shrink-0 text-[color:var(--color-gold-700)]"
+                strokeWidth={2}
+                aria-hidden
+              />
+              <p className="text-sm leading-relaxed text-[color:var(--color-ink-700)]">
+                {t('deliveryWarning', { count: delivery.undelivered + delivery.failed })}
+              </p>
+            </div>
+          ) : null}
+        </div>
       ) : null}
 
       <Button
@@ -222,5 +270,30 @@ export function BroadcastInvitationsCard({
             : t('broadcastButtonSend', { count: remaining })}
       </Button>
     </section>
+  );
+}
+
+function DeliveryStat({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: number;
+  tone: 'ok' | 'muted' | 'warn';
+}) {
+  const color =
+    tone === 'ok'
+      ? 'var(--color-blush-700)'
+      : tone === 'warn'
+        ? 'var(--color-destructive)'
+        : 'var(--color-ink-500)';
+  return (
+    <div className="flex items-baseline justify-between gap-2 sm:flex-col sm:items-start sm:gap-0.5">
+      <span className="text-sm text-[color:var(--color-ink-500)]">{label}</span>
+      <span className="font-mono text-base font-medium" style={{ color }}>
+        {value}
+      </span>
+    </div>
   );
 }

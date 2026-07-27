@@ -4838,7 +4838,14 @@
       "Africa/Douala": "Afrika/Douala (UTC+1)",
       "Indian/Antananarivo": "Indik/Antananarivo (UTC+3)",
       "Indian/Mauritius": "Indik/Mauritius (UTC+4)"
-    }
+    },
+    "deliverySectionTitle": "SMS-Zustellung",
+    "deliveryDelivered": "Zugestellt",
+    "deliveryPending": "Ausstehend",
+    "deliveryUndelivered": "Nicht zugestellt",
+    "deliveryFailed": "Fehlgeschlagen",
+    "deliveryWarning": "{count, plural, one {# SMS wurde nicht zugestellt — mögliche Betreiberfilterung. Kontaktieren Sie den Support, falls es weiterhin auftritt.} other {# SMS wurden nicht zugestellt — mögliche Betreiberfilterung. Kontaktieren Sie den Support, falls es weiterhin auftritt.}}",
+    "broadcastQueuedNote": "In Warteschlange — der tatsächliche Zustellstatus erscheint unten, sobald Bestätigungen eintreffen."
   },
   "MonMariage": {
     "common": {

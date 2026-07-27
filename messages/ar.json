@@ -4834,7 +4834,14 @@
       "Africa/Douala": "إفريقيا/دوالا (UTC+1)",
       "Indian/Antananarivo": "المحيط الهندي/أنتاناناريفو (UTC+3)",
       "Indian/Mauritius": "المحيط الهندي/موريشيوس (UTC+4)"
-    }
+    },
+    "deliverySectionTitle": "تسليم الرسائل",
+    "deliveryDelivered": "تم التسليم",
+    "deliveryPending": "قيد الانتظار",
+    "deliveryUndelivered": "لم يتم التسليم",
+    "deliveryFailed": "فشل",
+    "deliveryWarning": "{count, plural, one {# رسالة لم يتم تسليمها — قد يكون هناك ترشيح من المشغل. تواصل مع الدعم إذا استمر ذلك.} other {# رسائل لم يتم تسليمها — قد يكون هناك ترشيح من المشغل. تواصل مع الدعم إذا استمر ذلك.}}",
+    "broadcastQueuedNote": "في قائمة الإرسال — تظهر حالة التسليم الفعلية أدناه عند وصول التأكيدات."
   },
   "MonMariage": {
     "common": {
