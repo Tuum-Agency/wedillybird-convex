@@ -128,6 +128,7 @@ export function GuestGallery({
             mode="guest"
             token={token}
             uploaderName={inviteeName}
+            faceSearchEnabled={faceSearchEnabled}
             getUploadUrl={createGuestUploadUrlAction}
             confirm={confirmGuestUploadAction}
             onUploaded={() => {

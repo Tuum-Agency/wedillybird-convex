@@ -18,6 +18,7 @@ vi.mock('next-intl', () => ({
     }
     return key;
   },
+  useLocale: () => 'fr',
 }));
 
 import { PhotoUploader } from '@/components/gallery/photo-uploader';
@@ -256,6 +257,30 @@ describe('PhotoUploader (drag-and-drop)', () => {
     fireEvent.keyDown(dropzone, { key: 'Enter' });
 
     expect(inputClick).toHaveBeenCalled();
+  });
+});
+
+describe('PhotoUploader — notice biométrique (reco-faciale)', () => {
+  it('affiche la notice + lien /legal/privacy quand faceSearchEnabled', () => {
+    render(
+      <PhotoUploader
+        mode="guest"
+        token="tok_1"
+        faceSearchEnabled
+        getUploadUrl={vi.fn()}
+        confirm={vi.fn()}
+      />,
+    );
+    const notice = screen.getByTestId('biometric-upload-notice');
+    const link = notice.querySelector('a');
+    expect(link?.getAttribute('href')).toBe('/fr/legal/privacy');
+    expect(link?.getAttribute('target')).toBe('_blank');
+    expect(link?.textContent).toBe('biometricNoticeLink');
+  });
+
+  it("n'affiche PAS la notice par défaut (reco-faciale off)", () => {
+    render(<PhotoUploader mode="guest" token="tok_1" getUploadUrl={vi.fn()} confirm={vi.fn()} />);
+    expect(screen.queryByTestId('biometric-upload-notice')).toBeNull();
   });
 });
 
