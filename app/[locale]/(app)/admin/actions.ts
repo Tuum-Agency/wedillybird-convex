@@ -661,3 +661,48 @@ export async function adminSetAffiliateStatusAction(
     return { ok: false, error: msg(e) };
   }
 }
+
+/* -------------------------------------------------------------------------- */
+/*  Comp / cadeau — offrir un forfait particulier (ex. partenaire affilié)    */
+/* -------------------------------------------------------------------------- */
+
+type CompEventRow = {
+  eventId: string;
+  title: string;
+  eventDate: number;
+  planTier: 'essential' | 'premium' | null;
+  paidAt: number | null;
+  ownerEmail: string;
+};
+
+export async function adminFindEventsByEmailAction(
+  email: string,
+): Promise<{ ok: true; events: CompEventRow[] } | { ok: false; error: string }> {
+  try {
+    const adminId = await requireAdmin();
+    const convex = getConvexServerClient();
+    const events = await convex.query(convexApi.adminFindEventsByEmail, { adminId, email });
+    return { ok: true, events };
+  } catch (e: unknown) {
+    return { ok: false, error: msg(e) };
+  }
+}
+
+export async function adminCompEventPlanAction(input: {
+  eventId: string;
+  tier: 'essential' | 'premium';
+}): Promise<ActionResult> {
+  try {
+    const adminId = await requireAdmin();
+    const convex = getConvexServerClient();
+    await convex.mutation(convexApi.adminCompEventPlan, {
+      adminId,
+      eventId: input.eventId,
+      tier: input.tier,
+    });
+    revalidatePath('/admin/affiliates');
+    return { ok: true };
+  } catch (e: unknown) {
+    return { ok: false, error: msg(e) };
+  }
+}

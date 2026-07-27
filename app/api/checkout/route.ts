@@ -8,6 +8,7 @@ import { PLANS } from '@/lib/payments/plans';
 import { detectCountryFromHeaders, routePayment } from '@/lib/payments/country';
 import { getPaymentDriver } from '@/lib/payments';
 import { createOneTimeAmountCoupon } from '@/lib/payments/drivers/stripe';
+import { affiliateBuyerDiscountMinor } from '@/lib/payments/affiliate-discount';
 import { captureServer, EVENTS } from '@/lib/analytics/posthog-server';
 
 const bodySchema = z.object({
@@ -49,17 +50,23 @@ export async function POST(req: Request): Promise<Response> {
   // On le résout en id d'affilié — best-effort strict : ne jamais bloquer le
   // checkout si la résolution échoue ou si le code est inconnu/inactif.
   let affiliateId: string | undefined;
+  let buyerDiscountBps = 0;
   const refCode = (await cookies()).get('wdb_ref')?.value;
   if (refCode) {
     try {
       const aff = await getConvexServerClient().query(convexApi.getAffiliateByCode, {
         code: refCode,
       });
-      if (aff) affiliateId = aff.id;
+      if (aff) {
+        affiliateId = aff.id;
+        // Remise « communauté » que ce code partenaire accorde à son audience.
+        buyerDiscountBps = aff.buyerDiscountBps ?? 0;
+      }
     } catch {
       // best-effort — l'attribution ne bloque jamais l'achat.
     }
   }
+  const affiliateDiscountMinor = affiliateBuyerDiscountMinor(amountMinor, buyerDiscountBps);
 
   // Crédit de parrainage : on RÉSERVE le crédit AVANT de créer le coupon — le
   // montant réservé == le montant du coupon (jamais de sur-remise ni de crédit
@@ -68,21 +75,38 @@ export async function POST(req: Request): Promise<Response> {
   const reservationId = crypto.randomUUID();
   let discountCouponId: string | undefined;
   let creditReserved = false;
+  // Remise affilié réellement appliquée (= 0 si le coupon n'a pas pu être créé) :
+  // c'est CETTE valeur qu'on enregistre, pour que la base de commission colle au
+  // montant réellement encaissé.
+  let appliedAffiliateDiscountMinor = 0;
   if (routing.provider === 'stripe') {
     try {
       const convex = getConvexServerClient();
-      const reserved = await convex.mutation(convexApi.reserveCreditForCheckout, {
-        userId: session.userId,
-        reservationId,
-        currency: routing.currency,
-        orderMinor: amountMinor,
-      });
-      if (reserved.appliedMinor > 0) {
-        creditReserved = true;
-        discountCouponId = await createOneTimeAmountCoupon(reserved.appliedMinor, routing.currency);
+      // Le crédit de parrainage ne réserve que ce qui RESTE après la remise
+      // affilié (remise + crédit ≤ prix) → jamais de sur-remise ni de crédit gratuit.
+      const creditRoomMinor = Math.max(0, amountMinor - affiliateDiscountMinor);
+      const reserved =
+        creditRoomMinor > 0
+          ? await convex.mutation(convexApi.reserveCreditForCheckout, {
+              userId: session.userId,
+              reservationId,
+              currency: routing.currency,
+              orderMinor: creditRoomMinor,
+            })
+          : { appliedMinor: 0 };
+      // Marqué AVANT la création du coupon : si celle-ci échoue, le catch relâche
+      // la réservation déjà posée (sinon crédit bloqué jusqu'au GC).
+      if (reserved.appliedMinor > 0) creditReserved = true;
+      // Stripe n'accepte qu'UN coupon par session → on cumule remise + crédit.
+      const totalDiscountMinor = affiliateDiscountMinor + reserved.appliedMinor;
+      if (totalDiscountMinor > 0) {
+        discountCouponId = await createOneTimeAmountCoupon(totalDiscountMinor, routing.currency);
       }
+      // Coupon créé (ou aucune remise à appliquer) → la remise affilié est actée.
+      appliedAffiliateDiscountMinor = affiliateDiscountMinor;
     } catch {
-      // reserve OU création du coupon a échoué → relâche si on avait réservé.
+      // reserve OU création du coupon a échoué → relâche si on avait réservé, et
+      // on abandonne AUSSI la remise affilié (pas de coupon = pas de remise).
       if (creditReserved) {
         try {
           await getConvexServerClient().mutation(convexApi.releaseCreditReservation, {
@@ -94,6 +118,7 @@ export async function POST(req: Request): Promise<Response> {
       }
       creditReserved = false;
       discountCouponId = undefined;
+      appliedAffiliateDiscountMinor = 0;
     }
   }
   const creditReservationId = creditReserved ? reservationId : undefined;
@@ -141,6 +166,9 @@ export async function POST(req: Request): Promise<Response> {
       providerSessionId: session_.providerSessionId,
       affiliateId,
       creditReservationId,
+      ...(appliedAffiliateDiscountMinor > 0
+        ? { affiliateDiscountMinor: appliedAffiliateDiscountMinor }
+        : {}),
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'UNKNOWN';
