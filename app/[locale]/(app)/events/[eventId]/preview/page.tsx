@@ -5,9 +5,14 @@ import { ArrowLeft, Calendar, Camera, Eye, MapPin } from 'lucide-react';
 import { Link, redirect } from '@/i18n/navigation';
 import { getSession } from '@/lib/auth/session';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
+import { asCinematicId, isCinematicId } from '@/components/invitation/cinematics/registry';
+import { isMusicTrackId, musicTrackSrc } from '@/lib/invitation/music';
 import { InvitationShell } from '@/components/invitation/invitation-shell';
+import { InvitationPortrait } from '@/components/invitation/invitation-portrait';
+import { InvitationSchedule } from '@/components/invitation/invitation-schedule';
 import { WeddingCountdown } from '@/components/invitation/wedding-countdown';
 import { LandingFooterRich } from '@/components/landing/footer-rich';
+import { InvitationFooter } from '@/components/invitation/invitation-footer';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,8 +31,10 @@ export const dynamic = 'force-dynamic';
  */
 export default async function EventPreviewPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string; eventId: string }>;
+  searchParams: Promise<{ cinematic?: string; music?: string }>;
 }) {
   const { locale, eventId } = await params;
   setRequestLocale(locale);
@@ -43,6 +50,40 @@ export default async function EventPreviewPage({
     requesterId: session!.userId,
   });
   if (!event) notFound();
+
+  // Overrides d'aperçu (?cinematic=floral&music=jardin|off) — permettent aux
+  // pickers d'essayer un thème/une piste AVANT d'enregistrer le choix.
+  const overrides = await searchParams;
+  const cinematic = isCinematicId(overrides.cinematic)
+    ? overrides.cinematic
+    : (event.invitationCinematic ?? null);
+  let music: { url: string; title?: string } | null = null;
+  if (overrides.music === 'off') {
+    music = null;
+  } else if (isMusicTrackId(overrides.music)) {
+    music = { url: musicTrackSrc(overrides.music) };
+  } else if (
+    event.invitationMusic?.source === 'library' &&
+    isMusicTrackId(event.invitationMusic.trackId)
+  ) {
+    music = { url: musicTrackSrc(event.invitationMusic.trackId) };
+  } else if (event.invitationMusic?.source === 'custom' && event.invitationMusic.s3Key) {
+    const cdn = process.env.CLOUDFRONT_DOMAIN;
+    music = cdn
+      ? { url: `https://${cdn}/${event.invitationMusic.s3Key}`, title: event.invitationMusic.title }
+      : null;
+  }
+
+  // Photo du couple — même résolution CDN que la musique (event brut côté owner).
+  const cdnDomain = process.env.CLOUDFRONT_DOMAIN;
+  const photo =
+    event.invitationPhoto?.s3Key && cdnDomain
+      ? {
+          url: `https://${cdnDomain}/${event.invitationPhoto.s3Key}`,
+          width: event.invitationPhoto.width,
+          height: event.invitationPhoto.height,
+        }
+      : null;
 
   const accentColor = event.theme?.primaryColor ?? 'oklch(72% 0.09 20)';
 
@@ -98,10 +139,18 @@ export default async function EventPreviewPage({
           formattedDate={eventDateCompact}
           venueName={event.venue?.name}
           accentColor={accentColor}
+          eventDate={event.eventDate}
+          photoUrl={photo?.url}
+          cinematic={cinematic}
+          music={music}
         >
           <article className="container-page mx-auto flex w-full max-w-2xl flex-col gap-16 py-16 sm:py-24">
             {/* Header couple */}
             <header className="flex flex-col items-center gap-5 text-center">
+              <InvitationPortrait
+                photo={photo}
+                alt={`${event.coupleNames.partnerA} & ${event.coupleNames.partnerB}`}
+              />
               <span className="font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-ink-500)] uppercase">
                 {tInv('youreInvited')}
               </span>
@@ -158,7 +207,7 @@ export default async function EventPreviewPage({
             </section>
 
             {/* Détails — date + lieu */}
-            <section className="flex flex-col gap-6 rounded-3xl border border-[color:var(--color-border)] bg-white p-8 shadow-[var(--shadow-soft)]">
+            <section className="inv-card flex flex-col gap-6 rounded-3xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-8 shadow-[var(--shadow-soft)]">
               <div className="flex items-start gap-4">
                 <span
                   aria-hidden
@@ -201,8 +250,14 @@ export default async function EventPreviewPage({
               ) : null}
             </section>
 
+            {/* Déroulé de la journée */}
+            <InvitationSchedule
+              schedule={event.ceremonySchedule ?? []}
+              title={tInv('scheduleTitle')}
+            />
+
             {/* Placeholder RSVP — pas de form en mode aperçu */}
-            <section className="flex flex-col items-center gap-4 rounded-3xl border border-dashed border-[color:var(--color-border-strong)] bg-white/60 p-8 text-center">
+            <section className="inv-card flex flex-col items-center gap-4 rounded-3xl border border-dashed border-[color:var(--color-border-strong)] bg-[color:var(--color-surface)]/60 p-8 text-center">
               <span className="font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-ink-500)] uppercase">
                 {t('previewRsvpEyebrow')}
               </span>
@@ -221,7 +276,7 @@ export default async function EventPreviewPage({
             </section>
 
             {/* Lien galerie (statique en preview) */}
-            <div className="group flex items-center justify-between gap-4 rounded-2xl border border-[color:var(--color-border)] bg-white px-6 py-5 opacity-80">
+            <div className="group inv-card flex items-center justify-between gap-4 rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-6 py-5 opacity-80">
               <span className="flex items-center gap-3">
                 <span
                   aria-hidden
@@ -244,7 +299,7 @@ export default async function EventPreviewPage({
               </span>
             </div>
           </article>
-          <LandingFooterRich />
+          {asCinematicId(cinematic) === 'seal' ? <LandingFooterRich /> : <InvitationFooter />}
         </InvitationShell>
       </div>
     </main>

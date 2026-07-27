@@ -8,7 +8,8 @@ export type ProNotificationKind =
   | 'payment-received'
   | 'subscription-renewed'
   | 'subscription-failed'
-  | 'payg-credit-activated';
+  | 'payg-credit-activated'
+  | 'photo-book-ordered';
 
 export type ProNotificationInput = {
   recipientName: string;
@@ -26,6 +27,7 @@ const KIND_KEY: Record<ProNotificationKind, string> = {
   'subscription-renewed': 'subscriptionRenewed',
   'subscription-failed': 'subscriptionFailed',
   'payg-credit-activated': 'paygCreditActivated',
+  'photo-book-ordered': 'photoBookOrdered',
 };
 
 export function renderProNotification(input: ProNotificationInput): EmailRendered {

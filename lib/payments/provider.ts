@@ -14,6 +14,14 @@ export interface CheckoutInput {
   customerEmail?: string;
   /** Optional — téléphone client. */
   customerPhone?: string;
+  /** Optional — id d'affilié attribué (posé en metadata de la session + PI). */
+  affiliateId?: string;
+  /** Optional — coupon Stripe (crédit de parrainage appliqué). Exclut le champ
+   *  code promo (`allow_promotion_codes`) : Stripe interdit les deux ensemble. */
+  discountCouponId?: string;
+  /** Optional — token de réservation du crédit (posé en metadata de session,
+   *  consommé à la confirmation). */
+  creditReservationId?: string;
 }
 
 export interface CheckoutSession {

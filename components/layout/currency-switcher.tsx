@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
-import { useCurrencyStore } from '@/stores/currency-store';
+import { readGeoCurrencyCookie, useCurrencyStore } from '@/stores/currency-store';
 import { defaultCurrencyForLocale, SELECTABLE_CURRENCIES } from '@/lib/payments/currency';
 import type { Currency } from '@/lib/payments/plans';
 import type { Locale } from '@/i18n/routing';
@@ -65,8 +65,12 @@ export function CurrencySwitcher({ className }: { className?: string }) {
   }, [open]);
 
   // Avant l'hydratation, on rend toujours la devise locale-default pour éviter
-  // un mismatch SSR (le store lit localStorage uniquement côté client).
-  const effective: Currency = mounted && selected ? selected : defaultCurrencyForLocale(locale);
+  // un mismatch SSR (le store et le cookie géo ne sont lisibles que côté
+  // client). Une fois monté : override explicite > devise géo (cookie `wbb_ccy`,
+  // pays de facturation) > défaut locale. Même ordre que `useEffectiveCurrency`.
+  const effective: Currency = mounted
+    ? (selected ?? readGeoCurrencyCookie() ?? defaultCurrencyForLocale(locale))
+    : defaultCurrencyForLocale(locale);
 
   function onSelect(next: Currency) {
     setOpen(false);

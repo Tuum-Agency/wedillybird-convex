@@ -238,6 +238,7 @@ export const sendProNotification = internalAction({
       v.literal('subscription-renewed'),
       v.literal('subscription-failed'),
       v.literal('payg-credit-activated'),
+      v.literal('photo-book-ordered'),
     ),
     /**
      * Détail pré-formaté. Optionnel — si absent, l'action utilise

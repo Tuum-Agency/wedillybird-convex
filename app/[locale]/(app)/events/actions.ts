@@ -10,6 +10,8 @@ import {
 } from '@/lib/validators/events';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
 import { getSession } from '@/lib/auth/session';
+import { isCinematicId } from '@/components/invitation/cinematics/registry';
+import { isMusicTrackId } from '@/lib/invitation/music';
 import { sanitizeRsvpConfig, type RsvpConfig } from '@/lib/rsvp/questions';
 
 export type CreateEventResult =
@@ -252,11 +254,70 @@ export async function updateEventAction(
         }
       : undefined;
 
+  // Personnalisation invitation (hors zod : ids validés ici + gating Convex).
+  const rawCinematic = formData.get('invitationCinematic');
+  const invitationCinematic =
+    rawCinematic && isCinematicId(String(rawCinematic)) ? String(rawCinematic) : undefined;
+  const rawTrack = formData.get('invitationMusicTrack');
+  const rawKey = formData.get('invitationMusicKey');
+  const rawMusicTitle = formData.get('invitationMusicTitle');
+  const clearInvitationMusic = formData.get('clearInvitationMusic') === '1';
+  let invitationMusic:
+    | { source: 'library' | 'custom'; trackId?: string; s3Key?: string; title?: string }
+    | undefined;
+  if (rawTrack && isMusicTrackId(String(rawTrack))) {
+    invitationMusic = { source: 'library', trackId: String(rawTrack) };
+  } else if (rawKey) {
+    invitationMusic = {
+      source: 'custom',
+      s3Key: String(rawKey),
+      title: rawMusicTitle ? String(rawMusicTitle) : undefined,
+    };
+  }
+
+  // Photo du couple : la clé S3 (prefix `invitation/{eventId}/`) est validée
+  // côté Convex ; on ne transmet que la clé + dimensions post-compression.
+  const rawPhotoKey = formData.get('invitationPhotoKey');
+  const rawPhotoW = formData.get('invitationPhotoWidth');
+  const rawPhotoH = formData.get('invitationPhotoHeight');
+  const clearInvitationPhoto = formData.get('clearInvitationPhoto') === '1';
+  const invitationPhoto = rawPhotoKey
+    ? {
+        s3Key: String(rawPhotoKey),
+        width: rawPhotoW ? Number(rawPhotoW) : undefined,
+        height: rawPhotoH ? Number(rawPhotoH) : undefined,
+      }
+    : undefined;
+
+  // Déroulé de la journée : sérialisé en JSON par le form (array vide = efface).
+  // Champ absent → on n'y touche pas ; présent (même vide) → on remplace.
+  const rawSchedule = formData.get('ceremonySchedule');
+  let ceremonySchedule: Array<{ time: string; title: string; note?: string }> | undefined;
+  if (typeof rawSchedule === 'string') {
+    try {
+      const parsed = JSON.parse(rawSchedule) as unknown;
+      if (Array.isArray(parsed)) {
+        ceremonySchedule = parsed
+          .filter((s): s is Record<string, unknown> => !!s && typeof s === 'object')
+          .map((s) => ({
+            time: String(s.time ?? '').slice(0, 40),
+            title: String(s.title ?? '').slice(0, 120),
+            note: s.note ? String(s.note).slice(0, 200) : undefined,
+          }))
+          .filter((s) => s.title.length > 0 || s.time.length > 0)
+          .slice(0, 20);
+      }
+    } catch {
+      // JSON malformé → on ignore ce champ.
+    }
+  }
+
   const convex = getConvexServerClient();
   try {
     await convex.mutation(convexApi.updateEvent, {
       eventId,
       requesterId: session.userId,
+      ...(ceremonySchedule !== undefined ? { ceremonySchedule } : {}),
       ...(data.title !== undefined ? { title: data.title } : {}),
       ...(data.partnerA !== undefined ? { partnerA: data.partnerA } : {}),
       ...(data.partnerB !== undefined ? { partnerB: data.partnerB } : {}),
@@ -265,9 +326,62 @@ export async function updateEventAction(
       ...(venue ? { venue } : {}),
       ...(data.clearVenue ? { clearVenue: true } : {}),
       ...(theme ? { theme } : {}),
+      ...(invitationCinematic ? { invitationCinematic } : {}),
+      ...(invitationMusic ? { invitationMusic } : {}),
+      ...(clearInvitationMusic ? { clearInvitationMusic: true } : {}),
+      ...(invitationPhoto ? { invitationPhoto } : {}),
+      ...(clearInvitationPhoto ? { clearInvitationPhoto: true } : {}),
     });
     revalidatePath(`/fr/events/${eventId}`);
     return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : 'UNKNOWN' };
+  }
+}
+
+/**
+ * Presigned PUT S3 pour la musique personnalisée de l'invitation (édition
+ * event côté owner/agence). Mêmes gardes que côté couple : owner + feature
+ * `cinematicInvitation`, préfixe `audio/{eventId}/`, ≤ 10 Mo côté client.
+ */
+export async function createEventMusicUploadUrlAction(
+  eventId: string,
+  contentType: string,
+): Promise<{ ok: true; uploadUrl: string; s3Key: string } | { ok: false; error: string }> {
+  const session = await getSession();
+  if (!session) return { ok: false, error: 'UNAUTHENTICATED' };
+  try {
+    const convex = getConvexServerClient();
+    const res = await convex.action(convexApi.createInvitationMusicUploadUrl, {
+      eventId,
+      requesterId: session.userId,
+      contentType,
+    });
+    return { ok: true, ...res };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : 'UNKNOWN' };
+  }
+}
+
+/**
+ * Presigned PUT S3 pour la photo du couple (édition event côté owner/agence).
+ * Mêmes gardes que la musique : owner + feature `cinematicInvitation`, préfixe
+ * `invitation/{eventId}/`. Fichier compressé côté client avant l'envoi.
+ */
+export async function createEventInvitationPhotoUploadUrlAction(
+  eventId: string,
+  contentType: string,
+): Promise<{ ok: true; uploadUrl: string; s3Key: string } | { ok: false; error: string }> {
+  const session = await getSession();
+  if (!session) return { ok: false, error: 'UNAUTHENTICATED' };
+  try {
+    const convex = getConvexServerClient();
+    const res = await convex.action(convexApi.createInvitationPhotoUploadUrl, {
+      eventId,
+      requesterId: session.userId,
+      contentType,
+    });
+    return { ok: true, ...res };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : 'UNKNOWN' };
   }

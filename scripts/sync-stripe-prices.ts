@@ -41,10 +41,20 @@
  * le crédit, cf. `convex/events.ts:decidePublishGate`). Ce script crée juste
  * les Stripe Prices manquants côté Stripe.
  *
- * ⚠ USD = grille région `americas` (US/CA) — parité psychologique 1:1 avec
- * la grille europe sauf Premium B2C qui passe à $99 (au lieu de $89) pour
- * matcher le positionnement marché US wedding tech (The Knot premium $99-149).
- * Cf. `lib/payments/region.ts:AMERICAS_PRICE_OVERRIDE`.
+ * ⚠ USD = valeur marché US (US/CA), PAS la conversion EUR×1,08. Nombres ronds
+ * ancrés sur la WTP US, **toujours ≥ l'équivalent EUR** (règle : le signe de
+ * l'écart ne s'inverse jamais — cf. `.context/pricing-v2.md` § « Règle devise »).
+ *   Consumer : Essentiel $40 · Premium $80 · Upsell +$30.
+ *   Pro      : Starter $109 · Business $239 · Agency $489 · PAYG $89
+ *              (annuels $1047/$2295/$4695) — corrige l'ex-parité $99/$219/$449
+ *              qui bradait le pro US ~8 % sous l'euro sur un revenu récurrent.
+ * Les `usdMinor` ci-dessous sont la source des Prices USD ; ils DOIVENT rester
+ * strictement égaux à `lib/payments/plans.ts` + `subscriptions.ts`.
+ *
+ * ⚠ Après un changement de montant USD : ce script crée un NOUVEAU Price (les
+ * anciens Prices USD restent actifs sur le même Product). Pense à archiver les
+ * anciens Prices USD pro ($99/$219/$449/$79 + annuels) au Dashboard Stripe une
+ * fois les env vars mises à jour.
  */
 
 import { readFileSync } from 'node:fs';
@@ -140,7 +150,7 @@ const PLANS_TO_SYNC: ReadonlyArray<PlanSpec> = [
     productDescription:
       '99 €/mois. 5 événements × 150 invités, 3 000 messages inclus, 50 Go, branding Wedillybird.',
     eurMinor: 9900,
-    usdMinor: 9900,
+    usdMinor: 10900,
     interval: 'month',
     envVarBase: 'STRIPE_PRICE_STARTER',
   },
@@ -150,7 +160,7 @@ const PLANS_TO_SYNC: ReadonlyArray<PlanSpec> = [
     productDescription:
       '219 €/mois. 20 événements × 150 invités, 10 000 messages, 200 Go, logo personnalisé + sous-domaine.',
     eurMinor: 21900,
-    usdMinor: 21900,
+    usdMinor: 23900,
     interval: 'month',
     envVarBase: 'STRIPE_PRICE_BUSINESS',
   },
@@ -160,7 +170,7 @@ const PLANS_TO_SYNC: ReadonlyArray<PlanSpec> = [
     productDescription:
       '449 €/mois. 50 événements × 150 invités, 25 000 messages, 500 Go, marque blanche.',
     eurMinor: 44900,
-    usdMinor: 44900,
+    usdMinor: 48900,
     interval: 'month',
     envVarBase: 'STRIPE_PRICE_AGENCY',
   },
@@ -170,7 +180,7 @@ const PLANS_TO_SYNC: ReadonlyArray<PlanSpec> = [
     productName: 'Wedillybird Pro — Starter (annuel)',
     productDescription: '951 €/an (équiv. 79,25 €/mois). 5 événements actifs, 3 000 messages/mois.',
     eurMinor: 95100,
-    usdMinor: 95100,
+    usdMinor: 104700,
     interval: 'year',
     envVarBase: 'STRIPE_PRICE_STARTER_ANNUAL',
   },
@@ -180,7 +190,7 @@ const PLANS_TO_SYNC: ReadonlyArray<PlanSpec> = [
     productDescription:
       '2 103 €/an (équiv. 175,25 €/mois). 20 événements actifs, 10 000 messages/mois.',
     eurMinor: 210300,
-    usdMinor: 210300,
+    usdMinor: 229500,
     interval: 'year',
     envVarBase: 'STRIPE_PRICE_BUSINESS_ANNUAL',
   },
@@ -190,7 +200,7 @@ const PLANS_TO_SYNC: ReadonlyArray<PlanSpec> = [
     productDescription:
       '4 311 €/an (équiv. 359,25 €/mois). 50 événements actifs, 25 000 messages/mois.',
     eurMinor: 431100,
-    usdMinor: 431100,
+    usdMinor: 469500,
     interval: 'year',
     envVarBase: 'STRIPE_PRICE_AGENCY_ANNUAL',
   },
@@ -200,7 +210,7 @@ const PLANS_TO_SYNC: ReadonlyArray<PlanSpec> = [
     productName: 'Wedillybird Pro — Pay-as-you-go (1 événement)',
     productDescription: '79 €/événement, sans abonnement. 150 invités, 25 Go.',
     eurMinor: 7900,
-    usdMinor: 7900,
+    usdMinor: 8900,
     interval: undefined,
     envVarBase: 'STRIPE_PRICE_PAYG_EVENT',
   },

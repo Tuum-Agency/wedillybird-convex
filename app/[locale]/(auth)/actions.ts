@@ -12,6 +12,7 @@ import {
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
 import { clearSessionCookie, getSession, setSessionCookie } from '@/lib/auth/session';
 import { isAgencyRole, resolvePostAuthDestination } from '@/lib/auth/post-auth-destination';
+import { asBudgetCurrency } from '@/lib/currency';
 
 type ActionResult =
   | { ok: true; phone?: string; email?: string; isNewUser?: boolean }
@@ -99,6 +100,11 @@ export async function completeOnboardingAction(formData: FormData): Promise<Acti
   }
 
   const convex = getConvexServerClient();
+  const rawCurrency = formData.get('currency');
+  const preferredCurrency =
+    typeof rawCurrency === 'string' && rawCurrency.length > 0
+      ? asBudgetCurrency(rawCurrency)
+      : undefined;
 
   try {
     await convex.mutation(convexApi.completeOnboarding, {
@@ -106,6 +112,7 @@ export async function completeOnboardingAction(formData: FormData): Promise<Acti
       fullName: parsed.data.fullName,
       role: parsed.data.role,
       email: parsed.data.email,
+      ...(preferredCurrency ? { preferredCurrency } : {}),
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'UNKNOWN';

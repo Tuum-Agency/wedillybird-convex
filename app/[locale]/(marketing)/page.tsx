@@ -11,6 +11,7 @@ import { LandingManifesto } from '@/components/landing/manifesto';
 import { LandingFeaturesGrid } from '@/components/landing/features-grid';
 import { LandingChannels } from '@/components/landing/channels';
 import { LandingCinematicInvitation } from '@/components/landing/cinematic-invitation';
+import { LandingUniverses } from '@/components/landing/universes';
 import { LandingTestimonials } from '@/components/landing/testimonials';
 import { LandingPricingCards } from '@/components/landing/pricing-cards';
 import { MobileMenu } from '@/components/landing/mobile-menu';
@@ -178,6 +179,7 @@ function LandingShell({
         <LandingFeaturesGrid />
         <LandingChannels />
         <LandingCinematicInvitation />
+        <LandingUniverses />
         <LandingTestimonials />
         <LandingPricingCards defaultCurrency={defaultCurrency} />
         <LandingFaqAccordion />

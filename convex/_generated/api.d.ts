@@ -9,11 +9,14 @@
  */
 
 import type * as admin from "../admin.js";
+import type * as affiliate from "../affiliate.js";
 import type * as analytics from "../analytics.js";
 import type * as auth from "../auth.js";
 import type * as budget from "../budget.js";
+import type * as bugReports from "../bugReports.js";
 import type * as clients from "../clients.js";
 import type * as contracts from "../contracts.js";
+import type * as coupleSpace from "../coupleSpace.js";
 import type * as crons from "../crons.js";
 import type * as emailActions from "../emailActions.js";
 import type * as events from "../events.js";
@@ -21,14 +24,19 @@ import type * as guests from "../guests.js";
 import type * as health from "../health.js";
 import type * as http from "../http.js";
 import type * as invitationActions from "../invitationActions.js";
+import type * as invitationAudio from "../invitationAudio.js";
+import type * as lib_affiliate from "../lib/affiliate.js";
 import type * as lib_analytics from "../lib/analytics.js";
 import type * as lib_autoplace from "../lib/autoplace.js";
 import type * as lib_biometricConsent from "../lib/biometricConsent.js";
 import type * as lib_channelRouting from "../lib/channelRouting.js";
+import type * as lib_coupleModel from "../lib/coupleModel.js";
+import type * as lib_currency from "../lib/currency.js";
 import type * as lib_email from "../lib/email.js";
 import type * as lib_entitlements from "../lib/entitlements.js";
 import type * as lib_eventAuth from "../lib/eventAuth.js";
 import type * as lib_guestStats from "../lib/guestStats.js";
+import type * as lib_invitationDesign from "../lib/invitationDesign.js";
 import type * as lib_magicLink from "../lib/magicLink.js";
 import type * as lib_notify from "../lib/notify.js";
 import type * as lib_orgAuth from "../lib/orgAuth.js";
@@ -48,6 +56,7 @@ import type * as paygPurchases from "../paygPurchases.js";
 import type * as paymentLinks from "../paymentLinks.js";
 import type * as payments from "../payments.js";
 import type * as paymentsInvoice from "../paymentsInvoice.js";
+import type * as photoBooks from "../photoBooks.js";
 import type * as photos from "../photos.js";
 import type * as photosActions from "../photosActions.js";
 import type * as photosFaceSearch from "../photosFaceSearch.js";
@@ -74,11 +83,14 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   admin: typeof admin;
+  affiliate: typeof affiliate;
   analytics: typeof analytics;
   auth: typeof auth;
   budget: typeof budget;
+  bugReports: typeof bugReports;
   clients: typeof clients;
   contracts: typeof contracts;
+  coupleSpace: typeof coupleSpace;
   crons: typeof crons;
   emailActions: typeof emailActions;
   events: typeof events;
@@ -86,14 +98,19 @@ declare const fullApi: ApiFromModules<{
   health: typeof health;
   http: typeof http;
   invitationActions: typeof invitationActions;
+  invitationAudio: typeof invitationAudio;
+  "lib/affiliate": typeof lib_affiliate;
   "lib/analytics": typeof lib_analytics;
   "lib/autoplace": typeof lib_autoplace;
   "lib/biometricConsent": typeof lib_biometricConsent;
   "lib/channelRouting": typeof lib_channelRouting;
+  "lib/coupleModel": typeof lib_coupleModel;
+  "lib/currency": typeof lib_currency;
   "lib/email": typeof lib_email;
   "lib/entitlements": typeof lib_entitlements;
   "lib/eventAuth": typeof lib_eventAuth;
   "lib/guestStats": typeof lib_guestStats;
+  "lib/invitationDesign": typeof lib_invitationDesign;
   "lib/magicLink": typeof lib_magicLink;
   "lib/notify": typeof lib_notify;
   "lib/orgAuth": typeof lib_orgAuth;
@@ -113,6 +130,7 @@ declare const fullApi: ApiFromModules<{
   paymentLinks: typeof paymentLinks;
   payments: typeof payments;
   paymentsInvoice: typeof paymentsInvoice;
+  photoBooks: typeof photoBooks;
   photos: typeof photos;
   photosActions: typeof photosActions;
   photosFaceSearch: typeof photosFaceSearch;

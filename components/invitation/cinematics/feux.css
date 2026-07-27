@@ -1,0 +1,717 @@
+/* Wedillybird — Cinématique « Le Feu d'artifice » (nuit de fête).
+   Fusées qui montent, gerbes balistiques (étincelles + anneau d'onde),
+   bouquet final dont le FLASH révèle les prénoms d'or, braises flottantes,
+   petites gerbes lointaines. Compte à rebours en cartouches à mèche.
+   Phases (classes cumulatives) : hush · launch · burst · names · settled */
+
+.cineW-stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(
+    180deg,
+    oklch(13% 0.022 275) 0%,
+    oklch(17% 0.03 290) 62%,
+    oklch(13% 0.02 280) 100%
+  );
+  --c-gold: oklch(87% 0.1 85);
+  --c-blush: oklch(80% 0.09 20);
+}
+
+.cineW-stage .cine2-skip {
+  color: oklch(88% 0.02 88);
+  text-shadow: 0 1px 3px oklch(8% 0.02 280 / 0.6);
+}
+
+.cineW-scene {
+  position: relative;
+  width: 360px;
+  height: 560px;
+  perspective: 1400px;
+  perspective-origin: 50% 44%;
+  transform: scale(var(--cine-scale, 1));
+  transform-origin: center center;
+}
+@media (min-width: 900px) {
+  .cineW-stage.live .cineW-scene {
+    --cine-scale: 1.22;
+  }
+}
+
+/* Caméra : immobile — un punch discret à chaque gerbe. */
+.wx-camera {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  transform: scale(1.01);
+  transition: transform 0.9s cubic-bezier(0.3, 0.7, 0.3, 1);
+}
+.cineW.burst .wx-camera {
+  transform: scale(1.025);
+}
+.cineW.names .wx-camera {
+  transform: scale(1.05) translateZ(30px);
+  transition: transform 0.45s cubic-bezier(0.3, 0.8, 0.3, 1);
+}
+.cineW.settled .wx-camera {
+  transform: scale(1);
+  transition: transform 1.6s cubic-bezier(0.3, 0.6, 0.3, 1);
+}
+
+.wx-par {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  transition: transform 0.5s var(--ease-out-quint);
+}
+
+/* -------------------------------- décor -------------------------------- */
+
+.fw-trees {
+  position: absolute;
+  left: -4%;
+  right: -4%;
+  bottom: -6px;
+  pointer-events: none;
+}
+.fw-trees {
+  transform-origin: bottom center;
+}
+.fw-trees.ta {
+  height: 110px;
+  transform: translateZ(-150px) scale(1.28);
+  clip-path: polygon(
+    0 100%,
+    0 60%,
+    8% 42%,
+    14% 58%,
+    22% 30%,
+    30% 56%,
+    40% 44%,
+    52% 62%,
+    62% 34%,
+    72% 56%,
+    82% 40%,
+    92% 60%,
+    100% 48%,
+    100% 100%
+  );
+  background: oklch(9% 0.014 275);
+}
+.fw-trees.tb {
+  height: 74px;
+  transform: translateZ(-70px) scale(1.12);
+  clip-path: polygon(0 100%, 0 70%, 16% 50%, 34% 72%, 55% 46%, 76% 70%, 100% 54%, 100% 100%);
+  background: oklch(7% 0.01 272);
+}
+/* Guirlande de fête au loin. */
+.fw-garland {
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  bottom: 82px;
+  height: 22px;
+  border-bottom: 1px solid oklch(30% 0.02 280 / 0.6);
+  border-radius: 0 0 60% 60% / 0 0 100% 100%;
+  background: radial-gradient(
+    circle at 12px 18px,
+    oklch(80% 0.09 80 / 0.85) 1.6px,
+    transparent 2.2px
+  );
+  background-size: 34px 22px;
+  background-repeat: repeat-x;
+  opacity: 0.4;
+  transition: opacity 1s ease 0.2s;
+  pointer-events: none;
+}
+.cineW.hush .fw-garland {
+  opacity: 0.85;
+}
+
+.fw-embers {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.fw-embers span {
+  position: absolute;
+  bottom: 12%;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: oklch(82% 0.11 65);
+  box-shadow: 0 0 6px oklch(80% 0.11 62 / 0.9);
+  opacity: 0;
+}
+.cineW.names .fw-embers span,
+.cineW.settled .fw-embers span {
+  animation: cineWEmber 6.5s linear var(--ed, 0s) infinite;
+}
+@keyframes cineWEmber {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0);
+  }
+  12% {
+    opacity: 0.85;
+  }
+  60% {
+    opacity: 0.5;
+    transform: translate(14px, -46vh);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-6px, -78vh);
+  }
+}
+
+/* Voûte étoilée discrète : la nuit respire avant les fusées. */
+.fw-stars {
+  position: absolute;
+  left: 24px;
+  top: 30px;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: oklch(92% 0.01 260 / 0.9);
+  box-shadow:
+    46px 22px 0 -0.2px oklch(90% 0.012 250 / 0.75),
+    118px -8px 0 0.2px oklch(94% 0.015 240 / 0.9),
+    173px 40px 0 -0.4px oklch(88% 0.01 255 / 0.6),
+    236px 6px 0 0 oklch(92% 0.012 245 / 0.8),
+    297px 48px 0 -0.3px oklch(89% 0.01 250 / 0.65),
+    328px -4px 0 0.3px oklch(94% 0.014 238 / 0.85),
+    22px 92px 0 -0.3px oklch(88% 0.01 252 / 0.55),
+    92px 120px 0 0 oklch(91% 0.012 246 / 0.7),
+    204px 108px 0 -0.4px oklch(87% 0.01 250 / 0.5),
+    268px 132px 0 -0.2px oklch(90% 0.012 244 / 0.6),
+    148px 66px 0 0.4px oklch(95% 0.015 240 / 0.9),
+    316px 96px 0 -0.3px oklch(88% 0.01 254 / 0.55);
+  animation: cineWTwinkle 5.2s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+@keyframes cineWTwinkle {
+  0% {
+    opacity: 0.55;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* ------------------------------- fusées --------------------------------- */
+
+.fw-rocket {
+  position: absolute;
+  bottom: 96px;
+  width: 3px;
+  height: 34px;
+  border-radius: 3px;
+  background: linear-gradient(to top, transparent, oklch(95% 0.055 90));
+  box-shadow: 0 0 9px oklch(92% 0.07 88 / 0.7);
+  opacity: 0;
+  pointer-events: none;
+}
+.fw-rocket::after {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: -2.25px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: radial-gradient(circle, oklch(97% 0.04 92), transparent 72%);
+  box-shadow: 0 0 10px oklch(92% 0.08 88);
+}
+.fw-rocket.r1 {
+  left: 118px;
+}
+.fw-rocket.r2 {
+  left: 248px;
+}
+.cineW.launch .fw-rocket.r1 {
+  animation: cineWLaunch 0.9s cubic-bezier(0.4, 0.2, 0.6, 0.9) 1 forwards;
+}
+.cineW.launch .fw-rocket.r2 {
+  animation: cineWLaunch 0.9s cubic-bezier(0.4, 0.2, 0.6, 0.9) 0.32s 1 forwards;
+}
+@keyframes cineWLaunch {
+  0% {
+    opacity: 0;
+    transform: translateY(0) translateX(0);
+  }
+  12% {
+    opacity: 1;
+  }
+  55% {
+    transform: translateY(-190px) translateX(5px);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-320px) translateX(-3px);
+  }
+}
+
+/* -------------------------------- gerbes -------------------------------- */
+
+.fw-burst {
+  position: absolute;
+  width: 0;
+  height: 0;
+  transform-style: preserve-3d;
+  pointer-events: none;
+}
+.fw-burst.ba {
+  left: 118px;
+  top: 168px;
+  transform: translateZ(-40px);
+}
+.fw-burst.bb {
+  left: 252px;
+  top: 132px;
+  transform: translateZ(-110px);
+}
+.fw-burst.bc {
+  left: 180px;
+  top: 176px;
+  transform: translateZ(30px);
+}
+.fw-spark {
+  position: absolute;
+  width: 3.5px;
+  height: 16px;
+  border-radius: 2px;
+  opacity: 0;
+  transform-origin: center;
+  box-shadow: 0 0 7px 1px oklch(90% 0.09 85 / 0.55);
+}
+.fw-spark.c0 {
+  background: linear-gradient(to top, oklch(74% 0.1 78), oklch(92% 0.09 88));
+}
+.fw-spark.c1 {
+  background: linear-gradient(to top, oklch(68% 0.1 22), oklch(86% 0.09 18));
+}
+.fw-ring {
+  position: absolute;
+  left: -11px;
+  top: -11px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid oklch(94% 0.05 90 / 0.8);
+  opacity: 0;
+}
+/* Cœur incandescent : le pop lumineux à l'instant de l'éclat. */
+.fw-core {
+  position: absolute;
+  left: -34px;
+  top: -34px;
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    oklch(97% 0.05 90) 0%,
+    oklch(93% 0.09 86 / 0.55) 42%,
+    transparent 70%
+  );
+  opacity: 0;
+}
+
+/* Déclenchements : A & B sur burst, C (bouquet) sur names. */
+.cineW.burst .fw-burst.ba .fw-spark {
+  animation: cineWSpark 1.5s cubic-bezier(0.2, 0.65, 0.35, 1) var(--sd, 0s) 1 forwards;
+}
+.cineW.burst .fw-burst.ba .fw-ring {
+  animation: cineWRing 0.9s var(--ease-out-quint) 1 forwards;
+}
+.cineW.burst .fw-burst.ba .fw-core {
+  animation: cineWCore 0.75s ease-out 1 forwards;
+}
+.cineW.burst .fw-burst.bb .fw-spark {
+  animation: cineWSpark 1.4s cubic-bezier(0.2, 0.65, 0.35, 1) calc(0.4s + var(--sd, 0s)) 1 forwards;
+}
+.cineW.burst .fw-burst.bb .fw-ring {
+  animation: cineWRing 0.85s var(--ease-out-quint) 0.4s 1 forwards;
+}
+.cineW.burst .fw-burst.bb .fw-core {
+  animation: cineWCore 0.7s ease-out 0.4s 1 forwards;
+}
+.cineW.names .fw-burst.bc .fw-spark {
+  animation: cineWSpark 1.7s cubic-bezier(0.2, 0.65, 0.35, 1) var(--sd, 0s) 1 forwards;
+}
+.cineW.names .fw-burst.bc .fw-ring {
+  animation: cineWRing 1s var(--ease-out-quint) 1 forwards;
+}
+.cineW.names .fw-burst.bc .fw-core {
+  animation: cineWCore 0.9s ease-out 1 forwards;
+}
+@keyframes cineWSpark {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0) rotate(var(--ra, 0deg)) scale(0.5);
+  }
+  10% {
+    opacity: 1;
+  }
+  62% {
+    opacity: 0.95;
+    transform: translate3d(var(--tx), var(--ty), var(--tz, 0px)) rotate(var(--ra, 0deg)) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(
+        calc(var(--tx) * 1.12),
+        calc(var(--ty) + 34px),
+        calc(var(--tz, 0px) * 1.3)
+      )
+      rotate(var(--ra, 0deg)) scale(0.7);
+  }
+}
+@keyframes cineWRing {
+  0% {
+    opacity: 0.9;
+    transform: scale(0.4);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(10);
+  }
+}
+@keyframes cineWCore {
+  0% {
+    opacity: 1;
+    transform: scale(0.25);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(2.3);
+  }
+}
+
+/* Flash du bouquet final. */
+.fw-flash {
+  position: absolute;
+  inset: -6%;
+  background: radial-gradient(52% 40% at 50% 34%, oklch(97% 0.03 92 / 0.55), transparent 70%);
+  opacity: 0;
+  pointer-events: none;
+}
+.cineW.names .fw-flash {
+  animation: cineWFlash 0.9s ease-out 1 forwards;
+}
+@keyframes cineWFlash {
+  0% {
+    opacity: 0;
+  }
+  16% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Petites gerbes lointaines (apaisement). */
+.fw-far {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  opacity: 0;
+  pointer-events: none;
+}
+.fw-far.fa {
+  left: 18%;
+  top: 20%;
+}
+.fw-far.fb {
+  right: 14%;
+  top: 26%;
+}
+.cineW.settled .fw-far {
+  animation: cineWFar 4.6s ease-out infinite;
+}
+.cineW.settled .fw-far.fb {
+  animation-delay: 2.3s;
+}
+@keyframes cineWFar {
+  0%,
+  55% {
+    opacity: 0;
+    box-shadow: none;
+    transform: scale(0.4);
+  }
+  62% {
+    opacity: 0.9;
+    box-shadow:
+      0 -14px 0 -1px oklch(88% 0.09 85 / 0.9),
+      10px -10px 0 -1px oklch(84% 0.09 30 / 0.85),
+      14px 0 0 -1px oklch(88% 0.09 85 / 0.9),
+      10px 10px 0 -1px oklch(84% 0.09 30 / 0.85),
+      0 14px 0 -1px oklch(88% 0.09 85 / 0.9),
+      -10px 10px 0 -1px oklch(84% 0.09 30 / 0.85),
+      -14px 0 0 -1px oklch(88% 0.09 85 / 0.9),
+      -10px -10px 0 -1px oklch(84% 0.09 30 / 0.85);
+    transform: scale(1);
+  }
+  78% {
+    opacity: 0.35;
+    transform: scale(1.25);
+  }
+  86%,
+  100% {
+    opacity: 0;
+    transform: scale(1.35);
+  }
+}
+
+/* ------------------------------ prénoms --------------------------------- */
+
+.fw-names {
+  position: absolute;
+  left: 50%;
+  top: 258px;
+  width: 330px;
+  transform: translateX(-50%) translateZ(20px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  text-align: center;
+  pointer-events: none;
+}
+.fw-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: oklch(66% 0.03 82);
+  margin-bottom: 8px;
+  opacity: 0;
+  transition: opacity 0.6s ease 0.5s;
+}
+.fw-name {
+  display: block;
+  max-width: 330px;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 500;
+  font-size: 41px;
+  line-height: 1.08;
+  color: var(--c-gold);
+  text-shadow:
+    0 0 16px oklch(84% 0.1 82 / 0.6),
+    0 0 42px oklch(80% 0.1 80 / 0.35);
+  opacity: 0;
+  transform: scale(1.12);
+  transition:
+    opacity 0.5s ease 0.3s,
+    transform 0.7s cubic-bezier(0.2, 1.2, 0.4, 1) 0.3s;
+}
+.fw-name.nb {
+  transition-delay: 0.5s;
+}
+.fw-amp {
+  font-size: 13px;
+  color: var(--c-blush);
+  text-shadow: 0 0 10px oklch(80% 0.1 25 / 0.8);
+  margin: 2px 0;
+  opacity: 0;
+  transition: opacity 0.5s ease 0.6s;
+}
+.cineW.names .fw-eyebrow,
+.cineW.names .fw-amp {
+  opacity: 1;
+}
+.cineW.names .fw-name {
+  opacity: 1;
+  transform: scale(1);
+}
+.fw-date {
+  margin-top: 10px;
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: oklch(72% 0.025 85);
+  max-width: 300px;
+  opacity: 0;
+  transition: opacity 0.7s ease 1s;
+}
+.cineW.names .fw-date {
+  opacity: 1;
+}
+
+/* --------------------------- compte à rebours --------------------------- */
+
+.fw-cd {
+  position: absolute;
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+  width: 330px;
+  text-align: center;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.7s ease 0.3s;
+}
+.cineW.settled .fw-cd {
+  opacity: 1;
+}
+.fw-cd .lbl {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: oklch(64% 0.025 84);
+  margin-bottom: 8px;
+}
+.fw-cd .row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 16px;
+}
+.fw-cdc {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  opacity: 0;
+  transform: translateY(8px);
+  transition:
+    opacity 0.6s ease calc(var(--cdd, 0s) + 0.25s),
+    transform 0.6s var(--ease-out-quint) calc(var(--cdd, 0s) + 0.25s);
+}
+.cineW.settled .fw-cdc {
+  opacity: 1;
+  transform: translateY(0);
+}
+.fw-cdc b {
+  position: relative;
+  display: block;
+  width: 66px;
+  padding: 9px 0 8px;
+  border-radius: 9px;
+  background: oklch(18% 0.022 285 / 0.95);
+  box-shadow: inset 0 0 0 1px oklch(38% 0.04 84 / 0.55);
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 500;
+  font-size: 23px;
+  line-height: 1;
+  color: var(--c-gold);
+  text-shadow: 0 0 12px oklch(84% 0.1 82 / 0.5);
+}
+/* La mèche étincelante sur l'arête du cartouche. */
+.fw-cdc .fuse {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  top: -1px;
+  height: 2px;
+  border-radius: 2px;
+  background: repeating-linear-gradient(
+    90deg,
+    oklch(88% 0.1 85) 0 5px,
+    oklch(40% 0.05 80 / 0.4) 5px 9px
+  );
+  background-size: 18px 2px;
+}
+.cineW.settled .fw-cdc .fuse {
+  animation: cineWFuse 1.1s linear infinite;
+}
+@keyframes cineWFuse {
+  to {
+    background-position: 18px 0;
+  }
+}
+.fw-cdc em {
+  font-family: var(--font-mono);
+  font-style: normal;
+  font-size: 7.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: oklch(64% 0.025 84);
+}
+
+.cineW-cue {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  color: oklch(74% 0.02 86);
+  transition: opacity 0.6s ease;
+  pointer-events: none;
+}
+.cineW-cue .t {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+}
+
+/* ------------------------- reduced / frozen ---------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .cineW *,
+  .cineW *::before,
+  .cineW *::after {
+    transition-duration: 0.01ms !important;
+    animation: none !important;
+  }
+  .cineW .fw-rocket,
+  .cineW .fw-burst,
+  .cineW .fw-flash,
+  .cineW .fw-far,
+  .cineW .fw-embers {
+    display: none;
+  }
+  .cineW .wx-camera {
+    transform: none !important;
+  }
+  .cineW .fw-name {
+    transform: none;
+  }
+}
+.cineW.reduced *,
+.cineW.reduced *::before,
+.cineW.reduced *::after {
+  transition: none !important;
+  animation: none !important;
+}
+.cineW.reduced .fw-rocket,
+.cineW.reduced .fw-burst,
+.cineW.reduced .fw-flash,
+.cineW.reduced .fw-far,
+.cineW.reduced .fw-embers {
+  display: none;
+}
+.cineW.reduced .wx-camera {
+  transform: none !important;
+}
+.cineW.reduced .fw-name {
+  transform: none;
+}
+.cineW.frozen .fw-rocket,
+.cineW.frozen .fw-spark,
+.cineW.frozen .fw-ring,
+.cineW.frozen .fw-core,
+.cineW.frozen .fw-stars,
+.cineW.frozen .fw-flash,
+.cineW.frozen .fw-far,
+.cineW.frozen .fw-embers span,
+.cineW.frozen .fw-cdc .fuse {
+  animation: none;
+}

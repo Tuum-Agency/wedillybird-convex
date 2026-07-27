@@ -11,10 +11,10 @@ export const metadata = {
 
 /**
  * Espace couple self-serve — le couple gère SON mariage en direct (forfait one-shot,
- * sans agence). Refonte « Mon mariage » : accueil, dashboard, rétroplanning,
- * prestataires, budget, plan de table, forfait. Distinct du portail couple géré par
- * une agence (`/espace-couple`). Données mock pour l'instant ; câblage Convex
- * (invités/RSVP, prestataires, budget, planning, paiement one-shot) en cours.
+ * sans agence). Distinct du portail couple géré par une agence (`/espace-couple`).
+ * Câblé Convex : un seul snapshot (`coupleSpace.bundle`) hydrate le store client ;
+ * les écrans mutent ensuite en optimiste via les server actions. Le rétroplanning
+ * par défaut est semé ici (idempotent) pour que la première visite soit complète.
  */
 export default async function MonMariagePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
@@ -24,7 +24,25 @@ export default async function MonMariagePage({ params }: { params: Promise<{ loc
   if (!session) redirect({ href: '/sign-in', locale });
 
   const convex = getConvexServerClient();
-  const user = await convex.query(convexApi.currentUser, { userId: session!.userId });
+  // Server Component : horloge lue une fois côté serveur puis passée en prop
+  // (hydration-safe). Même dérogation que events/[eventId]/gallery/page.tsx.
+  // eslint-disable-next-line react-hooks/purity -- Server Component, no re-render concern
+  const nowMs = Date.now();
+  const [user, initialBundle] = await Promise.all([
+    convex.query(convexApi.currentUser, { userId: session!.userId }),
+    convex.query(convexApi.coupleSpaceBundle, { requesterId: session!.userId }),
+  ]);
 
-  return <MonMariageApp userName={user?.fullName ?? undefined} />;
+  // Première visite : sème le rétroplanning par défaut puis relit le snapshot
+  // (mutation idempotente — no-op dès qu'une phase existe).
+  let bundle = initialBundle;
+  if (bundle && bundle.phases.length === 0) {
+    await convex.mutation(convexApi.coupleEnsureDefaultPlanning, {
+      eventId: bundle.event.id,
+      requesterId: session!.userId,
+    });
+    bundle = await convex.query(convexApi.coupleSpaceBundle, { requesterId: session!.userId });
+  }
+
+  return <MonMariageApp bundle={bundle} now={nowMs} userName={user?.fullName ?? undefined} />;
 }

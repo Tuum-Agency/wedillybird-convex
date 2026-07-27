@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 import { z } from 'zod';
 import { getSession } from '@/lib/auth/session';
 import { assertSameOrigin } from '@/lib/auth/csrf';
@@ -6,6 +7,7 @@ import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
 import { PLANS } from '@/lib/payments/plans';
 import { detectCountryFromHeaders, routePayment } from '@/lib/payments/country';
 import { getPaymentDriver } from '@/lib/payments';
+import { createOneTimeAmountCoupon } from '@/lib/payments/drivers/stripe';
 import { captureServer, EVENTS } from '@/lib/analytics/posthog-server';
 
 const bodySchema = z.object({
@@ -43,6 +45,59 @@ export async function POST(req: Request): Promise<Response> {
   const successUrl = `${origin}/events/${parsed.eventId}/upgrade/success`;
   const cancelUrl = `${origin}/events/${parsed.eventId}/upgrade/cancelled`;
 
+  // Attribution affiliation : le proxy pose le cookie `wdb_ref` sur `?ref=CODE`.
+  // On le résout en id d'affilié — best-effort strict : ne jamais bloquer le
+  // checkout si la résolution échoue ou si le code est inconnu/inactif.
+  let affiliateId: string | undefined;
+  const refCode = (await cookies()).get('wdb_ref')?.value;
+  if (refCode) {
+    try {
+      const aff = await getConvexServerClient().query(convexApi.getAffiliateByCode, {
+        code: refCode,
+      });
+      if (aff) affiliateId = aff.id;
+    } catch {
+      // best-effort — l'attribution ne bloque jamais l'achat.
+    }
+  }
+
+  // Crédit de parrainage : on RÉSERVE le crédit AVANT de créer le coupon — le
+  // montant réservé == le montant du coupon (jamais de sur-remise ni de crédit
+  // gratuit). `reservationId` (token) est porté par la session (metadata) puis le
+  // paiement, et consommé à la confirmation. Best-effort strict.
+  const reservationId = crypto.randomUUID();
+  let discountCouponId: string | undefined;
+  let creditReserved = false;
+  if (routing.provider === 'stripe') {
+    try {
+      const convex = getConvexServerClient();
+      const reserved = await convex.mutation(convexApi.reserveCreditForCheckout, {
+        userId: session.userId,
+        reservationId,
+        currency: routing.currency,
+        orderMinor: amountMinor,
+      });
+      if (reserved.appliedMinor > 0) {
+        creditReserved = true;
+        discountCouponId = await createOneTimeAmountCoupon(reserved.appliedMinor, routing.currency);
+      }
+    } catch {
+      // reserve OU création du coupon a échoué → relâche si on avait réservé.
+      if (creditReserved) {
+        try {
+          await getConvexServerClient().mutation(convexApi.releaseCreditReservation, {
+            reservationId,
+          });
+        } catch {
+          // le GC cron rattrape.
+        }
+      }
+      creditReserved = false;
+      discountCouponId = undefined;
+    }
+  }
+  const creditReservationId = creditReserved ? reservationId : undefined;
+
   const driver = getPaymentDriver(routing.provider);
   let session_;
   try {
@@ -55,8 +110,21 @@ export async function POST(req: Request): Promise<Response> {
       userId: session.userId,
       successUrl,
       cancelUrl,
+      affiliateId,
+      discountCouponId,
+      creditReservationId,
     });
   } catch (err) {
+    // Session non créée → relâche le crédit réservé (sinon bloqué jusqu'au GC).
+    if (creditReserved) {
+      try {
+        await getConvexServerClient().mutation(convexApi.releaseCreditReservation, {
+          reservationId,
+        });
+      } catch {
+        // le GC cron rattrape.
+      }
+    }
     const message = err instanceof Error ? err.message : 'UNKNOWN';
     return NextResponse.json({ error: message }, { status: 502 });
   }
@@ -71,6 +139,8 @@ export async function POST(req: Request): Promise<Response> {
       amountMinor,
       provider: driver.name,
       providerSessionId: session_.providerSessionId,
+      affiliateId,
+      creditReservationId,
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'UNKNOWN';

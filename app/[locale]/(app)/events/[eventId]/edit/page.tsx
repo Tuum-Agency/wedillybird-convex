@@ -4,6 +4,7 @@ import { ArrowLeft } from 'lucide-react';
 import { Link, redirect } from '@/i18n/navigation';
 import { getSession } from '@/lib/auth/session';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
+import { eventHasFeature } from '@/convex/lib/entitlements';
 import { AppShell } from '@/components/app/app-shell';
 import { EventEditForm } from '@/components/events/event-edit-form';
 import { RsvpQuestionsEditor } from '@/components/events/rsvp-questions-editor';
@@ -77,6 +78,10 @@ export default async function EditEventPage({
 
         <EventEditForm
           eventId={eventId}
+          cinematicUnlocked={eventHasFeature(
+            { planTier: event.planTier, organizationId: event.organizationId },
+            'cinematicInvitation',
+          )}
           initialValues={{
             title: event.title,
             partnerA: event.coupleNames.partnerA,
@@ -88,6 +93,17 @@ export default async function EditEventPage({
             themePrimary: event.theme?.primaryColor ?? '#C4996C',
             themeAccent: event.theme?.accentColor ?? '#2B2B2B',
             themeFont: event.theme?.fontFamily ?? 'Playfair Display',
+            invitationCinematic: event.invitationCinematic ?? 'seal',
+            musicChoice:
+              event.invitationMusic?.source === 'custom'
+                ? 'custom'
+                : (event.invitationMusic?.trackId ?? 'none'),
+            musicCustomTitle: event.invitationMusic?.title ?? '',
+            invitationPhotoUrl:
+              event.invitationPhoto?.s3Key && process.env.CLOUDFRONT_DOMAIN
+                ? `https://${process.env.CLOUDFRONT_DOMAIN}/${event.invitationPhoto.s3Key}`
+                : '',
+            ceremonySchedule: event.ceremonySchedule ?? [],
           }}
         />
 

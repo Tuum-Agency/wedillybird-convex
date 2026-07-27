@@ -8,7 +8,6 @@ import { useLocale, useTranslations } from 'next-intl';
 import { Icon, Mark } from './icons';
 import { McBtn, Fleuron, CoupleNames, McPill, RsvpDonut, QuotaGauge, QrMono } from './parts';
 import {
-  MC_STEPS,
   mcJ,
   mcDateLong,
   mcDateShort,
@@ -21,14 +20,18 @@ import {
   type McUsage,
   type McActive,
   type McGuest,
-  type McGuestStatus,
   type McStep,
 } from './data';
+import { useRouter } from '@/i18n/navigation';
+import { rsvpFromGuests } from '@/lib/mon-mariage/adapt';
+import { useMonMariage } from '@/stores/mon-mariage';
+import { InvitationDesignModal } from './invitation-design-modal';
 
 /** Libellé « J− » localisé depuis le descripteur de `mcJ`. */
 function useJLabel(iso: string): string {
   const tc = useTranslations('MonMariage.common');
-  const j = mcJ(iso);
+  const now = useMonMariage((st) => st.now);
+  const j = mcJ(iso, now || undefined);
   return j.kind === 'day'
     ? tc('jDay')
     : j.kind === 'before'
@@ -196,26 +199,20 @@ function GuestRow({ g }: { g: McGuest }) {
 
 function GuestsCard({ guests }: { guests: McGuest[] }) {
   const t = useTranslations('MonMariage.dashboard');
+  const addGuest = useMonMariage((st) => st.addGuest);
   const [q, setQ] = useState('');
   const [filter, setFilter] = useState('all');
-  const [list, setList] = useState<McGuest[]>(guests);
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
+  const list = guests;
 
   const add = () => {
     if (!name.trim()) return;
-    setList([
-      {
-        id: 'n' + Date.now(),
-        name: name.trim(),
-        group: t('newGuestGroup'),
-        cc: '+33',
-        phone: phone.trim() || '— — — — —',
-        count: 1,
-        status: 'noreply' as McGuestStatus,
-      },
-      ...list,
-    ]);
+    void addGuest({
+      fullName: name.trim(),
+      ...(phone.trim() ? { phone: `+1 ${phone.trim()}` } : {}),
+      plusOnesAllowed: 0,
+    });
     setName('');
     setPhone('');
   };
@@ -264,14 +261,14 @@ function GuestsCard({ guests }: { guests: McGuest[] }) {
         <div className="mc-qa-phone">
           <span className="cc">
             <Icon name="MessageCircle" size={13} stroke={2} className="wa" />
-            +33
+            +1
           </span>
           <input
             value={phone}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPhone(e.target.value)}
             onKeyDown={(e: React.KeyboardEvent) => e.key === 'Enter' && add()}
             inputMode="tel"
-            placeholder="6 12 34 56 78"
+            placeholder="415 555 0123"
             aria-label={t('whatsappAria')}
           />
         </div>
@@ -313,12 +310,20 @@ function GuestsCard({ guests }: { guests: McGuest[] }) {
 }
 
 /* ---------- invitation publique ---------- */
-function InviteCard({ couple }: { couple: McCouple }) {
+function InviteCard({ couple, eventId }: { couple: McCouple; eventId: string }) {
   const t = useTranslations('MonMariage.dashboard');
   const locale = useLocale();
+  const router = useRouter();
   const [copied, setCopied] = useState(false);
-  const url = `noces.wedillybird.com/${couple.slug}`;
+  const [customizing, setCustomizing] = useState(false);
+  const previewPath = `/events/${eventId}/preview`;
+  const url = `wedillybird.com/${couple.slug}`;
   const copy = () => {
+    const absolute =
+      typeof window !== 'undefined'
+        ? `${window.location.origin}/${locale}${previewPath}`
+        : previewPath;
+    void navigator.clipboard?.writeText(absolute).catch(() => {});
     setCopied(true);
     setTimeout(() => setCopied(false), 1800);
   };
@@ -373,9 +378,13 @@ function InviteCard({ couple }: { couple: McCouple }) {
                 <Icon name="Share2" size={15} stroke={1.9} />
                 {t('shareWhatsApp')}
               </McBtn>
-              <McBtn variant="outline" size="sm">
+              <McBtn variant="outline" size="sm" onClick={() => router.push(previewPath)}>
                 <Icon name="Eye" size={15} stroke={1.9} />
                 {t('preview')}
+              </McBtn>
+              <McBtn variant="outline" size="sm" onClick={() => setCustomizing(true)}>
+                <Icon name="Wand2" size={15} stroke={1.9} />
+                {t('customize')}
               </McBtn>
             </div>
           </div>
@@ -390,6 +399,13 @@ function InviteCard({ couple }: { couple: McCouple }) {
           </div>
         </div>
       </div>
+      {customizing && (
+        <InvitationDesignModal
+          eventId={eventId}
+          previewPath={previewPath}
+          onClose={() => setCustomizing(false)}
+        />
+      )}
     </section>
   );
 }
@@ -425,7 +441,7 @@ function PlanCard({ steps }: { steps: McStep[] }) {
                 <b>{tr(s.label)}</b>
                 <span className="wh">{tr(s.when)}</span>
               </div>
-              <p>{tr(s.note)}</p>
+              {s.note ? <p>{tr(s.note)}</p> : null}
             </div>
           </div>
         ))}
@@ -434,30 +450,46 @@ function PlanCard({ steps }: { steps: McStep[] }) {
   );
 }
 
-export function DashScreen({
-  couple,
-  rsvp,
-  usage,
-  active,
-  guests,
-}: {
-  couple: McCouple;
-  rsvp: McRsvp;
-  usage: McUsage;
-  active: McActive;
-  guests: McGuest[];
-}) {
+export function DashScreen({ guests }: { guests: McGuest[] }) {
+  const couple = useMonMariage((st) => st.couple);
+  const active = useMonMariage((st) => st.active);
+  const usage = useMonMariage((st) => st.usage);
+  const event = useMonMariage((st) => st.event);
+  const phases = useMonMariage((st) => st.phases);
+  const rawGuests = useMonMariage((st) => st.guests);
+  const rsvp = useMemo(() => rsvpFromGuests(rawGuests), [rawGuests]);
+
+  // Rétroplanning léger : dérivé des phases réelles (label/sub = clés ou libres).
+  const steps: McStep[] = useMemo(
+    () =>
+      phases.map((ph) => {
+        const done = ph.tasks.length > 0 && ph.tasks.every((tk) => tk.status === 'done');
+        return {
+          id: ph.id,
+          label: ph.label,
+          when: ph.sub,
+          ...(done ? { done: true } : {}),
+          ...(ph.current ? { current: true } : {}),
+          note: '',
+        };
+      }),
+    [phases],
+  );
+
+  if (!couple || !event) return null;
+  const cap = active?.guestCap ?? event.maxGuests;
+
   return (
     <>
       <DashHeader couple={couple} expected={rsvp.expected} />
       <div className="mc-grid2">
-        <RsvpCard rsvp={rsvp} cap={active.guestCap} />
-        <QuotaCard usage={usage} active={active} />
+        <RsvpCard rsvp={rsvp} cap={cap} />
+        {active ? <QuotaCard usage={usage} active={active} /> : null}
       </div>
       <GuestsCard guests={guests} />
       <div className="mc-grid2">
-        <InviteCard couple={couple} />
-        <PlanCard steps={MC_STEPS} />
+        <InviteCard couple={couple} eventId={event.id} />
+        <PlanCard steps={steps} />
       </div>
     </>
   );

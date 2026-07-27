@@ -10,6 +10,8 @@
 // mock (noms du couple, prestataires, téléphones, n° de facture, pièces jointes)
 // restent littéraux : ils seront remplacés par les données Convex.
 
+import type { BudgetCurrency } from '@/lib/currency';
+
 export const MC_TODAY = new Date('2026-06-11T09:00:00');
 
 /* ============================ COUPLE & MARIAGE ============================ */
@@ -166,82 +168,82 @@ export interface McGuest {
 export const MC_GUESTS: McGuest[] = [
   {
     id: 'g1',
-    name: 'Aminata Diallo',
-    group: 'Famille',
-    cc: '+221',
-    phone: '77 123 45 67',
+    name: 'Ashley Carter',
+    group: 'Family',
+    cc: '+1',
+    phone: '415 555 0142',
     count: 2,
     status: 'confirmed',
   },
   {
     id: 'g2',
-    name: 'Sophie & Marc Bernard',
-    group: 'Amis',
-    cc: '+33',
-    phone: '6 12 34 56 78',
+    name: 'Sarah & James Bennett',
+    group: 'Friends',
+    cc: '+1',
+    phone: '212 555 0178',
     count: 2,
     status: 'confirmed',
   },
   {
     id: 'g3',
-    name: 'Yacine Mansouri',
-    group: 'Amis',
-    cc: '+212',
-    phone: '6 61 23 45 67',
+    name: 'Michael Brooks',
+    group: 'Friends',
+    cc: '+1',
+    phone: '312 555 0193',
     count: 1,
     status: 'pending',
   },
   {
     id: 'g4',
-    name: 'Amadou Diallo',
-    group: 'Famille',
-    cc: '+221',
-    phone: '78 234 56 78',
+    name: 'David Mitchell',
+    group: 'Family',
+    cc: '+1',
+    phone: '305 555 0125',
     count: 4,
     status: 'confirmed',
   },
   {
     id: 'g5',
-    name: 'Léa Rousseau',
-    group: 'Amis',
-    cc: '+33',
-    phone: '6 98 76 54 32',
+    name: 'Emily Walker',
+    group: 'Friends',
+    cc: '+1',
+    phone: '646 555 0167',
     count: 1,
     status: 'noreply',
   },
   {
     id: 'g6',
-    name: 'Fatou Ndiaye',
-    group: 'Famille',
-    cc: '+221',
-    phone: '76 345 67 89',
+    name: 'Jennifer Hayes',
+    group: 'Family',
+    cc: '+1',
+    phone: '213 555 0149',
     count: 3,
     status: 'pending',
   },
   {
     id: 'g7',
-    name: 'Nadia Haddad',
-    group: 'Collègues',
-    cc: '+33',
-    phone: '7 65 43 21 09',
+    name: 'Rachel Green',
+    group: 'Colleagues',
+    cc: '+1',
+    phone: '617 555 0188',
     count: 2,
     status: 'declined',
   },
   {
     id: 'g8',
-    name: 'Thomas & Claire Petit',
-    group: 'Amis',
-    cc: '+33',
-    phone: '6 22 33 44 55',
+    name: 'Daniel & Claire Foster',
+    group: 'Friends',
+    cc: '+1',
+    phone: '404 555 0136',
     count: 2,
     status: 'confirmed',
   },
   {
     id: 'g9',
-    name: 'Inès Bouhaddi',
-    group: 'Amis',
-    cc: '+33',
-    phone: '6 55 66 77 88',
+    name: 'Olivia Reed',
+    group: 'Friends',
+    cc: '+1',
+    phone: '206 555 0154',
     count: 1,
     status: 'confirmed',
   },
@@ -303,21 +305,33 @@ export const MC_STEPS: McStep[] = [
    `fr-FR`. Pour les libellés (mois, « J− »…) on passe par next-intl côté composant. */
 const MC_DASH = '—';
 
-/** Montant entier en EUR, formaté selon la locale. */
-export function mcEUR(n: number | null | undefined, locale: string): string {
+/**
+ * Devise du budget de démo (espace couple self-serve, mock). Reflète le choix
+ * fait à l'onboarding ; ici on cible le lancement anglophone (USD). Quand le
+ * câblage Convex sera fait, remplacer par `event.currency`. Une seule constante
+ * à changer pour passer toute la démo dans une autre devise.
+ */
+export const MC_CURRENCY: BudgetCurrency = 'USD';
+
+/** Montant entier, formaté selon la locale et la devise (défaut: MC_CURRENCY). */
+export function mcEUR(
+  n: number | null | undefined,
+  locale: string,
+  currency: BudgetCurrency = MC_CURRENCY,
+): string {
   if (n == null) return MC_DASH;
   return new Intl.NumberFormat(locale, {
     style: 'currency',
-    currency: 'EUR',
+    currency,
     maximumFractionDigits: 0,
   }).format(n);
 }
 
-/** Montant EUR avec centimes si nécessaire, formaté selon la locale. */
-export function mcEURc(n: number, locale: string): string {
+/** Montant avec centimes si nécessaire, formaté selon la locale et la devise. */
+export function mcEURc(n: number, locale: string, currency: BudgetCurrency = MC_CURRENCY): string {
   return new Intl.NumberFormat(locale, {
     style: 'currency',
-    currency: 'EUR',
+    currency,
     minimumFractionDigits: n % 1 ? 2 : 0,
     maximumFractionDigits: 2,
   }).format(n);
@@ -375,10 +389,11 @@ export function mcDateNum(iso: string, locale: string): string {
 }
 
 export type McJKind = 'before' | 'day' | 'after';
-/** Compte à rebours « J− » : on garde le calcul (MC_TODAY figé), le libellé est
-    traduit côté composant via `MonMariage.common.jBefore/jDay/jAfter`. */
-export function mcJ(iso: string): { kind: McJKind; n: number } {
-  const n = Math.round((new Date(iso + 'T12:00:00').getTime() - MC_TODAY.getTime()) / 86400000);
+/** Compte à rebours « J− » : `now` = horloge serveur passée en prop (hydration-safe) ;
+    défaut MC_TODAY pour la démo/capture. Libellé traduit côté composant via
+    `MonMariage.common.jBefore/jDay/jAfter`. */
+export function mcJ(iso: string, now: number = MC_TODAY.getTime()): { kind: McJKind; n: number } {
+  const n = Math.round((new Date(iso + 'T12:00:00').getTime() - now) / 86400000);
   if (n > 0) return { kind: 'before', n };
   if (n === 0) return { kind: 'day', n: 0 };
   return { kind: 'after', n: -n };
@@ -588,91 +603,91 @@ export interface McVendor {
 export const MC_VENDORS: McVendor[] = [
   {
     id: 'v1',
-    name: 'Mas des Oliviers',
+    name: 'The Olive Grove Estate',
     cat: 'lieu',
     status: 'reserve',
     amount: 6500,
     paid: 1950,
-    doc: 'Contrat signé',
-    contact: '+33 4 90 12 34 56',
-    note: 'Réception possible jusqu’à 2 h.',
+    doc: 'Signed contract',
+    contact: '+1 415 555 0142',
+    note: 'Reception until 2 a.m.',
   },
   {
     id: 'v2',
-    name: 'Maison Tellier',
+    name: 'The Grand Table Catering',
     cat: 'traiteur',
     status: 'reserve',
     amount: 7200,
     paid: 2160,
-    doc: 'Devis validé',
-    contact: '+33 6 23 45 67 89',
-    note: '120 couverts · menu provençal.',
+    doc: 'Quote approved',
+    contact: '+1 415 555 0177',
+    note: '120 covers · seasonal menu.',
   },
   {
     id: 'v3',
-    name: 'Margaux Lefort',
+    name: 'Emma Carter Photography',
     cat: 'photo',
     status: 'devis',
     amount: 2400,
     paid: 0,
-    doc: 'Devis reçu',
-    contact: '+33 6 78 90 12 34',
-    note: 'Repérage prévu le 12 juil.',
+    doc: 'Quote received',
+    contact: '+1 415 555 0198',
+    note: 'Scout visit on Jul 12.',
   },
   {
     id: 'v4',
-    name: 'DJ Néo',
+    name: 'DJ Neo',
     cat: 'musique',
     status: 'contacte',
     amount: 1200,
     paid: 0,
     doc: null,
-    contact: '+33 6 11 22 33 44',
-    note: 'À rappeler pour confirmer la dispo.',
+    contact: '+1 415 555 0110',
+    note: 'Call back to confirm availability.',
   },
   {
     id: 'v5',
-    name: 'Fleurs & Sens',
+    name: 'Bloom & Co.',
     cat: 'fleurs',
     status: 'devis',
     amount: 1500,
     paid: 0,
-    doc: 'Devis reçu',
-    contact: '+33 4 90 98 76 54',
-    note: 'Arche + centres de table.',
+    doc: 'Quote received',
+    contact: '+1 415 555 0165',
+    note: 'Arch + table centerpieces.',
   },
   {
     id: 'v6',
-    name: 'Pâtisserie Aria',
+    name: 'Aria Bakery',
     cat: 'patisserie',
     status: 'a_contacter',
     amount: 600,
     paid: 0,
     doc: null,
     contact: null,
-    note: 'Pièce montée 3 étages, vanille-fruits rouges.',
+    note: 'Three-tier cake, vanilla & berries.',
   },
   {
     id: 'v7',
-    name: 'Atelier Nuptial',
+    name: 'The Bridal Atelier',
     cat: 'tenues',
     status: 'reserve',
     amount: 1800,
     paid: 900,
-    doc: 'Bon de commande',
-    contact: '+33 4 90 55 44 33',
-    note: 'Essayage le 5 juil.',
+    doc: 'Purchase order',
+    contact: '+1 415 555 0133',
+    note: 'Fitting on Jul 5.',
   },
   {
     id: 'v8',
-    name: 'Papeterie Lila',
+    name: 'Lila Paper Co.',
     cat: 'papeterie',
     status: 'paye',
     amount: 400,
     paid: 400,
-    doc: 'Facture',
-    contact: '+33 6 99 88 77 66',
-    note: 'Faire-part livrés.',
+    doc: 'Invoice',
+    contact: '+1 415 555 0188',
+    note: 'Invitations delivered.',
   },
 ];
 
@@ -794,6 +809,6 @@ export const MC_PAYMENTS: McPayment[] = [
   },
 ];
 
-export function mcDaysTo(iso: string): number {
-  return Math.round((new Date(iso + 'T12:00:00').getTime() - MC_TODAY.getTime()) / 86400000);
+export function mcDaysTo(iso: string, now: number = MC_TODAY.getTime()): number {
+  return Math.round((new Date(iso + 'T12:00:00').getTime() - now) / 86400000);
 }

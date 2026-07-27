@@ -33,6 +33,21 @@ crons.cron(
   {},
 );
 
+// Daily at 03:00 UTC: vest affiliate/referral rewards whose hold has elapsed
+// (pending → vested once the event date / J+7 floor is passed). Idempotent;
+// no-op when there's nothing due.
+crons.cron('vest affiliate rewards', '0 3 * * *', internal.affiliate.vestDueReferrals, {});
+
+// Hourly: release orphan referral-credit reservations (checkout started but
+// never confirmed, older than the coupon's 24h redeem window) so the credit
+// becomes spendable again. Idempotent.
+crons.cron(
+  'release stale credit reservations',
+  '0 * * * *',
+  internal.affiliate.releaseStaleCreditReservations,
+  {},
+);
+
 // Daily at 03:00 UTC: purge biometric face data (Rekognition Face Collection +
 // `photoFaces` rows) for any event whose gallery retention window has expired,
 // even if it was never explicitly archived. Privacy/BIPA requirement (Lane T3,

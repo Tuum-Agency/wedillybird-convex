@@ -2,6 +2,7 @@ import createIntlMiddleware from 'next-intl/middleware';
 import { NextResponse, type NextRequest } from 'next/server';
 import { routing } from './i18n/routing';
 import { extractOrgSlug } from './lib/subdomain/extract-org-slug';
+import { currencyForCountry, detectCountryFromHeaders } from './lib/payments/country';
 
 /**
  * Proxy Next 16 — gère deux responsabilités côté edge :
@@ -67,15 +68,53 @@ function resolveOrgSlug(req: NextRequest): string | null {
   return preview.toLowerCase();
 }
 
+const AFFILIATE_REF_RE = /^[A-Za-z0-9]{3,24}$/;
+
 export default function proxy(request: NextRequest) {
+  // Attribution affiliation : premier `?ref=CODE` valide capté → cookie
+  // first-party 30 j (httpOnly, lu côté serveur au checkout). Zéro friction.
+  const rawRef = request.nextUrl.searchParams.get('ref');
+  const ref = rawRef && AFFILIATE_REF_RE.test(rawRef) ? rawRef.toUpperCase() : null;
+
   const slug = resolveOrgSlug(request);
-  if (slug && !isAlreadyOrgPath(request.nextUrl.pathname)) {
-    const rewriteUrl = buildRewriteUrl(request, slug);
-    const response = NextResponse.rewrite(rewriteUrl);
-    response.headers.set('x-org-slug', slug);
-    return response;
+  const response =
+    slug && !isAlreadyOrgPath(request.nextUrl.pathname)
+      ? (() => {
+          const rewriteUrl = buildRewriteUrl(request, slug);
+          const res = NextResponse.rewrite(rewriteUrl);
+          res.headers.set('x-org-slug', slug);
+          return res;
+        })()
+      : intlMiddleware(request);
+
+  // First-touch : on ne pose le cookie que s'il n'existe pas déjà (le premier
+  // parrain qui amène le visiteur garde l'attribution — pas de vol en fin de
+  // parcours par un second lien).
+  if (ref && response && !request.cookies.get('wdb_ref')) {
+    response.cookies.set('wdb_ref', ref, {
+      maxAge: 30 * 24 * 60 * 60,
+      httpOnly: true,
+      sameSite: 'lax',
+      path: '/',
+    });
   }
-  return intlMiddleware(request);
+
+  // Devise par défaut pilotée par la GÉOGRAPHIE (pays de facturation), pas par
+  // la langue d'UI — cf. `.context/pricing-v2.md` § « Règle devise ». Le client
+  // lit ce cookie comme défaut d'affichage (non httpOnly) ; le sélecteur footer
+  // reste prioritaire (override explicite persisté en localStorage). On ne pose
+  // le cookie que si Vercel fournit un signal géo (`x-vercel-ip-country`) —
+  // sinon (dev/local) on laisse le fallback locale opérer côté client.
+  const geoCountry = detectCountryFromHeaders(request.headers);
+  if (response && geoCountry) {
+    response.cookies.set('wbb_ccy', currencyForCountry(geoCountry), {
+      maxAge: 30 * 24 * 60 * 60,
+      httpOnly: false,
+      sameSite: 'lax',
+      path: '/',
+    });
+  }
+  return response;
 }
 
 export const config = {

@@ -792,6 +792,31 @@
       "navAriaLabel": "Navigazione principale",
       "language": "Lingua",
       "languageAriaLabel": "Scegli la lingua"
+    },
+    "universes": {
+      "chapter": "CAPITOLO 04B — I MONDI",
+      "title": "Dodici aperture. Dodici mondi.",
+      "subtitle": "Il sigillo è solo l'inizio. Scegli la cinematica — un sipario che si alza, fuochi d'artificio, il primo fiocco di neve — e tutta la pagina dell'invito si veste dello stesso tema: colori, decori, conto alla rovescia, fino al piè di pagina.",
+      "galleryNote": "La stessa carta, dodici temi",
+      "signatureBadge": "Classico",
+      "custom": {
+        "heading": "E tutto si regola",
+        "cinematic": {
+          "title": "La cinematica",
+          "desc": "Dodici aperture a scelta, da rivedere quando volete."
+        },
+        "music": {
+          "title": "La musica",
+          "desc": "Cinque brani della casa, o il vostro file."
+        },
+        "musicYours": "+ il vostro",
+        "photo": {
+          "title": "La vostra foto",
+          "desc": "La vostra, al centro della carta."
+        },
+        "included": "Incluso con Premium e tutti i piani Pro."
+      },
+      "liveTag": "Animato"
     }
   },
   "Auth": {
@@ -1022,7 +1047,9 @@
     "galleryHint": "Foto condivise dagli invitati",
     "booleanYes": "Sì",
     "booleanNo": "No",
-    "requiredMark": "Obbligatorio"
+    "requiredMark": "Obbligatorio",
+    "openInvitation": "Apri l'invito",
+    "tapSeal": "Tocca il sigillo"
   },
   "OrgPublic": {
     "poweredBy": "Powered by",
@@ -3867,7 +3894,8 @@
         "event": "Evento simultaneo aggiuntivo: 19 €/mese (proporzionale)"
       },
       "addons": "Opzioni: pagamenti con il tuo account Stripe, postazione +19 €/mese, matrimonio aggiuntivo +19 €/mese."
-    }
+    },
+    "usTaxNote": "Prezzi al netto delle imposte. L'eventuale imposta locale è aggiunta al pagamento."
   },
   "Upgrade": {
     "title": "Attiva il tuo piano",
@@ -3933,7 +3961,8 @@
       "notFound": "Fattura non trovata.",
       "notPaid": "La fattura sarà disponibile non appena il pagamento sarà confermato.",
       "unknown": "Impossibile generare la fattura al momento."
-    }
+    },
+    "lineUpsellHd": "Post-wedding HD archive"
   },
   "InvoicePage": {
     "eyebrow": "Contabilità",
@@ -5407,5 +5436,114 @@
     "statePlaceholder": "Scegli il luogo del matrimonio…",
     "errorFeatureNotInPlan": "La ricerca per volto è disponibile solo con il piano Premium (o i piani pro).",
     "errorForbidden": "Non hai il permesso di modificare questa impostazione."
+  },
+  "InvitationDesign": {
+    "photoSection": "Foto della coppia",
+    "photoHint": "JPEG, PNG o WebP · consigliato il formato verticale",
+    "photoAdd": "Aggiungi la vostra foto",
+    "photoChange": "La vostra foto",
+    "photoReplace": "Sostituisci",
+    "photoRemove": "Rimuovi la foto",
+    "photoUploadErrors": {
+      "type": "Formato non supportato (JPEG, PNG o WebP)",
+      "size": "Immagine troppo pesante (max 15 MB)",
+      "network": "Caricamento non riuscito — riprova"
+    },
+    "chooseFile": "Scegli un file",
+    "cinematicSection": "Cinematica di apertura",
+    "customMusic": "La vostra musica",
+    "customMusicHint": "MP3 o M4A, max 10 MB",
+    "done": "Fatto",
+    "eyebrow": "Invito",
+    "lockedBody": "La scelta della cinematica e della musica è inclusa con Premium.",
+    "musicNone": "Senza musica",
+    "musicNoneDesc": "L'invito si apre in silenzio",
+    "musicSection": "Musica",
+    "pause": "Ferma",
+    "play": "Ascolta",
+    "preview": "Anteprima",
+    "title": "Personalizza l'invito",
+    "uploading": "Caricamento…",
+    "themes": {
+      "seal": {
+        "name": "Il Sigillo",
+        "desc": "La busta sigillata si apre in profondità: il classico distintivo."
+      },
+      "fairepart": {
+        "name": "La Partecipazione",
+        "desc": "Premi il sigillo di cera: salta in 3D e la carta si apre sulla vostra foto."
+      },
+      "royal": {
+        "name": "L'invito reale",
+        "desc": "Le porte del palazzo si aprono sui vostri nomi incisi in oro — fuochi d'artificio nel finale."
+      },
+      "floral": {
+        "name": "La Fioritura",
+        "desc": "Il giardino si risveglia: i vostri nomi si scrivono a inchiostro sotto l'arco in fiore."
+      },
+      "cake": {
+        "name": "La Torta nuziale",
+        "desc": "La torta si erge e i vostri nomi sono decorati in glassa, candeline accese."
+      },
+      "voyage": {
+        "name": "L'Imbarco",
+        "desc": "L'oblò si apre sull'alba: la carta d'imbarco si stampa e riceve il timbro."
+      },
+      "theatre": {
+        "name": "Il Sipario",
+        "desc": "Il sipario si alza sul lago dei cigni: i vostri nomi in luci da insegna."
+      },
+      "etoiles": {
+        "name": "La Costellazione",
+        "desc": "La notte si accende: un cuore si traccia di stella in stella, i vostri nomi di luce."
+      },
+      "lanternes": {
+        "name": "Le Lanterne",
+        "desc": "Le lanterne si accendono e si alzano: i vostri nomi brillano attraverso la carta."
+      },
+      "rivage": {
+        "name": "La Riva",
+        "desc": "L'onda si ritira e i vostri nomi restano scritti sulla sabbia."
+      },
+      "feux": {
+        "name": "I Fuochi d'artificio",
+        "desc": "I razzi salgono; il gran finale rivela i vostri nomi in oro."
+      },
+      "deco": {
+        "name": "L'Art déco",
+        "desc": "Nero e oro: la cornice si disegna, i vostri nomi in maiuscole dorate stile Gatsby."
+      },
+      "neige": {
+        "name": "Primo fiocco",
+        "desc": "La neve cade, il gelo vela il vetro: un cerchio di calore rivela i vostri nomi."
+      }
+    },
+    "tracks": {
+      "aurore": {
+        "name": "Aurore",
+        "desc": "Pianoforte intimo, calore del mattino"
+      },
+      "jardin": {
+        "name": "Jardin",
+        "desc": "Arpa fluente, riflessi di rugiada"
+      },
+      "celebration": {
+        "name": "Célébration",
+        "desc": "Marimba vivace, spirito di festa"
+      },
+      "envol": {
+        "name": "Envol",
+        "desc": "Arpeggi eterei, cielo aperto"
+      },
+      "harmonie": {
+        "name": "Harmonie",
+        "desc": "Archi ampi, chiaro di luna"
+      }
+    },
+    "uploadErrors": {
+      "type": "Formato non supportato (MP3 o M4A)",
+      "size": "File troppo grande (max 10 MB)",
+      "network": "Caricamento non riuscito: riprova"
+    }
   }
 }

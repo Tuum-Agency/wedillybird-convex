@@ -1,0 +1,591 @@
+/* Wedillybird — Cinématique « Les Lanternes » (envol de lanternes).
+   Crépuscule sur l'eau : lucioles, petites lanternes qui s'allument, la
+   grande s'embrase et toutes s'élèvent — prénoms lus À TRAVERS le papier
+   éclairé de l'intérieur, date sur ruban suspendu, compte à rebours en
+   lanternes miniatures.
+   Phases (classes cumulatives) : gather · ignite · rise · names · settled */
+
+.cineL-stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(
+    180deg,
+    oklch(21% 0.038 286) 0%,
+    oklch(28% 0.055 315) 30%,
+    oklch(38% 0.075 25) 52%,
+    oklch(52% 0.1 48) 64%,
+    oklch(26% 0.045 40) 66%,
+    oklch(17% 0.03 300) 100%
+  );
+  --c-paper: oklch(90% 0.085 65);
+  --c-ink-warm: oklch(34% 0.07 40);
+  --c-ember: oklch(84% 0.1 62);
+}
+
+.cineL-stage .cine2-skip {
+  color: oklch(90% 0.02 80);
+  text-shadow: 0 1px 3px oklch(12% 0.03 300 / 0.6);
+}
+
+.cineL-scene {
+  position: relative;
+  width: 360px;
+  height: 560px;
+  perspective: 1400px;
+  perspective-origin: 50% 44%;
+  transform: scale(var(--cine-scale, 1));
+  transform-origin: center center;
+}
+@media (min-width: 900px) {
+  .cineL-stage.live .cineL-scene {
+    --cine-scale: 1.22;
+  }
+}
+
+/* Caméra : elle S'ÉLÈVE avec les lanternes et pique légèrement vers l'eau. */
+.lx-camera {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  transform: translateY(8px) rotateX(0deg) translateZ(-20px) scale(1.04);
+  transition: transform 3.4s cubic-bezier(0.3, 0.5, 0.3, 1);
+}
+.cineL.rise .lx-camera,
+.cineL.names .lx-camera,
+.cineL.settled .lx-camera {
+  transform: translateY(-6px) rotateX(-2.5deg) translateZ(14px) scale(1);
+}
+
+.lx-par {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  transition: transform 0.5s var(--ease-out-quint);
+}
+
+/* -------------------------------- décor -------------------------------- */
+
+.ln-horizon {
+  position: absolute;
+  left: -14%;
+  right: -14%;
+  top: 352px;
+  transform: translateZ(-160px) scale(1.3);
+  height: 60px;
+  background: linear-gradient(to bottom, transparent, oklch(70% 0.12 55 / 0.4), transparent);
+  filter: blur(9px);
+  pointer-events: none;
+}
+.ln-water {
+  position: absolute;
+  left: -10%;
+  right: -10%;
+  top: 368px;
+  bottom: -30px;
+  transform: translateZ(-90px) scale(1.18);
+  transform-origin: top center;
+  background:
+    radial-gradient(52% 34px at 50% 0, oklch(74% 0.1 55 / 0.22), transparent 70%),
+    linear-gradient(180deg, oklch(29% 0.048 35 / 0.92), oklch(15% 0.028 300));
+  pointer-events: none;
+}
+
+.ln-flies {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.ln-flies span {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: oklch(90% 0.11 92);
+  box-shadow: 0 0 7px oklch(88% 0.11 90 / 0.9);
+  opacity: 0;
+  animation: cineLFly 4.6s ease-in-out var(--fd, 0s) infinite;
+}
+@keyframes cineLFly {
+  0%,
+  100% {
+    opacity: 0;
+    translate: 0 0;
+  }
+  25% {
+    opacity: 0.9;
+  }
+  50% {
+    opacity: 0.25;
+    translate: 7px -9px;
+  }
+  75% {
+    opacity: 0.8;
+  }
+}
+
+/* --------------------------- petites lanternes -------------------------- */
+
+.ln-smalls {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  pointer-events: none;
+}
+.ln-small {
+  position: absolute;
+  top: 336px;
+  width: 15px;
+  height: 20px;
+  margin-left: -7.5px;
+  border-radius: 45% 45% 40% 40% / 38% 38% 60% 60%;
+  background: radial-gradient(
+    55% 45% at 50% 56%,
+    oklch(94% 0.07 78),
+    oklch(78% 0.11 55) 62%,
+    oklch(56% 0.1 45)
+  );
+  box-shadow: 0 0 14px oklch(84% 0.11 60 / 0.75);
+  opacity: 0;
+  transform: translateZ(var(--lz, 0px)) scale(0.55);
+  transition:
+    opacity 0.6s ease var(--ld, 0s),
+    transform 0.7s cubic-bezier(0.34, 1.3, 0.5, 1) var(--ld, 0s);
+}
+.cineL.gather .ln-small {
+  opacity: 1;
+  transform: translateZ(var(--lz, 0px)) scale(1);
+}
+/* Reflet sur l'eau. */
+.ln-small .glow {
+  position: absolute;
+  left: 50%;
+  top: 26px;
+  width: 12px;
+  height: 26px;
+  margin-left: -6px;
+  border-radius: 50%;
+  background: linear-gradient(to bottom, oklch(80% 0.11 58 / 0.4), transparent);
+  filter: blur(2px);
+  transition: opacity 0.8s ease;
+}
+/* Envol : chaque petite dérive selon ses variables. */
+.cineL.rise .ln-small {
+  transform: translate3d(var(--ldx, 0px), var(--lry, -140px), calc(var(--lz, 0px) + 50px))
+    scale(0.92);
+  transition:
+    transform 2.6s cubic-bezier(0.32, 0.55, 0.3, 1) calc(var(--ld, 0s) * 1.4),
+    opacity 0.6s ease;
+}
+.cineL.rise .ln-small .glow {
+  opacity: 0;
+}
+.cineL.settled .ln-small {
+  animation: cineLDrift 5.5s ease-in-out calc(var(--ld, 0s) * 3) infinite alternate;
+}
+@keyframes cineLDrift {
+  0% {
+    translate: 0 0;
+  }
+  100% {
+    translate: 0 -7px;
+  }
+}
+
+/* ---------------------------- grande lanterne --------------------------- */
+
+.ln-big {
+  position: absolute;
+  left: 50%;
+  top: 236px;
+  width: 0;
+  height: 0;
+  transform: translateY(64px);
+  transition: transform 2.1s cubic-bezier(0.32, 0.6, 0.28, 1);
+}
+.cineL.rise .ln-big {
+  transform: translateY(-58px) translateZ(30px);
+}
+/* La grande lanterne APPROCHE pour livrer les prénoms. */
+.cineL.names .ln-big,
+.cineL.settled .ln-big {
+  transform: translateY(-58px) translateZ(86px);
+  transition: transform 1.6s cubic-bezier(0.3, 0.7, 0.28, 1);
+}
+.cineL.settled .ln-big {
+  animation: cineLDrift 6s ease-in-out 0.6s infinite alternate;
+}
+.ln-big > * {
+  position: absolute;
+}
+.ln-glowhalo {
+  left: -120px;
+  top: -46px;
+  width: 240px;
+  height: 260px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, oklch(80% 0.11 60 / 0.4), transparent 74%);
+  filter: blur(12px);
+  opacity: 0;
+  transition: opacity 1s ease;
+}
+.cineL.ignite .ln-glowhalo {
+  opacity: 1;
+}
+.ln-cap {
+  left: -23px;
+  top: -8px;
+  width: 46px;
+  height: 7px;
+  border-radius: 4px;
+  background: linear-gradient(to bottom, oklch(38% 0.05 50), oklch(26% 0.04 45));
+  z-index: 2;
+}
+.ln-paper {
+  left: -66px;
+  top: 0;
+  width: 132px;
+  height: 164px;
+  border-radius: 48% 48% 42% 42% / 34% 34% 58% 58%;
+  background:
+    repeating-linear-gradient(90deg, transparent 0 20px, oklch(40% 0.06 45 / 0.14) 20px 21.5px),
+    radial-gradient(
+      62% 48% at 50% 58%,
+      oklch(94% 0.075 72),
+      oklch(80% 0.11 55) 60%,
+      oklch(60% 0.1 45) 94%
+    );
+  box-shadow:
+    inset 0 -12px 26px oklch(45% 0.08 45 / 0.5),
+    0 0 26px oklch(82% 0.11 58 / 0.35);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  text-align: center;
+  transform: scale(0.74);
+  transition:
+    transform 0.9s cubic-bezier(0.34, 1.25, 0.45, 1),
+    box-shadow 0.9s ease;
+}
+.cineL.ignite .ln-paper {
+  transform: scale(1);
+  box-shadow:
+    inset 0 -12px 26px oklch(45% 0.08 45 / 0.5),
+    0 0 44px oklch(84% 0.11 60 / 0.6);
+}
+.ln-flame {
+  position: absolute;
+  left: 50%;
+  bottom: 12px;
+  width: 13px;
+  height: 19px;
+  margin-left: -6.5px;
+  border-radius: 50% 50% 50% 50% / 62% 62% 38% 38%;
+  background: radial-gradient(
+    circle at 50% 74%,
+    oklch(98% 0.05 95),
+    oklch(86% 0.13 75) 56%,
+    oklch(72% 0.15 55)
+  );
+  box-shadow: 0 0 16px oklch(90% 0.12 80 / 0.95);
+  opacity: 0;
+  transform-origin: bottom center;
+}
+.cineL.ignite .ln-flame {
+  opacity: 1;
+  animation: cineLFlick 0.36s ease-in-out 0.5s infinite alternate;
+  transition: opacity 0.5s ease 0.35s;
+}
+@keyframes cineLFlick {
+  0% {
+    transform: scale(1) skewX(0deg);
+  }
+  100% {
+    transform: scale(0.86, 1.1) skewX(4deg);
+  }
+}
+.ln-rim {
+  left: -29px;
+  top: 160px;
+  width: 58px;
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(to bottom, oklch(38% 0.05 50), oklch(24% 0.04 45));
+}
+.ln-tassel {
+  left: -1px;
+  top: 166px;
+  width: 2px;
+  height: 24px;
+  background: oklch(34% 0.05 48);
+}
+.ln-tassel::after {
+  content: '';
+  position: absolute;
+  left: -3px;
+  bottom: -6px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: oklch(66% 0.1 55);
+}
+
+/* Les prénoms à travers le papier. */
+.ln-eyebrow {
+  font-family: var(--font-mono);
+  /* Le papier de lanterne se rétrécit en haut : overline étroit pour qu'il
+     tienne dans la zone lumineuse (sinon les lettres de bord tombent sur le
+     fond nuit et paraissent rognées). */
+  font-size: 6px;
+  letter-spacing: 0.14em;
+  white-space: nowrap;
+  text-transform: uppercase;
+  color: oklch(50% 0.07 45);
+  margin-bottom: 5px;
+  opacity: 0;
+  transition: opacity 0.7s ease 0.15s;
+}
+.ln-name {
+  display: block;
+  max-width: 116px;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 500;
+  font-size: 24px;
+  line-height: 1.1;
+  color: var(--c-ink-warm);
+  text-shadow: 0 0 12px oklch(94% 0.08 75 / 0.85);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  opacity: 0;
+  filter: blur(5px);
+  transition:
+    opacity 0.8s ease 0.25s,
+    filter 1s ease 0.25s;
+}
+.ln-name.nb {
+  transition-delay: 0.65s;
+}
+.ln-amp {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 13px;
+  color: oklch(52% 0.09 48);
+  margin: 1px 0;
+  opacity: 0;
+  transition: opacity 0.6s ease 0.5s;
+}
+.cineL.names .ln-eyebrow,
+.cineL.names .ln-amp {
+  opacity: 1;
+}
+.cineL.names .ln-name {
+  opacity: 1;
+  filter: blur(0);
+}
+
+/* Ruban de date suspendu sous la lanterne. */
+.ln-ribbon {
+  left: -84px;
+  top: 206px;
+  width: 168px;
+  padding: 6px 12px;
+  clip-path: polygon(0 0, 100% 0, 96% 50%, 100% 100%, 0 100%, 4% 50%);
+  background: linear-gradient(to bottom, oklch(96% 0.028 80), oklch(90% 0.04 72));
+  box-shadow: 0 6px 16px oklch(10% 0.02 300 / 0.5);
+  font-family: var(--font-mono);
+  font-size: 7.5px;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--c-ink-warm);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transform: scaleY(0);
+  transform-origin: top center;
+  transition: transform 0.7s cubic-bezier(0.34, 1.2, 0.5, 1) 1s;
+}
+.cineL.names .ln-ribbon {
+  transform: scaleY(1);
+}
+
+/* --------------------------- compte à rebours --------------------------- */
+
+.ln-cd {
+  position: absolute;
+  left: 50%;
+  bottom: 14px;
+  transform: translateX(-50%);
+  width: 330px;
+  text-align: center;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.7s ease 0.3s;
+}
+.cineL.settled .ln-cd {
+  opacity: 1;
+}
+.ln-cd .lbl {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: oklch(70% 0.035 60);
+  margin-bottom: 8px;
+}
+.ln-cd .row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 30px;
+}
+.ln-cdc {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  opacity: 0;
+  transform: translateY(10px);
+  transition:
+    opacity 0.7s ease calc(var(--cdd, 0s) + 0.3s),
+    transform 0.7s var(--ease-out-quint) calc(var(--cdd, 0s) + 0.3s);
+}
+.cineL.settled .ln-cdc {
+  opacity: 1;
+  transform: translateY(0);
+}
+.ln-mini {
+  position: relative;
+  width: 40px;
+  height: 50px;
+  border-radius: 45% 45% 40% 40% / 36% 36% 60% 60%;
+  background: radial-gradient(
+    58% 46% at 50% 56%,
+    oklch(94% 0.07 76),
+    oklch(79% 0.11 55) 62%,
+    oklch(58% 0.1 45)
+  );
+  box-shadow: 0 0 16px oklch(84% 0.11 60 / 0.55);
+  display: grid;
+  place-items: center;
+}
+.cineL.settled .ln-mini {
+  animation: cineLDrift 4.8s ease-in-out calc(var(--cdd, 0s) * 4) infinite alternate;
+}
+.ln-mini .cap {
+  position: absolute;
+  top: -4px;
+  left: 50%;
+  width: 16px;
+  height: 4px;
+  margin-left: -8px;
+  border-radius: 3px;
+  background: oklch(32% 0.05 48);
+}
+.ln-mini .rim {
+  position: absolute;
+  bottom: -3px;
+  left: 50%;
+  width: 20px;
+  height: 3.5px;
+  margin-left: -10px;
+  border-radius: 3px;
+  background: oklch(30% 0.05 46);
+}
+.ln-mini b {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 500;
+  font-size: 17px;
+  color: var(--c-ink-warm);
+  text-shadow: 0 0 8px oklch(94% 0.08 75 / 0.8);
+}
+.ln-cdc em {
+  font-family: var(--font-mono);
+  font-style: normal;
+  font-size: 7.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: oklch(66% 0.03 58);
+}
+
+.cineL-cue {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  color: oklch(76% 0.03 62);
+  transition: opacity 0.6s ease;
+  pointer-events: none;
+}
+.cineL-cue .t {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+}
+
+/* ------------------------- reduced / frozen ---------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .cineL *,
+  .cineL *::before,
+  .cineL *::after {
+    transition-duration: 0.01ms !important;
+    animation: none !important;
+  }
+  .cineL .ln-flies {
+    display: none;
+  }
+  .cineL .lx-camera {
+    transform: none !important;
+  }
+  .cineL .ln-flame {
+    opacity: 1;
+  }
+  .cineL .ln-name {
+    filter: none;
+  }
+}
+.cineL.reduced *,
+.cineL.reduced *::before,
+.cineL.reduced *::after {
+  transition: none !important;
+  animation: none !important;
+}
+.cineL.reduced .ln-flies {
+  display: none;
+}
+.cineL.reduced .lx-camera {
+  transform: none !important;
+}
+.cineL.reduced .ln-flame {
+  opacity: 1;
+}
+.cineL.reduced .ln-name {
+  filter: none;
+}
+.cineL.frozen .ln-flies span,
+.cineL.frozen .ln-flame,
+.cineL.frozen .ln-small,
+.cineL.frozen .ln-big,
+.cineL.frozen .ln-mini {
+  animation: none;
+}
+.cineL.frozen .ln-flame {
+  opacity: 1;
+}

@@ -103,6 +103,17 @@ const ALLOW_LIST = new Set<string>([
   'payments.ts:recordIntent',
   'quotes.ts:recordSchedulePayment', // saisie manuelle agence (paiement offline), requesterId
 
+  // --- Espace couple self-serve (/mon-mariage) : ledger budget PRIVÉ du couple
+  // (tables coupleVendors/couplePayments), pas le money-path Stripe. `amountMinor`
+  // = suivi manuel « j'ai payé mon fleuriste 500 € » — jamais un `payments.status`
+  // succeeded ni un déblocage d'entitlement. Chaque handler appelle
+  // `assertOwnedEvent(ctx, eventId, requesterId)` en tête (ownership). Symétrique
+  // des `budget.ts:*` ci-dessus, côté couple au lieu de l'agence. ---
+  'coupleSpace.ts:addVendor',
+  'coupleSpace.ts:updateVendor',
+  'coupleSpace.ts:addPayment',
+  'coupleSpace.ts:setPaymentPaid',
+
   // --- Suppression, gardée par ownership (assertOrgWrite/loadLineForWrite) —
   // ne marquent jamais rien `succeeded`, juste un retrait de ligne/lien ---
   'budget.ts:removeLine',

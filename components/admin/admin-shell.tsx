@@ -9,11 +9,14 @@ import {
   CalendarDays,
   CreditCard,
   FileText,
+  BookOpen,
   Building2,
   Ticket,
+  Handshake,
   Shield,
   Mail,
   ScrollText,
+  Bug,
   LogOut,
   Menu,
   X,
@@ -33,6 +36,7 @@ const NAV_ITEMS = [
   { key: 'events', href: '/admin/events', icon: CalendarDays, labelKey: 'nav.events' },
   { key: 'payments', href: '/admin/payments', icon: CreditCard, labelKey: 'nav.payments' },
   { key: 'invoices', href: '/admin/invoices', icon: FileText, labelKey: 'nav.invoices' },
+  { key: 'photo-books', href: '/admin/photo-books', icon: BookOpen, labelKey: 'nav.photoBooks' },
   {
     key: 'subscriptions',
     href: '/admin/subscriptions',
@@ -40,9 +44,11 @@ const NAV_ITEMS = [
     labelKey: 'nav.subscriptions',
   },
   { key: 'promotions', href: '/admin/promotions', icon: Ticket, labelKey: 'nav.promotions' },
+  { key: 'affiliates', href: '/admin/affiliates', icon: Handshake, labelKey: 'nav.affiliates' },
   { key: 'moderation', href: '/admin/moderation', icon: Shield, labelKey: 'nav.moderation' },
   { key: 'newsletter', href: '/admin/newsletter', icon: Mail, labelKey: 'nav.newsletter' },
   { key: 'audit-log', href: '/admin/audit-log', icon: ScrollText, labelKey: 'nav.auditLog' },
+  { key: 'bug-reports', href: '/admin/bug-reports', icon: Bug, labelKey: 'nav.bugReports' },
 ] as const;
 
 export type AdminSection = (typeof NAV_ITEMS)[number]['key'];

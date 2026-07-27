@@ -1,0 +1,471 @@
+/* Wedillybird — Cinématique « Le Faire-part ».
+   Une carte photo scellée d'un cachet de cire en 3D ; le tap fait SAUTER le
+   sceau (bond rotate3d + squash), le bandeau de vélin se retire et le panneau
+   (prénoms/date/lieu) se pose. Univers LIGHT éditorial. Profondeur via CSS 3D,
+   aucun WebGL. Piloté par `data-phase` (0→4) sur la scène + classes cumulatives
+   `cineFp-pop/open/named/settled`. */
+
+.cineFp-stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(64% 50% at 50% 30%, oklch(97.5% 0.02 60 / 0.85) 0%, transparent 72%),
+    radial-gradient(90% 70% at 50% 118%, oklch(93% 0.035 30 / 0.55), transparent 62%),
+    var(--color-ivory-50);
+  --fp-wax: oklch(55% 0.13 24);
+  --fp-wax-dk: oklch(40% 0.11 24);
+  --fp-wax-lt: oklch(72% 0.1 26);
+  --fp-gold: oklch(72% 0.08 82);
+  --fp-ink: oklch(24% 0.02 40);
+}
+
+.cineFp-scene {
+  position: relative;
+  width: 320px;
+  height: 460px;
+  perspective: 1300px;
+  perspective-origin: 50% 40%;
+  transform: scale(var(--cine-scale, 1));
+  transform-origin: center center;
+}
+
+/* ------------------------------- la carte ------------------------------ */
+
+.fp-card {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  animation: fpFloat 6s ease-in-out infinite;
+}
+@keyframes fpFloat {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 0 -8px;
+  }
+}
+
+.fp-photo {
+  position: absolute;
+  inset: 0;
+  border-radius: 22px;
+  background-color: oklch(90% 0.03 40);
+  background-size: cover;
+  background-position: center 35%;
+  box-shadow:
+    0 1px 0 oklch(100% 0 0 / 0.6) inset,
+    0 30px 60px -24px oklch(40% 0.09 24 / 0.5),
+    0 8px 22px -12px oklch(40% 0.09 24 / 0.35);
+  overflow: hidden;
+}
+.fp-photo[data-empty] {
+  background-image: linear-gradient(150deg, oklch(94% 0.03 60), oklch(86% 0.06 24));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.fp-photo-mono {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 34px;
+  color: oklch(52% 0.09 24 / 0.7);
+}
+/* Voile bas de photo — assombri progressivement pour poser le texte. */
+.fp-photo-veil {
+  position: absolute;
+  inset: 0;
+  border-radius: 22px;
+  background: linear-gradient(
+    to top,
+    oklch(20% 0.03 30 / 0.82) 0%,
+    oklch(20% 0.03 30 / 0.32) 34%,
+    transparent 56%
+  );
+  opacity: 0;
+  transition: opacity 0.7s ease;
+}
+.cineFp-open .fp-photo-veil {
+  opacity: 1;
+}
+
+/* ---------------------------- panneau texte ---------------------------- */
+
+.fp-panel {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 26px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+  padding: 0 22px;
+  transform: translateZ(30px) translateY(14px);
+  opacity: 0;
+  transition:
+    opacity 0.6s ease,
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.cineFp-named .fp-panel {
+  opacity: 1;
+  transform: translateZ(30px) translateY(0);
+}
+.fp-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: oklch(96% 0.02 80 / 0.85);
+}
+.fp-rule {
+  width: 42px;
+  height: 1px;
+  background: var(--fp-gold);
+  opacity: 0.8;
+}
+.fp-names {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  color: oklch(98% 0.01 85);
+}
+.fp-name {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 30px;
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+}
+.fp-amp {
+  font-family: var(--font-display);
+  font-size: 15px;
+  color: var(--fp-gold);
+  margin: -1px 0;
+}
+.fp-date {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: oklch(94% 0.02 80 / 0.92);
+  margin-top: 2px;
+}
+.fp-venue {
+  font-size: 11px;
+  color: oklch(90% 0.02 80 / 0.8);
+}
+
+/* -------------------- bandeau de vélin + sceau 3D ---------------------- */
+
+.fp-band {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 22px 0;
+  border: 0;
+  border-radius: 10px;
+  cursor: pointer;
+  background: linear-gradient(
+    to bottom,
+    oklch(99% 0.008 85 / 0.34),
+    oklch(97% 0.02 60 / 0.5) 50%,
+    oklch(99% 0.008 85 / 0.34)
+  );
+  backdrop-filter: blur(2px);
+  transform-style: preserve-3d;
+  transition:
+    opacity 0.5s ease,
+    transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+/* Le bandeau se retire à l'ouverture. */
+.cineFp-open .fp-band {
+  opacity: 0;
+  transform: translateY(90px) rotateX(35deg);
+  pointer-events: none;
+}
+.fp-band-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, oklch(60% 0.07 30 / 0.4), transparent);
+}
+
+.fp-seal {
+  position: relative;
+  width: 62px;
+  height: 62px;
+  transform-style: preserve-3d;
+  animation: fpSealBreathe 3.4s ease-in-out infinite;
+}
+@keyframes fpSealBreathe {
+  0%,
+  100% {
+    transform: translateZ(18px) scale(1);
+  }
+  50% {
+    transform: translateZ(26px) scale(1.04);
+  }
+}
+.fp-seal-face {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(60% 55% at 38% 32%, var(--fp-wax-lt), transparent 60%),
+    radial-gradient(120% 120% at 50% 50%, var(--fp-wax), var(--fp-wax-dk));
+  box-shadow:
+    0 2px 3px oklch(100% 0 0 / 0.35) inset,
+    0 -3px 6px oklch(30% 0.09 24 / 0.6) inset,
+    0 10px 20px -6px oklch(35% 0.1 24 / 0.6);
+  overflow: hidden;
+}
+.fp-seal-mono {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 15px;
+  color: oklch(96% 0.03 60 / 0.92);
+  text-shadow: 0 1px 1px oklch(30% 0.09 24 / 0.7);
+}
+.fp-seal-shine {
+  position: absolute;
+  top: -30%;
+  left: -20%;
+  width: 60%;
+  height: 90%;
+  background: linear-gradient(120deg, oklch(100% 0 0 / 0.5), transparent 60%);
+  transform: rotate(18deg);
+  filter: blur(2px);
+}
+.fp-seal-ring {
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  border: 1px solid var(--fp-wax-lt);
+  opacity: 0.4;
+}
+
+/* Le SAUT du sceau (phase pop). */
+.cineFp-pop .fp-seal {
+  animation: fpSealPop 0.72s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+@keyframes fpSealPop {
+  0% {
+    transform: translateZ(18px) scale(1);
+  }
+  22% {
+    transform: translateZ(60px) translateY(-6px) scale(1.32, 0.82);
+  }
+  48% {
+    transform: translateZ(150px) translateY(-120px) rotate3d(1, 0.7, 0.2, 160deg) scale(0.9);
+    opacity: 1;
+  }
+  100% {
+    transform: translateZ(240px) translateY(-230px) rotate3d(1, 0.8, 0.3, 320deg) scale(0.35);
+    opacity: 0;
+  }
+}
+
+/* Onde de choc au moment de la fracture. */
+.fp-shock {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 60px;
+  height: 60px;
+  margin: -30px 0 0 -30px;
+  border-radius: 50%;
+  border: 1.5px solid var(--fp-wax-lt);
+  opacity: 0;
+  transform: scale(0.5);
+}
+.cineFp-pop .fp-shock {
+  animation: fpShock 0.6s ease-out 0.12s forwards;
+}
+@keyframes fpShock {
+  0% {
+    opacity: 0.6;
+    transform: scale(0.5);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(2.6);
+  }
+}
+
+.fp-hint {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: oklch(45% 0.08 26 / 0.8);
+  animation: fpHintPulse 1.9s ease-in-out infinite;
+}
+@keyframes fpHintPulse {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+.cineFp-pop .fp-hint {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+/* ------------------------------ ambiance ------------------------------- */
+
+.cineFp-dust {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.cineFp-dust span {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, oklch(94% 0.07 88), oklch(78% 0.1 82));
+  box-shadow: 0 0 6px oklch(85% 0.09 85 / 0.7);
+  opacity: 0;
+  animation: fpDust 7s ease-in-out infinite;
+  animation-delay: var(--dd, 0s);
+}
+@keyframes fpDust {
+  0%,
+  100% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  40%,
+  70% {
+    opacity: 0.6;
+  }
+  55% {
+    opacity: 0.8;
+    transform: translateY(-8px);
+  }
+}
+
+.cineFp-orn {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  color: var(--fp-gold);
+  font-size: 13px;
+}
+.cineFp-orn span {
+  position: absolute;
+  opacity: 0;
+  transition: opacity 0.6s ease 0.4s;
+}
+.cineFp-orn span:nth-child(1) {
+  top: 15%;
+  left: 16%;
+}
+.cineFp-orn span:nth-child(2) {
+  bottom: 30%;
+  right: 15%;
+}
+.cineFp-named .cineFp-orn span {
+  opacity: 0.7;
+}
+
+/* Compte à rebours (état apaisé). */
+.cineFp-after {
+  position: absolute;
+  left: 50%;
+  bottom: 14px;
+  transform: translateX(-50%);
+  width: 300px;
+  text-align: center;
+  opacity: 0;
+  transition: opacity 0.7s ease 0.3s;
+}
+.cineFp-settled .cineFp-after,
+[data-phase='4'] .cineFp-after {
+  opacity: 1;
+}
+.cineFp-after .lbl {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--color-ink-500);
+  margin-bottom: 8px;
+}
+.cineFp-after .cd {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+.cineFp-after .cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.cineFp-after .n {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 26px;
+  line-height: 1;
+  color: var(--fp-wax);
+}
+.cineFp-after .u {
+  font-family: var(--font-mono);
+  font-size: 7px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-ink-500);
+  margin-top: 3px;
+}
+.cineFp-after .sep {
+  font-family: var(--font-display);
+  font-style: italic;
+  color: var(--fp-gold);
+  align-self: flex-start;
+  margin-top: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fp-card,
+  .fp-seal,
+  .fp-hint,
+  .cineFp-dust span {
+    animation: none !important;
+  }
+  .fp-photo-veil,
+  .fp-panel,
+  .cineFp-orn span {
+    opacity: 1;
+    transform: none;
+  }
+  .fp-band {
+    opacity: 0;
+  }
+}

@@ -9,24 +9,25 @@
 Résumé impératif :
 
 - **Pas de tier `free`** côté particuliers. (Supprimé du code ✅ — `PlanTier = 'essential' | 'premium'`.)
-- **Particuliers (one-shot)** — EUR canonique · **USD posé en valeur marché** (v2.3 : $40/$80/+$30, plus de conversion ×1,08 ; pros en parité $99/$219/$449/$79) :
-  - Essentiel **29 € / $40** — 100 invités max — 5 Go galerie 12 mois
-  - Premium **59 € / $80** — 250 invités max — 25 Go HD 12 mois
-  - Upsell HD post-event **+29 € / +$30** — archive perpétuelle
-- **Pros (mensuel · -20 % en annuel)** :
-  - Starter **99 €/mois / $99** (79 €/mois annuel) — 5 events × 150 invités — 50 Go
-  - Business **219 €/mois / $219** (175 €/mois annuel) — 20 events × 150 invités — 200 Go
-  - Agency **449 €/mois / $449** (359 €/mois annuel) — 50 events × 150 invités — 500 Go
+- **Particuliers (one-shot)** — EUR canonique · **USD posé en valeur marché** (v2.3, 2026-07-06 : plus de conversion ×1,08 pour l'USD consumer ; overrides `usdMinor` dans `plans.ts`) :
+  - Essentiel **29 € / $40** — 100 invitations max — sans galerie partagée
+  - Premium **59 € / $80** — 250 invitations max — galerie partagée HD 6 mois + album PDF
+  - Upsell HD post-event **+29 € / +$30** — rétention galerie 5 ans + export ZIP HD + livre photo
+- **Pros (mensuel · -20 % en annuel)** — USD = **valeur marché ≥ équiv. EUR** (v2.4, 2026-07-12 : fin de l'ex-parité $99 qui bradait le pro US ; `usdMinor` dans `subscriptions.ts`) :
+  - Starter **99 €/mois / $99** (79 €/mois annuel · $951/an) — 5 events × 150 invités — 50 Go
+  - Business **219 €/mois / $219** (175 €/mois annuel · $2 103/an) — 20 events × 150 invités — 200 Go
+  - Agency **449 €/mois / $449** (359 €/mois annuel · $4 311/an) — 50 events × 150 invités — 500 Go
   - Pay-as-you-go **79 €/event / $79** — 150 invités max — 25 Go
 - **Dépassements** :
   - SMS / WhatsApp au-delà bundle : **0,06 €/msg**
   - Invité au-delà du cap : **0,25 €/invité**
   - Stockage : **0,03 €/Go/mois**
   - Event simultané supplémentaire (Pro) : **19 €/event/mois prorata**
-- **Règles transverses** : remboursement 100 % sous 7j si event non envoyé, report gratuit en cas d'annulation, galerie active 12 mois post-event puis archivage.
+- **Règles transverses** : remboursement 100 % sous 7j si event non envoyé, report gratuit en cas d'annulation, galerie Premium active 6 mois post-event (5 ans avec l'upsell HD).
+- **Règle devise (v2.4, impérative)** : la devise suit le **pays de facturation** (géoIP, cookie `wbb_ccy` via `proxy.ts` → `currencyForCountry`), **jamais la langue d'UI** (le sélecteur de langue ne change que la traduction). L'USD est posé en **valeur marché, toujours ≥ l'équivalent EUR converti — le signe de l'écart ne s'inverse jamais** entre segments. Prix US affichés **HT** (`Plans.usTaxNote`). Ne jamais réintroduire de « parité numérique » ni de devise dérivée de la locale.
 - **Bundle interne** : 3,5 × cap invités (couvre invitation + reminders + RSVP + gallery link).
 
-Le code (`lib/payments/plans.ts`, `lib/payments/subscriptions.ts`) est **aligné** sur cette grille. Les Stripe Prices **live** ont été créés et nettoyés (2026-06-12) : **30 Prices canoniques actifs** (Essentiel 29 / Premium 59 / Upsell 29 / Starter 99·951 / Business 219·2103 / Agency 449·4311 / PAYG 79, en EUR/USD/MAD) ; les anciens Prices aux mauvais montants ont été **archivés**. Les env vars `STRIPE_PRICE_*` Vercel pointent sur les bons IDs (génération `price_1Tdp*`/`1Tdtq*`). Vérifié via l'API Stripe (0 transaction live à ce jour).
+Le code (`lib/payments/plans.ts`, `lib/payments/subscriptions.ts`) est **aligné** sur cette grille. **Consumer USD v2.3 en prod depuis le 2026-07-07** (PR #67, site vérifié à $40/$80). **Pro USD = parité v2.3 `$99/$219/$449/$79` (annuels $951/$2 103/$4 311)** — décision fondateur 2026-07-27 : la hausse pro USD v2.4 ($109/$239/$489/$89) est **ANNULÉE**, code + Stripe (`price_1TqHq*`) + prod restent en v2.3, rien à re-syncer. **Le découplage devise↔langue + le checkout pro géo-aware (points 1/2 de la révision v2.4) sont, eux, retenus** (déployables sans action Stripe). (0 transaction live à ce jour.)
 
 ## Direction de design (V2)
 

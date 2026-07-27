@@ -1,0 +1,1203 @@
+/* Wedillybird — Cinématique « L'Invitation royale » (royal).
+   Ouverture de film en un plan-séquence : façade de palais nocturne, les
+   PORTES MONUMENTALES s'ouvrent (rai de lumière + pétales), la caméra
+   TRAVERSE le seuil (le mur file derrière elle), colonnade aux bougies,
+   invitation en LÉVITATION sur son piédestal devant la baie en plein
+   cintre — les PRÉNOMS SE GRAVENT EN OR — date & lieu se révèlent — final
+   feux d'artifice dans la baie + compte à rebours royal.
+   Phases (classes cumulatives) : gates · hall · reveal · open · settled */
+
+.cineR-stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(80% 46% at 50% 108%, oklch(24% 0.045 62 / 0.6), transparent 62%),
+    linear-gradient(180deg, oklch(14% 0.018 292), oklch(9.5% 0.012 285));
+  --c-gold: oklch(80% 0.09 85);
+  --c-gold-dk: oklch(60% 0.085 80);
+  --c-ivory: oklch(96% 0.014 84);
+  --c-wax: oklch(42% 0.14 22);
+  --c-warm: oklch(93% 0.04 90);
+}
+
+.cineR-stage .cine2-skip {
+  color: oklch(90% 0.03 88);
+  text-shadow: 0 1px 3px oklch(8% 0.01 290 / 0.6);
+}
+
+.cineR-scene {
+  position: relative;
+  width: 360px;
+  height: 560px;
+  perspective: 1100px;
+  perspective-origin: 50% 42%;
+  transform: scale(var(--cine-scale, 1));
+  transform-origin: center center;
+}
+@media (min-width: 900px) {
+  .cineR-stage.live .cineR-scene {
+    --cine-scale: 1.22;
+  }
+}
+
+/* Caméra grue : contre-plongée lointaine, approche lente, TRAVERSÉE du
+   seuil, arc de gros plan sur l'invitation, léger recul au final. */
+.rx-camera {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  transform: rotateX(2.2deg) translateZ(-95px) scale(0.97);
+  transition: transform 2.3s cubic-bezier(0.4, 0.12, 0.25, 1);
+}
+.cineR.gates .rx-camera {
+  transform: rotateX(1.5deg) translateZ(-25px) scale(0.99);
+}
+.cineR.hall .rx-camera {
+  transform: rotateX(0.6deg) rotateY(0deg) translateZ(150px) scale(1);
+  transition: transform 2s cubic-bezier(0.45, 0.08, 0.3, 1);
+}
+.cineR.reveal .rx-camera {
+  transform: rotateX(0deg) rotateY(2.2deg) translateZ(240px) scale(1);
+}
+.cineR.open .rx-camera {
+  transform: rotateX(0deg) rotateY(0deg) translateZ(250px) scale(1);
+}
+.cineR.settled .rx-camera {
+  transform: rotateX(0deg) rotateY(0deg) translateZ(214px) scale(1);
+  transition: transform 2.6s cubic-bezier(0.4, 0.12, 0.25, 1);
+}
+
+.rx-par {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  transition: transform 0.5s var(--ease-out-quint);
+}
+
+/* --------------------- la baie en plein cintre (fond) -------------------- */
+
+.r-window {
+  position: absolute;
+  left: 50%;
+  top: 38px;
+  width: 300px;
+  height: 304px;
+  margin-left: -150px;
+  transform: translateZ(-200px);
+  pointer-events: none;
+}
+.r-wsky {
+  position: absolute;
+  inset: 0;
+  border-radius: 150px 150px 0 0;
+  overflow: hidden;
+  background:
+    radial-gradient(60% 40% at 30% 18%, oklch(30% 0.04 280 / 0.55), transparent 70%),
+    linear-gradient(180deg, oklch(19% 0.035 278), oklch(12% 0.02 272));
+  box-shadow: inset 0 0 30px oklch(6% 0.01 280 / 0.8);
+}
+.r-wstar {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: oklch(95% 0.01 95);
+  opacity: 0.25;
+  animation: cineRStar 4s ease-in-out var(--sd, 0s) infinite;
+}
+@keyframes cineRStar {
+  0%,
+  100% {
+    opacity: 0.18;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+/* Encadrement doré de la baie + appui. */
+.r-arch {
+  position: absolute;
+  inset: -3px;
+  border-radius: 153px 153px 0 0;
+  border: 2px solid oklch(58% 0.075 80 / 0.8);
+  border-bottom: 3px solid oklch(64% 0.08 82 / 0.9);
+  box-shadow:
+    0 0 26px oklch(4% 0.008 280 / 0.7),
+    inset 0 0 16px oklch(70% 0.085 84 / 0.14);
+}
+
+/* Feux d'artifice dans la baie (au final). */
+.r-fw {
+  position: absolute;
+  width: 0;
+  height: 0;
+  scale: var(--fs, 1);
+  opacity: 0;
+}
+.cineR.settled .r-fw {
+  opacity: 1;
+}
+.r-fw i {
+  position: absolute;
+  left: -0.75px;
+  bottom: 0;
+  width: 1.5px;
+  height: 26px;
+  border-radius: 2px;
+  transform-origin: 50% 100%;
+  transform: rotate(var(--fa)) scaleY(0.1);
+  opacity: 0;
+  background: linear-gradient(to top, transparent, var(--fw-c, oklch(86% 0.1 86)) 55%);
+}
+.r-fw.warm {
+  --fw-c: oklch(86% 0.1 86);
+}
+.r-fw.soft {
+  --fw-c: oklch(84% 0.07 30);
+}
+.cineR.settled .r-fw i {
+  animation: cineRFwSpoke 4.6s cubic-bezier(0.2, 0.65, 0.35, 1) var(--fd, 0s) infinite;
+}
+@keyframes cineRFwSpoke {
+  0% {
+    transform: rotate(var(--fa)) translateY(0) scaleY(0.1);
+    opacity: 0;
+  }
+  6% {
+    opacity: 1;
+  }
+  26% {
+    transform: rotate(var(--fa)) translateY(-14px) scaleY(1);
+    opacity: 0.9;
+  }
+  40%,
+  100% {
+    transform: rotate(var(--fa)) translateY(-20px) scaleY(0.85);
+    opacity: 0;
+  }
+}
+.r-fw em {
+  position: absolute;
+  left: -3px;
+  top: -3px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: radial-gradient(circle, oklch(97% 0.05 92), var(--fw-c, oklch(86% 0.1 86)));
+  transform: scale(0);
+  opacity: 0;
+}
+.cineR.settled .r-fw em {
+  animation: cineRFwCore 4.6s ease-out var(--fd, 0s) infinite;
+}
+@keyframes cineRFwCore {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  5% {
+    transform: scale(1.5);
+    opacity: 1;
+  }
+  22%,
+  100% {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+}
+
+/* ------------------------------ colonnade ------------------------------- */
+
+.r-col {
+  position: absolute;
+  left: 50%;
+  top: 102px;
+  bottom: 142px;
+  width: 24px;
+  margin-left: -12px;
+  transform: translateX(var(--cx, 0px)) translateZ(var(--cz, 0px)) scale(var(--cs, 1));
+  background:
+    repeating-linear-gradient(90deg, oklch(0% 0 0 / 0.3) 0 1px, transparent 1px 4.2px),
+    linear-gradient(
+      90deg,
+      oklch(12% 0.014 70),
+      oklch(24% 0.03 74) 28%,
+      oklch(37% 0.045 80) 50%,
+      oklch(22% 0.028 72) 74%,
+      oklch(10% 0.012 68)
+    );
+  box-shadow:
+    inset 0 0 0 0.5px oklch(52% 0.06 82 / 0.3),
+    0 0 20px oklch(4% 0.006 78 / 0.55);
+  pointer-events: none;
+}
+/* Chapiteau / base à gradins dorés. */
+.r-col::before,
+.r-col::after {
+  content: '';
+  position: absolute;
+  left: -8px;
+  right: -8px;
+  height: 14px;
+}
+.r-col::before {
+  top: -14px;
+  background:
+    linear-gradient(oklch(58% 0.075 82), oklch(46% 0.055 78)) 50% 0 / 20px 5px no-repeat,
+    linear-gradient(oklch(52% 0.065 80), oklch(40% 0.05 76)) 50% 5px / 30px 5px no-repeat,
+    linear-gradient(oklch(46% 0.055 78), oklch(34% 0.045 74)) 50% 10px / 40px 4px no-repeat;
+}
+.r-col::after {
+  bottom: -14px;
+  background:
+    linear-gradient(oklch(46% 0.055 78), oklch(34% 0.045 74)) 50% 0 / 40px 4px no-repeat,
+    linear-gradient(oklch(52% 0.065 80), oklch(40% 0.05 76)) 50% 4.5px / 30px 5px no-repeat,
+    linear-gradient(oklch(58% 0.075 82), oklch(46% 0.055 78)) 50% 9.5px / 20px 5px no-repeat;
+}
+
+/* --------------------------- sol + tapis d'honneur ----------------------- */
+
+.r-floor {
+  position: absolute;
+  left: -46%;
+  right: -46%;
+  bottom: -180px;
+  height: 340px;
+  background:
+    linear-gradient(
+        90deg,
+        transparent calc(50% - 42px),
+        oklch(66% 0.08 82 / 0.5) calc(50% - 42px),
+        oklch(66% 0.08 82 / 0.5) calc(50% - 40px),
+        oklch(34% 0.09 24 / 0.55) calc(50% - 40px),
+        oklch(30% 0.085 22 / 0.55) calc(50% + 40px),
+        oklch(66% 0.08 82 / 0.5) calc(50% + 40px),
+        oklch(66% 0.08 82 / 0.5) calc(50% + 42px),
+        transparent calc(50% + 42px)
+      )
+      no-repeat,
+    repeating-linear-gradient(90deg, transparent 0 58px, oklch(32% 0.02 78 / 0.4) 58px 59.5px),
+    repeating-linear-gradient(0deg, transparent 0 50px, oklch(30% 0.02 78 / 0.34) 50px 51.5px),
+    radial-gradient(60% 74% at 50% 0%, oklch(32% 0.03 76 / 0.9), transparent 76%),
+    linear-gradient(180deg, oklch(23% 0.02 76), oklch(12% 0.01 74));
+  transform: rotateX(80deg) translateZ(-36px);
+  transform-origin: top center;
+  opacity: 0.92;
+  pointer-events: none;
+}
+
+/* -------------------------------- bougies ------------------------------- */
+
+.r-candles {
+  position: absolute;
+  left: 50%;
+  bottom: 148px;
+  width: 0;
+  height: 0;
+  transform-style: preserve-3d;
+  pointer-events: none;
+}
+.r-candle {
+  position: absolute;
+  left: -2px;
+  bottom: 0;
+  width: 4px;
+  height: 20px;
+  border-radius: 2px;
+  background: linear-gradient(to bottom, oklch(96% 0.014 88), oklch(86% 0.03 80));
+  box-shadow: inset -1px 0 1px oklch(78% 0.03 74 / 0.6);
+  transform: translateX(var(--kx, 0px)) translateZ(var(--kz, 0px));
+}
+.r-flame {
+  position: absolute;
+  left: 50%;
+  top: -11px;
+  width: 7px;
+  height: 11px;
+  margin-left: -3.5px;
+  border-radius: 50% 50% 50% 50% / 64% 64% 36% 36%;
+  background: radial-gradient(
+    circle at 50% 74%,
+    oklch(98% 0.05 95),
+    oklch(85% 0.13 78) 58%,
+    oklch(70% 0.15 55)
+  );
+  box-shadow: 0 0 12px oklch(88% 0.12 85 / 0.85);
+  transform-origin: bottom center;
+  animation: cineRFlick 0.36s ease-in-out var(--kd, 0s) infinite alternate;
+}
+@keyframes cineRFlick {
+  0% {
+    transform: scale(1) skewX(0deg);
+  }
+  100% {
+    transform: scale(0.85, 1.12) skewX(4deg);
+  }
+}
+
+/* ------------------------------ piédestal ------------------------------- */
+
+.r-dais {
+  position: absolute;
+  left: 50%;
+  bottom: 96px;
+  width: 0;
+  height: 0;
+  transform: translateZ(-160px);
+  pointer-events: none;
+}
+.r-dais i {
+  position: absolute;
+  display: block;
+}
+.r-dais .top {
+  left: -52px;
+  bottom: 54px;
+  width: 104px;
+  height: 16px;
+  border-radius: 50%;
+  background: linear-gradient(to bottom, oklch(88% 0.03 84), oklch(66% 0.05 78));
+  box-shadow:
+    0 2px 5px oklch(6% 0.01 70 / 0.6),
+    inset 0 -2px 3px oklch(56% 0.05 74 / 0.5);
+}
+.r-dais .shaft {
+  left: -40px;
+  bottom: 10px;
+  width: 80px;
+  height: 50px;
+  background:
+    repeating-linear-gradient(90deg, oklch(0% 0 0 / 0.22) 0 1px, transparent 1px 5px),
+    linear-gradient(90deg, oklch(24% 0.024 74), oklch(46% 0.045 80) 50%, oklch(22% 0.022 72));
+}
+.r-dais .base {
+  left: -58px;
+  bottom: 0;
+  width: 116px;
+  height: 14px;
+  border-radius: 50%;
+  background: linear-gradient(to bottom, oklch(62% 0.055 78), oklch(38% 0.04 72));
+}
+
+/* ------------------- l'invitation en lévitation ------------------------- */
+
+.r-inv {
+  position: absolute;
+  left: 50%;
+  top: 138px;
+  width: 0;
+  height: 0;
+  transform: translateZ(-160px);
+  animation: cineRFloat 5.5s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+@keyframes cineRFloat {
+  0% {
+    translate: 0 0;
+  }
+  100% {
+    translate: 0 -6px;
+  }
+}
+.r-glow {
+  position: absolute;
+  left: -140px;
+  top: -12px;
+  width: 280px;
+  height: 330px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, oklch(74% 0.09 82 / 0.3), transparent 74%);
+  filter: blur(12px);
+  animation: cineRGlow 5.5s ease-in-out infinite alternate;
+}
+@keyframes cineRGlow {
+  0% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.r-card {
+  position: absolute;
+  left: -112px;
+  top: 0;
+  width: 224px;
+  height: 292px;
+  border-radius: 6px;
+  overflow: hidden;
+  background:
+    radial-gradient(120% 90% at 50% 0%, oklch(97.5% 0.012 86), transparent 60%),
+    linear-gradient(168deg, oklch(96% 0.014 84), oklch(90% 0.025 80));
+  box-shadow:
+    0 30px 60px oklch(4% 0.008 280 / 0.75),
+    0 4px 14px oklch(6% 0.01 280 / 0.5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 30px 16px 0;
+  text-align: center;
+  transform: rotateY(16deg) rotateX(3deg);
+  transition: transform 1.5s cubic-bezier(0.35, 0.75, 0.3, 1);
+}
+.cineR.reveal .r-card {
+  transform: rotateY(-3.5deg) rotateX(0.5deg);
+}
+.cineR.open .r-card,
+.cineR.settled .r-card {
+  transform: rotateY(0deg) rotateX(0deg);
+}
+
+/* Double encadrement doré + fleurons d'angles. */
+.r-frame {
+  position: absolute;
+  inset: 7px;
+  border: 1.5px solid oklch(66% 0.085 82 / 0.9);
+  border-radius: 4px;
+  box-shadow:
+    inset 0 0 0 3.5px oklch(96% 0.014 84),
+    inset 0 0 0 4.5px oklch(70% 0.08 82 / 0.55);
+  background:
+    radial-gradient(circle at 0 0, oklch(70% 0.085 82) 2.2px, transparent 2.8px),
+    radial-gradient(circle at 100% 0, oklch(70% 0.085 82) 2.2px, transparent 2.8px),
+    radial-gradient(circle at 0 100%, oklch(70% 0.085 82) 2.2px, transparent 2.8px),
+    radial-gradient(circle at 100% 100%, oklch(70% 0.085 82) 2.2px, transparent 2.8px);
+}
+
+.r-crest {
+  font-size: 13px;
+  line-height: 1;
+  color: var(--c-gold-dk);
+  text-shadow: 0 0 10px oklch(80% 0.09 84 / 0.6);
+  margin-bottom: 10px;
+}
+
+.r-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 7.5px;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: oklch(56% 0.05 78);
+  margin-bottom: 10px;
+  opacity: 0;
+  transition: opacity 0.7s ease 0.3s;
+}
+.cineR.reveal .r-eyebrow {
+  opacity: 1;
+}
+
+/* Les prénoms GRAVÉS en or : creux (ombre claire dessous, sombre dessus),
+   interlettrage qui se résout, éclat qui traverse la carte. */
+.r-name {
+  display: block;
+  max-width: 186px;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 500;
+  font-size: 26px;
+  line-height: 1.14;
+  letter-spacing: 0.12em;
+  color: oklch(56% 0.09 80);
+  text-shadow:
+    0 1px 0 oklch(99% 0.008 88 / 0.9),
+    0 -0.5px 0 oklch(34% 0.05 66 / 0.4);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  opacity: 0;
+  transform: translateY(7px);
+  transition:
+    opacity 0.9s ease 0.35s,
+    letter-spacing 1.3s cubic-bezier(0.3, 0.7, 0.3, 1) 0.35s,
+    transform 0.9s var(--ease-out-quint) 0.35s;
+}
+.r-name.nb {
+  transition-delay: 0.75s;
+}
+.cineR.reveal .r-name {
+  opacity: 1;
+  letter-spacing: 0.015em;
+  transform: translateY(0);
+}
+.r-amp {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 4px 0;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 14px;
+  color: var(--c-gold-dk);
+  opacity: 0;
+  transform: scale(0.4);
+  transition:
+    opacity 0.5s ease 0.6s,
+    transform 0.6s cubic-bezier(0.34, 1.5, 0.5, 1) 0.6s;
+}
+.r-amp i {
+  font-style: normal;
+  font-size: 8px;
+  color: oklch(72% 0.08 82);
+}
+.cineR.reveal .r-amp {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Filet + date + lieu (phase open). */
+.r-filet {
+  position: relative;
+  width: 120px;
+  height: 7px;
+  margin: 12px 0 10px;
+  background:
+    linear-gradient(oklch(66% 0.08 82 / 0.8), oklch(66% 0.08 82 / 0.8)) 0 50% / 48px 1px no-repeat,
+    linear-gradient(oklch(66% 0.08 82 / 0.8), oklch(66% 0.08 82 / 0.8)) 100% 50% / 48px 1px
+      no-repeat;
+  opacity: 0;
+  transform: scaleX(0.3);
+  transition:
+    opacity 0.5s ease 0.25s,
+    transform 0.8s cubic-bezier(0.3, 0.9, 0.3, 1) 0.25s;
+}
+.r-filet::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 5px;
+  height: 5px;
+  margin: -2.5px 0 0 -2.5px;
+  rotate: 45deg;
+  background: oklch(72% 0.08 82);
+}
+.cineR.open .r-filet {
+  opacity: 1;
+  transform: scaleX(1);
+}
+.r-date,
+.r-venue {
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  opacity: 0;
+  transform: translateY(5px);
+  transition:
+    opacity 0.7s ease 0.5s,
+    transform 0.7s var(--ease-out-quint) 0.5s;
+}
+.r-date {
+  font-size: 9.5px;
+  letter-spacing: 0.2em;
+  color: oklch(38% 0.035 60);
+}
+.r-venue {
+  margin-top: 5px;
+  font-size: 7.5px;
+  letter-spacing: 0.16em;
+  color: oklch(52% 0.03 65);
+  max-width: 180px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition-delay: 0.7s;
+}
+.cineR.open .r-date,
+.cineR.open .r-venue {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Sceau de cire (teinté marque blanche) — il s'incline pour céder la place. */
+.r-seal {
+  position: absolute;
+  left: 50%;
+  bottom: 18px;
+  width: 34px;
+  height: 34px;
+  margin-left: -17px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 34% 28%, oklch(100% 0 0 / 0.35), transparent 42%),
+    radial-gradient(circle at 50% 55%, var(--c-wax), oklch(24% 0.09 18) 92%);
+  box-shadow:
+    0 3px 8px oklch(6% 0.02 20 / 0.55),
+    inset 0 0 0 2.5px oklch(0% 0 0 / 0.12);
+  transition: transform 1s cubic-bezier(0.3, 0.8, 0.3, 1) 0.2s;
+}
+.r-seal i {
+  position: absolute;
+  inset: 6px;
+  border-radius: 50%;
+  border: 1px solid oklch(96% 0.02 88 / 0.4);
+}
+.cineR.open .r-seal {
+  transform: translateY(4px) scale(0.86);
+}
+
+/* Éclat qui traverse la carte (une fois aux prénoms, doux au final). */
+.r-cardshine {
+  position: absolute;
+  top: -20%;
+  bottom: -20%;
+  left: -55%;
+  width: 40%;
+  transform: rotate(12deg);
+  background: linear-gradient(90deg, transparent, oklch(98% 0.03 92 / 0.28) 50%, transparent);
+  opacity: 0;
+}
+.cineR.reveal .r-cardshine {
+  animation: cineRShine 1.4s cubic-bezier(0.4, 0.1, 0.3, 1) 1.1s 1 forwards;
+}
+.cineR.settled .r-cardshine {
+  animation: cineRShineLoop 8s cubic-bezier(0.4, 0.1, 0.3, 1) 3s infinite;
+}
+@keyframes cineRShine {
+  0% {
+    left: -55%;
+    opacity: 1;
+  }
+  100% {
+    left: 125%;
+    opacity: 1;
+  }
+}
+@keyframes cineRShineLoop {
+  0% {
+    left: -55%;
+    opacity: 1;
+  }
+  16%,
+  100% {
+    left: 125%;
+    opacity: 1;
+  }
+}
+
+/* Étincelles montantes à la révélation des infos. */
+.r-sparks {
+  position: absolute;
+  left: 0;
+  top: 240px;
+  width: 0;
+  height: 0;
+}
+.r-sparks i {
+  position: absolute;
+  left: var(--px);
+  top: 0;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, oklch(94% 0.06 90), oklch(80% 0.09 84 / 0.6));
+  box-shadow: 0 0 6px oklch(86% 0.09 86 / 0.7);
+  opacity: 0;
+}
+.cineR.open .r-sparks i {
+  animation: cineRSpark 1.8s cubic-bezier(0.2, 0.6, 0.35, 1) var(--pd, 0s) 1;
+}
+@keyframes cineRSpark {
+  0% {
+    opacity: 0;
+    translate: 0 0;
+  }
+  14% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+    translate: 4px -66px;
+  }
+}
+
+/* ------------------- le mur des portes (traversé) ------------------------ */
+
+/* Groupe preserve-3d à z 60 : la façade couvre TOUT le cadre tant que les
+   portes sont fermées. À la phase hall, le mur AVANCE vers la caméra
+   (translateZ 940) : il « file » hors champ — traversée sans aucun fondu
+   (aucune opacité sur le groupe : elle aplatirait ses enfants 3D). */
+.r-doorwall {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  transform: translateZ(60px);
+  transition: transform 2s cubic-bezier(0.55, 0.06, 0.4, 1);
+  pointer-events: none;
+}
+.cineR.hall .r-doorwall {
+  transform: translateZ(940px);
+}
+
+/* Ciel de façade (au-dessus du fronton) : étoiles + lune SEULES — le ciel
+   lui-même est le fond du stage (aucune couture possible). */
+.r-fsky {
+  position: absolute;
+  left: -30%;
+  right: -30%;
+  top: -24%;
+  height: calc(24% + 118px);
+}
+.r-fsky i {
+  position: absolute;
+  border-radius: 50%;
+  background: oklch(95% 0.01 95);
+  opacity: 0.3;
+  animation: cineRStar 4.2s ease-in-out var(--sd, 0s) infinite;
+}
+.r-fsky .r-moon {
+  left: auto;
+  right: 18%;
+  top: 34%;
+  width: 30px;
+  height: 30px;
+  opacity: 1;
+  background: radial-gradient(circle at 42% 38%, oklch(97% 0.02 95), oklch(88% 0.04 90));
+  box-shadow: 0 0 30px oklch(92% 0.04 92 / 0.5);
+  animation: cineRMoon 6s ease-in-out infinite alternate;
+}
+@keyframes cineRMoon {
+  0% {
+    box-shadow: 0 0 24px oklch(92% 0.04 92 / 0.4);
+  }
+  100% {
+    box-shadow: 0 0 40px oklch(92% 0.04 92 / 0.65);
+  }
+}
+
+/* Fronton : corniche dorée + tympan + crête — fondu aux extrémités. */
+.r-pediment {
+  position: absolute;
+  left: -30%;
+  right: -30%;
+  top: 118px;
+  height: 46px;
+  background:
+    radial-gradient(circle at 50% 118%, oklch(72% 0.085 82) 7px, transparent 8px),
+    linear-gradient(180deg, oklch(30% 0.032 75), oklch(20% 0.024 70));
+  box-shadow:
+    inset 0 2px 0 oklch(64% 0.08 82 / 0.85),
+    inset 0 -2px 0 oklch(58% 0.075 80 / 0.7),
+    0 8px 18px oklch(4% 0.006 280 / 0.55);
+  mask-image: linear-gradient(90deg, transparent, black 16%, black 84%, transparent);
+}
+
+/* Murs latéraux (jambages) : maçonnerie + pilastres en creux. */
+.r-jamb {
+  position: absolute;
+  top: 164px;
+  bottom: -24%;
+  width: calc(30% + 84px);
+  background:
+    repeating-linear-gradient(0deg, transparent 0 44px, oklch(0% 0 0 / 0.2) 44px 45.5px),
+    linear-gradient(90deg, oklch(15% 0.018 292), oklch(21% 0.024 288) 70%, oklch(17% 0.02 290));
+}
+.r-jamb.jl {
+  left: -30%;
+  border-right: 2.5px solid oklch(58% 0.075 80 / 0.85);
+  mask-image: linear-gradient(90deg, transparent, black 42%);
+}
+.r-jamb.jr {
+  right: -30%;
+  border-left: 2.5px solid oklch(58% 0.075 80 / 0.85);
+  mask-image: linear-gradient(270deg, transparent, black 42%);
+}
+
+/* LES PORTES MONUMENTALES : bronze doré, caissons, heurtoirs. Elles
+   pivotent VERS L'INTÉRIEUR (rotateY sur charnières extérieures). */
+.r-door {
+  position: absolute;
+  top: 164px;
+  bottom: -24%;
+  width: 96px;
+  background:
+    linear-gradient(180deg, oklch(0% 0 0 / 0.24), transparent 22%, oklch(0% 0 0 / 0.3) 96%),
+    linear-gradient(90deg, oklch(38% 0.055 74), oklch(50% 0.07 80) 50%, oklch(34% 0.05 72));
+  box-shadow: inset 0 0 0 2px oklch(62% 0.08 82 / 0.8);
+  transition: transform 2.5s cubic-bezier(0.5, 0.05, 0.35, 1) 0.1s;
+}
+.r-door.dl {
+  left: 84px;
+  transform-origin: left center;
+}
+.r-door.dr {
+  right: 84px;
+  transform-origin: right center;
+}
+.cineR.gates .r-door.dl {
+  transform: rotateY(106deg);
+}
+.cineR.gates .r-door.dr {
+  transform: rotateY(-106deg);
+}
+/* Caissons dorés. */
+.r-door i.p1,
+.r-door i.p2 {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  border: 1.5px solid oklch(64% 0.08 82 / 0.85);
+  border-radius: 3px;
+  background: linear-gradient(160deg, oklch(46% 0.065 78 / 0.9), oklch(36% 0.05 72 / 0.9));
+  box-shadow: inset 0 0 12px oklch(24% 0.035 66 / 0.8);
+}
+.r-door i.p1 {
+  top: 16px;
+  height: 34%;
+}
+.r-door i.p2 {
+  top: calc(16px + 34% + 14px);
+  bottom: 18px;
+}
+.r-door i.knob {
+  position: absolute;
+  top: 46%;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 32%, oklch(90% 0.06 88), oklch(58% 0.075 78));
+  box-shadow: 0 0 8px oklch(80% 0.09 84 / 0.7);
+}
+.r-door.dl i.knob {
+  right: 7px;
+}
+.r-door.dr i.knob {
+  left: 7px;
+}
+/* Respiration dorée du battant fermé (lustre qui va et vient). */
+.r-door::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    100deg,
+    transparent 32%,
+    oklch(88% 0.07 86 / 0.14) 50%,
+    transparent 68%
+  );
+  opacity: 0.4;
+  animation: cineRDoorSheen 5s ease-in-out infinite alternate;
+}
+.r-door.dr::after {
+  animation-delay: 2.5s;
+}
+@keyframes cineRDoorSheen {
+  0% {
+    opacity: 0.12;
+  }
+  100% {
+    opacity: 0.6;
+  }
+}
+
+/* Torchères des jambages. */
+.r-torch {
+  position: absolute;
+  top: 296px;
+  width: 5px;
+  height: 26px;
+  border-radius: 3px;
+  background: linear-gradient(to bottom, oklch(62% 0.08 80), oklch(38% 0.05 70));
+}
+.r-torch.tl {
+  left: 44px;
+}
+.r-torch.tr {
+  right: 44px;
+}
+.r-torch .r-flame {
+  width: 9px;
+  height: 15px;
+  top: -14px;
+  margin-left: -4.5px;
+}
+
+/* -------------------- voiles plats (hors contexte 3D) -------------------- */
+
+/* Rai de lumière à l'ouverture des portes. */
+.r-blade {
+  position: absolute;
+  left: 50%;
+  top: 130px;
+  bottom: 24px;
+  width: 170px;
+  margin-left: -85px;
+  clip-path: polygon(46% 0, 54% 0, 82% 100%, 18% 100%);
+  background: linear-gradient(
+    to bottom,
+    oklch(97% 0.03 92 / 0.75),
+    oklch(94% 0.045 88 / 0.12) 78%,
+    transparent
+  );
+  mix-blend-mode: screen;
+  opacity: 0;
+  transform: scaleX(0.12);
+  transform-origin: 50% 0;
+  transition:
+    opacity 1.4s ease 0.5s,
+    transform 2.2s cubic-bezier(0.4, 0.1, 0.3, 1) 0.5s;
+  pointer-events: none;
+}
+.cineR.gates .r-blade {
+  opacity: 1;
+  transform: scaleX(1);
+}
+/* Il s'estompe dès la traversée (sinon il tache la carte) puis s'éteint. */
+.cineR.hall .r-blade {
+  opacity: 0.22;
+  transition: opacity 1.4s ease;
+}
+.cineR.reveal .r-blade {
+  opacity: 0;
+  transition: opacity 0.9s ease;
+}
+
+/* Envolée de pétales quand les portes cèdent. */
+.r-petals {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.r-petals i {
+  position: absolute;
+  left: 50%;
+  top: 64%;
+  width: 9px;
+  height: 7px;
+  border-radius: 60% 40% 55% 45%;
+  background: linear-gradient(140deg, oklch(84% 0.07 22), oklch(72% 0.09 18));
+  opacity: 0;
+}
+.cineR.gates .r-petals i {
+  animation: cineRPetal 2.6s cubic-bezier(0.25, 0.5, 0.4, 1) calc(0.7s + var(--pd, 0s)) 1;
+}
+@keyframes cineRPetal {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) rotate(0deg) scale(var(--ps, 1));
+  }
+  12% {
+    opacity: 0.95;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--ptx), var(--pty)) rotate(var(--pr)) scale(var(--ps, 1));
+  }
+}
+
+/* Poussière d'or en suspension (toujours). */
+.r-dust {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.r-dust i {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, oklch(92% 0.06 88), oklch(78% 0.08 84 / 0.5));
+  box-shadow: 0 0 5px oklch(85% 0.09 86 / 0.5);
+  opacity: 0;
+  animation: cineRDust var(--dt, 10s) linear var(--dd, 0s) infinite;
+}
+@keyframes cineRDust {
+  0% {
+    opacity: 0;
+    translate: 0 0;
+  }
+  12% {
+    opacity: 0.5;
+  }
+  55% {
+    translate: 6px -40px;
+    opacity: 0.38;
+  }
+  100% {
+    opacity: 0;
+    translate: -4px -84px;
+  }
+}
+
+/* Vignette cinéma. */
+.r-vign {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, oklch(5% 0.01 290 / 0.5), transparent 12%),
+    linear-gradient(0deg, oklch(5% 0.01 290 / 0.5), transparent 14%),
+    radial-gradient(130% 100% at 50% 44%, transparent 58%, oklch(5% 0.01 290 / 0.5) 100%);
+  pointer-events: none;
+}
+
+/* ----------------------- compte à rebours royal -------------------------- */
+
+.r-cd {
+  position: absolute;
+  left: 50%;
+  bottom: 14px;
+  transform: translateX(-50%);
+  width: 310px;
+  text-align: center;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.8s ease 0.5s;
+}
+.cineR.settled .r-cd {
+  opacity: 1;
+}
+.r-cd .lbl {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: oklch(72% 0.045 84);
+  margin-bottom: 6px;
+}
+/* Double filet d'or à losange central. */
+.r-rule {
+  position: relative;
+  display: block;
+  width: 250px;
+  height: 6px;
+  margin: 4px auto;
+  background:
+    linear-gradient(oklch(66% 0.08 82 / 0.7), oklch(66% 0.08 82 / 0.7)) 50% 1.5px / 100% 1px
+      no-repeat,
+    linear-gradient(oklch(66% 0.08 82 / 0.4), oklch(66% 0.08 82 / 0.4)) 50% 4.5px / 78% 1px
+      no-repeat;
+}
+.r-rule::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 5px;
+  height: 5px;
+  margin-left: -2.5px;
+  rotate: 45deg;
+  background: oklch(76% 0.085 84);
+}
+.r-cd .row {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 28px;
+  padding: 3px 0;
+}
+.r-cdc {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  opacity: 0;
+  transform: translateY(6px);
+  transition:
+    opacity 0.6s ease calc(var(--cdd, 0s) + 0.4s),
+    transform 0.6s var(--ease-out-quint) calc(var(--cdd, 0s) + 0.4s);
+}
+.cineR.settled .r-cdc {
+  opacity: 1;
+  transform: translateY(0);
+}
+.r-cdc b {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 500;
+  font-size: 28px;
+  line-height: 1;
+  color: oklch(88% 0.075 86);
+  text-shadow: 0 0 16px oklch(80% 0.09 85 / 0.4);
+}
+.r-cdc i {
+  font-family: var(--font-mono);
+  font-style: normal;
+  font-size: 7.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: oklch(60% 0.03 82);
+}
+
+.cineR-cue {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  color: oklch(76% 0.035 85);
+  transition: opacity 0.6s ease;
+  pointer-events: none;
+}
+.cineR-cue .t {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+}
+
+/* ------------------------- reduced / frozen ---------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .cineR *,
+  .cineR *::before,
+  .cineR *::after {
+    transition-duration: 0.01ms !important;
+    animation: none !important;
+  }
+  .cineR .r-doorwall,
+  .cineR .r-petals,
+  .cineR .r-dust,
+  .cineR .r-blade {
+    display: none;
+  }
+  .cineR .rx-camera {
+    transform: none !important;
+  }
+  .cineR .r-name {
+    letter-spacing: 0.015em;
+  }
+  .cineR .r-fw {
+    display: none;
+  }
+}
+.cineR.reduced *,
+.cineR.reduced *::before,
+.cineR.reduced *::after {
+  transition: none !important;
+  animation: none !important;
+}
+.cineR.reduced .r-doorwall,
+.cineR.reduced .r-petals,
+.cineR.reduced .r-dust,
+.cineR.reduced .r-blade,
+.cineR.reduced .r-fw {
+  display: none;
+}
+.cineR.reduced .rx-camera {
+  transform: none !important;
+}
+.cineR.reduced .r-name {
+  letter-spacing: 0.015em;
+}
+.cineR.frozen .r-flame,
+.cineR.frozen .r-fw i,
+.cineR.frozen .r-fw em,
+.cineR.frozen .r-wstar,
+.cineR.frozen .r-fsky i,
+.cineR.frozen .r-fsky .r-moon,
+.cineR.frozen .r-inv,
+.cineR.frozen .r-glow,
+.cineR.frozen .r-cardshine,
+.cineR.frozen .r-dust i,
+.cineR.frozen .r-petals i,
+.cineR.frozen .r-sparks i,
+.cineR.frozen .r-door::after {
+  animation: none;
+}

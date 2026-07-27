@@ -23,7 +23,8 @@ export interface InvoicePayment {
   issuedAt: number;
   /** Date de paiement (paid). */
   paidAt: number;
-  plan: PlanTier;
+  /** Plan pour un paiement de forfait ; absent pour un upsell HD post-event. */
+  plan?: PlanTier;
   amountMinor: number;
   currency: Currency;
   provider: 'stripe' | 'mock';
@@ -207,8 +208,11 @@ export interface InvoicePDFProps {
 export function InvoicePDF({ payment }: InvoicePDFProps) {
   const t = getServerTranslator(payment.locale);
   const { ht, vatRate, vatAmount } = vatBreakdown(payment);
-  const planLabel =
-    payment.plan === 'essential' ? t('Invoice.planEssentialFull') : t('Invoice.planPremiumFull');
+  const planLabel = payment.plan
+    ? payment.plan === 'essential'
+      ? t('Invoice.planEssentialFull')
+      : t('Invoice.planPremiumFull')
+    : t('Invoice.lineUpsellHd');
   const customerLines = [
     payment.customer.fullName,
     payment.customer.email,

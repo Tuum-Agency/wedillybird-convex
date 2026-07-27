@@ -56,3 +56,17 @@ export function routePayment(
 export function detectCountryFromHeaders(headers: Headers): string | undefined {
   return headers.get('x-vercel-ip-country') ?? headers.get('cf-ipcountry') ?? undefined;
 }
+
+/**
+ * Devise **par défaut** d'un pays de facturation — dérivée de la géographie, PAS
+ * de la langue d'UI. C'est la règle de découplage : le sélecteur de langue ne
+ * change que la traduction, jamais le prix (cf. `.context/pricing-v2.md` §
+ * « Règle devise »). USD pour les pays facturés en dollars (US/CA), EUR sinon.
+ *
+ * L'utilisateur peut toujours overrider explicitement via le sélecteur footer
+ * (`stores/currency-store.ts`) — un choix délibéré, distinct de la langue.
+ */
+export function currencyForCountry(country: string | undefined): Currency {
+  const code = (country ?? '').toUpperCase();
+  return USD_COUNTRIES.has(code) ? 'USD' : 'EUR';
+}

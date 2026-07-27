@@ -10,8 +10,10 @@ import { internal } from './_generated/api';
 import type { Doc, Id } from './_generated/dataModel';
 import { pickUniqueSlug } from './lib/uniqueSlug';
 import { eventQuotaForTier, eventHasFeature, orgHasActiveAccess } from './lib/entitlements';
+import { assertInvitationDesignAllowed } from './lib/invitationDesign';
 import { assertEventAccess } from './lib/eventAuth';
 import { assertOrgWrite } from './lib/orgAuth';
+import { BUDGET_CURRENCY } from './lib/currency';
 import { normalizePhone, isValidE164 } from './lib/phone';
 import { summarizeGuestRsvp } from './lib/guestStats';
 import { sanitizeRsvpConfig } from '../lib/rsvp/questions';
@@ -73,11 +75,41 @@ export const update = mutation({
         fontFamily: v.string(),
       }),
     ),
+    /** Cinématique d'ouverture (id du registre front). Gaté Premium/Pro hors sceau. */
+    invitationCinematic: v.optional(v.string()),
+    /** Musique de l'invitation. Gaté Premium/Pro. */
+    invitationMusic: v.optional(
+      v.object({
+        source: v.union(v.literal('library'), v.literal('custom')),
+        trackId: v.optional(v.string()),
+        s3Key: v.optional(v.string()),
+        title: v.optional(v.string()),
+      }),
+    ),
+    clearInvitationMusic: v.optional(v.boolean()),
+    /** Photo du couple (portrait de tête). Gaté Premium/Pro. */
+    invitationPhoto: v.optional(
+      v.object({
+        s3Key: v.string(),
+        width: v.optional(v.number()),
+        height: v.optional(v.number()),
+      }),
+    ),
+    clearInvitationPhoto: v.optional(v.boolean()),
+    /** Déroulé de la journée — array vide = efface le programme. */
+    ceremonySchedule: v.optional(
+      v.array(v.object({ time: v.string(), title: v.string(), note: v.optional(v.string()) })),
+    ),
   },
   handler: async (ctx, args) => {
     const ev = await ctx.db.get(args.eventId);
     if (!ev) throw new Error('EVENT_NOT_FOUND');
     if (ev.ownerId !== args.requesterId) throw new Error('FORBIDDEN');
+    assertInvitationDesignAllowed(ev, {
+      cinematic: args.invitationCinematic,
+      music: args.invitationMusic,
+      photo: args.invitationPhoto,
+    });
 
     const patch: Partial<Doc<'events'>> = {};
 
@@ -117,6 +149,44 @@ export const update = mutation({
 
     if (args.theme) {
       patch.theme = args.theme;
+    }
+
+    if (args.invitationCinematic !== undefined) {
+      // Le sceau est le défaut : on ne stocke rien (champ retiré au patch).
+      patch.invitationCinematic =
+        args.invitationCinematic === 'seal' ? undefined : args.invitationCinematic;
+    }
+    if (args.clearInvitationMusic) {
+      patch.invitationMusic = undefined;
+    } else if (args.invitationMusic) {
+      patch.invitationMusic =
+        args.invitationMusic.source === 'library'
+          ? { source: 'library', trackId: args.invitationMusic.trackId }
+          : {
+              source: 'custom',
+              s3Key: args.invitationMusic.s3Key,
+              title: args.invitationMusic.title?.slice(0, 120),
+            };
+    }
+    if (args.clearInvitationPhoto) {
+      patch.invitationPhoto = undefined;
+    } else if (args.invitationPhoto) {
+      patch.invitationPhoto = {
+        s3Key: args.invitationPhoto.s3Key,
+        width: args.invitationPhoto.width,
+        height: args.invitationPhoto.height,
+      };
+    }
+    if (args.ceremonySchedule !== undefined) {
+      const cleaned = args.ceremonySchedule
+        .map((s) => ({
+          time: s.time.trim().slice(0, 40),
+          title: s.title.trim().slice(0, 120),
+          note: s.note?.trim().slice(0, 200) || undefined,
+        }))
+        .filter((s) => s.title.length > 0 || s.time.length > 0)
+        .slice(0, 20);
+      patch.ceremonySchedule = cleaned.length > 0 ? cleaned : undefined;
     }
 
     patch.updatedAt = Date.now();
@@ -412,12 +482,16 @@ export const create = mutation({
      */
     pendingPlanTier: v.optional(v.union(v.literal('essential'), v.literal('premium'))),
     organizationId: v.optional(v.id('organizations')),
+    currency: v.optional(BUDGET_CURRENCY),
     /** État/province déclaré à la création (cf. `events.weddingState`). Optionnel. */
     weddingState: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const owner = await ctx.db.get(args.ownerId);
     if (!owner) throw new Error('OWNER_NOT_FOUND');
+
+    // Devise du budget : explicite > devise de l'org > préférence du couple.
+    const orgForCurrency = args.organizationId ? await ctx.db.get(args.organizationId) : null;
 
     // Garde-fou agence : un mariage rattaché à une organisation exige que (a) le
     // demandeur soit un membre habilité de l'orga et (b) l'orga ait **choisi un
@@ -427,9 +501,10 @@ export const create = mutation({
     // pas concerné.
     if (args.organizationId) {
       await assertOrgWrite(ctx, args.organizationId, args.ownerId);
-      const org = await ctx.db.get(args.organizationId);
-      if (!orgHasActiveAccess(org)) throw new Error('SUBSCRIPTION_REQUIRED');
+      if (!orgHasActiveAccess(orgForCurrency)) throw new Error('SUBSCRIPTION_REQUIRED');
     }
+
+    const currency = args.currency ?? orgForCurrency?.currency ?? owner.preferredCurrency;
 
     const title = args.title.trim();
     const partnerA = args.partnerA.trim();
@@ -460,6 +535,7 @@ export const create = mutation({
       // planTier left undefined until the owner pays (Essentiel or Premium).
       ...(args.pendingPlanTier ? { pendingPlanTier: args.pendingPlanTier } : {}),
       ...(args.organizationId ? { organizationId: args.organizationId } : {}),
+      ...(currency ? { currency } : {}),
       ...(args.weddingState?.trim()
         ? { weddingState: args.weddingState.trim().toUpperCase() }
         : {}),

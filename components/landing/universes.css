@@ -1,0 +1,57 @@
+/* Wedillybird — Bento des univers (landing, chap. 04B).
+   Rend les briques d'invitation (décor ambiant + cinématiques d'ouverture)
+   VIVANTES à l'intérieur d'une cellule de bento, alors qu'elles sont conçues
+   pour le plein écran de la page d'invitation. On ne fait que RE-SCOPER le
+   positionnement — aucun visuel n'est réinventé. */
+
+/* Décor ambiant d'un thème (pétales, neige, avion, perles, étoiles, lanternes,
+   braises…) confiné à la cellule : `.invd` passe de fixe (viewport) à absolu.
+   Ses enfants sont déjà en absolu (`.invd > *`), donc rien d'autre à toucher. */
+.uni-decor {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.uni-decor .invd {
+  position: absolute;
+  z-index: 0;
+}
+
+/* Cinématique d'ouverture jouée dans une cellule : la scène remplit la cellule
+   et l'échelle est pilotée par `--cine-scale` (posé par la cellule) pour que la
+   carte levée + l'enveloppe tiennent sans être rognées. */
+.uni-live {
+  position: absolute;
+  inset: 0;
+}
+.uni-live .cine2-stage,
+.uni-live [class$='-stage'] {
+  border-radius: inherit;
+}
+
+/* Pastille « animé » qui respire doucement sur les cellules jouées. */
+.uni-livedot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: uniLiveDot 1.8s ease-in-out infinite;
+}
+@keyframes uniLiveDot {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .uni-livedot {
+    animation: none;
+    opacity: 0.8;
+  }
+}

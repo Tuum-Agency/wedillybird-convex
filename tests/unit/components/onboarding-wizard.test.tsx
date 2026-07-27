@@ -21,6 +21,7 @@ vi.mock('next-intl', () => ({
     }
     return `${namespace ?? 'T'}.${key}`;
   },
+  useLocale: () => 'fr',
 }));
 
 // Mock Motion : passe les enfants directement, pas d'animations en jsdom.

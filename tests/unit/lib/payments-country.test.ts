@@ -1,5 +1,5 @@
 import { describe, expect, it, beforeEach, afterEach } from 'vitest';
-import { detectCountryFromHeaders, routePayment } from '@/lib/payments/country';
+import { currencyForCountry, detectCountryFromHeaders, routePayment } from '@/lib/payments/country';
 
 const ORIGINAL_DRIVER = process.env.PAYMENTS_DRIVER;
 
@@ -51,6 +51,22 @@ describe('payments/country — routePayment', () => {
       provider: 'mock',
       currency: 'XOF',
     });
+  });
+});
+
+describe('payments/country — currencyForCountry (devise = géographie, pas langue)', () => {
+  it('facture US/CA en USD', () => {
+    expect(currencyForCountry('US')).toBe('USD');
+    expect(currencyForCountry('CA')).toBe('USD');
+    expect(currencyForCountry('us')).toBe('USD'); // insensible à la casse
+  });
+
+  it('facture le reste du monde en EUR (FR, MA, SN, inconnu, absent)', () => {
+    expect(currencyForCountry('FR')).toBe('EUR');
+    expect(currencyForCountry('MA')).toBe('EUR');
+    expect(currencyForCountry('SN')).toBe('EUR');
+    expect(currencyForCountry('XX')).toBe('EUR');
+    expect(currencyForCountry(undefined)).toBe('EUR');
   });
 });
 

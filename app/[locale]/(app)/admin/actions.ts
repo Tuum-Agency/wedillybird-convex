@@ -560,3 +560,104 @@ export async function adminSendNewsletterAction(
     return { ok: false, error: msg(e) };
   }
 }
+
+export async function adminUpdatePhotoBookStatusAction(
+  orderId: string,
+  status: 'requested' | 'in_production' | 'shipped' | 'cancelled',
+): Promise<ActionResult> {
+  try {
+    const adminId = await requireAdmin();
+    const convex = getConvexServerClient();
+    await convex.mutation(convexApi.adminUpdatePhotoBookStatus, { adminId, orderId, status });
+    revalidatePath('/admin/photo-books');
+    return { ok: true };
+  } catch (e: unknown) {
+    return { ok: false, error: msg(e) };
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Rapports de bug — triage                                                  */
+/* -------------------------------------------------------------------------- */
+
+export async function adminUpdateBugStatusAction(
+  reportId: string,
+  status: 'open' | 'triaged' | 'resolved',
+): Promise<ActionResult> {
+  try {
+    const adminId = await requireAdmin();
+    await getConvexServerClient().mutation(convexApi.updateBugReportStatus, {
+      requesterId: adminId,
+      reportId,
+      status,
+    });
+    revalidatePath('/admin/bug-reports');
+    return { ok: true };
+  } catch (e: unknown) {
+    return { ok: false, error: msg(e) };
+  }
+}
+
+/** Récupère la capture (data URL) d'un rapport à la demande (exclue de la liste). */
+export async function adminGetBugScreenshotAction(
+  reportId: string,
+): Promise<{ ok: true; screenshot: string | null } | { ok: false; error: string }> {
+  try {
+    const adminId = await requireAdmin();
+    const report = await getConvexServerClient().query(convexApi.getBugReport, {
+      requesterId: adminId,
+      reportId,
+    });
+    return { ok: true, screenshot: report?.screenshot ?? null };
+  } catch (e: unknown) {
+    return { ok: false, error: msg(e) };
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Affiliation — création d'affilié (invitation-only) + activation           */
+/* -------------------------------------------------------------------------- */
+
+export async function adminCreateAffiliateAction(input: {
+  code: string;
+  kind: 'referral' | 'partner';
+  rewardType: 'credit' | 'cash';
+  rateBps: number;
+  buyerDiscountBps: number;
+  ownerEmail?: string;
+  displayName?: string;
+}): Promise<ActionResult> {
+  try {
+    const adminId = await requireAdmin();
+    const convex = getConvexServerClient();
+    await convex.mutation(convexApi.createAffiliate, {
+      adminId,
+      code: input.code,
+      kind: input.kind,
+      rewardType: input.rewardType,
+      rateBps: input.rateBps,
+      buyerDiscountBps: input.buyerDiscountBps,
+      ...(input.ownerEmail ? { ownerEmail: input.ownerEmail } : {}),
+      ...(input.displayName ? { displayName: input.displayName } : {}),
+    });
+    revalidatePath('/admin/affiliates');
+    return { ok: true };
+  } catch (e: unknown) {
+    return { ok: false, error: msg(e) };
+  }
+}
+
+export async function adminSetAffiliateStatusAction(
+  affiliateId: string,
+  status: 'active' | 'disabled',
+): Promise<ActionResult> {
+  try {
+    const adminId = await requireAdmin();
+    const convex = getConvexServerClient();
+    await convex.mutation(convexApi.setAffiliateStatus, { adminId, affiliateId, status });
+    revalidatePath('/admin/affiliates');
+    return { ok: true };
+  } catch (e: unknown) {
+    return { ok: false, error: msg(e) };
+  }
+}

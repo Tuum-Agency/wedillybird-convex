@@ -792,6 +792,31 @@
       "navAriaLabel": "Hauptnavigation",
       "language": "Sprache",
       "languageAriaLabel": "Sprache wählen"
+    },
+    "universes": {
+      "chapter": "KAPITEL 04B — DIE WELTEN",
+      "title": "Zwölf Öffnungen. Zwölf Welten.",
+      "subtitle": "Das Siegel ist erst der Anfang. Wähle die Inszenierung — ein sich hebender Vorhang, ein Feuerwerk, die erste Schneeflocke — und die ganze Einladungsseite kleidet sich in dasselbe Thema: Farben, Dekor, Countdown, bis zur Fußzeile.",
+      "galleryNote": "Dieselbe Karte, zwölf Themen",
+      "signatureBadge": "Signatur",
+      "custom": {
+        "heading": "Und alles lässt sich anpassen",
+        "cinematic": {
+          "title": "Die Inszenierung",
+          "desc": "Zwölf Öffnungen zur Wahl, jederzeit erneut abspielbar."
+        },
+        "music": {
+          "title": "Die Musik",
+          "desc": "Fünf hauseigene Stücke — oder eure eigene Datei."
+        },
+        "musicYours": "+ eure",
+        "photo": {
+          "title": "Euer Foto",
+          "desc": "Eures, im Herzen der Karte."
+        },
+        "included": "In Premium und allen Pro-Tarifen enthalten."
+      },
+      "liveTag": "Animiert"
     }
   },
   "Auth": {
@@ -1022,7 +1047,9 @@
     "galleryHint": "Von Gästen geteilte Fotos",
     "booleanYes": "Ja",
     "booleanNo": "Nein",
-    "requiredMark": "Erforderlich"
+    "requiredMark": "Erforderlich",
+    "openInvitation": "Einladung öffnen",
+    "tapSeal": "Auf das Siegel tippen"
   },
   "OrgPublic": {
     "poweredBy": "Bereitgestellt von",
@@ -3867,7 +3894,8 @@
         "event": "Zusätzliche gleichzeitige Hochzeit: 19 €/Monat (anteilig)"
       },
       "addons": "Add-ons: Zahlungen über Ihr eigenes Stripe-Konto, zusätzlicher Sitz +19 €/Monat, zusätzliche Hochzeit +19 €/Monat."
-    }
+    },
+    "usTaxNote": "Preise ohne Steuer. Eine lokale Steuer wird beim Bezahlen hinzugefügt."
   },
   "Upgrade": {
     "title": "Dein Paket aktivieren",
@@ -3933,7 +3961,8 @@
       "notFound": "Rechnung nicht gefunden.",
       "notPaid": "Die Rechnung ist verfügbar, sobald die Zahlung bestätigt ist.",
       "unknown": "Rechnung kann derzeit nicht erstellt werden."
-    }
+    },
+    "lineUpsellHd": "Post-wedding HD archive"
   },
   "InvoicePage": {
     "eyebrow": "Buchhaltung",
@@ -5407,5 +5436,114 @@
     "statePlaceholder": "Ort der Hochzeit auswählen…",
     "errorFeatureNotInPlan": "Die Gesichtssuche ist nur im Premium-Plan (oder den Pro-Plänen) verfügbar.",
     "errorForbidden": "Sie sind nicht berechtigt, diese Einstellung zu ändern."
+  },
+  "InvitationDesign": {
+    "photoSection": "Paarfoto",
+    "photoHint": "JPEG, PNG oder WebP · Hochformat empfohlen",
+    "photoAdd": "Foto hinzufügen",
+    "photoChange": "Euer Foto",
+    "photoReplace": "Ersetzen",
+    "photoRemove": "Foto entfernen",
+    "photoUploadErrors": {
+      "type": "Format nicht unterstützt (JPEG, PNG oder WebP)",
+      "size": "Bild zu groß (max. 15 MB)",
+      "network": "Upload fehlgeschlagen — bitte erneut versuchen"
+    },
+    "chooseFile": "Datei auswählen",
+    "cinematicSection": "Eröffnungs-Cinematic",
+    "customMusic": "Eure Musik",
+    "customMusicHint": "MP3 oder M4A, max. 10 MB",
+    "done": "Fertig",
+    "eyebrow": "Einladung",
+    "lockedBody": "Die Wahl der Cinematic und der Musik ist im Premium-Paket enthalten.",
+    "musicNone": "Ohne Musik",
+    "musicNoneDesc": "Die Einladung öffnet sich still",
+    "musicSection": "Musik",
+    "pause": "Stoppen",
+    "play": "Anhören",
+    "preview": "Vorschau",
+    "title": "Einladung personalisieren",
+    "uploading": "Wird hochgeladen…",
+    "themes": {
+      "seal": {
+        "name": "Das Siegel",
+        "desc": "Der versiegelte Umschlag öffnet sich in echter Tiefe – der Signature-Klassiker."
+      },
+      "fairepart": {
+        "name": "Die Einladungskarte",
+        "desc": "Drücke auf das Wachssiegel: es springt in 3D und die Karte öffnet sich zu eurem Foto."
+      },
+      "royal": {
+        "name": "Die königliche Einladung",
+        "desc": "Die Palasttore öffnen sich zu euren in Gold gravierten Namen — Feuerwerk zum Finale."
+      },
+      "floral": {
+        "name": "Die Blüte",
+        "desc": "Der Garten erwacht: Eure Namen werden unter dem Blütenbogen mit Tinte geschrieben."
+      },
+      "cake": {
+        "name": "Die Hochzeitstorte",
+        "desc": "Die Torte erhebt sich, eure Namen werden in Zuckerguss aufgespritzt, Kerzen brennen."
+      },
+      "voyage": {
+        "name": "Das Boarding",
+        "desc": "Das Kabinenfenster öffnet sich zur Morgendämmerung – die Bordkarte wird gedruckt und gestempelt."
+      },
+      "theatre": {
+        "name": "Der Vorhang",
+        "desc": "Der Vorhang hebt sich über dem Schwanensee – eure Namen in Leuchtreklame."
+      },
+      "etoiles": {
+        "name": "Die Konstellation",
+        "desc": "Die Nacht erwacht: ein Herz zeichnet sich von Stern zu Stern, eure Namen im Sternenlicht."
+      },
+      "lanternes": {
+        "name": "Die Laternen",
+        "desc": "Die Laternen leuchten auf und steigen – eure Namen scheinen durch das Papier."
+      },
+      "rivage": {
+        "name": "Das Ufer",
+        "desc": "Die Welle zieht sich zurück und eure Namen bleiben in den Sand geschrieben."
+      },
+      "feux": {
+        "name": "Das Feuerwerk",
+        "desc": "Raketen steigen auf; das Finale enthüllt eure Namen in Gold."
+      },
+      "deco": {
+        "name": "Das Art déco",
+        "desc": "Schwarz und Gold: der Rahmen zeichnet sich, eure Namen in goldenen Gatsby-Lettern."
+      },
+      "neige": {
+        "name": "Erste Schneeflocke",
+        "desc": "Schnee fällt, Frost überzieht das Glas – ein warmer Kreis enthüllt eure Namen."
+      }
+    },
+    "tracks": {
+      "aurore": {
+        "name": "Aurore",
+        "desc": "Intimes Klavier, morgendliche Wärme"
+      },
+      "jardin": {
+        "name": "Jardin",
+        "desc": "Fließende Harfe, Tautropfenglanz"
+      },
+      "celebration": {
+        "name": "Célébration",
+        "desc": "Hüpfende Marimba, Festlaune"
+      },
+      "envol": {
+        "name": "Envol",
+        "desc": "Luftige Arpeggien, weiter Himmel"
+      },
+      "harmonie": {
+        "name": "Harmonie",
+        "desc": "Weite Streicher, Mondlicht"
+      }
+    },
+    "uploadErrors": {
+      "type": "Nicht unterstütztes Format (MP3 oder M4A)",
+      "size": "Datei zu groß (max. 10 MB)",
+      "network": "Upload fehlgeschlagen – bitte erneut versuchen"
+    }
   }
 }

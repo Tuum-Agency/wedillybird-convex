@@ -7,7 +7,7 @@ import type {
   VerifiedWebhookEvent,
 } from '../provider';
 import type { Currency } from '../plans';
-import { isCurrency, priceIdForPlan } from '../plans';
+import { isCurrency, priceIdForPlan, priceIdForPostEventUpsell } from '../plans';
 import {
   priceIdForTier,
   tierForPriceId,
@@ -94,12 +94,16 @@ export const stripeDriver: PaymentDriver = {
         eventId: input.eventId,
         userId: input.userId,
         plan: input.plan,
+        ...(input.affiliateId ? { affiliateId: input.affiliateId } : {}),
+        ...(input.creditReservationId ? { creditReservationId: input.creditReservationId } : {}),
       },
       client_reference_id: `${input.userId}:${input.eventId}`,
       locale: 'auto',
-      // Permet aux couples de saisir un code promo (coupons plateforme) sur le
-      // checkout one-shot Essentiel/Premium — comme les abos pro et le PAYG.
-      allow_promotion_codes: true,
+      // Crédit de parrainage appliqué → coupon dédié (Stripe interdit `discounts`
+      // + `allow_promotion_codes` ensemble). Sinon, champ code promo ouvert.
+      ...(input.discountCouponId
+        ? { discounts: [{ coupon: input.discountCouponId }] }
+        : { allow_promotion_codes: true }),
     });
 
     if (!session.url) throw new Error('STRIPE_NO_REDIRECT_URL');
@@ -318,6 +322,140 @@ export async function createPaygCheckout(input: PaygCheckoutInput): Promise<Chec
   return { providerSessionId: session.id, redirectUrl: session.url };
 }
 
+/* -------------------------------------------------------------------------- */
+/*  Upsell HD post-event (one-shot particulier, +29 €) — compte plateforme     */
+/*                                                                            */
+/*  Distinct des forfaits Essentiel/Premium : ne change pas le `planTier`, il  */
+/*  prolonge la rétention galerie à 5 ans et débloque l'archive HD. Charge sur */
+/*  le compte **plateforme** (pas Connect). La métadonnée                       */
+/*  `kind: 'post-event-upsell'` route le webhook vers `applyPostEventUpsell`.   */
+/* -------------------------------------------------------------------------- */
+
+export type PostEventUpsellCheckoutInput = {
+  eventId: string;
+  /** Owner de l'event (= `requesterId` côté Convex). */
+  userId: string;
+  currency: Currency;
+  amountMinor: number;
+  successUrl: string;
+  cancelUrl: string;
+  /** Optional — coupon Stripe (crédit de parrainage appliqué). */
+  discountCouponId?: string;
+  /** Optional — token de réservation du crédit (metadata de session). */
+  creditReservationId?: string;
+};
+
+const POST_EVENT_UPSELL_LABEL = 'Wedillybird — Archive HD (galerie 5 ans)';
+const POST_EVENT_UPSELL_DESCRIPTION =
+  'Prolonge votre galerie à 5 ans après le mariage et débloque le téléchargement HD de toutes vos photos.';
+
+/**
+ * Crée un Stripe Checkout one-shot pour l'upsell HD post-event. Préfère le
+ * Stripe Price stable `STRIPE_PRICE_POST_EVENT_UPSELL[_<CURRENCY>]`, sinon
+ * `price_data` inline (dev). `metadata.kind === 'post-event-upsell'` est lu par
+ * `verifyAndParseSubscriptionWebhook`.
+ */
+export async function createPostEventUpsellCheckout(
+  input: PostEventUpsellCheckoutInput,
+): Promise<CheckoutSession> {
+  const stripe = getStripe();
+  if (input.currency === 'XOF' || input.currency === 'TND') {
+    throw new Error('UNSUPPORTED_STRIPE_CURRENCY');
+  }
+
+  const stablePrice = priceIdForPostEventUpsell(input.currency);
+  const lineItem = stablePrice
+    ? { quantity: 1, price: stablePrice }
+    : {
+        quantity: 1,
+        price_data: {
+          currency: input.currency.toLowerCase(),
+          unit_amount: toStripeAmount(input.amountMinor, input.currency),
+          product_data: {
+            name: POST_EVENT_UPSELL_LABEL,
+            description: POST_EVENT_UPSELL_DESCRIPTION,
+            metadata: { kind: 'post-event-upsell' },
+          },
+        },
+      };
+
+  const session = await stripe.checkout.sessions.create({
+    mode: 'payment',
+    payment_method_types: ['card'],
+    line_items: [lineItem],
+    success_url: appendSessionIdParam(input.successUrl),
+    cancel_url: input.cancelUrl,
+    metadata: {
+      kind: 'post-event-upsell',
+      eventId: input.eventId,
+      requesterId: input.userId,
+      ...(input.creditReservationId ? { creditReservationId: input.creditReservationId } : {}),
+    },
+    client_reference_id: `${input.userId}:${input.eventId}`,
+    locale: 'auto',
+    // Crédit de parrainage appliqué → coupon dédié (exclut le champ code promo).
+    ...(input.discountCouponId
+      ? { discounts: [{ coupon: input.discountCouponId }] }
+      : { allow_promotion_codes: true }),
+  });
+  if (!session.url) throw new Error('STRIPE_NO_REDIRECT_URL');
+  return { providerSessionId: session.id, redirectUrl: session.url };
+}
+
+export interface PostEventUpsellWebhookEvent {
+  kind: 'post-event-upsell';
+  eventId: string;
+  requesterId: string;
+  stripeSessionId: string;
+  amountMinor: number;
+  currency: Currency;
+  /** Token de réservation du crédit de parrainage (metadata de session), si posé. */
+  creditReservationId?: string;
+}
+
+/**
+ * Classe une session Checkout (déjà vérifiée et **payée**) comme upsell HD,
+ * ou null. Helper **pur** (pas d'appel réseau) → testable.
+ */
+export function classifyPostEventUpsellSession(
+  session: Pick<Stripe.Checkout.Session, 'id' | 'metadata' | 'currency' | 'amount_total'>,
+  eventType: string,
+): PostEventUpsellWebhookEvent | null {
+  if (eventType !== 'checkout.session.completed') return null;
+  if (session.metadata?.kind !== 'post-event-upsell') return null;
+  const eventId = session.metadata.eventId;
+  const requesterId = session.metadata.requesterId;
+  if (!eventId || !requesterId) return null;
+  const currencyRaw = (session.currency ?? '').toUpperCase();
+  if (!isCurrency(currencyRaw)) return null;
+  const stripeAmount = session.amount_total ?? 0;
+  const override = STRIPE_CURRENCY_DIVISOR_OVERRIDE[currencyRaw];
+  const creditReservationId = session.metadata.creditReservationId;
+  return {
+    kind: 'post-event-upsell',
+    eventId,
+    requesterId,
+    stripeSessionId: session.id,
+    amountMinor: override ? stripeAmount * override : stripeAmount,
+    currency: currencyRaw,
+    ...(creditReservationId ? { creditReservationId } : {}),
+  };
+}
+
+/**
+ * Récupère le statut d'une session Checkout d'upsell HD (compte plateforme),
+ * pour le fallback de la page de succès si le webhook est en retard. Renvoie
+ * null si la session n'est pas un upsell payé.
+ */
+export async function retrievePostEventUpsellSessionStatus(
+  sessionId: string,
+): Promise<PostEventUpsellWebhookEvent | null> {
+  const stripe = getStripe();
+  const session = await stripe.checkout.sessions.retrieve(sessionId);
+  if (session.payment_status !== 'paid') return null;
+  return classifyPostEventUpsellSession(session, 'checkout.session.completed');
+}
+
 export type SubscriptionWebhookEvent =
   | {
       kind: 'subscription.upserted';
@@ -354,7 +492,8 @@ export type SubscriptionWebhookEvent =
       stripeSessionId: string;
       amountMinor: number;
       currency: Currency;
-    };
+    }
+  | PostEventUpsellWebhookEvent;
 
 /**
  * Verify a webhook signature and parse it as a subscription-related event.
@@ -439,6 +578,16 @@ export async function verifyAndParseSubscriptionWebhook(
         typeof invoice.customer === 'string' ? invoice.customer : (invoice.customer?.id ?? ''),
       stripeSubscriptionId: subId,
     };
+  }
+
+  // Upsell HD post-event (particulier, one-shot plateforme) : checkout en mode
+  // `payment` avec `metadata.kind === 'post-event-upsell'`. Intercepté ici pour
+  // qu'il n'atteigne PAS le driver one-shot standard (`markSucceeded`), qui
+  // exige une ligne `payments` pré-enregistrée (recordIntent) absente ici.
+  if (event.type === 'checkout.session.completed') {
+    const session = event.data.object as Stripe.Checkout.Session;
+    const upsell = classifyPostEventUpsellSession(session, event.type);
+    if (upsell) return upsell;
   }
 
   // Pay-as-you-go pro : checkout one-shot en mode `payment` avec
@@ -1127,6 +1276,28 @@ function mapCoupon(c: Stripe.Coupon): AdminCoupon {
     createdAt: (c.created ?? 0) * 1000,
     appliesToProducts,
   };
+}
+
+/**
+ * Coupon Stripe montant-fixe à usage unique — crédit de parrainage appliqué à
+ * un checkout précis. `amount_off` dans la devise, `duration: once`, 1 seule
+ * redemption, expiration courte (24 h). Retourne l'id du coupon.
+ */
+export async function createOneTimeAmountCoupon(
+  amountOffMinor: number,
+  currency: Currency,
+): Promise<string> {
+  const stripe = getStripe();
+  const coupon = await stripe.coupons.create({
+    amount_off: toStripeAmount(amountOffMinor, currency),
+    currency: currency.toLowerCase(),
+    duration: 'once',
+    max_redemptions: 1,
+    redeem_by: Math.floor((Date.now() + 24 * 60 * 60 * 1000) / 1000),
+    name: 'Crédit de parrainage Wedillybird',
+    metadata: { wedillybird: 'referral_credit' },
+  });
+  return coupon.id;
 }
 
 /**

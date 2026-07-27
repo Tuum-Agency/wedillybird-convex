@@ -185,7 +185,7 @@ export default async function EventInvoicePage({
                       >
                         <td className="px-5 py-4 text-[color:var(--color-ink-700)]">{dateLabel}</td>
                         <td className="px-5 py-4 text-[color:var(--color-ink-900)]">
-                          {planLabel[payment.plan]}
+                          {payment.plan ? planLabel[payment.plan] : t('lineUpsellHd')}
                         </td>
                         <td className="px-5 py-4 font-medium text-[color:var(--color-ink-900)] tabular-nums">
                           {formatAmount(payment.amountMinor, payment.currency)}

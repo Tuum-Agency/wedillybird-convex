@@ -1,14 +1,16 @@
 'use client';
 /* Wedillybird — Espace couple · Écran 3 — Mon forfait (achat & gestion · one-shot)
-   Achat UNIQUE — jamais d'abonnement. (a) Choix · (b) Forfait actif + factures + upsell HD. */
+   Achat UNIQUE — jamais d'abonnement. (a) Choix · (b) Forfait actif + factures + upsell HD.
+   Câblé Convex : forfait/usage/factures depuis le store ; achats via /api/checkout
+   (même contrat que components/payments/upgrade-card et post-event-upsell-card). */
 
+import { useState, useTransition } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { Icon } from './icons';
 import { McBtn, Fleuron, Ornament, QuotaGauge } from './parts';
 import {
   MC_PLANS,
   MC_HD,
-  MC_INVOICES,
   MC_OVERAGES,
   mcEUR,
   mcDateLongNoWeekday,
@@ -19,6 +21,43 @@ import {
   type McPlan,
   type McPlanId,
 } from './data';
+import type { BudgetCurrency } from '@/lib/currency';
+import { toIsoDate, toMajor } from '@/lib/mon-mariage/adapt';
+import { useMonMariage } from '@/stores/mon-mariage';
+
+/** Lance un checkout Stripe (plan ou upsell HD) — redirection pleine page. */
+function useCheckout() {
+  const event = useMonMariage((st) => st.event);
+  const [pendingKind, setPendingKind] = useState<string | null>(null);
+  const [, startTransition] = useTransition();
+  const launch = (kind: 'essential' | 'premium' | 'upsell') => {
+    if (!event || pendingKind) return;
+    setPendingKind(kind);
+    startTransition(async () => {
+      try {
+        const isUpsell = kind === 'upsell';
+        const res = await fetch(isUpsell ? '/api/checkout/upsell' : '/api/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(
+            isUpsell
+              ? { eventId: event.id, currency: event.currency }
+              : { eventId: event.id, plan: kind, currency: event.currency },
+          ),
+        });
+        if (!res.ok) {
+          setPendingKind(null);
+          return;
+        }
+        const body = (await res.json()) as { redirectUrl: string };
+        window.location.assign(body.redirectUrl);
+      } catch {
+        setPendingKind(null);
+      }
+    });
+  };
+  return { launch, pendingKind };
+}
 
 /* ---------- (a) CHOIX — deux cartes premium ---------- */
 function PlanCardBuy({ plan, currentId }: { plan: McPlan; currentId: McPlanId | null }) {
@@ -26,6 +65,8 @@ function PlanCardBuy({ plan, currentId }: { plan: McPlan; currentId: McPlanId | 
   const tRoot = useTranslations('MonMariage');
   const tr = (key: string) => tRoot(key.replace(/^MonMariage\./, ''));
   const locale = useLocale();
+  const { launch, pendingKind } = useCheckout();
+  const planKind = plan.id === 'premium' ? 'premium' : 'essential';
   const isCurrent = plan.id === currentId;
   const planName = tr(plan.name);
   return (
@@ -41,7 +82,7 @@ function PlanCardBuy({ plan, currentId }: { plan: McPlan; currentId: McPlanId | 
         <div className="ptag">{tr(plan.tagline)}</div>
       </div>
       <div className="mc-plan-price">
-        <span className="amt">{mcEUR(plan.price, locale)}</span>
+        <span className="amt">{mcEUR(plan.price, locale, 'EUR')}</span>
         <span className="per">{t('once')}</span>
       </div>
       <ul className="mc-plan-feats">
@@ -58,7 +99,13 @@ function PlanCardBuy({ plan, currentId }: { plan: McPlan; currentId: McPlanId | 
           {t('currentPlan')}
         </span>
       ) : (
-        <McBtn variant={plan.featured ? 'halo' : 'outline'} size="lg" block>
+        <McBtn
+          variant={plan.featured ? 'halo' : 'outline'}
+          size="lg"
+          block
+          onClick={() => launch(planKind)}
+          disabled={pendingKind !== null}
+        >
           <Icon name="Heart" size={16} stroke={1.9} />
           {t('choosePlan', { name: planName })}
         </McBtn>
@@ -106,6 +153,10 @@ function ForfaitActif({ active, usage }: { active: McActive; usage: McUsage }) {
   const tRoot = useTranslations('MonMariage');
   const tr = (key: string) => tRoot(key.replace(/^MonMariage\./, ''));
   const locale = useLocale();
+  const { launch, pendingKind } = useCheckout();
+  const invoices = useMonMariage((st) => st.invoices);
+  const event = useMonMariage((st) => st.event);
+  const hdPurchased = Boolean(event?.hdUpsellPurchasedAt);
   const plan = MC_PLANS[active.planId];
   return (
     <div className="mc-active">
@@ -166,8 +217,10 @@ function ForfaitActif({ active, usage }: { active: McActive; usage: McUsage }) {
         </div>
       </div>
 
-      {/* surclassement unique (Essentiel → Premium) — un seul paiement, jamais un abonnement */}
-      {active.planId === 'essentiel' && (
+      {/* surclassement unique (Essentiel → Premium) : PAS de flow paiement dédié
+          aujourd'hui (le checkout facturerait plein tarif) → masqué tant que le
+          prorata n'existe pas côté /api/checkout. */}
+      {false && active.planId === 'essentiel' && (
         <div className="mc-upgrade">
           <span className="uv">
             <Icon name="ArrowUpRight" size={24} stroke={1.9} />
@@ -179,7 +232,7 @@ function ForfaitActif({ active, usage }: { active: McActive; usage: McUsage }) {
           </div>
           <div className="ua">
             <span className="pr">
-              +{mcEUR(MC_PLANS.premium.price - MC_PLANS.essentiel.price, locale)}
+              +{mcEUR(MC_PLANS.premium.price - MC_PLANS.essentiel.price, locale, 'EUR')}
               <small>{t('onceShort')}</small>
             </span>
             <McBtn variant="primary" size="md">
@@ -202,13 +255,25 @@ function ForfaitActif({ active, usage }: { active: McActive; usage: McUsage }) {
         </div>
         <div className="ua">
           <span className="pr">
-            {mcEUR(MC_HD.price, locale)}
+            {mcEUR(MC_HD.price, locale, 'EUR')}
             <small>{t('onceShort')}</small>
           </span>
-          <McBtn variant="halo" size="md">
-            <Icon name="Download" size={16} stroke={1.9} />
-            {t('archiveForever')}
-          </McBtn>
+          {hdPurchased ? (
+            <span className="mc-pill ok">
+              <span className="d" />
+              {t('upsellPurchased')}
+            </span>
+          ) : (
+            <McBtn
+              variant="halo"
+              size="md"
+              onClick={() => launch('upsell')}
+              disabled={pendingKind !== null}
+            >
+              <Icon name="Download" size={16} stroke={1.9} />
+              {t('archiveForever')}
+            </McBtn>
+          )}
         </div>
       </div>
 
@@ -219,24 +284,34 @@ function ForfaitActif({ active, usage }: { active: McActive; usage: McUsage }) {
           <Fleuron size={13} />
         </div>
         <div className="mc-invoices" style={{ marginTop: 10 }}>
-          {MC_INVOICES.map((inv) => (
-            <div className="mc-invoice" key={inv.id}>
-              <span className="iic">
-                <Icon name="FileText" size={18} stroke={1.7} />
-              </span>
-              <div className="ii">
-                <b>{inv.id}</b>
-                <span>
-                  {tr(inv.label)} · {mcDateLongNoWeekday(inv.date, locale)}
+          {invoices.length === 0 && <div className="mc-guest-empty">{t('noInvoices')}</div>}
+          {invoices.map((inv) => {
+            const labelKey =
+              inv.kind === 'post_event_upsell'
+                ? 'MonMariage.data.invoices.hdUpsell'
+                : inv.plan === 'premium'
+                  ? 'MonMariage.data.invoices.premiumPlan'
+                  : 'MonMariage.data.invoices.essentielPlan';
+            const ref = `WB-${inv.id.slice(-8).toUpperCase()}`;
+            const dateIso = event ? toIsoDate(inv.paidAt, event.timezone) : '';
+            return (
+              <div className="mc-invoice" key={inv.id}>
+                <span className="iic">
+                  <Icon name="FileText" size={18} stroke={1.7} />
+                </span>
+                <div className="ii">
+                  <b>{ref}</b>
+                  <span>
+                    {tr(labelKey)}
+                    {dateIso ? ` · ${mcDateLongNoWeekday(dateIso, locale)}` : ''}
+                  </span>
+                </div>
+                <span className="iamt">
+                  {mcEUR(toMajor(inv.amountMinor), locale, inv.currency as BudgetCurrency)}
                 </span>
               </div>
-              <span className="iamt">{mcEUR(inv.amount, locale)}</span>
-              <McBtn variant="outline" size="sm" className="idl" ariaLabel={t('downloadReceipt')}>
-                <Icon name="Download" size={14} stroke={1.9} />
-                {t('receiptPdf')}
-              </McBtn>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </section>
 
@@ -265,18 +340,9 @@ function ForfaitActif({ active, usage }: { active: McActive; usage: McUsage }) {
 
 /* Achat one-shot : pas d'abonnement, donc pas de « changement de forfait ».
    view='choix' = état AVANT achat (page d'acquisition) · view='actif' = gestion après achat. */
-export function ForfaitScreen({
-  active,
-  usage,
-  view = 'actif',
-}: {
-  active: McActive;
-  usage: McUsage;
-  view?: 'choix' | 'actif';
-}) {
-  return view === 'choix' ? (
-    <ForfaitChoix currentId={null} />
-  ) : (
-    <ForfaitActif active={active} usage={usage} />
-  );
+export function ForfaitScreen({ view = 'actif' }: { view?: 'choix' | 'actif' }) {
+  const active = useMonMariage((st) => st.active);
+  const usage = useMonMariage((st) => st.usage);
+  if (view === 'choix' || !active) return <ForfaitChoix currentId={null} />;
+  return <ForfaitActif active={active} usage={usage} />;
 }

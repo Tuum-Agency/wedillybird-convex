@@ -121,6 +121,41 @@ export async function POST(
           return NextResponse.json({ ok: true, kind: 'payg.purchased' });
         }
 
+        if (subscriptionEvent.kind === 'post-event-upsell') {
+          const result = await convex.mutation(convexApi.applyPostEventUpsell, {
+            webhookSecret,
+            eventId: subscriptionEvent.eventId,
+            requesterId: subscriptionEvent.requesterId,
+            provider: 'stripe',
+            providerSessionId: subscriptionEvent.stripeSessionId,
+            amountMinor: subscriptionEvent.amountMinor,
+            currency: subscriptionEvent.currency,
+            creditReservationId: subscriptionEvent.creditReservationId,
+          });
+
+          // Revenu : `purchase_completed` une seule fois (idempotence via
+          // `alreadyApplied`). On exclut donc les renvois de webhook Stripe.
+          if (!result.alreadyApplied) {
+            await captureServer({
+              distinctId: subscriptionEvent.requesterId,
+              event: EVENTS.purchaseCompleted,
+              properties: {
+                plan: 'post_event_upsell',
+                currency: subscriptionEvent.currency,
+                amount_minor: subscriptionEvent.amountMinor,
+                revenue: subscriptionEvent.amountMinor / 100,
+                event_id: subscriptionEvent.eventId,
+                provider: 'stripe',
+              },
+            });
+          }
+          return NextResponse.json({
+            ok: true,
+            kind: 'post-event-upsell',
+            alreadyApplied: result.alreadyApplied,
+          });
+        }
+
         // invoice.paid / invoice.payment_failed: schema unchanged here.
         // Pro-notification emails are queued by Convex via the org subscription
         // mutation flow when needed.

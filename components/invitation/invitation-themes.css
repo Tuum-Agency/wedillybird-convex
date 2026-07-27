@@ -1,0 +1,1278 @@
+/* Wedillybird — Peaux de la PAGE d'invitation par cinématique.
+   Le wrapper de contenu du shell porte `data-inv-theme` : on y REMAPPE les
+   design tokens (le markup des pages reste inchangé — tout est en
+   var(--color-…)) + on skinne les ancres visuelles (compte à rebours,
+   cartes) ; le décor ambiant (`InvitationThemeDecor`) pose le fond fixe.
+   `seal` = zéro override (page éditoriale historique). */
+
+/* ------------------------------ commun --------------------------------- */
+
+.invd {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.invd > * {
+  position: absolute;
+}
+.invd .invd-bg {
+  inset: 0;
+}
+.invd-dust {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, oklch(92% 0.08 88), oklch(76% 0.1 82));
+  box-shadow: 0 0 6px oklch(85% 0.09 85 / 0.8);
+  opacity: 0;
+  animation: invdDust 7s ease-in-out infinite;
+}
+.invd-dust.d1 {
+  left: 12%;
+  top: 30%;
+}
+.invd-dust.d2 {
+  left: 86%;
+  top: 22%;
+  animation-delay: 2.4s;
+}
+.invd-dust.d3 {
+  left: 74%;
+  top: 62%;
+  animation-delay: 4.2s;
+}
+@keyframes invdDust {
+  0%,
+  100% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  30%,
+  70% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 0.7;
+    transform: translateY(-8px);
+  }
+}
+
+/* ------------------------------- FLORAL -------------------------------- */
+
+[data-inv-theme='floral'] {
+  --color-ivory-50: oklch(97.8% 0.012 115);
+  --color-surface: oklch(99.2% 0.006 110);
+  --color-border: oklch(88.5% 0.026 132);
+  --color-border-strong: oklch(80% 0.035 135);
+}
+.invd-floral .invd-bg {
+  background:
+    radial-gradient(70% 45% at 50% -6%, oklch(96.5% 0.025 90 / 0.9), transparent 70%),
+    radial-gradient(90% 50% at 50% 112%, oklch(92% 0.038 140 / 0.5), transparent 62%),
+    oklch(97.8% 0.012 115);
+}
+.invd-f-meadow {
+  left: -4%;
+  right: -4%;
+  bottom: -12px;
+  height: 120px;
+  background: radial-gradient(60% 100% at 50% 100%, oklch(88% 0.045 142 / 0.35), transparent 78%);
+}
+.invd-f-corner {
+  width: 0;
+  height: 0;
+}
+.invd-f-corner.ca {
+  left: 30px;
+  top: 34px;
+}
+.invd-f-corner.cb {
+  right: 74px;
+  top: 60px;
+}
+.invd-bloom {
+  position: absolute;
+  width: 0;
+  height: 0;
+  animation: invdFloat 7s ease-in-out infinite alternate;
+}
+.invd-f-corner .b0 {
+  --bs: 34px;
+  left: 0;
+  top: 0;
+}
+.invd-f-corner .b1 {
+  --bs: 22px;
+  left: 34px;
+  top: 26px;
+  animation-delay: 1.6s;
+}
+.invd-f-corner .b2 {
+  --bs: 16px;
+  left: 6px;
+  top: 44px;
+  animation-delay: 3s;
+}
+.invd-bloom i {
+  position: absolute;
+  left: calc(var(--bs) * -0.095);
+  bottom: 0;
+  width: calc(var(--bs) * 0.19);
+  height: calc(var(--bs) * 0.3);
+  border-radius: 55% 55% 48% 48% / 68% 68% 34% 34%;
+  transform-origin: 50% 100%;
+  background: linear-gradient(to top, oklch(80% 0.075 20 / 0.8), oklch(88% 0.055 18 / 0.85) 70%);
+}
+.invd-bloom em {
+  position: absolute;
+  left: calc(var(--bs) * -0.07);
+  top: calc(var(--bs) * -0.07);
+  width: calc(var(--bs) * 0.14);
+  height: calc(var(--bs) * 0.14);
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 32%, oklch(90% 0.09 90), var(--color-gold-500));
+}
+@keyframes invdFloat {
+  0% {
+    translate: 0 0;
+  }
+  100% {
+    translate: 0 -6px;
+  }
+}
+.invd-f-petal {
+  width: 12px;
+  height: 17px;
+  border-radius: 55% 55% 48% 48% / 68% 68% 34% 34%;
+  background: linear-gradient(to top, oklch(80% 0.075 20 / 0.7), oklch(88% 0.055 18 / 0.75));
+  opacity: 0;
+  animation: invdPetal 13s linear infinite;
+}
+.invd-f-petal.p1 {
+  left: 22%;
+  top: -4%;
+}
+.invd-f-petal.p2 {
+  left: 70%;
+  top: -4%;
+  animation-delay: 6.5s;
+}
+@keyframes invdPetal {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  6% {
+    opacity: 0.6;
+  }
+  50% {
+    transform: translate3d(-30px, 46vh, 0) rotate(160deg);
+  }
+  94% {
+    opacity: 0.4;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(18px, 96vh, 0) rotate(320deg);
+  }
+}
+[data-inv-theme='floral'] .inv-wcd-cell {
+  border-radius: 22px 22px 26px 26px;
+  background: oklch(99.4% 0.005 110 / 0.72);
+}
+[data-inv-theme='floral'] .inv-card {
+  border-radius: 26px;
+}
+
+/* -------------------------------- CAKE ---------------------------------- */
+
+[data-inv-theme='cake'] {
+  --color-ivory-50: oklch(21.5% 0.024 48);
+  --color-ivory-100: oklch(24.5% 0.025 50);
+  --color-ivory-200: oklch(28.5% 0.026 52);
+  --color-surface: oklch(26.5% 0.026 52);
+  --color-surface-elevated: oklch(29% 0.027 53);
+  --color-surface-warm: oklch(26% 0.028 48);
+  --color-blush-50: oklch(25.5% 0.03 42);
+  --color-ink-900: oklch(94.5% 0.015 85);
+  --color-ink-700: oklch(84% 0.02 80);
+  --color-ink-500: oklch(68.5% 0.02 77);
+  --color-border: oklch(35% 0.028 55);
+  --color-border-strong: oklch(45% 0.035 58);
+  --color-muted-foreground: oklch(62% 0.02 76);
+  --shadow-soft: 0 18px 44px oklch(6% 0.01 45 / 0.5);
+  --shadow-blush: 0 18px 44px oklch(6% 0.01 45 / 0.5);
+}
+.invd-cake .invd-bg {
+  background:
+    radial-gradient(78% 42% at 50% -4%, oklch(33% 0.04 58 / 0.9), transparent 70%),
+    radial-gradient(80% 50% at 50% 108%, oklch(28% 0.035 55 / 0.8), transparent 62%),
+    linear-gradient(180deg, oklch(24% 0.026 50), oklch(18% 0.02 44));
+}
+.invd-k-spot {
+  left: 50%;
+  top: -140px;
+  width: 560px;
+  height: 420px;
+  margin-left: -280px;
+  background: radial-gradient(closest-side, oklch(74% 0.09 70 / 0.16), transparent 72%);
+  filter: blur(10px);
+}
+/* Rang de perles dorées sous le haut de page. */
+.invd-k-pearls {
+  left: 50%;
+  top: 46px;
+  width: 210px;
+  margin-left: -105px;
+  height: 7px;
+  background: radial-gradient(
+    circle at 5px 3.5px,
+    oklch(78% 0.085 84 / 0.7) 2.2px,
+    transparent 2.8px
+  );
+  background-size: 15px 7px;
+  background-repeat: repeat-x;
+}
+[data-inv-theme='cake'] .inv-wcd-cell {
+  background: oklch(27% 0.027 52 / 0.92);
+  position: relative;
+  overflow: hidden;
+}
+/* Nappage : festons discrets en tête de chaque cellule. */
+[data-inv-theme='cake'] .inv-wcd-cell::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: 4px;
+  right: 4px;
+  height: 9px;
+  background: radial-gradient(
+    circle at 7px -1px,
+    oklch(81% 0.065 22 / 0.75) 5.5px,
+    transparent 6.2px
+  );
+  background-size: 16px 9px;
+  background-repeat: repeat-x;
+}
+[data-inv-theme='cake'] .inv-card {
+  background:
+    linear-gradient(180deg, oklch(30% 0.028 54 / 0.65), transparent 26%), oklch(26.5% 0.026 52);
+}
+
+/* ------------------------------- VOYAGE --------------------------------- */
+
+[data-inv-theme='voyage'] {
+  --color-surface: oklch(99% 0.008 85 / 0.94);
+  --color-border: oklch(80% 0.028 262 / 0.85);
+  --color-border-strong: oklch(66% 0.04 262);
+  --color-ink-500: oklch(46% 0.032 262);
+  --color-muted-foreground: oklch(52% 0.03 262);
+}
+.invd-voyage .invd-bg {
+  background: linear-gradient(
+    180deg,
+    oklch(74% 0.055 262) 0%,
+    oklch(83% 0.048 310) 30%,
+    oklch(90% 0.045 25) 56%,
+    oklch(93.5% 0.048 70) 78%,
+    oklch(96% 0.028 85) 100%
+  );
+}
+.invd-v-cloud {
+  width: 130px;
+  height: 36px;
+  border-radius: 50%;
+  background: oklch(98% 0.008 90 / 0.85);
+  box-shadow:
+    28px -13px 0 -4px oklch(98% 0.008 90 / 0.82),
+    -32px -9px 0 -6px oklch(97.5% 0.01 88 / 0.78),
+    9px -19px 0 -2px oklch(98.5% 0.006 92 / 0.88);
+  filter: blur(1.5px);
+  animation: invdCloud 13s ease-in-out infinite alternate;
+}
+.invd-v-cloud.c1 {
+  left: 4%;
+  bottom: 10%;
+  scale: 1.15;
+}
+.invd-v-cloud.c2 {
+  left: 52%;
+  bottom: 4%;
+  scale: 1.7;
+  animation-delay: 2.4s;
+}
+.invd-v-cloud.c3 {
+  left: 82%;
+  bottom: 16%;
+  scale: 0.9;
+  animation-delay: 5s;
+}
+@keyframes invdCloud {
+  0% {
+    translate: -10px 0;
+  }
+  100% {
+    translate: 10px 0;
+  }
+}
+/* Route pointillée + petit avion en papier. */
+.invd-v-route {
+  left: -4%;
+  top: 15%;
+  width: 74%;
+  border-top: 2px dashed oklch(98% 0.008 90 / 0.55);
+  transform: rotate(-7deg);
+}
+.invd-v-plane {
+  left: 68%;
+  top: 9.5%;
+  width: 30px;
+  height: 30px;
+  filter: drop-shadow(0 3px 5px oklch(40% 0.04 262 / 0.3));
+  animation: invdPlane 6s ease-in-out infinite alternate;
+}
+.invd-v-plane i {
+  position: absolute;
+  inset: 0;
+}
+.invd-v-plane .w1 {
+  clip-path: polygon(0 18%, 100% 46%, 30% 58%);
+  background: oklch(99% 0.005 90);
+}
+.invd-v-plane .w2 {
+  clip-path: polygon(0 18%, 30% 58%, 40% 94%);
+  background: oklch(86% 0.02 262);
+}
+@keyframes invdPlane {
+  0% {
+    translate: 0 0;
+    rotate: -2deg;
+  }
+  100% {
+    translate: 0 -8px;
+    rotate: 2deg;
+  }
+}
+/* Compte à rebours en tableau des départs. */
+[data-inv-theme='voyage'] .inv-wcd-cell {
+  background: oklch(23% 0.025 262 / 0.94);
+  border-radius: 10px;
+  position: relative;
+  overflow: hidden;
+}
+[data-inv-theme='voyage'] .inv-wcd-cell::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1.5px;
+  background: oklch(34% 0.02 260 / 0.9);
+}
+[data-inv-theme='voyage'] .inv-wcd-num {
+  color: oklch(95.5% 0.006 90) !important;
+  font-family: var(--font-mono) !important;
+  font-weight: 500 !important;
+  letter-spacing: 0 !important;
+}
+/* Cartes façon billet : bord perforé à gauche. */
+[data-inv-theme='voyage'] .inv-card {
+  position: relative;
+  border-style: dashed;
+  border-radius: 14px;
+}
+[data-inv-theme='voyage'] .inv-card::before {
+  content: '';
+  position: absolute;
+  left: 9px;
+  top: 10px;
+  bottom: 10px;
+  width: 4px;
+  background-image: radial-gradient(circle at 2px 6px, oklch(84% 0.025 262) 2px, transparent 2.6px);
+  background-size: 4px 14px;
+  background-repeat: repeat-y;
+  pointer-events: none;
+}
+
+/* ------------------------------- THEATRE -------------------------------- */
+
+[data-inv-theme='theatre'] {
+  --color-ivory-50: oklch(14.5% 0.012 295);
+  --color-ivory-100: oklch(17.5% 0.013 297);
+  --color-ivory-200: oklch(21% 0.015 298);
+  --color-surface: oklch(19.5% 0.015 300);
+  --color-surface-elevated: oklch(22% 0.016 300);
+  --color-surface-warm: oklch(19% 0.016 295);
+  --color-blush-50: oklch(19.5% 0.02 320);
+  --color-ink-900: oklch(92.5% 0.028 88);
+  --color-ink-700: oklch(81% 0.02 87);
+  --color-ink-500: oklch(64% 0.018 88);
+  --color-border: oklch(31% 0.018 295);
+  --color-border-strong: oklch(42% 0.025 298);
+  --color-muted-foreground: oklch(58% 0.018 88);
+  --shadow-soft: 0 20px 48px oklch(4% 0.008 290 / 0.65);
+  --shadow-blush: 0 20px 48px oklch(4% 0.008 290 / 0.65);
+}
+.invd-theatre .invd-bg {
+  background:
+    radial-gradient(70% 40% at 50% -6%, oklch(22% 0.02 300 / 0.9), transparent 70%),
+    linear-gradient(180deg, oklch(16.5% 0.013 298), oklch(12% 0.01 290));
+}
+.invd-t-moon {
+  right: 10%;
+  top: 6%;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 42% 38%, oklch(97% 0.02 95), oklch(88% 0.04 90));
+  box-shadow: 0 0 38px oklch(92% 0.04 92 / 0.45);
+}
+.invd-t-star {
+  width: 2.5px;
+  height: 2.5px;
+  border-radius: 50%;
+  background: oklch(96% 0.01 95);
+  opacity: 0.25;
+  animation: invdStar 3.8s ease-in-out infinite;
+}
+@keyframes invdStar {
+  0%,
+  100% {
+    opacity: 0.18;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+.invd-t-cone {
+  left: 50%;
+  top: 0;
+  width: 300px;
+  height: 60vh;
+  margin-left: -150px;
+  clip-path: polygon(44% 0, 56% 0, 86% 100%, 14% 100%);
+  background: linear-gradient(to bottom, oklch(97% 0.015 95 / 0.1), transparent 82%);
+  mix-blend-mode: screen;
+}
+/* Pans de velours aux extrémités. */
+.invd-t-wing {
+  top: -2%;
+  bottom: -2%;
+  width: 16px;
+  background: repeating-linear-gradient(
+    90deg,
+    oklch(40% 0.125 18) 0 6px,
+    oklch(27% 0.1 16) 8px 14px
+  );
+  opacity: 0.8;
+  box-shadow: 0 0 22px oklch(6% 0.01 290 / 0.7);
+}
+.invd-t-wing.wl {
+  left: 0;
+}
+.invd-t-wing.wr {
+  right: 0;
+}
+[data-inv-theme='theatre'] .inv-wcd-cell {
+  background: oklch(20% 0.016 300 / 0.9);
+}
+[data-inv-theme='theatre'] .inv-wcd-num {
+  font-family: var(--font-display) !important;
+  font-style: italic;
+  font-weight: 500 !important;
+  color: oklch(87% 0.075 86) !important;
+  text-shadow: 0 0 18px oklch(80% 0.09 85 / 0.35);
+}
+[data-inv-theme='theatre'] .inv-card {
+  background:
+    linear-gradient(180deg, oklch(24% 0.018 300 / 0.6), transparent 30%), oklch(19.5% 0.015 300);
+  border: 1px solid oklch(52% 0.06 82 / 0.45);
+}
+
+/* Mouvement réduit : décor figé. */
+@media (prefers-reduced-motion: reduce) {
+  .invd *,
+  .invd *::before,
+  .invd *::after {
+    animation: none !important;
+  }
+  .invd-dust,
+  .invd-f-petal {
+    display: none;
+  }
+}
+
+/* ------------------------------- ETOILES -------------------------------- */
+
+[data-inv-theme='etoiles'] {
+  --color-ivory-50: oklch(16% 0.028 268);
+  --color-ivory-100: oklch(19% 0.028 270);
+  --color-ivory-200: oklch(22.5% 0.028 272);
+  --color-surface: oklch(20.5% 0.03 270);
+  --color-surface-elevated: oklch(23% 0.03 271);
+  --color-surface-warm: oklch(20% 0.032 275);
+  --color-blush-50: oklch(20% 0.032 290);
+  --color-ink-900: oklch(94% 0.018 92);
+  --color-ink-700: oklch(82% 0.016 90);
+  --color-ink-500: oklch(64% 0.018 280);
+  --color-border: oklch(32% 0.028 272);
+  --color-border-strong: oklch(43% 0.032 274);
+  --color-muted-foreground: oklch(60% 0.018 278);
+  --shadow-soft: 0 20px 48px oklch(6% 0.014 265 / 0.6);
+  --shadow-blush: 0 20px 48px oklch(6% 0.014 265 / 0.6);
+}
+.invd-etoiles .invd-bg {
+  background: linear-gradient(180deg, oklch(17% 0.03 268), oklch(12.5% 0.022 262));
+}
+.invd-s-milky {
+  left: -30%;
+  top: 4%;
+  width: 160%;
+  height: 30%;
+  background: linear-gradient(to bottom, transparent, oklch(60% 0.03 280 / 0.13) 45%, transparent);
+  rotate: -14deg;
+  filter: blur(7px);
+}
+.invd-s-star {
+  width: 2.5px;
+  height: 2.5px;
+  border-radius: 50%;
+  background: oklch(96% 0.01 95);
+  opacity: 0.25;
+  animation: invdStar 4s ease-in-out infinite;
+}
+.invd-s-shoot {
+  left: 8%;
+  top: 12%;
+  width: 100px;
+  height: 2px;
+  border-radius: 2px;
+  rotate: 16deg;
+  background: linear-gradient(90deg, transparent, oklch(96% 0.02 92 / 0.95));
+  opacity: 0;
+  animation: invdShoot 9s cubic-bezier(0.3, 0.4, 0.3, 1) 2s infinite;
+}
+@keyframes invdShoot {
+  0%,
+  88% {
+    opacity: 0;
+    transform: translateX(0);
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(240px);
+  }
+}
+[data-inv-theme='etoiles'] .inv-wcd-cell {
+  background: oklch(20% 0.03 270 / 0.92);
+  position: relative;
+}
+[data-inv-theme='etoiles'] .inv-wcd-cell::before {
+  content: '✦';
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  translate: -50% 0;
+  font-size: 8px;
+  color: oklch(84% 0.05 90 / 0.8);
+}
+[data-inv-theme='etoiles'] .inv-wcd-num {
+  color: oklch(95% 0.018 92) !important;
+  text-shadow: 0 0 16px oklch(88% 0.05 90 / 0.4);
+}
+
+/* ------------------------------ LANTERNES ------------------------------- */
+
+[data-inv-theme='lanternes'] {
+  --color-ivory-50: oklch(21% 0.035 300);
+  --color-ivory-100: oklch(24% 0.035 305);
+  --color-ivory-200: oklch(27.5% 0.036 310);
+  --color-surface: oklch(26% 0.034 315);
+  --color-surface-elevated: oklch(28.5% 0.035 318);
+  --color-surface-warm: oklch(26.5% 0.04 330);
+  --color-blush-50: oklch(25% 0.04 340);
+  --color-ink-900: oklch(93.5% 0.02 82);
+  --color-ink-700: oklch(83% 0.024 78);
+  --color-ink-500: oklch(67% 0.03 70);
+  --color-border: oklch(37% 0.04 45);
+  --color-border-strong: oklch(48% 0.05 50);
+  --color-muted-foreground: oklch(62% 0.03 68);
+  --shadow-soft: 0 20px 46px oklch(8% 0.02 300 / 0.6);
+  --shadow-blush: 0 20px 46px oklch(8% 0.02 300 / 0.6);
+}
+.invd-lanternes .invd-bg {
+  background:
+    radial-gradient(80% 40% at 50% 108%, oklch(42% 0.08 48 / 0.5), transparent 62%),
+    linear-gradient(180deg, oklch(21% 0.036 292), oklch(17% 0.03 305));
+}
+.invd-l-lant {
+  width: 20px;
+  height: 26px;
+  border-radius: 45% 45% 40% 40% / 38% 38% 60% 60%;
+  background: radial-gradient(
+    55% 45% at 50% 56%,
+    oklch(94% 0.07 78),
+    oklch(78% 0.11 55) 62%,
+    oklch(56% 0.1 45)
+  );
+  box-shadow: 0 0 18px oklch(84% 0.11 60 / 0.6);
+  animation: invdLant 9s ease-in-out infinite alternate;
+}
+@keyframes invdLant {
+  0% {
+    translate: 0 0;
+  }
+  100% {
+    translate: 0 -18px;
+  }
+}
+.invd-l-fly {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: oklch(90% 0.11 92);
+  box-shadow: 0 0 7px oklch(88% 0.11 90 / 0.9);
+  opacity: 0;
+  animation: invdFly 5s ease-in-out infinite;
+}
+.invd-l-fly.a {
+  left: 26%;
+  top: 42%;
+}
+.invd-l-fly.b {
+  left: 74%;
+  top: 58%;
+  animation-delay: 2.4s;
+}
+@keyframes invdFly {
+  0%,
+  100% {
+    opacity: 0;
+    translate: 0 0;
+  }
+  30% {
+    opacity: 0.9;
+  }
+  55% {
+    opacity: 0.3;
+    translate: 8px -10px;
+  }
+  80% {
+    opacity: 0.8;
+  }
+}
+[data-inv-theme='lanternes'] .inv-wcd-cell {
+  background: radial-gradient(
+    64% 54% at 50% 58%,
+    oklch(40% 0.07 55 / 0.85),
+    oklch(27% 0.04 320 / 0.95) 78%
+  );
+}
+[data-inv-theme='lanternes'] .inv-wcd-num {
+  color: oklch(94% 0.05 80) !important;
+  text-shadow: 0 0 14px oklch(86% 0.1 65 / 0.5);
+}
+
+/* -------------------------------- RIVAGE -------------------------------- */
+
+[data-inv-theme='rivage'] {
+  --color-ivory-50: oklch(90.5% 0.028 78);
+  --color-surface: oklch(96.5% 0.018 82);
+  --color-ink-900: oklch(34% 0.038 60);
+  --color-ink-700: oklch(44% 0.04 64);
+  --color-ink-500: oklch(53% 0.045 68);
+  --color-border: oklch(80% 0.032 72);
+  --color-border-strong: oklch(70% 0.04 70);
+  --color-muted-foreground: oklch(56% 0.04 70);
+}
+.invd-rivage .invd-bg {
+  background:
+    radial-gradient(90% 30% at 50% -4%, oklch(85% 0.05 205 / 0.5), transparent 70%),
+    linear-gradient(180deg, oklch(91.5% 0.026 80), oklch(88.5% 0.032 76));
+}
+/* Lisière d'écume qui lape en haut de page. */
+.invd-r-sea {
+  left: -4%;
+  right: -4%;
+  top: -70px;
+  height: 110px;
+  background: linear-gradient(180deg, oklch(66% 0.085 215), oklch(78% 0.07 208));
+  animation: invdLap 6s ease-in-out infinite alternate;
+}
+.invd-r-sea .foam {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -9px;
+  height: 22px;
+  filter: blur(0.6px);
+  background:
+    radial-gradient(circle at 14px 5px, oklch(98.5% 0.006 92) 9px, transparent 10px),
+    radial-gradient(circle at 40px 10px, oklch(98.5% 0.006 92 / 0.95) 12px, transparent 13px);
+  background-size:
+    52px 22px,
+    67px 22px;
+  background-repeat: repeat-x;
+}
+@keyframes invdLap {
+  0% {
+    translate: 0 0;
+  }
+  100% {
+    translate: 0 12px;
+  }
+}
+.invd-r-shell {
+  left: 6%;
+  bottom: 9%;
+  width: 26px;
+  height: 22px;
+  border-radius: 58% 42% 55% 45% / 62% 60% 40% 38%;
+  background: repeating-conic-gradient(
+    from 210deg,
+    oklch(92% 0.03 60) 0 16deg,
+    oklch(82% 0.045 55) 16deg 32deg
+  );
+  box-shadow: 2px 3px 5px oklch(58% 0.05 68 / 0.3);
+  rotate: -12deg;
+}
+.invd-r-star {
+  right: 7%;
+  bottom: 14%;
+  width: 26px;
+  height: 26px;
+  clip-path: polygon(
+    50% 0,
+    61% 35%,
+    98% 35%,
+    68% 57%,
+    79% 91%,
+    50% 70%,
+    21% 91%,
+    32% 57%,
+    2% 35%,
+    39% 35%
+  );
+  background: linear-gradient(160deg, oklch(84% 0.07 55), oklch(72% 0.08 50));
+  rotate: 14deg;
+}
+[data-inv-theme='rivage'] .inv-wcd-cell {
+  border-radius: 52% 48% 55% 45% / 42% 46% 56% 54%;
+  background: linear-gradient(160deg, oklch(93% 0.014 85 / 0.9), oklch(82% 0.02 80 / 0.9));
+}
+[data-inv-theme='rivage'] .inv-wcd-num {
+  color: oklch(48% 0.028 75) !important;
+  text-shadow: 1px 1px 0 oklch(96% 0.012 88 / 0.9);
+}
+[data-inv-theme='rivage'] .inv-card {
+  border-radius: 18px 22px 20px 16px;
+}
+
+/* --------------------------------- FEUX ---------------------------------- */
+
+[data-inv-theme='feux'] {
+  --color-ivory-50: oklch(13.5% 0.02 278);
+  --color-ivory-100: oklch(16.5% 0.022 280);
+  --color-ivory-200: oklch(20% 0.024 282);
+  --color-surface: oklch(18.5% 0.024 282);
+  --color-surface-elevated: oklch(21% 0.025 283);
+  --color-surface-warm: oklch(18% 0.026 290);
+  --color-blush-50: oklch(18% 0.028 300);
+  --color-ink-900: oklch(92% 0.05 87);
+  --color-ink-700: oklch(80% 0.04 86);
+  --color-ink-500: oklch(63% 0.03 85);
+  --color-border: oklch(32% 0.03 86);
+  --color-border-strong: oklch(44% 0.045 85);
+  --color-muted-foreground: oklch(58% 0.028 85);
+  --shadow-soft: 0 20px 48px oklch(5% 0.012 275 / 0.65);
+  --shadow-blush: 0 20px 48px oklch(5% 0.012 275 / 0.65);
+}
+.invd-feux .invd-bg {
+  background: linear-gradient(
+    180deg,
+    oklch(13% 0.022 275) 0%,
+    oklch(17% 0.03 290) 62%,
+    oklch(13% 0.02 280) 100%
+  );
+}
+.invd-w-trees {
+  left: -4%;
+  right: -4%;
+  bottom: -4px;
+  height: 90px;
+  clip-path: polygon(
+    0 100%,
+    0 60%,
+    10% 40%,
+    20% 58%,
+    32% 32%,
+    45% 56%,
+    58% 40%,
+    70% 60%,
+    82% 38%,
+    93% 58%,
+    100% 46%,
+    100% 100%
+  );
+  background: oklch(8.5% 0.014 275);
+}
+.invd-w-far {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  opacity: 0;
+  animation: invdFar 7s ease-out infinite;
+}
+.invd-w-far.a {
+  left: 20%;
+  top: 16%;
+}
+.invd-w-far.b {
+  right: 16%;
+  top: 24%;
+  animation-delay: 3.5s;
+}
+@keyframes invdFar {
+  0%,
+  64% {
+    opacity: 0;
+    box-shadow: none;
+    transform: scale(0.4);
+  }
+  70% {
+    opacity: 0.8;
+    box-shadow:
+      0 -12px 0 -1.5px oklch(88% 0.09 85 / 0.85),
+      9px -9px 0 -1.5px oklch(84% 0.09 30 / 0.8),
+      12px 0 0 -1.5px oklch(88% 0.09 85 / 0.85),
+      9px 9px 0 -1.5px oklch(84% 0.09 30 / 0.8),
+      0 12px 0 -1.5px oklch(88% 0.09 85 / 0.85),
+      -9px 9px 0 -1.5px oklch(84% 0.09 30 / 0.8),
+      -12px 0 0 -1.5px oklch(88% 0.09 85 / 0.85),
+      -9px -9px 0 -1.5px oklch(84% 0.09 30 / 0.8);
+    transform: scale(1);
+  }
+  84%,
+  100% {
+    opacity: 0;
+    transform: scale(1.3);
+  }
+}
+.invd-w-ember {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: oklch(82% 0.11 65);
+  box-shadow: 0 0 6px oklch(80% 0.11 62 / 0.9);
+  opacity: 0;
+  animation: invdEmber 8s linear infinite;
+}
+.invd-w-ember.e1 {
+  left: 24%;
+  bottom: 10%;
+}
+.invd-w-ember.e2 {
+  left: 72%;
+  bottom: 8%;
+  animation-delay: 4s;
+}
+@keyframes invdEmber {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0);
+  }
+  10% {
+    opacity: 0.8;
+  }
+  60% {
+    opacity: 0.4;
+    transform: translate(12px, -42vh);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-5px, -72vh);
+  }
+}
+[data-inv-theme='feux'] .inv-wcd-cell {
+  background: oklch(17.5% 0.022 283 / 0.95);
+  position: relative;
+  overflow: hidden;
+}
+[data-inv-theme='feux'] .inv-wcd-cell::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 8px;
+  right: 8px;
+  height: 2px;
+  border-radius: 2px;
+  background: repeating-linear-gradient(
+    90deg,
+    oklch(88% 0.1 85) 0 5px,
+    oklch(40% 0.05 80 / 0.4) 5px 9px
+  );
+}
+[data-inv-theme='feux'] .inv-wcd-num {
+  color: oklch(90% 0.09 86) !important;
+  text-shadow: 0 0 14px oklch(84% 0.1 82 / 0.5);
+}
+
+/* --------------------------------- DECO ---------------------------------- */
+
+[data-inv-theme='deco'] {
+  --color-ivory-50: oklch(13.5% 0.007 80);
+  --color-ivory-100: oklch(16% 0.008 80);
+  --color-ivory-200: oklch(19.5% 0.009 80);
+  --color-surface: oklch(17% 0.008 80);
+  --color-surface-elevated: oklch(19.5% 0.009 80);
+  --color-surface-warm: oklch(17.5% 0.01 82);
+  --color-blush-50: oklch(17% 0.012 60);
+  --color-ink-900: oklch(87% 0.085 86);
+  --color-ink-700: oklch(77% 0.065 85);
+  --color-ink-500: oklch(62% 0.05 84);
+  --color-border: oklch(44% 0.055 84 / 0.65);
+  --color-border-strong: oklch(58% 0.07 84);
+  --color-muted-foreground: oklch(58% 0.045 84);
+  --shadow-soft: 0 20px 48px oklch(5% 0.006 80 / 0.65);
+  --shadow-blush: 0 20px 48px oklch(5% 0.006 80 / 0.65);
+}
+.invd-deco .invd-bg {
+  background:
+    radial-gradient(70% 46% at 50% 108%, oklch(22% 0.02 75 / 0.55), transparent 62%),
+    linear-gradient(180deg, oklch(15% 0.008 80), oklch(11.5% 0.006 75));
+}
+/* Cadre de page permanent. */
+.invd-d-frame {
+  inset: 10px;
+  border: 1px solid oklch(58% 0.07 84 / 0.55);
+  outline: 1px solid oklch(46% 0.055 84 / 0.4);
+  outline-offset: -6px;
+}
+.invd-d-fan {
+  left: 50%;
+  top: 22px;
+  width: 0;
+  height: 0;
+}
+.invd-d-fan i {
+  position: absolute;
+  left: -1px;
+  top: 0;
+  width: 2px;
+  height: 34px;
+  border-radius: 2px;
+  background: linear-gradient(to bottom, oklch(76% 0.085 85), oklch(52% 0.06 82));
+  transform-origin: top center;
+}
+.invd-d-bub {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  border: 1px solid oklch(88% 0.06 88 / 0.7);
+  background: oklch(88% 0.06 88 / 0.12);
+  opacity: 0;
+  animation: invdBub 9s linear infinite;
+}
+.invd-d-bub.b1 {
+  left: 7%;
+  bottom: 18%;
+}
+.invd-d-bub.b2 {
+  left: 92%;
+  bottom: 12%;
+  animation-delay: 3s;
+}
+.invd-d-bub.b3 {
+  left: 8%;
+  bottom: 6%;
+  animation-delay: 6s;
+}
+@keyframes invdBub {
+  0% {
+    opacity: 0;
+    transform: translateY(0);
+  }
+  10% {
+    opacity: 0.8;
+  }
+  90% {
+    opacity: 0.3;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-52vh);
+  }
+}
+[data-inv-theme='deco'] .inv-wcd-cell {
+  border-radius: 0;
+  background: oklch(13% 0.007 80 / 0.95);
+  position: relative;
+}
+[data-inv-theme='deco'] .inv-wcd-cell::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: -7px;
+  width: 22px;
+  height: 7px;
+  translate: -50% 0;
+  background:
+    linear-gradient(oklch(76% 0.085 85), oklch(76% 0.085 85)) 50% 0 / 8px 2.5px no-repeat,
+    linear-gradient(oklch(76% 0.085 85), oklch(76% 0.085 85)) 50% 2.5px / 14px 2.5px no-repeat,
+    linear-gradient(oklch(76% 0.085 85), oklch(76% 0.085 85)) 50% 5px / 22px 2.5px no-repeat;
+}
+[data-inv-theme='deco'] .inv-wcd-num {
+  font-family: var(--font-display) !important;
+  font-style: normal;
+  font-weight: 500 !important;
+  letter-spacing: 0.06em !important;
+  color: oklch(84% 0.09 86) !important;
+}
+[data-inv-theme='deco'] .inv-card {
+  border-radius: 2px;
+  outline: 1px solid oklch(46% 0.055 84 / 0.4);
+  outline-offset: 4px;
+}
+
+/* --------------------------------- NEIGE --------------------------------- */
+
+[data-inv-theme='neige'] {
+  --color-ivory-50: oklch(92% 0.017 242);
+  --color-surface: oklch(97.5% 0.008 240 / 0.92);
+  --color-ink-900: oklch(30% 0.03 245);
+  --color-ink-700: oklch(40% 0.032 242);
+  --color-ink-500: oklch(50% 0.032 240);
+  --color-border: oklch(80% 0.024 238);
+  --color-border-strong: oklch(68% 0.03 236);
+  --color-muted-foreground: oklch(54% 0.03 238);
+}
+.invd-neige .invd-bg {
+  background: linear-gradient(180deg, oklch(93% 0.016 245), oklch(87% 0.022 238));
+}
+.invd-n-pines {
+  left: -4%;
+  right: -4%;
+  bottom: -4px;
+  height: 84px;
+  clip-path: polygon(
+    0 100%,
+    0 62%,
+    8% 34%,
+    16% 62%,
+    15% 44%,
+    22% 20%,
+    29% 44%,
+    28% 62%,
+    36% 40%,
+    44% 64%,
+    100% 64%,
+    100% 100%
+  );
+  background: linear-gradient(180deg, oklch(40% 0.05 195), oklch(31% 0.045 200));
+}
+.invd-n-flake {
+  top: -3%;
+  border-radius: 50%;
+  background: oklch(99% 0.004 240);
+  box-shadow: 0 0 4px oklch(98% 0.006 238 / 0.9);
+  opacity: 0;
+  animation-name: invdFall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+@keyframes invdFall {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0);
+  }
+  6% {
+    opacity: 0.9;
+  }
+  50% {
+    transform: translate3d(14px, 52vh, 0);
+  }
+  96% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(-6px, 106vh, 0);
+  }
+}
+.invd-n-fern {
+  width: 120px;
+  height: 120px;
+  background:
+    radial-gradient(
+      circle at 0 100%,
+      transparent 58px,
+      oklch(97% 0.01 240 / 0.55) 59px,
+      transparent 61px
+    ),
+    radial-gradient(
+      circle at 0 100%,
+      transparent 78px,
+      oklch(97% 0.01 240 / 0.4) 79px,
+      transparent 81px
+    ),
+    radial-gradient(
+      circle at 0 100%,
+      transparent 98px,
+      oklch(97% 0.01 240 / 0.3) 99px,
+      transparent 101px
+    );
+}
+.invd-n-fern.fl {
+  left: -6px;
+  bottom: -6px;
+}
+.invd-n-fern.fr {
+  right: -6px;
+  bottom: -6px;
+  scale: -1 1;
+}
+[data-inv-theme='neige'] .inv-wcd-cell {
+  background: oklch(98% 0.006 240 / 0.7);
+  backdrop-filter: blur(6px);
+  box-shadow: inset 0 0 0 1.5px oklch(97% 0.01 240 / 0.9);
+  border-radius: 999px;
+  aspect-ratio: 1;
+  justify-content: center;
+}
+[data-inv-theme='neige'] .inv-wcd-num {
+  color: oklch(38% 0.032 242) !important;
+}
+[data-inv-theme='neige'] .inv-card {
+  backdrop-filter: blur(4px);
+  border-radius: 22px;
+}
+
+/* --------------------------------- ROYAL --------------------------------- */
+
+[data-inv-theme='royal'] {
+  --color-ivory-50: oklch(14% 0.016 291);
+  --color-ivory-100: oklch(17% 0.018 290);
+  --color-ivory-200: oklch(20.5% 0.02 289);
+  --color-surface: oklch(19% 0.018 290);
+  --color-surface-elevated: oklch(22% 0.02 289);
+  --color-surface-warm: oklch(19.5% 0.022 300);
+  --color-blush-50: oklch(19% 0.022 310);
+  --color-ink-900: oklch(93% 0.03 87);
+  --color-ink-700: oklch(82% 0.025 86);
+  --color-ink-500: oklch(65% 0.022 85);
+  --color-border: oklch(31% 0.022 292);
+  --color-border-strong: oklch(43% 0.03 295);
+  --color-muted-foreground: oklch(59% 0.022 86);
+  --shadow-soft: 0 20px 48px oklch(4% 0.008 288 / 0.65);
+  --shadow-blush: 0 20px 48px oklch(4% 0.008 288 / 0.65);
+}
+.invd-royal .invd-bg {
+  background:
+    radial-gradient(74% 42% at 50% -8%, oklch(24% 0.03 292 / 0.9), transparent 70%),
+    radial-gradient(80% 40% at 50% 112%, oklch(24% 0.045 62 / 0.5), transparent 62%),
+    linear-gradient(180deg, oklch(15.5% 0.018 292), oklch(11% 0.013 286));
+}
+/* Écho de la baie en plein cintre, en filigrane au sommet. */
+.invd-y-arch {
+  left: 50%;
+  top: -54px;
+  width: 300px;
+  height: 210px;
+  margin-left: -150px;
+  border-radius: 150px 150px 0 0;
+  border: 1.5px solid oklch(62% 0.08 82 / 0.4);
+  border-bottom: none;
+  box-shadow:
+    inset 0 0 34px oklch(72% 0.085 84 / 0.1),
+    0 0 30px oklch(70% 0.085 82 / 0.12);
+}
+.invd-y-arch::before {
+  content: '';
+  position: absolute;
+  inset: 8px 8px 0;
+  border-radius: 142px 142px 0 0;
+  border: 1px solid oklch(62% 0.08 82 / 0.22);
+  border-bottom: none;
+}
+/* Pilastres en pénombre aux extrémités. */
+.invd-y-col {
+  top: -2%;
+  bottom: -2%;
+  width: 20px;
+  background:
+    repeating-linear-gradient(90deg, oklch(0% 0 0 / 0.3) 0 1px, transparent 1px 4.5px),
+    linear-gradient(90deg, oklch(11% 0.012 290), oklch(22% 0.024 292) 50%, oklch(10% 0.011 288));
+  box-shadow: 0 0 24px oklch(5% 0.008 288 / 0.7);
+  opacity: 0.85;
+}
+.invd-y-col.wl {
+  left: 0;
+}
+.invd-y-col.wr {
+  right: 0;
+}
+/* Bougies au pied de page. */
+.invd-y-candle {
+  bottom: 26px;
+  width: 4px;
+  height: 18px;
+  border-radius: 2px;
+  background: linear-gradient(to bottom, oklch(95% 0.014 88), oklch(84% 0.03 80));
+}
+.invd-y-candle.ka {
+  left: 7%;
+}
+.invd-y-candle.kb {
+  right: 7%;
+}
+.invd-y-candle::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: -11px;
+  width: 7px;
+  height: 11px;
+  margin-left: -3.5px;
+  border-radius: 50% 50% 50% 50% / 64% 64% 36% 36%;
+  background: radial-gradient(
+    circle at 50% 74%,
+    oklch(98% 0.05 95),
+    oklch(85% 0.13 78) 58%,
+    oklch(70% 0.15 55)
+  );
+  box-shadow: 0 0 12px oklch(88% 0.12 85 / 0.85);
+  transform-origin: bottom center;
+  animation: invdYFlick 0.38s ease-in-out infinite alternate;
+}
+.invd-y-candle.kb::after {
+  animation-delay: 0.2s;
+}
+@keyframes invdYFlick {
+  0% {
+    transform: scale(1) skewX(0deg);
+  }
+  100% {
+    transform: scale(0.86, 1.1) skewX(4deg);
+  }
+}
+[data-inv-theme='royal'] .inv-wcd-cell {
+  background: oklch(20% 0.02 290 / 0.9);
+  box-shadow: inset 0 0 0 1px oklch(56% 0.07 82 / 0.5);
+}
+[data-inv-theme='royal'] .inv-wcd-num {
+  font-family: var(--font-display) !important;
+  font-style: italic;
+  font-weight: 500 !important;
+  color: oklch(88% 0.075 86) !important;
+  text-shadow: 0 0 18px oklch(80% 0.09 85 / 0.35);
+}
+[data-inv-theme='royal'] .inv-card {
+  background:
+    linear-gradient(180deg, oklch(24% 0.022 292 / 0.6), transparent 30%), oklch(19% 0.018 290);
+  border: 1px solid oklch(56% 0.07 82 / 0.45);
+}

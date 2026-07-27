@@ -1,16 +1,23 @@
 'use client';
 /* Wedillybird — Espace couple · Écran 1 — Accueil « Mon mariage »
-   Hero éditorial + aperçu (3 stats Bodoni) + grille de navigation + empty state. */
+   Hero éditorial + aperçu (3 stats Bodoni) + grille de navigation + empty states.
+   Câblé Convex : couple / RSVP dérivés du store mon-mariage. */
 
+import { useMemo } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
+import { useRouter } from '@/i18n/navigation';
 import { Icon, Mark } from './icons';
 import { McBtn, Ornament, CoupleNames } from './parts';
+import { ReferralCard } from './referral-card';
 import { mcDateLong, mcDateShort, mcJ, type McCouple, type McRsvp } from './data';
+import { rsvpFromGuests } from '@/lib/mon-mariage/adapt';
+import { useMonMariage } from '@/stores/mon-mariage';
 
 /** Libellé « J− » localisé depuis le descripteur de `mcJ`. */
 function useJLabel(iso: string): string {
   const tc = useTranslations('MonMariage.common');
-  const j = mcJ(iso);
+  const now = useMonMariage((s) => s.now);
+  const j = mcJ(iso, now || undefined);
   return j.kind === 'day'
     ? tc('jDay')
     : j.kind === 'before'
@@ -176,18 +183,45 @@ function HomeEmpty({ onNav }: { onNav: (k: string) => void }) {
   );
 }
 
+/* empty state « aucun mariage » (pas encore d'event self-serve) → création */
+function HomeNoEvent() {
+  const t = useTranslations('MonMariage.home');
+  const router = useRouter();
+  return (
+    <section className="mc-card feature">
+      <div className="mc-empty">
+        <span className="ill">
+          <Icon name="Heart" size={32} stroke={1.7} />
+        </span>
+        <h3>{t('noEvent.title')}</h3>
+        <p>{t('noEvent.body')}</p>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, justifyContent: 'center' }}>
+          <McBtn variant="halo" size="lg" onClick={() => router.push('/events/new')}>
+            <Icon name="Plus" size={17} stroke={2} />
+            {t('noEvent.cta')}
+          </McBtn>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 interface HomeScreenProps {
-  couple: McCouple;
-  rsvp: McRsvp;
   empty?: boolean;
   onNav: (k: string) => void;
 }
 
-export function HomeScreen({ couple, rsvp, empty, onNav }: HomeScreenProps) {
+export function HomeScreen({ empty, onNav }: HomeScreenProps) {
+  const couple = useMonMariage((s) => s.couple);
+  const guests = useMonMariage((s) => s.guests);
+  const rsvp: McRsvp = useMemo(() => rsvpFromGuests(guests), [guests]);
+
+  if (empty || !couple) return <HomeNoEvent />;
+
   return (
     <>
       <HomeHero couple={couple} />
-      {empty ? (
+      {guests.length === 0 ? (
         <HomeEmpty onNav={onNav} />
       ) : (
         <>
@@ -195,6 +229,7 @@ export function HomeScreen({ couple, rsvp, empty, onNav }: HomeScreenProps) {
           <HomeNavGrid couple={couple} onNav={onNav} />
         </>
       )}
+      <ReferralCard />
     </>
   );
 }

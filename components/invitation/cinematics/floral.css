@@ -1,0 +1,647 @@
+/* Wedillybird — Cinématique « L'Éclosion » (floral).
+   AUCUNE carte : la caméra monte du pré avec les tiges, une arche de
+   blossoms se compose, les prénoms S'ÉCRIVENT à l'encre (révélation
+   calligraphique + parafe doré tracé), la date descend sur une étiquette
+   suspendue, le compte à rebours FLEURIT (chiffres au cœur des fleurs).
+   Phases (classes cumulatives) : grow · bloom · write · tag · settled */
+
+.cineF-stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(70% 55% at 50% 26%, oklch(97% 0.022 84 / 0.9) 0%, transparent 72%),
+    radial-gradient(90% 60% at 50% 112%, oklch(92% 0.04 140 / 0.4), transparent 62%),
+    var(--color-ivory-50);
+  --c-petal: oklch(88% 0.055 18);
+  --c-petal-dk: oklch(80% 0.075 20);
+  --c-leaf: oklch(64% 0.062 148);
+  --c-leaf-dk: oklch(50% 0.06 150);
+  --c-accent: var(--color-blush-700);
+}
+
+.cineF-scene {
+  position: relative;
+  width: 360px;
+  height: 560px;
+  perspective: 1400px;
+  perspective-origin: 50% 46%;
+  transform: scale(var(--cine-scale, 1));
+  transform-origin: center center;
+}
+@media (min-width: 900px) {
+  .cineF-stage.live .cineF-scene {
+    --cine-scale: 1.22;
+  }
+}
+
+/* Caméra : elle MONTE avec les tiges puis TRAVERSE le pré — travelling
+   avant entre les fleurs proches (z 40-52) qui glissent hors champ. */
+.fx-camera {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  transform: translateY(-118px) rotateX(-2deg) translateZ(-90px) scale(1.16);
+  transition: transform 1.6s cubic-bezier(0.34, 0.6, 0.22, 1);
+}
+.cineF.grow .fx-camera {
+  transform: translateY(-56px) rotateX(-1deg) translateZ(-48px) scale(1.09);
+}
+.cineF.bloom .fx-camera {
+  transform: translateY(-12px) rotateX(0deg) translateZ(-6px) scale(1.02);
+}
+.cineF.write .fx-camera,
+.cineF.tag .fx-camera {
+  transform: translateY(0) rotateX(0deg) translateZ(26px) scale(1);
+}
+.cineF.settled .fx-camera {
+  transform: translateY(-4px) rotateX(0deg) translateZ(30px) scale(0.995);
+  transition: transform 1.8s cubic-bezier(0.34, 0.6, 0.22, 1);
+}
+
+.fx-par {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  transition: transform 0.5s var(--ease-out-quint);
+}
+
+.fx-light {
+  position: absolute;
+  inset: -12%;
+  pointer-events: none;
+  z-index: 3;
+  opacity: 0.5;
+  background: radial-gradient(
+    46% 34% at calc(50% + var(--ry, 0deg) * 2.4%) calc(28% - var(--rx, 0deg) * 2.2%),
+    oklch(99% 0.015 95 / 0.5),
+    transparent 70%
+  );
+  transition: opacity 0.8s ease;
+  mix-blend-mode: soft-light;
+}
+
+/* Pollen doré. */
+.fx-dust {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  pointer-events: none;
+}
+.fx-dust span {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, oklch(92% 0.08 88), oklch(76% 0.1 82));
+  box-shadow: 0 0 6px oklch(85% 0.09 85 / 0.8);
+  opacity: 0;
+  transform: translateZ(var(--dz, 40px));
+}
+.cineF .fx-dust span {
+  animation: cineFDust 6.5s ease-in-out var(--dd, 0s) infinite;
+}
+@keyframes cineFDust {
+  0%,
+  100% {
+    opacity: 0;
+    transform: translateZ(var(--dz, 40px)) translateY(6px);
+  }
+  30%,
+  70% {
+    opacity: 0.65;
+  }
+  50% {
+    opacity: 0.8;
+    transform: translateZ(var(--dz, 40px)) translateY(-10px);
+  }
+}
+
+/* -------------------------------- le pré -------------------------------- */
+
+.f-meadow {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  pointer-events: none;
+}
+.f-soil {
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  bottom: 52px;
+  height: 22px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, oklch(60% 0.05 145 / 0.22), transparent 74%);
+  filter: blur(6px);
+}
+
+.f-stemg {
+  position: absolute;
+  bottom: 64px;
+  width: 2px;
+  height: var(--h);
+  transform-origin: bottom center;
+  transform: translateZ(var(--sz, 0px));
+  transform-style: preserve-3d;
+}
+.cineF.bloom .f-stemg {
+  animation: cineFSway 5.2s ease-in-out calc(var(--sd) * 2) infinite alternate;
+}
+@keyframes cineFSway {
+  0% {
+    rotate: calc(-1.3deg * var(--sw, 1));
+  }
+  100% {
+    rotate: calc(1.3deg * var(--sw, 1));
+  }
+}
+.f-stem {
+  position: absolute;
+  left: -1.5px;
+  bottom: 0;
+  width: 3px;
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(to top, var(--c-leaf-dk), var(--c-leaf));
+  transform-origin: bottom center;
+  transform: scaleY(0);
+  transition: transform 1s var(--ease-out-expo) var(--sd);
+}
+.cineF.grow .f-stem {
+  transform: scaleY(1);
+}
+.f-leaf {
+  position: absolute;
+  width: 20px;
+  height: 11px;
+  background: linear-gradient(115deg, var(--c-leaf), var(--c-leaf-dk));
+  border-radius: 0 100% 0 100%;
+  transform: scale(0);
+  transition: transform 0.6s var(--ease-out-quint) calc(var(--sd) + 0.45s);
+}
+.f-leaf.fl {
+  left: -19px;
+  bottom: 36%;
+  transform-origin: right bottom;
+  rotate: -38deg;
+}
+.f-leaf.fr {
+  left: 1px;
+  bottom: 55%;
+  transform-origin: left bottom;
+  rotate: 214deg;
+}
+.cineF.grow .f-leaf {
+  transform: scale(1);
+}
+
+/* ------------------------------- blossoms ------------------------------- */
+
+.f-blossom {
+  position: absolute;
+  left: 50%;
+  top: calc(var(--fs) * -0.45);
+  width: var(--fs);
+  height: var(--fs);
+  margin-left: calc(var(--fs) * -0.5);
+}
+.f-petal {
+  position: absolute;
+  left: 50%;
+  bottom: 50%;
+  width: calc(var(--fs) * 0.38);
+  height: calc(var(--fs) * 0.56);
+  margin-left: calc(var(--fs) * -0.19);
+  border-radius: 55% 55% 48% 48% / 68% 68% 34% 34%;
+  transform-origin: 50% 100%;
+  transform: rotate(var(--r)) scale(0);
+  background: linear-gradient(to top, var(--c-petal-dk), var(--c-petal) 70%);
+  box-shadow: inset 0 -2px 4px oklch(66% 0.08 22 / 0.22);
+  transition: transform 0.7s cubic-bezier(0.34, 1.35, 0.45, 1) calc(var(--sd, 0s) + var(--pd));
+}
+.f-heart {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: calc(var(--fs) * 0.22);
+  height: calc(var(--fs) * 0.22);
+  margin: calc(var(--fs) * -0.11) 0 0 calc(var(--fs) * -0.11);
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 32%, oklch(90% 0.09 90), var(--color-gold-500));
+  box-shadow: 0 0 8px oklch(85% 0.09 85 / 0.65);
+  transform: scale(0);
+  transition: transform 0.5s cubic-bezier(0.34, 1.5, 0.5, 1) calc(var(--sd, 0s) + 0.32s);
+}
+/* Éclosion : uniquement le pré + l'arche (le compte à rebours fleurit à part). */
+.cineF.bloom .f-meadow .f-petal,
+.cineF.bloom .f-arch .f-petal {
+  transform: rotate(var(--r)) scale(1);
+}
+.cineF.bloom .f-meadow .f-heart,
+.cineF.bloom .f-arch .f-heart {
+  transform: scale(1);
+}
+
+/* L'arche flottante. */
+.f-arch {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  pointer-events: none;
+}
+.f-archspot {
+  position: absolute;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  transform: translateY(16px) scale(0.4) translateZ(var(--az, 0px));
+  transition:
+    opacity 0.7s ease calc(var(--ad) + 0.25s),
+    transform 0.8s cubic-bezier(0.34, 1.3, 0.5, 1) calc(var(--ad) + 0.25s);
+}
+.cineF.bloom .f-archspot {
+  opacity: 1;
+  transform: translateY(0) scale(1) translateZ(var(--az, 0px));
+}
+.cineF.settled .f-archspot {
+  animation: cineFFloat 6s ease-in-out calc(var(--ad) * 3) infinite alternate;
+}
+@keyframes cineFFloat {
+  0% {
+    translate: 0 0;
+  }
+  100% {
+    translate: 0 -5px;
+  }
+}
+
+/* --------------------------- l'encre des prénoms ------------------------ */
+
+.f-names {
+  position: absolute;
+  left: 50%;
+  top: 238px;
+  width: 330px;
+  transform: translateX(-50%) translateZ(64px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  text-align: center;
+  pointer-events: none;
+}
+.f-name {
+  display: block;
+  max-width: 330px;
+}
+.f-name .txt {
+  display: inline-block;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 44px;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: var(--color-ink-900);
+  /* Révélation calligraphique : l'encre s'écrit de gauche à droite. */
+  clip-path: inset(-14% 102% -14% -2%);
+  transition: clip-path 1.1s cubic-bezier(0.45, 0.1, 0.3, 1) 0.25s;
+}
+.cineF.write .f-name.na .txt {
+  clip-path: inset(-14% -2% -14% -2%);
+}
+.cineF.write .f-name.nb .txt {
+  clip-path: inset(-14% -2% -14% -2%);
+  transition-delay: 1.35s;
+}
+/* Parafe doré tracé + esperluette. */
+.f-swash {
+  width: 170px;
+  height: 26px;
+  margin: 4px 0;
+  overflow: visible;
+}
+.f-swash path {
+  stroke: var(--color-gold-500);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-dasharray: 210;
+  stroke-dashoffset: 210;
+}
+.cineF.write .f-swash path {
+  transition: stroke-dashoffset 1s cubic-bezier(0.45, 0.1, 0.3, 1) 1.05s;
+  stroke-dashoffset: 0;
+}
+.f-swash text {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 19px;
+  fill: var(--c-accent);
+  text-anchor: middle;
+  opacity: 0;
+  transition: opacity 0.5s ease 1.6s;
+}
+.cineF.write .f-swash text {
+  opacity: 1;
+}
+
+/* --------------------------- l'étiquette suspendue ---------------------- */
+
+.f-tagwrap {
+  position: absolute;
+  left: 180px;
+  top: 96px;
+  width: 0;
+  height: 0;
+  transform: translateZ(30px);
+  pointer-events: none;
+}
+.f-string {
+  position: absolute;
+  left: -0.5px;
+  top: 12px;
+  width: 1px;
+  height: 44px;
+  background: linear-gradient(to bottom, transparent, oklch(60% 0.04 80));
+  transform-origin: top center;
+  transform: scaleY(0);
+  transition: transform 0.55s var(--ease-out-quint);
+}
+.cineF.tag .f-string {
+  transform: scaleY(1);
+}
+.f-tag {
+  position: absolute;
+  left: -66px;
+  top: 56px;
+  width: 132px;
+  padding: 11px 10px 10px;
+  border-radius: 7px;
+  background: linear-gradient(170deg, oklch(97.5% 0.012 85), oklch(93.5% 0.025 78));
+  border: 1px solid oklch(85% 0.035 75);
+  box-shadow: 0 8px 18px oklch(48% 0.07 60 / 0.18);
+  text-align: center;
+  transform-origin: 50% -44px;
+  opacity: 0;
+  rotate: -14deg;
+  transition: opacity 0.3s ease;
+}
+.cineF.tag .f-tag {
+  opacity: 1;
+  animation: cineFSwing 2.2s cubic-bezier(0.34, 0.8, 0.4, 1) 0.35s 1 forwards;
+}
+@keyframes cineFSwing {
+  0% {
+    rotate: -14deg;
+  }
+  32% {
+    rotate: 9deg;
+  }
+  60% {
+    rotate: -4deg;
+  }
+  82% {
+    rotate: 1.5deg;
+  }
+  100% {
+    rotate: 0deg;
+  }
+}
+.f-taghole {
+  position: absolute;
+  left: 50%;
+  top: -4px;
+  width: 8px;
+  height: 8px;
+  margin-left: -4px;
+  border-radius: 50%;
+  background: var(--color-ivory-50);
+  border: 1.5px solid oklch(82% 0.04 78);
+}
+.f-tag b {
+  display: block;
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-ink-900);
+}
+.f-tag i {
+  display: block;
+  margin-top: 3px;
+  font-family: var(--font-mono);
+  font-style: normal;
+  font-size: 7.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-ink-500);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Pétales qui se détachent (settled). */
+.fall {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.fall span {
+  position: absolute;
+  left: var(--fx);
+  top: 20%;
+  width: 12px;
+  height: 17px;
+  border-radius: 55% 55% 48% 48% / 68% 68% 34% 34%;
+  background: linear-gradient(to top, var(--c-petal-dk), var(--c-petal));
+  opacity: 0;
+}
+.cineF.settled .fall span {
+  animation: cineFFall var(--ft, 10s) linear var(--fd, 0s) infinite;
+}
+@keyframes cineFFall {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, -10px, 70px) rotate3d(0.6, 1, 0.2, 0deg);
+  }
+  8% {
+    opacity: 0.75;
+  }
+  50% {
+    transform: translate3d(-22px, 170px, 20px) rotate3d(0.6, 1, 0.2, 200deg);
+  }
+  88% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(14px, 350px, 60px) rotate3d(0.6, 1, 0.2, 400deg);
+  }
+}
+
+/* --------------------- compte à rebours FLEURI -------------------------- */
+
+.f-cd {
+  position: absolute;
+  left: 50%;
+  bottom: 14px;
+  transform: translateX(-50%);
+  width: 330px;
+  text-align: center;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.6s ease 0.2s;
+}
+.cineF.settled .f-cd {
+  opacity: 1;
+}
+.f-cd .lbl {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--color-ink-500);
+  margin-bottom: 4px;
+}
+.f-cd .row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 26px;
+}
+.f-cdb-wrap {
+  position: relative;
+  width: 64px;
+  height: 84px;
+  display: inline-block;
+}
+.f-cdb-wrap .f-blossom {
+  left: 50%;
+  top: 34px;
+}
+/* Les fleurs du compte à rebours n'éclosent qu'à l'apaisement. */
+.cineF.settled .f-cd .f-petal {
+  transform: rotate(var(--r)) scale(1);
+  transition-delay: calc(var(--cdd, 0s) + var(--pd) + 0.15s);
+}
+.f-cdb-wrap .f-heart {
+  background: radial-gradient(circle at 38% 32%, oklch(99% 0.01 90), oklch(96% 0.02 88));
+  box-shadow:
+    inset 0 0 0 1px oklch(86% 0.05 82),
+    0 0 10px oklch(85% 0.09 85 / 0.5);
+  width: calc(var(--fs) * 0.62);
+  height: calc(var(--fs) * 0.62);
+  margin: calc(var(--fs) * -0.31) 0 0 calc(var(--fs) * -0.31);
+}
+.cineF.settled .f-cd .f-heart {
+  transform: scale(1);
+  transition-delay: calc(var(--cdd, 0s) + 0.3s);
+}
+.f-cdb-wrap b {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 24px;
+  z-index: 2;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 500;
+  font-size: 22px;
+  color: var(--c-accent);
+  opacity: 0;
+  transition: opacity 0.5s ease calc(var(--cdd, 0s) + 0.45s);
+}
+.f-cdb-wrap i {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  font-family: var(--font-mono);
+  font-style: normal;
+  font-size: 7.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-muted-foreground);
+  opacity: 0;
+  transition: opacity 0.5s ease calc(var(--cdd, 0s) + 0.55s);
+}
+.cineF.settled .f-cdb-wrap b,
+.cineF.settled .f-cdb-wrap i {
+  opacity: 1;
+}
+
+.cineF-cue {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  color: var(--color-ink-500);
+  transition: opacity 0.6s ease;
+  pointer-events: none;
+}
+.cineF-cue .t {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+}
+
+/* ------------------------- reduced / frozen ---------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .cineF *,
+  .cineF *::before,
+  .cineF *::after {
+    transition-duration: 0.01ms !important;
+    animation: none !important;
+  }
+  .cineF .fx-dust,
+  .cineF .fall {
+    display: none;
+  }
+  .cineF .fx-camera {
+    transform: none !important;
+  }
+  .cineF .f-tag {
+    opacity: 1;
+    rotate: 0deg;
+  }
+}
+.cineF.reduced *,
+.cineF.reduced *::before,
+.cineF.reduced *::after {
+  transition: none !important;
+  animation: none !important;
+}
+.cineF.reduced .fx-dust,
+.cineF.reduced .fall,
+.cineF.reduced .fx-light {
+  display: none;
+}
+.cineF.reduced .fx-camera {
+  transform: none !important;
+}
+.cineF.reduced .f-tag {
+  opacity: 1;
+  rotate: 0deg;
+}
+.cineF.frozen .fx-dust span,
+.cineF.frozen .fall span,
+.cineF.frozen .f-stemg,
+.cineF.frozen .f-archspot,
+.cineF.frozen .f-tag {
+  animation: none;
+}
+.cineF.frozen .f-tag {
+  opacity: 1;
+  rotate: 0deg;
+}

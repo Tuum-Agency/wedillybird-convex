@@ -2,16 +2,24 @@
 
 import { useMemo, useState, useTransition } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { Heart, Briefcase, Check, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { OtpInput } from '@/components/auth/otp-input';
 import { cn } from '@/lib/cn';
 import { analytics } from '@/lib/analytics/posthog-client';
 import { completeOnboardingAction } from '@/app/[locale]/(auth)/actions';
 import { isValidEmail } from '@/lib/validators/email';
+import { currencyForLocale, currencyOptions, type BudgetCurrency } from '@/lib/currency';
 
 type Role = 'couple' | 'pro';
 type StepKey = 'profile' | 'secure' | 'role';
@@ -21,6 +29,7 @@ interface FormState {
   fullName: string;
   email: string;
   role: Role | null;
+  currency: BudgetCurrency;
 }
 
 const ROLE_OPTIONS: ReadonlyArray<{
@@ -65,6 +74,8 @@ export function OnboardingWizard({
 }) {
   const t = useTranslations('Onboarding');
   const tCommon = useTranslations('Common');
+  const tCurrency = useTranslations('CurrencySwitcher');
+  const locale = useLocale();
   const reduced = useReducedMotion();
 
   const needsPhone = initialPhone.trim().length === 0;
@@ -79,6 +90,7 @@ export function OnboardingWizard({
     fullName: '',
     email: initialEmail,
     role: null,
+    currency: currencyForLocale(locale),
   });
   const [fieldErrors, setFieldErrors] = useState<Record<string, string | undefined>>({});
   const [error, setError] = useState<string | null>(null);
@@ -184,6 +196,7 @@ export function OnboardingWizard({
     formData.set('fullName', form.fullName.trim());
     formData.set('role', selectedRole);
     formData.set('email', form.email.trim());
+    formData.set('currency', form.currency);
 
     startTransition(async () => {
       const result = await completeOnboardingAction(formData);
@@ -304,6 +317,25 @@ export function OnboardingWizard({
               {fieldErrors.email ? (
                 <p className="text-xs text-[color:var(--color-destructive)]">{fieldErrors.email}</p>
               ) : null}
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="currency">{tCurrency('chooseLabel')}</Label>
+              <Select
+                value={form.currency}
+                onValueChange={(value) => setForm({ ...form, currency: value as BudgetCurrency })}
+              >
+                <SelectTrigger id="currency">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {currencyOptions(locale).map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <Button size="lg" onClick={handleProfileNext} disabled={!canGoFromProfile}>

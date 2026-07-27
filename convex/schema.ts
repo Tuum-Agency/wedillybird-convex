@@ -1,5 +1,6 @@
 import { defineSchema, defineTable } from 'convex/server';
 import { v } from 'convex/values';
+import { BUDGET_CURRENCY } from './lib/currency';
 
 export default defineSchema({
   users: defineTable({
@@ -32,6 +33,8 @@ export default defineSchema({
       ),
     ),
     stripeCustomerId: v.optional(v.string()),
+    /** Devise de budget préférée, choisie à l'onboarding. Défaut applicatif: EUR. */
+    preferredCurrency: v.optional(BUDGET_CURRENCY),
     createdAt: v.number(),
     lastSeenAt: v.optional(v.number()),
   })
@@ -45,6 +48,8 @@ export default defineSchema({
     logoStorageId: v.optional(v.id('_storage')),
     primaryColor: v.optional(v.string()),
     accentColor: v.optional(v.string()),
+    /** Devise des budgets de l'agence (budget interne, prestataires). Défaut: EUR. */
+    currency: v.optional(BUDGET_CURRENCY),
     /** Marque blanche (Agency) : domaine sur mesure + e-mail expéditeur + retrait du badge. */
     customDomain: v.optional(v.string()),
     senderEmail: v.optional(v.string()),
@@ -185,6 +190,8 @@ export default defineSchema({
     }),
     eventDate: v.number(),
     timezone: v.string(),
+    /** Devise du budget de ce mariage. Héritée de l'org / du couple à la création. Défaut: EUR. */
+    currency: v.optional(BUDGET_CURRENCY),
     /** Enveloppe budgétaire — cible totale fixée avec le couple (centimes). */
     budgetEnvelopeMinor: v.optional(v.number()),
     venue: v.optional(
@@ -252,6 +259,58 @@ export default defineSchema({
         fontFamily: v.string(),
       }),
     ),
+    /**
+     * Cinématique d'ouverture de l'invitation publique — id du registre
+     * front (`components/invitation/cinematics/registry.ts`) : seal ·
+     * floral · cake · voyage · theatre. Absent = sceau (défaut historique).
+     * Choisir un thème non-sceau est gaté `cinematicInvitation` (Premium/Pro).
+     */
+    invitationCinematic: v.optional(v.string()),
+    /**
+     * Musique de l'invitation publique. Absent = silence (défaut).
+     * `library` → `trackId` d'une piste maison (`lib/invitation/music.ts`) ;
+     * `custom` → `s3Key` sous `audio/{eventId}/…` (upload du couple, servi
+     * CloudFront, hors préfixe `incoming/` donc hors modération Lambda).
+     * Gaté `cinematicInvitation` (Premium/Pro).
+     */
+    invitationMusic: v.optional(
+      v.object({
+        source: v.union(v.literal('library'), v.literal('custom')),
+        trackId: v.optional(v.string()),
+        s3Key: v.optional(v.string()),
+        title: v.optional(v.string()),
+      }),
+    ),
+    /**
+     * Photo du couple affichée en tête de l'invitation publique (portrait
+     * dévoilé quand la cinématique se lève). Absent = pas de photo (défaut).
+     * `s3Key` sous `invitation/{eventId}/…` (upload du couple/agence, servi
+     * CloudFront, hors préfixe `incoming/` donc hors modération Lambda —
+     * c'est la photo du couple lui-même, pas un contenu invité).
+     * `width`/`height` (post-compression) fixent le ratio → zéro CLS.
+     * Gaté `cinematicInvitation` (Premium/Pro).
+     */
+    invitationPhoto: v.optional(
+      v.object({
+        s3Key: v.string(),
+        width: v.optional(v.number()),
+        height: v.optional(v.number()),
+      }),
+    ),
+    /**
+     * Déroulé de la journée / planning de la cérémonie (guest-facing) — affiché
+     * sur la page d'invitation. Édité depuis l'espace couple/agence. Chaque
+     * étape : heure (libre, ex « 15 h 00 ») + intitulé + note optionnelle.
+     */
+    ceremonySchedule: v.optional(
+      v.array(
+        v.object({
+          time: v.string(),
+          title: v.string(),
+          note: v.optional(v.string()),
+        }),
+      ),
+    ),
     status: v.union(
       v.literal('draft'),
       v.literal('active'),
@@ -274,6 +333,14 @@ export default defineSchema({
     // (Essential = J+30, Premium = J+180) on payment success. Post-event upsell
     // pushes this to J+5y.
     galleryExpiresAt: v.optional(v.number()),
+    /**
+     * Horodatage de l'achat de l'upsell HD post-event (+29 €). Présent ⇒ la
+     * galerie a été prolongée à 5 ans contre paiement et l'archive HD est
+     * débloquée. Absent ⇒ upsell jamais acheté (la carte d'upsell reste
+     * proposée). Posé par `payments:applyPostEventUpsell` après confirmation
+     * Stripe.
+     */
+    hdUpsellPurchasedAt: v.optional(v.number()),
     /**
      * Configuration du message d'invitation WhatsApp envoyé aux invités.
      * Le couple choisit un style préfabriqué (Wedillybird-prefab MVP — cf.
@@ -472,11 +539,31 @@ export default defineSchema({
     name: v.string(),
     capacity: v.number(),
     // Forme du nœud dans le plan visuel spatial (v2). Défaut traité comme 'round'.
-    shape: v.optional(v.union(v.literal('round'), v.literal('rect'))),
-    // Position (px) du nœud sur le canvas du plan visuel (v2). undefined =
-    // pas encore positionné → l'UI applique une grille par défaut.
+    // Les 4 premières formes = board agence (lib/pro/seating) ; imperial /
+    // sweetheart / head = éditeur couple self-serve (/mon-mariage) uniquement.
+    shape: v.optional(
+      v.union(
+        v.literal('round'),
+        v.literal('oval'),
+        v.literal('rect'),
+        v.literal('square'),
+        v.literal('imperial'),
+        v.literal('sweetheart'),
+        v.literal('head'),
+      ),
+    ),
+    // Position du nœud sur le plan. Unité selon le produit : board agence = px
+    // canvas ; éditeur couple /mon-mariage = MÈTRES depuis le coin haut-gauche
+    // de la salle (un event ne vit que dans un seul des deux produits).
+    // undefined = pas encore positionné → l'UI applique une grille par défaut.
     posX: v.optional(v.number()),
     posY: v.optional(v.number()),
+    /** Rotation en degrés (éditeur couple). Défaut 0. */
+    rotation: v.optional(v.number()),
+    /** Table d'honneur (ornement doré, éditeur couple). */
+    honor: v.optional(v.boolean()),
+    /** Note libre du couple sur la table. */
+    notes: v.optional(v.string()),
     // Ordre d'affichage dans la vue liste (board drag-and-drop).
     order: v.number(),
     createdAt: v.number(),
@@ -505,6 +592,135 @@ export default defineSchema({
     .index('by_guest', ['guestId'])
     .index('by_guest_member', ['guestId', 'memberIndex']),
 
+  /* ==================== Espace couple self-serve (/mon-mariage) ====================
+     Tables du produit couple one-shot (event.ownerId = le couple, PAS d'org).
+     Volontairement distinctes des tables agence (vendors/budgetLines/planningTasks,
+     org-scopées) : zéro couplage avec le back-office pro. Montants en CENTIMES
+     dans la devise de l'event (`events.currency`). */
+
+  /** Carnet prestataires du couple. `category`/`status` : cf. convex/lib/coupleModel.ts. */
+  coupleVendors: defineTable({
+    eventId: v.id('events'),
+    name: v.string(),
+    category: v.string(),
+    status: v.union(
+      v.literal('a_contacter'),
+      v.literal('contacte'),
+      v.literal('devis'),
+      v.literal('reserve'),
+      v.literal('paye'),
+    ),
+    /** Budget prévu pour ce prestataire (centimes). */
+    amountMinor: v.number(),
+    /** Déjà payé (centimes). */
+    paidMinor: v.number(),
+    contact: v.optional(v.string()),
+    email: v.optional(v.string()),
+    note: v.optional(v.string()),
+    /** Pièces jointes déclaratives (métadonnées seules — pas de binaire en phase 1). */
+    attachments: v.optional(v.array(v.object({ name: v.string(), kind: v.string() }))),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index('by_event', ['eventId']),
+
+  /** Échéancier de paiements du couple (acomptes / soldes prestataires). */
+  couplePayments: defineTable({
+    eventId: v.id('events'),
+    /** Rattachement facultatif à une fiche prestataire. */
+    vendorId: v.optional(v.id('coupleVendors')),
+    /** Nom affiché (dénormalisé — l'échéance survit à la suppression de la fiche). */
+    vendorName: v.string(),
+    category: v.string(),
+    kind: v.union(v.literal('deposit'), v.literal('balance'), v.literal('other')),
+    /** Date d'échéance (epoch ms). */
+    dueDate: v.number(),
+    /** Montant dû (centimes). */
+    amountMinor: v.number(),
+    /** Montant réglé (centimes, 0 ≤ paidMinor). > 0 = acompte partiel ou soldé. */
+    paidMinor: v.number(),
+    /** Date de règlement effectif (epoch ms) quand payé. */
+    paidAt: v.optional(v.number()),
+    attachments: v.optional(v.array(v.object({ name: v.string(), kind: v.string() }))),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index('by_event', ['eventId'])
+    .index('by_vendor', ['vendorId']),
+
+  /** Phases du rétroplanning perso. `labelKey` (template i18n) XOR `label` (libre). */
+  couplePhases: defineTable({
+    eventId: v.id('events'),
+    label: v.optional(v.string()),
+    labelKey: v.optional(v.string()),
+    sub: v.optional(v.string()),
+    subKey: v.optional(v.string()),
+    order: v.number(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index('by_event', ['eventId']),
+
+  /** Tâches du rétroplanning perso, rattachées à une phase. */
+  coupleTasks: defineTable({
+    eventId: v.id('events'),
+    phaseId: v.id('couplePhases'),
+    label: v.optional(v.string()),
+    labelKey: v.optional(v.string()),
+    status: v.union(v.literal('todo'), v.literal('doing'), v.literal('done')),
+    /** Échéance (epoch ms). */
+    dueDate: v.optional(v.number()),
+    order: v.number(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index('by_event', ['eventId'])
+    .index('by_phase', ['phaseId']),
+
+  /**
+   * Salle du plan de table couple (1 row par event) : dimensions en mètres,
+   * sol, éléments de décor (piste, bar, arche…). Les tables vivent dans
+   * `tables` (posX/posY en mètres pour ce produit).
+   */
+  coupleRooms: defineTable({
+    eventId: v.id('events'),
+    name: v.string(),
+    widthM: v.number(),
+    lengthM: v.number(),
+    floor: v.union(
+      v.literal('parquet'),
+      v.literal('marble'),
+      v.literal('carpet'),
+      v.literal('grass'),
+      v.literal('concrete'),
+    ),
+    elements: v.array(
+      v.object({
+        id: v.string(),
+        kind: v.union(
+          v.literal('dancefloor'),
+          v.literal('stage'),
+          v.literal('dj'),
+          v.literal('bar'),
+          v.literal('buffet'),
+          v.literal('cake'),
+          v.literal('photobooth'),
+          v.literal('gifts'),
+          v.literal('guestbook'),
+          v.literal('entrance'),
+          v.literal('arch'),
+          v.literal('plant'),
+        ),
+        x: v.number(),
+        y: v.number(),
+        w: v.number(),
+        h: v.number(),
+        rotation: v.number(),
+        label: v.optional(v.string()),
+      }),
+    ),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index('by_event', ['eventId']),
+
   eventCollaborators: defineTable({
     eventId: v.id('events'),
     userId: v.id('users'),
@@ -526,7 +742,17 @@ export default defineSchema({
   payments: defineTable({
     userId: v.id('users'),
     eventId: v.id('events'),
-    plan: v.union(v.literal('essential'), v.literal('premium')),
+    /**
+     * Nature du paiement one-shot particulier :
+     *  - `plan` (défaut, absent pour rétro-compat) : achat d'un forfait
+     *    Essentiel/Premium → `plan` renseigné.
+     *  - `post_event_upsell` : achat de l'upsell HD post-event (+29 €) →
+     *    `plan` absent (ce n'est pas un forfait), la rétention galerie passe à
+     *    5 ans (cf. `applyPostEventUpsell`).
+     */
+    kind: v.optional(v.union(v.literal('plan'), v.literal('post_event_upsell'))),
+    // Forfait acheté. Absent pour un paiement `post_event_upsell`.
+    plan: v.optional(v.union(v.literal('essential'), v.literal('premium'))),
     currency: v.union(
       v.literal('EUR'),
       v.literal('USD'),
@@ -538,6 +764,12 @@ export default defineSchema({
     provider: v.union(v.literal('stripe'), v.literal('mock')),
     providerSessionId: v.string(),
     providerEventId: v.optional(v.string()),
+    /** Affilié/parrain attribué (posé au checkout via `?ref`). Le referral est
+     *  enregistré dans le ledger à la confirmation du paiement (`markSucceeded`). */
+    affiliateId: v.optional(v.id('affiliates')),
+    /** Token de réservation du crédit de parrainage appliqué à ce checkout —
+     *  consommé (lignes → `credited`) à la confirmation. */
+    creditReservationId: v.optional(v.string()),
     status: v.union(
       v.literal('pending'),
       v.literal('succeeded'),
@@ -566,6 +798,36 @@ export default defineSchema({
     // scanner toute la table. `status` d'abord (cardinalité faible, filtre
     // fort) puis `createdAt` pour la borne d'âge.
     .index('by_status_createdAt', ['status', 'createdAt']),
+
+  /**
+   * Commandes de livre photo HD imprimé — débloquées par l'upsell HD post-event
+   * (`events.hdUpsellPurchasedAt`). La fabrication/expédition est assurée
+   * manuellement par l'équipe ops (pas d'intégration imprimeur automatisée) :
+   * la commande est enregistrée ici, ops est notifiée par email et fait évoluer
+   * le `status` à la main.
+   */
+  photoBookOrders: defineTable({
+    eventId: v.id('events'),
+    userId: v.id('users'),
+    status: v.union(
+      v.literal('requested'),
+      v.literal('in_production'),
+      v.literal('shipped'),
+      v.literal('cancelled'),
+    ),
+    recipientName: v.string(),
+    addressLine1: v.string(),
+    addressLine2: v.optional(v.string()),
+    city: v.string(),
+    postalCode: v.string(),
+    country: v.string(),
+    /** Note libre du couple (ex. consignes de livraison). */
+    notes: v.optional(v.string()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index('by_event', ['eventId'])
+    .index('by_user', ['userId']),
 
   photos: defineTable({
     eventId: v.id('events'),
@@ -851,6 +1113,7 @@ export default defineSchema({
       v.literal('coupon'),
       v.literal('discount'),
       v.literal('photo'),
+      v.literal('photo_book'),
       v.literal('template'),
       v.literal('newsletter'),
     ),
@@ -1256,6 +1519,138 @@ export default defineSchema({
     .index('by_event', ['eventId'])
     .index('by_vendor', ['vendorId'])
     .index('by_vendor_event', ['vendorId', 'eventId']),
+
+  /**
+   * Programme d'affiliation / parrainage. Décision conseil (llm-council) : le
+   * LEDGER est le vrai actif — attribution + calcul + statuts vivent ici,
+   * indépendamment du mécanisme de versement (crédit auto pour la boucle
+   * particulier ; cash groupé puis Connect Express pour les partenaires).
+   *
+   * `kind` : 'referral' (client-parrain, récompense en CRÉDIT, zéro KYC) ou
+   * 'partner' (créateur/planner invité, récompense en CASH, payout différé).
+   * Logique pure et bornes dans `convex/lib/affiliate.ts`.
+   */
+  affiliates: defineTable({
+    /** Code lisible partagé (?ref=CODE), unique, normalisé A-Z0-9. */
+    code: v.string(),
+    kind: v.union(v.literal('referral'), v.literal('partner')),
+    /** Récompense : crédit in-app (100 % auto) ou cash (payout différé). */
+    rewardType: v.union(v.literal('credit'), v.literal('cash')),
+    /** Commission affilié en basis points (2000 = 20,00 %). */
+    rateBps: v.number(),
+    /** Remise offerte au filleul en basis points (0 = aucune). */
+    buyerDiscountBps: v.number(),
+    /** Parrain (referral) ou compte partenaire, si rattaché à un user. */
+    ownerUserId: v.optional(v.id('users')),
+    /** Email partenaire (anti-self-referral + contact payout). */
+    ownerEmail: v.optional(v.string()),
+    displayName: v.optional(v.string()),
+    status: v.union(v.literal('active'), v.literal('disabled')),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index('by_code', ['code'])
+    .index('by_owner', ['ownerUserId'])
+    .index('by_kind', ['kind']),
+
+  /**
+   * Ledger d'attribution : une ligne par vente attribuée à un affilié.
+   * Idempotent sur `sourceSessionId` (webhooks Stripe at-least-once).
+   * `status` : pending → vested (à la date d'event) → paid|credited | reversed.
+   * Montants en CENTIMES, devise native (jamais de conversion dans le ledger).
+   */
+  affiliateReferrals: defineTable({
+    affiliateId: v.id('affiliates'),
+    code: v.string(),
+    /** Clé d'idempotence = Checkout Session Stripe (unique). */
+    sourceSessionId: v.string(),
+    paymentId: v.optional(v.id('payments')),
+    eventId: v.optional(v.id('events')),
+    buyerUserId: v.optional(v.id('users')),
+    grossMinor: v.number(),
+    /** Net encaissé après remise = base de calcul de la récompense. */
+    netMinor: v.number(),
+    currency: v.string(),
+    /** Récompense calculée (commission cash OU crédit), centimes. */
+    rewardMinor: v.number(),
+    rewardType: v.union(v.literal('credit'), v.literal('cash')),
+    status: v.union(
+      v.literal('pending'),
+      v.literal('vested'),
+      v.literal('paid'),
+      v.literal('credited'),
+      v.literal('reversed'),
+    ),
+    /** Récompense « acquise » à cette date (= date event, plancher J+7). */
+    vestsAt: v.number(),
+    paidAt: v.optional(v.number()),
+    reversedAt: v.optional(v.number()),
+    /**
+     * RÉSERVATION : token du checkout qui a réservé cette ligne de crédit (le
+     * crédit n'est plus re-sélectionnable tant qu'il est réservé → anti
+     * double-dépense). Effacé à la consommation OU au relâchement (échec /
+     * abandon / GC). Posé atomiquement par `reserveCreditForCheckout`.
+     */
+    reservedForSession: v.optional(v.string()),
+    /**
+     * Session d'ACHAT qui a consommé ce crédit (le parrain l'a dépensé ici) —
+     * permet de RESTITUER le crédit si cet achat est remboursé.
+     */
+    consumedBySession: v.optional(v.string()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index('by_affiliate', ['affiliateId'])
+    .index('by_source_session', ['sourceSessionId'])
+    .index('by_status', ['status'])
+    .index('by_status_vests', ['status', 'vestsAt'])
+    .index('by_affiliate_status', ['affiliateId', 'status'])
+    .index('by_reserved_session', ['reservedForSession'])
+    .index('by_consumed_session', ['consumedBySession']),
+
+  /**
+   * Crédit de parrainage RÉSERVÉ pour un checkout en cours (parrain qui dépense
+   * son crédit). Posé AVANT le coupon Stripe (`reserveCreditForCheckout`), puis
+   * consommé à la confirmation du paiement (plan `markSucceeded` OU upsell
+   * `applyPostEventUpsell`). Clé = `reservationId` (token généré par la route,
+   * transmis en metadata de session Stripe). GC des orphelins après 24 h.
+   */
+  pendingCreditApplications: defineTable({
+    /** Token de réservation (uuid) — clé d'idempotence, ≠ session Stripe. */
+    reservationId: v.string(),
+    userId: v.id('users'),
+    currency: v.string(),
+    appliedMinor: v.number(),
+    /** Lignes de ledger (crédit) réservées → `credited` à la confirmation. */
+    referralIds: v.array(v.id('affiliateReferrals')),
+    createdAt: v.number(),
+  }).index('by_reservation', ['reservationId']),
+
+  /**
+   * Rapports de bug soumis depuis l'app (bouton flottant couple/agence). La
+   * capture d'écran est stockée INLINE (data URL JPEG compressé, ≤ 800 Ko) —
+   * volume interne faible, pas d'aller-retour S3. Sert au triage produit.
+   */
+  bugReports: defineTable({
+    /** Auteur (session) — optionnel si soumis hors session. */
+    reporterId: v.optional(v.id('users')),
+    /** URL complète et chemin où le bug a été repéré. */
+    url: v.string(),
+    pathname: v.string(),
+    /** Description saisie/vérifiée par l'utilisateur. */
+    description: v.string(),
+    userAgent: v.optional(v.string()),
+    viewport: v.optional(v.string()),
+    locale: v.optional(v.string()),
+    /** Capture d'écran (data URL image compressée) ou absente. */
+    screenshot: v.optional(v.string()),
+    /** Dernières erreurs console captées automatiquement (aide au diagnostic). */
+    consoleErrors: v.optional(v.array(v.string())),
+    status: v.union(v.literal('open'), v.literal('triaged'), v.literal('resolved')),
+    createdAt: v.number(),
+  })
+    .index('by_status', ['status'])
+    .index('by_created', ['createdAt']),
 
   /**
    * Journal de livraison SMS (Twilio). Une ligne par message envoyé, mise à jour

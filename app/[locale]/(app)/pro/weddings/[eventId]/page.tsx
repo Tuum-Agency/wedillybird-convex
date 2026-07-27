@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import type { ComponentProps } from 'react';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { ClipboardList, ArrowUpRight } from 'lucide-react';
 import { Link, redirect } from '@/i18n/navigation';
@@ -116,7 +117,12 @@ export default async function ProWeddingHubPage({
             rsvpStatus: g.rsvpStatus,
           })),
           messageQuota,
-          seatingPlan,
+          // `tables.shape` du schéma partage 7 formes avec le seating
+          // /mon-mariage ; le hub agence ne gère que round/rect. Cast sûr
+          // (typé, pas d'any) : un event agence n'a jamais de forme exotique.
+          seatingPlan: seatingPlan as ComponentProps<
+            typeof WeddingHubClient
+          >['data']['seatingPlan'],
         }}
       />
       <div className="container-page flex flex-col gap-4 pb-12">

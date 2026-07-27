@@ -788,6 +788,31 @@
       "navAriaLabel": "Main navigation",
       "language": "Language",
       "languageAriaLabel": "Choose language"
+    },
+    "universes": {
+      "chapter": "CHAPTER 04B — THE WORLDS",
+      "title": "Twelve openings. Twelve worlds.",
+      "subtitle": "The seal is only the beginning. Pick the cinematic — a rising curtain, fireworks, a first snowflake — and the whole invitation page dresses in the same theme: colors, decor, countdown, right down to the footer.",
+      "galleryNote": "The same card, twelve themes",
+      "signatureBadge": "Signature",
+      "custom": {
+        "heading": "Tune every detail",
+        "cinematic": {
+          "title": "The cinematic",
+          "desc": "Twelve openings to choose from, replay anytime."
+        },
+        "music": {
+          "title": "The music",
+          "desc": "Five in-house tracks, or your own file."
+        },
+        "musicYours": "+ yours",
+        "photo": {
+          "title": "Your photo",
+          "desc": "Yours, at the heart of the card."
+        },
+        "included": "Included with Premium and every Pro plan."
+      },
+      "liveTag": "Animated"
     }
   },
   "Auth": {
@@ -1018,7 +1043,9 @@
     "galleryHint": "Photos shared by guests",
     "booleanYes": "Yes",
     "booleanNo": "No",
-    "requiredMark": "Required"
+    "requiredMark": "Required",
+    "openInvitation": "Open the invitation",
+    "tapSeal": "Tap the seal"
   },
   "OrgPublic": {
     "poweredBy": "Powered by",
@@ -3863,7 +3890,8 @@
         "event": "Additional simultaneous event: €19/month (prorated)"
       },
       "addons": "Add-ons: payments via your own Stripe account, extra seat +€19/month, extra wedding +€19/month."
-    }
+    },
+    "usTaxNote": "Prices exclude tax. Any local sales tax is added at checkout."
   },
   "Upgrade": {
     "title": "Activate your plan",
@@ -3929,7 +3957,8 @@
       "notFound": "Invoice not found.",
       "notPaid": "The invoice will be available once the payment is confirmed.",
       "unknown": "Couldn't generate the invoice right now."
-    }
+    },
+    "lineUpsellHd": "Post-wedding HD archive"
   },
   "InvoicePage": {
     "eyebrow": "Accounting",
@@ -5403,5 +5432,114 @@
     "statePlaceholder": "Select your wedding's location…",
     "errorFeatureNotInPlan": "Face search is only available on the Premium plan (or pro plans).",
     "errorForbidden": "You don't have permission to change this setting."
+  },
+  "InvitationDesign": {
+    "photoSection": "Couple photo",
+    "photoHint": "JPEG, PNG or WebP · a vertical portrait works best",
+    "photoAdd": "Add your photo",
+    "photoChange": "Your photo",
+    "photoReplace": "Replace",
+    "photoRemove": "Remove photo",
+    "photoUploadErrors": {
+      "type": "Unsupported format (JPEG, PNG or WebP)",
+      "size": "Image too large (15 MB max)",
+      "network": "Upload failed — please try again"
+    },
+    "chooseFile": "Choose a file",
+    "cinematicSection": "Opening cinematic",
+    "customMusic": "Your music",
+    "customMusicHint": "MP3 or M4A, 10 MB max",
+    "done": "Done",
+    "eyebrow": "Invitation",
+    "lockedBody": "Choosing a cinematic and music is included with Premium.",
+    "musicNone": "No music",
+    "musicNoneDesc": "The invitation opens in silence",
+    "musicSection": "Music",
+    "pause": "Stop",
+    "play": "Listen",
+    "preview": "Preview",
+    "title": "Customize your invitation",
+    "uploading": "Uploading…",
+    "themes": {
+      "seal": {
+        "name": "The Seal",
+        "desc": "The sealed envelope opens in real depth — the signature classic."
+      },
+      "fairepart": {
+        "name": "The Invitation",
+        "desc": "Press the wax seal: it pops in 3D and the card opens onto your photo."
+      },
+      "royal": {
+        "name": "The Royal Invitation",
+        "desc": "The palace doors swing open on your names engraved in gold — fireworks finale."
+      },
+      "floral": {
+        "name": "The Bloom",
+        "desc": "The garden wakes: your names are inked beneath a blooming arch."
+      },
+      "cake": {
+        "name": "The Wedding Cake",
+        "desc": "The cake rises and your names are piped in icing, candles lit."
+      },
+      "voyage": {
+        "name": "The Boarding",
+        "desc": "The cabin window opens onto dawn — a boarding pass prints, then gets stamped."
+      },
+      "theatre": {
+        "name": "The Curtain Rise",
+        "desc": "The curtain rises on the swan lake — your names up in marquee lights."
+      },
+      "etoiles": {
+        "name": "The Constellation",
+        "desc": "The night awakens: a heart is traced star to star, your names in starlight."
+      },
+      "lanternes": {
+        "name": "The Lanterns",
+        "desc": "Lanterns light up and rise — your names glow through the paper."
+      },
+      "rivage": {
+        "name": "The Shore",
+        "desc": "The wave pulls back and your names remain written in the sand."
+      },
+      "feux": {
+        "name": "The Fireworks",
+        "desc": "Rockets rise; the grand finale reveals your names in gold."
+      },
+      "deco": {
+        "name": "The Art Deco",
+        "desc": "Black and gold: the frame draws itself, your names in Gatsby gold capitals."
+      },
+      "neige": {
+        "name": "First Snowflake",
+        "desc": "Snow falls, frost creeps over the glass — a circle of warmth reveals your names."
+      }
+    },
+    "tracks": {
+      "aurore": {
+        "name": "Aurore",
+        "desc": "Intimate piano, morning warmth"
+      },
+      "jardin": {
+        "name": "Jardin",
+        "desc": "Rippling harp, dewdrop sparkle"
+      },
+      "celebration": {
+        "name": "Célébration",
+        "desc": "Bouncing marimba, festive spirit"
+      },
+      "envol": {
+        "name": "Envol",
+        "desc": "Airy arpeggios, open sky"
+      },
+      "harmonie": {
+        "name": "Harmonie",
+        "desc": "Sweeping strings, moonlight"
+      }
+    },
+    "uploadErrors": {
+      "type": "Unsupported format (MP3 or M4A)",
+      "size": "File too large (10 MB max)",
+      "network": "Upload failed — try again"
+    }
   }
 }

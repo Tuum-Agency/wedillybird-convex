@@ -1,6 +1,7 @@
 import { v } from 'convex/values';
 import { internalQuery, mutation, query } from './_generated/server';
 import { isValidEmail } from './lib/email';
+import { BUDGET_CURRENCY } from './lib/currency';
 
 export const completeOnboarding = mutation({
   args: {
@@ -8,8 +9,9 @@ export const completeOnboarding = mutation({
     fullName: v.string(),
     role: v.union(v.literal('couple'), v.literal('pro')),
     email: v.string(),
+    preferredCurrency: v.optional(BUDGET_CURRENCY),
   },
-  handler: async (ctx, { userId, fullName, role, email }) => {
+  handler: async (ctx, { userId, fullName, role, email, preferredCurrency }) => {
     const user = await ctx.db.get(userId);
     if (!user) throw new Error('USER_NOT_FOUND');
 
@@ -38,6 +40,7 @@ export const completeOnboarding = mutation({
       fullName: trimmed,
       role,
       email: normalizedEmail,
+      ...(preferredCurrency ? { preferredCurrency } : {}),
     });
 
     return { ok: true as const };

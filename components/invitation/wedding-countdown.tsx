@@ -45,7 +45,10 @@ export function WeddingCountdown({ eventDate, accentColor }: WeddingCountdownPro
   // mismatch et pour que l'écran ne saute pas quand le countdown apparaît.
   if (now === null) {
     return (
-      <div className="grid grid-cols-3 gap-3 sm:gap-6" aria-label={t('countdownLoadingAria')}>
+      <div
+        className="inv-wcd grid grid-cols-3 gap-3 sm:gap-6"
+        aria-label={t('countdownLoadingAria')}
+      >
         <CountdownCell value="—" label={daysLabel} accent={accent} />
         <CountdownCell value="—" label={hoursLabel} accent={accent} />
         <CountdownCell value="—" label={minutesLabel} accent={accent} />
@@ -83,7 +86,7 @@ export function WeddingCountdown({ eventDate, accentColor }: WeddingCountdownPro
       initial={initial as never}
       animate={animate as never}
       transition={{ duration: 0.5, ease: 'easeOut' }}
-      className="grid grid-cols-3 gap-3 sm:gap-6"
+      className="inv-wcd grid grid-cols-3 gap-3 sm:gap-6"
       role="timer"
       aria-label={t('countdownAria', { days, hours, minutes })}
     >
@@ -101,11 +104,11 @@ export function WeddingCountdown({ eventDate, accentColor }: WeddingCountdownPro
 function CountdownCell({ value, label, accent }: { value: string; label: string; accent: string }) {
   return (
     <div
-      className="flex flex-col items-center gap-2 rounded-2xl border bg-white/60 px-4 py-5 backdrop-blur-sm sm:px-6 sm:py-7"
+      className="inv-wcd-cell flex flex-col items-center gap-2 rounded-2xl border bg-white/60 px-4 py-5 backdrop-blur-sm sm:px-6 sm:py-7"
       style={{ borderColor: accent }}
     >
       <span
-        className="tabular-nums"
+        className="inv-wcd-num tabular-nums"
         style={{
           fontFamily: 'var(--font-sans)',
           fontWeight: 200,
@@ -118,7 +121,7 @@ function CountdownCell({ value, label, accent }: { value: string; label: string;
         {value}
       </span>
       <span
-        className="font-mono text-[9px] tracking-[0.32em] uppercase sm:text-[10px]"
+        className="inv-wcd-lab font-mono text-[9px] tracking-[0.32em] uppercase sm:text-[10px]"
         style={{ color: accent }}
       >
         {label}

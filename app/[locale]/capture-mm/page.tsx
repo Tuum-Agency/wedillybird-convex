@@ -1,6 +1,8 @@
 import { notFound } from 'next/navigation';
+import { NextIntlClientProvider } from 'next-intl';
 import { setRequestLocale } from 'next-intl/server';
 import type { McScreenKey } from '@/components/mon-mariage/app';
+import { getMessages } from '@/lib/i18n/server-translator';
 import { CaptureClient } from './client';
 
 /**
@@ -33,7 +35,10 @@ export default async function CaptureMonMariagePage({
   params: Promise<{ locale: string }>;
   searchParams: Promise<{ screen?: string; view?: string }>;
 }) {
-  if (process.env.NODE_ENV === 'production') notFound();
+  // Bloquée uniquement en *vraie* production (wedillybird.com). Autorisée en dev
+  // et sur les déploiements **preview** Vercel (captures vidéo, protégés par la
+  // preview protection). Aucune donnée réelle : rend la démo mock client-only.
+  if (process.env.VERCEL_ENV === 'production') notFound();
 
   const { locale } = await params;
   setRequestLocale(locale);
@@ -44,5 +49,16 @@ export default async function CaptureMonMariagePage({
     : 'home';
   const forfaitView = sp.view === 'choix' ? 'choix' : 'actif';
 
-  return <CaptureClient initialScreen={initialScreen} forfaitView={forfaitView} />;
+  // Le composant est rendu client-only (ssr:false) : aucune chaîne n'est lue côté
+  // serveur, donc le provider du layout ne forwarde aucun message en prod (build
+  // optimisé). On fournit explicitement les messages complets à cette route de
+  // capture pour que les libellés s'affichent (sinon clés brutes type
+  // « MonMariage.budget.title » sur la preview).
+  const messages = getMessages(locale);
+
+  return (
+    <NextIntlClientProvider locale={locale} messages={messages}>
+      <CaptureClient initialScreen={initialScreen} forfaitView={forfaitView} />
+    </NextIntlClientProvider>
+  );
 }
