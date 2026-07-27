@@ -21,6 +21,7 @@ import { Button, buttonVariants } from '@/components/ui/button';
 import { AppShell } from '@/components/app/app-shell';
 import { BroadcastInvitationsCard } from '@/components/events/broadcast-invitations-card';
 import { LiveGuestStats } from '@/components/events/live-guest-stats';
+import { NotificationsPanel } from '@/components/notifications/notifications-panel';
 import { UpgradeCard } from '@/components/payments/upgrade-card';
 import { PostEventUpsellCard } from '@/components/payments/post-event-upsell-card';
 import { routePayment } from '@/lib/payments/country';
@@ -86,6 +87,14 @@ export default async function EventDetailPage({
   }
 
   const counts = await convex.query(convexApi.countGuestsByEvent, {
+    eventId,
+    requesterId: session!.userId,
+  });
+
+  // Livraison SMS RÉELLE (délivrés / en attente / non délivrés) — remplace le
+  // compteur trompeur « X envoyés » (F4). Rafraîchi au router.refresh() après un
+  // broadcast, mis à jour par le webhook StatusCallback + le cron de secours.
+  const delivery = await convex.query(convexApi.deliveryForEvent, {
     eventId,
     requesterId: session!.userId,
   });
@@ -438,6 +447,14 @@ export default async function EventDetailPage({
         invited: counts.invited,
         withPhone: counts.withPhone,
       }}
+      delivery={{
+        total: delivery.total,
+        delivered: delivery.delivered,
+        pending: delivery.queued + delivery.sent,
+        undelivered: delivery.undelivered,
+        failed: delivery.failed,
+        undeliveredRate: delivery.undeliveredRate,
+      }}
     />
   );
 
@@ -482,6 +499,7 @@ export default async function EventDetailPage({
               (stats live, broadcast quotidien) et les actions invités. */}
         {headerSection}
         {detailsSection}
+        <NotificationsPanel userId={session!.userId} />
         {isDraft ? (
           <>
             {pilotSection}

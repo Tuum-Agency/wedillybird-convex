@@ -194,7 +194,7 @@ export function ContactForm() {
           rows={6}
           placeholder={t('messagePlaceholder')}
           aria-invalid={!!messageError}
-          className="focus-ring resize-vertical w-full rounded-xl border border-[color:var(--color-border-strong)] bg-white px-4 py-3 text-sm text-[color:var(--color-ink-900)] placeholder:text-[color:var(--color-ink-300)]"
+          className="focus-ring resize-vertical w-full rounded-xl border border-[color:var(--color-border-strong)] bg-white px-4 py-3 text-sm text-[color:var(--color-ink-900)] placeholder:text-[color:var(--color-ink-400)]"
         />
         {messageError ? (
           <p className="text-xs text-[color:var(--color-destructive)]">{messageError}</p>

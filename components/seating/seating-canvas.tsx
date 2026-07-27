@@ -1,51 +1,24 @@
 'use client';
 
-import { useCallback, useState, type CSSProperties } from 'react';
+import { useCallback, type CSSProperties } from 'react';
 import { useDraggable, useDroppable } from '@dnd-kit/core';
-import { AlertTriangle, Circle, RectangleHorizontal, Square, Trash2 } from 'lucide-react';
-import { cn } from '@/lib/cn';
+import { AlertTriangle, Circle, RectangleHorizontal, Trash2, Users } from 'lucide-react';
 import { defaultTablePos, type SeatTable } from '@/lib/seating/board';
-import {
-  TABLE_SHAPES,
-  categoryMeta,
-  seatInitials,
-  seatPositions,
-  tableDims,
-  type TableShape,
-} from '@/lib/pro/seating';
-
-const SHAPE_ICON: Record<TableShape, typeof Circle> = {
-  round: Circle,
-  oval: Circle,
-  rect: RectangleHorizontal,
-  square: Square,
-};
-// arrondi du plateau selon la forme (round/oval = plein, rect/square = arrondi doux)
-const SHAPE_RADIUS: Record<TableShape, string> = {
-  round: 'rounded-full',
-  oval: 'rounded-full',
-  rect: 'rounded-2xl',
-  square: 'rounded-xl',
-};
 
 export const TABLE_DRAG_PREFIX = 'table:';
 
 interface CanvasLabels {
   shapeToggle: string;
-  move: string;
   del: string;
   unassign: string;
   empty: string;
-  nameLabel: string;
-  renameHint: string;
 }
 
 interface SeatingCanvasProps {
   tables: SeatTable[];
   onUnassignGuest: (guestId: string) => void;
-  onToggleShape: (tableId: string, next: TableShape) => void;
+  onToggleShape: (tableId: string, next: 'round' | 'rect') => void;
   onDelete: (tableId: string) => void;
-  onRename: (tableId: string, name: string) => void;
   labels: CanvasLabels;
 }
 
@@ -54,12 +27,11 @@ export function SeatingCanvas({
   onUnassignGuest,
   onToggleShape,
   onDelete,
-  onRename,
   labels,
 }: SeatingCanvasProps) {
   return (
     <div
-      className="relative h-[560px] w-full overflow-auto rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-background)]"
+      className="relative h-[560px] w-full overflow-auto rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-ivory-50)]"
       style={{
         backgroundImage:
           'radial-gradient(circle, color-mix(in oklch, var(--color-border) 55%, transparent) 1px, transparent 1px)',
@@ -67,7 +39,7 @@ export function SeatingCanvas({
       }}
       data-testid="seating-canvas"
     >
-      <div className="relative h-[1100px] w-[1200px]">
+      <div className="relative h-[1000px] w-[1000px]">
         {tables.map((table, i) => {
           const fb = defaultTablePos(i);
           return (
@@ -78,7 +50,6 @@ export function SeatingCanvas({
               onUnassignGuest={onUnassignGuest}
               onToggleShape={onToggleShape}
               onDelete={onDelete}
-              onRename={onRename}
               labels={labels}
             />
           );
@@ -94,20 +65,19 @@ function TableNode({
   onUnassignGuest,
   onToggleShape,
   onDelete,
-  onRename,
   labels,
 }: {
   table: SeatTable;
   fallback: { left: number; top: number };
   onUnassignGuest: (guestId: string) => void;
-  onToggleShape: (tableId: string, next: TableShape) => void;
+  onToggleShape: (tableId: string, next: 'round' | 'rect') => void;
   onDelete: (tableId: string) => void;
-  onRename: (tableId: string, name: string) => void;
   labels: CanvasLabels;
 }) {
   const {
     setNodeRef: setDragRef,
     listeners,
+    attributes,
     transform,
     isDragging,
   } = useDraggable({
@@ -125,23 +95,10 @@ function TableNode({
 
   const left = table.posX ?? fallback.left;
   const top = table.posY ?? fallback.top;
-  const shape: TableShape = table.shape ?? 'round';
-  const ShapeIcon = SHAPE_ICON[shape];
-  const nextShape = TABLE_SHAPES[(TABLE_SHAPES.indexOf(shape) + 1) % TABLE_SHAPES.length]!;
-  const [editing, setEditing] = useState(false);
-  const dims = tableDims(shape, table.capacity);
-  const slots = seatPositions(
-    shape,
-    Math.max(table.assigned.length, table.capacity),
-    dims.w,
-    dims.h,
-  );
-
+  const round = (table.shape ?? 'round') === 'round';
   const style: CSSProperties = {
     left,
     top,
-    width: dims.w,
-    height: dims.h,
     transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
     zIndex: isDragging ? 30 : 1,
   };
@@ -152,85 +109,34 @@ function TableNode({
       style={style}
       data-testid="table-node"
       data-table-id={table._id}
-      {...listeners}
-      title={labels.move}
-      className={cn(
-        // tout le corps de la table est saisissable pour la déplacer (curseur grab partout)
-        'group absolute grid cursor-grab touch-none place-items-center border-2 bg-[color:var(--color-surface)] shadow-sm transition-colors active:cursor-grabbing',
-        SHAPE_RADIUS[shape],
+      className={[
+        'absolute w-48 border bg-[color:var(--color-surface)] shadow-sm transition-colors select-none',
+        round ? 'rounded-[36px]' : 'rounded-xl',
         isOver
           ? 'border-[color:var(--color-accent)] ring-2 ring-[color:var(--color-accent)]/40'
           : table.overCapacity
-            ? 'border-[color:var(--color-danger)]/60'
-            : 'border-[color:var(--color-border-strong)]',
-      )}
+            ? 'border-[color:var(--color-danger)]/50'
+            : 'border-[color:var(--color-border)]',
+      ].join(' ')}
     >
-      {/* contrôles : forme + suppression (clic seul — ne déclenche pas le déplacement) */}
+      {/* En-tête = poignée de déplacement de la table. */}
       <div
-        onPointerDown={(e) => e.stopPropagation()}
-        className="absolute top-1.5 right-1.5 z-10 flex gap-0.5 opacity-0 transition-opacity group-hover:opacity-100"
-      >
-        <button
-          type="button"
-          onClick={() => onToggleShape(table._id, nextShape)}
-          aria-label={labels.shapeToggle}
-          title={labels.shapeToggle}
-          data-testid="table-shape-toggle"
-          className="focus-ring grid h-6 w-6 place-items-center rounded-lg bg-[color:var(--color-surface)]/70 text-[color:var(--color-muted-foreground)] hover:bg-[color:var(--color-surface-elevated)]"
-        >
-          <ShapeIcon className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden />
-        </button>
-        <button
-          type="button"
-          onClick={() => onDelete(table._id)}
-          aria-label={labels.del}
-          title={labels.del}
-          data-testid="delete-table"
-          className="focus-ring grid h-6 w-6 place-items-center rounded-lg bg-[color:var(--color-surface)]/70 text-[color:var(--color-muted-foreground)] hover:bg-[color:var(--color-danger)]/10 hover:text-[color:var(--color-danger)]"
-        >
-          <Trash2 className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden />
-        </button>
-      </div>
-
-      {/* centre : nom + occupation (référence e2e ; pointer-events-none → le drag remonte au corps) */}
-      <div
+        {...listeners}
+        {...attributes}
         data-testid="table-node-handle"
-        className="pointer-events-none flex max-w-[88%] flex-col items-center gap-0.5 text-center"
+        className="flex cursor-grab touch-none items-center justify-between gap-2 px-3 pt-2.5 active:cursor-grabbing"
       >
-        {editing ? (
-          <input
-            autoFocus
-            defaultValue={table.name}
-            aria-label={labels.nameLabel}
-            onPointerDown={(e) => e.stopPropagation()}
-            onBlur={(e) => {
-              const v = e.target.value.trim();
-              if (v && v !== table.name) onRename(table._id, v);
-              setEditing(false);
-            }}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') e.currentTarget.blur();
-              if (e.key === 'Escape') setEditing(false);
-            }}
-            className="pointer-events-auto w-full rounded-md border border-[color:var(--color-primary)] bg-[color:var(--color-surface)] px-1 py-0.5 text-center text-sm font-semibold text-[color:var(--color-foreground)] outline-none"
-          />
-        ) : (
-          <span
-            className="pointer-events-auto cursor-text truncate text-sm font-semibold text-[color:var(--color-foreground)]"
-            onDoubleClick={() => setEditing(true)}
-            title={labels.renameHint}
-          >
-            {table.name}
-          </span>
-        )}
+        <span className="truncate text-sm font-semibold text-[color:var(--color-ink-900)]">
+          {table.name}
+        </span>
         <span
-          className={cn(
-            'inline-flex items-center gap-1 font-mono text-[11px] tabular-nums',
+          className={`inline-flex items-center gap-1 text-[11px] ${
             table.overCapacity
               ? 'text-[color:var(--color-danger)]'
-              : 'text-[color:var(--color-muted-foreground)]',
-          )}
+              : 'text-[color:var(--color-ink-500)]'
+          }`}
         >
+          <Users className="h-3 w-3" strokeWidth={2} aria-hidden />
           {table.occupancy}/{table.capacity}
           {table.overCapacity ? (
             <AlertTriangle className="h-3 w-3" strokeWidth={2} aria-hidden />
@@ -238,33 +144,58 @@ function TableNode({
         </span>
       </div>
 
-      {/* sièges occupés (un par invité placé), colorés par catégorie */}
-      {table.assigned.map((g, i) => {
-        const p = slots[i];
-        if (!p) return null;
-        const m = categoryMeta(g.category);
-        return (
-          <button
-            key={g._id}
-            type="button"
-            data-testid="node-guest"
-            data-member-index={g.memberIndex}
-            onPointerDown={(e) => e.stopPropagation()}
-            onClick={() => onUnassignGuest(g._id)}
-            title={`${g.fullName} — ${labels.unassign}`}
-            className="absolute z-10 grid h-6 w-6 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-2 font-mono text-[9px] font-medium transition-transform hover:scale-110"
-            style={{
-              left: p.x,
-              top: p.y,
-              background: m.soft,
-              color: m.color,
-              borderColor: 'var(--color-surface)',
-            }}
-          >
-            {seatInitials(g.fullName)}
-          </button>
-        );
-      })}
+      <div className="flex items-center gap-1 px-3 pt-1">
+        <button
+          type="button"
+          onClick={() => onToggleShape(table._id, round ? 'rect' : 'round')}
+          aria-label={labels.shapeToggle}
+          title={labels.shapeToggle}
+          data-testid="table-shape-toggle"
+          className="focus-ring flex h-6 w-6 items-center justify-center rounded text-[color:var(--color-ink-500)] hover:bg-[color:var(--color-ivory-100)]"
+        >
+          {round ? (
+            <Circle className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden />
+          ) : (
+            <RectangleHorizontal className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden />
+          )}
+        </button>
+        <button
+          type="button"
+          onClick={() => onDelete(table._id)}
+          aria-label={labels.del}
+          title={labels.del}
+          data-testid="delete-table"
+          className="focus-ring flex h-6 w-6 items-center justify-center rounded text-[color:var(--color-ink-500)] hover:bg-[color:var(--color-danger)]/10 hover:text-[color:var(--color-danger)]"
+        >
+          <Trash2 className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden />
+        </button>
+      </div>
+
+      <div className="flex flex-col gap-1 px-3 pt-1.5 pb-3">
+        {table.assigned.length === 0 ? (
+          <p className="rounded-md border border-dashed border-[color:var(--color-border)] px-2 py-3 text-center text-[11px] text-[color:var(--color-ink-500)]">
+            {labels.empty}
+          </p>
+        ) : (
+          table.assigned.map((g) => (
+            <button
+              key={g._id}
+              type="button"
+              onClick={() => onUnassignGuest(g._id)}
+              title={labels.unassign}
+              data-testid="node-guest"
+              className="focus-ring flex items-center justify-between gap-1 truncate rounded-md bg-[color:var(--color-ivory-100)] px-2 py-1 text-left text-xs text-[color:var(--color-ink-900)] hover:bg-[color:var(--color-danger)]/10"
+            >
+              <span className="truncate">{g.fullName}</span>
+              {g.seats > 1 ? (
+                <span className="shrink-0 text-[10px] text-[color:var(--color-ink-500)]">
+                  +{g.seats - 1}
+                </span>
+              ) : null}
+            </button>
+          ))
+        )}
+      </div>
     </div>
   );
 }

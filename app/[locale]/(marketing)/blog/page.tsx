@@ -88,7 +88,7 @@ export default async function BlogPage({ params }: { params: Promise<{ locale: s
                     </Badge>
                   </div>
                   <CardContent className="flex flex-col gap-4 p-6 lg:p-8">
-                    <div className="flex items-center gap-2 font-mono text-xs text-[color:var(--color-ink-300)]">
+                    <div className="flex items-center gap-2 font-mono text-xs text-[color:var(--color-ink-400)]">
                       <Calendar className="h-3.5 w-3.5" />
                       {t(`blog.${article.key}.date`)}
                     </div>

@@ -3,7 +3,6 @@
 import { getSession } from '@/lib/auth/session';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
 import type { SeatingPlan } from '@/lib/seating/board';
-import type { TableShape } from '@/lib/pro/seating';
 
 export type SeatingActionResult = { ok: true } | { ok: false; error: string };
 
@@ -46,7 +45,7 @@ export async function updateTableAction(
   input: {
     name?: string;
     capacity?: number;
-    shape?: TableShape;
+    shape?: 'round' | 'rect';
     posX?: number;
     posY?: number;
   },

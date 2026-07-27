@@ -105,6 +105,12 @@ export async function POST(req: Request): Promise<Response> {
   }
 
   const convex = getConvexServerClient();
+  // Secret partagé Vercel ⇄ Convex : empêche un appel direct de marquer un
+  // template `approved`/`disabled` sans passer par ce webhook Meta signé.
+  const webhookSecret = process.env.CONVEX_WEBHOOK_SECRET;
+  if (!webhookSecret) {
+    return NextResponse.json({ error: 'WEBHOOK_SECRET_NOT_CONFIGURED' }, { status: 500 });
+  }
   let processed = 0;
   let touched = 0;
 
@@ -122,6 +128,7 @@ export async function POST(req: Request): Promise<Response> {
 
       try {
         const result = await convex.mutation(convexApi.applyWhatsappTemplateWebhook, {
+          webhookSecret,
           metaTemplateId: metaTemplateId ?? '',
           metaName,
           status: metaEvent,

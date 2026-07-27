@@ -22,6 +22,12 @@ export interface TwilioSmsSendInput {
   to: string;
   /** Corps texte du SMS. Garder en GSM-7 (<=160 chars) pour 1 seul segment. */
   body: string;
+  /**
+   * URL `StatusCallback` Twilio. Quand fournie, Twilio POST le statut de
+   * livraison réel (delivered/undelivered/failed) à cette URL. C'est ce qui
+   * transforme « accepté en file » (HTTP 200) en livraison observée (F4).
+   */
+  statusCallback?: string;
 }
 
 export interface TwilioSmsEnv {
@@ -111,6 +117,10 @@ export async function sendTwilioSms(
   } else if (fromNumber) {
     params.set('From', fromNumber);
   }
+  // Statut de livraison réel poussé par Twilio à cette URL (webhook StatusCallback).
+  if (input.statusCallback) {
+    params.set('StatusCallback', input.statusCallback);
+  }
 
   // Auth HTTP Basic `AccountSid:AuthToken`. `btoa` est dispo dans le runtime
   // Convex (V8 isolate) ET dans Node — pas de `Buffer` (absent du isolate).
@@ -142,4 +152,50 @@ export async function sendTwilioSms(
 
   const data = (await res.json().catch(() => ({}))) as { sid?: string };
   return { ok: true, mock: false, messageId: data.sid };
+}
+
+export interface TwilioMessageStatus {
+  /** `MessageStatus` Twilio brut (queued/sent/delivered/undelivered/failed…). */
+  status: string;
+  /** Code d'erreur Twilio si présent (ex. 30007/30008 = filtré carrier). */
+  errorCode?: string;
+}
+
+/**
+ * Interroge Twilio pour le statut RÉEL d'un message déjà envoyé
+ * (`GET .../Messages/{sid}.json`) — utilisé par la réconciliation quand un
+ * `StatusCallback` a été perdu (cron de secours F4).
+ *
+ * Retourne `null` si Twilio n'est pas configuré, si le SID est un mock, ou en
+ * cas d'erreur réseau/HTTP — l'appelant laisse alors la ligne en l'état.
+ */
+export async function fetchTwilioMessageStatus(
+  sid: string,
+  env?: Partial<TwilioSmsEnv>,
+): Promise<TwilioMessageStatus | null> {
+  const accountSid = env?.accountSid ?? process.env.TWILIO_ACCOUNT_SID;
+  const authToken = env?.authToken ?? process.env.TWILIO_AUTH_TOKEN;
+  if (!accountSid || !authToken) return null;
+  if (sid.startsWith('mock-')) return null;
+
+  const url = `${buildTwilioMessagesUrl(accountSid).replace(/\.json$/, '')}/${encodeURIComponent(sid)}.json`;
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      method: 'GET',
+      headers: { Authorization: `Basic ${btoa(`${accountSid}:${authToken}`)}` },
+    });
+  } catch {
+    return null;
+  }
+  if (!res.ok) return null;
+  const data = (await res.json().catch(() => ({}))) as {
+    status?: string;
+    error_code?: number | string | null;
+  };
+  if (!data.status) return null;
+  return {
+    status: data.status,
+    errorCode: data.error_code != null ? String(data.error_code) : undefined,
+  };
 }

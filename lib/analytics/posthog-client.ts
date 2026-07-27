@@ -194,6 +194,13 @@ export const analytics = {
   faqOpened(props: { question: string; source?: string }): void {
     track(EVENTS.faqOpened, props);
   },
+  /**
+   * Section de la landing entrée dans le viewport (mesure des fuites de scroll).
+   * Émis une fois par changement de section active, pas à chaque frame de scroll.
+   */
+  sectionViewed(props: { id: string }): void {
+    track(EVENTS.sectionViewed, props);
+  },
   /** Inscription newsletter (côté client ; doublé côté serveur dans /api/newsletter). */
   newsletterSubscribed(props?: { source?: string }): void {
     track(EVENTS.newsletterSubscribed, props);

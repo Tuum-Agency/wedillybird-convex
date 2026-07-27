@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { z } from 'zod';
 import { getSession } from '@/lib/auth/session';
+import { assertSameOrigin } from '@/lib/auth/csrf';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
 import { PLANS } from '@/lib/payments/plans';
 import { detectCountryFromHeaders, routePayment } from '@/lib/payments/country';
@@ -16,6 +17,8 @@ const bodySchema = z.object({
 });
 
 export async function POST(req: Request): Promise<Response> {
+  const csrf = assertSameOrigin(req);
+  if (csrf) return csrf;
   const session = await getSession();
   if (!session) {
     return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });

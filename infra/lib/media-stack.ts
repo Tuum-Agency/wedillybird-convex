@@ -8,7 +8,9 @@ import * as acm from 'aws-cdk-lib/aws-certificatemanager';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction, OutputFormat } from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as iam from 'aws-cdk-lib/aws-iam';
-import { S3EventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
+import { SnsEventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
+import * as sns from 'aws-cdk-lib/aws-sns';
+import * as s3n from 'aws-cdk-lib/aws-s3-notifications';
 
 export type WedillybirdMediaStackProps = StackProps & {
   /** Bucket name. Must be globally unique. */
@@ -116,6 +118,19 @@ export class WedillybirdMediaStack extends Stack {
     new CfnOutput(this, 'CdnDomain', { value: cdnDomain });
 
     if (props.convexSiteUrl && props.lambdaCallbackSecret) {
+      // Fan-out S3 → SNS → 2 Lambdas. Une notification S3 directe n'autorise
+      // qu'UNE règle par (préfixe, événement) : deux Lambdas sur `incoming/`
+      // OBJECT_CREATED déclenche « Configuration is ambiguously defined ». On
+      // passe donc par un topic SNS auquel modération ET variants s'abonnent.
+      const uploadTopic = new sns.Topic(this, 'IncomingUploadTopic', {
+        displayName: 'Wedillybird incoming media uploads',
+      });
+      this.bucket.addEventNotification(
+        s3.EventType.OBJECT_CREATED,
+        new s3n.SnsDestination(uploadTopic),
+        { prefix: 'incoming/' },
+      );
+
       const moderationFunction = new NodejsFunction(this, 'ModerationFunction', {
         entry: path.join(__dirname, '..', 'lambdas', 'moderation.ts'),
         handler: 'handler',
@@ -163,12 +178,7 @@ export class WedillybirdMediaStack extends Stack {
       );
       this.bucket.grantRead(moderationFunction);
 
-      moderationFunction.addEventSource(
-        new S3EventSource(this.bucket, {
-          events: [s3.EventType.OBJECT_CREATED],
-          filters: [{ prefix: 'incoming/' }],
-        }),
-      );
+      moderationFunction.addEventSource(new SnsEventSource(uploadTopic));
 
       new CfnOutput(this, 'ModerationFunctionName', { value: moderationFunction.functionName });
 
@@ -228,12 +238,7 @@ export class WedillybirdMediaStack extends Stack {
         }),
       );
 
-      variantsFunction.addEventSource(
-        new S3EventSource(this.bucket, {
-          events: [s3.EventType.OBJECT_CREATED],
-          filters: [{ prefix: 'incoming/' }],
-        }),
-      );
+      variantsFunction.addEventSource(new SnsEventSource(uploadTopic));
 
       new CfnOutput(this, 'VariantsFunctionName', { value: variantsFunction.functionName });
     }

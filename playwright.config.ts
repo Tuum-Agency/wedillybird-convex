@@ -9,7 +9,12 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: isCI,
   retries: isCI ? 2 : 0,
-  workers: isCI ? 2 : undefined,
+  // CI : 1 seul worker. À 2 workers, chromium + webkit tournaient en parallèle
+  // sur le même runner (+ un seul serveur Next), et la contention faisait échouer
+  // les tests sensibles au timing sur webkit-Linux (scroll-spy `aria-current`,
+  // focus après collage OTP) même après retries. Sérialiser supprime la
+  // contention au prix d'un job plus lent — fiabilité > vitesse pour ce gate.
+  workers: isCI ? 1 : undefined,
   reporter: isCI ? [['github'], ['html', { open: 'never' }]] : 'list',
   use: {
     baseURL,

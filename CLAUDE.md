@@ -14,10 +14,10 @@ Résumé impératif :
   - Premium **59 € / $80** — 250 invitations max — galerie partagée HD 6 mois + album PDF
   - Upsell HD post-event **+29 € / +$30** — rétention galerie 5 ans + export ZIP HD + livre photo
 - **Pros (mensuel · -20 % en annuel)** — USD = **valeur marché ≥ équiv. EUR** (v2.4, 2026-07-12 : fin de l'ex-parité $99 qui bradait le pro US ; `usdMinor` dans `subscriptions.ts`) :
-  - Starter **99 €/mois / $109** (79 €/mois annuel · $1 047/an) — 5 events × 150 invités — 50 Go
-  - Business **219 €/mois / $239** (175 €/mois annuel · $2 295/an) — 20 events × 150 invités — 200 Go
-  - Agency **449 €/mois / $489** (359 €/mois annuel · $4 695/an) — 50 events × 150 invités — 500 Go
-  - Pay-as-you-go **79 €/event / $89** — 150 invités max — 25 Go
+  - Starter **99 €/mois / $99** (79 €/mois annuel · $951/an) — 5 events × 150 invités — 50 Go
+  - Business **219 €/mois / $219** (175 €/mois annuel · $2 103/an) — 20 events × 150 invités — 200 Go
+  - Agency **449 €/mois / $449** (359 €/mois annuel · $4 311/an) — 50 events × 150 invités — 500 Go
+  - Pay-as-you-go **79 €/event / $79** — 150 invités max — 25 Go
 - **Dépassements** :
   - SMS / WhatsApp au-delà bundle : **0,06 €/msg**
   - Invité au-delà du cap : **0,25 €/invité**
@@ -27,7 +27,7 @@ Résumé impératif :
 - **Règle devise (v2.4, impérative)** : la devise suit le **pays de facturation** (géoIP, cookie `wbb_ccy` via `proxy.ts` → `currencyForCountry`), **jamais la langue d'UI** (le sélecteur de langue ne change que la traduction). L'USD est posé en **valeur marché, toujours ≥ l'équivalent EUR converti — le signe de l'écart ne s'inverse jamais** entre segments. Prix US affichés **HT** (`Plans.usTaxNote`). Ne jamais réintroduire de « parité numérique » ni de devise dérivée de la locale.
 - **Bundle interne** : 3,5 × cap invités (couvre invitation + reminders + RSVP + gallery link).
 
-Le code (`lib/payments/plans.ts`, `lib/payments/subscriptions.ts`) est **aligné** sur cette grille. **Consumer USD v2.3 en prod depuis le 2026-07-07** (PR #67, site vérifié à $40/$80) — inchangé. **Pro USD v2.4 (hausse $109/$239/$489/$89) : code aligné mais PAS encore en prod** — nécessite de relancer `scripts/sync-stripe-prices.ts` (nouveaux Prices USD pro), poser les env `STRIPE_PRICE_*_USD` (Vercel + Convex), archiver les anciens Prices pro USD ($99/$219/$449/$79 + annuels), puis déployer. En prod Stripe à ce jour, les Prices pro USD sont encore l'ex-parité (gén. `price_1TqHq*`, montants $99·951/$219·2103/$449·4311/$79). **Le découplage devise↔langue + le checkout pro géo-aware sont, eux, déployables sans action Stripe.** (0 transaction live à ce jour.)
+Le code (`lib/payments/plans.ts`, `lib/payments/subscriptions.ts`) est **aligné** sur cette grille. **Consumer USD v2.3 en prod depuis le 2026-07-07** (PR #67, site vérifié à $40/$80). **Pro USD = parité v2.3 `$99/$219/$449/$79` (annuels $951/$2 103/$4 311)** — décision fondateur 2026-07-27 : la hausse pro USD v2.4 ($109/$239/$489/$89) est **ANNULÉE**, code + Stripe (`price_1TqHq*`) + prod restent en v2.3, rien à re-syncer. **Le découplage devise↔langue + le checkout pro géo-aware (points 1/2 de la révision v2.4) sont, eux, retenus** (déployables sans action Stripe). (0 transaction live à ce jour.)
 
 ## Direction de design (V2)
 

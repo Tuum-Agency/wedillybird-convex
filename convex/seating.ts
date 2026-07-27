@@ -190,9 +190,7 @@ export const updateTable = mutation({
     requesterId: v.id('users'),
     name: v.optional(v.string()),
     capacity: v.optional(v.number()),
-    shape: v.optional(
-      v.union(v.literal('round'), v.literal('oval'), v.literal('rect'), v.literal('square')),
-    ),
+    shape: v.optional(v.union(v.literal('round'), v.literal('rect'))),
     posX: v.optional(v.number()),
     posY: v.optional(v.number()),
   },

@@ -70,47 +70,19 @@ export function occState(occ: number, cap: number): OccState {
   return 'ok';
 }
 
-/** Formes de table disponibles (source de vérité partagée par les deux plans de table agence). */
-export type TableShape = 'round' | 'oval' | 'rect' | 'square';
-export const TABLE_SHAPES: readonly TableShape[] = ['round', 'oval', 'rect', 'square'] as const;
-/** Clés i18n (libellé long / court) par forme — namespace au choix de l'appelant. */
-export const TABLE_SHAPE_KEYS: Record<TableShape, { label: string; short: string }> = {
-  round: { label: 'shapeRound', short: 'shapeRoundShort' },
-  oval: { label: 'shapeOval', short: 'shapeOvalShort' },
-  rect: { label: 'shapeRect', short: 'shapeRectShort' },
-  square: { label: 'shapeSquare', short: 'shapeSquareShort' },
-};
-
 /** Dimensions (px) d'une table sur le canvas selon forme + capacité. */
 export function tableDims(
-  shape: TableShape | undefined,
+  shape: 'round' | 'rect' | undefined,
   capacity: number,
 ): { w: number; h: number } {
   if (shape === 'rect') return { w: 130 + capacity * 9, h: 96 };
-  if (shape === 'oval') return { w: 128 + capacity * 9, h: 108 };
-  if (shape === 'square') {
-    const s = 88 + capacity * 7;
-    return { w: s, h: s };
-  }
-  const d = 92 + capacity * 8; // round
+  const d = 92 + capacity * 8;
   return { w: d, h: d };
 }
 
-/** Répartit n points sur un segment [−span/2, span/2] (avec marges). */
-function lineSlots(n: number, span: number, pad: number): number[] {
-  if (n <= 0) return [];
-  if (n === 1) return [span / 2];
-  return Array.from({ length: n }, (_, i) => pad + (span - 2 * pad) * (i / (n - 1)));
-}
-
-/**
- * Positions des sièges autour d'une table :
- *  - round / oval → ellipse (rayons w/2, h/2 + dégagement) ;
- *  - rect → rangées haut / bas (banquet) ;
- *  - square → réparti sur les 4 côtés.
- */
+/** Positions des sièges autour d'une table (round = cercle, rect = haut/bas). */
 export function seatPositions(
-  shape: TableShape | undefined,
+  shape: 'round' | 'rect' | undefined,
   count: number,
   w: number,
   h: number,
@@ -118,25 +90,22 @@ export function seatPositions(
   const pts: Array<{ x: number; y: number }> = [];
   const cx = w / 2;
   const cy = h / 2;
-  if (shape === 'rect') {
-    const top = Math.ceil(count / 2);
-    const bot = count - top;
-    lineSlots(top, w, 26).forEach((x) => pts.push({ x, y: -16 }));
-    lineSlots(bot, w, 26).forEach((x) => pts.push({ x, y: h + 16 }));
-  } else if (shape === 'square') {
-    const per = [0, 0, 0, 0];
-    for (let i = 0; i < count; i++) per[i % 4]!++;
-    lineSlots(per[0]!, w, 20).forEach((x) => pts.push({ x, y: -16 }));
-    lineSlots(per[1]!, h, 20).forEach((y) => pts.push({ x: w + 16, y }));
-    lineSlots(per[2]!, w, 20).forEach((x) => pts.push({ x, y: h + 16 }));
-    lineSlots(per[3]!, h, 20).forEach((y) => pts.push({ x: -16, y }));
-  } else {
-    // round + oval : ellipse
+  if (shape !== 'rect') {
     const rx = w / 2 + 16;
     const ry = h / 2 + 16;
     for (let i = 0; i < count; i++) {
       const a = (i / Math.max(1, count)) * 2 * Math.PI - Math.PI / 2;
       pts.push({ x: cx + rx * Math.cos(a), y: cy + ry * Math.sin(a) });
+    }
+  } else {
+    const top = Math.ceil(count / 2);
+    const bot = count - top;
+    const pad = 26;
+    for (let i = 0; i < top; i++) {
+      pts.push({ x: pad + (w - 2 * pad) * (top === 1 ? 0.5 : i / (top - 1)), y: -16 });
+    }
+    for (let i = 0; i < bot; i++) {
+      pts.push({ x: pad + (w - 2 * pad) * (bot === 1 ? 0.5 : i / (bot - 1)), y: h + 16 });
     }
   }
   return pts;

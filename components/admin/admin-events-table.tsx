@@ -10,6 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useConfirm } from '@/components/ui/confirm-dialog';
 import { useServerAction } from '@/components/admin/use-admin-action';
 import {
   adminUpdateEventStatusAction,
@@ -121,62 +122,75 @@ function EventRow({ event }: { event: Event }) {
     adminUpdateEventStatusAction,
   );
   const { execute: deleteEvent, loading: deleting } = useServerAction(adminDeleteEventAction);
+  const { confirm, confirmDialog } = useConfirm();
 
   return (
-    <tr className="border-b border-[color:var(--color-border)] last:border-0 hover:bg-[color:var(--color-surface-elevated)]/50">
-      <td className="px-4 py-3 font-medium">
-        {event.coupleNames.partnerA} & {event.coupleNames.partnerB}
-      </td>
-      <td className="px-4 py-3 text-[color:var(--color-muted-foreground)]">{event.title}</td>
-      <td className="px-4 py-3 text-[color:var(--color-muted-foreground)]">
-        {new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(new Date(event.eventDate))}
-      </td>
-      <td className="px-4 py-3">
-        <Badge variant={STATUS_VARIANT[event.status] ?? 'neutral'}>{event.status}</Badge>
-      </td>
-      <td className="px-4 py-3 text-[color:var(--color-muted-foreground)]">
-        {event.planTier ?? '—'}
-      </td>
-      <td className="px-4 py-3 text-[color:var(--color-muted-foreground)]">
-        {event.ownerName ?? event.ownerEmail ?? '—'}
-      </td>
-      <td className="px-4 py-3">
-        <div className="flex items-center gap-2">
-          <Select
-            value=""
-            disabled={updating}
-            onValueChange={(v) => {
-              const newStatus = v as Event['status'];
-              if (confirm(t('events.confirmChangeStatus', { status: newStatus }))) {
-                updateStatus(event._id, newStatus);
-              }
-            }}
-          >
-            <SelectTrigger className="rounded-md border border-[color:var(--color-border)] bg-transparent px-2 py-1 text-xs text-[color:var(--color-muted-foreground)]">
-              <SelectValue placeholder={t('events.statusPlaceholder')} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="draft">{t('eventStatuses.draft')}</SelectItem>
-              <SelectItem value="active">{t('eventStatuses.active')}</SelectItem>
-              <SelectItem value="archived">{t('eventStatuses.archived')}</SelectItem>
-              <SelectItem value="cancelled">{t('eventStatuses.cancelled')}</SelectItem>
-            </SelectContent>
-          </Select>
-          {event.status !== 'cancelled' ? (
-            <button
-              onClick={() => {
-                if (confirm(t('events.confirmDelete', { title: event.title }))) {
-                  deleteEvent(event._id);
+    <>
+      <tr className="border-b border-[color:var(--color-border)] last:border-0 hover:bg-[color:var(--color-surface-elevated)]/50">
+        <td className="px-4 py-3 font-medium">
+          {event.coupleNames.partnerA} & {event.coupleNames.partnerB}
+        </td>
+        <td className="px-4 py-3 text-[color:var(--color-muted-foreground)]">{event.title}</td>
+        <td className="px-4 py-3 text-[color:var(--color-muted-foreground)]">
+          {new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(
+            new Date(event.eventDate),
+          )}
+        </td>
+        <td className="px-4 py-3">
+          <Badge variant={STATUS_VARIANT[event.status] ?? 'neutral'}>{event.status}</Badge>
+        </td>
+        <td className="px-4 py-3 text-[color:var(--color-muted-foreground)]">
+          {event.planTier ?? '—'}
+        </td>
+        <td className="px-4 py-3 text-[color:var(--color-muted-foreground)]">
+          {event.ownerName ?? event.ownerEmail ?? '—'}
+        </td>
+        <td className="px-4 py-3">
+          <div className="flex items-center gap-2">
+            <Select
+              value=""
+              disabled={updating}
+              onValueChange={async (v) => {
+                const newStatus = v as Event['status'];
+                if (
+                  await confirm({ title: t('events.confirmChangeStatus', { status: newStatus }) })
+                ) {
+                  updateStatus(event._id, newStatus);
                 }
               }}
-              disabled={deleting}
-              className="rounded-md px-2 py-1 text-xs font-medium text-red-400 transition-colors hover:bg-red-400/10 disabled:opacity-50"
             >
-              {t('common.delete')}
-            </button>
-          ) : null}
-        </div>
-      </td>
-    </tr>
+              <SelectTrigger className="rounded-md border border-[color:var(--color-border)] bg-transparent px-2 py-1 text-xs text-[color:var(--color-muted-foreground)]">
+                <SelectValue placeholder={t('events.statusPlaceholder')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="draft">{t('eventStatuses.draft')}</SelectItem>
+                <SelectItem value="active">{t('eventStatuses.active')}</SelectItem>
+                <SelectItem value="archived">{t('eventStatuses.archived')}</SelectItem>
+                <SelectItem value="cancelled">{t('eventStatuses.cancelled')}</SelectItem>
+              </SelectContent>
+            </Select>
+            {event.status !== 'cancelled' ? (
+              <button
+                onClick={async () => {
+                  if (
+                    await confirm({
+                      title: t('events.confirmDelete', { title: event.title }),
+                      destructive: true,
+                    })
+                  ) {
+                    deleteEvent(event._id);
+                  }
+                }}
+                disabled={deleting}
+                className="rounded-md px-2 py-1 text-xs font-medium text-[color:var(--color-danger)] transition-colors hover:bg-[color:var(--color-danger)]/10 disabled:opacity-50"
+              >
+                {t('common.delete')}
+              </button>
+            ) : null}
+          </div>
+        </td>
+      </tr>
+      {confirmDialog}
+    </>
   );
 }

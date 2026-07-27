@@ -80,3 +80,20 @@ describe('OwnerGallery — download all', () => {
     expect(links[0]).toHaveAttribute('download');
   });
 });
+
+describe('OwnerGallery — reco-faciale opt-in (Lane T3, F7)', () => {
+  it('masque le bouton "Find me in the photos" par défaut (faceSearchEnabled non fourni)', () => {
+    render(<OwnerGallery eventId="evt_4" initialPhotos={[]} />);
+    expect(screen.queryByTestId('face-search-trigger')).toBeNull();
+  });
+
+  it('masque le bouton quand faceSearchEnabled=false', () => {
+    render(<OwnerGallery eventId="evt_5" initialPhotos={[]} faceSearchEnabled={false} />);
+    expect(screen.queryByTestId('face-search-trigger')).toBeNull();
+  });
+
+  it('affiche le bouton quand faceSearchEnabled=true', () => {
+    render(<OwnerGallery eventId="evt_6" initialPhotos={[]} faceSearchEnabled />);
+    expect(screen.getByTestId('face-search-trigger')).toBeInTheDocument();
+  });
+});

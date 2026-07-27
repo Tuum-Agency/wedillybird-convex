@@ -8,8 +8,6 @@
  *    Convex `getSeatingPlan`). On le traite ici comme une donnée d'entrée.
  */
 
-import type { TableShape } from '@/lib/pro/seating';
-
 export const UNASSIGNED = 'unassigned';
 
 /**
@@ -32,7 +30,7 @@ export interface SeatTable {
   _id: string;
   name: string;
   capacity: number;
-  shape?: TableShape;
+  shape?: 'round' | 'rect';
   posX?: number;
   posY?: number;
   order: number;

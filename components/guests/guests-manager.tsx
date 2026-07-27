@@ -23,9 +23,12 @@ export interface GuestItem {
   email?: string;
   category?: string;
   plusOnesAllowed: number;
+  plusOnesNames?: string[];
   rsvpStatus: RsvpStatus;
   invitationSentAt?: number;
+  dietaryRestrictions?: string;
   notes?: string;
+  customAnswers?: Array<{ questionId: string; values: string[] }>;
   qrCodeToken: string;
   createdAt: number;
   updatedAt: number;
@@ -34,12 +37,15 @@ export interface GuestItem {
 interface Props {
   eventId: string;
   initialGuests: GuestItem[];
+  /** Questions custom de l'event (id → libellé) pour afficher les réponses. */
+  questions?: Array<{ id: string; label: string }>;
 }
 
-export function GuestsManager({ eventId, initialGuests }: Props) {
+export function GuestsManager({ eventId, initialGuests, questions = [] }: Props) {
   const t = useTranslations('Guests');
   const [guests, setGuests] = useState<GuestItem[]>(initialGuests);
   const [formOpen, setFormOpen] = useState(false);
+  const questionLabels = new Map(questions.map((q) => [q.id, q.label]));
 
   return (
     <div className="flex flex-col gap-6">
@@ -74,6 +80,7 @@ export function GuestsManager({ eventId, initialGuests }: Props) {
               key={g._id}
               guest={g}
               eventId={eventId}
+              questionLabels={questionLabels}
               onRemoved={() => setGuests((prev) => prev.filter((x) => x._id !== g._id))}
             />
           ))}
@@ -83,13 +90,50 @@ export function GuestsManager({ eventId, initialGuests }: Props) {
   );
 }
 
+/** Réponses RSVP d'un invité (régime + questions custom) affichées sous le nom. */
+function GuestAnswers({
+  guest,
+  questionLabels,
+  dietaryLabel,
+}: {
+  guest: GuestItem;
+  questionLabels: Map<string, string>;
+  dietaryLabel: string;
+}) {
+  const answers = guest.customAnswers ?? [];
+  const hasDietary = !!guest.dietaryRestrictions;
+  if (!hasDietary && answers.length === 0) return null;
+  return (
+    <div className="mt-1.5 flex flex-col gap-1 text-xs text-[color:var(--color-muted)]">
+      {hasDietary ? (
+        <p>
+          <span className="font-medium text-[color:var(--color-ink-700)]">{dietaryLabel} : </span>
+          {guest.dietaryRestrictions}
+        </p>
+      ) : null}
+      {answers.map((a) => {
+        const label = questionLabels.get(a.questionId);
+        if (!label || a.values.length === 0) return null;
+        return (
+          <p key={a.questionId}>
+            <span className="font-medium text-[color:var(--color-ink-700)]">{label} : </span>
+            {a.values.join(', ')}
+          </p>
+        );
+      })}
+    </div>
+  );
+}
+
 function GuestRow({
   guest,
   eventId,
+  questionLabels,
   onRemoved,
 }: {
   guest: GuestItem;
   eventId: string;
+  questionLabels: Map<string, string>;
   onRemoved: () => void;
 }) {
   const t = useTranslations('Guests');
@@ -126,6 +170,11 @@ function GuestRow({
           {guest.email ? <span>{guest.email}</span> : null}
           {guest.category ? <span>• {guest.category}</span> : null}
         </div>
+        <GuestAnswers
+          guest={guest}
+          questionLabels={questionLabels}
+          dietaryLabel={t('answersDietary')}
+        />
       </div>
       <div className="flex items-center gap-2">
         {confirmRemove ? (

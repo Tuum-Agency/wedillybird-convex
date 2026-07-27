@@ -11,6 +11,13 @@ import { sendWhatsAppCloudTemplate, isWhatsAppCloudConfigured } from './lib/what
 import { resolveChannel } from './lib/channelRouting';
 import { isTwilioConfigured, sendTwilioSms } from './lib/twilioSms';
 
+/**
+ * Délai avant le contrôle de livraison post-broadcast : on laisse les
+ * StatusCallback Twilio arriver (queued → delivered/undelivered/failed) avant de
+ * calculer le taux de non-livraison et d'alerter l'ops (mode d'échec F4).
+ */
+const DELIVERABILITY_CHECK_DELAY_MS = 15 * 60 * 1000;
+
 interface BroadcastResult {
   sent: number;
   failed: number;
@@ -75,6 +82,9 @@ export const broadcast = action({
       timeZone: event.timezone,
     }).format(new Date(event.eventDate));
     const appBaseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://wedillybird.com';
+    // URL du webhook StatusCallback Twilio : Twilio y POST le statut de livraison
+    // réel de chaque SMS (delivered/undelivered/failed) — cf. convex/smsDeliveries.
+    const smsStatusCallbackUrl = `${appBaseUrl}/api/webhooks/twilio`;
 
     const templateName = getMetaTemplateName(styleId, process.env);
     const isMock = !isWhatsAppCloudConfigured();
@@ -93,6 +103,7 @@ export const broadcast = action({
         const smsResult = await sendTwilioSms({
           to: guest.phone,
           body: `${guestFirstName}, ${coupleNames} invite you to their wedding on ${eventDateEn}. ${personalMessage} RSVP: ${rsvpUrl} Reply STOP to opt out.`,
+          statusCallback: smsStatusCallbackUrl,
         });
         if (!smsResult.ok) {
           console.error(`[broadcast] SMS failed for ${guest.phone}: ${smsResult.error}`);
@@ -106,6 +117,18 @@ export const broadcast = action({
           guestId: guest._id,
           channel: 'sms' as const,
         });
+        // Journalise l'envoi : le webhook StatusCallback mettra à jour le statut
+        // de livraison réel. Le HTTP 200 de Twilio ne prouve que la mise en file (F4).
+        if (smsResult.messageId && !smsResult.mock) {
+          await ctx.runMutation(internal.smsDeliveries.record, {
+            twilioSid: smsResult.messageId,
+            kind: 'invitation' as const,
+            guestId: guest._id,
+            eventId,
+            to: guest.phone,
+            status: 'sent' as const,
+          });
+        }
         sent++;
         continue;
       }
@@ -148,6 +171,17 @@ export const broadcast = action({
         channel: 'whatsapp' as const,
       });
       sent++;
+    }
+
+    // Filet F4 : ~15 min après le broadcast, relire les statuts de livraison
+    // réels et alerter l'ops si le taux de non-livraison est anormal (signal d'un
+    // filtrage carrier A2P). No-op si aucun SMS réel n'atteint le seuil.
+    if (isTwilioConfigured() && sent > 0) {
+      await ctx.scheduler.runAfter(
+        DELIVERABILITY_CHECK_DELAY_MS,
+        internal.smsDeliveries.checkEventDeliverabilityAndAlert,
+        { eventId },
+      );
     }
 
     return {

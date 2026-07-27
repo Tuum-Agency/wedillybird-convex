@@ -152,6 +152,7 @@ export const dispatchDailyGuestReminders = internalAction({
                 bodyParams,
                 urlButtonParam: guest.qrCodeToken,
                 tier,
+                eventId: event._id as never,
               },
             );
             whatsappScheduled += 1;
@@ -174,9 +175,13 @@ export const dispatchDailyGuestReminders = internalAction({
 export const listEventsInWindow = internalQuery({
   args: { start: v.number(), end: v.number() },
   handler: async (ctx, { start, end }) => {
+    // T2-5 : `.withIndex('by_eventDate', …)` remplace un `.filter()` sur
+    // `.collect()` intégral de la table `events` — ce scan tournait chaque
+    // jour (cron) et grossissait avec CHAQUE event jamais créé, pas
+    // seulement ceux dans la fenêtre J-7/J-1 (F6, audit archi 2026-07-19).
     const events = await ctx.db
       .query('events')
-      .filter((q) => q.and(q.gte(q.field('eventDate'), start), q.lte(q.field('eventDate'), end)))
+      .withIndex('by_eventDate', (q) => q.gte('eventDate', start).lte('eventDate', end))
       .collect();
     const enriched = await Promise.all(
       events.map(async (e) => {

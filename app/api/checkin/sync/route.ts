@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getSession } from '@/lib/auth/session';
+import { assertSameOrigin } from '@/lib/auth/csrf';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
 
 /**
@@ -31,6 +32,8 @@ const bodySchema = z.object({
 });
 
 export async function POST(request: Request) {
+  const csrf = assertSameOrigin(request);
+  if (csrf) return csrf;
   const session = await getSession();
   if (!session) {
     return NextResponse.json({ ok: false, error: 'UNAUTHORIZED' }, { status: 401 });

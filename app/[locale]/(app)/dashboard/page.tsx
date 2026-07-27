@@ -7,6 +7,7 @@ import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
 import { isAgencyRole, resolvePostAuthDestination } from '@/lib/auth/post-auth-destination';
 import { buttonVariants } from '@/components/ui/button';
 import { AppShell } from '@/components/app/app-shell';
+import { NotificationsPanel } from '@/components/notifications/notifications-panel';
 import { DashboardEventsList } from '@/components/dashboard/events-list';
 import { LinkMethodCard } from '@/components/account/link-method-card';
 import { cn } from '@/lib/cn';
@@ -113,6 +114,10 @@ export default async function DashboardPage({ params }: { params: Promise<{ loca
         </header>
 
         <LinkMethodSection user={user!} />
+
+        <div className="mb-10">
+          <NotificationsPanel userId={session!.userId} />
+        </div>
 
         {coupleWeddings.length > 0 ? (
           <section className="mb-10 flex flex-col gap-4">

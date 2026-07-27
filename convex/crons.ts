@@ -48,4 +48,27 @@ crons.cron(
   {},
 );
 
+// Daily at 03:00 UTC: purge biometric face data (Rekognition Face Collection +
+// `photoFaces` rows) for any event whose gallery retention window has expired,
+// even if it was never explicitly archived. Privacy/BIPA requirement (Lane T3,
+// F7) — indexed faces must not outlive the gallery. Idempotent.
+crons.cron(
+  'purge expired biometric face data',
+  '0 3 * * *',
+  internal.events.purgeExpiredBiometricData,
+  {},
+);
+
+// Every 15 min: reconcile SMS deliveries stuck in a non-terminal state whose
+// Twilio StatusCallback was likely lost — poll Twilio for the real status, then
+// re-run the deliverability alert check for affected events. Safety net for the
+// webhook (`/api/webhooks/twilio`, failure mode F4). No-op when Twilio is not
+// configured (dev / not-yet-live).
+crons.cron(
+  'reconcile sms deliveries',
+  '*/15 * * * *',
+  internal.smsDeliveries.reconcileStaleDeliveries,
+  {},
+);
+
 export default crons;

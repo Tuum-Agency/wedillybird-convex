@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { cn } from '@/lib/cn';
@@ -19,7 +19,7 @@ const ITEMS: readonly SectionItem[] = [
   { id: 'features', key: 'features' },
   { id: 'testimonials', key: 'testimonials' },
   { id: 'pricing', key: 'pricing' },
-  { id: 'pricing-pros', key: 'pricingPros' },
+  { id: 'faq', key: 'faq' },
 ];
 
 /**
@@ -32,6 +32,9 @@ const ITEMS: readonly SectionItem[] = [
 export function SectionNav() {
   const t = useTranslations('Landing.sectionNav');
   const [activeId, setActiveId] = useState<string | null>(null);
+  // Dernière section trackée : évite d'émettre `section_viewed` à chaque frame de
+  // scroll — on ne l'émet qu'au changement de section active.
+  const lastTrackedId = useRef<string | null>(null);
 
   useEffect(() => {
     const sections = ITEMS.map((item) => document.getElementById(item.id)).filter(
@@ -43,22 +46,38 @@ export function SectionNav() {
 
     function updateActiveSection() {
       frame = 0;
-      const marker = window.scrollY + 96 + window.innerHeight * 0.25;
+      const scrollY = window.scrollY;
       let nextActiveId: string | null = null;
 
-      for (const section of sections) {
-        // Position absolue dans le document via getBoundingClientRect (fiable même
-        // quand la section a un offsetParent positionné/transformé par Motion/GSAP).
-        // `offsetTop` est relatif à l'offsetParent → faussait la détection de la FAQ.
-        const top = section.getBoundingClientRect().top + window.scrollY;
-        if (top <= marker) {
-          nextActiveId = section.id;
-        } else {
-          break;
+      // Fin de page : la dernière section est active même si son haut n'atteint
+      // jamais le repère. La FAQ est en bas de page — s'il n'y a pas assez de
+      // contenu en dessous, on ne peut pas la scroller jusqu'à la ligne (le scroll
+      // est plafonné), donc le dernier lien de nav ne s'allumerait jamais.
+      const atBottom = scrollY + window.innerHeight >= document.documentElement.scrollHeight - 2;
+      if (atBottom) {
+        nextActiveId = sections[sections.length - 1]?.id ?? null;
+      } else {
+        const marker = scrollY + 96 + window.innerHeight * 0.25;
+        for (const section of sections) {
+          // Position absolue dans le document via getBoundingClientRect (fiable même
+          // quand la section a un offsetParent positionné/transformé par Motion/GSAP).
+          // `offsetTop` est relatif à l'offsetParent → faussait la détection de la FAQ.
+          const top = section.getBoundingClientRect().top + scrollY;
+          if (top <= marker) {
+            nextActiveId = section.id;
+          } else {
+            break;
+          }
         }
       }
 
       setActiveId(nextActiveId);
+
+      // Instrumentation des fuites de scroll (F9/F1) : signal une fois par section.
+      if (nextActiveId && nextActiveId !== lastTrackedId.current) {
+        lastTrackedId.current = nextActiveId;
+        analytics.sectionViewed({ id: nextActiveId });
+      }
     }
 
     function requestUpdate() {

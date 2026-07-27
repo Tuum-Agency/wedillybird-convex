@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
+import type { ComponentProps } from 'react';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
-import { redirect } from '@/i18n/navigation';
+import { ClipboardList, ArrowUpRight } from 'lucide-react';
+import { Link, redirect } from '@/i18n/navigation';
 import { requireProContext } from '@/lib/pro/require-pro-context';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
 import { ProSidebarShell } from '@/components/pro/pro-sidebar-shell';
@@ -79,6 +81,8 @@ export default async function ProWeddingHubPage({
     timeZone: event!.timezone || 'UTC',
   }).format(new Date(event!.eventDate));
 
+  const tRsvp = await getTranslations('RsvpEditor');
+
   return (
     <ProSidebarShell
       current="weddings"
@@ -113,10 +117,40 @@ export default async function ProWeddingHubPage({
             rsvpStatus: g.rsvpStatus,
           })),
           messageQuota,
-          seatingPlan,
+          // `tables.shape` du schéma partage 7 formes avec le seating
+          // /mon-mariage ; le hub agence ne gère que round/rect. Cast sûr
+          // (typé, pas d'any) : un event agence n'a jamais de forme exotique.
+          seatingPlan: seatingPlan as ComponentProps<
+            typeof WeddingHubClient
+          >['data']['seatingPlan'],
         }}
       />
-      <div className="mx-auto w-full max-w-6xl px-4 pb-12 sm:px-6">
+      <div className="container-page flex flex-col gap-4 pb-12">
+        <Link
+          href={`/pro/weddings/${event!._id}/rsvp` as never}
+          className="focus-ring group flex items-center justify-between gap-4 rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-6 py-5 transition-colors hover:border-[color:var(--color-border-strong)]"
+        >
+          <span className="flex items-center gap-3">
+            <span
+              aria-hidden
+              className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-[color:var(--color-primary-soft)] text-[color:var(--color-primary)]"
+            >
+              <ClipboardList className="h-4 w-4" strokeWidth={1.75} />
+            </span>
+            <span className="flex flex-col">
+              <span className="text-sm font-medium text-[color:var(--color-foreground)]">
+                {tRsvp('title')}
+              </span>
+              <span className="text-xs text-[color:var(--color-muted-foreground)]">
+                {tRsvp('subtitle')}
+              </span>
+            </span>
+          </span>
+          <ArrowUpRight
+            className="h-4 w-4 flex-shrink-0 text-[color:var(--color-muted-foreground)] transition-transform group-hover:translate-x-0.5"
+            aria-hidden
+          />
+        </Link>
         <CoupleLinkCard eventId={event!._id} initialLinks={coupleLinks} />
       </div>
     </ProSidebarShell>

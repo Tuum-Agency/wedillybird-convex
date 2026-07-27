@@ -14,8 +14,6 @@ import { LandingCinematicInvitation } from '@/components/landing/cinematic-invit
 import { LandingUniverses } from '@/components/landing/universes';
 import { LandingTestimonials } from '@/components/landing/testimonials';
 import { LandingPricingCards } from '@/components/landing/pricing-cards';
-import { LandingPricingPros } from '@/components/landing/pricing-pros';
-import { LandingProsFeatures } from '@/components/landing/pros-features';
 import { MobileMenu } from '@/components/landing/mobile-menu';
 import { LandingFaqAccordion } from '@/components/landing/faq-accordion';
 import { LandingCtaFinal } from '@/components/landing/cta-final';
@@ -26,13 +24,15 @@ import { LocaleSwitcher } from '@/components/layout/locale-switcher';
 import { defaultCurrencyForLocale } from '@/lib/payments/currency';
 import type { Locale } from '@/i18n/routing';
 
+// Mêmes clés que l'accordion client (faq-accordion.tsx). `africa3g` retiré du
+// parcours couple US (hors-sujet marché de lancement) — clé i18n conservée pour
+// la parité, non rendue.
 const FAQ_KEYS = [
   'whyWhatsapp',
   'olderGuests',
   'guestLimit',
   'cancellation',
   'afterEvent',
-  'africa3g',
   'branding',
   'data',
 ] as const;
@@ -81,8 +81,11 @@ export async function generateMetadata({
  *  04. Cinématique invitation (texture papier + sceau fendu + cursor cire)
  *  05. Témoignages (3 voix avec photos Unsplash)
  *  06. Pricing (geoIP auto, sparkle gold Premium hover)
- *  06b. Pricing Pros (toggle mensuel/annuel + 3 cards + PAYG aside)
  *  07. FAQ (8 questions accordion)
+ *
+ * Note : la landing est mono-audience "couple". L'offre Pro (features +
+ * pricing agence) vit sur /pros, retirée du scroll couple pour ne pas diluer
+ * le message ni brouiller le signal d'audience côté acquisition.
  *  Épilogue. CTA final + Footer riche
  *
  * Smooth scroll Lenis sur toute la landing (synced avec GSAP ScrollTrigger).
@@ -179,8 +182,6 @@ function LandingShell({
         <LandingUniverses />
         <LandingTestimonials />
         <LandingPricingCards defaultCurrency={defaultCurrency} />
-        <LandingProsFeatures />
-        <LandingPricingPros defaultCurrency={defaultCurrency} />
         <LandingFaqAccordion />
         <LandingCtaFinal />
       </main>

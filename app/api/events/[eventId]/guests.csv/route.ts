@@ -1,17 +1,20 @@
 import { NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth/session';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
+import { normalizeRsvpConfig } from '@/lib/rsvp/questions';
 
-const CSV_HEADERS = [
+/** Colonnes fixes ; les questions custom sont ajoutées dynamiquement ensuite. */
+const BASE_HEADERS = [
   'fullName',
   'phone',
   'email',
   'category',
   'plusOnesAllowed',
+  'plusOnesNames',
   'rsvpStatus',
-  'qrCodeToken',
-  'notes',
+  'dietaryRestrictions',
 ];
+const TRAILING_HEADERS = ['notes', 'qrCodeToken'];
 
 function escapeField(value: string | number | undefined): string {
   if (value === undefined || value === null) return '';
@@ -33,13 +36,21 @@ export async function GET(
   const convex = getConvexServerClient();
 
   try {
-    const guests = await convex.query(convexApi.listGuestsByEvent, {
-      eventId,
-      requesterId: session.userId,
-    });
+    const [guests, event] = await Promise.all([
+      convex.query(convexApi.listGuestsByEvent, { eventId, requesterId: session.userId }),
+      convex.query(convexApi.getEventById, { eventId, requesterId: session.userId }),
+    ]);
 
-    const lines: string[] = [CSV_HEADERS.join(',')];
+    // Une colonne par question custom (dans l'ordre de la config), libellée par
+    // son intitulé — les réponses sont jointes par « | ».
+    const questions = normalizeRsvpConfig(event?.rsvpConfig).customQuestions;
+    const headers = [...BASE_HEADERS, ...questions.map((q) => q.label), ...TRAILING_HEADERS];
+
+    const lines: string[] = [headers.map(escapeField).join(',')];
     for (const g of guests) {
+      const answerByQuestion = new Map(
+        (g.customAnswers ?? []).map((a) => [a.questionId, a.values.join(' | ')]),
+      );
       lines.push(
         [
           escapeField(g.fullName),
@@ -47,9 +58,12 @@ export async function GET(
           escapeField(g.email),
           escapeField(g.category),
           escapeField(g.plusOnesAllowed),
+          escapeField((g.plusOnesNames ?? []).join(' | ')),
           escapeField(g.rsvpStatus),
-          escapeField(g.qrCodeToken),
+          escapeField(g.dietaryRestrictions),
+          ...questions.map((q) => escapeField(answerByQuestion.get(q.id) ?? '')),
           escapeField(g.notes),
+          escapeField(g.qrCodeToken),
         ].join(','),
       );
     }

@@ -63,3 +63,29 @@ describe('GuestGallery — pending badge', () => {
     expect(screen.queryByTestId('guest-photo-pending')).toBeNull();
   });
 });
+
+describe('GuestGallery — reco-faciale opt-in (Lane T3, F7)', () => {
+  it('masque le bouton "Find my photos" par défaut (faceSearchEnabled non fourni)', () => {
+    render(<GuestGallery token="tok_123" inviteeName="Camille" initialPhotos={[]} />);
+    expect(screen.queryByTestId('face-search-trigger')).toBeNull();
+  });
+
+  it('masque le bouton quand faceSearchEnabled=false', () => {
+    render(
+      <GuestGallery
+        token="tok_123"
+        inviteeName="Camille"
+        initialPhotos={[]}
+        faceSearchEnabled={false}
+      />,
+    );
+    expect(screen.queryByTestId('face-search-trigger')).toBeNull();
+  });
+
+  it('affiche le bouton quand faceSearchEnabled=true', () => {
+    render(
+      <GuestGallery token="tok_123" inviteeName="Camille" initialPhotos={[]} faceSearchEnabled />,
+    );
+    expect(screen.getByTestId('face-search-trigger')).toBeInTheDocument();
+  });
+});

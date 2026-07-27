@@ -1,6 +1,7 @@
 import { httpRouter } from 'convex/server';
 import { httpAction } from './_generated/server';
 import { internal } from './_generated/api';
+import type { Id } from './_generated/dataModel';
 
 const http = httpRouter();
 
@@ -217,6 +218,51 @@ http.route({
   path: '/lambda/photo-variants-callback',
   method: 'POST',
   handler: variantsCallback,
+});
+
+/**
+ * Vrai gate d'INDEXATION biométrique (Lane T3, F7) : le Lambda de modération
+ * (`infra/lambdas/moderation.ts`) appelle cet endpoint AVANT tout
+ * `IndexFacesCommand` et skip l'indexation si `enabled: false`. Signé HMAC
+ * comme les autres routes `/lambda/*`. Fail-closed côté Lambda : toute
+ * erreur réseau/signature/parsing doit être traitée comme `enabled: false`
+ * par l'appelant (jamais indexer par défaut en cas de doute).
+ */
+const faceSearchEnabledCallback = httpAction(async (ctx, req) => {
+  const rawBody = await req.text();
+  const signature = req.headers.get(SIGNATURE_HEADER);
+  const timestamp = req.headers.get(TIMESTAMP_HEADER);
+  if (!signature || !timestamp) {
+    return new Response('missing signature headers', { status: 400 });
+  }
+  const skew = Math.abs(Date.now() - Number(timestamp));
+  if (!Number.isFinite(skew) || skew > MAX_TIMESTAMP_SKEW_MS) {
+    return new Response('stale or invalid timestamp', { status: 400 });
+  }
+  if (!(await verifySignature(rawBody, timestamp, signature))) {
+    return new Response('bad signature', { status: 401 });
+  }
+
+  let payload: { eventId?: string };
+  try {
+    payload = JSON.parse(rawBody);
+  } catch {
+    return new Response('invalid JSON', { status: 400 });
+  }
+  if (!payload.eventId || typeof payload.eventId !== 'string') {
+    return new Response('invalid payload', { status: 400 });
+  }
+
+  const result = await ctx.runQuery(internal.photos._isFaceSearchEnabled, {
+    eventId: payload.eventId as Id<'events'>,
+  });
+  return Response.json(result);
+});
+
+http.route({
+  path: '/lambda/face-search-enabled',
+  method: 'POST',
+  handler: faceSearchEnabledCallback,
 });
 
 export default http;

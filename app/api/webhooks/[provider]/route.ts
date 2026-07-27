@@ -18,6 +18,33 @@ function readSignatureHeader(headers: Headers, provider: ProviderName): string |
   return headers.get('x-signature');
 }
 
+/**
+ * Réponse d'erreur + alerte ops (T2-3, plan de lancement).
+ *
+ * `reconciliationFailed` (le filet best-effort de la success-page) était déjà
+ * catché et affiché à l'utilisateur, mais jamais remonté ops ; ce webhook,
+ * lui, ne remontait RIEN du tout sur un échec — silence total, exactement le
+ * mode d'échec relevé au premortem (« rien ne surveille les coutures »).
+ *
+ * Chaque réponse non-2xx APRÈS identification du provider (le 404 « provider
+ * inconnu » reste hors scope : bruit de bots sur une route au hasard, pas un
+ * signal opérationnel) émet `webhook_processing_failed`. `captureServer`
+ * n'échoue jamais (garde interne, cf. `lib/analytics/posthog-server.ts`) —
+ * cette alerte ne peut pas casser la réponse HTTP renvoyée au provider.
+ */
+async function respondError(
+  provider: ProviderName,
+  status: number,
+  error: string,
+): Promise<Response> {
+  await captureServer({
+    distinctId: `system:webhook:${provider}`,
+    event: EVENTS.webhookProcessingFailed,
+    properties: { provider, status, error },
+  });
+  return NextResponse.json({ error }, { status });
+}
+
 export async function POST(
   req: Request,
   ctx: { params: Promise<{ provider: string }> },
@@ -38,7 +65,7 @@ export async function POST(
       subscriptionEvent = await verifyAndParseSubscriptionWebhook(rawBody, signature);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'UNKNOWN';
-      return NextResponse.json({ error: message }, { status: 400 });
+      return respondError(provider, 400, message);
     }
 
     if (subscriptionEvent) {
@@ -52,7 +79,7 @@ export async function POST(
         // refuse plutôt que de retomber dans l'IDOR.
         const webhookSecret = process.env.CONVEX_WEBHOOK_SECRET;
         if (!webhookSecret) {
-          return NextResponse.json({ error: 'WEBHOOK_SECRET_NOT_CONFIGURED' }, { status: 500 });
+          return respondError(provider, 500, 'WEBHOOK_SECRET_NOT_CONFIGURED');
         }
 
         if (subscriptionEvent.kind === 'subscription.upserted') {
@@ -84,6 +111,7 @@ export async function POST(
 
         if (subscriptionEvent.kind === 'payg.purchased') {
           await convex.mutation(convexApi.markPaygPurchase, {
+            webhookSecret,
             organizationId: subscriptionEvent.organizationId,
             requesterId: subscriptionEvent.requesterId,
             stripeSessionId: subscriptionEvent.stripeSessionId,
@@ -134,7 +162,7 @@ export async function POST(
         return NextResponse.json({ ok: true, kind: subscriptionEvent.kind });
       } catch (err) {
         const message = err instanceof Error ? err.message : 'UNKNOWN';
-        return NextResponse.json({ error: message }, { status: 500 });
+        return respondError(provider, 500, message);
       }
     }
     // Pas une souscription — paiement de budget (Wedillybird Pay) ?
@@ -143,13 +171,13 @@ export async function POST(
       budgetEvent = await parseBudgetPaymentWebhook(rawBody, signature);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'UNKNOWN';
-      return NextResponse.json({ error: message }, { status: 400 });
+      return respondError(provider, 400, message);
     }
 
     if (budgetEvent) {
       const webhookSecret = process.env.CONVEX_WEBHOOK_SECRET;
       if (!webhookSecret) {
-        return NextResponse.json({ error: 'WEBHOOK_SECRET_NOT_CONFIGURED' }, { status: 500 });
+        return respondError(provider, 500, 'WEBHOOK_SECRET_NOT_CONFIGURED');
       }
       try {
         const convex = getConvexServerClient();
@@ -180,9 +208,9 @@ export async function POST(
       } catch (err) {
         const message = err instanceof Error ? err.message : 'UNKNOWN';
         if (message === 'PAYMENT_NOT_FOUND') {
-          return NextResponse.json({ error: message }, { status: 404 });
+          return respondError(provider, 404, message);
         }
-        return NextResponse.json({ error: message }, { status: 500 });
+        return respondError(provider, 500, message);
       }
     }
 
@@ -192,13 +220,13 @@ export async function POST(
       linkEvent = await parsePaymentLinkWebhook(rawBody, signature);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'UNKNOWN';
-      return NextResponse.json({ error: message }, { status: 400 });
+      return respondError(provider, 400, message);
     }
 
     if (linkEvent) {
       const webhookSecret = process.env.CONVEX_WEBHOOK_SECRET;
       if (!webhookSecret) {
-        return NextResponse.json({ error: 'WEBHOOK_SECRET_NOT_CONFIGURED' }, { status: 500 });
+        return respondError(provider, 500, 'WEBHOOK_SECRET_NOT_CONFIGURED');
       }
       try {
         const convex = getConvexServerClient();
@@ -229,9 +257,9 @@ export async function POST(
       } catch (err) {
         const message = err instanceof Error ? err.message : 'UNKNOWN';
         if (message === 'PAYMENT_NOT_FOUND') {
-          return NextResponse.json({ error: message }, { status: 404 });
+          return respondError(provider, 404, message);
         }
-        return NextResponse.json({ error: message }, { status: 500 });
+        return respondError(provider, 500, message);
       }
     }
 
@@ -248,13 +276,21 @@ export async function POST(
       // Stripe events we don't handle yet (e.g. subscription_schedule.*) — ack 200.
       return NextResponse.json({ ok: true, ignored: true });
     }
-    return NextResponse.json({ error: message }, { status: 400 });
+    return respondError(provider, 400, message);
   }
 
   try {
     const convex = getConvexServerClient();
+    // Secret partagé Vercel ⇄ Convex : `markSucceeded`/`markFailed` débloquent
+    // la galerie payante. Sans ce secret, un appel direct à `*.convex.cloud`
+    // pouvait marquer un paiement encaissé sans jamais payer (forge F-01).
+    const webhookSecret = process.env.CONVEX_WEBHOOK_SECRET;
+    if (!webhookSecret) {
+      return respondError(provider, 500, 'WEBHOOK_SECRET_NOT_CONFIGURED');
+    }
     if (event.status === 'succeeded') {
       const result = await convex.mutation(convexApi.markPaymentSucceeded, {
+        webhookSecret,
         provider,
         providerSessionId: event.providerSessionId,
         providerEventId: event.providerEventId,
@@ -289,6 +325,7 @@ export async function POST(
       return NextResponse.json({ ok: true, alreadyApplied: result.alreadyApplied });
     }
     const result = await convex.mutation(convexApi.markPaymentFailed, {
+      webhookSecret,
       provider,
       providerSessionId: event.providerSessionId,
       providerEventId: event.providerEventId,
@@ -299,8 +336,8 @@ export async function POST(
   } catch (err) {
     const message = err instanceof Error ? err.message : 'UNKNOWN';
     if (message === 'PAYMENT_NOT_FOUND') {
-      return NextResponse.json({ error: message }, { status: 404 });
+      return respondError(provider, 404, message);
     }
-    return NextResponse.json({ error: message }, { status: 500 });
+    return respondError(provider, 500, message);
   }
 }

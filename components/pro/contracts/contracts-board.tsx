@@ -37,6 +37,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
+import { useConfirm } from '@/components/ui/confirm-dialog';
 import { cn } from '@/lib/cn';
 import { parseEurToMinor, nowMs } from '@/lib/pro/format';
 import { toast } from '@/components/ui/toast';
@@ -119,10 +120,11 @@ function fmtDate(format: Fmt, ms: number | null | undefined): string {
 
 const TONE: Record<ContractTone, string> = {
   muted: 'bg-[color:var(--color-surface-elevated)] text-[color:var(--color-muted-foreground)]',
-  info: 'bg-[oklch(28%_0.05_255)] text-[oklch(84%_0.08_258)]',
-  warn: 'bg-[oklch(29%_0.05_80)] text-[oklch(87%_0.09_85)]',
-  ok: 'bg-[oklch(26%_0.045_150)] text-[oklch(84%_0.09_150)]',
-  danger: 'bg-[oklch(28%_0.05_25)] text-[oklch(84%_0.09_25)]',
+  info: 'bg-[color:var(--color-info-soft)] text-[color:color-mix(in_oklab,var(--color-info),var(--color-foreground)_40%)]',
+  warn: 'bg-[color:var(--color-warning-soft)] text-[color:color-mix(in_oklab,var(--color-warning),var(--color-foreground)_55%)]',
+  ok: 'bg-[color:var(--color-success-soft)] text-[color:color-mix(in_oklab,var(--color-success),var(--color-foreground)_42%)]',
+  danger:
+    'bg-[color:var(--color-danger-soft)] text-[color:color-mix(in_oklab,var(--color-danger),var(--color-foreground)_40%)]',
 };
 
 function StatusPill({ status }: { status: ContractStatus }) {
@@ -859,7 +861,7 @@ function BuilderView({
                   {esign.label}
                 </span>
               </div>
-              <div className="grid gap-2.5 sm:grid-cols-2">
+              <div className="grid gap-2.5 sm:grid-cols-2 sm:items-end">
                 <label className="flex flex-col gap-1">
                   <span className="font-mono text-[9px] tracking-[0.16em] text-[color:var(--color-muted-foreground)] uppercase">
                     {t('builder.jurisdiction')}
@@ -1107,6 +1109,7 @@ function DetailView({
 }) {
   const t = useTranslations('Pro.contractsBoard');
   const format = useFormatter();
+  const { confirm, confirmDialog } = useConfirm();
   const mfAgency = t('mergeFields.agency');
   const mfAgreedDate = t('mergeFields.agreedDate');
   const mfAgreedVenue = t('mergeFields.agreedVenue');
@@ -1196,8 +1199,8 @@ function DetailView({
       onRefresh();
     });
   }
-  function cancel() {
-    if (!confirm(t('detail.confirmCancel'))) return;
+  async function cancel() {
+    if (!(await confirm({ title: t('detail.confirmCancel'), destructive: true }))) return;
     start(async () => {
       const res = await cancelContractAction(contract._id);
       if (res.ok) onPatch({ ...contract, status: 'cancelled', updatedAt: nowMs() });
@@ -1371,6 +1374,7 @@ function DetailView({
           </div>
         </div>
       </div>
+      {confirmDialog}
     </div>
   );
 }
@@ -1438,7 +1442,7 @@ function CreateForm({
           </SelectContent>
         </Select>
       </label>
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-2 sm:items-end">
         <label className="flex flex-col gap-1.5">
           <span className="text-xs font-medium text-[color:var(--color-muted-foreground)]">
             {t('builder.service')}

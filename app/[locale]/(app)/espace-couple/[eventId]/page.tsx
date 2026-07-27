@@ -6,6 +6,9 @@ import { redirect } from '@/i18n/navigation';
 import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
 import { AppShell } from '@/components/app/app-shell';
 import { GuestsManager } from '@/components/guests/guests-manager';
+import { NotificationsPanel } from '@/components/notifications/notifications-panel';
+import { RsvpQuestionsEditor } from '@/components/events/rsvp-questions-editor';
+import { eventHasPremiumOnlyFeature } from '@/lib/payments/entitlements';
 import { nowMs } from '@/lib/pro/format';
 
 const PAY_TONE = {
@@ -44,10 +47,11 @@ export default async function CoupleEventPage({
   } catch {
     notFound();
   }
-  const [guests, payments, user] = await Promise.all([
+  const [guests, payments, user, event] = await Promise.all([
     convex.query(convexApi.listGuestsByEvent, { eventId, requesterId: session!.userId }),
     convex.query(convexApi.listPaymentLinksForEvent, { eventId, requesterId: session!.userId }),
     convex.query(convexApi.currentUser, { userId: session!.userId }),
+    convex.query(convexApi.getEventById, { eventId, requesterId: session!.userId }),
   ]);
 
   const t = await getTranslations('CoupleSpace');
@@ -127,6 +131,9 @@ export default async function CoupleEventPage({
           {stat(t('statExpected'), s.expectedHeadcount)}
         </section>
 
+        {/* Notifications du couple (réponses invités, infos de l'agence…) */}
+        <NotificationsPanel userId={session!.userId} />
+
         {/* Invités (capacité 2) — composant partagé */}
         <section className="flex flex-col gap-5">
           <div className="flex items-center gap-2">
@@ -140,8 +147,28 @@ export default async function CoupleEventPage({
             </h2>
           </div>
           <p className="max-w-prose text-sm text-[color:var(--color-ink-500)]">{t('guestsHint')}</p>
-          <GuestsManager eventId={eventId} initialGuests={guests} />
+          <GuestsManager
+            eventId={eventId}
+            initialGuests={guests}
+            questions={(event?.rsvpConfig?.customQuestions ?? []).map((q) => ({
+              id: q.id,
+              label: q.label,
+            }))}
+          />
         </section>
+
+        {/* Questions du RSVP — éditable ou lecture seule selon la délégation agence */}
+        {event ? (
+          <section className="flex flex-col gap-5">
+            <RsvpQuestionsEditor
+              eventId={eventId}
+              initialConfig={event.rsvpConfig}
+              unlocked={eventHasPremiumOnlyFeature(event)}
+              upgradeHref={`/espace-couple/${eventId}`}
+              canEdit={event.rsvpConfig?.coupleCanEdit ?? false}
+            />
+          </section>
+        ) : null}
 
         {/* Paiements (capacité 3) */}
         <section className="flex flex-col gap-5">

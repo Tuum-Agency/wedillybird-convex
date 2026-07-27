@@ -7,6 +7,9 @@ import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
 import { eventHasFeature } from '@/convex/lib/entitlements';
 import { AppShell } from '@/components/app/app-shell';
 import { EventEditForm } from '@/components/events/event-edit-form';
+import { RsvpQuestionsEditor } from '@/components/events/rsvp-questions-editor';
+import { FaceSearchPrivacySection } from '@/components/events/face-search-privacy-section';
+import { eventHasPremiumOnlyFeature } from '@/lib/payments/entitlements';
 
 /**
  * Page d'édition des détails d'un événement.
@@ -36,6 +39,10 @@ export default async function EditEventPage({
   // Format date pour <input type="datetime-local"> = "yyyy-MM-ddTHH:mm" en
   // local timezone du browser. On reconstruit côté client à partir d'ISO.
   const initialIsoDate = new Date(event.eventDate).toISOString().slice(0, 16);
+
+  // Propriétaire (couple solo ou agence) vs couple rattaché : ce dernier ne peut
+  // éditer le questionnaire que si l'agence l'a autorisé (rsvpConfig.coupleCanEdit).
+  const isOwner = event.ownerId === session!.userId;
 
   const t = await getTranslations('CoupleSpace');
 
@@ -98,6 +105,24 @@ export default async function EditEventPage({
                 : '',
             ceremonySchedule: event.ceremonySchedule ?? [],
           }}
+        />
+
+        <RsvpQuestionsEditor
+          eventId={eventId}
+          initialConfig={event.rsvpConfig}
+          unlocked={eventHasPremiumOnlyFeature(event)}
+          upgradeHref={`/events/${eventId}`}
+          canEdit={isOwner || (event.rsvpConfig?.coupleCanEdit ?? false)}
+          showDelegation={isOwner && !!event.organizationId}
+        />
+
+        <FaceSearchPrivacySection
+          eventId={eventId}
+          initialWeddingState={event.weddingState}
+          initialFaceSearchEnabled={event.faceSearchEnabled === true}
+          consentAt={event.faceSearchConsent?.enabledAt}
+          unlocked={eventHasPremiumOnlyFeature(event)}
+          upgradeHref={`/events/${eventId}`}
         />
       </div>
     </AppShell>

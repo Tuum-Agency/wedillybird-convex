@@ -82,7 +82,7 @@ export function LandingManifesto() {
           className="mt-28 grid gap-12 border-t border-[color:var(--color-border)] pt-16 lg:grid-cols-2 lg:gap-16"
         >
           <motion.div variants={scrollReveal} className="flex flex-col gap-5">
-            <span className="font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-ink-300)] uppercase">
+            <span className="font-mono text-[10px] tracking-[0.32em] text-[color:var(--color-ink-400)] uppercase">
               {t('before.label')}
             </span>
             <p className="text-base leading-relaxed text-[color:var(--color-ink-500)] sm:text-lg">
@@ -159,7 +159,7 @@ export function LandingManifesto() {
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={inViewOnce}
-          className="mt-12 text-center font-mono text-[10px] tracking-[0.24em] text-[color:var(--color-ink-300)] italic"
+          className="mt-12 text-center font-mono text-[10px] tracking-[0.24em] text-[color:var(--color-ink-400)] italic"
         >
           {t('source')}
         </motion.p>

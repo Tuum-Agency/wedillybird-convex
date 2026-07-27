@@ -34,16 +34,17 @@ describe('convex/events.ts — création de mariage gated (parcours agence)', ()
 
   it('la mutation create exige membership + forfait pour un event d’organisation', () => {
     // Le garde-fou vit dans le bloc `if (args.organizationId)` : membership
-    // (assertOrgWrite) + accès actif (orgHasActiveAccess) → SUBSCRIPTION_REQUIRED.
-    expect(src).toMatch(/if \(args\.organizationId\)\s*\{[\s\S]*?assertOrgWrite\(/);
-    expect(src).toMatch(/orgHasActiveAccess\(orgForCurrency\)/);
-    expect(src).toMatch(/SUBSCRIPTION_REQUIRED/);
+    // (assertOrgWrite) puis accès actif (orgHasActiveAccess) → SUBSCRIPTION_REQUIRED.
+    expect(src).toMatch(
+      /if \(args\.organizationId\)\s*\{[\s\S]*?assertOrgWrite\([\s\S]*?orgHasActiveAccess\([\s\S]*?SUBSCRIPTION_REQUIRED/,
+    );
   });
 
   it('n’impacte pas le parcours couple : le gate est conditionné à organizationId', () => {
     // La création sans organizationId (couple one-shot) ne passe jamais par le
-    // garde-fou : il est strictement à l'intérieur du `if (args.organizationId)`.
-    const gateIndex = src.indexOf('orgHasActiveAccess(orgForCurrency)');
+    // garde-fou : l'appel orgHasActiveAccess est strictement APRÈS le test
+    // `if (args.organizationId)`.
+    const gateIndex = src.search(/orgHasActiveAccess\(/);
     const condIndex = src.indexOf('if (args.organizationId)');
     expect(condIndex).toBeGreaterThan(-1);
     expect(gateIndex).toBeGreaterThan(condIndex);

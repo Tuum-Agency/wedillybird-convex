@@ -316,7 +316,7 @@ export function LandingPricingPros({
                   </span>
                 </div>
                 {billing === 'annual' && (
-                  <p className="text-xs text-[color:var(--color-ink-400)]">
+                  <p className="text-xs text-[color:var(--color-ink-500)]">
                     {tPlans('pro.billing.annualBilledAs', { amount: getAnnualBilledLabel(tier) })}
                   </p>
                 )}
@@ -333,7 +333,7 @@ export function LandingPricingPros({
                     <li key={key} className="flex items-start gap-2.5">
                       <Check
                         aria-hidden
-                        className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-[color:var(--color-gold-500)]"
+                        className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-[color:var(--color-gold-700)]"
                         strokeWidth={2}
                       />
                       <span className="leading-relaxed text-[color:var(--color-ink-700)]">
@@ -416,7 +416,7 @@ export function LandingPricingPros({
                   {tPlans('pro.descriptions.payg')}
                 </p>
                 {/* Features inline séparées par · */}
-                <p className="mt-1 text-xs text-[color:var(--color-ink-400)]">
+                <p className="mt-1 text-xs text-[color:var(--color-ink-500)]">
                   {PAYG_FEATURE_KEYS.map((key, i) => (
                     <span key={key}>
                       {i > 0 && (

@@ -86,7 +86,7 @@ export function ProsCta() {
             aria-hidden
           />
         </Link>
-        <p className="mt-7 text-xs text-[color:var(--color-ink-300)]">{t('cta.footnote')}</p>
+        <p className="mt-7 text-xs text-[color:var(--color-ink-500)]">{t('cta.footnote')}</p>
       </motion.div>
     </section>
   );

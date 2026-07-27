@@ -20,6 +20,21 @@ const eslintConfig = defineConfig([
     // Espace de travail local (gitignored) : prototypes design, scripts jetables.
     '.context/**',
   ]),
+  // Verrouille l'invariant « 0 any » sur le code de production (métier
+  // intégralement typé). Les tests conservent `any` pour les doublures de type.
+  {
+    files: [
+      'app/**/*.{ts,tsx}',
+      'components/**/*.{ts,tsx}',
+      'lib/**/*.{ts,tsx}',
+      'convex/**/*.ts',
+      'stores/**/*.{ts,tsx}',
+      'hooks/**/*.{ts,tsx}',
+    ],
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'error',
+    },
+  },
 ]);
 
 export default eslintConfig;

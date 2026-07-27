@@ -200,6 +200,7 @@ function FaceSearchModalInner({ onClose, onResult, search }: FaceSearchModalProp
     if (code === 'NO_FACE_DETECTED') return t('errors.noFace');
     if (code === 'NO_COLLECTION_YET') return t('errors.notIndexed');
     if (code === 'FEATURE_NOT_IN_PLAN') return t('errors.notInPlan');
+    if (code === 'FACE_SEARCH_DISABLED') return t('errors.disabled');
     if (code === 'FORBIDDEN') return t('errors.forbidden');
     if (code === 'RATE_LIMITED') return t('errors.rateLimited');
     return t('errors.unknown');

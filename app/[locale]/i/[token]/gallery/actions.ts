@@ -85,6 +85,8 @@ export async function faceSearchGuestAction(
     const message = err instanceof Error ? err.message : 'UNKNOWN';
     if (message.includes('NO_FACE_DETECTED')) return { ok: false, error: 'NO_FACE_DETECTED' };
     if (message.includes('NO_COLLECTION_YET')) return { ok: false, error: 'NO_COLLECTION_YET' };
+    if (message.includes('FACE_SEARCH_DISABLED'))
+      return { ok: false, error: 'FACE_SEARCH_DISABLED' };
     if (message.includes('RATE_LIMITED')) return { ok: false, error: 'RATE_LIMITED' };
     if (message.includes('INVALID_TOKEN')) return { ok: false, error: 'INVALID_TOKEN' };
     if (message.includes('FORBIDDEN')) return { ok: false, error: 'FORBIDDEN' };

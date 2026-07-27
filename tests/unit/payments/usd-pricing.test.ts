@@ -46,27 +46,27 @@ describe('grille USD marché (overrides)', () => {
     expect(getRegionalPlanPrice('essential', 'europe', 'EUR')).toBe(2900);
   });
 
-  it('applique la grille USD marché pro (≥ équiv. EUR, v2.4)', () => {
-    expect(SUBSCRIPTION_TIER_PRICES.starter.prices.USD).toBe(10900); // $109
-    expect(SUBSCRIPTION_TIER_PRICES.business.prices.USD).toBe(23900); // $239
-    expect(SUBSCRIPTION_TIER_PRICES.agency.prices.USD).toBe(48900); // $489
-    expect(SUBSCRIPTION_TIER_ANNUAL_PRICES.starter.prices.USD).toBe(104700); // $1,047
-    expect(SUBSCRIPTION_TIER_ANNUAL_PRICES.business.prices.USD).toBe(229500); // $2,295
-    expect(SUBSCRIPTION_TIER_ANNUAL_PRICES.agency.prices.USD).toBe(469500); // $4,695
-    expect(PAYG_PRO_PRICE.prices.USD).toBe(8900); // $89
+  it('applique la grille USD marché pro (parité EUR, v2.3)', () => {
+    expect(SUBSCRIPTION_TIER_PRICES.starter.prices.USD).toBe(9900); // $99
+    expect(SUBSCRIPTION_TIER_PRICES.business.prices.USD).toBe(21900); // $219
+    expect(SUBSCRIPTION_TIER_PRICES.agency.prices.USD).toBe(44900); // $449
+    expect(SUBSCRIPTION_TIER_ANNUAL_PRICES.starter.prices.USD).toBe(95100); // $951
+    expect(SUBSCRIPTION_TIER_ANNUAL_PRICES.business.prices.USD).toBe(210300); // $2,103
+    expect(SUBSCRIPTION_TIER_ANNUAL_PRICES.agency.prices.USD).toBe(431100); // $4,311
+    expect(PAYG_PRO_PRICE.prices.USD).toBe(7900); // $79
   });
 
-  it('respecte la règle devise : USD pro ≥ équivalent EUR (signe jamais inversé)', () => {
-    // Le pro US ne doit JAMAIS payer sous l'euro converti (revenu récurrent).
+  it('respecte la règle devise v2.3 : USD pro en parité nominale avec l’EUR', () => {
+    // v2.3 : le pro US paie le même nombre rond que l'EUR (parité), sans la
+    // conversion mécanique ×1,08 (abandonnée). USD nominal === EUR nominal, en
+    // mensuel comme en annuel, PAYG inclus.
     for (const tier of ['starter', 'business', 'agency'] as const) {
       const def = SUBSCRIPTION_TIER_PRICES[tier];
-      expect(def.prices.USD).toBeGreaterThanOrEqual(convertFromEur(def.prices.EUR, 'USD'));
+      expect(def.prices.USD).toBe(def.prices.EUR);
       const annual = SUBSCRIPTION_TIER_ANNUAL_PRICES[tier];
-      expect(annual.prices.USD).toBeGreaterThanOrEqual(convertFromEur(annual.prices.EUR, 'USD'));
+      expect(annual.prices.USD).toBe(annual.prices.EUR);
     }
-    expect(PAYG_PRO_PRICE.prices.USD).toBeGreaterThanOrEqual(
-      convertFromEur(PAYG_PRO_PRICE.prices.EUR, 'USD'),
-    );
+    expect(PAYG_PRO_PRICE.prices.USD).toBe(PAYG_PRO_PRICE.prices.EUR);
   });
 
   it('ne touche pas aux montants pro EUR ni aux dérivés MAD', () => {

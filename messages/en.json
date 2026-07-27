@@ -8,7 +8,6 @@
       "overview": "Overview",
       "analytics": "Analytics",
       "acquisition": "Acquisition",
-      "photoBooks": "Livres photo",
       "users": "Users",
       "events": "Events",
       "payments": "Payments",
@@ -17,9 +16,7 @@
       "moderation": "Moderation",
       "newsletter": "Newsletter",
       "auditLog": "Audit log",
-      "affiliates": "Affiliates",
-      "promotions": "Promotions",
-      "bugReports": "Bugs"
+      "promotions": "Promotions"
     },
     "common": {
       "back": "Back",
@@ -211,6 +208,7 @@
     }
   },
   "Common": {
+    "confirm": "Confirm",
     "appName": "Wedillybird",
     "tagline": "Your wedding, organised stress-free",
     "signIn": "Sign in",
@@ -229,7 +227,7 @@
     "skipToContent": "Skip to main content",
     "home": "Home",
     "meta": {
-      "organizationDescription": "WhatsApp-first wedding-planning SaaS platform: invitations, RSVP, check-in, shared gallery. France and French-speaking West Africa."
+      "organizationDescription": "Wedding SaaS platform: digital invitations, RSVP, guest check-in, and a shared photo gallery."
     },
     "close": "Close"
   },
@@ -253,14 +251,16 @@
       "article3Title": "3. Account and access",
       "article3Body": "Access to the Service requires creating an account by verifying a phone number. The User is responsible for the confidentiality of their number and for any action taken from their account. Any unauthorised use must be reported immediately.",
       "article4Title": "4. Pricing and payment",
-      "article4Body": "The Service is offered with no free tier. For individuals planning a wedding, two one-shot plans are available: Essential ($40 / €29, invitations, RSVP, check-in and dashboard — no shared gallery) and Premium ($80 / €59, Essential + 6-month shared gallery + PDF album). A post-wedding upsell (+$30 / +€29) extends the gallery to 5 years and adds the HD photo book. For professionals, monthly or annual subscriptions (Starter $99 / €99 per month, Business $219 / €219 per month, Agency $449 / €449 per month, -20% annual) or pay-as-you-go ($79 / €79 per event). Payments are processed by Stripe. Full refund within 7 days if the event has not been sent. If the wedding is cancelled, free postponement to another date.",
+      "article4Body": "The Service is offered with no free tier. For individuals planning a wedding, two one-shot plans are available: Essential ($40 / €29, core features + 30-day gallery) and Premium ($80 / €59, Essential + 6-month gallery + PDF album). A post-wedding upsell (+$30 / +€29) extends the gallery to 5 years and adds the HD photo book. For professionals, monthly or annual subscriptions (Starter $99 / €99 per month, Business $219 / €219 per month, Agency $449 / €449 per month, -20% annual) or pay-as-you-go ($79 / €79 per event). Payments are processed by Stripe. Full refund within 7 days if the event has not been sent. If the wedding is cancelled, free postponement to another date.",
       "article5Title": "5. Intellectual property",
       "article5Body": "The User retains ownership of the content they upload. They grant Wedillybird a non-exclusive licence to use this content solely for the operation of the Service. Wedillybird retains ownership of the platform, its code and brand.",
       "article6Title": "6. Liability",
       "article6Body": "The Service is provided \"as is\". Wedillybird strives to ensure maximum availability but does not guarantee uninterrupted service. Wedillybird's liability is limited to the amount paid by the User over the past 12 months.",
       "article7Title": "7. Governing law and disputes",
       "article7Body": "These Terms are governed by French law. Any dispute relating to their performance shall fall within the exclusive jurisdiction of the Paris courts, except for any contrary provision of public policy.",
-      "description": "Wedillybird Service Terms of Service: account, pricing, intellectual property, liability, governing law."
+      "description": "Wedillybird Service Terms of Service: account, pricing, intellectual property, liability, governing law.",
+      "article8Title": "8. Photos, guests and biometric data",
+      "article8Body": "The User who uploads photos of guests (typically the couple) represents and warrants that they have informed their guests that photos will be shared through the Service and, where the optional face-search feature is enabled, that guests' faces will be processed to let them find their own photos, and that they have obtained any consent required under applicable law. The User is responsible for complying with the law of the place where the wedding is held regarding the biometric data of the people they invite. Wedillybird does not offer face search for weddings held in Illinois, Texas, or Washington."
     },
     "privacy": {
       "title": "Privacy Policy",
@@ -274,9 +274,11 @@
       "legalBasisTitle": "Legal bases (GDPR)",
       "legalBasisBody": "Performance of the contract (account, payments, features), legitimate interest (security, abuse prevention), consent (non-essential cookies, marketing communications).",
       "retentionTitle": "Retention period",
-      "retentionBody": "Account data: duration of the subscription + 3 years. Payment data: legal duration (10 years for invoicing). Technical logs: 12 months maximum.",
+      "retentionBody": "Account data: duration of the subscription + 3 years. Payment data: legal duration (10 years for invoicing). Technical logs: 12 months maximum. Biometric face data (face search, when enabled): until the gallery expires or the feature is disabled, whichever comes first — see “Biometric data” below.",
       "subprocessorsTitle": "Subprocessors",
-      "subprocessorsBody": "Convex (database, US), Vercel (hosting, US/EU), Stripe (payments, EU/US), Twilio (SMS delivery, US/Canada), Meta WhatsApp Cloud API (message delivery, EU/US), Amazon Rekognition Faces (temporary face indexing for photo search, EU). Data is minimised, never resold or shared with third parties for marketing. All bound by standard contractual clauses or equivalent mechanisms.",
+      "subprocessorsBody": "Convex (database, US), Vercel (hosting, US/EU), Stripe (payments, EU/US), Twilio (SMS delivery, US/Canada), Meta WhatsApp Cloud API (message delivery, EU/US), Amazon Rekognition Faces (biometric face indexing for the optional face-search feature, only for weddings where the couple has explicitly opted in — see “Biometric data” below, EU). Data is minimised, never resold or shared with third parties for marketing. All bound by standard contractual clauses or equivalent mechanisms.",
+      "biometricsTitle": "Biometric data (face search)",
+      "biometricsBody": "Face search is an optional, opt-in feature: it is OFF by default and only processes guests' faces for weddings where the couple has explicitly enabled it, after reviewing this notice. Legal basis: explicit consent, given by the couple on behalf of the wedding (see Terms of Service). Data processed: facial geometry extracted from approved gallery photos (Amazon Rekognition), used only to match a guest's selfie against the gallery — the selfie itself is never stored. Retention: until the gallery expires or the couple disables the feature, whichever comes first; deleted automatically within 24 hours by a daily purge job, or sooner on request. This feature is not offered for weddings held in Illinois, Texas, or Washington.",
       "rightsTitle": "Your rights",
       "rightsBody": "Access, rectification, erasure, objection, portability, restriction. To exercise a right, write to privacy@wedillybird.com. You can also file a complaint with the CNIL.",
       "contactTitle": "Contact",
@@ -421,7 +423,7 @@
       },
       "guestVsInvitation": {
         "q": "What's the difference between an invitation and a guest?",
-        "a": "An invitation = one entry in your list corresponding to a primary person (e.g. your cousin Aminata) to whom you send a personalised link with their QR code. That person can indicate in their reply that they will be coming with N additional people (for example their partner and children). The plan quota counts the number of invitations sent, not the total number of people attending. So with the Essential plan (100 invitations) or Premium (250 invitations), you can welcome far more actual people on the day."
+        "a": "An invitation = one entry in your list corresponding to a primary person (e.g. your cousin Aminata) to whom you send a personalised link with their QR code. That person can indicate in their reply that they will be coming with N additional people (for example their partner and children). The plan quota counts the number of invitations sent, not the total number of people attending. So with the Sérénité plan (150 invitations), you can welcome far more than 150 actual people on the day."
       }
     }
   },
@@ -434,8 +436,8 @@
       "ctaPrimary": "Plan my wedding",
       "ctaSecondary": "See plans",
       "trust": {
-        "stat": "One payment, no subscription",
-        "rating": "Full refund within 7 days if nothing is sent",
+        "stat": "1,240 weddings celebrated",
+        "rating": "4.9 / 5 couple satisfaction",
         "regions": "Available worldwide"
       },
       "card": {
@@ -484,10 +486,10 @@
           "context": "vs 22% by traditional email"
         },
         "rsvpSpeed": {
-          "value": 30,
-          "suffix": " s",
-          "label": "to confirm attendance",
-          "context": "one tap from the conversation, no app"
+          "value": 73,
+          "suffix": "%",
+          "label": "of RSVPs within 24 hours",
+          "context": "average across the first 30 invitations"
         },
         "memory": {
           "value": 5,
@@ -496,7 +498,7 @@
           "context": "with the Premium + post-wedding upsell"
         }
       },
-      "source": "Open rates: published industry averages for messaging vs email — not Wedillybird measurements."
+      "source": "Measured across the first 1,240 weddings celebrated with Wedillybird, 2026."
     },
     "features": {
       "chapter": "CHAPTER 03 — THE PILLARS",
@@ -560,56 +562,31 @@
       "cardKicker": "WE'RE GETTING MARRIED",
       "cardDate": "8 JUNE 2026"
     },
-    "universes": {
-      "chapter": "CHAPTER 04B — THE WORLDS",
-      "title": "Twelve openings. Twelve worlds.",
-      "subtitle": "The seal is only the beginning. Pick the cinematic — a rising curtain, fireworks, a first snowflake — and the whole invitation page dresses in the same theme: colors, decor, countdown, right down to the footer.",
-      "galleryNote": "The same card, twelve themes",
-      "signatureBadge": "Signature",
-      "custom": {
-        "heading": "Tune every detail",
-        "cinematic": {
-          "title": "The cinematic",
-          "desc": "Twelve openings to choose from, replay anytime."
-        },
-        "music": {
-          "title": "The music",
-          "desc": "Five in-house tracks, or your own file."
-        },
-        "musicYours": "+ yours",
-        "photo": {
-          "title": "Your photo",
-          "desc": "Yours, at the heart of the card."
-        },
-        "included": "Included with Premium and every Pro plan."
-      },
-      "liveTag": "Animated"
-    },
     "testimonials": {
       "chapter": "CHAPTER 05 — THE VOICES",
-      "eyebrow": "Built for the day itself",
-      "title": "Three demanding wedding days, the same calm.",
+      "eyebrow": "They said yes",
+      "title": "Couples and planners who have gained peace of mind.",
       "items": {
         "couple-fr": {
-          "quote": "180 guests outdoors and the venue WiFi drops at arrival: check-in keeps running offline, the list syncs back when the network returns, and nobody waits in line.",
-          "name": "The open air",
-          "location": "Scenario · 180 guests · offline check-in",
-          "initials": "01",
-          "alt": "Outdoor wedding scenario"
+          "quote": "We invited 180 people in four taps. Offline check-in saved the entrance when the venue's WiFi gave up — nobody waited more than five seconds.",
+          "name": "Camille & Hugo",
+          "location": "Outdoor wedding · June 2026",
+          "initials": "CH",
+          "alt": "Portrait of a smiling Camille and Hugo"
         },
         "couple-sn": {
-          "quote": "600+ guests across three days, where shared spreadsheets and group chats crack: one personalized link per guest, live replies, and a shared gallery that keeps living after the weekend.",
-          "name": "The three days",
-          "location": "Scenario · 600+ guests · multi-event",
-          "initials": "02",
-          "alt": "Large multi-day wedding scenario"
+          "quote": "We had over 600 guests across three days. Wedillybird held up where Excel and our group chats were buckling. The shared gallery brought the memories back again three months later.",
+          "name": "Awa & Mamadou",
+          "location": "Wedding 600+ guests · November 2025",
+          "initials": "AM",
+          "alt": "Awa and Mamadou in traditional attire"
         },
         "planner-pro": {
-          "quote": "Eight weddings in a season, every guest page in the agency's colors: your couples see your brand, not a third-party tool, and every RSVP is tracked in one place.",
-          "name": "Under your brand",
-          "location": "Scenario · agencies & wedding planners",
-          "initials": "03",
-          "alt": "Wedding planning agency scenario"
+          "quote": "I'm running eight weddings this season with my own branding on every guest page. My couples see my agency, not a third-party tool — that's exactly what was missing in the market.",
+          "name": "Studio Lumière",
+          "location": "Wedding planner",
+          "initials": "SL",
+          "alt": "Wedding planner in front of an outdoor wedding"
         }
       }
     },
@@ -640,7 +617,7 @@
       "prosCtaSeeAll": "See all pro plans",
       "prosRecommended": "Most popular",
       "prosCheckCta": "Choose this plan",
-      "prosChapter": "CHAPTER 06 — FOR PROS",
+      "prosChapter": "CHAPTER 06B — FOR PROS",
       "prosSeeDetail": "See the details"
     },
     "forfaitsPros": {
@@ -663,11 +640,11 @@
       "items": {
         "whyWhatsapp": {
           "q": "Why text instead of an email or a dedicated app?",
-          "a": "Because your guests are already there. Published industry averages put messaging open rates around 98% vs about 22% for email, with no app and no account to create. In the US and Canada your guests receive an SMS; on WhatsApp worldwide. It's the most universal channel internationally."
+          "a": "Because your guests are already there. Text gets a 98% open rate vs 22% for email, with no app and no account to create. In the US and Canada your guests receive an SMS; on WhatsApp worldwide. It's the most universal channel there is."
         },
         "olderGuests": {
           "q": "Will my older or less tech-savvy guests manage?",
-          "a": "Yes. The invitation page opens in one tap, straight from the text — no app, no account to create. RSVP takes 3 buttons, designed to stay readable and easy to use without help, including for guests who are less comfortable with technology."
+          "a": "Yes. The invitation page opens in one tap, straight from the text — no app, no account to create. RSVP takes 3 buttons. More than 92% of grandparents tested confirmed without help."
         },
         "guestLimit": {
           "q": "What's the maximum number of guests?",
@@ -700,12 +677,12 @@
       "title": "The big day deserves better than a PDF.",
       "subtitle": "Create your first invitation in three minutes. No card needed to explore, full refund within 7 days if you change your mind.",
       "cta": "Plan my wedding",
-      "trust": "One payment · Full refund within 7 days if nothing is sent · Free reschedule if the date changes"
+      "trust": "1,240 weddings celebrated · 4.9 / 5 couple satisfaction"
     },
     "footer": {
       "tagline": "The wedding concierge that lives in your guests' texts. Designed for weddings around the world.",
       "newsletterTitle": "Get our free invitation templates",
-      "newsletterSubtitle": "Once a month: invitation templates, checklists and practical ideas for planning your wedding. Zero spam.",
+      "newsletterSubtitle": "Once a month, templates signed by renowned wedding designers, and zero spam.",
       "newsletterPlaceholder": "you@email.com",
       "newsletterCta": "Subscribe",
       "newsletterSuccess": "Subscribed. See you in your inbox soon.",
@@ -811,6 +788,31 @@
       "navAriaLabel": "Main navigation",
       "language": "Language",
       "languageAriaLabel": "Choose language"
+    },
+    "universes": {
+      "chapter": "CHAPTER 04B — THE WORLDS",
+      "title": "Twelve openings. Twelve worlds.",
+      "subtitle": "The seal is only the beginning. Pick the cinematic — a rising curtain, fireworks, a first snowflake — and the whole invitation page dresses in the same theme: colors, decor, countdown, right down to the footer.",
+      "galleryNote": "The same card, twelve themes",
+      "signatureBadge": "Signature",
+      "custom": {
+        "heading": "Tune every detail",
+        "cinematic": {
+          "title": "The cinematic",
+          "desc": "Twelve openings to choose from, replay anytime."
+        },
+        "music": {
+          "title": "The music",
+          "desc": "Five in-house tracks, or your own file."
+        },
+        "musicYours": "+ yours",
+        "photo": {
+          "title": "Your photo",
+          "desc": "Yours, at the heart of the card."
+        },
+        "included": "Included with Premium and every Pro plan."
+      },
+      "liveTag": "Animated"
     }
   },
   "Auth": {
@@ -990,7 +992,8 @@
     "errors": {
       "submit": "Couldn't add the invitation. Try again.",
       "limitReached": "Invitation quota reached for this plan. Upgrade to add more."
-    }
+    },
+    "answersDietary": "Dietary"
   },
   "Invitation": {
     "youreInvited": "You're invited",
@@ -1020,7 +1023,8 @@
       "notFound": "Invitation not found or expired",
       "eventClosed": "This event no longer accepts replies",
       "plusOnesExceeded": "Too many plus-ones listed",
-      "unknown": "Something went wrong. Try again."
+      "unknown": "Something went wrong. Try again.",
+      "answerRequired": "Please answer this question"
     },
     "countdownLabel": "Countdown",
     "countdownDays": "Days",
@@ -1035,17 +1039,13 @@
     "cinematicSkip": "Skip",
     "cinematicSkipAria": "Skip cinematic",
     "scrollToDiscover": "Scroll to discover",
+    "rsvpPrompt": "We would be honored by your presence",
+    "galleryHint": "Photos shared by guests",
+    "booleanYes": "Yes",
+    "booleanNo": "No",
+    "requiredMark": "Required",
     "openInvitation": "Open the invitation",
-    "musicHint": "This invitation comes with music",
-    "musicPlayAria": "Play the music",
-    "musicMuteAria": "Mute the music",
-    "musicUnmuteAria": "Unmute the music",
-    "passDate": "Date",
-    "passGate": "Gate",
-    "passSeat": "Seat",
-    "actOne": "Act I",
-    "tapSeal": "Tap the seal",
-    "scheduleTitle": "The order of the day"
+    "tapSeal": "Tap the seal"
   },
   "OrgPublic": {
     "poweredBy": "Powered by",
@@ -1132,7 +1132,8 @@
         "forbidden": "You don't have access to this gallery.",
         "rateLimited": "Too many recent searches. Please wait a moment before trying again.",
         "notInPlan": "Premium plan only. Upgrade to Premium to use face search.",
-        "unknown": "Something went wrong. Try again."
+        "unknown": "Something went wrong. Try again.",
+        "disabled": "Face search isn't enabled for this wedding."
       },
       "cancel": "Cancel"
     }
@@ -2389,63 +2390,59 @@
       }
     },
     "seatingBoard": {
-      "poolTitle": "Guests to seat",
-      "searchPlaceholder": "Search…",
+      "poolTitle": "To seat",
+      "searchPlaceholder": "Search a guest…",
       "searchAria": "Search a guest",
-      "poolAllSeated": "All guests are seated.",
-      "poolNoMatch": "No matching guests.",
+      "poolAllSeated": "All guests are seated",
+      "poolNoMatch": "No matching guest",
       "guestCount": "{count, plural, one {# guest} other {# guests}}",
       "guestChipAria": "{name}, {seats, plural, one {# seat} other {# seats}}",
       "seatedSuffix": "seated",
       "addTable": "Add a table",
-      "autoPlace": "Auto-place",
-      "autoSettingsTitle": "Placement settings",
+      "autoPlace": "Auto-seat",
+      "autoSettingsTitle": "Seating settings",
       "runPlacement": "Run placement",
-      "modeUnplaced": "Unplaced ({count})",
-      "modeAll": "Replace all",
+      "modeUnplaced": "{count, plural, one {# unseated} other {# unseated}}",
+      "modeAll": "Re-seat all",
       "autoOption": {
         "groupByCategory": {
           "label": "Group by category",
-          "hint": "Seat Family, Friends, Colleagues together…"
+          "hint": "Keeps family, friends and colleagues together"
         },
         "keepGroupsTogether": {
           "label": "Keep groups together",
-          "hint": "One group on as few tables as possible"
+          "hint": "Avoids splitting a household"
         },
         "balanceTables": {
           "label": "Balance tables",
-          "hint": "Spread evenly rather than pack"
+          "hint": "Spreads guests evenly across tables"
         },
         "createTables": {
-          "label": "Create tables as needed",
-          "hint": "Open new tables if there isn’t enough room"
+          "label": "Create tables if needed",
+          "hint": "Adds tables when seats run short"
         }
       },
       "emptyTitle": "No tables yet",
-      "emptyDescription": "Add a table to start seating your guests.",
-      "shapeOval": "Oval",
-      "shapeOvalShort": "Oval",
-      "shapeSquare": "Square",
-      "shapeSquareShort": "Square",
+      "emptyDescription": "Run auto-seating or add a table to start your plan.",
       "zoomIn": "Zoom in",
       "zoomOut": "Zoom out",
       "resetView": "Reset view",
-      "moveTable": "Move",
+      "moveTable": "Move table",
       "moveTableAria": "Move table {name}",
       "close": "Close",
-      "peopleCount": "{occupancy}/{capacity} ppl",
+      "peopleCount": "{occupancy} / {capacity} people",
       "tableNameLabel": "Table name",
       "shapeLabel": "Shape",
       "shapeRound": "Round",
       "shapeRect": "Rectangular",
-      "shapeRectShort": "Rect.",
-      "capacityLabel": "Capacity (people)",
+      "shapeRectShort": "Rectangle",
+      "capacityLabel": "Capacity",
       "capacityOver": "Over capacity · {occupancy}/{capacity}",
       "capacityFull": "Full",
       "capacityFree": "{free, plural, one {# free seat} other {# free seats}}",
-      "placedGuestsLabel": "Seated guests ({count})",
-      "placedGuestsEmpty": "No guests at this table.",
-      "removeGuestAria": "Remove {name}",
+      "placedGuestsLabel": "{count, plural, =0 {Seated guests} one {# guest seated} other {# guests seated}}",
+      "placedGuestsEmpty": "No guests at this table",
+      "removeGuestAria": "Remove {name} from the table",
       "deleteTable": "Delete table",
       "decrease": "Decrease",
       "increase": "Increase",
@@ -2843,7 +2840,7 @@
         "close": "Close"
       },
       "status": {
-        "active": "Live",
+        "active": "Active",
         "draft": "Draft",
         "archived": "Archived",
         "cancelled": "Cancelled"
@@ -2855,7 +2852,7 @@
         "checkin": "Check-in",
         "seating": "Seating",
         "gallery": "Gallery",
-        "invoice": "Invoice"
+        "invoice": "Billing"
       },
       "rsvp": {
         "confirmed": "Confirmed",
@@ -2879,28 +2876,28 @@
         "dayMinusPrefix": "D−",
         "dayMinusValue": "D−{n}",
         "invitationsSent": "Invitations sent",
-        "draftNotPublished": "Draft — not published",
-        "eventNoCapPlan": "Event {no}/{cap} · {plan} plan",
-        "eventNoPlan": "Event {no} · {plan} plan",
-        "backToDraft": "Return to draft",
+        "draftNotPublished": "Draft · not published",
+        "eventNoCapPlan": "Event {no}/{cap} · {plan}",
+        "eventNoPlan": "Event {no} · {plan}",
+        "backToDraft": "Back to draft",
         "publishEvent": "Publish event",
-        "eventActive": "Event live",
+        "eventActive": "Event active",
         "readyToPublish": "Ready to publish",
-        "invitationsDistributable": "Your invitations are ready to send.",
-        "publishToDistribute": "Publish to send invitations to your guests.",
+        "invitationsDistributable": "The public page is live: you can now send out the invitations.",
+        "publishToDistribute": "Publish the event to put the public page live and send out the invitations.",
         "publishing": "Publishing…",
-        "quotaExceeded": "Active event quota reached for your plan.",
-        "publishFailed": "Publishing failed. Try again.",
+        "quotaExceeded": "Event quota reached for your plan.",
+        "publishFailed": "Publishing failed. Please try again.",
         "rsvpResponses": "RSVP responses",
         "viewGuests": "View guests",
         "guestsUnit": "guests",
         "percent": "{n}%",
         "responseRate": "Response rate",
         "quickActions": "Quick actions",
-        "qaBroadcast": "Send invitations",
+        "qaBroadcast": "Broadcast",
         "qaAddGuests": "Add guests",
         "qaOpenCheckin": "Open check-in",
-        "qaPublicPage": "View public page",
+        "qaPublicPage": "Public page",
         "kpiCountdown": "Countdown",
         "kpiGuests": "Guests",
         "kpiBudget": "Budget",
@@ -2930,15 +2927,15 @@
         "errCreate": "Couldn't create the wedding. Please try again."
       },
       "invites": {
-        "guestCount": "{count, plural, one {# guest} other {# guests}}",
-        "capSuffix": " · cap {cap}",
-        "manageGuests": "Manage guests →",
+        "guestCount": "{count, plural, =0 {0 guests} one {# guest} other {# guests}}",
+        "capSuffix": " / {cap}",
+        "manageGuests": "Manage guests",
         "filterAll": "All",
         "filterAttending": "Attending",
         "filterPending": "Pending",
         "filterDeclined": "Declined",
         "emptyTitle": "No guests yet",
-        "emptyBody": "Import your list or add guests to track RSVP responses here.",
+        "emptyBody": "Add your guests to track responses and send out invitations.",
         "emptyCta": "Add guests",
         "searchPlaceholder": "Search a guest…",
         "searchAria": "Search a guest",
@@ -2946,91 +2943,91 @@
         "colCategory": "Category",
         "colPlusOnes": "Plus-ones",
         "colRsvp": "RSVP",
-        "noMatch": "No guests match."
+        "noMatch": "No matching guests."
       },
       "messaging": {
-        "notPublishedTitle": "Publish the event first",
-        "notPublishedBody": "WhatsApp invitations can be sent once the event is published. Go back to the Preview tab to publish — your guests will then receive their invitation.",
+        "notPublishedTitle": "Event not published",
+        "notPublishedBody": "Publish the event from the overview to send out invitations and reminders.",
         "messagesThisMonth": "Messages this month",
         "billing": "Billing",
         "styleTitle": "Invitation style",
         "templatesCount": "{count, plural, one {# template} other {# templates}}",
         "personalMessage": "Personal message",
         "optional": "(optional)",
-        "personalPlaceholder": "A word from the couple, added below the invitation…",
+        "personalPlaceholder": "A word for your guests…",
         "recipientsTitle": "Recipients",
-        "recipientsCount": "{count, plural, one {# guest} other {# guests}}",
-        "audienceAria": "Audience",
+        "recipientsCount": "{count, plural, =0 {0 recipients} one {# recipient} other {# recipients}}",
+        "audienceAria": "Audience selection",
         "audAllTitle": "All guests",
-        "audAllSub": "The whole list",
-        "audPendingTitle": "No reply yet",
-        "audPendingSub": "Awaiting a reply",
+        "audAllSub": "Broadcast to the whole list",
+        "audPendingTitle": "Awaiting reply",
+        "audPendingSub": "Follow up with non-responders",
         "audCategoryTitle": "By category",
-        "audCategorySub": "Target groups",
-        "guestUnitAbbr": "gst.",
-        "noCategories": "No category set on any guest.",
-        "messagesToSend": "<n>{count}</n> {count, plural, one {message} other {messages}} to send",
-        "quotaImpact": "Quota impact: {used} → {after} / {cap}",
+        "audCategorySub": "Target specific groups",
+        "guestUnitAbbr": "guests",
+        "noCategories": "No categories defined.",
+        "messagesToSend": "{count, plural, =0 {No messages to send} one {<n>#</n> message to send} other {<n>#</n> messages to send}}",
+        "quotaImpact": "{used} → {after} of {cap} this month",
         "overQuotaSuffix": " · over quota",
         "broadcastNow": "Broadcast now",
-        "broadcastStarted": "Broadcast started · {count, plural, one {# guest} other {# guests}}",
+        "broadcastStarted": "{count, plural, one {Broadcast started to # recipient} other {Broadcast started to # recipients}}",
         "deliveryStatus": "Delivery status",
-        "lastBroadcast": "Last broadcast · {time}",
+        "lastBroadcast": "last broadcast {time}",
         "colGuest": "Guest",
         "colChannel": "Channel",
         "colStatus": "Status",
-        "colTimestamp": "Timestamp",
+        "colTimestamp": "Time",
         "channelWhatsApp": "WhatsApp",
         "autoReminders": "Automatic reminders",
-        "reminderD7": "Reminder D-7",
-        "reminderD1": "Reminder D-1",
-        "nextRun": "Next run: {next}",
+        "reminderD7": "Reminder at D−7",
+        "reminderD1": "Reminder at D−1",
+        "nextRun": "Next run {next}",
         "disabled": "Disabled",
-        "remindersNote": "Reminders are sent only to guests who have not replied yet.",
-        "previewAria": "WhatsApp invitation preview",
-        "verifiedAccount": "Verified account · WhatsApp",
+        "remindersNote": "Reminders are only sent to guests who haven't replied and count against your monthly quota.",
+        "previewAria": "Message preview",
+        "verifiedAccount": "Verified account",
         "firstNameToken": "First name",
         "persoQuote": "“{text}”",
         "viewInvitation": "View invitation",
-        "confirmEyebrow": "WhatsApp broadcast",
-        "confirmTitle": "Send the invitations?",
-        "confirmBody": "The <b>{style}</b> style will be sent to <b>{count, plural, one {# guest} other {# guests}}</b>. This action is immediate.",
+        "confirmEyebrow": "Confirmation",
+        "confirmTitle": "Send the invitations",
+        "confirmBody": "You're about to send the <b>{style}</b> template to {count, plural, one {# guest} other {# guests}} via WhatsApp.",
         "recapRecipients": "Recipients",
         "recapConsumed": "Messages used",
         "recapQuotaAfter": "Quota after sending",
-        "confirmCta": "Send to {count, plural, one {# guest} other {# guests}}",
-        "overQuotaWarning": "This send exceeds your monthly quota — billed on overage.",
-        "remainingThisMonth": "You will have {n} {count, plural, one {message} other {messages}} left this month.",
+        "confirmCta": "{count, plural, one {Send to # guest} other {Send to # guests}}",
+        "overQuotaWarning": "This send exceeds your monthly quota; extra messages will be billed at €0.06/message.",
+        "remainingThisMonth": "{count, plural, one {{n} message left this month} other {{n} messages left this month}}",
         "otherCategory": "Other",
         "tpl": {
           "classic": {
             "name": "Classic",
-            "desc": "Elegant and timeless",
-            "header": "You are invited",
+            "desc": "Elegant and understated",
+            "header": "You're invited",
             "body": "Hello <name></name>, we'd be honored to have you with us. Confirm your attendance in one click."
           },
           "photo": {
             "name": "Photo",
-            "desc": "With a photo of the couple",
-            "header": "Save the date",
+            "desc": "With a header image",
+            "header": "Our big day is near",
             "body": "<name></name>, take a look at our invitation and confirm your attendance now."
           },
           "modern": {
             "name": "Modern",
-            "desc": "Clean, typographic",
-            "header": "We’re getting married",
+            "desc": "Clean and contemporary",
+            "header": "Save the date",
             "body": "Hi <name></name>! We're getting married and we're counting on you. Reply in seconds."
           },
           "festive": {
             "name": "Festive",
-            "desc": "Warm and colorful",
-            "header": "The party is coming",
+            "desc": "Colorful and joyful",
+            "header": "Let the party begin!",
             "body": "<name></name>, we can't wait to celebrate with you! Confirm your attendance and get your dancing shoes ready."
           },
           "sober": {
-            "name": "Sober",
-            "desc": "Formal, no frills",
-            "header": "Announcement",
+            "name": "Minimal",
+            "desc": "Minimal, text only",
+            "header": "Invitation",
             "body": "<name></name>, you're invited to our wedding. Please confirm your attendance via the link below."
           }
         },
@@ -3042,50 +3039,50 @@
         }
       },
       "checkin": {
-        "emptyTitle": "No guests to welcome",
-        "emptyBody": "The day-of check-in will list your confirmed guests here. Add guests and publish the event to prepare the welcome.",
+        "emptyTitle": "No guests to check in",
+        "emptyBody": "Check-in becomes available once guests confirm their attendance.",
         "arrivedOf": "{value} of {total} arrived",
         "arrivedLabel": "arrived",
-        "arrivedHeading": "<n>{arrived}</n> / <n>{total}</n> arrived",
-        "stillExpected": "{count, plural, =0 {no guests still expected} =1 {1 guest still expected} other {# guests still expected}}",
+        "arrivedHeading": "<n>{arrived}</n> of <n>{total}</n> arrived",
+        "stillExpected": "{count, plural, =0 {Everyone has arrived} one {# guest still expected} other {# guests still expected}}",
         "lastArrival": "last arrival {time}",
         "noArrival": "no arrivals yet",
-        "offlinePending": "Offline — <b>{count}</b> pending",
+        "offlinePending": "{count, plural, =0 {Offline} one {Offline · <b>#</b> pending} other {Offline · <b>#</b> pending}}",
         "onlineSynced": "Online · synced",
-        "backOnline": "Go back online",
+        "backOnline": "Back online",
         "simulateOffline": "Simulate offline",
         "qrScanner": "QR scanner",
         "qrViewfinder": "QR scanner viewfinder",
-        "scanResultArrived": "{name}{plusOnes, plural, =0 {} other { · +#}} — arrived",
-        "simulateScan": "Simulate a QR scan",
-        "scannerHint": "Hold the invitation QR code up to the camera",
-        "searchPlaceholder": "Search by name or phone…",
-        "plusOnesAbbr": "+{count} plus-one{count, plural, one {} other {s}}",
+        "scanResultArrived": "{name} arrived (+{plusOnes})",
+        "simulateScan": "Simulate a scan",
+        "scannerHint": "Point at the guest's QR code or search for them in the list.",
+        "searchPlaceholder": "Search a guest…",
+        "plusOnesAbbr": "{count, plural, one {+# guest} other {+# guests}}",
         "arrivedTag": "Arrived",
-        "undoArrivalAria": "Undo {name}’s arrival",
-        "markArrived": "Mark as arrived",
+        "undoArrivalAria": "Undo arrival for {name}",
+        "markArrived": "Mark arrived",
         "markArrivedAria": "Mark {name} as arrived",
         "recentArrivals": "Recent arrivals",
-        "viaSession": "{count, plural, =0 {none via this session} =1 {1 via this session} other {# via this session}}",
-        "recentArrivalsEmpty": "The arrivals you record will appear here, most recent first.",
+        "viaSession": "{count, plural, =0 {0 this session} one {# this session} other {# this session}}",
+        "recentArrivalsEmpty": "Arrivals will appear here as guests check in.",
         "byStaff": "by {by}",
-        "allArrived": "All guests have arrived",
-        "arrivedToast": "<b>{name}</b> · arrived{plusOnes, plural, =0 {} other { +#}}{queued, select, true { (queued)} other {}}",
-        "syncedToast": "<b>{count}</b> {count, plural, one {arrival synced} other {arrivals synced}}",
-        "offlineToast": "<b>Offline</b> mode — will sync when the network returns"
+        "allArrived": "All guests have arrived.",
+        "arrivedToast": "{queued, select, true {<b>{name}</b> checked in (will sync) · +{plusOnes}} other {<b>{name}</b> has arrived · +{plusOnes}}}",
+        "syncedToast": "{count, plural, one {<b>#</b> arrival synced} other {<b>#</b> arrivals synced}}",
+        "offlineToast": "<b>Offline</b> mode: arrivals will sync when the connection is back."
       },
       "seating": {
         "headTable": "Head table",
         "tableN": "Table {n}",
         "emptyTitle": "No guests to seat",
-        "emptyBody": "The seating plan is built from your confirmed guests. Add guests to start placing them.",
+        "emptyBody": "The seating plan builds up once guests confirm their attendance.",
         "tablesCount": "{count, plural, one {# table} other {# tables}}",
-        "placedHeading": "<n>{placed}</n> / {total} seated",
+        "placedHeading": "<n>{placed}</n> of <n>{total}</n> seated",
         "fullPlan": "Full plan",
-        "removeTitle": "{name} — remove",
-        "removeAria": "Remove {name}",
-        "unassigned": "Unseated",
-        "allPlaced": "All confirmed guests are seated. 🎉",
+        "removeTitle": "Remove {name} from the table",
+        "removeAria": "Remove {name} from the table",
+        "unassigned": "Unassigned",
+        "allPlaced": "All guests are seated.",
         "place": "Seat"
       },
       "gallery": {
@@ -3097,14 +3094,14 @@
         "albumCeremony": "Ceremony",
         "albumCocktail": "Cocktail",
         "albumEvening": "Evening",
-        "selectedCount": "<b>{count}</b> selected",
+        "selectedCount": "{count, plural, one {<b>#</b> selected} other {<b>#</b> selected}}",
         "approveAll": "Approve all",
         "rejectAll": "Reject all",
         "downloadAll": "Download all",
-        "emptyPendingTitle": "No photos to moderate",
-        "emptyPendingBody": "All photos uploaded by guests have been processed. New arrivals will appear here before publishing.",
-        "emptyOtherTitle": "Nothing to show",
-        "emptyOtherBody": "No photos in this album for this status.",
+        "emptyPendingTitle": "Moderation up to date",
+        "emptyPendingBody": "No photos pending. New uploads will appear here.",
+        "emptyOtherTitle": "No photos here",
+        "emptyOtherBody": "No photos in this selection yet.",
         "flaggedTitle": "Flagged: {flag}",
         "flagNoFace": "No face detected",
         "flagSensitive": "Sensitive content",
@@ -3120,9 +3117,9 @@
         "reasonBulk": "Bulk rejection",
         "photoApproved": "Photo approved",
         "photoRejected": "Photo rejected",
-        "photosApproved": "<b>{count}</b> {count, plural, one {photo approved} other {photos approved}}",
-        "photosRejected": "<b>{count}</b> {count, plural, one {photo rejected} other {photos rejected}}",
-        "zipPreparing": "ZIP archive of {count} photos being prepared",
+        "photosApproved": "{count, plural, one {<b>#</b> photo approved} other {<b>#</b> photos approved}}",
+        "photosRejected": "{count, plural, one {<b>#</b> photo rejected} other {<b>#</b> photos rejected}}",
+        "zipPreparing": "{count, plural, one {Preparing archive (# photo)…} other {Preparing archive (# photos)…}}",
         "lightboxAria": "Photo by {by}",
         "statApproved": "Approved",
         "statPending": "Pending",
@@ -3135,22 +3132,22 @@
         "payg": "Pay-as-you-go",
         "eventBilling": "Event billing",
         "subTitle": "Covered by the {plan} subscription",
-        "subDesc": "This wedding is one of the {cap} active events included in your plan. No extra cost — any overages (messages, storage) are billed on your monthly statement.",
-        "subLineLabel": "Included event · {plan} plan",
-        "subLineNote": "Event #{no}",
-        "subLineNoteCap": "{no} / {cap} events",
-        "paygTitle": "Paid as you go (Pay-as-you-go)",
-        "paygDesc": "This wedding was paid per event, without a subscription. One event credit covers full access — invitations, RSVP, check-in, gallery and seating plan.",
-        "paygLineLabel": "1 event credit (PAYG)",
-        "paygLineNote": "no subscription",
+        "subDesc": "This event is included in your plan ({cap} events). Only overages are billed.",
+        "subLineLabel": "{plan} plan",
+        "subLineNote": "Event {no} of the cycle",
+        "subLineNoteCap": "Event {no}/{cap} of the cycle",
+        "paygTitle": "Pay-as-you-go",
+        "paygDesc": "This event was paid per-event, outside any subscription. Overages are billed separately.",
+        "paygLineLabel": "Event credit",
+        "paygLineNote": "Per-event plan · 150 guests",
         "included": "Included",
-        "payActivation": "Event activation · subscription",
+        "payActivation": "Event activation",
         "payMessageOverage": "Message overage ({count} × {rate})",
-        "payStorageOverage": "Gallery storage ({gb} GB over the cap)",
-        "payCredit": "Event credit · Pay-as-you-go",
-        "payGuestOverage": "Guests over the cap ({count} × {rate})",
-        "paymentsTitle": "Event payments",
-        "movementsCount": "{count, plural, one {# movement} other {# movements}}",
+        "payStorageOverage": "Storage overage ({gb} GB)",
+        "payCredit": "Event credit (PAYG)",
+        "payGuestOverage": "Guest overage ({count} × {rate})",
+        "paymentsTitle": "Payments",
+        "movementsCount": "{count, plural, one {# entry} other {# entries}}",
         "colDate": "Date",
         "colLabel": "Description",
         "colAmount": "Amount",
@@ -3159,11 +3156,11 @@
         "statusPaid": "Paid",
         "statusPending": "Pending",
         "statusFailed": "Failed",
-        "availableWhenPaid": "Available once the payment clears",
-        "downloadToast": "Invoice <b>{label}</b> — PDF download started",
+        "availableWhenPaid": "Available once the payment is settled",
+        "downloadToast": "Downloading invoice <b>{label}</b>…",
         "ledgerCoveredSub": "covered by your subscription",
-        "ledgerCoveredPayg": "paid as you go",
-        "ledgerNote": "This is the <strong>Wedillybird billing ledger</strong> for this event ({context}) — separate from the invoices your agency issues to its own clients. Find all your payments in <link>Billing</link>."
+        "ledgerCoveredPayg": "paid per event",
+        "ledgerNote": "Only <strong>overages</strong> appear here; base fees are {context}. Find your consolidated invoices in the <link>agency billing</link>."
       }
     }
   },
@@ -3785,7 +3782,6 @@
     }
   },
   "Plans": {
-    "usTaxNote": "Prices exclude tax. Any local sales tax is added at checkout.",
     "tiers": {
       "essential": "Essential",
       "premium": "Premium"
@@ -3810,7 +3806,8 @@
       "cinematicInvitation": "Invitation cinematic: envelope opening, seal cracking",
       "photoVariants": "Photos optimised in 3 WebP resolutions for smooth display even on 3G",
       "galleryZipDownload": "Download the entire gallery as a ZIP in one click",
-      "seatingPlan": "Drag-and-drop seating plan: assign your confirmed guests to tables"
+      "seatingPlan": "Drag-and-drop seating plan: assign your confirmed guests to tables",
+      "customRsvpQuestions": "Custom RSVP questions: add your own questions to the reply form"
     },
     "allEssentialIncluded": "Everything in Essential included",
     "pro": {
@@ -3893,7 +3890,8 @@
         "event": "Additional simultaneous event: €19/month (prorated)"
       },
       "addons": "Add-ons: payments via your own Stripe account, extra seat +€19/month, extra wedding +€19/month."
-    }
+    },
+    "usTaxNote": "Prices exclude tax. Any local sales tax is added at checkout."
   },
   "Upgrade": {
     "title": "Activate your plan",
@@ -3916,75 +3914,14 @@
     "activatePending": "Activate my plan",
     "pendingHint": "Plan chosen: {plan}. Activate it to publish your invitation and send RSVPs.",
     "errors": {
-      "already_purchased": "Archive HD déjà débloquée pour cet événement",
       "invalid_input": "Invalid data",
       "invalid_plan_price": "Plan unavailable for this currency",
       "forbidden": "You don't have permissions on this event",
       "payment_record_failed": "Couldn't record the transaction",
-      "plan_required": "Activez d’abord un forfait pour votre événement",
       "stripe_driver_not_configured": "Stripe not configured on this environment",
       "reconciliation": "The Stripe webhook is delayed. The payment was received but the upgrade will apply in a few moments. Refresh the page.",
       "network": "Network error, try again",
       "unknown": "Something went wrong. Try again."
-    },
-    "upsell": {
-      "eyebrow": "Après le mariage",
-      "title": "Conservez vos photos en HD pour toujours",
-      "subtitle": "Un paiement unique pour prolonger votre galerie et télécharger toutes vos photos en haute définition.",
-      "benefitRetention": "Galerie conservée 5 ans après le mariage",
-      "benefitHd": "Téléchargement HD de toutes les photos",
-      "cta": "Archiver pour toujours",
-      "redirecting": "Redirection…",
-      "purchased": "Archive HD débloquée — galerie conservée 5 ans.",
-      "successTitle": "Archive HD débloquée",
-      "successBody": "Vos photos sont conservées en haute définition. Votre galerie reste accessible 5 ans après le mariage.",
-      "processingTitle": "Paiement en cours de traitement",
-      "processingBody": "Nous finalisons votre achat. Rafraîchissez cette page dans quelques secondes pour voir votre archive HD débloquée.",
-      "reconciliation": "Le webhook Stripe est en retard. Le paiement a bien été reçu mais l’archive va se débloquer dans quelques instants. Rafraîchissez la page.",
-      "backToEvent": "Retour à l’événement",
-      "errors": {
-        "invalid_input": "Données invalides",
-        "invalid_plan_price": "Indisponible pour cette devise",
-        "forbidden": "Vous n’avez pas les droits sur cet événement",
-        "plan_required": "Activez d’abord un forfait pour votre événement",
-        "already_purchased": "Archive HD déjà débloquée pour cet événement",
-        "unsupported_stripe_currency": "Devise non supportée pour ce paiement",
-        "stripe_driver_not_configured": "Stripe non configuré sur cet environnement",
-        "network": "Erreur réseau, réessayez",
-        "unknown": "Une erreur est survenue. Réessayez."
-      },
-      "downloadHd": "Télécharger l’archive HD",
-      "photoBook": {
-        "cta": "Commander le livre photo",
-        "dialogTitle": "Votre livre photo HD",
-        "dialogSubtitle": "Indiquez l’adresse de livraison. Nous imprimons votre livre photo et vous l’expédions.",
-        "recipientName": "Nom du destinataire",
-        "addressLine1": "Adresse",
-        "addressLine2": "Complément d’adresse",
-        "postalCode": "Code postal",
-        "city": "Ville",
-        "country": "Pays",
-        "notes": "Note (optionnel)",
-        "submit": "Confirmer la commande",
-        "submitting": "Envoi…",
-        "cancel": "Annuler",
-        "statusLabel": {
-          "requested": "Livre photo : commande reçue",
-          "in_production": "Livre photo : en fabrication",
-          "shipped": "Livre photo : expédié",
-          "cancelled": "Livre photo : annulé"
-        },
-        "errors": {
-          "invalid_address": "Adresse incomplète — vérifiez les champs obligatoires.",
-          "upsell_required": "Achetez d’abord l’archive HD pour commander le livre photo.",
-          "already_ordered": "Une commande de livre photo est déjà en cours.",
-          "forbidden": "Vous n’avez pas les droits sur cet événement.",
-          "not_found": "Événement introuvable.",
-          "unauthorized": "Connectez-vous pour commander.",
-          "network": "Erreur réseau, réessayez.",
-          "unknown": "Une erreur est survenue. Réessayez."
-        }
-      }
     }
   },
   "Invoice": {
@@ -4020,11 +3957,11 @@
       "notFound": "Invoice not found.",
       "notPaid": "The invoice will be available once the payment is confirmed.",
       "unknown": "Couldn't generate the invoice right now."
-    }
+    },
+    "lineUpsellHd": "Post-wedding HD archive"
   },
   "InvoicePage": {
     "eyebrow": "Accounting",
-    "lineUpsellHd": "Archive HD (galerie 5 ans)",
     "title": "Your invoices",
     "subtitle": "All confirmed payments for {eventTitle}. Download the PDF invoice for each transaction.",
     "backToEvent": "Back to event",
@@ -4169,7 +4106,8 @@
     "categoryTooLong": "Category too long",
     "notesTooLong": "Notes too long",
     "plusOnesRange": "0 to 10 plus-ones",
-    "plusOnesOnlyAttending": "Plus-ones only allowed if attending"
+    "plusOnesOnlyAttending": "Plus-ones only allowed if attending",
+    "weddingStateInvalid": "Invalid state/province code"
   },
   "WhatsApp": {
     "templateStatus": {
@@ -4260,10 +4198,6 @@
     },
     "proNotification": {
       "footer": "Notification sent for the {organizationName} organisation.",
-      "photoBookOrdered": {
-        "subject": "Commande de livre photo — {organizationName}",
-        "ctaLabel": "Voir l’événement"
-      },
       "signatureWithOrg": "— Wedillybird ({organizationName})",
       "teamInviteDetail": "{inviterLabel} is inviting you to join {organizationName} on Wedillybird.",
       "teamInviteFallbackInviter": "a member",
@@ -4397,10 +4331,6 @@
   },
   "Seating": {
     "backToEvent": "Back to event",
-    "cancel": "Cancel",
-    "moveTable": "Move table",
-    "renameHint": "Double-click to rename",
-    "tableNameLabel": "Table name",
     "title": "Seating plan",
     "subtitle": "Drag and drop your confirmed guests onto tables. Confirmed plus-ones count toward capacity.",
     "upsellTitle": "Seating plan — Premium feature",
@@ -4694,7 +4624,8 @@
     "billingInvoicePeriod": "Period",
     "billingInvoiceAmount": "Amount",
     "billingInvoiceStatus": "Status",
-    "billingInvoiceDocument": "Document"
+    "billingInvoiceDocument": "Document",
+    "backToWedding": "Back to wedding"
   },
   "CoupleSpace": {
     "eyebrow": "Couple space",
@@ -4933,10 +4864,13 @@
       "Indian/Antananarivo": "Indian/Antananarivo (UTC+3)",
       "Indian/Mauritius": "Indian/Mauritius (UTC+4)"
     },
-    "editInvitationSectionTitle": "Invitation",
-    "editInvitationSectionDescription": "Opening cinematic and music your guests will see.",
-    "editCinematicLabel": "Cinematic",
-    "editMusicLabel": "Music"
+    "deliverySectionTitle": "SMS delivery",
+    "deliveryDelivered": "Delivered",
+    "deliveryPending": "Pending",
+    "deliveryUndelivered": "Undelivered",
+    "deliveryFailed": "Failed",
+    "deliveryWarning": "{count, plural, one {# text wasn't delivered — possible carrier filtering. Contact support if it persists.} other {# texts weren't delivered — possible carrier filtering. Contact support if it persists.}}",
+    "broadcastQueuedNote": "Queued for sending — the real delivery status appears below as confirmations arrive."
   },
   "MonMariage": {
     "common": {
@@ -4959,197 +4893,13 @@
       "quotaUsed": "{pct}% used",
       "quotaWarn": "{pct}% used",
       "remove": "Remove",
-      "saveError": "Couldn't save — your latest changes were rolled back. Try again.",
       "signOut": "Sign out"
     },
-    "data": {
-      "cats": {
-        "lieu": "Venue & reception",
-        "traiteur": "Catering",
-        "photo": "Photo & video",
-        "musique": "Music / DJ",
-        "fleurs": "Flowers & decor",
-        "patisserie": "Wedding cake",
-        "tenues": "Attire",
-        "papeterie": "Stationery"
-      },
-      "guestStatus": {
-        "confirmed": "Confirmed",
-        "pending": "Pending",
-        "declined": "Declined",
-        "noreply": "No reply",
-        "unknown": "—"
-      },
-      "vendorStatus": {
-        "a_contacter": "To contact",
-        "contacte": "Contacted",
-        "devis": "Quote received",
-        "reserve": "Booked",
-        "paye": "Paid",
-        "unknown": "—"
-      },
-      "attachKinds": {
-        "facture": "Invoice",
-        "devis": "Quote",
-        "contrat": "Contract",
-        "photo": "Photo",
-        "autre": "Other",
-        "receiptOther": "Other receipt"
-      },
-      "paymentKind": {
-        "deposit": "Deposit",
-        "balance": "Balance",
-        "other": "Other payment"
-      },
-      "invoices": {
-        "essentielPlan": "Essential plan",
-        "hdUpsell": "5-year HD archive (upsell)",
-        "premiumPlan": "Premium plan"
-      },
-      "overages": {
-        "guest": {
-          "label": "Extra guest",
-          "sub": "beyond your plan",
-          "price": "+€0.25"
-        },
-        "message": {
-          "label": "SMS / WhatsApp",
-          "sub": "per message sent",
-          "price": "€0.06 / msg"
-        },
-        "storage": {
-          "label": "Gallery storage",
-          "sub": "beyond your quota",
-          "price": "€0.03 / GB / mo"
-        }
-      },
-      "phases": {
-        "p1": {
-          "label": "12 months out",
-          "sub": "The foundations",
-          "tasks": {
-            "t1": "Set the overall budget",
-            "t2": "Lock in the date & venue",
-            "t3": "Draft the first guest list"
-          }
-        },
-        "p2": {
-          "label": "6 months out",
-          "sub": "The vendors",
-          "tasks": {
-            "t4": "Book caterer & photographer",
-            "t5": "Send the invitations",
-            "t6": "Open the shared photo gallery"
-          }
-        },
-        "p3": {
-          "label": "3 months out",
-          "sub": "Now",
-          "tasks": {
-            "t7": "Follow up with non-responders",
-            "t8": "Caterer tasting",
-            "t9": "Book the DJ",
-            "t10": "First outfit fitting"
-          }
-        },
-        "p4": {
-          "label": "1 month out",
-          "sub": "Final details",
-          "tasks": {
-            "t11": "Finalize the seating plan",
-            "t12": "Confirm the final headcount",
-            "t13": "Brief the vendors"
-          }
-        },
-        "p5": {
-          "label": "The big day",
-          "sub": "September 5",
-          "tasks": {
-            "t14": "On-site coordination",
-            "t15": "Guest check-in",
-            "t16": "Shared gallery live"
-          }
-        },
-        "p6": {
-          "label": "After the wedding",
-          "sub": "What's next",
-          "tasks": {
-            "t17": "Send thank-you notes",
-            "t18": "Download the HD gallery",
-            "t19": "Settle the final balances"
-          }
-        }
-      },
-      "steps": {
-        "s1": {
-          "label": "Plan & invitation created",
-          "when": "May",
-          "note": "Your Premium plan is active."
-        },
-        "s2": {
-          "label": "Invitations sent",
-          "when": "May",
-          "note": "166 invitations sent on WhatsApp."
-        },
-        "s3": {
-          "label": "Follow up with non-responders",
-          "when": "June",
-          "note": "18 guests haven't replied yet."
-        },
-        "s4": {
-          "label": "Finalize the seating chart",
-          "when": "August",
-          "note": "As soon as the RSVPs settle down."
-        },
-        "s5": {
-          "label": "The big day — gallery & check-in",
-          "when": "Sep 5",
-          "note": "Your guests upload their photos."
-        }
-      },
-      "plans": {
-        "essentiel": {
-          "name": "Essential",
-          "tagline": "100 guests · 5 GB gallery (12 months)",
-          "feats": {
-            "guests": "Up to 100 guests",
-            "gallery": "Shared 5 GB gallery · active 12 months",
-            "invitations": "Digital invitations + reminders",
-            "rsvp": "RSVP by SMS / WhatsApp",
-            "galleryLink": "Gallery link shared on WhatsApp"
-          }
-        },
-        "premium": {
-          "name": "Premium",
-          "tagline": "250 guests · 25 GB HD gallery (12 months)",
-          "feats": {
-            "guests": "Up to 250 guests",
-            "gallery": "25 GB HD gallery · active 12 months",
-            "essential": "Everything in Essential",
-            "albums": "Albums & invitation branding",
-            "faceSearch": "Face recognition (face-search)"
-          }
-        }
-      }
-    },
     "home": {
-      "referral": {
-        "title": "Refer your friends",
-        "desc": "Share your link — each friend who books earns you credit.",
-        "credit": "{amount} credit available",
-        "copy": "Copy",
-        "copied": "Copied",
-        "linkAria": "Your referral link"
-      },
       "hello": "Welcome to your space",
       "heroAria": "Your wedding at a glance",
       "navAria": "Quick access",
       "confirmed": "Confirmed",
-      "noEvent": {
-        "body": "Create your event (names, date, venue) to open your space: invitations, RSVPs, budget, vendors and seating chart.",
-        "cta": "Create my wedding",
-        "title": "Your wedding isn't set up yet"
-      },
       "pending": "Pending",
       "expected": "People expected",
       "online": "Online",
@@ -5234,17 +4984,7 @@
       "preview": "Preview",
       "qrTitle": "Invitation QR code",
       "qrDesc": "Print it or display it on the big day.",
-      "planTitle": "Planning",
-      "customize": "Customize"
-    },
-    "nav": {
-      "budget": "Budget",
-      "home": "Home",
-      "dashboard": "My wedding",
-      "planning": "Timeline",
-      "vendors": "Vendors",
-      "seating": "Seating chart",
-      "forfait": "My plan"
+      "planTitle": "Planning"
     },
     "planning": {
       "eyebrow": "Planning",
@@ -5281,7 +5021,6 @@
     },
     "budget": {
       "eyebrow": "Finances",
-      "setBudget": "Set the budget",
       "title": "Your budget",
       "subtitle": "Track your expenses and payment schedule at a glance.",
       "engaged": "Committed",
@@ -5372,7 +5111,6 @@
       "eyebrow": "Your plan",
       "choixTitle": "Choose your plan",
       "choixSubtitle": "A one-time payment, never a subscription. Everything is included for your big day.",
-      "noInvoices": "No invoices yet.",
       "oneTimeNote": "One-time payment · gallery active for 12 months after the wedding.",
       "recommended": "Recommended",
       "once": "one-time",
@@ -5381,7 +5119,6 @@
       "choosePlan": "Choose {name}",
       "reassureRefund": "100% refund within 7 days if the invitation isn’t sent.",
       "reassurePostpone": "Free postponement if you have to cancel.",
-      "upsellPurchased": "5-year archive active",
       "yourPlan": "Your plan",
       "purchasedOn": "purchased on {date}",
       "activeOneTime": "Active · one-time payment",
@@ -5406,70 +5143,7 @@
       "overagesFoot": "No surprise charges: you stay in control of your spending."
     },
     "seating": {
-      "addElement": "Feature",
-      "announceDeleted": "Item deleted.",
-      "announceTemplate": "Template “{name}” applied.",
-      "chooseElement": "Add a feature",
-      "chooseShape": "Choose a shape",
-      "depthLabel": "Depth",
-      "done": "Done",
-      "elArch": "Floral arch",
-      "elBar": "Bar",
-      "elBuffet": "Buffet",
-      "elCake": "Cake",
-      "elDancefloor": "Dancefloor",
-      "elDj": "DJ",
-      "elementSub": "{w} × {h} m",
-      "elEntrance": "Entrance",
-      "elGifts": "Gift table",
-      "elGuestbook": "Guest book",
-      "elPhotobooth": "Photo booth",
-      "elPlant": "Greenery",
-      "elStage": "Stage",
-      "emptyDesc": "Add tables and features (dancefloor, stage, bar…) to recreate your reception.",
-      "emptyTitle": "Design your room",
       "eyebrow": "Reception",
-      "floorCarpet": "Carpet",
-      "floorConcrete": "Concrete",
-      "floorGrass": "Grass",
-      "floorLabel": "Flooring",
-      "floorMarble": "Marble",
-      "floorParquet": "Parquet",
-      "hint3d": "Drag to move · Ctrl+scroll to zoom",
-      "hintPlan": "Plan view — move and arrange your tables",
-      "honorHint": "Highlights the table (gold accent).",
-      "honorLabel": "Head table",
-      "inspectElementAria": "{label} details",
-      "locked": {
-        "body": "Upgrade to Premium to design your room in 3D, seat guests with drag and drop, and export the chart.",
-        "cta": "See the Premium plan",
-        "title": "The seating chart is a Premium feature"
-      },
-      "recenter": "Recenter",
-      "roomDefaultName": "Reception hall",
-      "roomLengthLabel": "Length (m)",
-      "roomNameLabel": "Room name",
-      "roomNamePlaceholder": "e.g. Vaux Manor",
-      "roomSetup": "Room",
-      "roomWidthLabel": "Width (m)",
-      "rotateLeft": "Rotate left",
-      "rotateRight": "Rotate right",
-      "rotationLabel": "Rotation",
-      "shapeImperial": "Imperial",
-      "shapeImperialShort": "Imperial",
-      "shapeOval": "Oval",
-      "shapeOvalShort": "Oval",
-      "shapeSquare": "Square",
-      "shapeSquareShort": "Square",
-      "shapeSweetheart": "Sweetheart",
-      "shapeSweetheartShort": "Sweetheart",
-      "statArea": "Floor area",
-      "statComfort_cosy": "Cosy / guest",
-      "statComfort_roomy": "Roomy / guest",
-      "statComfort_tight": "Tight / guest",
-      "statSeated": "Seated",
-      "statSeats": "Seats · {tables} tables",
-      "templatesLabel": "Templates",
       "title": "Your seating plan",
       "subtitle": "Drag your guests onto the tables and adjust everything in a few moves.",
       "seatedRatio": "{seated} / {total} seated",
@@ -5512,14 +5186,6 @@
       "moveTable": "Move table {label}",
       "move": "Move",
       "capacityExceeded": "Capacity exceeded",
-      "tplBallroom": "Ballroom",
-      "tplGarden": "Garden",
-      "tplRestaurant": "Restaurant",
-      "tplTent": "Marquee",
-      "view3d": "3D",
-      "viewLabel": "View",
-      "viewPlan": "Plan",
-      "widthLabel": "Width",
       "zoom": "Zoom",
       "zoomOut": "Zoom out",
       "zoomIn": "Zoom in",
@@ -5684,6 +5350,89 @@
       "title": "Your turn"
     }
   },
+  "RsvpEditor": {
+    "title": "RSVP questions",
+    "subtitle": "Choose what you ask your guests when they reply.",
+    "lockedBody": "Customizing the RSVP form is included in the Premium plan (and all pro plans).",
+    "lockedCta": "Upgrade to Premium",
+    "builtinSectionTitle": "Standard fields",
+    "fieldPlusOnes": "Plus-ones",
+    "fieldPlusOnesHint": "Let guests add the names of their companions (within their allowance).",
+    "fieldDietary": "Dietary requirements",
+    "fieldNotes": "A note for the couple",
+    "labelOverride": "Displayed label",
+    "labelOverridePlaceholder": "Custom label (optional)",
+    "customSectionTitle": "Custom questions",
+    "customSectionHint": "Add up to {max} tailored questions.",
+    "addQuestion": "Add a question",
+    "empty": "No custom questions yet.",
+    "questionLabel": "Question",
+    "questionLabelPlaceholder": "e.g. Will you take the shuttle?",
+    "typeLabel": "Answer type",
+    "type": {
+      "short_text": "Short text",
+      "long_text": "Long text",
+      "single_choice": "Single choice",
+      "multi_choice": "Multiple choice",
+      "boolean": "Yes / No"
+    },
+    "optionsLabel": "Options",
+    "optionPlaceholder": "Option {index}",
+    "addOption": "Add an option",
+    "removeOption": "Remove option",
+    "requiredLabel": "Required answer",
+    "onlyIfAttendingLabel": "Only if attending",
+    "removeQuestion": "Remove",
+    "moveUp": "Move up",
+    "moveDown": "Move down",
+    "save": "Save questions",
+    "saved": "Questions saved",
+    "errorSave": "Couldn't save. Try again.",
+    "maxReached": "Maximum of {max} questions reached",
+    "delegationLabel": "Allow the couple to edit the questions",
+    "delegationHint": "The couple will be able to adjust the questionnaire from their space. Off, you keep control.",
+    "readOnlyBody": "Your agency manages the RSVP questionnaire for this event."
+  },
+  "Notifications": {
+    "title": "Notifications",
+    "markAllRead": "Mark all as read",
+    "empty": "No notifications yet.",
+    "someone": "Someone",
+    "theCouple": "The couple",
+    "rsvpResponse": "{name} replied: {status}",
+    "configChanged": "{name} edited the RSVP questionnaire",
+    "planningTask": "New task: {title}",
+    "status": {
+      "attending": "Attending",
+      "declined": "Not attending",
+      "maybe": "Maybe"
+    },
+    "andMore": "and {count} more"
+  },
+  "FaceSearchPrivacy": {
+    "title": "Privacy & face search",
+    "subtitle": "Control whether guests can find their photos by face — off by default, your choice.",
+    "lockedBody": "Face search is included in the Premium plan (and all pro plans).",
+    "lockedCta": "Upgrade to Premium",
+    "stateLabel": "Wedding state / province",
+    "stateHint": "Required to enable face search if your wedding is in the United States or Canada — some states restrict biometric data.",
+    "stateNotApplicable": "Outside the US / Canada",
+    "stateGroupUs": "United States",
+    "stateGroupCa": "Canada",
+    "toggleLabel": "Enable face search for guests",
+    "toggleHint": "Lets guests find their own photos by uploading a selfie. Off by default.",
+    "consentNoticeBody": "Turning this on indexes guests' faces (Amazon Rekognition) so they can search their own photos with a selfie. By enabling it, you confirm you have informed your guests that face search is active for this wedding. You can turn it off at any time; indexed faces are deleted when the gallery expires or when you disable this setting.",
+    "consentRecordedAt": "Consent recorded on {date}",
+    "bannedNotice": "Face search isn't available for weddings in Illinois, Texas, or Washington — these states have specific biometric-data laws. This is a permanent restriction, not a bug.",
+    "save": "Save",
+    "saved": "Saved",
+    "errorSave": "Couldn't save. Try again.",
+    "errorStateBanned": "Face search can't be enabled for this state.",
+    "errorStateRequired": "Choose your wedding's state or province first. It's required to turn on face search.",
+    "statePlaceholder": "Select your wedding's location…",
+    "errorFeatureNotInPlan": "Face search is only available on the Premium plan (or pro plans).",
+    "errorForbidden": "You don't have permission to change this setting."
+  },
   "InvitationDesign": {
     "photoSection": "Couple photo",
     "photoHint": "JPEG, PNG or WebP · a vertical portrait works best",
@@ -5792,33 +5541,5 @@
       "size": "File too large (10 MB max)",
       "network": "Upload failed — try again"
     }
-  },
-  "BugReport": {
-    "open": "Report a bug",
-    "cta": "Report a bug",
-    "title": "Report a bug",
-    "subtitle": "Tell us what went wrong. A screenshot helps a lot.",
-    "descLabel": "What happened?",
-    "descPlaceholder": "E.g. the 'Send' button doesn't respond after adding a guest…",
-    "captureLabel": "Screenshot (optional)",
-    "captureBtn": "Capture screen",
-    "uploadBtn": "Choose an image",
-    "removeShot": "Remove screenshot",
-    "captureError": "Couldn't capture — you can attach an image instead.",
-    "contextPage": "Page",
-    "contextErrors": "{count, plural, one {# technical error attached automatically} other {# technical errors attached automatically}}",
-    "thanks": "Thanks! Your report helps us improve the app.",
-    "cancel": "Cancel",
-    "submit": "Send report"
-  },
-  "CeremonySchedule": {
-    "section": "Order of the day",
-    "hint": "The key moments of the big day (ceremony, cocktail, dinner…), shown on the invitation.",
-    "timeLabel": "Time",
-    "timePlaceholder": "3:00 PM",
-    "titleLabel": "Step",
-    "titlePlaceholder": "Ceremony",
-    "add": "Add a step",
-    "remove": "Remove step"
   }
 }

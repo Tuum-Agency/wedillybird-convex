@@ -191,9 +191,10 @@ export const _scanDuplicates = internalQuery({
     for (const pair of top) {
       const left = pair.users[0]!;
       const right = pair.users[1]!;
-      console.log(
-        `  - score=${pair.score} reason=${pair.reason} | "${left.fullName ?? ''}" ${left._id} (${left.email ?? '—'} / ${left.phone ?? '—'}) <> ${right._id} (${right.email ?? '—'} / ${right.phone ?? '—'})`,
-      );
+      // PII retirée des logs (nom/email/téléphone) : on ne garde que les ids +
+      // score/raison, suffisants pour investiguer sans exposer de données
+      // personnelles dans l'observabilité Convex. Cf. audit archi 2026-07-19.
+      console.log(`  - score=${pair.score} reason=${pair.reason} | ${left._id} <> ${right._id}`);
     }
 
     return {

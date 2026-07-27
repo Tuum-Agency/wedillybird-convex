@@ -66,9 +66,11 @@ test.describe('Landing pricing', () => {
   });
 });
 
-test.describe('Landing pricing pros', () => {
+test.describe('Forfaits-pros pricing', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
+    // L'offre Pro (pricing agence) vit désormais sur /forfaits-pros : elle a été
+    // retirée de la landing couple pour la rendre mono-audience.
+    await page.goto('/forfaits-pros');
     await page.locator('#pricing-pros').scrollIntoViewIfNeeded();
   });
 

@@ -864,6 +864,18 @@ async function applySubscriptionPatch(
 ): Promise<{ ok: true }> {
   const { organizationId, ...rest } = args;
   const before = await ctx.db.get(organizationId);
+  // Anti-mismatch tenant : si l'org a DÉJÀ un customer Stripe rattaché, un event
+  // dont le customer diffère est un mauvais routage (ou une `metadata.organizationId`
+  // forgée) — on refuse plutôt que d'écraser l'abonnement d'une org avec les
+  // données d'une autre. Le premier rattachement (before.stripeCustomerId absent)
+  // reste permis. Aligne ce chemin sur la rigueur anti-tenant du budget/liens.
+  if (
+    before?.stripeCustomerId &&
+    rest.stripeCustomerId &&
+    before.stripeCustomerId !== rest.stripeCustomerId
+  ) {
+    throw new Error('STRIPE_CUSTOMER_MISMATCH');
+  }
   const patch: Partial<Doc<'organizations'>> = { updatedAt: Date.now() };
   if (rest.stripeCustomerId !== undefined) patch.stripeCustomerId = rest.stripeCustomerId;
   if (rest.stripeSubscriptionId !== undefined)

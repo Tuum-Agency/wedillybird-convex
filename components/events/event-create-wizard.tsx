@@ -9,6 +9,8 @@ import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
+  SelectGroup,
+  SelectLabel,
   SelectItem,
   SelectTrigger,
   SelectValue,
@@ -16,6 +18,7 @@ import {
 import { cn } from '@/lib/cn';
 import { createEventAction } from '@/app/[locale]/(app)/events/actions';
 import { PLANS, formatAmount } from '@/lib/payments/plans';
+import { US_STATES, CA_PROVINCES, NOT_APPLICABLE_STATE_ID } from '@/lib/geo/regions';
 
 type StepIndex = 0 | 1 | 2 | 3 | 4;
 
@@ -29,6 +32,7 @@ interface FormState {
   timezone: string;
   venueName: string;
   venueAddress: string;
+  weddingState: string;
   themePrimary: string;
   themeAccent: string;
   themeFont: string;
@@ -82,6 +86,7 @@ export function EventCreateWizard({ userRole = 'couple' }: Props) {
   const tCommon = useTranslations('Common');
   const tPlans = useTranslations('Plans');
   const tEvents = useTranslations('Events');
+  const tPrivacy = useTranslations('FaceSearchPrivacy');
   const showPlanStep = userRole === 'couple';
   const totalSteps = showPlanStep ? 5 : 4;
   const [step, setStep] = useState<StepIndex>(0);
@@ -93,6 +98,7 @@ export function EventCreateWizard({ userRole = 'couple' }: Props) {
     timezone: detectInitialTimezone(),
     venueName: '',
     venueAddress: '',
+    weddingState: NOT_APPLICABLE_STATE_ID,
     themePrimary: DEFAULT_THEME.primaryColor,
     themeAccent: DEFAULT_THEME.accentColor,
     themeFont: DEFAULT_THEME.fontFamily,
@@ -134,6 +140,9 @@ export function EventCreateWizard({ userRole = 'couple' }: Props) {
     if (form.venueName.trim() && form.venueAddress.trim()) {
       fd.set('venueName', form.venueName.trim());
       fd.set('venueAddress', form.venueAddress.trim());
+    }
+    if (form.weddingState !== NOT_APPLICABLE_STATE_ID) {
+      fd.set('weddingState', form.weddingState);
     }
     if (form.themePrimary && form.themeAccent && form.themeFont) {
       fd.set('themePrimary', form.themePrimary);
@@ -263,6 +272,44 @@ export function EventCreateWizard({ userRole = 'couple' }: Props) {
             error={fieldErrors.venueAddress}
             onChange={(v) => setForm({ ...form, venueAddress: v })}
           />
+
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="weddingState">{tPrivacy('stateLabel')}</Label>
+            <Select
+              name="weddingState"
+              value={form.weddingState}
+              onValueChange={(v) => setForm({ ...form, weddingState: v })}
+            >
+              <SelectTrigger
+                id="weddingState"
+                className="focus-ring h-11 rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-3 text-sm"
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={NOT_APPLICABLE_STATE_ID}>
+                  {tPrivacy('stateNotApplicable')}
+                </SelectItem>
+                <SelectGroup>
+                  <SelectLabel>{tPrivacy('stateGroupUs')}</SelectLabel>
+                  {US_STATES.map((s) => (
+                    <SelectItem key={s.id} value={s.id}>
+                      {s.label}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+                <SelectGroup>
+                  <SelectLabel>{tPrivacy('stateGroupCa')}</SelectLabel>
+                  {CA_PROVINCES.map((s) => (
+                    <SelectItem key={s.id} value={s.id}>
+                      {s.label}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-[color:var(--color-muted)]">{tPrivacy('stateHint')}</p>
+          </div>
         </section>
       ) : null}
 

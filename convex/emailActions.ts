@@ -73,6 +73,31 @@ async function dispatch(to: string, rendered: EmailRendered): Promise<DispatchOu
 }
 
 /* -------------------------------------------------------------------------- */
+/*  Ops alerts (internes — pas de i18n, destinataire = équipe)                 */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Alerte ops interne (ex. livraison SMS dégradée). Texte brut, non localisé
+ * (destinataire = l'équipe, pas un client). Réutilise `dispatch` → SES, ou mock
+ * en E2E. Best-effort : un échec est loggé, jamais propagé (ne casse pas le flux
+ * appelant).
+ */
+export const sendOpsAlert = internalAction({
+  args: { to: v.string(), subject: v.string(), body: v.string() },
+  handler: async (_ctx, { to, subject, body }) => {
+    const escaped = body.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const rendered: EmailRendered = {
+      subject,
+      text: body,
+      html: `<pre style="font-family:ui-monospace,SFMono-Regular,monospace;white-space:pre-wrap;font-size:14px">${escaped}</pre>`,
+    };
+    const outcome = await dispatch(to, rendered);
+    if (!outcome.ok) console.error(`[ops-alert] send failed -> ${to}: ${outcome.error}`);
+    return outcome;
+  },
+});
+
+/* -------------------------------------------------------------------------- */
 /*  Guest reminders                                                            */
 /* -------------------------------------------------------------------------- */
 

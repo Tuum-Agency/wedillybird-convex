@@ -1,3 +1,4 @@
+import type { ComponentProps } from 'react';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { ArmchairIcon, ArrowLeft, Lock } from 'lucide-react';
@@ -100,5 +101,13 @@ async function SeatingBoardSection({
 }) {
   const convex = getConvexServerClient();
   const plan = await convex.query(convexApi.getSeatingPlan, { eventId, requesterId });
-  return <SeatingBoard eventId={eventId} initial={plan} />;
+  // `tables.shape` du schéma partage 7 formes avec le seating /mon-mariage ; le
+  // board agence ne gère que round/rect. Un event agence n'a jamais de forme
+  // exotique → cast sûr (typé, pas d'any).
+  return (
+    <SeatingBoard
+      eventId={eventId}
+      initial={plan as ComponentProps<typeof SeatingBoard>['initial']}
+    />
+  );
 }

@@ -108,6 +108,7 @@ export default async function GalleryPage({
             eventId={eventId}
             initialPhotos={photos}
             canDownloadZip={canDownloadGalleryZip(event)}
+            faceSearchEnabled={event.faceSearchEnabled === true}
           />
         )}
       </div>

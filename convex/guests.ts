@@ -161,9 +161,12 @@ export const listByEvent = query({
       email: g.email,
       category: g.category,
       plusOnesAllowed: g.plusOnesAllowed,
+      plusOnesNames: g.plusOnesNames,
       rsvpStatus: g.rsvpStatus,
       invitationSentAt: g.invitationSentAt,
+      dietaryRestrictions: g.dietaryRestrictions,
       notes: g.notes,
+      customAnswers: g.customAnswers,
       qrCodeToken: g.qrCodeToken,
       createdAt: g.createdAt,
       updatedAt: g.updatedAt,
@@ -194,6 +197,7 @@ export const getByToken = query({
         plusOnesNames: guest.plusOnesNames,
         dietaryRestrictions: guest.dietaryRestrictions,
         notes: guest.notes,
+        customAnswers: guest.customAnswers,
       },
       event: {
         _id: event._id,
@@ -207,6 +211,11 @@ export const getByToken = query({
         invitationMusic: musicForClient(event.invitationMusic),
         invitationPhoto: photoForClient(event.invitationPhoto),
         ceremonySchedule: event.ceremonySchedule,
+        rsvpConfig: event.rsvpConfig,
+        // Reco-faciale opt-in (Lane T3, F7) : la page galerie invité s'en sert
+        // pour masquer le bouton « Find my photos » quand l'event n'a pas
+        // activé la feature.
+        faceSearchEnabled: event.faceSearchEnabled === true,
       },
     };
   },
