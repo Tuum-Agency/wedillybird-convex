@@ -54,6 +54,7 @@ next-env.d.ts
 
 # claude agent internals
 .claude/
+.agents/
 .gstack/
 .env*.local
 
