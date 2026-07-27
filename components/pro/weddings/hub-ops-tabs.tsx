@@ -658,6 +658,22 @@ export function MessagingTab({
     );
   }
 
+  // Garde anti-tromperie (F2) : le broadcast agence n'est pas encore câblé à un
+  // envoi réel — `doSend` ne fait que simuler un succès puis afficher un rapport
+  // de livraison FABRIQUÉ (statuts « livré / lu / répondu » cycliques). Tant que
+  // ce n'est pas branché sur un vrai envoi, ne pas laisser une agence croire que
+  // des invitations sont parties. Repasser à `true` au câblage.
+  const MESSAGING_WIRED: boolean = false;
+  if (!MESSAGING_WIRED) {
+    return (
+      <EmptyState
+        icon={Megaphone}
+        title="Envoi groupé bientôt disponible"
+        body="La messagerie agence est en cours de finalisation. En attendant, envoyez vos invitations depuis l'espace de chaque mariage."
+      />
+    );
+  }
+
   const AUD: ReadonlyArray<{
     value: 'all' | 'pending' | 'category';
     title: string;
