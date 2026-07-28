@@ -1069,6 +1069,8 @@
     "export": "Exportar CSV"
   },
   "Gallery": {
+    "biometricNoticeBody": "Esta boda usa reconocimiento facial para ayudar a los invitados a encontrar sus fotos. Al añadir fotos, los rostros que aparezcan pueden analizarse (Amazon Rekognition).",
+    "biometricNoticeLink": "Cómo se tratan tus datos",
     "title": "Galería compartida",
     "subtitleOwner": "Sube tus fotos y modera las de tus invitados.",
     "backToEvent": "Volver al evento",

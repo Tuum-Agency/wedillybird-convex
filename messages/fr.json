@@ -1069,6 +1069,8 @@
     "export": "Exporter CSV"
   },
   "Gallery": {
+    "biometricNoticeBody": "Ce mariage utilise la reconnaissance faciale pour aider les invités à retrouver leurs photos. En ajoutant des photos, les visages qui y figurent peuvent être analysés (Amazon Rekognition).",
+    "biometricNoticeLink": "Comment vos données sont traitées",
     "title": "Galerie partagée",
     "subtitleOwner": "Téléversez vos photos et modérez celles de vos invités.",
     "backToEvent": "Retour à l'événement",

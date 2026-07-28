@@ -1065,6 +1065,8 @@
     "export": "Export CSV"
   },
   "Gallery": {
+    "biometricNoticeBody": "This wedding uses face recognition to help guests find their photos. By adding photos, faces in them may be analyzed (Amazon Rekognition).",
+    "biometricNoticeLink": "How your data is handled",
     "title": "Shared gallery",
     "subtitleOwner": "Upload your photos and moderate the ones from your guests.",
     "backToEvent": "Back to event",

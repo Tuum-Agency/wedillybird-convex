@@ -13,6 +13,7 @@ vi.mock('next/navigation', () => ({
 
 vi.mock('next-intl', () => ({
   useTranslations: () => (key: string) => key,
+  useLocale: () => 'fr',
 }));
 
 import { GuestGallery, type GuestPhotoItem } from '@/components/gallery/guest-gallery';

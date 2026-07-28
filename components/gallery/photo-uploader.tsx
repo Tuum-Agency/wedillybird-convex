@@ -1,12 +1,20 @@
 'use client';
 
 import { useRef, useState, useTransition } from 'react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { UploadCloud } from 'lucide-react';
 import { ALLOWED_CONTENT_TYPES, compressForUpload } from '@/lib/photos/compress';
 
 interface BaseProps {
   onUploaded?: () => void;
+  /**
+   * Quand `true` (event avec reco-faciale opt-in), affiche une notice biométrique
+   * AU POINT D'UPLOAD : les photos ajoutées voient les visages qui y figurent
+   * indexés (Amazon Rekognition). Divulgation au moment de la capture — le sujet
+   * indexé est souvent un invité tiers (conformité BIPA/RGPD). Lien vers
+   * `/legal/privacy`.
+   */
+  faceSearchEnabled?: boolean;
 }
 
 interface OwnerProps extends BaseProps {
@@ -49,6 +57,7 @@ export type PhotoUploaderProps = OwnerProps | GuestProps;
 
 export function PhotoUploader(props: PhotoUploaderProps) {
   const t = useTranslations('Gallery');
+  const locale = useLocale();
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [pending, startTransition] = useTransition();
   const [progress, setProgress] = useState<{ current: number; total: number } | null>(null);
@@ -173,6 +182,22 @@ export function PhotoUploader(props: PhotoUploaderProps) {
           <p className="text-xs text-[color:var(--color-muted)]">{t('dropzoneHint')}</p>
         ) : null}
       </div>
+      {props.faceSearchEnabled ? (
+        <p
+          className="text-xs text-[color:var(--color-muted)]"
+          data-testid="biometric-upload-notice"
+        >
+          {t('biometricNoticeBody')}{' '}
+          <a
+            href={`/${locale}/legal/privacy`}
+            target="_blank"
+            rel="noreferrer"
+            className="underline hover:text-[color:var(--color-ink-700)]"
+          >
+            {t('biometricNoticeLink')}
+          </a>
+        </p>
+      ) : null}
       {error ? (
         <p role="alert" className="text-sm text-[color:var(--color-destructive)]">
           {error}

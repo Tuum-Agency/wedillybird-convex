@@ -1069,6 +1069,8 @@
     "export": "CSV exportieren"
   },
   "Gallery": {
+    "biometricNoticeBody": "Diese Hochzeit nutzt Gesichtserkennung, damit Gäste ihre Fotos finden. Beim Hinzufügen von Fotos können darin abgebildete Gesichter analysiert werden (Amazon Rekognition).",
+    "biometricNoticeLink": "Wie deine Daten verarbeitet werden",
     "title": "Geteilte Galerie",
     "subtitleOwner": "Lade deine Fotos hoch und moderiere die Fotos deiner Gäste.",
     "backToEvent": "Zurück zum Event",
