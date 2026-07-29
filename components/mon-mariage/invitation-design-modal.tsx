@@ -40,7 +40,6 @@ const THEME_ICON: Record<CinematicId, string> = {
   rivage: 'Waves',
   feux: 'PartyPopper',
   deco: 'Gem',
-  neige: 'Snowflake',
   'jardin-japonais': 'Moon',
 };
 

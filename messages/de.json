@@ -796,7 +796,7 @@
     "universes": {
       "chapter": "KAPITEL 04B — DIE WELTEN",
       "title": "Zwölf Öffnungen. Zwölf Welten.",
-      "subtitle": "Das Siegel ist erst der Anfang. Wähle die Inszenierung — ein sich hebender Vorhang, ein Feuerwerk, die erste Schneeflocke — und die ganze Einladungsseite kleidet sich in dasselbe Thema: Farben, Dekor, Countdown, bis zur Fußzeile.",
+      "subtitle": "Das Siegel ist erst der Anfang. Wähle die Inszenierung — ein sich hebender Vorhang, ein Feuerwerk — und die ganze Einladungsseite kleidet sich in dasselbe Thema: Farben, Dekor, Countdown, bis zur Fußzeile.",
       "galleryNote": "Dieselbe Karte, zwölf Themen",
       "signatureBadge": "Signatur",
       "custom": {
@@ -5514,10 +5514,6 @@
       "deco": {
         "name": "Das Art déco",
         "desc": "Schwarz und Gold: der Rahmen zeichnet sich, eure Namen in goldenen Gatsby-Lettern."
-      },
-      "neige": {
-        "name": "Erste Schneeflocke",
-        "desc": "Schnee fällt, Frost überzieht das Glas – ein warmer Kreis enthüllt eure Namen."
       }
     },
     "tracks": {

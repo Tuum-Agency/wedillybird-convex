@@ -24,6 +24,5 @@ export const THEME_SWATCH: Record<CinematicId, string> = {
   rivage: 'linear-gradient(135deg, oklch(76% 0.075 210), oklch(90% 0.03 78))',
   feux: 'linear-gradient(135deg, oklch(14% 0.022 278), oklch(60% 0.1 82))',
   deco: 'linear-gradient(135deg, oklch(13% 0.008 80), oklch(66% 0.09 84))',
-  neige: 'linear-gradient(135deg, oklch(90% 0.02 240), oklch(72% 0.035 235))',
   'jardin-japonais': 'linear-gradient(135deg, oklch(94% 0.02 95), oklch(80% 0.055 150))',
 };

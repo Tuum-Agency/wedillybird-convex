@@ -24,7 +24,6 @@ export const CINEMATIC_IDS = [
   'rivage',
   'feux',
   'deco',
-  'neige',
   'jardin-japonais',
 ] as const;
 export type CinematicId = (typeof CINEMATIC_IDS)[number];
@@ -61,6 +60,5 @@ export const CINEMATIC_META: Record<CinematicId, CinematicMeta> = {
   rivage: { id: 'rivage', suggestedTrackId: 'envol', dark: false },
   feux: { id: 'feux', suggestedTrackId: 'celebration', dark: true },
   deco: { id: 'deco', suggestedTrackId: 'harmonie', dark: true },
-  neige: { id: 'neige', suggestedTrackId: 'aurore', dark: false },
   'jardin-japonais': { id: 'jardin-japonais', suggestedTrackId: 'jardin', dark: false },
 };

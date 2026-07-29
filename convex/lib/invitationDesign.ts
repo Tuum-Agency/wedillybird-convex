@@ -21,7 +21,6 @@ export const CINEMATIC_IDS = [
   'rivage',
   'feux',
   'deco',
-  'neige',
 ] as const;
 export type CinematicId = (typeof CINEMATIC_IDS)[number];
 
