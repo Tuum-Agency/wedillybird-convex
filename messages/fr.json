@@ -796,7 +796,7 @@
     "universes": {
       "chapter": "CHAPITRE 04B — LES UNIVERS",
       "title": "Douze ouvertures. Douze mondes.",
-      "subtitle": "Le sceau n'est qu'un début. Choisissez la cinématique — un lever de rideau, un feu d'artifice, un premier flocon — et toute la page d'invitation s'habille du même thème : couleurs, décor, compte à rebours, jusqu'au pied de page.",
+      "subtitle": "Le sceau n'est qu'un début. Choisissez la cinématique — un lever de rideau, un feu d'artifice — et toute la page d'invitation s'habille du même thème : couleurs, décor, compte à rebours, jusqu'au pied de page.",
       "galleryNote": "La même carte, douze thèmes",
       "signatureBadge": "Signature",
       "custom": {
@@ -5514,10 +5514,6 @@
       "deco": {
         "name": "L'Art déco",
         "desc": "Noir et or : le cadre se dessine, vos prénoms en capitales dorées façon Gatsby."
-      },
-      "neige": {
-        "name": "Premier flocon",
-        "desc": "La neige tombe, le givre gagne la vitre — un cercle de chaleur révèle vos prénoms."
       }
     },
     "tracks": {

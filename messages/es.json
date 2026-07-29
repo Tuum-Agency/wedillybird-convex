@@ -796,7 +796,7 @@
     "universes": {
       "chapter": "CAPÍTULO 04B — LOS UNIVERSOS",
       "title": "Doce aperturas. Doce mundos.",
-      "subtitle": "El sello es solo el principio. Elige la cinemática —un telón que se alza, fuegos artificiales, el primer copo de nieve— y toda la página de invitación se viste del mismo tema: colores, decoración, cuenta atrás, hasta el pie de página.",
+      "subtitle": "El sello es solo el principio. Elige la cinemática —un telón que se alza, fuegos artificiales— y toda la página de invitación se viste del mismo tema: colores, decoración, cuenta atrás, hasta el pie de página.",
       "galleryNote": "La misma tarjeta, doce temas",
       "signatureBadge": "Clásico",
       "custom": {
@@ -5514,10 +5514,6 @@
       "deco": {
         "name": "El Art déco",
         "desc": "Negro y oro: el marco se dibuja, vuestros nombres en mayúsculas doradas estilo Gatsby."
-      },
-      "neige": {
-        "name": "Primer copo",
-        "desc": "Cae la nieve, la escarcha cubre el cristal: un círculo de calor revela vuestros nombres."
       }
     },
     "tracks": {

@@ -25,7 +25,6 @@ const THEMES: Record<Exclude<CinematicId, 'seal'>, ComponentType<CinematicSceneP
   rivage: dynamic(() => import('./rivage').then((m) => m.CinematicRivage)),
   feux: dynamic(() => import('./feux').then((m) => m.CinematicFeux)),
   deco: dynamic(() => import('./deco').then((m) => m.CinematicDeco)),
-  neige: dynamic(() => import('./neige').then((m) => m.CinematicNeige)),
   'jardin-japonais': dynamic(() =>
     import('./jardin-japonais').then((m) => m.CinematicJardinJaponais),
   ),

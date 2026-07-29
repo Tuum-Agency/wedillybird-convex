@@ -40,7 +40,7 @@ const BENTO: readonly CinematicId[] = [
   'feux',
   'rivage',
   'theatre',
-  'neige',
+  'royal',
   'etoiles',
   'seal',
   'lanternes',

@@ -792,7 +792,7 @@
     "universes": {
       "chapter": "CHAPTER 04B — THE WORLDS",
       "title": "Twelve openings. Twelve worlds.",
-      "subtitle": "The seal is only the beginning. Pick the cinematic — a rising curtain, fireworks, a first snowflake — and the whole invitation page dresses in the same theme: colors, decor, countdown, right down to the footer.",
+      "subtitle": "The seal is only the beginning. Pick the cinematic — a rising curtain, fireworks — and the whole invitation page dresses in the same theme: colors, decor, countdown, right down to the footer.",
       "galleryNote": "The same card, twelve themes",
       "signatureBadge": "Signature",
       "custom": {
@@ -5510,10 +5510,6 @@
       "deco": {
         "name": "The Art Deco",
         "desc": "Black and gold: the frame draws itself, your names in Gatsby gold capitals."
-      },
-      "neige": {
-        "name": "First Snowflake",
-        "desc": "Snow falls, frost creeps over the glass — a circle of warmth reveals your names."
       }
     },
     "tracks": {

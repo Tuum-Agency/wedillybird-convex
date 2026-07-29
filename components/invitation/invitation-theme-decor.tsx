@@ -189,30 +189,8 @@ export function InvitationThemeDecor({ theme }: { theme: CinematicId }) {
     );
   }
 
-  // neige
-  return (
-    <div className="invd invd-neige" aria-hidden>
-      <span className="invd-bg" />
-      <span className="invd-n-pines" />
-      {FLAKES8.map((f, i) => (
-        <span
-          key={i}
-          className="invd-n-flake"
-          style={
-            {
-              left: `${f.x}%`,
-              width: f.s,
-              height: f.s,
-              animationDuration: `${f.t}s`,
-              animationDelay: `${f.d}s`,
-            } as React.CSSProperties
-          }
-        />
-      ))}
-      <span className="invd-n-fern fl" />
-      <span className="invd-n-fern fr" />
-    </div>
-  );
+  // Thèmes sans décor ambiant dédié (ex. jardin-japonais) → pas de couche décor.
+  return null;
 }
 
 const STARS8 = [
@@ -227,17 +205,6 @@ const STARS8 = [
 ];
 
 const STARS10 = [...STARS8, { x: 46, y: 30, d: 3.7 }, { x: 66, y: 40, d: 1.1 }];
-
-const FLAKES8 = [
-  { x: 8, s: 4, t: 11, d: 0 },
-  { x: 22, s: 3, t: 13, d: 2.6 },
-  { x: 38, s: 5, t: 10, d: 5.1 },
-  { x: 54, s: 3.5, t: 12, d: 1.4 },
-  { x: 68, s: 4.5, t: 11.5, d: 6.8 },
-  { x: 80, s: 3, t: 13.5, d: 3.7 },
-  { x: 92, s: 4, t: 10.5, d: 8.2 },
-  { x: 30, s: 2.5, t: 14, d: 9.4 },
-];
 
 /** Petite fleur de coin (6 pétales + cœur doré). */
 function Bloom({ i }: { i: number }) {

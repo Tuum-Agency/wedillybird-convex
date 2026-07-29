@@ -796,7 +796,7 @@
     "universes": {
       "chapter": "CAPITOLO 04B — I MONDI",
       "title": "Dodici aperture. Dodici mondi.",
-      "subtitle": "Il sigillo è solo l'inizio. Scegli la cinematica — un sipario che si alza, fuochi d'artificio, il primo fiocco di neve — e tutta la pagina dell'invito si veste dello stesso tema: colori, decori, conto alla rovescia, fino al piè di pagina.",
+      "subtitle": "Il sigillo è solo l'inizio. Scegli la cinematica — un sipario che si alza, fuochi d'artificio — e tutta la pagina dell'invito si veste dello stesso tema: colori, decori, conto alla rovescia, fino al piè di pagina.",
       "galleryNote": "La stessa carta, dodici temi",
       "signatureBadge": "Classico",
       "custom": {
@@ -5514,10 +5514,6 @@
       "deco": {
         "name": "L'Art déco",
         "desc": "Nero e oro: la cornice si disegna, i vostri nomi in maiuscole dorate stile Gatsby."
-      },
-      "neige": {
-        "name": "Primo fiocco",
-        "desc": "La neve cade, il gelo vela il vetro: un cerchio di calore rivela i vostri nomi."
       }
     },
     "tracks": {

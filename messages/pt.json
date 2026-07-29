@@ -796,7 +796,7 @@
     "universes": {
       "chapter": "CAPÍTULO 04B — OS MUNDOS",
       "title": "Doze aberturas. Doze mundos.",
-      "subtitle": "O selo é apenas o início. Escolhe a cinemática — uma cortina que se levanta, fogo de artifício, o primeiro floco de neve — e toda a página do convite se veste do mesmo tema: cores, decoração, contagem decrescente, até ao rodapé.",
+      "subtitle": "O selo é apenas o início. Escolhe a cinemática — uma cortina que se levanta, fogo de artifício — e toda a página do convite se veste do mesmo tema: cores, decoração, contagem decrescente, até ao rodapé.",
       "galleryNote": "O mesmo cartão, doze temas",
       "signatureBadge": "Clássico",
       "custom": {
@@ -5514,10 +5514,6 @@
       "deco": {
         "name": "A Art déco",
         "desc": "Preto e dourado: a moldura desenha-se, os vossos nomes em maiúsculas douradas à Gatsby."
-      },
-      "neige": {
-        "name": "Primeiro floco",
-        "desc": "A neve cai, a geada cobre o vidro — um círculo de calor revela os vossos nomes."
       }
     },
     "tracks": {

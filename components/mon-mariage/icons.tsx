@@ -628,14 +628,6 @@ export const ICONS: Record<string, IconNode> = {
     ['path', { d: 'M11 3 8 9l4 13 4-13-3-6' }],
     ['path', { d: 'M2 9h20' }],
   ],
-  Snowflake: [
-    ['path', { d: 'M2 12h20' }],
-    ['path', { d: 'M12 2v20' }],
-    ['path', { d: 'm20 16-4-4 4-4' }],
-    ['path', { d: 'm4 8 4 4-4 4' }],
-    ['path', { d: 'm16 4-4 4-4-4' }],
-    ['path', { d: 'm8 20 4-4 4 4' }],
-  ],
 };
 
 export function Icon({
