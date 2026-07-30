@@ -4,14 +4,15 @@
 // et de la musique (bibliothèque maison ou fichier du couple). Application
 // OPTIMISTE immédiate via le store (revert+toast si échec) ; chaque thème a
 // un lien Aperçu qui ouvre la vraie page preview avec l'override ?cinematic=.
-// Gating : Essentiel voit tout mais ne peut choisir que le sceau (badge
-// Premium sur le reste) — cohérent avec `cinematicInvitation`.
+// Choix des univers temporairement masqué : seul le sceau est proposé (cf.
+// `AVAILABLE_CINEMATIC_IDS`). La logique de gating Premium (`chooseCinematic`,
+// badge « Premium ») reste en place pour la réactivation.
 
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { useMonMariage } from '@/stores/mon-mariage';
 import {
-  CINEMATIC_IDS,
+  AVAILABLE_CINEMATIC_IDS,
   CINEMATIC_META,
   type CinematicId,
 } from '@/components/invitation/cinematics/registry';
@@ -267,7 +268,7 @@ export function InvitationDesignModal({
 
       <div className="mc-field-label mc-cinelabel">{t('cinematicSection')}</div>
       <div className="mc-cinegrid" role="radiogroup" aria-label={t('cinematicSection')}>
-        {CINEMATIC_IDS.map((id) => {
+        {AVAILABLE_CINEMATIC_IDS.map((id) => {
           const sel = selected === id;
           const locked = !unlocked && id !== 'seal';
           return (

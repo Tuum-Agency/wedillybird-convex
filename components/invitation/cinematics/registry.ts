@@ -30,6 +30,16 @@ export type CinematicId = (typeof CINEMATIC_IDS)[number];
 
 export const DEFAULT_CINEMATIC: CinematicId = 'seal';
 
+/**
+ * Cinématiques actuellement PROPOSÉES au public (pickers couple + agence,
+ * bento landing). Volontairement réduit au sceau historique : les autres
+ * univers restent dans le code (rendus par `player.tsx`, validés côté serveur,
+ * accessibles via `?cinematic=` en preview) mais sont retirés des surfaces de
+ * choix « pour le moment ». Ré-exposer un univers = rajouter son id ici, rien
+ * d'autre à modifier.
+ */
+export const AVAILABLE_CINEMATIC_IDS: readonly CinematicId[] = ['seal'];
+
 export function isCinematicId(value: unknown): value is CinematicId {
   return typeof value === 'string' && (CINEMATIC_IDS as readonly string[]).includes(value);
 }

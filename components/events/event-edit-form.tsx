@@ -19,7 +19,10 @@ import {
   createEventMusicUploadUrlAction,
   updateEventAction,
 } from '@/app/[locale]/(app)/events/actions';
-import { CINEMATIC_IDS } from '@/components/invitation/cinematics/registry';
+import {
+  AVAILABLE_CINEMATIC_IDS,
+  isCinematicId,
+} from '@/components/invitation/cinematics/registry';
 import { MUSIC_TRACK_IDS } from '@/lib/invitation/music';
 import { compressForUpload, isAllowedContentType, MAX_UPLOAD_BYTES } from '@/lib/photos/compress';
 
@@ -431,7 +434,14 @@ export function EventEditForm({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {CINEMATIC_IDS.map((id) => (
+                    {/* Un seul univers proposé (cf. AVAILABLE_CINEMATIC_IDS) ;
+                        on conserve la valeur déjà enregistrée si elle diffère,
+                        pour ne jamais afficher un Select vide. */}
+                    {(isCinematicId(form.invitationCinematic) &&
+                    !AVAILABLE_CINEMATIC_IDS.includes(form.invitationCinematic)
+                      ? [form.invitationCinematic, ...AVAILABLE_CINEMATIC_IDS]
+                      : AVAILABLE_CINEMATIC_IDS
+                    ).map((id) => (
                       <SelectItem key={id} value={id}>
                         {tDesign(`themes.${id}.name`)}
                       </SelectItem>
