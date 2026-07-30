@@ -47,6 +47,22 @@ export function rewardMinor(netMinor: number, rateBps: number): number {
   return Math.round((netMinor * rateBps) / 10000);
 }
 
+/**
+ * Base de commission = NET encaissé après la remise « communauté » que le code
+ * de l'affilié a LUI-MÊME accordée : `max(0, brut − remise affilié)`. Le crédit
+ * de parrainage du filleul (sa cagnotte perso) n'entre PAS dans cette base — il
+ * règle une créance antérieure, sans rapport avec la vente apportée par
+ * l'affilié. Résout le bug « commission calculée sur le prix catalogue ».
+ */
+export function commissionBaseMinor(grossMinor: number, affiliateDiscountMinor: number): number {
+  if (!Number.isFinite(grossMinor) || grossMinor <= 0) return 0;
+  const discount =
+    Number.isFinite(affiliateDiscountMinor) && affiliateDiscountMinor > 0
+      ? affiliateDiscountMinor
+      : 0;
+  return Math.max(0, grossMinor - discount);
+}
+
 export interface RewardConfig {
   /** Commission versée à l'affilié (bps). */
   rateBps: number;

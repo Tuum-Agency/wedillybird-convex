@@ -4,6 +4,7 @@ import {
   MAX_COMBINED_BPS,
   MIN_VEST_FLOOR_MS,
   rewardMinor,
+  commissionBaseMinor,
   isRewardConfigSafe,
   vestsAt,
   isVestable,
@@ -31,6 +32,35 @@ describe('rewardMinor — commission/crédit sur le NET', () => {
     expect(rewardMinor(-100, DEFAULT_RATE_BPS)).toBe(0);
     expect(rewardMinor(4000, 0)).toBe(0);
     expect(rewardMinor(Number.NaN, DEFAULT_RATE_BPS)).toBe(0);
+  });
+});
+
+describe('commissionBaseMinor — base = net APRÈS la remise du code (pas le prix catalogue)', () => {
+  it('déduit la remise « communauté » du brut', () => {
+    expect(commissionBaseMinor(5900, 590)).toBe(5310); // 59 € − 10 %
+    expect(commissionBaseMinor(8000, 1600)).toBe(6400); // $80 − 20 %
+  });
+  it('sans remise → base = brut', () => {
+    expect(commissionBaseMinor(5900, 0)).toBe(5900);
+  });
+  it('remise ≥ brut → base plancher 0 (jamais négative)', () => {
+    expect(commissionBaseMinor(5900, 6000)).toBe(0);
+    expect(commissionBaseMinor(5900, 5900)).toBe(0);
+  });
+  it('remise non valide (négative / NaN) traitée comme 0', () => {
+    expect(commissionBaseMinor(5900, -100)).toBe(5900);
+    expect(commissionBaseMinor(5900, Number.NaN)).toBe(5900);
+  });
+  it('brut ≤ 0 → 0', () => {
+    expect(commissionBaseMinor(0, 0)).toBe(0);
+    expect(commissionBaseMinor(-100, 0)).toBe(0);
+  });
+  it('corrige le bug : la commission se calcule sur le NET, pas sur le catalogue', () => {
+    // Premium 59 €, code partenaire -10 % (remise 5,90 €), commission 20 %.
+    const base = commissionBaseMinor(5900, 590); // 5310
+    expect(rewardMinor(base, DEFAULT_RATE_BPS)).toBe(1062); // 20 % de 53,10 €
+    // Ancien comportement (sur le catalogue) surpayait le parrain :
+    expect(rewardMinor(5900, DEFAULT_RATE_BPS)).toBe(1180);
   });
 });
 

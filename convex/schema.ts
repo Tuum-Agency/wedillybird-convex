@@ -770,6 +770,10 @@ export default defineSchema({
     /** Token de réservation du crédit de parrainage appliqué à ce checkout —
      *  consommé (lignes → `credited`) à la confirmation. */
     creditReservationId: v.optional(v.string()),
+    /** Remise « communauté » accordée par le code affilié à CE checkout
+     *  (centimes, `buyerDiscountBps × prix`). Base de commission du parrain =
+     *  `amountMinor − affiliateDiscountMinor` (cf. `commissionBaseMinor`). */
+    affiliateDiscountMinor: v.optional(v.number()),
     status: v.union(
       v.literal('pending'),
       v.literal('succeeded'),

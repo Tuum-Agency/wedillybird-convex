@@ -260,6 +260,8 @@ const rawConvexApi = {
   adminDeleteEvent: api.admin.deleteEvent,
   adminGetPaymentRefundInfo: api.admin.getPaymentRefundInfo,
   adminMarkPaymentRefunded: api.admin.markPaymentRefunded,
+  adminFindEventsByEmail: api.admin.adminFindEventsByEmail,
+  adminCompEventPlan: api.admin.adminCompEventPlan,
   adminGetOrgSubscriptionInfo: api.admin.getOrgSubscriptionInfo,
   adminMarkSubscriptionCanceled: api.admin.markSubscriptionCanceled,
   adminMarkSubscriptionReactivated: api.admin.markSubscriptionReactivated,

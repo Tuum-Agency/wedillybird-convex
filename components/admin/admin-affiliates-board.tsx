@@ -7,6 +7,7 @@ import {
   adminCreateAffiliateAction,
   adminSetAffiliateStatusAction,
 } from '@/app/[locale]/(app)/admin/actions';
+import { AdminCompCard } from './admin-comp-card';
 
 interface Affiliate {
   id: string;
@@ -248,6 +249,9 @@ export function AdminAffiliatesBoard({
           ) : null}
         </div>
       </section>
+
+      {/* Offrir un forfait (comp) — ex. « Premium offert » d'un partenaire */}
+      <AdminCompCard />
 
       {/* Ledger — totaux dus */}
       {totals.length > 0 ? (

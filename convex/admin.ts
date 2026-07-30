@@ -350,6 +350,117 @@ export const markPaymentRefunded = mutation({
 });
 
 // ---------------------------------------------------------------------------
+// Comp / cadeau — offrir un forfait particulier (ex. « Premium offert pour ton
+// propre mariage » d'un partenaire affilié) sans encaissement.
+// ---------------------------------------------------------------------------
+
+// Miroir de GALLERY_RETENTION_DAYS (convex/payments.ts) — à garder aligné.
+const COMP_GALLERY_RETENTION_DAYS: Record<'essential' | 'premium', number> = {
+  essential: 30,
+  premium: 180,
+};
+const COMP_MS_PER_DAY = 24 * 60 * 60 * 1000;
+
+/**
+ * Recherche les events d'un particulier par email (aide l'admin à cibler le
+ * mariage à offrir). Admin-only. Retourne le strict nécessaire pour choisir.
+ */
+export const adminFindEventsByEmail = query({
+  args: { adminId: v.id('users'), email: v.string() },
+  handler: async (ctx, { adminId, email }) => {
+    await assertAdmin(ctx, adminId);
+    const normalized = email.trim().toLowerCase();
+    if (!normalized) return [];
+    const users = await ctx.db
+      .query('users')
+      .withIndex('by_email', (q) => q.eq('email', normalized))
+      .collect();
+    const rows: {
+      eventId: Id<'events'>;
+      title: string;
+      eventDate: number;
+      planTier: 'essential' | 'premium' | null;
+      paidAt: number | null;
+      ownerEmail: string;
+    }[] = [];
+    for (const u of users) {
+      const events = await ctx.db
+        .query('events')
+        .withIndex('by_owner', (q) => q.eq('ownerId', u._id))
+        .collect();
+      for (const e of events) {
+        rows.push({
+          eventId: e._id,
+          title: e.title,
+          eventDate: e.eventDate,
+          planTier: e.planTier ?? null,
+          paidAt: e.paidAt ?? null,
+          ownerEmail: u.email ?? normalized,
+        });
+      }
+    }
+    return rows;
+  },
+});
+
+/**
+ * Offre un forfait particulier (Essentiel/Premium) sur un event, SANS paiement.
+ * Applique exactement la même réconciliation qu'un paiement réel
+ * (`planTier`/`paidAt`/`galleryExpiresAt`), trace un paiement €0 pour l'audit
+ * finance, et journalise l'action. Idempotent au sens « ré-appliquer le même
+ * tier ne casse rien » (le paiement €0 est ré-inséré : c'est une trace d'acte
+ * admin, pas un état — l'historique reste lisible). Admin-only.
+ */
+export const adminCompEventPlan = mutation({
+  args: {
+    adminId: v.id('users'),
+    eventId: v.id('events'),
+    tier: v.union(v.literal('essential'), v.literal('premium')),
+  },
+  handler: async (ctx, { adminId, eventId, tier }) => {
+    await assertAdmin(ctx, adminId);
+    const event = await ctx.db.get(eventId);
+    if (!event) throw new Error('EVENT_NOT_FOUND');
+
+    const now = Date.now();
+    const galleryExpiresAt = event.eventDate + COMP_GALLERY_RETENTION_DAYS[tier] * COMP_MS_PER_DAY;
+    await ctx.db.patch(eventId, {
+      planTier: tier,
+      paidAt: event.paidAt ?? now,
+      galleryExpiresAt,
+      pendingPlanTier: undefined,
+      updatedAt: now,
+    });
+
+    // Trace finance €0 (provider `mock`, non encaissé) — apparaît dans l'historique
+    // de l'event sans gonfler le revenu (amountMinor 0).
+    await ctx.db.insert('payments', {
+      userId: event.ownerId,
+      eventId,
+      kind: 'plan',
+      plan: tier,
+      currency: 'EUR',
+      amountMinor: 0,
+      provider: 'mock',
+      providerSessionId: `comp:${eventId}:${now}`,
+      status: 'succeeded',
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    await ctx.db.insert('adminAuditLog', {
+      adminId,
+      action: 'comp_event_plan',
+      targetType: 'event',
+      targetId: eventId,
+      details: JSON.stringify({ tier }),
+      createdAt: now,
+    });
+    return { ok: true as const, tier };
+  },
+});
+
+// ---------------------------------------------------------------------------
 // Subscriptions (organizations)
 // ---------------------------------------------------------------------------
 
