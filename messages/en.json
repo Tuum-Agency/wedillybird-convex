@@ -997,6 +997,11 @@
   },
   "Invitation": {
     "youreInvited": "You're invited",
+    "weddingLabel": "Wedding",
+    "musicHint": "With music",
+    "musicPlayAria": "Play music",
+    "musicUnmuteAria": "Unmute",
+    "musicMuteAria": "Mute",
     "addressing": "Dear {name}, we'd be delighted to have you with us.",
     "willYouAttend": "Will you join us?",
     "status": {

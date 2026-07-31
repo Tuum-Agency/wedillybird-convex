@@ -997,6 +997,11 @@
   },
   "Invitation": {
     "youreInvited": "أنتم مدعوون",
+    "weddingLabel": "زفاف",
+    "musicHint": "مع موسيقى",
+    "musicPlayAria": "تشغيل الموسيقى",
+    "musicUnmuteAria": "إلغاء كتم الصوت",
+    "musicMuteAria": "كتم الصوت",
     "addressing": "عزيزي/عزيزتي {name}، يسعدنا حضوركم.",
     "willYouAttend": "هل ستكونون معنا؟",
     "status": {

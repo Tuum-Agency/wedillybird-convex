@@ -1001,6 +1001,11 @@
   },
   "Invitation": {
     "youreInvited": "Du bist eingeladen",
+    "weddingLabel": "Hochzeit",
+    "musicHint": "Mit Musik",
+    "musicPlayAria": "Musik abspielen",
+    "musicUnmuteAria": "Ton einschalten",
+    "musicMuteAria": "Ton ausschalten",
     "addressing": "Liebe·r {name}, wir würden uns über deine Anwesenheit freuen.",
     "willYouAttend": "Bist du dabei?",
     "status": {

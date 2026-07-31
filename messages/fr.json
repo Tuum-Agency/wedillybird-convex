@@ -1001,6 +1001,11 @@
   },
   "Invitation": {
     "youreInvited": "Vous êtes invité·e",
+    "weddingLabel": "Mariage",
+    "musicHint": "Avec musique",
+    "musicPlayAria": "Activer la musique",
+    "musicUnmuteAria": "Réactiver le son",
+    "musicMuteAria": "Couper le son",
     "addressing": "Cher·chère {name}, nous serions heureux de votre présence.",
     "willYouAttend": "Serez-vous des nôtres ?",
     "status": {
