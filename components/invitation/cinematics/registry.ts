@@ -32,13 +32,21 @@ export const DEFAULT_CINEMATIC: CinematicId = 'seal';
 
 /**
  * Cinématiques actuellement PROPOSÉES au public (pickers couple + agence,
- * bento landing). Volontairement réduit au sceau historique : les autres
- * univers restent dans le code (rendus par `player.tsx`, validés côté serveur,
- * accessibles via `?cinematic=` en preview) mais sont retirés des surfaces de
- * choix « pour le moment ». Ré-exposer un univers = rajouter son id ici, rien
- * d'autre à modifier.
+ * bento landing). Les univers absents de cette liste restent dans le code
+ * (rendus par `player.tsx`, validés côté serveur, accessibles via
+ * `?cinematic=` en preview) mais sont retirés des surfaces de choix.
+ * Ré-exposer un univers = rajouter son id ici, rien d'autre à modifier.
+ *
+ * `seal` est le défaut, seul univers accessible sans Premium. `floral` est le
+ * premier univers rouvert après la réduction au sceau : sa description i18n
+ * décrit bien la version en plaque vidéo (rose qui éclot → arche fleurie).
+ *
+ * ⚠️ Avant d'en rouvrir d'autres : `theatre` et `voyage` appellent des clés
+ * i18n absentes des 7 locales (`actOne`, `passDate`, `passGate`, `passSeat`)
+ * et planteront au runtime. Contrôler avec l'audit de complétude i18n du skill
+ * `invitation-cinematic` — la validation de parité ne les détecte pas.
  */
-export const AVAILABLE_CINEMATIC_IDS: readonly CinematicId[] = ['seal'];
+export const AVAILABLE_CINEMATIC_IDS: readonly CinematicId[] = ['seal', 'floral'];
 
 export function isCinematicId(value: unknown): value is CinematicId {
   return typeof value === 'string' && (CINEMATIC_IDS as readonly string[]).includes(value);

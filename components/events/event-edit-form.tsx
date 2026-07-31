@@ -434,9 +434,9 @@ export function EventEditForm({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {/* Un seul univers proposé (cf. AVAILABLE_CINEMATIC_IDS) ;
-                        on conserve la valeur déjà enregistrée si elle diffère,
-                        pour ne jamais afficher un Select vide. */}
+                    {/* Univers proposés : cf. AVAILABLE_CINEMATIC_IDS. On
+                        conserve la valeur déjà enregistrée si elle n'y figure
+                        plus, pour ne jamais afficher un Select vide. */}
                     {(isCinematicId(form.invitationCinematic) &&
                     !AVAILABLE_CINEMATIC_IDS.includes(form.invitationCinematic)
                       ? [form.invitationCinematic, ...AVAILABLE_CINEMATIC_IDS]
