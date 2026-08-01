@@ -95,10 +95,15 @@
 .cineFl-depth-mid {
   transform: translateZ(45px) scale(0.96);
 }
-/* tout près de l'objectif : grand, flou, très mobile */
+/* tout près de l'objectif : grand, hors focus, très mobile.
+ *
+ * Le hors-focus est PEINT dans le dégradé du pétale (voir plus bas), pas obtenu
+ * par `filter: blur()` : sur des éléments animés en continu, le flou est
+ * recalculé à chaque image et fait tomber le rendu à ~50 img/s (mesuré), ce qui
+ * se voit comme une saccade sur les mouvements lents de la caméra. Le dégradé
+ * donne la même lecture optique pour un coût de compositing nul. */
 .cineFl-depth-near {
   transform: translateZ(150px) scale(0.86);
-  filter: blur(3.5px);
 }
 
 /* Le plan avant vit hors du monde 3D (pour passer devant le faire-part) mais
@@ -148,6 +153,20 @@
 }
 .cineFl-garden .cineFl-depth-near {
   opacity: 0.5;
+}
+
+/* Pétale du plan proche : tache douce aux bords fondus — le « hors focus » est
+   dans le dégradé, donc peint une seule fois, jamais recalculé par image. */
+.cineFl-depth-near .cineFl-petal {
+  border-radius: 50%;
+  background: radial-gradient(
+    closest-side,
+    oklch(93% 0.05 22 / 0.62),
+    oklch(91% 0.06 22 / 0.34) 52%,
+    oklch(90% 0.06 22 / 0.1) 74%,
+    transparent 88%
+  );
+  box-shadow: none;
 }
 
 /* ---- lumière d'aube : plat, HORS du contexte 3D (évite le z-fighting) ---- */
