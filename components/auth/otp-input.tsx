@@ -102,7 +102,7 @@ export function OtpInput({
       <div
         role="group"
         aria-label={t('otpGroupLabel')}
-        className="flex justify-center gap-2"
+        className="flex justify-center gap-1.5 sm:gap-2"
         onPaste={handlePaste}
       >
         {digits.map((digit, i) => (
@@ -121,7 +121,9 @@ export function OtpInput({
             aria-label={t('otpDigitLabel', { position: i + 1, total: length })}
             aria-invalid={!!error}
             className={cn(
-              'focus-ring h-14 w-12 rounded-lg border bg-[color:var(--color-surface)] text-center font-mono text-xl',
+              // Fluid boxes: grow to fill the row, cap at 48px (w-12). Never overflows
+              // the AuthCard on narrow phones (≥320px); identical 48px look from ~390px up.
+              'focus-ring h-14 max-w-12 min-w-0 flex-1 rounded-lg border bg-[color:var(--color-surface)] text-center font-mono text-xl',
               error
                 ? 'border-[color:var(--color-destructive)]'
                 : 'border-[color:var(--color-border)]',

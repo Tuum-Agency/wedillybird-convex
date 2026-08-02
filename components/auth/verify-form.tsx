@@ -118,7 +118,7 @@ export function VerifyForm({ phone }: VerifyFormProps) {
         {pending ? t('verifying') : t('verifyCode')}
       </Button>
 
-      <div className="flex items-center justify-between text-sm">
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 text-sm">
         <button
           type="button"
           onClick={() => router.push('/sign-in')}
