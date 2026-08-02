@@ -230,12 +230,17 @@ export class WedillybirdMediaStack extends Stack {
           target: 'node22',
           format: OutputFormat.CJS,
           sourceMap: true,
-          // Sharp a un binaire natif `linux-arm64`. On le force comme
-          // dépendance externe non-bundlée et esbuild copie le module
-          // installé en `node_modules/sharp` dans le bundle final. Le
-          // bundling Docker (par défaut sur CDK pour `nodeModules`) cross-
-          // compile correctement le binaire `linux-arm64` même depuis
-          // un dev macOS/x86_64. cf. https://sharp.pixelplumbing.com/install#aws-lambda
+          // Sharp a un binaire natif spécifique à la plateforme. `nodeModules`
+          // demande à CDK d'installer `sharp` pendant le bundling ; ses binaires
+          // (`@img/sharp-*`) sont résolus pour la plateforme de CETTE installation.
+          // ⚠️ CDK n'utilise Docker que si esbuild n'est PAS dispo en local :
+          // un `cdk deploy` depuis un mac (esbuild présent) bundle donc le binaire
+          // `darwin` et la Lambda arm64 plante au runtime avec
+          // « Could not load the "sharp" module using the linux-arm64 runtime ».
+          // `forceDockerBundling` force l'install DANS l'image de build arm64
+          // (alignée sur `architecture: ARM_64`) → binaire `linux-arm64` correct,
+          // quel que soit l'OS du poste qui déploie.
+          forceDockerBundling: true,
           nodeModules: ['sharp'],
           // Le SDK AWS est natif au runtime Lambda Node 22 — on l'externalise
           // pour réduire la taille du bundle.
