@@ -63,7 +63,9 @@ async function open(browser, { reducedMotion, settle = 1200 } = {}) {
   await page.waitForTimeout(settle);
   if (GATE) {
     // La porte n'apparaît que si l'event porte une musique.
-    const b = await page.waitForSelector('[class*="inv-gate"] button', { timeout: 8000 }).catch(() => null);
+    const b = await page
+      .waitForSelector('[class*="inv-gate"] button', { timeout: 8000 })
+      .catch(() => null);
     if (b) await b.click();
   }
   return { ctx, page, issues };
