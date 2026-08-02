@@ -99,18 +99,20 @@ function AuthHeader() {
   const tCommon = useTranslations('Common');
   return (
     <header className="flex h-20 items-center justify-between px-6 lg:hidden">
+      {/* Mobile : « ← Accueil » à gauche, logo à droite (inverse du desktop, où
+          le logo vit dans l'aside photo). */}
+      <Link
+        href="/"
+        className="focus-ring font-mono text-[10px] tracking-[0.24em] text-[color:var(--color-ink-500)] uppercase transition-colors hover:text-[color:var(--color-ink-900)]"
+      >
+        ← {tCommon('home')}
+      </Link>
       <Link
         href="/"
         className="focus-ring inline-flex items-center"
         aria-label={tCommon('appName')}
       >
         <WedillybirdLogo priority />
-      </Link>
-      <Link
-        href="/"
-        className="font-mono text-[10px] tracking-[0.24em] text-[color:var(--color-ink-500)] uppercase transition-colors hover:text-[color:var(--color-ink-900)]"
-      >
-        ← {tCommon('home')}
       </Link>
     </header>
   );
