@@ -673,7 +673,7 @@ function PortalGuests({ guests, rsvp }: { guests: PortalGuest[]; rsvp: Rsvp }) {
     <div className="flex flex-col gap-5">
       <PageTitle eyebrow={t('eyebrow')} title={t('guests.title')} />
       <div className="flex flex-col gap-3 rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-5">
-        <div className="flex items-center justify-between font-mono text-[11px]">
+        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 font-mono text-[11px]">
           <span className="text-[color:var(--color-muted-foreground)]">
             {t('guests.count', { count: guests.length })}
           </span>

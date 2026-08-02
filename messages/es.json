@@ -1001,6 +1001,11 @@
   },
   "Invitation": {
     "youreInvited": "Estás invitado/a",
+    "weddingLabel": "Boda",
+    "musicHint": "Con música",
+    "musicPlayAria": "Activar la música",
+    "musicUnmuteAria": "Activar el sonido",
+    "musicMuteAria": "Silenciar",
     "addressing": "Querido/a {name}, nos encantaría contar con tu presencia.",
     "willYouAttend": "¿Estarás con nosotros?",
     "status": {
@@ -5481,7 +5486,7 @@
       },
       "floral": {
         "name": "La Floración",
-        "desc": "El jardín despierta: vuestros nombres se escriben a tinta bajo el arco en flor."
+        "desc": "Un capullo de rosa se abre al amanecer y el jardín os lleva bajo el arco florido."
       },
       "cake": {
         "name": "La Tarta nupcial",

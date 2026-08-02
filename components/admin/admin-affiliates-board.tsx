@@ -269,8 +269,8 @@ export function AdminAffiliatesBoard({
       {/* Affiliés */}
       <section>
         <h2 className="mb-3 text-sm font-semibold">Affiliés ({affiliates.length})</h2>
-        <div className="overflow-hidden rounded-xl border border-[color:var(--color-border)]">
-          <table className="w-full text-sm">
+        <div className="overflow-x-auto rounded-xl border border-[color:var(--color-border)]">
+          <table className="w-full min-w-[640px] text-sm">
             <thead className="bg-[color:var(--color-surface)] text-left font-mono text-[10px] tracking-[0.16em] text-[color:var(--color-ink-500)] uppercase">
               <tr>
                 <th className="px-4 py-2.5">Code</th>
@@ -337,8 +337,8 @@ export function AdminAffiliatesBoard({
       {/* Ledger détaillé */}
       <section>
         <h2 className="mb-3 text-sm font-semibold">Ledger ({referrals.length})</h2>
-        <div className="overflow-hidden rounded-xl border border-[color:var(--color-border)]">
-          <table className="w-full text-sm">
+        <div className="overflow-x-auto rounded-xl border border-[color:var(--color-border)]">
+          <table className="w-full min-w-[640px] text-sm">
             <thead className="bg-[color:var(--color-surface)] text-left font-mono text-[10px] tracking-[0.16em] text-[color:var(--color-ink-500)] uppercase">
               <tr>
                 <th className="px-4 py-2.5">Code</th>

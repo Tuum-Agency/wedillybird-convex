@@ -1001,6 +1001,11 @@
   },
   "Invitation": {
     "youreInvited": "Estás convidado(a)",
+    "weddingLabel": "Casamento",
+    "musicHint": "Com música",
+    "musicPlayAria": "Ativar a música",
+    "musicUnmuteAria": "Ativar o som",
+    "musicMuteAria": "Silenciar",
     "addressing": "Caro(a) {name}, ficaríamos felizes com a tua presença.",
     "willYouAttend": "Vais estar connosco?",
     "status": {
@@ -5481,7 +5486,7 @@
       },
       "floral": {
         "name": "O Desabrochar",
-        "desc": "O jardim desperta: os vossos nomes são escritos a tinta sob o arco florido."
+        "desc": "Um botão de rosa abre-se ao amanhecer e o jardim leva-vos até ao arco florido."
       },
       "cake": {
         "name": "O Bolo de casamento",

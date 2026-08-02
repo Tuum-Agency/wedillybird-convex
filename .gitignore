@@ -52,8 +52,12 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# claude agent internals
-.claude/
+# claude agent internals (réglages locaux) — mais les skills PROJET sont
+# versionnés : ce sont des procédures d'équipe, au même titre que la doc.
+# NB : « .claude/* » et non « .claude/ », sinon le répertoire entier est exclu
+# et plus aucune ré-inclusion n'est possible.
+.claude/*
+!.claude/skills/
 .gstack/
 .env*.local
 

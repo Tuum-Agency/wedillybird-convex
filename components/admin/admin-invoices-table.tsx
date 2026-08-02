@@ -80,7 +80,7 @@ export function AdminInvoicesTable({ payments }: { payments: Payment[] }) {
       </div>
 
       <div className="overflow-x-auto rounded-xl border border-[color:var(--color-border)]">
-        <table className="w-full text-sm">
+        <table className="w-full min-w-[720px] text-sm">
           <thead>
             <tr className="border-b border-[color:var(--color-border)] bg-[color:var(--color-surface)]">
               <Th>{t('invoices.colClient')}</Th>

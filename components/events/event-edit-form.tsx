@@ -434,9 +434,9 @@ export function EventEditForm({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {/* Un seul univers proposé (cf. AVAILABLE_CINEMATIC_IDS) ;
-                        on conserve la valeur déjà enregistrée si elle diffère,
-                        pour ne jamais afficher un Select vide. */}
+                    {/* Univers proposés : cf. AVAILABLE_CINEMATIC_IDS. On
+                        conserve la valeur déjà enregistrée si elle n'y figure
+                        plus, pour ne jamais afficher un Select vide. */}
                     {(isCinematicId(form.invitationCinematic) &&
                     !AVAILABLE_CINEMATIC_IDS.includes(form.invitationCinematic)
                       ? [form.invitationCinematic, ...AVAILABLE_CINEMATIC_IDS]
@@ -517,7 +517,7 @@ export function EventEditForm({
             </div>
 
             {/* Photo du couple — portrait de tête de l'invitation. */}
-            <div className="flex items-center gap-4 rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-3">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-3 rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-3">
               <span className="flex h-16 w-[3.25rem] flex-none items-center justify-center overflow-hidden rounded-[42%_42%_8px_8px] border border-[color:var(--color-gold-300)] bg-[color:var(--color-ivory-100)] text-[color:var(--color-ink-500)]">
                 {photoPreviewUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element -- object URL / URL CDN externe
@@ -531,7 +531,7 @@ export function EventEditForm({
                   <ImagePlus className="h-5 w-5" strokeWidth={1.7} aria-hidden />
                 )}
               </span>
-              <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+              <div className="flex min-w-[8rem] flex-1 flex-col gap-0.5">
                 <Label>{tDesign('photoSection')}</Label>
                 <span className="text-xs text-[color:var(--color-ink-500)]">
                   {photoError ? tDesign(`photoUploadErrors.${photoError}`) : tDesign('photoHint')}

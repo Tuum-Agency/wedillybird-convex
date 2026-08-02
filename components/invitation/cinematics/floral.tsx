@@ -2,11 +2,10 @@
 
 import { useTranslations } from 'next-intl';
 import { useReducedMotion } from 'motion/react';
-import { useRef, type CSSProperties } from 'react';
+import { useEffect, useRef, useSyncExternalStore, type CSSProperties } from 'react';
 import {
+  CinematicCountdown,
   CinematicSkip,
-  dustStyle,
-  shiftL,
   useCinematicTimeline,
   useCountdown,
   useSceneParallax,
@@ -15,76 +14,118 @@ import {
 import './floral.css';
 
 /**
- * « L'Éclosion » — le jardin écrit l'invitation. AUCUNE carte : la nature
- * fait tout.
+ * « L'Éclosion » — le jardin écrit l'invitation.
  *
- * La caméra démarre au ras du pré ; les tiges s'élancent et elle monte avec
- * elles ; une arche de blossoms se compose dans le ciel ; les prénoms
- * S'ÉCRIVENT À L'ENCRE sous l'arche (révélation calligraphique + parafe doré
- * qui se trace) ; la date descend du sommet de l'arche sur une ÉTIQUETTE
- * SUSPENDUE qui se balance ; enfin le compte à rebours fleurit — trois
- * blossoms dont les cœurs portent les chiffres, pétales au vent.
+ * Plaque vidéo ambiante (muette) en profondeur, sur laquelle le faire-part
+ * s'inscrit en texte DOM : un bouton de rose couvert de rosée s'ouvre à
+ * l'aube (le geste signature), puis le jardin se découvre et la caméra
+ * remonte l'allée jusque sous l'arche fleurie — où le mariage s'annonce.
  *
- * Phases : 0 pré à l'aube · 1 grow (tiges + caméra qui monte) · 2 bloom
- *          (fleurs + arche) · 3 write (encre + parafe) · 4 tag (étiquette)
- *          · 5 settled (compte à rebours fleuri + pétales)
+ * Phases : 0 éclosion · 1 garden (le jardin se découvre) · 2 invited
+ *          (« Mariage ») · 3 named (les prénoms) · 4 dated (la date)
+ *          · 5 settled (le lieu + compte à rebours).
+ *
+ * Univers LIGHT : le fond est lumineux, donc le texte est en encre chaude
+ * sur un voile ivoire (contraste AA), à l'inverse des thèmes sombres.
+ * Garde-fous : vidéo muette + `playsInline` (autoplay mobile), poster de
+ * chargement, `prefers-reduced-motion` → image fixe de l'état apaisé,
+ * `holdPhase` cale la vidéo sur le temps de la phase (vignettes/storyboard).
  */
-const WAITS = [950, 900, 1150, 950, 900];
-const PHASES = ['', 'grow', 'bloom', 'write', 'tag', 'settled'] as const;
 
-/** Tiges du pré : x (px scène), hauteur, taille de fleur, délai. */
-const STEMS: ReadonlyArray<{ x: number; h: number; fs: number; d: number; z: number }> = [
-  { x: 34, h: 200, fs: 40, d: 0.15, z: 46 },
-  { x: 78, h: 152, fs: 30, d: 0.35, z: -60 },
-  { x: 128, h: 122, fs: 24, d: 0.5, z: -140 },
-  { x: 232, h: 128, fs: 26, d: 0.42, z: -100 },
-  { x: 286, h: 168, fs: 34, d: 0.28, z: -30 },
-  { x: 326, h: 210, fs: 42, d: 0.08, z: 52 },
+const PLATE_SRC = '/cinematics/floral/plate.mp4';
+/** Première image (bouton fermé) — affichée pendant le chargement. */
+const POSTER_SRC = '/cinematics/floral/poster.jpg';
+/** Dernière image (sous l'arche) — fond fixe en mouvement réduit. */
+const STILL_SRC = '/cinematics/floral/still.jpg';
+
+// ms par phase : éclosion · jardin · « Mariage » · prénoms · date → apaisé
+const WAITS = [4400, 1200, 1100, 1200, 1100] as const;
+const FINAL = WAITS.length;
+const PHASE_CLASSES = ['garden', 'invited', 'named', 'dated', 'settled'] as const;
+/** Position (s) de chaque phase dans la plaque — utilisée quand on fige. */
+const PHASE_TIME = [0, 4.4, 5.6, 6.7, 7.9, 9] as const;
+
+/**
+ * Pétales étagés en profondeur. Chaque couche vit à un Z FIXE : sous
+ * `preserve-3d`, un plan éloigné se déplace moins qu'un plan proche quand la
+ * scène pivote — c'est de là que vient la parallaxe, pas d'un calcul JS.
+ *
+ * Le flou des pétales proches est porté par le CONTENEUR de couche, jamais par
+ * les pétales : `filter` sur un enfant le sortirait du tri de profondeur et le
+ * ferait réapparaître dans l'ordre du DOM (z-fighting).
+ */
+interface Petal {
+  /** Position horizontale de départ (% de la scène). */
+  x: number;
+  /** Décalage horizontal parcouru pendant la chute (px). */
+  drift: number;
+  /** Taille (px). */
+  s: number;
+  /** Durée de la chute (s). */
+  dur: number;
+  /** Décalage de démarrage (s) — désynchronise les pétales. */
+  delay: number;
+  /** Inclinaison propre du pétale dans l'espace (deg). */
+  tilt: number;
+}
+
+/** Loin derrière : petits, lents, presque immobiles au parallaxe. */
+const PETALS_FAR: readonly Petal[] = [
+  { x: 12, drift: 26, s: 7, dur: 15, delay: 0, tilt: 24 },
+  { x: 34, drift: -18, s: 6, dur: 18, delay: 4.2, tilt: -40 },
+  { x: 58, drift: 22, s: 8, dur: 16, delay: 8.1, tilt: 62 },
+  { x: 79, drift: -24, s: 6.5, dur: 19, delay: 2.4, tilt: -18 },
+  { x: 91, drift: 16, s: 7, dur: 17, delay: 11, tilt: 36 },
+];
+/** À hauteur du texte : taille moyenne, dérive plus marquée. */
+const PETALS_MID: readonly Petal[] = [
+  { x: 20, drift: 42, s: 13, dur: 12, delay: 1.5, tilt: -52 },
+  { x: 47, drift: -34, s: 11, dur: 13.5, delay: 6.8, tilt: 30 },
+  { x: 72, drift: 38, s: 14, dur: 11.5, delay: 3.6, tilt: -26 },
+  { x: 88, drift: -28, s: 12, dur: 14, delay: 9.4, tilt: 48 },
+];
+/** Tout près de l'objectif : grands, rapides, volontairement flous. */
+const PETALS_NEAR: readonly Petal[] = [
+  { x: 8, drift: 70, s: 26, dur: 8.5, delay: 0.8, tilt: -34 },
+  { x: 55, drift: -62, s: 30, dur: 9.5, delay: 5.2, tilt: 44 },
+  { x: 84, drift: 54, s: 24, dur: 8, delay: 2.9, tilt: -58 },
 ];
 
-/** Blossoms flottants de l'arche (arc au-dessus des prénoms). */
-const ARCH: ReadonlyArray<{ x: number; y: number; fs: number; d: number; z: number }> = [
-  { x: 34, y: 268, fs: 30, d: 0.55, z: 40 },
-  { x: 52, y: 196, fs: 38, d: 0.4, z: -50 },
-  { x: 96, y: 136, fs: 32, d: 0.25, z: 14 },
-  { x: 180, y: 108, fs: 44, d: 0, z: -90 },
-  { x: 264, y: 136, fs: 32, d: 0.3, z: 22 },
-  { x: 308, y: 196, fs: 38, d: 0.45, z: -60 },
-  { x: 326, y: 268, fs: 30, d: 0.6, z: 34 },
-];
+/**
+ * « Sommes-nous montés côté client ? » exposé en store externe : `false` au
+ * rendu serveur, `true` au client. Permet de n'honorer `prefers-reduced-motion`
+ * qu'après hydratation sans écrire d'état depuis un effet.
+ */
+const subscribeMount = () => () => {};
+const getMounted = () => true;
+const getMountedOnServer = () => false;
 
-const PETALS = [0, 1, 2, 3, 4, 5]; // 6 pétales × 60°
+function petalStyle(p: Petal): CSSProperties {
+  return {
+    left: `${p.x}%`,
+    width: p.s,
+    height: p.s,
+    '--drift': `${p.drift}px`,
+    '--dur': `${p.dur}s`,
+    '--delay': `-${p.delay}s`,
+    '--tilt': `${p.tilt}deg`,
+  } as CSSProperties;
+}
 
-const DUST: ReadonlyArray<{ x: number; y: number; z: number; s: number; d: number }> = [
-  { x: 18, y: 34, z: 55, s: 4, d: 0 },
-  { x: 78, y: 24, z: 30, s: 3.5, d: 1.4 },
-  { x: 30, y: 60, z: 70, s: 3.5, d: 2.2 },
-  { x: 64, y: 52, z: 42, s: 4.5, d: 0.8 },
-  { x: 46, y: 14, z: 18, s: 3, d: 2.9 },
-  { x: 88, y: 44, z: 62, s: 3, d: 1.8 },
-];
-
-const FALLING = [
-  { x: 22, d: 0, t: 9 },
-  { x: 56, d: 3.2, t: 11 },
-  { x: 80, d: 6.1, t: 10 },
-] as const;
-
-function Blossom({ fs, extra }: { fs: number; extra?: string }) {
+/** Une couche de pétales, posée à un Z fixe par sa classe. */
+function PetalLayer({
+  depth,
+  petals,
+}: {
+  depth: 'far' | 'mid' | 'near';
+  petals: readonly Petal[];
+}) {
   return (
-    <span
-      className={`f-blossom${extra ? ` ${extra}` : ''}`}
-      style={{ '--fs': `${fs}px` } as CSSProperties}
-    >
-      {PETALS.map((p) => (
-        <span
-          key={p}
-          className="f-petal"
-          style={{ '--r': `${p * 60}deg`, '--pd': `${p * 0.05}s` } as CSSProperties}
-        />
+    <div className={`cineFl-depth cineFl-depth-${depth}`} aria-hidden>
+      {petals.map((p, i) => (
+        <span key={i} className="cineFl-petal" style={petalStyle(p)} />
       ))}
-      <span className="f-heart" />
-    </span>
+    </div>
   );
 }
 
@@ -104,8 +145,18 @@ export function CinematicFloral({
 }: CinematicSceneProps) {
   const t = useTranslations('Invitation');
   const prefersReduced = useReducedMotion();
-  const isReduced = reduced || !!prefersReduced;
-  const sceneRef = useRef<HTMLDivElement>(null);
+  // Le serveur ignore `prefers-reduced-motion` : l'appliquer dès le premier
+  // rendu ferait diverger le client du HTML SSR (mismatch d'hydratation, la
+  // scène partant directement à l'état apaisé). On ne l'honore qu'une fois
+  // monté — le rendu initial reste donc identique des deux côtés.
+  const mounted = useSyncExternalStore(subscribeMount, getMounted, getMountedOnServer);
+  const isReduced = reduced || (mounted && !!prefersReduced);
+  // La parallaxe écrit --rx/--ry sur le STAGE, pas sur le monde : les deux
+  // contextes 3D (le monde et le plan avant, qui encadrent le texte) héritent
+  // ainsi de la même caméra. Les poser sur le monde laisserait le plan avant
+  // immobile — et la profondeur ne se lirait que d'un côté du faire-part.
+  const stageRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   const { effectivePhase, skipToEnd } = useCinematicTimeline({
     waits: WAITS,
@@ -114,41 +165,49 @@ export function CinematicFloral({
     isReduced,
     onDone,
   });
-  const par = useSceneParallax(sceneRef, { enabled: parallax && !isReduced, intensity: 1.6 });
   const cd = useCountdown(eventDate);
-  const target = eventDate != null ? new Date(eventDate).getTime() : null;
+  // Intensité relevée depuis que la scène est étagée en Z : c'est la rotation
+  // qui révèle l'écart entre les plans (sans elle, la profondeur ne se voit pas).
+  const { onPointerMove, onPointerLeave } = useSceneParallax(stageRef, {
+    enabled: parallax && !isReduced,
+    intensity: 1.1,
+  });
 
-  const sceneCls = [
-    'cineF-scene',
-    'cineF',
-    isReduced && 'reduced',
-    holdPhase != null && 'frozen',
-    ...PHASES.slice(1, effectivePhase + 1),
+  // Pilotage de la plaque : rejeu depuis le début (playKey), ou calage sur le
+  // temps de la phase quand la scène est figée (vignettes, storyboard).
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v || isReduced) return;
+    if (holdPhase != null) {
+      v.pause();
+      v.currentTime = PHASE_TIME[Math.min(holdPhase, FINAL)] ?? 0;
+      return;
+    }
+    v.currentTime = 0;
+    // Safari rejette parfois la reprise : l'échec laisse simplement le poster.
+    void v.play().catch(() => {});
+  }, [playKey, holdPhase, isReduced]);
+
+  const stageCls = [
+    'cineFl-stage',
+    live && 'cineFl-live',
+    ...PHASE_CLASSES.slice(0, effectivePhase).map((c) => `cineFl-${c}`),
   ]
     .filter(Boolean)
     .join(' ');
-
-  const tint: CSSProperties = accentColor
-    ? ({
-        '--c-petal': shiftL(accentColor, 0.14),
-        '--c-petal-dk': shiftL(accentColor, -0.04),
-        '--c-accent': shiftL(accentColor, -0.24),
-      } as CSSProperties)
-    : {};
-
-  const stageCls = ['cineF-stage', 'paper-grain', live && 'live'].filter(Boolean).join(' ');
-
-  const cdCell = (v: number | null, u: string, i: number) => (
-    <span className="f-cdb-wrap" style={{ '--cdd': `${i * 0.12}s` } as CSSProperties}>
-      <Blossom fs={58} extra="cdb" />
-      <b>{v == null ? '—' : String(v).padStart(2, '0')}</b>
-      <i>{u}</i>
-    </span>
-  );
+  const stageStyle = accentColor ? ({ '--fl-accent': accentColor } as CSSProperties) : undefined;
 
   return (
-    <div className={stageCls} style={tint} role="presentation">
-      {live && holdPhase == null && !isReduced && effectivePhase < 5 && (
+    <div
+      ref={stageRef}
+      className={stageCls}
+      data-phase={effectivePhase}
+      style={stageStyle}
+      role="presentation"
+      onPointerMove={isReduced ? undefined : onPointerMove}
+      onPointerLeave={isReduced ? undefined : onPointerLeave}
+    >
+      {live && holdPhase == null && !isReduced && effectivePhase < FINAL && (
         <CinematicSkip
           onSkip={() => {
             skipToEnd();
@@ -157,122 +216,76 @@ export function CinematicFloral({
         />
       )}
 
-      <div
-        className={sceneCls}
-        ref={sceneRef}
-        onPointerMove={par.onPointerMove}
-        onPointerLeave={par.onPointerLeave}
-      >
-        <div className="fx-light" aria-hidden />
-
-        <div className="fx-camera">
-          <div className="fx-par">
-            <div className="fx-dust" aria-hidden>
-              {DUST.map((p, i) => (
-                <span key={i} style={dustStyle(p)} />
-              ))}
-            </div>
-
-            {/* Le pré : sol + tiges qui s'élancent */}
-            <div className="f-meadow" aria-hidden>
-              <span className="f-soil" />
-              {STEMS.map((s, i) => (
-                <div
-                  key={i}
-                  className="f-stemg"
-                  style={
-                    {
-                      left: `${s.x}px`,
-                      '--h': `${s.h}px`,
-                      '--sd': `${s.d}s`,
-                      '--sz': `${s.z}px`,
-                      '--sw': `${i % 2 === 0 ? 1 : -1}`,
-                    } as CSSProperties
-                  }
-                >
-                  <span className="f-stem" />
-                  <span className="f-leaf fl" />
-                  <span className="f-leaf fr" />
-                  <Blossom fs={s.fs} />
-                </div>
-              ))}
-            </div>
-
-            {/* L'arche de blossoms flottants */}
-            <div className="f-arch" aria-hidden>
-              {ARCH.map((b, i) => (
-                <span
-                  key={i}
-                  className="f-archspot"
-                  style={
-                    {
-                      left: `${b.x}px`,
-                      top: `${b.y}px`,
-                      '--ad': `${b.d}s`,
-                      '--az': `${b.z}px`,
-                    } as CSSProperties
-                  }
-                >
-                  <Blossom fs={b.fs} />
-                </span>
-              ))}
-            </div>
-
-            {/* Les prénoms s'écrivent à l'encre sous l'arche */}
-            <div className="f-names">
-              <span className="f-name na">
-                <span className="txt">{partnerA}</span>
-              </span>
-              <svg className="f-swash" viewBox="0 0 170 26" aria-hidden>
-                <path d="M6 15 C 38 4, 66 24, 96 11 C 118 2, 142 12, 164 8" fill="none" />
-                <text x="85" y="20">
-                  &amp;
-                </text>
-              </svg>
-              <span className="f-name nb">
-                <span className="txt">{partnerB}</span>
-              </span>
-            </div>
-
-            {/* L'étiquette suspendue (date + lieu) */}
-            <div className="f-tagwrap" aria-hidden={effectivePhase < 4}>
-              <span className="f-string" />
-              <div className="f-tag">
-                <span className="f-taghole" />
-                <b>{formattedDate}</b>
-                {venueName ? <i>{venueName}</i> : null}
-              </div>
-            </div>
-
-            <div className="fall" aria-hidden>
-              {FALLING.map((f, i) => (
-                <span
-                  key={i}
-                  style={
-                    { '--fx': `${f.x}%`, '--fd': `${f.d}s`, '--ft': `${f.t}s` } as CSSProperties
-                  }
-                />
-              ))}
-            </div>
-          </div>
+      {/* ---- LE JARDIN (plaque vidéo, en profondeur + parallaxe) ---- */}
+      <div className="cineFl-dolly">
+        <div className="cineFl-parallax">
+          {isReduced ? (
+            <div
+              className="cineFl-plate cineFl-plate-still"
+              style={{ backgroundImage: `url("${STILL_SRC}")` }}
+              aria-hidden
+            />
+          ) : (
+            <video
+              ref={videoRef}
+              className="cineFl-plate"
+              autoPlay
+              muted
+              playsInline
+              preload="auto"
+              poster={POSTER_SRC}
+              aria-hidden
+            >
+              <source src={PLATE_SRC} type="video/mp4" />
+            </video>
+          )}
+          <div className="cineFl-haze" aria-hidden />
+          {/* Couches volumétriques : trois plans à Z distincts autour du texte. */}
+          {!isReduced && (
+            <>
+              <PetalLayer depth="far" petals={PETALS_FAR} />
+              <PetalLayer depth="mid" petals={PETALS_MID} />
+            </>
+          )}
         </div>
-
-        {/* Compte à rebours fleuri */}
-        {target != null && (
-          <div className="f-cd">
-            <span className="lbl">{t('countdownLabel')}</span>
-            <div className="row">
-              {cdCell(cd?.d ?? null, t('countdownDays'), 0)}
-              {cdCell(cd?.h ?? null, t('countdownHours'), 1)}
-              {cdCell(cd?.m ?? null, t('countdownMinutes'), 2)}
-            </div>
-          </div>
-        )}
       </div>
 
-      <p className="cineF-cue" style={{ opacity: effectivePhase === 4 ? 1 : 0 }}>
-        <span className="t">{t('scrollToDiscover')}</span>
-      </p>
+      {/* ---- lumière d'aube (plat, HORS preserve-3d → pas de z-fighting) ---- */}
+      <div className="cineFl-light" aria-hidden>
+        <div className="cineFl-bloom" />
+      </div>
+
+      {/* ---- voile de lecture ivoire (contraste du texte sur fond clair) ---- */}
+      <div className="cineFl-veil" aria-hidden />
+
+      {/* ---- LE FAIRE-PART : mariage · le couple · la date · le lieu ---- */}
+      <div className="cineFl-scene">
+        <span className="cineFl-eyebrow">{t('weddingLabel')}</span>
+        <span className="cineFl-fleuron" aria-hidden>
+          ✦
+        </span>
+        <h1 className="cineFl-names">
+          <span className="cineFl-name">{partnerA}</span>
+          <span className="cineFl-amp" aria-hidden>
+            &amp;
+          </span>
+          <span className="cineFl-name">{partnerB}</span>
+        </h1>
+        <span className="cineFl-rule" aria-hidden />
+        <span className="cineFl-date">{formattedDate}</span>
+        {venueName && <span className="cineFl-venue">{venueName}</span>}
+      </div>
+
+      {/* Plan le plus proche de l'objectif : passe DEVANT le faire-part.
+          Il vit hors du monde 3D, dans sa propre perspective, pour garantir
+          l'ordre d'empilement avec le texte (z-index) sans z-fighting. */}
+      {!isReduced && (
+        <div className="cineFl-front" aria-hidden>
+          <PetalLayer depth="near" petals={PETALS_NEAR} />
+        </div>
+      )}
+
+      {eventDate != null && <CinematicCountdown cd={cd} className="cineFl-after" />}
     </div>
   );
 }

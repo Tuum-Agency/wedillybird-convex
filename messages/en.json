@@ -997,6 +997,11 @@
   },
   "Invitation": {
     "youreInvited": "You're invited",
+    "weddingLabel": "Wedding",
+    "musicHint": "With music",
+    "musicPlayAria": "Play music",
+    "musicUnmuteAria": "Unmute",
+    "musicMuteAria": "Mute",
     "addressing": "Dear {name}, we'd be delighted to have you with us.",
     "willYouAttend": "Will you join us?",
     "status": {
@@ -5477,7 +5482,7 @@
       },
       "floral": {
         "name": "The Bloom",
-        "desc": "The garden wakes: your names are inked beneath a blooming arch."
+        "desc": "A rosebud opens at dawn, then the garden leads you beneath the flowered arch."
       },
       "cake": {
         "name": "The Wedding Cake",
