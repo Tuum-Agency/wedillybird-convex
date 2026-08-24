@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { getSession } from '@/lib/auth/session';
-import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
+import { convexApi, getConvexServerClient, sessionTokenArg } from '@/lib/auth/convex-server';
 
 export type UploadUrlResult =
   | { ok: true; uploadUrl: string; s3Key: string }
@@ -19,7 +19,7 @@ export async function createOwnerUploadUrlAction(
     const convex = getConvexServerClient();
     const { uploadUrl, s3Key } = await convex.action(convexApi.createOwnerS3UploadUrl, {
       eventId,
-      requesterId: session.userId,
+      sessionToken: await sessionTokenArg(),
       contentType,
     });
     return { ok: true, uploadUrl, s3Key };
@@ -50,7 +50,7 @@ export async function confirmOwnerUploadAction(input: {
     const convex = getConvexServerClient();
     const { id } = await convex.mutation(convexApi.confirmOwnerUpload, {
       eventId: input.eventId,
-      requesterId: session.userId,
+      sessionToken: await sessionTokenArg(),
       s3Key: input.s3Key,
       sizeBytes: input.sizeBytes,
       contentType: input.contentType,
@@ -77,7 +77,7 @@ export async function moderatePhotoAction(
     const convex = getConvexServerClient();
     await convex.mutation(convexApi.moderatePhoto, {
       photoId,
-      requesterId: session.userId,
+      sessionToken: await sessionTokenArg(),
       decision,
     });
     revalidatePath(`/events/${eventId}/gallery`);
@@ -98,7 +98,7 @@ export async function removePhotoAction(
     const convex = getConvexServerClient();
     await convex.mutation(convexApi.removePhoto, {
       photoId,
-      requesterId: session.userId,
+      sessionToken: await sessionTokenArg(),
     });
     revalidatePath(`/events/${eventId}/gallery`);
     return { ok: true };
@@ -123,7 +123,7 @@ export async function faceSearchOwnerAction(
     const result = await convex.action(convexApi.searchPhotosByFace, {
       eventId,
       selfieBase64,
-      requesterId: session.userId,
+      sessionToken: await sessionTokenArg(),
     });
     if (result.ok) {
       return { ok: true, photoIds: result.photoIds, matchCount: result.matchCount };

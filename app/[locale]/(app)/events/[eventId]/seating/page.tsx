@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 import { ArmchairIcon, ArrowLeft, Lock } from 'lucide-react';
 import { Link, redirect } from '@/i18n/navigation';
 import { getSession } from '@/lib/auth/session';
-import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
+import { convexApi, getConvexServerClient, sessionTokenArg } from '@/lib/auth/convex-server';
 import { AppShell } from '@/components/app/app-shell';
 import { SeatingBoard } from '@/components/seating/seating-board';
 import { buttonVariants } from '@/components/ui/button';
@@ -24,13 +24,14 @@ export default async function SeatingPage({
   }
 
   const convex = getConvexServerClient();
+  const sessionToken = await sessionTokenArg();
   const event = await convex.query(convexApi.getEventById, {
     eventId,
-    requesterId: session!.userId,
+    sessionToken,
   });
   if (!event) notFound();
 
-  const user = await convex.query(convexApi.currentUser, { userId: session!.userId });
+  const user = await convex.query(convexApi.currentUser, { sessionToken });
   const t = await getTranslations('Seating');
 
   // Entitlement par formule : le plan de table est réservé à Premium + Pro.
@@ -66,7 +67,7 @@ export default async function SeatingPage({
         </header>
 
         {canUseSeating ? (
-          <SeatingBoardSection eventId={eventId} requesterId={session!.userId} />
+          <SeatingBoardSection eventId={eventId} sessionToken={sessionToken} />
         ) : (
           <div className="flex flex-col items-center gap-4 rounded-3xl border border-[color:var(--color-border)] bg-[color:var(--color-ivory-100)] px-6 py-16 text-center">
             <span className="flex h-14 w-14 items-center justify-center rounded-full bg-[color:var(--color-surface)] text-[color:var(--color-accent)]">
@@ -94,13 +95,13 @@ export default async function SeatingPage({
 
 async function SeatingBoardSection({
   eventId,
-  requesterId,
+  sessionToken,
 }: {
   eventId: string;
-  requesterId: string;
+  sessionToken: string;
 }) {
   const convex = getConvexServerClient();
-  const plan = await convex.query(convexApi.getSeatingPlan, { eventId, requesterId });
+  const plan = await convex.query(convexApi.getSeatingPlan, { eventId, sessionToken });
   // `tables.shape` du schéma partage 7 formes avec le seating /mon-mariage ; le
   // board agence ne gère que round/rect. Un event agence n'a jamais de forme
   // exotique → cast sûr (typé, pas d'any).

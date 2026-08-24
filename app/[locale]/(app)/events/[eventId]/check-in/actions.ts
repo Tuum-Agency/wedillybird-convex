@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { getSession } from '@/lib/auth/session';
-import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
+import { convexApi, getConvexServerClient, sessionTokenArg } from '@/lib/auth/convex-server';
 
 export type CheckInResult =
   | {
@@ -28,7 +28,7 @@ export async function checkInByTokenAction(eventId: string, token: string): Prom
     const result = await convex.mutation(convexApi.checkInByToken, {
       token,
       eventId,
-      requesterId: session.userId,
+      sessionToken: await sessionTokenArg(),
     });
     revalidatePath(`/events/${eventId}/check-in`);
     return {
@@ -57,7 +57,7 @@ export async function undoCheckInAction(
     const convex = getConvexServerClient();
     await convex.mutation(convexApi.undoCheckIn, {
       guestId,
-      requesterId: session.userId,
+      sessionToken: await sessionTokenArg(),
     });
     revalidatePath(`/events/${eventId}/check-in`);
     return { ok: true };

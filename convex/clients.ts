@@ -2,6 +2,7 @@ import { v } from 'convex/values';
 import { mutation, query, type MutationCtx, type QueryCtx } from './_generated/server';
 import type { Doc, Id } from './_generated/dataModel';
 import { assertOrgRead, assertOrgWrite } from './lib/orgAuth';
+import { IDENTITY_ARGS, requireUserIdCompat } from './lib/verifiedSession';
 import { proTierAtLeast } from './lib/entitlements';
 import { pickUniqueSlug } from './lib/uniqueSlug';
 
@@ -89,8 +90,10 @@ function trimmedOrThrow(value: string, field: string, min = 1, max = 120): strin
 }
 
 export const listByOrg = query({
-  args: { organizationId: v.id('organizations'), requesterId: v.id('users') },
-  handler: async (ctx, { organizationId, requesterId }) => {
+  args: { organizationId: v.id('organizations'), ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    const { organizationId } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     await assertOrgRead(ctx, organizationId, requesterId);
     const clients = await ctx.db
       .query('clients')
@@ -139,8 +142,10 @@ export const listByOrg = query({
 
 /** Timeline d'activité d'un client (ordre antéchronologique). */
 export const notesByClient = query({
-  args: { clientId: v.id('clients'), requesterId: v.id('users') },
-  handler: async (ctx, { clientId, requesterId }) => {
+  args: { clientId: v.id('clients'), ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    const { clientId } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     const client = await ctx.db.get(clientId);
     if (!client) return null;
     await assertOrgRead(ctx, client.organizationId, requesterId);
@@ -163,7 +168,7 @@ export const notesByClient = query({
 export const create = mutation({
   args: {
     organizationId: v.id('organizations'),
-    requesterId: v.id('users'),
+    ...IDENTITY_ARGS,
     partnerA: v.string(),
     partnerB: v.optional(v.string()),
     phone: v.optional(v.string()),
@@ -179,7 +184,8 @@ export const create = mutation({
     notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    await assertOrgWrite(ctx, args.organizationId, args.requesterId);
+    const requesterId = await requireUserIdCompat(ctx, args);
+    await assertOrgWrite(ctx, args.organizationId, requesterId);
     await assertCrmEnabled(ctx, args.organizationId);
 
     const partnerA = trimmedOrThrow(args.partnerA, 'PARTNER_A');
@@ -214,7 +220,7 @@ export const create = mutation({
       { _id: id, organizationId: args.organizationId },
       'note',
       'Client créé dans le CRM.',
-      args.requesterId,
+      requesterId,
     );
     if (args.notes?.trim()) {
       await addNote(
@@ -222,7 +228,7 @@ export const create = mutation({
         { _id: id, organizationId: args.organizationId },
         'note',
         args.notes.trim(),
-        args.requesterId,
+        requesterId,
       );
     }
     return { id };
@@ -232,7 +238,7 @@ export const create = mutation({
 export const update = mutation({
   args: {
     clientId: v.id('clients'),
-    requesterId: v.id('users'),
+    ...IDENTITY_ARGS,
     partnerA: v.optional(v.string()),
     partnerB: v.optional(v.string()),
     phone: v.optional(v.string()),
@@ -249,7 +255,8 @@ export const update = mutation({
     notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const client = await loadClientForWrite(ctx, args.clientId, args.requesterId);
+    const requesterId = await requireUserIdCompat(ctx, args);
+    const client = await loadClientForWrite(ctx, args.clientId, requesterId);
     await assertCrmEnabled(ctx, client.organizationId);
 
     const prevStage = client.stage;
@@ -284,7 +291,7 @@ export const update = mutation({
         client,
         'status',
         `Statut passé de « ${STAGE_LABEL[prevStage]} » à « ${STAGE_LABEL[args.stage]} ».`,
-        args.requesterId,
+        requesterId,
       );
     }
     return { ok: true as const };
@@ -292,8 +299,10 @@ export const update = mutation({
 });
 
 export const updateStage = mutation({
-  args: { clientId: v.id('clients'), requesterId: v.id('users'), stage: STAGE },
-  handler: async (ctx, { clientId, requesterId, stage }) => {
+  args: { clientId: v.id('clients'), ...IDENTITY_ARGS, stage: STAGE },
+  handler: async (ctx, args) => {
+    const { clientId, stage } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     const client = await loadClientForWrite(ctx, clientId, requesterId);
     await assertCrmEnabled(ctx, client.organizationId);
     if (client.stage !== stage) {
@@ -312,8 +321,10 @@ export const updateStage = mutation({
 });
 
 export const addClientNote = mutation({
-  args: { clientId: v.id('clients'), requesterId: v.id('users'), text: v.string() },
-  handler: async (ctx, { clientId, requesterId, text }) => {
+  args: { clientId: v.id('clients'), ...IDENTITY_ARGS, text: v.string() },
+  handler: async (ctx, args) => {
+    const { clientId, text } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     const client = await loadClientForWrite(ctx, clientId, requesterId);
     const t = text.trim();
     if (t.length < 1 || t.length > 2000) throw new Error('INVALID_NOTE');
@@ -325,8 +336,10 @@ export const addClientNote = mutation({
 });
 
 export const remove = mutation({
-  args: { clientId: v.id('clients'), requesterId: v.id('users') },
-  handler: async (ctx, { clientId, requesterId }) => {
+  args: { clientId: v.id('clients'), ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    const { clientId } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     await loadClientForWrite(ctx, clientId, requesterId);
     const notes = await ctx.db
       .query('clientNotes')
@@ -339,8 +352,10 @@ export const remove = mutation({
 });
 
 export const convertToWedding = mutation({
-  args: { clientId: v.id('clients'), requesterId: v.id('users') },
-  handler: async (ctx, { clientId, requesterId }) => {
+  args: { clientId: v.id('clients'), ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    const { clientId } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     const client = await loadClientForWrite(ctx, clientId, requesterId);
     await assertCrmEnabled(ctx, client.organizationId);
 

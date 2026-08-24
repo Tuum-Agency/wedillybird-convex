@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import { Plus } from 'lucide-react';
 import { Link, redirect } from '@/i18n/navigation';
 import { getSession } from '@/lib/auth/session';
-import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
+import { convexApi, getConvexServerClient, sessionTokenArg } from '@/lib/auth/convex-server';
 import { isAgencyRole, resolvePostAuthDestination } from '@/lib/auth/post-auth-destination';
 import { buttonVariants } from '@/components/ui/button';
 import { AppShell } from '@/components/app/app-shell';
@@ -43,7 +43,8 @@ export default async function DashboardPage({ params }: { params: Promise<{ loca
   }
 
   const convex = getConvexServerClient();
-  const user = await convex.query(convexApi.currentUser, { userId: session!.userId });
+  const sessionToken = await sessionTokenArg();
+  const user = await convex.query(convexApi.currentUser, { sessionToken });
 
   if (!user?.fullName) {
     redirect({ href: '/onboarding', locale });
@@ -53,20 +54,18 @@ export default async function DashboardPage({ params }: { params: Promise<{ loca
   // sans organisation → onboarding pro (créer/rejoindre une agence). Un couple
   // poursuit sur ce dashboard.
   if (isAgencyRole(user!.role)) {
-    const myOrg = await convex.query(convexApi.myOrganization, { userId: session!.userId });
+    const myOrg = await convex.query(convexApi.myOrganization, { sessionToken });
     const destination = resolvePostAuthDestination(user, Boolean(myOrg));
     if (destination !== '/dashboard') {
       redirect({ href: destination, locale });
     }
   }
 
-  const events = await convex.query(convexApi.listEventsByOwner, { ownerId: session!.userId });
+  const events = await convex.query(convexApi.listEventsByOwner, { sessionToken });
 
   // Couple rattaché à une agence (collaborateur, sans mariage en propre) → son espace
   // couple dédié (suivi, invités, paiements de SON mariage géré par l'agence).
-  const coupleWeddings = await convex.query(convexApi.listMineAsCouple, {
-    userId: session!.userId,
-  });
+  const coupleWeddings = await convex.query(convexApi.listMineAsCouple, { sessionToken });
   if (coupleWeddings.length > 0 && events.length === 0) {
     redirect({ href: '/espace-couple', locale });
   }
@@ -116,7 +115,7 @@ export default async function DashboardPage({ params }: { params: Promise<{ loca
         <LinkMethodSection user={user!} />
 
         <div className="mb-10">
-          <NotificationsPanel userId={session!.userId} />
+          <NotificationsPanel />
         </div>
 
         {coupleWeddings.length > 0 ? (

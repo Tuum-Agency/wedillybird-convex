@@ -3,10 +3,10 @@
 import { useQuery } from 'convex/react';
 import { useTranslations } from 'next-intl';
 import { clientApi } from '@/lib/convex/client-api';
+import { useConvexSessionToken } from '@/stores/convex-session-store';
 
 interface Props {
   eventId: string;
-  requesterId: string;
   initialCounts: {
     total: number;
     attending: number;
@@ -17,9 +17,15 @@ interface Props {
   maxGuests: number;
 }
 
-export function LiveGuestStats({ eventId, requesterId, initialCounts, maxGuests }: Props) {
+export function LiveGuestStats({ eventId, initialCounts, maxGuests }: Props) {
   const t = useTranslations('EventStats');
-  const live = useQuery(clientApi.countGuestsByEvent, { eventId, requesterId });
+  // L'identité vient du `sessionToken` vérifié par Convex : tant qu'il n'est pas
+  // chargé on reste sur les compteurs rendus côté serveur.
+  const sessionToken = useConvexSessionToken();
+  const live = useQuery(
+    clientApi.countGuestsByEvent,
+    sessionToken ? { eventId, sessionToken } : 'skip',
+  );
   const counts = live ?? initialCounts;
 
   return (

@@ -12,7 +12,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { getSession } from '@/lib/auth/session';
-import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
+import { convexApi, getConvexServerClient, sessionTokenArg } from '@/lib/auth/convex-server';
 import {
   SUBSCRIPTION_TIER_PRICES,
   SUBSCRIPTION_TIER_ANNUAL_PRICES,
@@ -177,11 +177,12 @@ export default async function ProBillingPage({
   const tBilling = await getTranslations('Billing');
   const tp = await getTranslations('ProPages');
 
+  const sessionToken = await sessionTokenArg();
   const convex = getConvexServerClient();
-  const org = await convex.query(convexApi.myOrganization, { userId: session.userId });
+  const org = await convex.query(convexApi.myOrganization, { sessionToken });
   if (!org) redirect('/pro/onboarding');
 
-  const user = await convex.query(convexApi.currentUser, { userId: session.userId });
+  const user = await convex.query(convexApi.currentUser, { sessionToken });
   const params = await searchParams;
   const banner =
     params.status === 'success' && params.kind === 'payg'
@@ -194,12 +195,12 @@ export default async function ProBillingPage({
 
   const paygCredits = (await convex.query(convexApi.getPaygCreditsByOrganization, {
     organizationId: org._id,
-    requesterId: session.userId,
+    sessionToken,
   })) ?? { credits: 0 };
 
   const paygHistory = await convex.query(convexApi.listPaygPurchasesByOrganization, {
     organizationId: org._id,
-    requesterId: session.userId,
+    sessionToken,
   });
 
   // Factures d'abonnement Stripe (vide si Stripe non configuré / pas de client).
@@ -228,9 +229,7 @@ export default async function ProBillingPage({
   }));
 
   // Consommation réelle (réutilise l'agrégat du cockpit) pour les jauges de quotas.
-  const cockpit = currentTier
-    ? await convex.query(convexApi.proCockpit, { userId: session.userId })
-    : null;
+  const cockpit = currentTier ? await convex.query(convexApi.proCockpit, { sessionToken }) : null;
   const usage = cockpit?.usage ?? null;
   const periodEndLabel = formatPeriodEnd(org.subscriptionPeriodEnd, locale);
   const hasActive =

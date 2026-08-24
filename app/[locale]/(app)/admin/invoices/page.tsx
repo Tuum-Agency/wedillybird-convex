@@ -1,7 +1,7 @@
 import { setRequestLocale } from 'next-intl/server';
 import { redirect } from '@/i18n/navigation';
 import { getSession } from '@/lib/auth/session';
-import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
+import { convexApi, getConvexServerClient, sessionTokenArg } from '@/lib/auth/convex-server';
 import { AdminShell } from '@/components/admin/admin-shell';
 import { AdminInvoicesTable } from '@/components/admin/admin-invoices-table';
 
@@ -16,10 +16,11 @@ export default async function AdminInvoicesPage({
   const session = await getSession();
   if (!session) redirect({ href: '/sign-in', locale });
 
+  const sessionToken = await sessionTokenArg();
   const convex = getConvexServerClient();
   const [user, payments] = await Promise.all([
-    convex.query(convexApi.currentUser, { userId: session!.userId }),
-    convex.query(convexApi.adminListAllPayments, { adminId: session!.userId }),
+    convex.query(convexApi.currentUser, { sessionToken }),
+    convex.query(convexApi.adminListAllPayments, { sessionToken }),
   ]);
 
   return (

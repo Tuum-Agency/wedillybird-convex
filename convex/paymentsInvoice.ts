@@ -1,5 +1,6 @@
 import { v } from 'convex/values';
 import { query } from './_generated/server';
+import { IDENTITY_ARGS, requireUserIdCompat } from './lib/verifiedSession';
 
 /**
  * Récupère un paiement avec ses méta pour générer la facture PDF.
@@ -17,9 +18,11 @@ import { query } from './_generated/server';
 export const getForInvoice = query({
   args: {
     paymentId: v.id('payments'),
-    requesterId: v.id('users'),
+    ...IDENTITY_ARGS,
   },
-  handler: async (ctx, { paymentId, requesterId }) => {
+  handler: async (ctx, args) => {
+    const { paymentId } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     const payment = await ctx.db.get(paymentId);
     if (!payment) throw new Error('PAYMENT_NOT_FOUND');
     if (payment.status !== 'succeeded') throw new Error('PAYMENT_NOT_PAID');

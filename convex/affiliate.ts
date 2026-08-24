@@ -30,16 +30,7 @@ import {
   generateReferralCode,
   selectReferralsToConsume,
 } from './lib/affiliate';
-
-/** Garde admin (miroir de `admin.ts`, volontairement convex-local). */
-async function assertAdmin(
-  ctx: { db: { get: (id: Id<'users'>) => Promise<{ role: string } | null> } },
-  adminId: Id<'users'>,
-) {
-  const user = await ctx.db.get(adminId);
-  if (!user || user.role !== 'admin') throw new Error('FORBIDDEN: admin role required');
-  return user;
-}
+import { IDENTITY_ARGS, requireAdminCompat, requireUserIdCompat } from './lib/verifiedSession';
 
 /* ============================ Création (admin) ============================ */
 
@@ -50,7 +41,7 @@ async function assertAdmin(
  */
 export const createAffiliate = mutation({
   args: {
-    adminId: v.id('users'),
+    ...IDENTITY_ARGS,
     code: v.string(),
     kind: v.union(v.literal('referral'), v.literal('partner')),
     rewardType: v.union(v.literal('credit'), v.literal('cash')),
@@ -61,7 +52,7 @@ export const createAffiliate = mutation({
     displayName: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    await assertAdmin(ctx, args.adminId);
+    await requireAdminCompat(ctx, args);
 
     const code = normalizeAffiliateCode(args.code);
     if (!isValidAffiliateCode(code)) throw new Error('INVALID_CODE');
@@ -96,12 +87,13 @@ export const createAffiliate = mutation({
 /** Active/désactive un affilié (admin). */
 export const setAffiliateStatus = mutation({
   args: {
-    adminId: v.id('users'),
+    ...IDENTITY_ARGS,
     affiliateId: v.id('affiliates'),
     status: v.union(v.literal('active'), v.literal('disabled')),
   },
-  handler: async (ctx, { adminId, affiliateId, status }) => {
-    await assertAdmin(ctx, adminId);
+  handler: async (ctx, args) => {
+    const { affiliateId, status } = args;
+    await requireAdminCompat(ctx, args);
     await ctx.db.patch(affiliateId, { status, updatedAt: Date.now() });
     return null;
   },
@@ -273,9 +265,9 @@ export const vestDueReferrals = internalMutation({
 /* ============================ Lecture admin ============================ */
 
 export const listAffiliates = query({
-  args: { adminId: v.id('users') },
-  handler: async (ctx, { adminId }) => {
-    await assertAdmin(ctx, adminId);
+  args: { ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    await requireAdminCompat(ctx, args);
     const rows = await ctx.db.query('affiliates').order('desc').collect();
     return rows.map((a) => ({
       id: a._id,
@@ -298,7 +290,7 @@ export const listAffiliates = query({
  */
 export const listReferrals = query({
   args: {
-    adminId: v.id('users'),
+    ...IDENTITY_ARGS,
     status: v.optional(
       v.union(
         v.literal('pending'),
@@ -309,8 +301,9 @@ export const listReferrals = query({
       ),
     ),
   },
-  handler: async (ctx, { adminId, status }) => {
-    await assertAdmin(ctx, adminId);
+  handler: async (ctx, args) => {
+    const { status } = args;
+    await requireAdminCompat(ctx, args);
     const rows = status
       ? await ctx.db
           .query('affiliateReferrals')
@@ -339,8 +332,10 @@ export const listReferrals = query({
  * (coupon Stripe généré à la volée) au prochain checkout — phase suivante.
  */
 export const referrerCreditMinor = query({
-  args: { userId: v.id('users'), currency: v.string() },
-  handler: async (ctx, { userId, currency }) => {
+  args: { ...IDENTITY_ARGS, currency: v.string() },
+  handler: async (ctx, args) => {
+    const { currency } = args;
+    const userId = await requireUserIdCompat(ctx, args);
     const affiliates = await ctx.db
       .query('affiliates')
       .withIndex('by_owner', (q) => q.eq('ownerUserId', userId))
@@ -458,14 +453,19 @@ export async function ensureReferralAffiliate(
 
 /** Mutation publique : l'espace couple garantit/récupère son code de parrainage. */
 export const ensureReferralCode = mutation({
-  args: { userId: v.id('users') },
-  handler: (ctx, { userId }) => ensureReferralAffiliate(ctx, userId),
+  args: { ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    const userId = await requireUserIdCompat(ctx, args);
+    return ensureReferralAffiliate(ctx, userId);
+  },
 });
 
 /** Code de parrainage + crédit disponible d'un user (espace couple). */
 export const referralForUser = query({
-  args: { userId: v.id('users'), currency: v.string() },
-  handler: async (ctx, { userId, currency }) => {
+  args: { ...IDENTITY_ARGS, currency: v.string() },
+  handler: async (ctx, args) => {
+    const { currency } = args;
+    const userId = await requireUserIdCompat(ctx, args);
     const affiliates = await ctx.db
       .query('affiliates')
       .withIndex('by_owner', (q) => q.eq('ownerUserId', userId))
@@ -488,12 +488,14 @@ export const referralForUser = query({
  */
 export const reserveCreditForCheckout = mutation({
   args: {
-    userId: v.id('users'),
+    ...IDENTITY_ARGS,
     reservationId: v.string(),
     currency: v.string(),
     orderMinor: v.number(),
   },
-  handler: async (ctx, { userId, reservationId, currency, orderMinor }) => {
+  handler: async (ctx, args) => {
+    const { reservationId, currency, orderMinor } = args;
+    const userId = await requireUserIdCompat(ctx, args);
     const empty = { appliedMinor: 0, referralIds: [] as Id<'affiliateReferrals'>[] };
     const dup = await ctx.db
       .query('pendingCreditApplications')

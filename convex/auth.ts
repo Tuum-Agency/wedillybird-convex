@@ -20,6 +20,11 @@ import {
   verifyOtpHash,
 } from './lib/otp';
 import { isValidE164, normalizePhone } from './lib/phone';
+import {
+  IDENTITY_ARGS,
+  requireUserIdCompat,
+  requireUserIdFromActionCompat,
+} from './lib/verifiedSession';
 import { sendWhatsAppCloudTemplate } from './lib/whatsappCloud';
 import { resolveChannel } from './lib/channelRouting';
 import { isTwilioConfigured, sendTwilioSms } from './lib/twilioSms';
@@ -230,11 +235,17 @@ export const verifyOtp = mutation({
   },
 });
 
+/**
+ * Profil de l'appelant. L'ancienne signature `{ userId }` renvoyait téléphone,
+ * email, nom, rôle et plan de N'IMPORTE QUEL utilisateur à qui savait deviner
+ * un id — aucune vérification. L'identité est désormais re-résolue depuis le
+ * `sessionToken` (cf. audit archi 2026-08-23).
+ */
 export const currentUser = query({
-  args: { userId: v.id('users') },
-  handler: async (ctx, { userId }) => {
-    const user = await ctx.db.get(userId);
-    if (!user) return null;
+  args: { ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    const user = await ctx.db.get(await requireUserIdCompat(ctx, args));
+    if (!user) throw new Error('UNAUTHENTICATED');
     const { phone, email, fullName, avatarUrl, role, locale, planTier, createdAt, lastSeenAt } =
       user;
     return {
@@ -466,11 +477,13 @@ const LINK_RATE_WINDOW_MS = 60 * 60 * 1000;
 
 export const requestLinkPhone = action({
   args: {
-    userId: v.id('users'),
+    ...IDENTITY_ARGS,
     phone: v.string(),
     ipAddress: v.optional(v.string()),
   },
-  handler: async (ctx, { userId, phone, ipAddress }) => {
+  handler: async (ctx, args) => {
+    const { phone, ipAddress } = args;
+    const userId = await requireUserIdFromActionCompat(ctx, args);
     const normalized = normalizePhone(phone);
     if (!normalized || !isValidE164(normalized)) {
       throw new Error('INVALID_PHONE');
@@ -536,11 +549,13 @@ export const requestLinkPhone = action({
 
 export const verifyLinkPhone = mutation({
   args: {
-    userId: v.id('users'),
+    ...IDENTITY_ARGS,
     phone: v.string(),
     code: v.string(),
   },
-  handler: async (ctx, { userId, phone, code }) => {
+  handler: async (ctx, args) => {
+    const { phone, code } = args;
+    const userId = await requireUserIdCompat(ctx, args);
     const normalized = normalizePhone(phone);
     if (!normalized || !isValidE164(normalized)) {
       throw new Error('INVALID_PHONE');
@@ -585,11 +600,13 @@ export const verifyLinkPhone = mutation({
 
 export const requestLinkEmail = action({
   args: {
-    userId: v.id('users'),
+    ...IDENTITY_ARGS,
     email: v.string(),
     ipAddress: v.optional(v.string()),
   },
-  handler: async (ctx, { userId, email, ipAddress }) => {
+  handler: async (ctx, args) => {
+    const { email, ipAddress } = args;
+    const userId = await requireUserIdFromActionCompat(ctx, args);
     const normalized = normalizeEmail(email);
     if (!isValidEmail(normalized)) {
       throw new Error('INVALID_EMAIL');
@@ -639,11 +656,13 @@ export const requestLinkEmail = action({
 
 export const verifyLinkEmail = mutation({
   args: {
-    userId: v.id('users'),
+    ...IDENTITY_ARGS,
     email: v.string(),
     code: v.string(),
   },
-  handler: async (ctx, { userId, email, code }) => {
+  handler: async (ctx, args) => {
+    const { email, code } = args;
+    const userId = await requireUserIdCompat(ctx, args);
     const normalized = normalizeEmail(email);
     if (!isValidEmail(normalized)) {
       throw new Error('INVALID_EMAIL');

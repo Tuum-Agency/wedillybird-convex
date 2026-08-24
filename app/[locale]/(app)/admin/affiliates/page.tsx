@@ -1,7 +1,7 @@
 import { setRequestLocale } from 'next-intl/server';
 import { redirect } from '@/i18n/navigation';
 import { getSession } from '@/lib/auth/session';
-import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
+import { convexApi, getConvexServerClient, sessionTokenArg } from '@/lib/auth/convex-server';
 import { AdminShell } from '@/components/admin/admin-shell';
 import { AdminAffiliatesBoard } from '@/components/admin/admin-affiliates-board';
 
@@ -22,11 +22,12 @@ export default async function AdminAffiliatesPage({
   const session = await getSession();
   if (!session) redirect({ href: '/sign-in', locale });
 
+  const sessionToken = await sessionTokenArg();
   const convex = getConvexServerClient();
   const [user, affiliates, referrals] = await Promise.all([
-    convex.query(convexApi.currentUser, { userId: session!.userId }),
-    convex.query(convexApi.listAffiliates, { adminId: session!.userId }),
-    convex.query(convexApi.listReferrals, { adminId: session!.userId }),
+    convex.query(convexApi.currentUser, { sessionToken }),
+    convex.query(convexApi.listAffiliates, { sessionToken }),
+    convex.query(convexApi.listReferrals, { sessionToken }),
   ]);
 
   return (

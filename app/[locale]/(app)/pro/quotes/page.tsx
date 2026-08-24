@@ -16,7 +16,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function ProQuotesPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const { session, org, user } = await requireProContext(locale);
+  const { sessionToken, org, user } = await requireProContext(locale);
   const t = await getTranslations('ProPages');
   const tier = org.subscriptionTier ?? null;
   const locked = !tierHasFeature(tier, 'documentsEsign');
@@ -49,11 +49,11 @@ export default async function ProQuotesPage({ params }: { params: Promise<{ loca
   const [data, connect] = await Promise.all([
     convex.query(convexApi.quotesListByOrg, {
       organizationId: org._id,
-      requesterId: session.userId,
+      sessionToken,
     }),
     convex.query(convexApi.orgConnectStatus, {
       organizationId: org._id,
-      requesterId: session.userId,
+      sessionToken,
     }),
   ]);
 

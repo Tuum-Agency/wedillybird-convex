@@ -6,6 +6,7 @@ import { action } from './_generated/server';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { randomUUID } from 'node:crypto';
+import { IDENTITY_ARGS, requireUserIdFromActionCompat } from './lib/verifiedSession';
 
 /**
  * Upload des médias personnalisés de l'invitation (couple/agence) :
@@ -56,13 +57,12 @@ function getS3(): S3Client {
 export const createInvitationMusicUploadUrl = action({
   args: {
     eventId: v.id('events'),
-    requesterId: v.id('users'),
+    ...IDENTITY_ARGS,
     contentType: v.string(),
   },
-  handler: async (
-    ctx,
-    { eventId, requesterId, contentType },
-  ): Promise<{ uploadUrl: string; s3Key: string }> => {
+  handler: async (ctx, args): Promise<{ uploadUrl: string; s3Key: string }> => {
+    const { eventId, contentType } = args;
+    const requesterId = await requireUserIdFromActionCompat(ctx, args);
     await ctx.runQuery(internal.coupleSpace.assertOwnerCanCustomizeInvitation, {
       eventId,
       requesterId,
@@ -90,13 +90,12 @@ export const createInvitationMusicUploadUrl = action({
 export const createInvitationPhotoUploadUrl = action({
   args: {
     eventId: v.id('events'),
-    requesterId: v.id('users'),
+    ...IDENTITY_ARGS,
     contentType: v.string(),
   },
-  handler: async (
-    ctx,
-    { eventId, requesterId, contentType },
-  ): Promise<{ uploadUrl: string; s3Key: string }> => {
+  handler: async (ctx, args): Promise<{ uploadUrl: string; s3Key: string }> => {
+    const { eventId, contentType } = args;
+    const requesterId = await requireUserIdFromActionCompat(ctx, args);
     await ctx.runQuery(internal.coupleSpace.assertOwnerCanCustomizeInvitation, {
       eventId,
       requesterId,

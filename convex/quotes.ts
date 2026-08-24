@@ -2,6 +2,7 @@ import { v } from 'convex/values';
 import { mutation, query, type MutationCtx } from './_generated/server';
 import type { Doc, Id } from './_generated/dataModel';
 import { assertOrgRead, assertOrgWrite } from './lib/orgAuth';
+import { IDENTITY_ARGS, requireUserIdCompat } from './lib/verifiedSession';
 import { proTierAtLeast } from './lib/entitlements';
 
 /**
@@ -116,8 +117,10 @@ function serialize(d: Doc<'quoteDocs'>) {
 }
 
 export const listByOrg = query({
-  args: { organizationId: v.id('organizations'), requesterId: v.id('users') },
-  handler: async (ctx, { organizationId, requesterId }) => {
+  args: { organizationId: v.id('organizations'), ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    const { organizationId } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     await assertOrgRead(ctx, organizationId, requesterId);
     const docs = await ctx.db
       .query('quoteDocs')
@@ -149,8 +152,10 @@ export const listByOrg = query({
 });
 
 export const getById = query({
-  args: { docId: v.id('quoteDocs'), requesterId: v.id('users') },
-  handler: async (ctx, { docId, requesterId }) => {
+  args: { docId: v.id('quoteDocs'), ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    const { docId } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     const doc = await ctx.db.get(docId);
     if (!doc) return null;
     await assertOrgRead(ctx, doc.organizationId, requesterId);
@@ -170,7 +175,7 @@ export const getById = query({
 export const create = mutation({
   args: {
     organizationId: v.id('organizations'),
-    requesterId: v.id('users'),
+    ...IDENTITY_ARGS,
     type: v.union(v.literal('quote'), v.literal('invoice')),
     clientId: v.optional(v.id('clients')),
     clientName: v.optional(v.string()),
@@ -185,7 +190,8 @@ export const create = mutation({
     status: v.optional(STATUS),
   },
   handler: async (ctx, args) => {
-    await assertOrgWrite(ctx, args.organizationId, args.requesterId);
+    const requesterId = await requireUserIdCompat(ctx, args);
+    await assertOrgWrite(ctx, args.organizationId, requesterId);
     await assertQuotingAllowed(ctx, args.organizationId);
 
     let clientName = args.clientName?.trim() ?? '';
@@ -251,7 +257,7 @@ async function loadForWrite(ctx: MutationCtx, docId: Id<'quoteDocs'>, requesterI
 export const update = mutation({
   args: {
     docId: v.id('quoteDocs'),
-    requesterId: v.id('users'),
+    ...IDENTITY_ARGS,
     clientId: v.optional(v.id('clients')),
     eventId: v.optional(v.id('events')),
     lineItems: v.optional(v.array(LINE_ITEM)),
@@ -263,7 +269,8 @@ export const update = mutation({
     notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const doc = await loadForWrite(ctx, args.docId, args.requesterId);
+    const requesterId = await requireUserIdCompat(ctx, args);
+    const doc = await loadForWrite(ctx, args.docId, requesterId);
     const patch: Record<string, unknown> = { updatedAt: Date.now() };
     if (args.clientId !== undefined) {
       const c = await ctx.db.get(args.clientId);
@@ -293,8 +300,10 @@ export const update = mutation({
 });
 
 export const updateStatus = mutation({
-  args: { docId: v.id('quoteDocs'), requesterId: v.id('users'), status: STATUS },
-  handler: async (ctx, { docId, requesterId, status }) => {
+  args: { docId: v.id('quoteDocs'), ...IDENTITY_ARGS, status: STATUS },
+  handler: async (ctx, args) => {
+    const { docId, status } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     const doc = await loadForWrite(ctx, docId, requesterId);
     await ctx.db.patch(docId, { status, updatedAt: Date.now() });
     const LABELS: Record<string, string> = {
@@ -317,8 +326,10 @@ export const updateStatus = mutation({
 
 /** Marque une échéance payée (index dans `schedule`) et recalcule le statut. */
 export const recordSchedulePayment = mutation({
-  args: { docId: v.id('quoteDocs'), requesterId: v.id('users'), index: v.number() },
-  handler: async (ctx, { docId, requesterId, index }) => {
+  args: { docId: v.id('quoteDocs'), ...IDENTITY_ARGS, index: v.number() },
+  handler: async (ctx, args) => {
+    const { docId, index } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     const doc = await loadForWrite(ctx, docId, requesterId);
     const entry = doc.schedule?.[index];
     if (!doc.schedule || !entry) throw new Error('INVALID_SCHEDULE');
@@ -335,8 +346,10 @@ export const recordSchedulePayment = mutation({
 
 /** Crée une facture à partir d'un devis accepté. */
 export const convertToInvoice = mutation({
-  args: { docId: v.id('quoteDocs'), requesterId: v.id('users') },
-  handler: async (ctx, { docId, requesterId }) => {
+  args: { docId: v.id('quoteDocs'), ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    const { docId } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     const doc = await loadForWrite(ctx, docId, requesterId);
     if (doc.type !== 'quote') throw new Error('NOT_A_QUOTE');
     const now = Date.now();
@@ -375,8 +388,10 @@ export const convertToInvoice = mutation({
 });
 
 export const remove = mutation({
-  args: { docId: v.id('quoteDocs'), requesterId: v.id('users') },
-  handler: async (ctx, { docId, requesterId }) => {
+  args: { docId: v.id('quoteDocs'), ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    const { docId } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     const doc = await loadForWrite(ctx, docId, requesterId);
     const activity = await ctx.db
       .query('quoteActivity')

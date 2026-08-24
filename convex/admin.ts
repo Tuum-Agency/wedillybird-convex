@@ -1,28 +1,17 @@
 import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
-import type { Id } from './_generated/dataModel';
 import { computePlatformAnalytics, computeRefundOutcome } from './lib/analytics';
 import { reverseReferralBySession, restoreCreditForRefundedSession } from './affiliate';
-
-async function assertAdmin(
-  ctx: { db: { get: (id: Id<'users'>) => Promise<{ role: string } | null> } },
-  adminId: Id<'users'>,
-) {
-  const user = await ctx.db.get(adminId);
-  if (!user || user.role !== 'admin') {
-    throw new Error('FORBIDDEN: admin role required');
-  }
-  return user;
-}
+import { IDENTITY_ARGS, requireAdminCompat } from './lib/verifiedSession';
 
 // ---------------------------------------------------------------------------
 // Dashboard KPI
 // ---------------------------------------------------------------------------
 
 export const dashboardKpi = query({
-  args: { adminId: v.id('users') },
-  handler: async (ctx, { adminId }) => {
-    await assertAdmin(ctx, adminId);
+  args: { ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    await requireAdminCompat(ctx, args);
 
     const allUsers = await ctx.db.query('users').collect();
     const allEvents = await ctx.db.query('events').collect();
@@ -133,9 +122,10 @@ export const dashboardKpi = query({
 // ---------------------------------------------------------------------------
 
 export const platformAnalytics = query({
-  args: { adminId: v.id('users'), now: v.optional(v.number()) },
-  handler: async (ctx, { adminId, now: nowArg }) => {
-    await assertAdmin(ctx, adminId);
+  args: { ...IDENTITY_ARGS, now: v.optional(v.number()) },
+  handler: async (ctx, args) => {
+    const { now: nowArg } = args;
+    await requireAdminCompat(ctx, args);
     const now = nowArg ?? Date.now();
 
     const [users, events, payments, orgs] = await Promise.all([
@@ -154,9 +144,9 @@ export const platformAnalytics = query({
 // ---------------------------------------------------------------------------
 
 export const listUsers = query({
-  args: { adminId: v.id('users') },
-  handler: async (ctx, { adminId }) => {
-    await assertAdmin(ctx, adminId);
+  args: { ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    await requireAdminCompat(ctx, args);
     const users = await ctx.db.query('users').collect();
     return users.map((u) => ({
       _id: u._id,
@@ -176,9 +166,9 @@ export const listUsers = query({
 // ---------------------------------------------------------------------------
 
 export const listAllEvents = query({
-  args: { adminId: v.id('users') },
-  handler: async (ctx, { adminId }) => {
-    await assertAdmin(ctx, adminId);
+  args: { ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    await requireAdminCompat(ctx, args);
     const events = await ctx.db.query('events').collect();
     const ownerIds = [...new Set(events.map((e) => e.ownerId))];
     const owners = await Promise.all(ownerIds.map((id) => ctx.db.get(id)));
@@ -207,9 +197,9 @@ export const listAllEvents = query({
 // ---------------------------------------------------------------------------
 
 export const listAllPayments = query({
-  args: { adminId: v.id('users') },
-  handler: async (ctx, { adminId }) => {
-    await assertAdmin(ctx, adminId);
+  args: { ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    await requireAdminCompat(ctx, args);
     const payments = await ctx.db.query('payments').collect();
     const userIds = [...new Set(payments.map((p) => p.userId))];
     const users = await Promise.all(userIds.map((id) => ctx.db.get(id)));
@@ -243,7 +233,7 @@ export const listAllPayments = query({
 
 export const logAction = mutation({
   args: {
-    adminId: v.id('users'),
+    ...IDENTITY_ARGS,
     action: v.string(),
     targetType: v.union(
       v.literal('coupon'),
@@ -254,8 +244,10 @@ export const logAction = mutation({
     targetId: v.string(),
     details: v.optional(v.string()),
   },
-  handler: async (ctx, { adminId, action, targetType, targetId, details }) => {
-    await assertAdmin(ctx, adminId);
+  handler: async (ctx, args) => {
+    const { action, targetType, targetId, details } = args;
+    const admin = await requireAdminCompat(ctx, args);
+    const adminId = admin._id;
     await ctx.db.insert('adminAuditLog', {
       adminId,
       action,
@@ -275,9 +267,10 @@ export const logAction = mutation({
 // ---------------------------------------------------------------------------
 
 export const getPaymentRefundInfo = query({
-  args: { adminId: v.id('users'), paymentId: v.id('payments') },
-  handler: async (ctx, { adminId, paymentId }) => {
-    await assertAdmin(ctx, adminId);
+  args: { ...IDENTITY_ARGS, paymentId: v.id('payments') },
+  handler: async (ctx, args) => {
+    const { paymentId } = args;
+    await requireAdminCompat(ctx, args);
     const p = await ctx.db.get(paymentId);
     if (!p) throw new Error('PAYMENT_NOT_FOUND');
     return {
@@ -294,13 +287,15 @@ export const getPaymentRefundInfo = query({
 
 export const markPaymentRefunded = mutation({
   args: {
-    adminId: v.id('users'),
+    ...IDENTITY_ARGS,
     paymentId: v.id('payments'),
     refundAmountMinor: v.number(),
     stripeRefundId: v.optional(v.string()),
   },
-  handler: async (ctx, { adminId, paymentId, refundAmountMinor, stripeRefundId }) => {
-    await assertAdmin(ctx, adminId);
+  handler: async (ctx, args) => {
+    const { paymentId, refundAmountMinor, stripeRefundId } = args;
+    const admin = await requireAdminCompat(ctx, args);
+    const adminId = admin._id;
     const p = await ctx.db.get(paymentId);
     if (!p) throw new Error('PAYMENT_NOT_FOUND');
 
@@ -354,9 +349,9 @@ export const markPaymentRefunded = mutation({
 // ---------------------------------------------------------------------------
 
 export const listAllOrganizations = query({
-  args: { adminId: v.id('users') },
-  handler: async (ctx, { adminId }) => {
-    await assertAdmin(ctx, adminId);
+  args: { ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    await requireAdminCompat(ctx, args);
     const orgs = await ctx.db.query('organizations').collect();
     const ownerIds = [...new Set(orgs.map((o) => o.ownerId))];
     const owners = await Promise.all(ownerIds.map((id) => ctx.db.get(id)));
@@ -389,9 +384,10 @@ export const listAllOrganizations = query({
 // ---------------------------------------------------------------------------
 
 export const getOrgSubscriptionInfo = query({
-  args: { adminId: v.id('users'), organizationId: v.id('organizations') },
-  handler: async (ctx, { adminId, organizationId }) => {
-    await assertAdmin(ctx, adminId);
+  args: { ...IDENTITY_ARGS, organizationId: v.id('organizations') },
+  handler: async (ctx, args) => {
+    const { organizationId } = args;
+    await requireAdminCompat(ctx, args);
     const o = await ctx.db.get(organizationId);
     if (!o) throw new Error('ORG_NOT_FOUND');
     return {
@@ -408,12 +404,14 @@ export const getOrgSubscriptionInfo = query({
 
 export const markSubscriptionCanceled = mutation({
   args: {
-    adminId: v.id('users'),
+    ...IDENTITY_ARGS,
     organizationId: v.id('organizations'),
     mode: v.union(v.literal('period_end'), v.literal('immediate')),
   },
-  handler: async (ctx, { adminId, organizationId, mode }) => {
-    await assertAdmin(ctx, adminId);
+  handler: async (ctx, args) => {
+    const { organizationId, mode } = args;
+    const admin = await requireAdminCompat(ctx, args);
+    const adminId = admin._id;
     const o = await ctx.db.get(organizationId);
     if (!o) throw new Error('ORG_NOT_FOUND');
     const previousStatus = o.subscriptionStatus;
@@ -442,9 +440,11 @@ export const markSubscriptionCanceled = mutation({
 });
 
 export const markSubscriptionReactivated = mutation({
-  args: { adminId: v.id('users'), organizationId: v.id('organizations') },
-  handler: async (ctx, { adminId, organizationId }) => {
-    await assertAdmin(ctx, adminId);
+  args: { ...IDENTITY_ARGS, organizationId: v.id('organizations') },
+  handler: async (ctx, args) => {
+    const { organizationId } = args;
+    const admin = await requireAdminCompat(ctx, args);
+    const adminId = admin._id;
     const o = await ctx.db.get(organizationId);
     if (!o) throw new Error('ORG_NOT_FOUND');
     await ctx.db.patch(organizationId, {
@@ -468,9 +468,9 @@ export const markSubscriptionReactivated = mutation({
 // ---------------------------------------------------------------------------
 
 export const listPendingPhotos = query({
-  args: { adminId: v.id('users') },
-  handler: async (ctx, { adminId }) => {
-    await assertAdmin(ctx, adminId);
+  args: { ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    await requireAdminCompat(ctx, args);
     const photos = await ctx.db.query('photos').collect();
     const pending = photos.filter((p) => p.status === 'pending');
 
@@ -490,9 +490,9 @@ export const listPendingPhotos = query({
 });
 
 export const listAllWhatsappTemplates = query({
-  args: { adminId: v.id('users') },
-  handler: async (ctx, { adminId }) => {
-    await assertAdmin(ctx, adminId);
+  args: { ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    await requireAdminCompat(ctx, args);
     const templates = await ctx.db.query('whatsappTemplates').collect();
     return templates.map((t) => ({
       _id: t._id,
@@ -514,9 +514,9 @@ export const listAllWhatsappTemplates = query({
 // ---------------------------------------------------------------------------
 
 export const listNewsletterSubscribers = query({
-  args: { adminId: v.id('users') },
-  handler: async (ctx, { adminId }) => {
-    await assertAdmin(ctx, adminId);
+  args: { ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    await requireAdminCompat(ctx, args);
     const subs = await ctx.db.query('newsletterSubscribers').collect();
     return subs.map((s) => ({
       _id: s._id,
@@ -534,9 +534,9 @@ export const listNewsletterSubscribers = query({
 // ---------------------------------------------------------------------------
 
 export const listAuditLog = query({
-  args: { adminId: v.id('users') },
-  handler: async (ctx, { adminId }) => {
-    await assertAdmin(ctx, adminId);
+  args: { ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    await requireAdminCompat(ctx, args);
     const logs = await ctx.db.query('adminAuditLog').order('desc').collect();
 
     const adminIds = [...new Set(logs.map((l) => l.adminId))];
@@ -562,11 +562,13 @@ export const listAuditLog = query({
 
 export const suspendUser = mutation({
   args: {
-    adminId: v.id('users'),
+    ...IDENTITY_ARGS,
     targetUserId: v.id('users'),
   },
-  handler: async (ctx, { adminId, targetUserId }) => {
-    await assertAdmin(ctx, adminId);
+  handler: async (ctx, args) => {
+    const { targetUserId } = args;
+    const admin = await requireAdminCompat(ctx, args);
+    const adminId = admin._id;
     const target = await ctx.db.get(targetUserId);
     if (!target) throw new Error('USER_NOT_FOUND');
     if (target.role === 'admin') throw new Error('CANNOT_SUSPEND_ADMIN');
@@ -586,12 +588,14 @@ export const suspendUser = mutation({
 
 export const changeUserRole = mutation({
   args: {
-    adminId: v.id('users'),
+    ...IDENTITY_ARGS,
     targetUserId: v.id('users'),
     newRole: v.union(v.literal('couple'), v.literal('pro'), v.literal('guest'), v.literal('admin')),
   },
-  handler: async (ctx, { adminId, targetUserId, newRole }) => {
-    await assertAdmin(ctx, adminId);
+  handler: async (ctx, args) => {
+    const { targetUserId, newRole } = args;
+    const admin = await requireAdminCompat(ctx, args);
+    const adminId = admin._id;
     const target = await ctx.db.get(targetUserId);
     if (!target) throw new Error('USER_NOT_FOUND');
 
@@ -611,7 +615,7 @@ export const changeUserRole = mutation({
 
 export const updateEventStatus = mutation({
   args: {
-    adminId: v.id('users'),
+    ...IDENTITY_ARGS,
     eventId: v.id('events'),
     newStatus: v.union(
       v.literal('draft'),
@@ -620,8 +624,10 @@ export const updateEventStatus = mutation({
       v.literal('cancelled'),
     ),
   },
-  handler: async (ctx, { adminId, eventId, newStatus }) => {
-    await assertAdmin(ctx, adminId);
+  handler: async (ctx, args) => {
+    const { eventId, newStatus } = args;
+    const admin = await requireAdminCompat(ctx, args);
+    const adminId = admin._id;
     const event = await ctx.db.get(eventId);
     if (!event) throw new Error('EVENT_NOT_FOUND');
 
@@ -641,12 +647,14 @@ export const updateEventStatus = mutation({
 
 export const adminModeratePhoto = mutation({
   args: {
-    adminId: v.id('users'),
+    ...IDENTITY_ARGS,
     photoId: v.id('photos'),
     decision: v.union(v.literal('approved'), v.literal('rejected')),
   },
-  handler: async (ctx, { adminId, photoId, decision }) => {
-    await assertAdmin(ctx, adminId);
+  handler: async (ctx, args) => {
+    const { photoId, decision } = args;
+    const admin = await requireAdminCompat(ctx, args);
+    const adminId = admin._id;
     const photo = await ctx.db.get(photoId);
     if (!photo) throw new Error('PHOTO_NOT_FOUND');
 
@@ -674,11 +682,13 @@ export const adminModeratePhoto = mutation({
 
 export const deleteEvent = mutation({
   args: {
-    adminId: v.id('users'),
+    ...IDENTITY_ARGS,
     eventId: v.id('events'),
   },
-  handler: async (ctx, { adminId, eventId }) => {
-    await assertAdmin(ctx, adminId);
+  handler: async (ctx, args) => {
+    const { eventId } = args;
+    const admin = await requireAdminCompat(ctx, args);
+    const adminId = admin._id;
     const event = await ctx.db.get(eventId);
     if (!event) throw new Error('EVENT_NOT_FOUND');
 
@@ -702,9 +712,9 @@ export const deleteEvent = mutation({
 // ---------------------------------------------------------------------------
 
 export const listPhotoBookOrders = query({
-  args: { adminId: v.id('users') },
-  handler: async (ctx, { adminId }) => {
-    await assertAdmin(ctx, adminId);
+  args: { ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    await requireAdminCompat(ctx, args);
     const orders = await ctx.db.query('photoBookOrders').order('desc').collect();
     const eventIds = [...new Set(orders.map((o) => o.eventId))];
     const userIds = [...new Set(orders.map((o) => o.userId))];
@@ -737,7 +747,7 @@ export const listPhotoBookOrders = query({
 
 export const updatePhotoBookStatus = mutation({
   args: {
-    adminId: v.id('users'),
+    ...IDENTITY_ARGS,
     orderId: v.id('photoBookOrders'),
     status: v.union(
       v.literal('requested'),
@@ -746,8 +756,10 @@ export const updatePhotoBookStatus = mutation({
       v.literal('cancelled'),
     ),
   },
-  handler: async (ctx, { adminId, orderId, status }) => {
-    await assertAdmin(ctx, adminId);
+  handler: async (ctx, args) => {
+    const { orderId, status } = args;
+    const admin = await requireAdminCompat(ctx, args);
+    const adminId = admin._id;
     const order = await ctx.db.get(orderId);
     if (!order) throw new Error('ORDER_NOT_FOUND');
 

@@ -50,7 +50,7 @@ export async function AppShell({ children, nav, userName }: AppShellProps) {
           </div>
 
           <div className="flex items-center gap-3">
-            {session ? <NotificationBell userId={session.userId} /> : null}
+            {session ? <NotificationBell /> : null}
             {userName ? (
               <span className="hidden font-mono text-[10px] tracking-[0.24em] text-[color:var(--color-ink-500)] uppercase sm:inline-block">
                 {userName}

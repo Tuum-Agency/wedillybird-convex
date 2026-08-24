@@ -3,7 +3,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { Calendar, Users, ArrowUpRight, MapPin } from 'lucide-react';
 import { Link, redirect } from '@/i18n/navigation';
 import { getSession } from '@/lib/auth/session';
-import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
+import { convexApi, getConvexServerClient, sessionTokenArg } from '@/lib/auth/convex-server';
 import { ProSidebarShell } from '@/components/pro/pro-sidebar-shell';
 import { NewWeddingLauncher } from '@/components/pro/weddings/new-wedding-launcher';
 import { PlanRequiredBanner } from '@/components/pro/plan-required-banner';
@@ -67,16 +67,14 @@ export default async function ProWeddingsPage({
   const session = await getSession();
   if (!session) redirect({ href: '/sign-in', locale });
 
+  const sessionToken = await sessionTokenArg();
   const convex = getConvexServerClient();
-  const org = await convex.query(convexApi.myOrganization, { userId: session!.userId });
+  const org = await convex.query(convexApi.myOrganization, { sessionToken });
   if (!org) redirect({ href: '/pro/onboarding', locale });
 
   const [events, user] = await Promise.all([
-    convex.query(convexApi.listOrgEvents, {
-      organizationId: org!._id,
-      requesterId: session!.userId,
-    }),
-    convex.query(convexApi.currentUser, { userId: session!.userId }),
+    convex.query(convexApi.listOrgEvents, { organizationId: org!._id, sessionToken }),
+    convex.query(convexApi.currentUser, { sessionToken }),
   ]);
   const activeCount = events.filter((e) => e.status === 'active').length;
   const hasAccess = orgHasActiveAccess(org!);

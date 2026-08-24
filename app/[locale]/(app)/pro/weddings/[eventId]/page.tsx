@@ -30,33 +30,25 @@ export default async function ProWeddingHubPage({
 }) {
   const { locale, eventId } = await params;
   setRequestLocale(locale);
-  const { session, org, user } = await requireProContext(locale);
+  const { org, user, sessionToken } = await requireProContext(locale);
   const convex = getConvexServerClient();
 
-  const event = await convex.query(convexApi.getEventById, {
-    eventId,
-    requesterId: session.userId,
-  });
+  const event = await convex.query(convexApi.getEventById, { eventId, sessionToken });
   if (!event || event.organizationId !== org._id) {
     redirect({ href: '/pro/weddings', locale });
   }
 
   const [counts, budget, planning, orgEvents, guests, cockpit, seatingPlan, coupleLinks] =
     await Promise.all([
-      convex.query(convexApi.countGuestsByEvent, { eventId, requesterId: session.userId }),
-      convex.query(convexApi.budgetListByEvent, { eventId, requesterId: session.userId }),
-      convex.query(convexApi.planningListByEvent, { eventId, requesterId: session.userId }),
-      convex.query(convexApi.listOrgEvents, {
-        organizationId: org._id,
-        requesterId: session.userId,
-      }),
-      convex.query(convexApi.listGuestsByEvent, { eventId, requesterId: session.userId }),
-      convex.query(convexApi.proCockpit, { userId: session.userId }),
+      convex.query(convexApi.countGuestsByEvent, { eventId, sessionToken }),
+      convex.query(convexApi.budgetListByEvent, { eventId, sessionToken }),
+      convex.query(convexApi.planningListByEvent, { eventId, sessionToken }),
+      convex.query(convexApi.listOrgEvents, { organizationId: org._id, sessionToken }),
+      convex.query(convexApi.listGuestsByEvent, { eventId, sessionToken }),
+      convex.query(convexApi.proCockpit, { sessionToken }),
       // Le plan de table requiert l'entitlement seatingPlan ; on dégrade en null sinon.
-      convex
-        .query(convexApi.getSeatingPlan, { eventId, requesterId: session.userId })
-        .catch(() => null),
-      convex.query(convexApi.coupleLinks, { eventId, requesterId: session.userId }).catch(() => []),
+      convex.query(convexApi.getSeatingPlan, { eventId, sessionToken }).catch(() => null),
+      convex.query(convexApi.coupleLinks, { eventId, sessionToken }).catch(() => []),
     ]);
 
   const tier = org.subscriptionTier ?? null;

@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 import { ArrowLeft, Calendar, Camera, Eye, MapPin } from 'lucide-react';
 import { Link, redirect } from '@/i18n/navigation';
 import { getSession } from '@/lib/auth/session';
-import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
+import { convexApi, getConvexServerClient, sessionTokenArg } from '@/lib/auth/convex-server';
 import { asCinematicId, isCinematicId } from '@/components/invitation/cinematics/registry';
 import { isMusicTrackId, musicTrackSrc } from '@/lib/invitation/music';
 import { InvitationShell } from '@/components/invitation/invitation-shell';
@@ -45,9 +45,10 @@ export default async function EventPreviewPage({
   }
 
   const convex = getConvexServerClient();
+  const sessionToken = await sessionTokenArg();
   const event = await convex.query(convexApi.getEventById, {
     eventId,
-    requesterId: session!.userId,
+    sessionToken,
   });
   if (!event) notFound();
 

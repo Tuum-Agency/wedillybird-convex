@@ -20,7 +20,7 @@ export default async function ProIntegrationsPage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const { session, org, user } = await requireProContext(locale);
+  const { sessionToken, org, user } = await requireProContext(locale);
   const t = await getTranslations('ProPages');
   const connectors: ReadonlyArray<{ name: string; desc: string; Icon: typeof Zap }> = [
     {
@@ -63,7 +63,7 @@ export default async function ProIntegrationsPage({
   const convex = getConvexServerClient();
   const clients = await convex.query(convexApi.clientsListByOrg, {
     organizationId: org._id,
-    requesterId: session.userId,
+    sessionToken,
   });
   const existingNames = clients.map((c) => c.partnerA);
 

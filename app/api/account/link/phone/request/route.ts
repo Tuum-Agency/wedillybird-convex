@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { phoneSchema } from '@/lib/validators/auth';
-import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
+import { convexApi, getConvexServerClient, sessionTokenArg } from '@/lib/auth/convex-server';
 import { getSession } from '@/lib/auth/session';
 import { assertSameOrigin } from '@/lib/auth/csrf';
 
@@ -37,7 +37,7 @@ export async function POST(request: Request) {
   try {
     const ip = clientIp(request);
     await getConvexServerClient().action(convexApi.requestLinkPhone, {
-      userId: session.userId,
+      sessionToken: await sessionTokenArg(),
       phone: parsed.data.phone,
       ...(ip ? { ipAddress: ip } : {}),
     });

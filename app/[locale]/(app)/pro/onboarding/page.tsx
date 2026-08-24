@@ -1,7 +1,7 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { redirect } from '@/i18n/navigation';
 import { getSession } from '@/lib/auth/session';
-import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
+import { convexApi, getConvexServerClient, sessionTokenArg } from '@/lib/auth/convex-server';
 import { ProShell } from '@/components/pro/pro-shell';
 import { OrgOnboardingForm } from '@/components/pro/org-onboarding-form';
 
@@ -17,12 +17,11 @@ export default async function ProOnboardingPage({
   if (!session) redirect({ href: '/sign-in', locale });
 
   const convex = getConvexServerClient();
-  const existing = await convex.query(convexApi.myOrganization, {
-    userId: session!.userId,
-  });
+  const sessionToken = await sessionTokenArg();
+  const existing = await convex.query(convexApi.myOrganization, { sessionToken });
   if (existing) redirect({ href: '/pro/dashboard', locale });
 
-  const user = await convex.query(convexApi.currentUser, { userId: session!.userId });
+  const user = await convex.query(convexApi.currentUser, { sessionToken });
   if (!user || (user.role !== 'pro' && user.role !== 'admin')) {
     redirect({ href: '/dashboard', locale });
   }

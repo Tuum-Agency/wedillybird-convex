@@ -13,6 +13,7 @@ import { eventQuotaForTier, eventHasFeature, orgHasActiveAccess } from './lib/en
 import { assertInvitationDesignAllowed } from './lib/invitationDesign';
 import { assertEventAccess } from './lib/eventAuth';
 import { assertOrgWrite } from './lib/orgAuth';
+import { IDENTITY_ARGS, requireUserIdCompat } from './lib/verifiedSession';
 import { BUDGET_CURRENCY } from './lib/currency';
 import { normalizePhone, isValidE164 } from './lib/phone';
 import { summarizeGuestRsvp } from './lib/guestStats';
@@ -36,8 +37,10 @@ function toSlugBase(partnerA: string, partnerB: string): string {
 const ANTI_ABUSE_GUEST_CAP = 5000;
 
 export const reconcileMaxGuests = mutation({
-  args: { eventId: v.id('events'), requesterId: v.id('users') },
-  handler: async (ctx, { eventId, requesterId }) => {
+  args: { eventId: v.id('events'), ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    const { eventId } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     const ev = await ctx.db.get(eventId);
     if (!ev) throw new Error('EVENT_NOT_FOUND');
     if (ev.ownerId !== requesterId) throw new Error('FORBIDDEN');
@@ -55,7 +58,7 @@ export const reconcileMaxGuests = mutation({
 export const update = mutation({
   args: {
     eventId: v.id('events'),
-    requesterId: v.id('users'),
+    ...IDENTITY_ARGS,
     title: v.optional(v.string()),
     partnerA: v.optional(v.string()),
     partnerB: v.optional(v.string()),
@@ -102,9 +105,10 @@ export const update = mutation({
     ),
   },
   handler: async (ctx, args) => {
+    const requesterId = await requireUserIdCompat(ctx, args);
     const ev = await ctx.db.get(args.eventId);
     if (!ev) throw new Error('EVENT_NOT_FOUND');
-    if (ev.ownerId !== args.requesterId) throw new Error('FORBIDDEN');
+    if (ev.ownerId !== requesterId) throw new Error('FORBIDDEN');
     assertInvitationDesignAllowed(ev, {
       cinematic: args.invitationCinematic,
       music: args.invitationMusic,
@@ -203,7 +207,7 @@ export const update = mutation({
 export const updateMessagingConfig = mutation({
   args: {
     eventId: v.id('events'),
-    requesterId: v.id('users'),
+    ...IDENTITY_ARGS,
     templateStyle: v.optional(
       v.union(
         v.literal('classic'),
@@ -224,9 +228,10 @@ export const updateMessagingConfig = mutation({
     ),
   },
   handler: async (ctx, args) => {
+    const requesterId = await requireUserIdCompat(ctx, args);
     const ev = await ctx.db.get(args.eventId);
     if (!ev) throw new Error('EVENT_NOT_FOUND');
-    if (ev.ownerId !== args.requesterId) throw new Error('FORBIDDEN');
+    if (ev.ownerId !== requesterId) throw new Error('FORBIDDEN');
 
     const personalMessage = args.personalMessage?.trim() ?? undefined;
     if (personalMessage !== undefined && personalMessage.length > 60) {
@@ -279,7 +284,7 @@ export const updateMessagingConfig = mutation({
 export const updateRsvpConfig = mutation({
   args: {
     eventId: v.id('events'),
-    requesterId: v.id('users'),
+    ...IDENTITY_ARGS,
     config: v.object({
       askDietary: v.optional(v.boolean()),
       dietaryLabel: v.optional(v.string()),
@@ -308,10 +313,11 @@ export const updateRsvpConfig = mutation({
     }),
   },
   handler: async (ctx, args) => {
-    const event = await assertEventAccess(ctx, args.eventId, args.requesterId, { write: true });
+    const requesterId = await requireUserIdCompat(ctx, args);
+    const event = await assertEventAccess(ctx, args.eventId, requesterId, { write: true });
     if (!eventHasFeature(event, 'customRsvpQuestions')) throw new Error('FEATURE_LOCKED');
 
-    const isOwner = event.ownerId === args.requesterId;
+    const isOwner = event.ownerId === requesterId;
 
     // Le couple rattaché (collaborateur rôle `couple`) ne peut modifier le
     // questionnaire que si l'agence l'y a autorisé. Le personnel d'agence
@@ -320,9 +326,7 @@ export const updateRsvpConfig = mutation({
     if (!isOwner) {
       const collab = await ctx.db
         .query('eventCollaborators')
-        .withIndex('by_event_user', (q) =>
-          q.eq('eventId', args.eventId).eq('userId', args.requesterId),
-        )
+        .withIndex('by_event_user', (q) => q.eq('eventId', args.eventId).eq('userId', requesterId))
         .first();
       isDelegateCouple = collab?.role === 'couple';
     }
@@ -354,12 +358,12 @@ export const updateRsvpConfig = mutation({
 
     // Le couple a modifié le questionnaire d'un event d'agence → prévenir l'agence.
     if (isDelegateCouple && event.organizationId) {
-      const actor = await ctx.db.get(args.requesterId);
+      const actor = await ctx.db.get(requesterId);
       await notifyEventParties(ctx, {
         eventId: args.eventId,
         type: 'rsvp_config_changed',
         data: actor?.fullName ? { actorName: actor.fullName } : undefined,
-        excludeUserId: args.requesterId,
+        excludeUserId: requesterId,
         includeCouple: false,
       });
     }
@@ -401,11 +405,13 @@ export const updateRsvpConfig = mutation({
 export const setFaceSearchEnabled = mutation({
   args: {
     eventId: v.id('events'),
-    requesterId: v.id('users'),
+    ...IDENTITY_ARGS,
     enabled: v.boolean(),
     weddingState: v.optional(v.string()),
   },
-  handler: async (ctx, { eventId, requesterId, enabled, weddingState }) => {
+  handler: async (ctx, args) => {
+    const { eventId, enabled, weddingState } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     const event = await assertEventAccess(ctx, eventId, requesterId, { write: true });
 
     const nextWeddingState =
@@ -456,7 +462,7 @@ export const setFaceSearchEnabled = mutation({
 
 export const create = mutation({
   args: {
-    ownerId: v.id('users'),
+    ...IDENTITY_ARGS,
     title: v.string(),
     partnerA: v.string(),
     partnerB: v.string(),
@@ -487,7 +493,8 @@ export const create = mutation({
     weddingState: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const owner = await ctx.db.get(args.ownerId);
+    const ownerId = await requireUserIdCompat(ctx, args);
+    const owner = await ctx.db.get(ownerId);
     if (!owner) throw new Error('OWNER_NOT_FOUND');
 
     // Devise du budget : explicite > devise de l'org > préférence du couple.
@@ -500,7 +507,7 @@ export const create = mutation({
     // s'abonner. Miroir du publish gate ; le parcours couple (sans orga) n'est
     // pas concerné.
     if (args.organizationId) {
-      await assertOrgWrite(ctx, args.organizationId, args.ownerId);
+      await assertOrgWrite(ctx, args.organizationId, ownerId);
       if (!orgHasActiveAccess(orgForCurrency)) throw new Error('SUBSCRIPTION_REQUIRED');
     }
 
@@ -521,7 +528,7 @@ export const create = mutation({
 
     const now = Date.now();
     const id = await ctx.db.insert('events', {
-      ownerId: args.ownerId,
+      ownerId,
       slug,
       title,
       coupleNames: { partnerA, partnerB },
@@ -549,8 +556,9 @@ export const create = mutation({
 });
 
 export const listByOwner = query({
-  args: { ownerId: v.id('users') },
-  handler: async (ctx, { ownerId }) => {
+  args: { ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    const ownerId = await requireUserIdCompat(ctx, args);
     const rows = await ctx.db
       .query('events')
       .withIndex('by_owner', (q) => q.eq('ownerId', ownerId))
@@ -574,8 +582,10 @@ export const listByOwner = query({
 });
 
 export const getById = query({
-  args: { eventId: v.id('events'), requesterId: v.id('users') },
-  handler: async (ctx, { eventId, requesterId }) => {
+  args: { eventId: v.id('events'), ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    const { eventId } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     const ev = await ctx.db.get(eventId);
     if (!ev) return null;
     if (ev.ownerId !== requesterId) {
@@ -683,8 +693,10 @@ export function decidePublishGate(input: PaygPublishGateInput): PaygPublishGateD
  * crédit n'est pas touché.
  */
 export const publish = mutation({
-  args: { eventId: v.id('events'), requesterId: v.id('users') },
-  handler: async (ctx, { eventId, requesterId }) => {
+  args: { eventId: v.id('events'), ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    const { eventId } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     const ev = await ctx.db.get(eventId);
     if (!ev) throw new Error('EVENT_NOT_FOUND');
     if (ev.ownerId !== requesterId) throw new Error('FORBIDDEN');
@@ -744,8 +756,10 @@ export const publish = mutation({
  * Le compte exclut l'event courant (celui qu'on s'apprête à publier).
  */
 export const orgPublishQuotaStatus = query({
-  args: { eventId: v.id('events'), requesterId: v.id('users') },
-  handler: async (ctx, { eventId, requesterId }) => {
+  args: { eventId: v.id('events'), ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    const { eventId } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     const event = await ctx.db.get(eventId);
     if (!event || !event.organizationId) return { applicable: false as const };
     const orgId = event.organizationId;
@@ -821,8 +835,10 @@ async function cleanupEventFaceCollection(
  * true }` sans rien faire.
  */
 export const archive = mutation({
-  args: { eventId: v.id('events'), requesterId: v.id('users') },
-  handler: async (ctx, { eventId, requesterId }) => {
+  args: { eventId: v.id('events'), ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    const { eventId } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     const ev = await ctx.db.get(eventId);
     if (!ev) throw new Error('EVENT_NOT_FOUND');
     if (ev.ownerId !== requesterId) throw new Error('FORBIDDEN');
@@ -882,36 +898,15 @@ export const purgeExpiredBiometricData = internalMutation({
 });
 
 export const unpublish = mutation({
-  args: { eventId: v.id('events'), requesterId: v.id('users') },
-  handler: async (ctx, { eventId, requesterId }) => {
+  args: { eventId: v.id('events'), ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    const { eventId } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     const ev = await ctx.db.get(eventId);
     if (!ev) throw new Error('EVENT_NOT_FOUND');
     if (ev.ownerId !== requesterId) throw new Error('FORBIDDEN');
     await ctx.db.patch(eventId, { status: 'draft' as const, updatedAt: Date.now() });
     return { ok: true as const, status: 'draft' as const };
-  },
-});
-
-export const getBySlug = query({
-  args: { slug: v.string() },
-  handler: async (ctx, { slug }) => {
-    const ev = await ctx.db
-      .query('events')
-      .withIndex('by_slug', (q) => q.eq('slug', slug))
-      .first();
-    if (!ev) return null;
-    return {
-      _id: ev._id,
-      slug: ev.slug,
-      title: ev.title,
-      coupleNames: ev.coupleNames,
-      eventDate: ev.eventDate,
-      timezone: ev.timezone,
-      venue: ev.venue,
-      theme: ev.theme,
-      status: ev.status,
-      maxGuests: ev.maxGuests,
-    };
   },
 });
 
@@ -1014,12 +1009,13 @@ export type EventListItem = {
  * cf. auth.verifyOtp). Réservé à l'agence propriétaire du mariage (org-write).
  */
 export const linkCouple = mutation({
-  args: { eventId: v.id('events'), requesterId: v.id('users'), phone: v.string() },
+  args: { eventId: v.id('events'), ...IDENTITY_ARGS, phone: v.string() },
   handler: async (ctx, args) => {
+    const requesterId = await requireUserIdCompat(ctx, args);
     const event = await ctx.db.get(args.eventId);
     if (!event) throw new Error('EVENT_NOT_FOUND');
     if (!event.organizationId) throw new Error('NOT_AN_ORG_EVENT');
-    await assertOrgWrite(ctx, event.organizationId, args.requesterId);
+    await assertOrgWrite(ctx, event.organizationId, requesterId);
 
     const normalized = normalizePhone(args.phone);
     if (!normalized || !isValidE164(normalized)) throw new Error('INVALID_PHONE');
@@ -1053,7 +1049,7 @@ export const linkCouple = mutation({
       eventId: args.eventId,
       userId: user._id,
       role: 'couple',
-      invitedBy: args.requesterId,
+      invitedBy: requesterId,
       invitedAt: now,
       acceptedAt: now,
     });
@@ -1063,8 +1059,10 @@ export const linkCouple = mutation({
 
 /** Détache le couple d'un mariage (retire les collaborateurs rôle `couple`). Org-write. */
 export const unlinkCouple = mutation({
-  args: { eventId: v.id('events'), requesterId: v.id('users') },
-  handler: async (ctx, { eventId, requesterId }) => {
+  args: { eventId: v.id('events'), ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    const { eventId } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     const event = await ctx.db.get(eventId);
     if (!event) throw new Error('EVENT_NOT_FOUND');
     if (!event.organizationId) throw new Error('NOT_AN_ORG_EVENT');
@@ -1080,8 +1078,10 @@ export const unlinkCouple = mutation({
 
 /** Le ou les couples rattachés à un mariage (affichage agence). Org-read implicite via owner. */
 export const coupleLinks = query({
-  args: { eventId: v.id('events'), requesterId: v.id('users') },
-  handler: async (ctx, { eventId, requesterId }) => {
+  args: { eventId: v.id('events'), ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    const { eventId } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     const event = await ctx.db.get(eventId);
     if (!event || !event.organizationId) return [];
     await assertOrgWrite(ctx, event.organizationId, requesterId);
@@ -1106,8 +1106,10 @@ export const coupleLinks = query({
  * PAS le budget ni les marges de l'agence.
  */
 export const coupleOverview = query({
-  args: { eventId: v.id('events'), requesterId: v.id('users') },
-  handler: async (ctx, { eventId, requesterId }) => {
+  args: { eventId: v.id('events'), ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    const { eventId } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     const event = await assertEventAccess(ctx, eventId, requesterId);
     const guests = await ctx.db
       .query('guests')
@@ -1128,8 +1130,9 @@ export const coupleOverview = query({
 
 /** Mariages où l'user est rattaché comme `couple` — entrée de l'espace couple. */
 export const listMineAsCouple = query({
-  args: { userId: v.id('users') },
-  handler: async (ctx, { userId }) => {
+  args: { ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    const userId = await requireUserIdCompat(ctx, args);
     const collabs = await ctx.db
       .query('eventCollaborators')
       .withIndex('by_user', (q) => q.eq('userId', userId))

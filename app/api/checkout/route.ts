@@ -3,7 +3,7 @@ import { cookies } from 'next/headers';
 import { z } from 'zod';
 import { getSession } from '@/lib/auth/session';
 import { assertSameOrigin } from '@/lib/auth/csrf';
-import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
+import { convexApi, getConvexServerClient, sessionTokenArg } from '@/lib/auth/convex-server';
 import { PLANS } from '@/lib/payments/plans';
 import { detectCountryFromHeaders, routePayment } from '@/lib/payments/country';
 import { getPaymentDriver } from '@/lib/payments';
@@ -30,6 +30,10 @@ export async function POST(req: Request): Promise<Response> {
   } catch {
     return NextResponse.json({ error: 'INVALID_INPUT' }, { status: 400 });
   }
+
+  // Jeton présenté aux fonctions Convex authentifiées de cette route
+  // (réservation de crédit, enregistrement de l'intention de paiement).
+  const sessionToken = await sessionTokenArg();
 
   const plan = parsed.plan;
   const country = detectCountryFromHeaders(req.headers);
@@ -72,7 +76,7 @@ export async function POST(req: Request): Promise<Response> {
     try {
       const convex = getConvexServerClient();
       const reserved = await convex.mutation(convexApi.reserveCreditForCheckout, {
-        userId: session.userId,
+        sessionToken,
         reservationId,
         currency: routing.currency,
         orderMinor: amountMinor,
@@ -132,7 +136,7 @@ export async function POST(req: Request): Promise<Response> {
   try {
     const convex = getConvexServerClient();
     await convex.mutation(convexApi.recordPaymentIntent, {
-      userId: session.userId,
+      sessionToken,
       eventId: parsed.eventId,
       plan,
       currency: routing.currency,

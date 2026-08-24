@@ -2,7 +2,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import type { Metadata } from 'next';
 import { redirect } from '@/i18n/navigation';
 import { getSession } from '@/lib/auth/session';
-import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
+import { convexApi, getConvexServerClient, sessionTokenArg } from '@/lib/auth/convex-server';
 import { ProSidebarShell } from '@/components/pro/pro-sidebar-shell';
 import { NotificationsPanel } from '@/components/notifications/notifications-panel';
 import { Cockpit } from '@/components/pro/cockpit';
@@ -33,9 +33,10 @@ export default async function ProDashboardPage({
   if (!session) redirect({ href: '/sign-in', locale });
 
   const convex = getConvexServerClient();
+  const sessionToken = await sessionTokenArg();
   const [data, user] = await Promise.all([
-    convex.query(convexApi.proCockpit, { userId: session!.userId }),
-    convex.query(convexApi.currentUser, { userId: session!.userId }),
+    convex.query(convexApi.proCockpit, { sessionToken }),
+    convex.query(convexApi.currentUser, { sessionToken }),
   ]);
   if (!data) redirect({ href: '/pro/onboarding', locale });
 
@@ -75,7 +76,7 @@ export default async function ProDashboardPage({
         locale={locale}
       />
       <div className="container-page pb-12">
-        <NotificationsPanel userId={session!.userId} />
+        <NotificationsPanel />
       </div>
     </ProSidebarShell>
   );

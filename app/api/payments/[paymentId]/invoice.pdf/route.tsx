@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { renderToBuffer } from '@react-pdf/renderer';
 import { getLocale } from 'next-intl/server';
 import { getSession } from '@/lib/auth/session';
-import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
+import { convexApi, getConvexServerClient, sessionTokenArg } from '@/lib/auth/convex-server';
 import { buildInvoiceNumber, InvoicePDF, type InvoicePayment } from '@/lib/payments/invoice';
 
 /**
@@ -35,7 +35,7 @@ export async function GET(
   try {
     result = await convex.query(convexApi.getPaymentForInvoice, {
       paymentId,
-      requesterId: session.userId,
+      sessionToken: await sessionTokenArg(),
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'UNKNOWN';

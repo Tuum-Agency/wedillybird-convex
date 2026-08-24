@@ -1,5 +1,5 @@
-import { v } from 'convex/values';
 import { query } from './_generated/server';
+import { IDENTITY_ARGS, requireUserIdCompat } from './lib/verifiedSession';
 
 /**
  * Agrégats du **cockpit agence** (back-office pro).
@@ -27,8 +27,9 @@ function startOfMonthUtc(now: number): number {
 }
 
 export const cockpit = query({
-  args: { userId: v.id('users') },
-  handler: async (ctx, { userId }) => {
+  args: { ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    const userId = await requireUserIdCompat(ctx, args);
     const membership = await ctx.db
       .query('organizationMemberships')
       .withIndex('by_user', (q) => q.eq('userId', userId))

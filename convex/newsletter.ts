@@ -1,7 +1,13 @@
 import { v } from 'convex/values';
 import { internalMutation, internalQuery, mutation, query } from './_generated/server';
 import type { Id } from './_generated/dataModel';
+import { IDENTITY_ARGS, requireAdminCompat } from './lib/verifiedSession';
 
+/**
+ * Conservé pour les fonctions INTERNES de ce module (`campaignContext`,
+ * `createCampaign`), qui reçoivent un `adminId` déjà vérifié par leur
+ * appelant. Les fonctions publiques passent par `requireAdmin`.
+ */
 async function assertAdmin(
   ctx: { db: { get: (id: Id<'users'>) => Promise<{ role: string } | null> } },
   adminId: Id<'users'>,
@@ -196,9 +202,9 @@ export const finalizeCampaign = internalMutation({
 
 /** Historique des campagnes pour l'admin (plus récentes d'abord). */
 export const listCampaigns = query({
-  args: { adminId: v.id('users') },
-  handler: async (ctx, { adminId }) => {
-    await assertAdmin(ctx, adminId);
+  args: { ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    await requireAdminCompat(ctx, args);
     const campaigns = await ctx.db
       .query('newsletterCampaigns')
       .withIndex('by_createdAt')

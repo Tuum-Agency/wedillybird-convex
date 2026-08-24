@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import { redirect } from '@/i18n/navigation';
 import { getSession } from '@/lib/auth/session';
-import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
+import { convexApi, getConvexServerClient, sessionTokenArg } from '@/lib/auth/convex-server';
 import {
   getAcquisitionAnalytics,
   getRecentSessions,
@@ -45,9 +45,10 @@ export default async function AdminAcquisitionPage({
   const session = await getSession();
   if (!session) redirect({ href: '/sign-in', locale });
 
+  const sessionToken = await sessionTokenArg();
   const convex = getConvexServerClient();
   const [user, data, sessions] = await Promise.all([
-    convex.query(convexApi.currentUser, { userId: session!.userId }),
+    convex.query(convexApi.currentUser, { sessionToken }),
     getAcquisitionAnalytics(30),
     getRecentSessions(8),
   ]);

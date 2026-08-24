@@ -10,6 +10,7 @@ import {
 import { sendWhatsAppCloudTemplate, isWhatsAppCloudConfigured } from './lib/whatsappCloud';
 import { resolveChannel } from './lib/channelRouting';
 import { isTwilioConfigured, sendTwilioSms } from './lib/twilioSms';
+import { IDENTITY_ARGS, requireUserIdFromActionCompat } from './lib/verifiedSession';
 
 /**
  * Délai avant le contrôle de livraison post-broadcast : on laisse les
@@ -42,9 +43,11 @@ interface BroadcastResult {
 export const broadcast = action({
   args: {
     eventId: v.id('events'),
-    requesterId: v.id('users'),
+    ...IDENTITY_ARGS,
   },
-  handler: async (ctx, { eventId, requesterId }): Promise<BroadcastResult> => {
+  handler: async (ctx, args): Promise<BroadcastResult> => {
+    const { eventId } = args;
+    const requesterId = await requireUserIdFromActionCompat(ctx, args);
     const event = await ctx.runQuery(internal.events._getForBroadcast, {
       eventId,
       requesterId,
@@ -106,7 +109,9 @@ export const broadcast = action({
           statusCallback: smsStatusCallbackUrl,
         });
         if (!smsResult.ok) {
-          console.error(`[broadcast] SMS failed for ${guest.phone}: ${smsResult.error}`);
+          // Référence non identifiante : les logs Convex sont conservés et
+          // consultables, on n'y écrit pas le numéro de l'invité.
+          console.error(`[broadcast] SMS failed for guest ${guest._id}: ${smsResult.error}`);
           failed++;
           continue;
         }
@@ -156,7 +161,8 @@ export const broadcast = action({
       });
 
       if (!result.ok) {
-        console.error(`[broadcast] failed for ${guest.phone}: ${result.error}`);
+        // Idem SMS : identifiant d'invité, jamais le numéro.
+        console.error(`[broadcast] failed for guest ${guest._id}: ${result.error}`);
         failed++;
         continue;
       }

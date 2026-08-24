@@ -24,7 +24,7 @@ export default async function ProPlanningPage({
   const { locale } = await params;
   const sp = await searchParams;
   setRequestLocale(locale);
-  const { session, org, user } = await requireProContext(locale);
+  const { org, user, sessionToken } = await requireProContext(locale);
   const t = await getTranslations('ProPages');
   const shellOrg = {
     name: org.name,
@@ -37,7 +37,7 @@ export default async function ProPlanningPage({
   const convex = getConvexServerClient();
   const events = await convex.query(convexApi.listOrgEvents, {
     organizationId: org._id,
-    requesterId: session.userId,
+    sessionToken,
   });
 
   if (events.length === 0) {
@@ -74,7 +74,7 @@ export default async function ProPlanningPage({
   const selectedId = sp.event && events.some((e) => e._id === sp.event) ? sp.event : events[0]!._id;
   const planning = await convex.query(convexApi.planningListByEvent, {
     eventId: selectedId,
-    requesterId: session.userId,
+    sessionToken,
   });
   const eventOptions = events.map((e) => ({
     _id: e._id,
@@ -87,14 +87,8 @@ export default async function ProPlanningPage({
     status: e.status,
   }));
   const [rawMembers, customTemplates] = await Promise.all([
-    convex.query(convexApi.listOrgMembers, {
-      organizationId: org._id,
-      requesterId: session.userId,
-    }),
-    convex.query(convexApi.planningListTemplates, {
-      organizationId: org._id,
-      requesterId: session.userId,
-    }),
+    convex.query(convexApi.listOrgMembers, { organizationId: org._id, sessionToken }),
+    convex.query(convexApi.planningListTemplates, { organizationId: org._id, sessionToken }),
   ]);
   const members = rawMembers
     .filter((m) => m.status === 'active' && m.userId)

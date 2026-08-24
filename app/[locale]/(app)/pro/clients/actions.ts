@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { getSession } from '@/lib/auth/session';
-import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
+import { convexApi, getConvexServerClient, sessionTokenArg } from '@/lib/auth/convex-server';
 import { parseEurToMinor } from '@/lib/pro/format';
 import { isClientStage, type ClientStage } from '@/lib/pro/clients';
 
@@ -31,7 +31,8 @@ export async function createClientAction(formData: FormData): Promise<ClientActi
   const session = await getSession();
   if (!session) return { ok: false, error: 'UNAUTHENTICATED' };
   const convex = getConvexServerClient();
-  const org = await convex.query(convexApi.myOrganization, { userId: session.userId });
+  const sessionToken = await sessionTokenArg();
+  const org = await convex.query(convexApi.myOrganization, { sessionToken });
   if (!org) return { ok: false, error: 'NO_ORG' };
 
   const partnerA = str(formData, 'partnerA');
@@ -43,7 +44,7 @@ export async function createClientAction(formData: FormData): Promise<ClientActi
   try {
     const r = await convex.mutation(convexApi.createClient, {
       organizationId: org._id,
-      requesterId: session.userId,
+      sessionToken,
       partnerA,
       partnerB: str(formData, 'partnerB'),
       phone: str(formData, 'phone'),
@@ -80,9 +81,10 @@ export async function updateClientAction(
   const assigneeId = str(formData, 'assigneeId');
 
   try {
+    const sessionToken = await sessionTokenArg();
     await convex.mutation(convexApi.updateClient, {
       clientId,
-      requesterId: session.userId,
+      sessionToken,
       partnerA,
       partnerB: str(formData, 'partnerB') ?? '',
       phone: str(formData, 'phone') ?? '',
@@ -117,9 +119,10 @@ export async function getClientNotesAction(clientId: string): Promise<ClientNote
   if (!session) return [];
   const convex = getConvexServerClient();
   try {
+    const sessionToken = await sessionTokenArg();
     const notes = await convex.query(convexApi.clientNotesByClient, {
       clientId,
-      requesterId: session.userId,
+      sessionToken,
     });
     return notes ?? [];
   } catch {
@@ -136,9 +139,10 @@ export async function addClientNoteAction(
   if (!text.trim()) return { ok: false, error: 'INVALID_NOTE' };
   const convex = getConvexServerClient();
   try {
+    const sessionToken = await sessionTokenArg();
     await convex.mutation(convexApi.addClientNote, {
       clientId,
-      requesterId: session.userId,
+      sessionToken,
       text: text.trim(),
     });
     revalidatePath('/pro/clients');
@@ -157,9 +161,10 @@ export async function updateClientStageAction(
   if (!isClientStage(stage)) return { ok: false, error: 'INVALID_STAGE' };
   const convex = getConvexServerClient();
   try {
+    const sessionToken = await sessionTokenArg();
     await convex.mutation(convexApi.updateClientStage, {
       clientId,
-      requesterId: session.userId,
+      sessionToken,
       stage,
     });
     revalidatePath('/pro/clients');
@@ -174,7 +179,8 @@ export async function removeClientAction(clientId: string): Promise<ClientAction
   if (!session) return { ok: false, error: 'UNAUTHENTICATED' };
   const convex = getConvexServerClient();
   try {
-    await convex.mutation(convexApi.removeClient, { clientId, requesterId: session.userId });
+    const sessionToken = await sessionTokenArg();
+    await convex.mutation(convexApi.removeClient, { clientId, sessionToken });
     revalidatePath('/pro/clients');
     return { ok: true };
   } catch (e) {
@@ -187,9 +193,10 @@ export async function convertClientAction(clientId: string): Promise<ClientActio
   if (!session) return { ok: false, error: 'UNAUTHENTICATED' };
   const convex = getConvexServerClient();
   try {
+    const sessionToken = await sessionTokenArg();
     const r = await convex.mutation(convexApi.convertClientToWedding, {
       clientId,
-      requesterId: session.userId,
+      sessionToken,
     });
     revalidatePath('/pro/clients');
     return { ok: true, eventId: r.eventId };

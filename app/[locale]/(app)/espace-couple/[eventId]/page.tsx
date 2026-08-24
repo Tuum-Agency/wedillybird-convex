@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import { Calendar, MapPin, Users, CreditCard, ExternalLink, CheckCircle2 } from 'lucide-react';
 import { getSession } from '@/lib/auth/session';
 import { redirect } from '@/i18n/navigation';
-import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
+import { convexApi, getConvexServerClient, sessionTokenArg } from '@/lib/auth/convex-server';
 import { AppShell } from '@/components/app/app-shell';
 import { GuestsManager } from '@/components/guests/guests-manager';
 import { NotificationsPanel } from '@/components/notifications/notifications-panel';
@@ -37,21 +37,19 @@ export default async function CoupleEventPage({
   const session = await getSession();
   if (!session) redirect({ href: '/sign-in', locale });
 
+  const sessionToken = await sessionTokenArg();
   const convex = getConvexServerClient();
   let overview;
   try {
-    overview = await convex.query(convexApi.coupleOverview, {
-      eventId,
-      requesterId: session!.userId,
-    });
+    overview = await convex.query(convexApi.coupleOverview, { eventId, sessionToken });
   } catch {
     notFound();
   }
   const [guests, payments, user, event] = await Promise.all([
-    convex.query(convexApi.listGuestsByEvent, { eventId, requesterId: session!.userId }),
-    convex.query(convexApi.listPaymentLinksForEvent, { eventId, requesterId: session!.userId }),
-    convex.query(convexApi.currentUser, { userId: session!.userId }),
-    convex.query(convexApi.getEventById, { eventId, requesterId: session!.userId }),
+    convex.query(convexApi.listGuestsByEvent, { eventId, sessionToken }),
+    convex.query(convexApi.listPaymentLinksForEvent, { eventId, sessionToken }),
+    convex.query(convexApi.currentUser, { sessionToken }),
+    convex.query(convexApi.getEventById, { eventId, sessionToken }),
   ]);
 
   const t = await getTranslations('CoupleSpace');
@@ -132,7 +130,7 @@ export default async function CoupleEventPage({
         </section>
 
         {/* Notifications du couple (réponses invités, infos de l'agence…) */}
-        <NotificationsPanel userId={session!.userId} />
+        <NotificationsPanel />
 
         {/* Invités (capacité 2) — composant partagé */}
         <section className="flex flex-col gap-5">

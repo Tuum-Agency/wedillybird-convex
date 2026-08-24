@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { getSession } from '@/lib/auth/session';
-import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
+import { convexApi, getConvexServerClient, sessionTokenArg } from '@/lib/auth/convex-server';
 import type { DocStatus, LineItem, QuoteDocType } from '@/lib/pro/quotes';
 
 export type QuoteActionResult =
@@ -34,7 +34,7 @@ export async function createDocAction(
   try {
     const r = await convex.mutation(convexApi.quotesCreate, {
       organizationId,
-      requesterId: session.userId,
+      sessionToken: await sessionTokenArg(),
       type: payload.type,
       clientId: payload.clientId,
       eventId: payload.eventId,
@@ -58,10 +58,11 @@ export async function updateDocAction(
   const session = await getSession();
   if (!session) return { ok: false, error: 'UNAUTHENTICATED' };
   const convex = getConvexServerClient();
+  const sessionToken = await sessionTokenArg();
   try {
     await convex.mutation(convexApi.quotesUpdate, {
       docId,
-      requesterId: session.userId,
+      sessionToken,
       clientId: payload.clientId,
       eventId: payload.eventId,
       lineItems: payload.lineItems,
@@ -72,7 +73,7 @@ export async function updateDocAction(
     if (payload.status) {
       await convex.mutation(convexApi.quotesUpdateStatus, {
         docId,
-        requesterId: session.userId,
+        sessionToken,
         status: payload.status,
       });
     }
@@ -93,7 +94,7 @@ export async function updateStatusAction(
   try {
     await convex.mutation(convexApi.quotesUpdateStatus, {
       docId,
-      requesterId: session.userId,
+      sessionToken: await sessionTokenArg(),
       status,
     });
     revalidatePath('/pro/quotes');
@@ -113,7 +114,7 @@ export async function recordPaymentAction(
   try {
     await convex.mutation(convexApi.quotesRecordSchedulePayment, {
       docId,
-      requesterId: session.userId,
+      sessionToken: await sessionTokenArg(),
       index,
     });
     revalidatePath('/pro/quotes');
@@ -130,7 +131,7 @@ export async function convertDocAction(docId: string): Promise<QuoteActionResult
   try {
     const r = await convex.mutation(convexApi.quotesConvertToInvoice, {
       docId,
-      requesterId: session.userId,
+      sessionToken: await sessionTokenArg(),
     });
     revalidatePath('/pro/quotes');
     return { ok: true, id: r.id, number: r.number };
@@ -144,7 +145,10 @@ export async function removeDocAction(docId: string): Promise<QuoteActionResult>
   if (!session) return { ok: false, error: 'UNAUTHENTICATED' };
   const convex = getConvexServerClient();
   try {
-    await convex.mutation(convexApi.quotesRemove, { docId, requesterId: session.userId });
+    await convex.mutation(convexApi.quotesRemove, {
+      docId,
+      sessionToken: await sessionTokenArg(),
+    });
     revalidatePath('/pro/quotes');
     return { ok: true, id: docId };
   } catch (e) {

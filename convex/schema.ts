@@ -1717,4 +1717,38 @@ export default defineSchema({
     alertedAt: v.number(),
     stalePendingCount: v.number(),
   }).index('by_event', ['eventId']),
+
+  /**
+   * Sessions authentifiées **vérifiables côté Convex**.
+   *
+   * Avant (audit archi 2026-08-23) : les fonctions publiques recevaient un
+   * `requesterId` / `adminId` en argument et le croyaient sur parole. Comme le
+   * déploiement Convex est joignable directement depuis le navigateur
+   * (`NEXT_PUBLIC_CONVEX_URL`), n'importe qui pouvait appeler une mutation avec
+   * l'id d'autrui et usurper son identité (prise de contrôle admin, transfert
+   * d'organisation, fuite de la liste d'invités…).
+   *
+   * Désormais l'appelant présente un `sessionToken` opaque ; seul son SHA-256
+   * est stocké ici (le token brut ne touche jamais la base, comme pour l'OTP).
+   * Convex re-résout l'identité à chaque appel via `by_token_hash`.
+   *
+   * `kind` sépare les deux porteurs :
+   *  - `server` : vit uniquement dans le cookie httpOnly (server actions).
+   *  - `client` : remis au JS du navigateur pour les `useQuery`/`useMutation`
+   *    directs, donc TTL court — un vol par XSS expire vite.
+   *
+   * `revokedAt` donne la révocation active qui manquait : déconnexion,
+   * suspension ou changement de rôle invalident les sessions immédiatement,
+   * au lieu d'attendre les 30 jours du cookie.
+   */
+  authSessions: defineTable({
+    tokenHash: v.string(),
+    userId: v.id('users'),
+    kind: v.union(v.literal('server'), v.literal('client')),
+    createdAt: v.number(),
+    expiresAt: v.number(),
+    revokedAt: v.optional(v.number()),
+  })
+    .index('by_token_hash', ['tokenHash'])
+    .index('by_user', ['userId']),
 });

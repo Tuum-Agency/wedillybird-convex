@@ -1,7 +1,7 @@
 'use server';
 
 import { getSession } from '@/lib/auth/session';
-import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
+import { convexApi, getConvexServerClient, sessionTokenArg } from '@/lib/auth/convex-server';
 import type { SeatingPlan } from '@/lib/seating/board';
 
 export type SeatingActionResult = { ok: true } | { ok: false; error: string };
@@ -30,7 +30,7 @@ export async function createTableAction(
     const convex = getConvexServerClient();
     const res = await convex.mutation(convexApi.createTable, {
       eventId,
-      requesterId: session.userId,
+      sessionToken: await sessionTokenArg(),
       ...(input?.name ? { name: input.name } : {}),
       ...(input?.capacity ? { capacity: input.capacity } : {}),
     });
@@ -56,7 +56,7 @@ export async function updateTableAction(
     const convex = getConvexServerClient();
     await convex.mutation(convexApi.updateTable, {
       tableId,
-      requesterId: session.userId,
+      sessionToken: await sessionTokenArg(),
       ...(input.name !== undefined ? { name: input.name } : {}),
       ...(input.capacity !== undefined ? { capacity: input.capacity } : {}),
       ...(input.shape !== undefined ? { shape: input.shape } : {}),
@@ -92,15 +92,16 @@ export async function autoAssignGuestsAction(
   if (!session) return { ok: false, error: 'UNAUTHENTICATED' };
   try {
     const convex = getConvexServerClient();
+    const sessionToken = await sessionTokenArg();
     const res = await convex.mutation(convexApi.autoAssignGuests, {
       eventId,
-      requesterId: session.userId,
+      sessionToken,
       ...(opts?.mode ? { mode: opts.mode } : {}),
       ...(opts?.settings ? { settings: opts.settings } : {}),
     });
     const plan = (await convex.query(convexApi.getSeatingPlan, {
       eventId,
-      requesterId: session.userId,
+      sessionToken,
     })) as SeatingPlan;
     return {
       ok: true,
@@ -119,7 +120,10 @@ export async function deleteTableAction(tableId: string): Promise<SeatingActionR
   if (!session) return { ok: false, error: 'UNAUTHENTICATED' };
   try {
     const convex = getConvexServerClient();
-    await convex.mutation(convexApi.deleteTable, { tableId, requesterId: session.userId });
+    await convex.mutation(convexApi.deleteTable, {
+      tableId,
+      sessionToken: await sessionTokenArg(),
+    });
     return { ok: true };
   } catch (err) {
     return mapError(err);
@@ -141,7 +145,7 @@ export async function assignSeatAction(
       guestId,
       memberIndex,
       tableId,
-      requesterId: session.userId,
+      sessionToken: await sessionTokenArg(),
     });
     return { ok: true };
   } catch (err) {

@@ -2,6 +2,7 @@ import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
 import { internal } from './_generated/api';
 import { assertWebhookSecret } from './lib/webhookSecret';
+import { IDENTITY_ARGS, requireUserIdCompat } from './lib/verifiedSession';
 
 const CURRENCY = v.union(
   v.literal('EUR'),
@@ -83,8 +84,10 @@ export const markPurchase = mutation({
 });
 
 export const getCreditsByOrganization = query({
-  args: { organizationId: v.id('organizations'), requesterId: v.id('users') },
-  handler: async (ctx, { organizationId, requesterId }) => {
+  args: { organizationId: v.id('organizations'), ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    const { organizationId } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     const org = await ctx.db.get(organizationId);
     if (!org) return null;
     if (org.ownerId !== requesterId) {
@@ -107,8 +110,10 @@ export const getCreditsByOrganization = query({
  * largement au-delà de la volumétrie attendue par compte pro.
  */
 export const listByOrganization = query({
-  args: { organizationId: v.id('organizations'), requesterId: v.id('users') },
-  handler: async (ctx, { organizationId, requesterId }) => {
+  args: { organizationId: v.id('organizations'), ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    const { organizationId } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     const org = await ctx.db.get(organizationId);
     if (!org) return [];
     if (org.ownerId !== requesterId) {

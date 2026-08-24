@@ -3,6 +3,7 @@ import { ConvexHttpClient } from 'convex/browser';
 import type { FunctionReference } from 'convex/server';
 import type { GenericId } from 'convex/values';
 import { api } from '@/convex/_generated/api';
+import { requireConvexToken, type ConvexSessionKind } from './convex-token';
 
 let cachedClient: ConvexHttpClient | null = null;
 
@@ -60,6 +61,10 @@ type FacadeOf<T> = { [K in keyof T]: WithStringIdArgs<T[K]> };
  * bruts ; c'est neutre à l'exécution.
  */
 const rawConvexApi = {
+  // ---- Pont d'identité Next → Convex (cf. lib/auth/convex-token.ts) ----
+  ensureAuthSession: api.authSessions.ensure,
+  revokeAuthSessions: api.authSessions.revokeAllForUser,
+
   requestOtp: api.auth.requestOtp,
   verifyOtp: api.auth.verifyOtp,
   requestMagicLink: api.auth.requestMagicLink,
@@ -224,7 +229,6 @@ const rawConvexApi = {
   markPaygPurchase: api.paygPurchases.markPurchase,
   getPaygCreditsByOrganization: api.paygPurchases.getCreditsByOrganization,
   listPaygPurchasesByOrganization: api.paygPurchases.listByOrganization,
-  getUserById: api.users.getById,
   newsletterSubscribe: api.newsletter.subscribe,
   newsletterUnsubscribe: api.newsletter.unsubscribe,
   newsletterListCampaigns: api.newsletter.listCampaigns,
@@ -336,3 +340,101 @@ const rawConvexApi = {
  * une identité runtime (mêmes objets `FunctionReference`).
  */
 export const convexApi = rawConvexApi as FacadeOf<typeof rawConvexApi>;
+
+/* -------------------------------------------------------------------------- */
+/*  Jeton de session Convex (remplace les anciens `requesterId` en argument)   */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Fenêtre pendant laquelle on considère la ligne `authSessions` déjà en place
+ * pour ce token, afin de ne pas ré-émettre un `ensure` à chaque server action.
+ * Très inférieure au TTL Convex (30 j) : c'est un cache, pas une autorité.
+ */
+const ENSURE_TTL_MS = 10 * 60 * 1000;
+const ENSURE_CACHE_MAX = 500;
+const ensuredUntil = new Map<string, number>();
+
+function markEnsured(token: string): void {
+  // Borne mémoire : au-delà du plafond on repart d'un cache vide plutôt que de
+  // laisser la Map croître sans fin sur une instance chaude.
+  if (ensuredUntil.size >= ENSURE_CACHE_MAX) ensuredUntil.clear();
+  ensuredUntil.set(token, Date.now() + ENSURE_TTL_MS);
+}
+
+function webhookSecret(): string {
+  const secret = process.env.CONVEX_WEBHOOK_SECRET;
+  if (!secret) throw new Error('WEBHOOK_SECRET_NOT_CONFIGURED');
+  return secret;
+}
+
+/**
+ * Jeton à passer en `sessionToken` aux fonctions Convex depuis un contexte
+ * serveur (server action, route handler).
+ *
+ * Remplace le `requesterId: session.userId` d'avant l'audit : Convex ne croit
+ * plus l'identité sur parole, il la re-résout depuis ce jeton.
+ *
+ * Garantit au passage que la ligne `authSessions` existe côté Convex — ce qui
+ * rend la migration transparente pour les sessions déjà ouvertes (aucune
+ * déconnexion forcée au déploiement).
+ *
+ * Throw `UNAUTHENTICATED` si aucune session valide, ou si la session a été
+ * révoquée (déconnexion globale, suspension) : il faut alors se reconnecter.
+ */
+export async function convexSessionToken(
+  kind: ConvexSessionKind = 'server',
+): Promise<{ sessionToken: string; userId: string }> {
+  const { session, sessionToken } = await requireConvexToken(kind);
+  const cachedUntil = ensuredUntil.get(sessionToken) ?? 0;
+  if (cachedUntil > Date.now()) return { sessionToken, userId: session.userId };
+
+  try {
+    await getConvexServerClient().mutation(convexApi.ensureAuthSession, {
+      sessionToken,
+      userId: session.userId,
+      kind,
+      secret: webhookSecret(),
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : '';
+    // Session révoquée côté Convex : le cookie est périmé de fait.
+    if (message.includes('SESSION_REVOKED')) throw new Error('UNAUTHENTICATED');
+    throw err;
+  }
+  markEnsured(sessionToken);
+  return { sessionToken, userId: session.userId };
+}
+
+/** Raccourci quand seul le jeton est nécessaire. */
+export async function sessionTokenArg(kind: ConvexSessionKind = 'server'): Promise<string> {
+  const { sessionToken } = await convexSessionToken(kind);
+  return sessionToken;
+}
+
+/**
+ * Variante non bloquante, pour les surfaces qui acceptent un appelant anonyme
+ * (signalement de bug depuis une page publique, recherche par selfie côté
+ * invité…). Renvoie `undefined` plutôt que de throw : côté Convex ces
+ * fonctions utilisent `optionalUserId`, donc l'absence de jeton dégrade en
+ * anonyme au lieu de refuser.
+ */
+export async function optionalSessionTokenArg(
+  kind: ConvexSessionKind = 'server',
+): Promise<string | undefined> {
+  try {
+    return await sessionTokenArg(kind);
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * Invalide toutes les sessions Convex d'un compte (déconnexion, suspension,
+ * changement de rôle). À appeler en complément de la suppression du cookie.
+ */
+export async function revokeConvexSessions(userId: string): Promise<void> {
+  await getConvexServerClient().mutation(convexApi.revokeAuthSessions, {
+    userId,
+    secret: webhookSecret(),
+  });
+}
