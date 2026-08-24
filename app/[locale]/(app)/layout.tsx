@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { redirect } from '@/i18n/navigation';
 import { getSession } from '@/lib/auth/session';
-import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
+import { convexApi, getConvexServerClient, sessionTokenArg } from '@/lib/auth/convex-server';
 import { PostHogIdentify } from '@/components/analytics/posthog-identify';
 import { BugReportWidget } from '@/components/bug-report/bug-report-widget';
 import { SessionHydrator } from '@/components/providers/session-hydrator';
@@ -22,8 +22,10 @@ export default async function AppLayout({
   // Profil non-PII pour l'identité analytics. Best-effort : ne doit jamais
   // bloquer le rendu de l'espace authentifié.
   const user = session
-    ? await getConvexServerClient()
-        .query(convexApi.currentUser, { userId: session.userId })
+    ? await sessionTokenArg()
+        .then((sessionToken) =>
+          getConvexServerClient().query(convexApi.currentUser, { sessionToken }),
+        )
         .catch(() => null)
     : null;
 

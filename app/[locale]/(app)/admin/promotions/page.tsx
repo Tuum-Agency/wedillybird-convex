@@ -1,7 +1,7 @@
 import { setRequestLocale } from 'next-intl/server';
 import { redirect } from '@/i18n/navigation';
 import { getSession } from '@/lib/auth/session';
-import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
+import { convexApi, getConvexServerClient, sessionTokenArg } from '@/lib/auth/convex-server';
 import { AdminShell } from '@/components/admin/admin-shell';
 import { AdminPromotionsBoard } from '@/components/admin/admin-promotions-board';
 import { adminListPromotionsAction } from '@/app/[locale]/(app)/admin/actions';
@@ -17,11 +17,12 @@ export default async function AdminPromotionsPage({
   const session = await getSession();
   if (!session) redirect({ href: '/sign-in', locale });
 
+  const sessionToken = await sessionTokenArg();
   const convex = getConvexServerClient();
   const [user, promos, orgs] = await Promise.all([
-    convex.query(convexApi.currentUser, { userId: session!.userId }),
+    convex.query(convexApi.currentUser, { sessionToken }),
     adminListPromotionsAction(),
-    convex.query(convexApi.adminListAllOrganizations, { adminId: session!.userId }),
+    convex.query(convexApi.adminListAllOrganizations, { sessionToken }),
   ]);
 
   // Seules les orgs avec un abonnement Stripe peuvent recevoir une remise directe.

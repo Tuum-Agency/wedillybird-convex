@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getSession } from '@/lib/auth/session';
 import { assertSameOrigin } from '@/lib/auth/csrf';
-import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
+import { convexApi, getConvexServerClient, sessionTokenArg } from '@/lib/auth/convex-server';
 
 /**
  * POST /api/checkin/sync — drain de la queue Dexie de check-ins offline.
@@ -57,6 +57,7 @@ export async function POST(request: Request) {
     );
   }
 
+  const sessionToken = await sessionTokenArg();
   const convex = getConvexServerClient();
   const { eventId, checkIns } = parsed.data;
 
@@ -75,7 +76,7 @@ export async function POST(request: Request) {
       const result = await convex.mutation(convexApi.checkInByToken, {
         token: item.token,
         eventId,
-        requesterId: session.userId,
+        sessionToken,
       });
       results.push({
         token: item.token,

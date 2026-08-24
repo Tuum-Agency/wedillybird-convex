@@ -8,16 +8,21 @@ import { Link } from '@/i18n/navigation';
 import { cn } from '@/lib/cn';
 import { clientApi } from '@/lib/convex/client-api';
 import { renderNotificationText, relativeTime } from '@/lib/notifications/render';
+import { useConvexSessionToken } from '@/stores/convex-session-store';
 
 /**
  * Cloche de notifications in-app — réactive (`useQuery`, mise à jour en direct).
  * Rendu **inline** (pas de portail) : hérite du `data-theme` du shell parent →
  * theme-portable (light couple / dark agence) via tokens sémantiques.
+ *
+ * L'identité vient du `sessionToken` vérifié par Convex : tant qu'il n'est pas
+ * chargé la requête est `'skip'` et la cloche s'affiche sans badge.
  */
-export function NotificationBell({ userId }: { userId: string }) {
+export function NotificationBell() {
   const t = useTranslations('Notifications');
   const locale = useLocale();
-  const data = useQuery(clientApi.notificationsForUser, { userId });
+  const sessionToken = useConvexSessionToken();
+  const data = useQuery(clientApi.notificationsForUser, sessionToken ? { sessionToken } : 'skip');
   const markAllRead = useMutation(clientApi.markAllNotificationsRead);
   const markRead = useMutation(clientApi.markNotificationRead);
   const [open, setOpen] = useState(false);
@@ -74,7 +79,9 @@ export function NotificationBell({ userId }: { userId: string }) {
               {unread > 0 ? (
                 <button
                   type="button"
-                  onClick={() => void markAllRead({ userId })}
+                  onClick={() => {
+                    if (sessionToken) void markAllRead({ sessionToken });
+                  }}
                   className="focus-ring inline-flex items-center gap-1 text-xs text-[color:var(--color-primary)] transition-opacity hover:opacity-80"
                 >
                   <CheckCheck className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />
@@ -133,7 +140,8 @@ export function NotificationBell({ userId }: { userId: string }) {
                             className={cls}
                             onClick={() => {
                               setOpen(false);
-                              if (isUnread) void markRead({ notificationId: n._id, userId });
+                              if (isUnread && sessionToken)
+                                void markRead({ notificationId: n._id, sessionToken });
                             }}
                           >
                             {body}

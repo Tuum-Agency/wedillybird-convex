@@ -20,7 +20,7 @@ export default async function ProContractsPage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const { session, org, user } = await requireProContext(locale);
+  const { sessionToken, org, user } = await requireProContext(locale);
   const t = await getTranslations('ProPages');
   const tier = org.subscriptionTier ?? null;
   const locked = !tierHasFeature(tier, 'documentsEsign');
@@ -50,7 +50,7 @@ export default async function ProContractsPage({
   const convex = getConvexServerClient();
   const data = await convex.query(convexApi.contractsListByOrg, {
     organizationId: org._id,
-    requesterId: session.userId,
+    sessionToken,
   });
   const canWrite = org.myRole !== 'viewer';
 

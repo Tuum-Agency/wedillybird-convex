@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { getSession } from '@/lib/auth/session';
-import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
+import { convexApi, getConvexServerClient, sessionTokenArg } from '@/lib/auth/convex-server';
 import { parseEurToMinor } from '@/lib/pro/format';
 import { createBudgetCheckout } from '@/lib/payments/drivers/stripe';
 import { appOrigin } from '@/lib/reminders/window';
@@ -39,9 +39,10 @@ export async function createBudgetLineAction(
   if (!label) return { ok: false, error: 'INVALID_LABEL' };
   const convex = getConvexServerClient();
   try {
+    const sessionToken = await sessionTokenArg();
     const r = await convex.mutation(convexApi.createBudgetLine, {
       eventId,
-      requesterId: session.userId,
+      sessionToken,
       category: str(formData, 'category') ?? 'Divers',
       label,
       vendorName: str(formData, 'vendorName'),
@@ -67,9 +68,10 @@ export async function updateBudgetLineAction(
   const convex = getConvexServerClient();
   const dd = dateMs(str(formData, 'dueDate'));
   try {
+    const sessionToken = await sessionTokenArg();
     await convex.mutation(convexApi.updateBudgetLine, {
       lineId,
-      requesterId: session.userId,
+      sessionToken,
       category: str(formData, 'category') ?? 'Divers',
       label,
       vendorName: str(formData, 'vendorName') ?? '',
@@ -92,9 +94,10 @@ export async function setBudgetEnvelopeAction(
   const convex = getConvexServerClient();
   const envelopeMinor = parseEurToMinor(envelopeEur) ?? 0;
   try {
+    const sessionToken = await sessionTokenArg();
     await convex.mutation(convexApi.setBudgetEnvelope, {
       eventId,
-      requesterId: session.userId,
+      sessionToken,
       envelopeMinor,
     });
     revalidatePath('/pro/budget');
@@ -109,7 +112,8 @@ export async function removeBudgetLineAction(lineId: string): Promise<BudgetActi
   if (!session) return { ok: false, error: 'UNAUTHENTICATED' };
   const convex = getConvexServerClient();
   try {
-    await convex.mutation(convexApi.removeBudgetLine, { lineId, requesterId: session.userId });
+    const sessionToken = await sessionTokenArg();
+    await convex.mutation(convexApi.removeBudgetLine, { lineId, sessionToken });
     revalidatePath('/pro/budget');
     return { ok: true };
   } catch (e) {
@@ -143,6 +147,7 @@ export async function addBudgetPaymentAction(
   const note = str(formData, 'note');
 
   const convex = getConvexServerClient();
+  const sessionToken = await sessionTokenArg();
 
   let proofStorageId: string | undefined;
   let proofFileName: string | undefined;
@@ -153,7 +158,7 @@ export async function addBudgetPaymentAction(
     try {
       const { uploadUrl } = await convex.mutation(convexApi.generateBudgetProofUploadUrl, {
         lineId,
-        requesterId: session.userId,
+        sessionToken,
       });
       const buffer = Buffer.from(await file.arrayBuffer());
       const res = await fetch(uploadUrl, {
@@ -173,7 +178,7 @@ export async function addBudgetPaymentAction(
   try {
     const r = await convex.mutation(convexApi.addBudgetPayment, {
       lineId,
-      requesterId: session.userId,
+      sessionToken,
       amountMinor,
       method,
       ...(paidAt ? { paidAt } : {}),
@@ -195,7 +200,7 @@ export async function removeBudgetPaymentAction(paymentId: string): Promise<Budg
   try {
     await convex.mutation(convexApi.removeBudgetPayment, {
       paymentId,
-      requesterId: session.userId,
+      sessionToken: await sessionTokenArg(),
     });
     revalidatePath('/pro/budget');
     return { ok: true };
@@ -220,12 +225,13 @@ export async function createBudgetPaymentLinkAction(
   if (amountMinor == null || amountMinor <= 0) return { ok: false, error: 'INVALID_AMOUNT' };
 
   const convex = getConvexServerClient();
+  const sessionToken = await sessionTokenArg();
 
   let intent: { id: string; label: string; vendorName?: string; connectAccountId: string | null };
   try {
     intent = await convex.mutation(convexApi.createBudgetOnlinePaymentIntent, {
       lineId,
-      requesterId: session.userId,
+      sessionToken,
       amountMinor,
     });
   } catch (e) {
@@ -242,7 +248,7 @@ export async function createBudgetPaymentLinkAction(
     try {
       await convex.mutation(convexApi.removeBudgetPayment, {
         paymentId: intent.id,
-        requesterId: session.userId,
+        sessionToken,
       });
     } catch {
       // best-effort
@@ -260,7 +266,7 @@ export async function createBudgetPaymentLinkAction(
     });
     await convex.mutation(convexApi.attachBudgetOnlineSession, {
       paymentId: intent.id,
-      requesterId: session.userId,
+      sessionToken,
       providerSessionId,
       checkoutUrl: redirectUrl,
     });
@@ -272,7 +278,7 @@ export async function createBudgetPaymentLinkAction(
     try {
       await convex.mutation(convexApi.removeBudgetPayment, {
         paymentId: intent.id,
-        requesterId: session.userId,
+        sessionToken,
       });
     } catch {
       // best-effort

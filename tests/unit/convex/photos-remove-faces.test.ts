@@ -1,5 +1,6 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { remove } from '../../../convex/photos';
+import { TEST_SESSION_TOKEN, mockAuthSessionsQuery } from './helpers/auth-session';
 
 /**
  * Helper : matche un schedule call par la forme de ses args plutôt que par
@@ -55,6 +56,11 @@ function buildCtx(opts: {
   photo: MockPhoto | null;
   event: MockEvent | null;
   photoFaces: MockPhotoFace[];
+  /**
+   * Identité résolue depuis le `sessionToken` : c'est désormais Convex qui la
+   * détermine (table `authSessions`), plus l'appelant via un argument.
+   */
+  sessionUserId?: string;
 }) {
   const deleteCalls: string[] = [];
   const scheduleCalls: Array<{ ref: unknown; args: unknown }> = [];
@@ -68,6 +74,9 @@ function buildCtx(opts: {
         return null;
       }),
       query: vi.fn((table: string) => {
+        if (table === 'authSessions') {
+          return mockAuthSessionsQuery(opts.sessionUserId ?? 'user_1');
+        }
         if (table === 'photoFaces') {
           return {
             withIndex: (_indexName: string, _filter: unknown) => ({
@@ -121,7 +130,7 @@ describe('photos:remove — cleanup photoFaces + Rekognition DeleteFaces', () =>
 
     const result = await removeFn._handler(ctx, {
       photoId: 'photo_1',
-      requesterId: 'user_1',
+      sessionToken: TEST_SESSION_TOKEN,
     });
 
     expect(result).toEqual({ ok: true });
@@ -168,7 +177,7 @@ describe('photos:remove — cleanup photoFaces + Rekognition DeleteFaces', () =>
 
     const { ctx, deleteCalls, scheduleCalls } = buildCtx({ photo, event, photoFaces });
 
-    await removeFn._handler(ctx, { photoId: 'photo_2', requesterId: 'user_1' });
+    await removeFn._handler(ctx, { photoId: 'photo_2', sessionToken: TEST_SESSION_TOKEN });
 
     // Les rows DB sont quand même supprimées.
     expect(deleteCalls).toContain('pf_3');
@@ -196,7 +205,7 @@ describe('photos:remove — cleanup photoFaces + Rekognition DeleteFaces', () =>
 
     const { ctx, deleteCalls, scheduleCalls } = buildCtx({ photo, event, photoFaces: [] });
 
-    await removeFn._handler(ctx, { photoId: 'photo_3', requesterId: 'user_1' });
+    await removeFn._handler(ctx, { photoId: 'photo_3', sessionToken: TEST_SESSION_TOKEN });
 
     // La photo est bien supprimée.
     expect(deleteCalls).toContain('photo_3');
@@ -213,7 +222,7 @@ describe('photos:remove — cleanup photoFaces + Rekognition DeleteFaces', () =>
     const { ctx } = buildCtx({ photo: null, event: null, photoFaces: [] });
 
     await expect(
-      removeFn._handler(ctx, { photoId: 'photo_missing', requesterId: 'user_1' }),
+      removeFn._handler(ctx, { photoId: 'photo_missing', sessionToken: TEST_SESSION_TOKEN }),
     ).rejects.toThrow('PHOTO_NOT_FOUND');
   });
 
@@ -221,10 +230,10 @@ describe('photos:remove — cleanup photoFaces + Rekognition DeleteFaces', () =>
     const photo: MockPhoto = { _id: 'photo_4', eventId: 'event_4', s3Key: 'raw/x.jpg' };
     const event: MockEvent = { _id: 'event_4', ownerId: 'owner_other' };
 
-    const { ctx } = buildCtx({ photo, event, photoFaces: [] });
+    const { ctx } = buildCtx({ photo, event, photoFaces: [], sessionUserId: 'user_intruder' });
 
     await expect(
-      removeFn._handler(ctx, { photoId: 'photo_4', requesterId: 'user_intruder' }),
+      removeFn._handler(ctx, { photoId: 'photo_4', sessionToken: TEST_SESSION_TOKEN }),
     ).rejects.toThrow('FORBIDDEN');
   });
 
@@ -245,7 +254,7 @@ describe('photos:remove — cleanup photoFaces + Rekognition DeleteFaces', () =>
 
     const { ctx, scheduleCalls, storageDeleteCalls } = buildCtx({ photo, event, photoFaces });
 
-    await removeFn._handler(ctx, { photoId: 'photo_5', requesterId: 'user_1' });
+    await removeFn._handler(ctx, { photoId: 'photo_5', sessionToken: TEST_SESSION_TOKEN });
 
     // Pas de schedule S3 (la photo est en Convex storage legacy).
     const s3DeleteCall = findScheduleByArgs<{ s3Key: string }>(

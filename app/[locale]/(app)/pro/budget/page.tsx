@@ -22,7 +22,7 @@ export default async function ProBudgetPage({
   const { locale } = await params;
   const sp = await searchParams;
   setRequestLocale(locale);
-  const { session, org, user } = await requireProContext(locale);
+  const { sessionToken, org, user } = await requireProContext(locale);
   const t = await getTranslations('ProPages');
   const tier = org.subscriptionTier ?? null;
   const canEdit = tierHasFeature(tier, 'budgetEditing');
@@ -32,7 +32,7 @@ export default async function ProBudgetPage({
   const convex = getConvexServerClient();
   const events = await convex.query(convexApi.listOrgEvents, {
     organizationId: org._id,
-    requesterId: session.userId,
+    sessionToken,
   });
 
   if (events.length === 0) {
@@ -69,11 +69,11 @@ export default async function ProBudgetPage({
   const [budget, vendors] = await Promise.all([
     convex.query(convexApi.budgetListByEvent, {
       eventId: selectedId,
-      requesterId: session.userId,
+      sessionToken,
     }),
     convex.query(convexApi.vendorsListByOrg, {
       organizationId: org._id,
-      requesterId: session.userId,
+      sessionToken,
     }),
   ]);
 

@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { getSession } from '@/lib/auth/session';
-import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
+import { convexApi, getConvexServerClient, sessionTokenArg } from '@/lib/auth/convex-server';
 import { createConnectedAccount, createAccountOnboardingLink } from '@/lib/payments/drivers/stripe';
 import { appOrigin } from '@/lib/reminders/window';
 import { asBudgetCurrency } from '@/lib/currency';
@@ -34,7 +34,7 @@ export async function createOrganizationAction(formData: FormData): Promise<Crea
   try {
     const convex = getConvexServerClient();
     const { id, slug } = await convex.mutation(convexApi.createOrganization, {
-      ownerId: session.userId,
+      sessionToken: await sessionTokenArg(),
       name,
       primaryColor: primary,
       accentColor: accent,
@@ -74,11 +74,12 @@ export async function createOrgWeddingAction(input: {
   if (!Number.isFinite(input.eventDate)) return { ok: false, error: 'INVALID_DATE' };
   try {
     const convex = getConvexServerClient();
-    const org = await convex.query(convexApi.myOrganization, { userId: session.userId });
+    const sessionToken = await sessionTokenArg();
+    const org = await convex.query(convexApi.myOrganization, { sessionToken });
     if (!org) return { ok: false, error: 'NOT_PRO' };
     const venueName = input.venueName?.trim();
     const res = await convex.mutation(convexApi.createEvent, {
-      ownerId: session.userId,
+      sessionToken,
       organizationId: org._id,
       title: `${partnerA} & ${partnerB}`,
       partnerA,
@@ -132,7 +133,7 @@ export async function inviteMemberAction(
     const convex = getConvexServerClient();
     const result = await convex.mutation(convexApi.inviteOrgMember, {
       organizationId,
-      requesterId: session.userId,
+      sessionToken: await sessionTokenArg(),
       phone,
       email,
       role,
@@ -159,7 +160,7 @@ export async function revokeMemberAction(
     const convex = getConvexServerClient();
     await convex.mutation(convexApi.revokeOrgMembership, {
       membershipId,
-      requesterId: session.userId,
+      sessionToken: await sessionTokenArg(),
     });
     revalidatePath('/pro/team');
     return { ok: true };
@@ -178,7 +179,7 @@ export async function changeMemberRoleAction(
     const convex = getConvexServerClient();
     await convex.mutation(convexApi.updateMemberRole, {
       membershipId,
-      requesterId: session.userId,
+      sessionToken: await sessionTokenArg(),
       role,
     });
     revalidatePath('/pro/team');
@@ -195,7 +196,10 @@ export async function cancelInviteAction(
   if (!session) return { ok: false, error: 'UNAUTHORIZED' };
   try {
     const convex = getConvexServerClient();
-    await convex.mutation(convexApi.cancelOrgInvite, { membershipId, requesterId: session.userId });
+    await convex.mutation(convexApi.cancelOrgInvite, {
+      membershipId,
+      sessionToken: await sessionTokenArg(),
+    });
     revalidatePath('/pro/team');
     return { ok: true };
   } catch (err) {
@@ -212,7 +216,7 @@ export async function resendInviteAction(
     const convex = getConvexServerClient();
     const r = await convex.mutation(convexApi.resendOrgInvite, {
       membershipId,
-      requesterId: session.userId,
+      sessionToken: await sessionTokenArg(),
     });
     revalidatePath('/pro/team');
     return { ok: true, inviteToken: r.inviteToken };
@@ -230,7 +234,7 @@ export async function reactivateMemberAction(
     const convex = getConvexServerClient();
     await convex.mutation(convexApi.reactivateOrgMember, {
       membershipId,
-      requesterId: session.userId,
+      sessionToken: await sessionTokenArg(),
     });
     revalidatePath('/pro/team');
     return { ok: true };
@@ -249,7 +253,7 @@ export async function acceptInviteAction(
     const convex = getConvexServerClient();
     const result = await convex.mutation(convexApi.acceptOrgInvite, {
       token,
-      userId: session.userId,
+      sessionToken: await sessionTokenArg(),
     });
     revalidatePath('/pro/dashboard');
     return { ok: true, organizationId: result.organizationId };
@@ -301,9 +305,11 @@ export async function updateOrgBrandingAction(formData: FormData): Promise<Updat
 
   const convex = getConvexServerClient();
 
+  let sessionToken: string;
   let org;
   try {
-    org = await convex.query(convexApi.myOrganization, { userId: session.userId });
+    sessionToken = await sessionTokenArg();
+    org = await convex.query(convexApi.myOrganization, { sessionToken });
   } catch {
     return { ok: false, error: 'UNKNOWN' };
   }
@@ -323,7 +329,7 @@ export async function updateOrgBrandingAction(formData: FormData): Promise<Updat
     try {
       const r = await convex.mutation(convexApi.generateOrgLogoUploadUrl, {
         organizationId: org._id,
-        requesterId: session.userId,
+        sessionToken,
       });
       uploadUrl = r.uploadUrl;
     } catch {
@@ -349,7 +355,7 @@ export async function updateOrgBrandingAction(formData: FormData): Promise<Updat
     try {
       await convex.mutation(convexApi.setOrgLogo, {
         organizationId: org._id,
-        requesterId: session.userId,
+        sessionToken,
         logoStorageId: storageId,
       });
       logoStorageId = storageId;
@@ -362,7 +368,7 @@ export async function updateOrgBrandingAction(formData: FormData): Promise<Updat
     try {
       await convex.mutation(convexApi.clearOrgLogo, {
         organizationId: org._id,
-        requesterId: session.userId,
+        sessionToken,
       });
     } catch (err) {
       const message = err instanceof Error ? err.message : 'UNKNOWN';
@@ -376,7 +382,7 @@ export async function updateOrgBrandingAction(formData: FormData): Promise<Updat
     try {
       await convex.mutation(convexApi.updateOrgBranding, {
         organizationId: org._id,
-        requesterId: session.userId,
+        sessionToken,
         primaryColor: primary || undefined,
         accentColor: accent || undefined,
       });
@@ -404,12 +410,13 @@ export async function transferOwnershipAction(newOwnerUserId: string): Promise<D
   const session = await getSession();
   if (!session) return { ok: false, error: 'UNAUTHORIZED' };
   const convex = getConvexServerClient();
-  const org = await convex.query(convexApi.myOrganization, { userId: session.userId });
+  const sessionToken = await sessionTokenArg();
+  const org = await convex.query(convexApi.myOrganization, { sessionToken });
   if (!org) return { ok: false, error: 'NO_ORG' };
   try {
     await convex.mutation(convexApi.transferOrgOwnership, {
       organizationId: org._id,
-      requesterId: session.userId,
+      sessionToken,
       newOwnerUserId,
     });
     revalidatePath('/pro/settings');
@@ -425,12 +432,13 @@ export async function deleteOrganizationAction(confirmName: string): Promise<Dan
   const session = await getSession();
   if (!session) return { ok: false, error: 'UNAUTHORIZED' };
   const convex = getConvexServerClient();
-  const org = await convex.query(convexApi.myOrganization, { userId: session.userId });
+  const sessionToken = await sessionTokenArg();
+  const org = await convex.query(convexApi.myOrganization, { sessionToken });
   if (!org) return { ok: false, error: 'NO_ORG' };
   try {
     await convex.mutation(convexApi.deleteOrganization, {
       organizationId: org._id,
-      requesterId: session.userId,
+      sessionToken,
       confirmName,
     });
     revalidatePath('/pro/dashboard');
@@ -450,12 +458,13 @@ export async function updateNotificationPrefsAction(
   const session = await getSession();
   if (!session) return { ok: false, error: 'UNAUTHORIZED' };
   const convex = getConvexServerClient();
-  const org = await convex.query(convexApi.myOrganization, { userId: session.userId });
+  const sessionToken = await sessionTokenArg();
+  const org = await convex.query(convexApi.myOrganization, { sessionToken });
   if (!org) return { ok: false, error: 'NO_ORG' };
   try {
     await convex.mutation(convexApi.updateNotificationPrefs, {
       organizationId: org._id,
-      requesterId: session.userId,
+      sessionToken,
       prefs,
     });
     revalidatePath('/pro/settings');
@@ -478,12 +487,13 @@ export async function updateMessagingDefaultsAction(defaults: {
   const session = await getSession();
   if (!session) return { ok: false, error: 'UNAUTHORIZED' };
   const convex = getConvexServerClient();
-  const org = await convex.query(convexApi.myOrganization, { userId: session.userId });
+  const sessionToken = await sessionTokenArg();
+  const org = await convex.query(convexApi.myOrganization, { sessionToken });
   if (!org) return { ok: false, error: 'NO_ORG' };
   try {
     await convex.mutation(convexApi.updateMessagingDefaults, {
       organizationId: org._id,
-      requesterId: session.userId,
+      sessionToken,
       defaults,
     });
     revalidatePath('/pro/settings');
@@ -502,12 +512,13 @@ export async function setPaymentsSettingsAction(input: {
   const session = await getSession();
   if (!session) return { ok: false, error: 'UNAUTHORIZED' };
   const convex = getConvexServerClient();
-  const org = await convex.query(convexApi.myOrganization, { userId: session.userId });
+  const sessionToken = await sessionTokenArg();
+  const org = await convex.query(convexApi.myOrganization, { sessionToken });
   if (!org) return { ok: false, error: 'NO_ORG' };
   try {
     await convex.mutation(convexApi.setPaymentsSettings, {
       organizationId: org._id,
-      requesterId: session.userId,
+      sessionToken,
       ...input,
     });
     revalidatePath('/pro/payments');
@@ -528,12 +539,13 @@ export async function updateWhiteLabelAction(input: {
   const session = await getSession();
   if (!session) return { ok: false, error: 'UNAUTHORIZED' };
   const convex = getConvexServerClient();
-  const org = await convex.query(convexApi.myOrganization, { userId: session.userId });
+  const sessionToken = await sessionTokenArg();
+  const org = await convex.query(convexApi.myOrganization, { sessionToken });
   if (!org) return { ok: false, error: 'NO_ORG' };
   try {
     await convex.mutation(convexApi.updateWhiteLabel, {
       organizationId: org._id,
-      requesterId: session.userId,
+      sessionToken,
       customDomain: input.customDomain,
       senderEmail: input.senderEmail,
       whiteLabelFull: input.whiteLabelFull,
@@ -575,7 +587,8 @@ export async function startStripeConnectAction(): Promise<ConnectStartResult> {
   const session = await getSession();
   if (!session) return { ok: false, error: 'UNAUTHORIZED' };
   const convex = getConvexServerClient();
-  const org = await convex.query(convexApi.myOrganization, { userId: session.userId });
+  const sessionToken = await sessionTokenArg();
+  const org = await convex.query(convexApi.myOrganization, { sessionToken });
   if (!org) return { ok: false, error: 'NO_ORG' };
   if (org.myRole !== 'owner' && org.myRole !== 'admin') return { ok: false, error: 'FORBIDDEN' };
 
@@ -583,7 +596,7 @@ export async function startStripeConnectAction(): Promise<ConnectStartResult> {
     // Réutilise le compte connecté existant (onboarding repris) ou en crée un.
     const status = await convex.query(convexApi.orgConnectStatus, {
       organizationId: org._id,
-      requesterId: session.userId,
+      sessionToken,
     });
     let accountId = status.accountId;
     if (!accountId) {
@@ -591,7 +604,7 @@ export async function startStripeConnectAction(): Promise<ConnectStartResult> {
       accountId = created.accountId;
       await convex.mutation(convexApi.setConnectAccount, {
         organizationId: org._id,
-        requesterId: session.userId,
+        sessionToken,
         stripeConnectAccountId: accountId,
       });
     }
@@ -616,14 +629,15 @@ export async function disconnectStripeConnectAction(): Promise<ConnectDisconnect
   const session = await getSession();
   if (!session) return { ok: false, error: 'UNAUTHORIZED' };
   const convex = getConvexServerClient();
-  const org = await convex.query(convexApi.myOrganization, { userId: session.userId });
+  const sessionToken = await sessionTokenArg();
+  const org = await convex.query(convexApi.myOrganization, { sessionToken });
   if (!org) return { ok: false, error: 'NO_ORG' };
   if (org.myRole !== 'owner' && org.myRole !== 'admin') return { ok: false, error: 'FORBIDDEN' };
 
   try {
     await convex.mutation(convexApi.disconnectStripeAccount, {
       organizationId: org._id,
-      requesterId: session.userId,
+      sessionToken,
     });
     revalidatePath('/pro/payments');
     return { ok: true };
@@ -656,7 +670,7 @@ export async function linkCoupleAction(eventId: string, phone: string): Promise<
     const convex = getConvexServerClient();
     const res = await convex.mutation(convexApi.linkCouple, {
       eventId,
-      requesterId: session.userId,
+      sessionToken: await sessionTokenArg(),
       phone,
     });
     revalidatePath(`/pro/weddings/${eventId}`);
@@ -678,7 +692,10 @@ export async function unlinkCoupleAction(
   if (!session) return { ok: false, error: 'UNAUTHORIZED' };
   try {
     const convex = getConvexServerClient();
-    await convex.mutation(convexApi.unlinkCouple, { eventId, requesterId: session.userId });
+    await convex.mutation(convexApi.unlinkCouple, {
+      eventId,
+      sessionToken: await sessionTokenArg(),
+    });
     revalidatePath(`/pro/weddings/${eventId}`);
     return { ok: true };
   } catch (err) {

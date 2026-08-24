@@ -2,7 +2,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { redirect } from '@/i18n/navigation';
 import { getSession } from '@/lib/auth/session';
-import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
+import { convexApi, getConvexServerClient, sessionTokenArg } from '@/lib/auth/convex-server';
 import { PrintButton } from '@/components/seating/print-button';
 
 /**
@@ -25,9 +25,10 @@ export default async function SeatingPrintPage({
   }
 
   const convex = getConvexServerClient();
+  const sessionToken = await sessionTokenArg();
   const event = await convex.query(convexApi.getEventById, {
     eventId,
-    requesterId: session!.userId,
+    sessionToken,
   });
   if (!event) notFound();
 
@@ -37,7 +38,7 @@ export default async function SeatingPrintPage({
 
   const plan = await convex.query(convexApi.getSeatingPlan, {
     eventId,
-    requesterId: session!.userId,
+    sessionToken,
   });
   const t = await getTranslations('Seating');
 

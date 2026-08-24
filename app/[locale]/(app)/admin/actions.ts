@@ -1,7 +1,6 @@
 'use server';
 
-import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
-import { getSession } from '@/lib/auth/session';
+import { convexApi, convexSessionToken, getConvexServerClient } from '@/lib/auth/convex-server';
 import { revalidatePath } from 'next/cache';
 import {
   refundPlatformPayment,
@@ -28,15 +27,15 @@ type ActionResult = { ok: true } | { ok: false; error: string };
 /**
  * Vérifie une session ET le rôle `admin` (la session seule ne suffit pas pour
  * les actions financières qui touchent Stripe LIVE avant tout appel Convex).
- * Renvoie l'id de l'admin pour le passer aux fonctions Convex (qui revérifient).
+ * Renvoie le jeton de session à passer aux fonctions Convex (qui revérifient
+ * l'identité et le rôle à partir de ce jeton).
  */
 async function requireAdmin(): Promise<string> {
-  const session = await getSession();
-  if (!session) throw new Error('UNAUTHENTICATED');
+  const { sessionToken } = await convexSessionToken();
   const convex = getConvexServerClient();
-  const user = await convex.query(convexApi.currentUser, { userId: session.userId });
-  if (!user || user.role !== 'admin') throw new Error('FORBIDDEN');
-  return session.userId;
+  const user = await convex.query(convexApi.currentUser, { sessionToken });
+  if (user.role !== 'admin') throw new Error('FORBIDDEN');
+  return sessionToken;
 }
 
 function msg(e: unknown): string {
@@ -45,9 +44,9 @@ function msg(e: unknown): string {
 
 export async function adminSuspendUserAction(targetUserId: string): Promise<ActionResult> {
   try {
-    const adminId = await requireAdmin();
+    const sessionToken = await requireAdmin();
     const convex = getConvexServerClient();
-    await convex.mutation(convexApi.adminSuspendUser, { adminId, targetUserId });
+    await convex.mutation(convexApi.adminSuspendUser, { sessionToken, targetUserId });
     revalidatePath('/admin/users');
     return { ok: true };
   } catch (e: unknown) {
@@ -60,9 +59,9 @@ export async function adminChangeUserRoleAction(
   newRole: 'couple' | 'pro' | 'guest' | 'admin',
 ): Promise<ActionResult> {
   try {
-    const adminId = await requireAdmin();
+    const sessionToken = await requireAdmin();
     const convex = getConvexServerClient();
-    await convex.mutation(convexApi.adminChangeUserRole, { adminId, targetUserId, newRole });
+    await convex.mutation(convexApi.adminChangeUserRole, { sessionToken, targetUserId, newRole });
     revalidatePath('/admin/users');
     return { ok: true };
   } catch (e: unknown) {
@@ -75,9 +74,9 @@ export async function adminUpdateEventStatusAction(
   newStatus: 'draft' | 'active' | 'archived' | 'cancelled',
 ): Promise<ActionResult> {
   try {
-    const adminId = await requireAdmin();
+    const sessionToken = await requireAdmin();
     const convex = getConvexServerClient();
-    await convex.mutation(convexApi.adminUpdateEventStatus, { adminId, eventId, newStatus });
+    await convex.mutation(convexApi.adminUpdateEventStatus, { sessionToken, eventId, newStatus });
     revalidatePath('/admin/events');
     return { ok: true };
   } catch (e: unknown) {
@@ -87,9 +86,9 @@ export async function adminUpdateEventStatusAction(
 
 export async function adminDeleteEventAction(eventId: string): Promise<ActionResult> {
   try {
-    const adminId = await requireAdmin();
+    const sessionToken = await requireAdmin();
     const convex = getConvexServerClient();
-    await convex.mutation(convexApi.adminDeleteEvent, { adminId, eventId });
+    await convex.mutation(convexApi.adminDeleteEvent, { sessionToken, eventId });
     revalidatePath('/admin/events');
     return { ok: true };
   } catch (e: unknown) {
@@ -102,9 +101,9 @@ export async function adminModeratePhotoAction(
   decision: 'approved' | 'rejected',
 ): Promise<ActionResult> {
   try {
-    const adminId = await requireAdmin();
+    const sessionToken = await requireAdmin();
     const convex = getConvexServerClient();
-    await convex.mutation(convexApi.adminModeratePhoto, { adminId, photoId, decision });
+    await convex.mutation(convexApi.adminModeratePhoto, { sessionToken, photoId, decision });
     revalidatePath('/admin/moderation');
     return { ok: true };
   } catch (e: unknown) {
@@ -131,9 +130,12 @@ export async function adminRefundPaymentAction(
   amountMinor?: number,
 ): Promise<RefundResult> {
   try {
-    const adminId = await requireAdmin();
+    const sessionToken = await requireAdmin();
     const convex = getConvexServerClient();
-    const info = await convex.query(convexApi.adminGetPaymentRefundInfo, { adminId, paymentId });
+    const info = await convex.query(convexApi.adminGetPaymentRefundInfo, {
+      sessionToken,
+      paymentId,
+    });
 
     if (info.status !== 'succeeded' && info.status !== 'partially_refunded') {
       return { ok: false, error: 'NOT_REFUNDABLE' };
@@ -158,7 +160,7 @@ export async function adminRefundPaymentAction(
     }
 
     const marked = await convex.mutation(convexApi.adminMarkPaymentRefunded, {
-      adminId,
+      sessionToken,
       paymentId,
       refundAmountMinor: appliedAmount,
       stripeRefundId,
@@ -182,17 +184,17 @@ export async function adminCancelSubscriptionAction(
   mode: 'period_end' | 'immediate',
 ): Promise<ActionResult> {
   try {
-    const adminId = await requireAdmin();
+    const sessionToken = await requireAdmin();
     const convex = getConvexServerClient();
     const info = await convex.query(convexApi.adminGetOrgSubscriptionInfo, {
-      adminId,
+      sessionToken,
       organizationId,
     });
     if (!info.stripeSubscriptionId) return { ok: false, error: 'NO_SUBSCRIPTION' };
 
     await cancelPlatformSubscription(info.stripeSubscriptionId, mode);
     await convex.mutation(convexApi.adminMarkSubscriptionCanceled, {
-      adminId,
+      sessionToken,
       organizationId,
       mode,
     });
@@ -209,16 +211,19 @@ export async function adminReactivateSubscriptionAction(
   organizationId: string,
 ): Promise<ActionResult> {
   try {
-    const adminId = await requireAdmin();
+    const sessionToken = await requireAdmin();
     const convex = getConvexServerClient();
     const info = await convex.query(convexApi.adminGetOrgSubscriptionInfo, {
-      adminId,
+      sessionToken,
       organizationId,
     });
     if (!info.stripeSubscriptionId) return { ok: false, error: 'NO_SUBSCRIPTION' };
 
     await reactivatePlatformSubscription(info.stripeSubscriptionId);
-    await convex.mutation(convexApi.adminMarkSubscriptionReactivated, { adminId, organizationId });
+    await convex.mutation(convexApi.adminMarkSubscriptionReactivated, {
+      sessionToken,
+      organizationId,
+    });
 
     revalidatePath('/admin/subscriptions');
     revalidatePath('/admin');
@@ -240,10 +245,10 @@ export async function adminListOrgInvoicesAction(
   organizationId: string,
 ): Promise<OrgInvoicesResult> {
   try {
-    const adminId = await requireAdmin();
+    const sessionToken = await requireAdmin();
     const convex = getConvexServerClient();
     const info = await convex.query(convexApi.adminGetOrgSubscriptionInfo, {
-      adminId,
+      sessionToken,
       organizationId,
     });
     if (!info.stripeCustomerId) return { ok: true, invoices: [], orgName: info.name };
@@ -297,7 +302,7 @@ export type CreateCouponInput = {
 
 export async function adminCreateCouponAction(input: CreateCouponInput): Promise<ActionResult> {
   try {
-    const adminId = await requireAdmin();
+    const sessionToken = await requireAdmin();
     const convex = getConvexServerClient();
 
     const isTrial = input.kind === 'trial';
@@ -352,7 +357,7 @@ export async function adminCreateCouponAction(input: CreateCouponInput): Promise
     }
 
     await convex.mutation(convexApi.adminLogAction, {
-      adminId,
+      sessionToken,
       action: 'create_coupon',
       targetType: 'coupon',
       targetId: coupon.id,
@@ -373,11 +378,11 @@ export async function adminCreateCouponAction(input: CreateCouponInput): Promise
 
 export async function adminDeleteCouponAction(couponId: string): Promise<ActionResult> {
   try {
-    const adminId = await requireAdmin();
+    const sessionToken = await requireAdmin();
     const convex = getConvexServerClient();
     await deleteCoupon(couponId);
     await convex.mutation(convexApi.adminLogAction, {
-      adminId,
+      sessionToken,
       action: 'delete_coupon',
       targetType: 'coupon',
       targetId: couponId,
@@ -397,11 +402,11 @@ export async function adminCreatePromotionCodeAction(input: {
   restrictToFirstTime?: boolean;
 }): Promise<ActionResult> {
   try {
-    const adminId = await requireAdmin();
+    const sessionToken = await requireAdmin();
     const convex = getConvexServerClient();
     const pc = await createPromotionCode(input);
     await convex.mutation(convexApi.adminLogAction, {
-      adminId,
+      sessionToken,
       action: 'create_promo_code',
       targetType: 'coupon',
       targetId: input.couponId,
@@ -419,11 +424,11 @@ export async function adminSetPromotionCodeActiveAction(
   active: boolean,
 ): Promise<ActionResult> {
   try {
-    const adminId = await requireAdmin();
+    const sessionToken = await requireAdmin();
     const convex = getConvexServerClient();
     await setPromotionCodeActive(promotionCodeId, active);
     await convex.mutation(convexApi.adminLogAction, {
-      adminId,
+      sessionToken,
       action: active ? 'enable_promo_code' : 'disable_promo_code',
       targetType: 'coupon',
       targetId: promotionCodeId,
@@ -441,16 +446,16 @@ export async function adminApplyDiscountToOrgAction(
   couponId: string,
 ): Promise<ActionResult> {
   try {
-    const adminId = await requireAdmin();
+    const sessionToken = await requireAdmin();
     const convex = getConvexServerClient();
     const info = await convex.query(convexApi.adminGetOrgSubscriptionInfo, {
-      adminId,
+      sessionToken,
       organizationId,
     });
     if (!info.stripeSubscriptionId) return { ok: false, error: 'NO_SUBSCRIPTION' };
     await applyCouponToSubscription(info.stripeSubscriptionId, couponId);
     await convex.mutation(convexApi.adminLogAction, {
-      adminId,
+      sessionToken,
       action: 'apply_discount',
       targetType: 'discount',
       targetId: organizationId,
@@ -465,16 +470,16 @@ export async function adminApplyDiscountToOrgAction(
 
 export async function adminRemoveOrgDiscountAction(organizationId: string): Promise<ActionResult> {
   try {
-    const adminId = await requireAdmin();
+    const sessionToken = await requireAdmin();
     const convex = getConvexServerClient();
     const info = await convex.query(convexApi.adminGetOrgSubscriptionInfo, {
-      adminId,
+      sessionToken,
       organizationId,
     });
     if (!info.stripeSubscriptionId) return { ok: false, error: 'NO_SUBSCRIPTION' };
     await removeSubscriptionDiscount(info.stripeSubscriptionId);
     await convex.mutation(convexApi.adminLogAction, {
-      adminId,
+      sessionToken,
       action: 'remove_discount',
       targetType: 'discount',
       targetId: organizationId,
@@ -505,9 +510,9 @@ export async function adminListNewsletterCampaignsAction(): Promise<
   { ok: true; campaigns: NewsletterCampaign[] } | { ok: false; error: string }
 > {
   try {
-    const adminId = await requireAdmin();
+    const sessionToken = await requireAdmin();
     const convex = getConvexServerClient();
-    const campaigns = await convex.query(convexApi.newsletterListCampaigns, { adminId });
+    const campaigns = await convex.query(convexApi.newsletterListCampaigns, { sessionToken });
     return { ok: true, campaigns };
   } catch (e: unknown) {
     return { ok: false, error: msg(e) };
@@ -520,14 +525,14 @@ export async function adminSendNewsletterTestAction(
   bodyText: string,
 ): Promise<{ ok: true; recipient: string } | { ok: false; error: string }> {
   try {
-    const adminId = await requireAdmin();
+    const sessionToken = await requireAdmin();
     const convex = getConvexServerClient();
-    const me = await convex.query(convexApi.currentUser, { userId: adminId });
+    const me = await convex.query(convexApi.currentUser, { sessionToken });
     const testEmail = me?.email;
     if (!testEmail) return { ok: false, error: 'NO_ADMIN_EMAIL' };
 
     const res = await convex.action(convexApi.newsletterSendCampaign, {
-      adminId,
+      sessionToken,
       subject,
       bodyText,
       testEmail,
@@ -545,10 +550,10 @@ export async function adminSendNewsletterAction(
   bodyText: string,
 ): Promise<{ ok: true; sentCount: number; failedCount: number } | { ok: false; error: string }> {
   try {
-    const adminId = await requireAdmin();
+    const sessionToken = await requireAdmin();
     const convex = getConvexServerClient();
     const res = await convex.action(convexApi.newsletterSendCampaign, {
-      adminId,
+      sessionToken,
       subject,
       bodyText,
     });
@@ -566,9 +571,9 @@ export async function adminUpdatePhotoBookStatusAction(
   status: 'requested' | 'in_production' | 'shipped' | 'cancelled',
 ): Promise<ActionResult> {
   try {
-    const adminId = await requireAdmin();
+    const sessionToken = await requireAdmin();
     const convex = getConvexServerClient();
-    await convex.mutation(convexApi.adminUpdatePhotoBookStatus, { adminId, orderId, status });
+    await convex.mutation(convexApi.adminUpdatePhotoBookStatus, { sessionToken, orderId, status });
     revalidatePath('/admin/photo-books');
     return { ok: true };
   } catch (e: unknown) {
@@ -585,9 +590,9 @@ export async function adminUpdateBugStatusAction(
   status: 'open' | 'triaged' | 'resolved',
 ): Promise<ActionResult> {
   try {
-    const adminId = await requireAdmin();
+    const sessionToken = await requireAdmin();
     await getConvexServerClient().mutation(convexApi.updateBugReportStatus, {
-      requesterId: adminId,
+      sessionToken,
       reportId,
       status,
     });
@@ -603,9 +608,9 @@ export async function adminGetBugScreenshotAction(
   reportId: string,
 ): Promise<{ ok: true; screenshot: string | null } | { ok: false; error: string }> {
   try {
-    const adminId = await requireAdmin();
+    const sessionToken = await requireAdmin();
     const report = await getConvexServerClient().query(convexApi.getBugReport, {
-      requesterId: adminId,
+      sessionToken,
       reportId,
     });
     return { ok: true, screenshot: report?.screenshot ?? null };
@@ -628,10 +633,10 @@ export async function adminCreateAffiliateAction(input: {
   displayName?: string;
 }): Promise<ActionResult> {
   try {
-    const adminId = await requireAdmin();
+    const sessionToken = await requireAdmin();
     const convex = getConvexServerClient();
     await convex.mutation(convexApi.createAffiliate, {
-      adminId,
+      sessionToken,
       code: input.code,
       kind: input.kind,
       rewardType: input.rewardType,
@@ -652,9 +657,9 @@ export async function adminSetAffiliateStatusAction(
   status: 'active' | 'disabled',
 ): Promise<ActionResult> {
   try {
-    const adminId = await requireAdmin();
+    const sessionToken = await requireAdmin();
     const convex = getConvexServerClient();
-    await convex.mutation(convexApi.setAffiliateStatus, { adminId, affiliateId, status });
+    await convex.mutation(convexApi.setAffiliateStatus, { sessionToken, affiliateId, status });
     revalidatePath('/admin/affiliates');
     return { ok: true };
   } catch (e: unknown) {

@@ -10,6 +10,7 @@ import {
 } from './_generated/server';
 import { assertEventAccess } from './lib/eventAuth';
 import { assertWebhookSecret } from './lib/webhookSecret';
+import { requireUserId } from './lib/verifiedSession';
 import { fetchTwilioMessageStatus, isTwilioConfigured } from './lib/twilioSms';
 
 /**
@@ -211,8 +212,9 @@ export const summaryForEvent = internalQuery({
  * (délivrés / en attente / non délivrés). Gardée par `assertEventAccess`.
  */
 export const deliveryForEvent = query({
-  args: { eventId: v.id('events'), requesterId: v.id('users') },
-  handler: async (ctx, { eventId, requesterId }) => {
+  args: { eventId: v.id('events'), sessionToken: v.string() },
+  handler: async (ctx, { eventId, sessionToken }) => {
+    const requesterId = await requireUserId(ctx, sessionToken);
     await assertEventAccess(ctx, eventId, requesterId);
     const rows = await ctx.db
       .query('smsDeliveries')

@@ -24,7 +24,7 @@ export default async function ProAnalyticsPage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const { session, org, user } = await requireProContext(locale);
+  const { sessionToken, org, user } = await requireProContext(locale);
   const t = await getTranslations('ProPages');
   const tier = org.subscriptionTier ?? null;
   const shellOrg = { name: org.name, primaryColor: org.primaryColor, tier, role: org.myRole };
@@ -50,7 +50,7 @@ export default async function ProAnalyticsPage({
   }
 
   const convex = getConvexServerClient();
-  const data = await convex.query(convexApi.proAnalytics, { userId: session.userId });
+  const data = await convex.query(convexApi.proAnalytics, { sessionToken });
   const a = data ?? {
     events: { total: 0, active: 0, draft: 0, archived: 0 },
     clients: {

@@ -11,6 +11,7 @@ import type { Doc, Id } from './_generated/dataModel';
 import { BUDGET_CURRENCY } from './lib/currency';
 import { pickUniqueSlug } from './lib/uniqueSlug';
 import { seatLimitForTier } from './lib/entitlements';
+import { requireUserId } from './lib/verifiedSession';
 
 const ROLE = v.union(
   v.literal('owner'),
@@ -66,14 +67,15 @@ async function assertCanRead(
 
 export const create = mutation({
   args: {
-    ownerId: v.id('users'),
+    sessionToken: v.string(),
     name: v.string(),
     primaryColor: v.optional(v.string()),
     accentColor: v.optional(v.string()),
     currency: v.optional(BUDGET_CURRENCY),
   },
   handler: async (ctx, args) => {
-    const owner = await ctx.db.get(args.ownerId);
+    const ownerId = await requireUserId(ctx, args.sessionToken);
+    const owner = await ctx.db.get(ownerId);
     if (!owner) throw new Error('USER_NOT_FOUND');
     if (owner.role !== 'pro' && owner.role !== 'admin') throw new Error('NOT_PRO');
 
@@ -85,7 +87,7 @@ export const create = mutation({
     const now = Date.now();
 
     const id = await ctx.db.insert('organizations', {
-      ownerId: args.ownerId,
+      ownerId,
       name: trimmed,
       slug,
       primaryColor: args.primaryColor,
@@ -97,10 +99,10 @@ export const create = mutation({
 
     await ctx.db.insert('organizationMemberships', {
       organizationId: id,
-      userId: args.ownerId,
+      userId: ownerId,
       role: 'owner',
       status: 'active',
-      invitedBy: args.ownerId,
+      invitedBy: ownerId,
       invitedAt: now,
       acceptedAt: now,
     });
@@ -118,14 +120,15 @@ function assertHexColor(value: string, field: string): void {
 export const updateBranding = mutation({
   args: {
     organizationId: v.id('organizations'),
-    requesterId: v.id('users'),
+    sessionToken: v.string(),
     name: v.optional(v.string()),
     primaryColor: v.optional(v.string()),
     accentColor: v.optional(v.string()),
     logoStorageId: v.optional(v.id('_storage')),
   },
   handler: async (ctx, args) => {
-    await assertCanManage(ctx, args.organizationId, args.requesterId);
+    const requesterId = await requireUserId(ctx, args.sessionToken);
+    await assertCanManage(ctx, args.organizationId, requesterId);
     const patch: Partial<Doc<'organizations'>> = { updatedAt: Date.now() };
     if (args.name !== undefined) {
       const trimmed = args.name.trim();
@@ -150,7 +153,7 @@ export const updateBranding = mutation({
 export const updateMessagingDefaults = mutation({
   args: {
     organizationId: v.id('organizations'),
-    requesterId: v.id('users'),
+    sessionToken: v.string(),
     defaults: v.object({
       channel: v.union(v.literal('whatsapp'), v.literal('sms'), v.literal('auto')),
       senderName: v.string(),
@@ -166,7 +169,8 @@ export const updateMessagingDefaults = mutation({
     }),
   },
   handler: async (ctx, args) => {
-    await assertCanManage(ctx, args.organizationId, args.requesterId);
+    const requesterId = await requireUserId(ctx, args.sessionToken);
+    await assertCanManage(ctx, args.organizationId, requesterId);
     const senderName = args.defaults.senderName.trim().slice(0, 120) || 'Wedillybird';
     await ctx.db.patch(args.organizationId, {
       messagingDefaults: { ...args.defaults, senderName },
@@ -182,7 +186,7 @@ const NOTIF_CHANNEL = v.object({ email: v.boolean(), app: v.boolean() });
 export const updateNotificationPrefs = mutation({
   args: {
     organizationId: v.id('organizations'),
-    requesterId: v.id('users'),
+    sessionToken: v.string(),
     prefs: v.object({
       rsvp: NOTIF_CHANNEL,
       payment: NOTIF_CHANNEL,
@@ -192,7 +196,8 @@ export const updateNotificationPrefs = mutation({
     }),
   },
   handler: async (ctx, args) => {
-    await assertCanManage(ctx, args.organizationId, args.requesterId);
+    const requesterId = await requireUserId(ctx, args.sessionToken);
+    await assertCanManage(ctx, args.organizationId, requesterId);
     await ctx.db.patch(args.organizationId, {
       notificationPrefs: args.prefs,
       updatedAt: Date.now(),
@@ -209,11 +214,12 @@ export const updateNotificationPrefs = mutation({
 export const setPaymentsSettings = mutation({
   args: {
     organizationId: v.id('organizations'),
-    requesterId: v.id('users'),
+    sessionToken: v.string(),
     mode: v.optional(v.union(v.literal('byop'), v.literal('manual'))),
   },
   handler: async (ctx, args) => {
-    await assertCanManage(ctx, args.organizationId, args.requesterId);
+    const requesterId = await requireUserId(ctx, args.sessionToken);
+    await assertCanManage(ctx, args.organizationId, requesterId);
     const patch: Record<string, unknown> = { updatedAt: Date.now() };
     if (args.mode !== undefined) patch.paymentsMode = args.mode;
     await ctx.db.patch(args.organizationId, patch);
@@ -228,19 +234,20 @@ export const setPaymentsSettings = mutation({
 export const transferOwnership = mutation({
   args: {
     organizationId: v.id('organizations'),
-    requesterId: v.id('users'),
+    sessionToken: v.string(),
     newOwnerUserId: v.id('users'),
   },
   handler: async (ctx, args) => {
+    const requesterId = await requireUserId(ctx, args.sessionToken);
     const org = await ctx.db.get(args.organizationId);
     if (!org) throw new Error('NOT_FOUND');
-    if (org.ownerId !== args.requesterId) throw new Error('OWNER_ONLY');
-    if (args.newOwnerUserId === args.requesterId) throw new Error('ALREADY_OWNER');
+    if (org.ownerId !== requesterId) throw new Error('OWNER_ONLY');
+    if (args.newOwnerUserId === requesterId) throw new Error('ALREADY_OWNER');
     const memberships = await ctx.db
       .query('organizationMemberships')
       .withIndex('by_organization', (q) => q.eq('organizationId', org._id))
       .collect();
-    const current = memberships.find((m) => m.userId === args.requesterId);
+    const current = memberships.find((m) => m.userId === requesterId);
     const target = memberships.find(
       (m) => m.userId === args.newOwnerUserId && m.status === 'active',
     );
@@ -261,13 +268,14 @@ export const transferOwnership = mutation({
 export const deleteOrganization = mutation({
   args: {
     organizationId: v.id('organizations'),
-    requesterId: v.id('users'),
+    sessionToken: v.string(),
     confirmName: v.string(),
   },
   handler: async (ctx, args) => {
+    const requesterId = await requireUserId(ctx, args.sessionToken);
     const org = await ctx.db.get(args.organizationId);
     if (!org) throw new Error('NOT_FOUND');
-    if (org.ownerId !== args.requesterId) throw new Error('OWNER_ONLY');
+    if (org.ownerId !== requesterId) throw new Error('OWNER_ONLY');
     if (args.confirmName.trim() !== org.name) throw new Error('NAME_MISMATCH');
     const orgId = org._id;
 
@@ -353,13 +361,14 @@ export const deleteOrganization = mutation({
 export const updateWhiteLabel = mutation({
   args: {
     organizationId: v.id('organizations'),
-    requesterId: v.id('users'),
+    sessionToken: v.string(),
     customDomain: v.optional(v.string()),
     senderEmail: v.optional(v.string()),
     whiteLabelFull: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
-    await assertCanManage(ctx, args.organizationId, args.requesterId);
+    const requesterId = await requireUserId(ctx, args.sessionToken);
+    await assertCanManage(ctx, args.organizationId, requesterId);
     const org = await ctx.db.get(args.organizationId);
     if (!org) throw new Error('NOT_FOUND');
     if (org.subscriptionTier !== 'agency') throw new Error('FEATURE_NOT_IN_PLAN');
@@ -397,9 +406,10 @@ export const updateWhiteLabel = mutation({
 export const generateLogoUploadUrl = mutation({
   args: {
     organizationId: v.id('organizations'),
-    requesterId: v.id('users'),
+    sessionToken: v.string(),
   },
-  handler: async (ctx, { organizationId, requesterId }) => {
+  handler: async (ctx, { organizationId, sessionToken }) => {
+    const requesterId = await requireUserId(ctx, sessionToken);
     await assertCanManage(ctx, organizationId, requesterId);
     const uploadUrl = await ctx.storage.generateUploadUrl();
     return { uploadUrl };
@@ -415,10 +425,11 @@ export const generateLogoUploadUrl = mutation({
 export const setLogo = mutation({
   args: {
     organizationId: v.id('organizations'),
-    requesterId: v.id('users'),
+    sessionToken: v.string(),
     logoStorageId: v.id('_storage'),
   },
-  handler: async (ctx, { organizationId, requesterId, logoStorageId }) => {
+  handler: async (ctx, { organizationId, sessionToken, logoStorageId }) => {
+    const requesterId = await requireUserId(ctx, sessionToken);
     await assertCanManage(ctx, organizationId, requesterId);
     const org = await ctx.db.get(organizationId);
     if (!org) throw new Error('NOT_FOUND');
@@ -448,9 +459,10 @@ export const setLogo = mutation({
 export const clearLogo = mutation({
   args: {
     organizationId: v.id('organizations'),
-    requesterId: v.id('users'),
+    sessionToken: v.string(),
   },
-  handler: async (ctx, { organizationId, requesterId }) => {
+  handler: async (ctx, { organizationId, sessionToken }) => {
+    const requesterId = await requireUserId(ctx, sessionToken);
     await assertCanManage(ctx, organizationId, requesterId);
     const org = await ctx.db.get(organizationId);
     if (!org) throw new Error('NOT_FOUND');
@@ -470,8 +482,9 @@ export const clearLogo = mutation({
 });
 
 export const myOrganization = query({
-  args: { userId: v.id('users') },
-  handler: async (ctx, { userId }) => {
+  args: { sessionToken: v.string() },
+  handler: async (ctx, { sessionToken }) => {
+    const userId = await requireUserId(ctx, sessionToken);
     const membership = await ctx.db
       .query('organizationMemberships')
       .withIndex('by_user', (q) => q.eq('userId', userId))
@@ -509,8 +522,9 @@ export const myOrganization = query({
 });
 
 export const getById = query({
-  args: { organizationId: v.id('organizations'), requesterId: v.id('users') },
-  handler: async (ctx, { organizationId, requesterId }) => {
+  args: { organizationId: v.id('organizations'), sessionToken: v.string() },
+  handler: async (ctx, { organizationId, sessionToken }) => {
+    const requesterId = await requireUserId(ctx, sessionToken);
     const membership = await assertCanRead(ctx, organizationId, requesterId);
     const org = await ctx.db.get(organizationId);
     if (!org) throw new Error('NOT_FOUND');
@@ -563,8 +577,9 @@ export const findBySlug = query({
 });
 
 export const listEvents = query({
-  args: { organizationId: v.id('organizations'), requesterId: v.id('users') },
-  handler: async (ctx, { organizationId, requesterId }) => {
+  args: { organizationId: v.id('organizations'), sessionToken: v.string() },
+  handler: async (ctx, { organizationId, sessionToken }) => {
+    const requesterId = await requireUserId(ctx, sessionToken);
     await assertCanRead(ctx, organizationId, requesterId);
     const events = await ctx.db
       .query('events')
@@ -590,8 +605,9 @@ export const listEvents = query({
 });
 
 export const listMembers = query({
-  args: { organizationId: v.id('organizations'), requesterId: v.id('users') },
-  handler: async (ctx, { organizationId, requesterId }) => {
+  args: { organizationId: v.id('organizations'), sessionToken: v.string() },
+  handler: async (ctx, { organizationId, sessionToken }) => {
+    const requesterId = await requireUserId(ctx, sessionToken);
     await assertCanRead(ctx, organizationId, requesterId);
     const memberships = await ctx.db
       .query('organizationMemberships')
@@ -638,13 +654,14 @@ function generateInviteToken(): string {
 export const invite = mutation({
   args: {
     organizationId: v.id('organizations'),
-    requesterId: v.id('users'),
+    sessionToken: v.string(),
     phone: v.optional(v.string()),
     email: v.optional(v.string()),
     role: ROLE,
   },
   handler: async (ctx, args) => {
-    await assertCanManage(ctx, args.organizationId, args.requesterId);
+    const requesterId = await requireUserId(ctx, args.sessionToken);
+    await assertCanManage(ctx, args.organizationId, requesterId);
     if (args.role === 'owner') throw new Error('CANNOT_ASSIGN_OWNER');
     if (!args.phone && !args.email) throw new Error('NO_CONTACT');
 
@@ -686,13 +703,13 @@ export const invite = mutation({
       role: args.role,
       status: 'pending',
       inviteToken: token,
-      invitedBy: args.requesterId,
+      invitedBy: requesterId,
       invitedAt: now,
     });
 
     // Notify any existing org members that someone was invited (best effort).
     if (args.email) {
-      const inviter = await ctx.db.get(args.requesterId);
+      const inviter = await ctx.db.get(requesterId);
       if (org && inviter) {
         const inviteeName = args.email.split('@')[0];
         const inviterLabel = inviter.fullName ?? inviter.phone;
@@ -721,8 +738,9 @@ export const invite = mutation({
 });
 
 export const acceptInvite = mutation({
-  args: { token: v.string(), userId: v.id('users') },
-  handler: async (ctx, { token, userId }) => {
+  args: { token: v.string(), sessionToken: v.string() },
+  handler: async (ctx, { token, sessionToken }) => {
+    const userId = await requireUserId(ctx, sessionToken);
     const membership = await ctx.db
       .query('organizationMemberships')
       .withIndex('by_invite_token', (q) => q.eq('inviteToken', token))
@@ -741,8 +759,9 @@ export const acceptInvite = mutation({
 });
 
 export const revokeMembership = mutation({
-  args: { membershipId: v.id('organizationMemberships'), requesterId: v.id('users') },
-  handler: async (ctx, { membershipId, requesterId }) => {
+  args: { membershipId: v.id('organizationMemberships'), sessionToken: v.string() },
+  handler: async (ctx, { membershipId, sessionToken }) => {
+    const requesterId = await requireUserId(ctx, sessionToken);
     const m = await ctx.db.get(membershipId);
     if (!m) throw new Error('NOT_FOUND');
     await assertCanManage(ctx, m.organizationId, requesterId);
@@ -754,8 +773,9 @@ export const revokeMembership = mutation({
 
 /** Change le rôle d'un membre (owner/admin uniquement ; jamais l'owner). */
 export const updateMemberRole = mutation({
-  args: { membershipId: v.id('organizationMemberships'), requesterId: v.id('users'), role: ROLE },
-  handler: async (ctx, { membershipId, requesterId, role }) => {
+  args: { membershipId: v.id('organizationMemberships'), sessionToken: v.string(), role: ROLE },
+  handler: async (ctx, { membershipId, sessionToken, role }) => {
+    const requesterId = await requireUserId(ctx, sessionToken);
     const m = await ctx.db.get(membershipId);
     if (!m) throw new Error('NOT_FOUND');
     await assertCanManage(ctx, m.organizationId, requesterId);
@@ -768,8 +788,9 @@ export const updateMemberRole = mutation({
 
 /** Annule une invitation en attente (supprime la ligne). */
 export const cancelInvite = mutation({
-  args: { membershipId: v.id('organizationMemberships'), requesterId: v.id('users') },
-  handler: async (ctx, { membershipId, requesterId }) => {
+  args: { membershipId: v.id('organizationMemberships'), sessionToken: v.string() },
+  handler: async (ctx, { membershipId, sessionToken }) => {
+    const requesterId = await requireUserId(ctx, sessionToken);
     const m = await ctx.db.get(membershipId);
     if (!m) throw new Error('NOT_FOUND');
     await assertCanManage(ctx, m.organizationId, requesterId);
@@ -781,8 +802,9 @@ export const cancelInvite = mutation({
 
 /** Renvoie une invitation en attente (régénère un token). */
 export const resendInvite = mutation({
-  args: { membershipId: v.id('organizationMemberships'), requesterId: v.id('users') },
-  handler: async (ctx, { membershipId, requesterId }) => {
+  args: { membershipId: v.id('organizationMemberships'), sessionToken: v.string() },
+  handler: async (ctx, { membershipId, sessionToken }) => {
+    const requesterId = await requireUserId(ctx, sessionToken);
     const m = await ctx.db.get(membershipId);
     if (!m) throw new Error('NOT_FOUND');
     await assertCanManage(ctx, m.organizationId, requesterId);
@@ -799,8 +821,9 @@ export const resendInvite = mutation({
 
 /** Réactive un membre révoqué (reconsomme un siège — quota vérifié). */
 export const reactivateMember = mutation({
-  args: { membershipId: v.id('organizationMemberships'), requesterId: v.id('users') },
-  handler: async (ctx, { membershipId, requesterId }) => {
+  args: { membershipId: v.id('organizationMemberships'), sessionToken: v.string() },
+  handler: async (ctx, { membershipId, sessionToken }) => {
+    const requesterId = await requireUserId(ctx, sessionToken);
     const m = await ctx.db.get(membershipId);
     if (!m) throw new Error('NOT_FOUND');
     await assertCanManage(ctx, m.organizationId, requesterId);
@@ -1011,8 +1034,9 @@ export const findByStripeCustomer = query({
 
 /** Statut Connect d'une agence (lecture pour tout membre). */
 export const connectStatus = query({
-  args: { organizationId: v.id('organizations'), requesterId: v.id('users') },
-  handler: async (ctx, { organizationId, requesterId }) => {
+  args: { organizationId: v.id('organizations'), sessionToken: v.string() },
+  handler: async (ctx, { organizationId, sessionToken }) => {
+    const requesterId = await requireUserId(ctx, sessionToken);
     await assertCanRead(ctx, organizationId, requesterId);
     const org = await ctx.db.get(organizationId);
     if (!org) throw new Error('NOT_FOUND');
@@ -1034,10 +1058,11 @@ export const connectStatus = query({
 export const setConnectAccount = mutation({
   args: {
     organizationId: v.id('organizations'),
-    requesterId: v.id('users'),
+    sessionToken: v.string(),
     stripeConnectAccountId: v.string(),
   },
-  handler: async (ctx, { organizationId, requesterId, stripeConnectAccountId }) => {
+  handler: async (ctx, { organizationId, sessionToken, stripeConnectAccountId }) => {
+    const requesterId = await requireUserId(ctx, sessionToken);
     await assertCanManage(ctx, organizationId, requesterId);
     await ctx.db.patch(organizationId, {
       stripeConnectAccountId,
@@ -1058,13 +1083,14 @@ export const setConnectAccount = mutation({
 export const updateConnectStatus = mutation({
   args: {
     organizationId: v.id('organizations'),
-    requesterId: v.id('users'),
+    sessionToken: v.string(),
     chargesEnabled: v.boolean(),
     detailsSubmitted: v.boolean(),
     payoutsEnabled: v.boolean(),
   },
   handler: async (ctx, args) => {
-    await assertCanManage(ctx, args.organizationId, args.requesterId);
+    const requesterId = await requireUserId(ctx, args.sessionToken);
+    await assertCanManage(ctx, args.organizationId, requesterId);
     await ctx.db.patch(args.organizationId, {
       stripeConnectChargesEnabled: args.chargesEnabled,
       stripeConnectDetailsSubmitted: args.detailsSubmitted,
@@ -1077,8 +1103,9 @@ export const updateConnectStatus = mutation({
 
 /** Déconnecte le compte Stripe de l'agence (oubli + repli en suivi manuel). */
 export const disconnectStripeAccount = mutation({
-  args: { organizationId: v.id('organizations'), requesterId: v.id('users') },
-  handler: async (ctx, { organizationId, requesterId }) => {
+  args: { organizationId: v.id('organizations'), sessionToken: v.string() },
+  handler: async (ctx, { organizationId, sessionToken }) => {
+    const requesterId = await requireUserId(ctx, sessionToken);
     await assertCanManage(ctx, organizationId, requesterId);
     await ctx.db.patch(organizationId, {
       stripeConnectAccountId: undefined,

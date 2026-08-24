@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { getSession } from '@/lib/auth/session';
-import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
+import { convexApi, getConvexServerClient, sessionTokenArg } from '@/lib/auth/convex-server';
 import { validatePhotoBookAddress, type PhotoBookAddressInput } from '@/lib/photos/photo-book';
 
 export type RequestPhotoBookResult =
@@ -33,7 +33,7 @@ export async function requestPhotoBookAction(
     const convex = getConvexServerClient();
     const res = await convex.mutation(convexApi.requestPhotoBook, {
       eventId,
-      requesterId: session.userId,
+      sessionToken: await sessionTokenArg(),
       recipientName: validation.value.recipientName,
       addressLine1: validation.value.addressLine1,
       addressLine2: validation.value.addressLine2,

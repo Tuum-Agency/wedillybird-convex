@@ -1,17 +1,11 @@
 import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
-import type { QueryCtx } from './_generated/server';
-import type { Id } from './_generated/dataModel';
+import { optionalUserId, requireAdmin } from './lib/verifiedSession';
 
 /** Capture ≤ 800 Ko (data URL) — au-delà on la jette plutôt que de gonfler le doc. */
 const MAX_SCREENSHOT_CHARS = 800 * 1024;
 const MAX_DESC = 4000;
 const MAX_ERRORS = 20;
-
-async function assertAdmin(ctx: QueryCtx, requesterId: Id<'users'>): Promise<void> {
-  const user = await ctx.db.get(requesterId);
-  if (!user || user.role !== 'admin') throw new Error('FORBIDDEN');
-}
 
 /**
  * Enregistre un rapport de bug (bouton flottant de l'app). Best-effort côté
@@ -20,7 +14,10 @@ async function assertAdmin(ctx: QueryCtx, requesterId: Id<'users'>): Promise<voi
  */
 export const submitBugReport = mutation({
   args: {
-    reporterId: v.optional(v.id('users')),
+    // Optionnel : le bouton de report est présent sur les pages publiques
+    // (invitation invité), où l'auteur n'est pas connecté. Session absente ou
+    // invalide → rapport anonyme, jamais un refus.
+    sessionToken: v.optional(v.string()),
     url: v.string(),
     pathname: v.string(),
     description: v.string(),
@@ -31,6 +28,7 @@ export const submitBugReport = mutation({
     consoleErrors: v.optional(v.array(v.string())),
   },
   handler: async (ctx, args) => {
+    const reporterId = (await optionalUserId(ctx, args.sessionToken)) ?? undefined;
     const description = args.description.trim().slice(0, MAX_DESC);
     if (description.length < 3) throw new Error('DESCRIPTION_TOO_SHORT');
 
@@ -42,7 +40,7 @@ export const submitBugReport = mutation({
     const consoleErrors = args.consoleErrors?.slice(0, MAX_ERRORS).map((e) => e.slice(0, 500));
 
     const id = await ctx.db.insert('bugReports', {
-      reporterId: args.reporterId,
+      reporterId,
       url: args.url.slice(0, 2000),
       pathname: args.pathname.slice(0, 500),
       description,
@@ -61,12 +59,12 @@ export const submitBugReport = mutation({
 /** Liste des rapports (admin) — récents d'abord, capture exclue du payload. */
 export const listBugReports = query({
   args: {
-    requesterId: v.id('users'),
+    sessionToken: v.string(),
     status: v.optional(v.union(v.literal('open'), v.literal('triaged'), v.literal('resolved'))),
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    await assertAdmin(ctx, args.requesterId);
+    await requireAdmin(ctx, args.sessionToken);
     const limit = Math.min(args.limit ?? 100, 300);
     const rows = args.status
       ? await ctx.db
@@ -83,9 +81,9 @@ export const listBugReports = query({
 
 /** Détail d'un rapport (admin) — inclut la capture. */
 export const getBugReport = query({
-  args: { requesterId: v.id('users'), reportId: v.id('bugReports') },
+  args: { sessionToken: v.string(), reportId: v.id('bugReports') },
   handler: async (ctx, args) => {
-    await assertAdmin(ctx, args.requesterId);
+    await requireAdmin(ctx, args.sessionToken);
     return await ctx.db.get(args.reportId);
   },
 });
@@ -93,12 +91,12 @@ export const getBugReport = query({
 /** Change le statut d'un rapport (admin). */
 export const updateBugReportStatus = mutation({
   args: {
-    requesterId: v.id('users'),
+    sessionToken: v.string(),
     reportId: v.id('bugReports'),
     status: v.union(v.literal('open'), v.literal('triaged'), v.literal('resolved')),
   },
   handler: async (ctx, args) => {
-    await assertAdmin(ctx, args.requesterId);
+    await requireAdmin(ctx, args.sessionToken);
     await ctx.db.patch(args.reportId, { status: args.status });
     return null;
   },

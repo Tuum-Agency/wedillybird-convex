@@ -17,6 +17,9 @@ vi.mock('@/lib/auth/session', () => ({
 }));
 
 vi.mock('@/lib/auth/convex-server', () => ({
+  // Jeton de session vérifié par Convex (remplace les anciens requesterId).
+  sessionTokenArg: async () => 'test-session-token',
+  optionalSessionTokenArg: async () => 'test-session-token',
   getConvexServerClient: () => ({ query: queryMock }),
   convexApi: {
     getEventById: 'events:getById',

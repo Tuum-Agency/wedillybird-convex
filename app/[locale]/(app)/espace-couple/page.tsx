@@ -2,7 +2,7 @@ import { getFormatter, getTranslations, setRequestLocale } from 'next-intl/serve
 import { Calendar, MapPin, ArrowRight, Heart } from 'lucide-react';
 import { getSession } from '@/lib/auth/session';
 import { Link, redirect } from '@/i18n/navigation';
-import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
+import { convexApi, getConvexServerClient, sessionTokenArg } from '@/lib/auth/convex-server';
 import { AppShell } from '@/components/app/app-shell';
 
 /**
@@ -17,9 +17,10 @@ export default async function CoupleSpacePage({ params }: { params: Promise<{ lo
   if (!session) redirect({ href: '/sign-in', locale });
 
   const convex = getConvexServerClient();
+  const sessionToken = await sessionTokenArg();
   const [weddings, user] = await Promise.all([
-    convex.query(convexApi.listMineAsCouple, { userId: session!.userId }),
-    convex.query(convexApi.currentUser, { userId: session!.userId }),
+    convex.query(convexApi.listMineAsCouple, { sessionToken }),
+    convex.query(convexApi.currentUser, { sessionToken }),
   ]);
 
   if (weddings.length === 1) {

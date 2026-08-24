@@ -15,7 +15,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function ProVendorsPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const { session, org, user } = await requireProContext(locale);
+  const { sessionToken, org, user } = await requireProContext(locale);
   const tier = org.subscriptionTier ?? null;
   const cap = tier ? PRO_TIER_LIMITS[tier].vendorDirectoryCap : 25;
   const hasAccess = orgHasActiveAccess(org);
@@ -24,12 +24,12 @@ export default async function ProVendorsPage({ params }: { params: Promise<{ loc
   const [vendors, orgEvents, engagements] = await Promise.all([
     convex.query(convexApi.vendorsListByOrg, {
       organizationId: org._id,
-      requesterId: session.userId,
+      sessionToken,
     }),
-    convex.query(convexApi.listOrgEvents, { organizationId: org._id, requesterId: session.userId }),
+    convex.query(convexApi.listOrgEvents, { organizationId: org._id, sessionToken }),
     convex.query(convexApi.vendorListEngagementsByOrg, {
       organizationId: org._id,
-      requesterId: session.userId,
+      sessionToken,
     }),
   ]);
 

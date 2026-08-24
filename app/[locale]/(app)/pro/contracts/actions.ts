@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { getSession } from '@/lib/auth/session';
-import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
+import { convexApi, getConvexServerClient, sessionTokenArg } from '@/lib/auth/convex-server';
 import type { ContractSection, ContractStatus } from '@/lib/pro/contracts';
 
 export type ContractActionResult =
@@ -30,7 +30,7 @@ export async function createContractAction(
   try {
     const r = await convex.mutation(convexApi.contractsCreate, {
       organizationId,
-      requesterId: session.userId,
+      sessionToken: await sessionTokenArg(),
       clientId: payload.clientId,
       eventId: payload.eventId,
       quoteId: payload.quoteId,
@@ -56,7 +56,7 @@ export async function updateContractAction(
   try {
     await convex.mutation(convexApi.contractsUpdate, {
       contractId,
-      requesterId: session.userId,
+      sessionToken: await sessionTokenArg(),
       sections: payload.sections,
       totalMinor: payload.totalMinor,
       jurisdiction: payload.jurisdiction,
@@ -75,7 +75,7 @@ export async function advanceContractAction(contractId: string): Promise<Contrac
   try {
     const r = await convex.mutation(convexApi.contractsAdvance, {
       contractId,
-      requesterId: session.userId,
+      sessionToken: await sessionTokenArg(),
     });
     revalidatePath('/pro/contracts');
     return { ok: true, id: contractId, status: r.status };
@@ -91,7 +91,7 @@ export async function cancelContractAction(contractId: string): Promise<Contract
   try {
     await convex.mutation(convexApi.contractsSetStatus, {
       contractId,
-      requesterId: session.userId,
+      sessionToken: await sessionTokenArg(),
       status: 'cancelled',
     });
     revalidatePath('/pro/contracts');
@@ -106,7 +106,10 @@ export async function removeContractAction(contractId: string): Promise<Contract
   if (!session) return { ok: false, error: 'UNAUTHENTICATED' };
   const convex = getConvexServerClient();
   try {
-    await convex.mutation(convexApi.contractsRemove, { contractId, requesterId: session.userId });
+    await convex.mutation(convexApi.contractsRemove, {
+      contractId,
+      sessionToken: await sessionTokenArg(),
+    });
     revalidatePath('/pro/contracts');
     return { ok: true, id: contractId };
   } catch (e) {

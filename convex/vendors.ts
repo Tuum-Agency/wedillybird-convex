@@ -2,6 +2,7 @@ import { v } from 'convex/values';
 import { mutation, query, type MutationCtx } from './_generated/server';
 import type { Id } from './_generated/dataModel';
 import { assertOrgRead, assertOrgWrite, assertOrgProvisioned } from './lib/orgAuth';
+import { requireUserId } from './lib/verifiedSession';
 import { vendorCapForTier } from './lib/entitlements';
 
 /**
@@ -21,8 +22,9 @@ async function loadVendorForWrite(
 }
 
 export const listByOrg = query({
-  args: { organizationId: v.id('organizations'), requesterId: v.id('users') },
-  handler: async (ctx, { organizationId, requesterId }) => {
+  args: { organizationId: v.id('organizations'), sessionToken: v.string() },
+  handler: async (ctx, { organizationId, sessionToken }) => {
+    const requesterId = await requireUserId(ctx, sessionToken);
     await assertOrgRead(ctx, organizationId, requesterId);
     const vendors = await ctx.db
       .query('vendors')
@@ -51,7 +53,7 @@ export const listByOrg = query({
 export const create = mutation({
   args: {
     organizationId: v.id('organizations'),
-    requesterId: v.id('users'),
+    sessionToken: v.string(),
     name: v.string(),
     category: v.string(),
     location: v.optional(v.string()),
@@ -64,7 +66,8 @@ export const create = mutation({
     notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    await assertOrgWrite(ctx, args.organizationId, args.requesterId);
+    const requesterId = await requireUserId(ctx, args.sessionToken);
+    await assertOrgWrite(ctx, args.organizationId, requesterId);
     // Garde-fou forfait : pas d'ajout de prestataire sans abonnement actif / crédit
     // PAYG (agence non finalisée). Réutilise le doc org pour le plafond annuaire.
     const org = await assertOrgProvisioned(ctx, args.organizationId);
@@ -106,7 +109,7 @@ export const create = mutation({
 export const update = mutation({
   args: {
     vendorId: v.id('vendors'),
-    requesterId: v.id('users'),
+    sessionToken: v.string(),
     name: v.optional(v.string()),
     category: v.optional(v.string()),
     location: v.optional(v.string()),
@@ -119,7 +122,8 @@ export const update = mutation({
     notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    await loadVendorForWrite(ctx, args.vendorId, args.requesterId);
+    const requesterId = await requireUserId(ctx, args.sessionToken);
+    await loadVendorForWrite(ctx, args.vendorId, requesterId);
     const patch: Record<string, unknown> = { updatedAt: Date.now() };
     if (args.name !== undefined) {
       const t = args.name.trim();
@@ -145,8 +149,9 @@ export const update = mutation({
 });
 
 export const remove = mutation({
-  args: { vendorId: v.id('vendors'), requesterId: v.id('users') },
-  handler: async (ctx, { vendorId, requesterId }) => {
+  args: { vendorId: v.id('vendors'), sessionToken: v.string() },
+  handler: async (ctx, { vendorId, sessionToken }) => {
+    const requesterId = await requireUserId(ctx, sessionToken);
     await loadVendorForWrite(ctx, vendorId, requesterId);
     // Détache aussi les engagements liés à ce prestataire.
     const engagements = await ctx.db
@@ -172,8 +177,9 @@ const ENGAGEMENT_STATUS = v.union(
 
 /** Tous les engagements de l'organisation, enrichis (prestataire + mariage). */
 export const listEngagementsByOrg = query({
-  args: { organizationId: v.id('organizations'), requesterId: v.id('users') },
-  handler: async (ctx, { organizationId, requesterId }) => {
+  args: { organizationId: v.id('organizations'), sessionToken: v.string() },
+  handler: async (ctx, { organizationId, sessionToken }) => {
+    const requesterId = await requireUserId(ctx, sessionToken);
     await assertOrgRead(ctx, organizationId, requesterId);
     const engagements = await ctx.db
       .query('vendorEngagements')
@@ -204,7 +210,7 @@ export const listEngagementsByOrg = query({
 export const attachVendor = mutation({
   args: {
     organizationId: v.id('organizations'),
-    requesterId: v.id('users'),
+    sessionToken: v.string(),
     vendorId: v.id('vendors'),
     eventId: v.id('events'),
     status: ENGAGEMENT_STATUS,
@@ -212,7 +218,8 @@ export const attachVendor = mutation({
     createBudgetLine: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
-    await assertOrgWrite(ctx, args.organizationId, args.requesterId);
+    const requesterId = await requireUserId(ctx, args.sessionToken);
+    await assertOrgWrite(ctx, args.organizationId, requesterId);
     const vendor = await ctx.db.get(args.vendorId);
     if (!vendor || vendor.organizationId !== args.organizationId)
       throw new Error('VENDOR_NOT_FOUND');
@@ -267,10 +274,11 @@ export const attachVendor = mutation({
 export const setEngagementStatus = mutation({
   args: {
     engagementId: v.id('vendorEngagements'),
-    requesterId: v.id('users'),
+    sessionToken: v.string(),
     status: ENGAGEMENT_STATUS,
   },
-  handler: async (ctx, { engagementId, requesterId, status }) => {
+  handler: async (ctx, { engagementId, sessionToken, status }) => {
+    const requesterId = await requireUserId(ctx, sessionToken);
     const eng = await ctx.db.get(engagementId);
     if (!eng) throw new Error('NOT_FOUND');
     await assertOrgWrite(ctx, eng.organizationId, requesterId);
@@ -280,8 +288,9 @@ export const setEngagementStatus = mutation({
 });
 
 export const detachVendor = mutation({
-  args: { engagementId: v.id('vendorEngagements'), requesterId: v.id('users') },
-  handler: async (ctx, { engagementId, requesterId }) => {
+  args: { engagementId: v.id('vendorEngagements'), sessionToken: v.string() },
+  handler: async (ctx, { engagementId, sessionToken }) => {
+    const requesterId = await requireUserId(ctx, sessionToken);
     const eng = await ctx.db.get(engagementId);
     if (!eng) throw new Error('NOT_FOUND');
     await assertOrgWrite(ctx, eng.organizationId, requesterId);

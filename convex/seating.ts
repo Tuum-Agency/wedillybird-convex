@@ -3,6 +3,7 @@ import { mutation, query, type MutationCtx, type QueryCtx } from './_generated/s
 import type { Doc, Id } from './_generated/dataModel';
 import { eventHasFeature } from './lib/entitlements';
 import { autoPlace } from './lib/autoplace';
+import { requireUserId } from './lib/verifiedSession';
 
 /**
  * Plan de table / seating. Feature Premium + Pro (`seatingPlan`) — Essentiel
@@ -159,11 +160,12 @@ async function persistSeat(
 export const createTable = mutation({
   args: {
     eventId: v.id('events'),
-    requesterId: v.id('users'),
+    sessionToken: v.string(),
     name: v.optional(v.string()),
     capacity: v.optional(v.number()),
   },
-  handler: async (ctx, { eventId, requesterId, name, capacity }) => {
+  handler: async (ctx, { eventId, sessionToken, name, capacity }) => {
+    const requesterId = await requireUserId(ctx, sessionToken);
     await requireSeatingAccess(ctx, eventId, requesterId);
     const existing = await ctx.db
       .query('tables')
@@ -187,14 +189,15 @@ export const createTable = mutation({
 export const updateTable = mutation({
   args: {
     tableId: v.id('tables'),
-    requesterId: v.id('users'),
+    sessionToken: v.string(),
     name: v.optional(v.string()),
     capacity: v.optional(v.number()),
     shape: v.optional(v.union(v.literal('round'), v.literal('rect'))),
     posX: v.optional(v.number()),
     posY: v.optional(v.number()),
   },
-  handler: async (ctx, { tableId, requesterId, name, capacity, shape, posX, posY }) => {
+  handler: async (ctx, { tableId, sessionToken, name, capacity, shape, posX, posY }) => {
+    const requesterId = await requireUserId(ctx, sessionToken);
     await requireTableAccess(ctx, tableId, requesterId);
     const patch: Partial<Doc<'tables'>> = { updatedAt: Date.now() };
     if (name !== undefined && name.trim()) patch.name = name.trim();
@@ -210,8 +213,9 @@ export const updateTable = mutation({
 });
 
 export const deleteTable = mutation({
-  args: { tableId: v.id('tables'), requesterId: v.id('users') },
-  handler: async (ctx, { tableId, requesterId }) => {
+  args: { tableId: v.id('tables'), sessionToken: v.string() },
+  handler: async (ctx, { tableId, sessionToken }) => {
+    const requesterId = await requireUserId(ctx, sessionToken);
     await requireTableAccess(ctx, tableId, requesterId);
     const now = Date.now();
     // Désassigne les invités principaux placés ici (guests.tableId).
@@ -244,9 +248,10 @@ export const assignSeat = mutation({
     guestId: v.id('guests'),
     memberIndex: v.number(),
     tableId: v.union(v.id('tables'), v.null()),
-    requesterId: v.id('users'),
+    sessionToken: v.string(),
   },
-  handler: async (ctx, { eventId, guestId, memberIndex, tableId, requesterId }) => {
+  handler: async (ctx, { eventId, guestId, memberIndex, tableId, sessionToken }) => {
+    const requesterId = await requireUserId(ctx, sessionToken);
     await requireSeatingAccess(ctx, eventId, requesterId);
     const guest = await ctx.db.get(guestId);
     if (!guest || guest.eventId !== eventId) throw new Error('GUEST_NOT_FOUND');
@@ -275,7 +280,7 @@ export const assignSeat = mutation({
 export const autoAssignGuests = mutation({
   args: {
     eventId: v.id('events'),
-    requesterId: v.id('users'),
+    sessionToken: v.string(),
     // 'unplaced' (défaut) : ne touche qu'aux personnes non placées.
     // 'all' : vide d'abord toutes les assignations puis replace tout le monde.
     mode: v.optional(v.union(v.literal('unplaced'), v.literal('all'))),
@@ -288,7 +293,8 @@ export const autoAssignGuests = mutation({
       }),
     ),
   },
-  handler: async (ctx, { eventId, requesterId, mode, settings }) => {
+  handler: async (ctx, { eventId, sessionToken, mode, settings }) => {
+    const requesterId = await requireUserId(ctx, sessionToken);
     await requireSeatingAccess(ctx, eventId, requesterId);
     const now = Date.now();
     const replaceAll = mode === 'all';
@@ -372,8 +378,9 @@ export const autoAssignGuests = mutation({
 });
 
 export const getSeatingPlan = query({
-  args: { eventId: v.id('events'), requesterId: v.id('users') },
-  handler: async (ctx, { eventId, requesterId }) => {
+  args: { eventId: v.id('events'), sessionToken: v.string() },
+  handler: async (ctx, { eventId, sessionToken }) => {
+    const requesterId = await requireUserId(ctx, sessionToken);
     await requireSeatingAccess(ctx, eventId, requesterId);
 
     const tablesRaw = await ctx.db

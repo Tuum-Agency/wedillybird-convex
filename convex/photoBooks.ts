@@ -1,6 +1,7 @@
 import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
 import { internal } from './_generated/api';
+import { requireUserId } from './lib/verifiedSession';
 
 /**
  * Commandes de livre photo HD imprimé. Débloquées par l'upsell HD post-event
@@ -22,7 +23,7 @@ function appUrl(): string {
 export const request = mutation({
   args: {
     eventId: v.id('events'),
-    requesterId: v.id('users'),
+    sessionToken: v.string(),
     recipientName: v.string(),
     addressLine1: v.string(),
     addressLine2: v.optional(v.string()),
@@ -32,9 +33,10 @@ export const request = mutation({
     notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    const requesterId = await requireUserId(ctx, args.sessionToken);
     const event = await ctx.db.get(args.eventId);
     if (!event) throw new Error('EVENT_NOT_FOUND');
-    if (event.ownerId !== args.requesterId) throw new Error('FORBIDDEN');
+    if (event.ownerId !== requesterId) throw new Error('FORBIDDEN');
     // Le livre photo HD fait partie de l'upsell post-event (+29 €).
     if (!event.hdUpsellPurchasedAt) throw new Error('UPSELL_REQUIRED');
 
@@ -62,7 +64,7 @@ export const request = mutation({
     const now = Date.now();
     const id = await ctx.db.insert('photoBookOrders', {
       eventId: args.eventId,
-      userId: args.requesterId,
+      userId: requesterId,
       status: 'requested',
       recipientName,
       addressLine1,
@@ -102,7 +104,7 @@ export const request = mutation({
     });
 
     // Confirmation au couple (si email connu).
-    const owner = await ctx.db.get(args.requesterId);
+    const owner = await ctx.db.get(requesterId);
     if (owner?.email) {
       await ctx.scheduler.runAfter(0, internal.emailActions.sendProNotification, {
         to: owner.email,
@@ -121,8 +123,9 @@ export const request = mutation({
 });
 
 export const getForEvent = query({
-  args: { eventId: v.id('events'), requesterId: v.id('users') },
-  handler: async (ctx, { eventId, requesterId }) => {
+  args: { eventId: v.id('events'), sessionToken: v.string() },
+  handler: async (ctx, { eventId, sessionToken }) => {
+    const requesterId = await requireUserId(ctx, sessionToken);
     const event = await ctx.db.get(eventId);
     if (!event) throw new Error('EVENT_NOT_FOUND');
     if (event.ownerId !== requesterId) throw new Error('FORBIDDEN');

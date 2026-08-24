@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { redirect } from '@/i18n/navigation';
 import { getSession } from '@/lib/auth/session';
-import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
+import { convexApi, getConvexServerClient, sessionTokenArg } from '@/lib/auth/convex-server';
 import { ProSidebarShell } from '@/components/pro/pro-sidebar-shell';
 import { SettingsShell } from '@/components/pro/settings-shell';
 
@@ -35,16 +35,17 @@ export default async function ProSettingsPage({ params }: { params: Promise<{ lo
   const session = await getSession();
   if (!session) redirect({ href: '/sign-in', locale });
 
+  const sessionToken = await sessionTokenArg();
   const convex = getConvexServerClient();
-  const org = await convex.query(convexApi.myOrganization, { userId: session!.userId });
+  const org = await convex.query(convexApi.myOrganization, { sessionToken });
   if (!org) redirect({ href: '/pro/onboarding', locale });
 
-  const user = await convex.query(convexApi.currentUser, { userId: session!.userId });
+  const user = await convex.query(convexApi.currentUser, { sessionToken });
   const members =
     org!.myRole === 'owner'
       ? await convex.query(convexApi.listOrgMembers, {
           organizationId: org!._id,
-          requesterId: session!.userId,
+          sessionToken,
         })
       : [];
 

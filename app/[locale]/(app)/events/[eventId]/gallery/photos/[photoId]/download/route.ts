@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth/session';
-import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
+import { convexApi, getConvexServerClient, sessionTokenArg } from '@/lib/auth/convex-server';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -23,6 +23,13 @@ export async function GET(
   const { eventId, photoId } = await ctx.params;
   const convex = getConvexServerClient();
 
+  let sessionToken: string;
+  try {
+    sessionToken = await sessionTokenArg();
+  } catch {
+    return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
+  }
+
   // listPhotosForOwner already gates on ownership — we lookup the matching
   // photo there rather than adding a dedicated `getById` query.
   let photo: {
@@ -34,7 +41,7 @@ export async function GET(
   try {
     const all = await convex.query(convexApi.listPhotosForOwner, {
       eventId,
-      requesterId: session.userId,
+      sessionToken,
     });
     photo = all.find((p) => p._id === photoId) ?? null;
   } catch (err) {

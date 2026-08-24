@@ -2,16 +2,18 @@ import { v } from 'convex/values';
 import { internalQuery, mutation, query } from './_generated/server';
 import { isValidEmail } from './lib/email';
 import { BUDGET_CURRENCY } from './lib/currency';
+import { requireUserId } from './lib/verifiedSession';
 
 export const completeOnboarding = mutation({
   args: {
-    userId: v.id('users'),
+    sessionToken: v.string(),
     fullName: v.string(),
     role: v.union(v.literal('couple'), v.literal('pro')),
     email: v.string(),
     preferredCurrency: v.optional(BUDGET_CURRENCY),
   },
-  handler: async (ctx, { userId, fullName, role, email, preferredCurrency }) => {
+  handler: async (ctx, { sessionToken, fullName, role, email, preferredCurrency }) => {
+    const userId = await requireUserId(ctx, sessionToken);
     const user = await ctx.db.get(userId);
     if (!user) throw new Error('USER_NOT_FOUND');
 
@@ -47,9 +49,13 @@ export const completeOnboarding = mutation({
   },
 });
 
+// `userId` désigne ici un AUTRE utilisateur que l'appelant (lecture de fiche),
+// il reste donc un argument métier — mais la surface n'est plus anonyme : il
+// faut une session valide pour l'interroger.
 export const getById = query({
-  args: { userId: v.id('users') },
-  handler: async (ctx, { userId }) => {
+  args: { sessionToken: v.string(), userId: v.id('users') },
+  handler: async (ctx, { sessionToken, userId }) => {
+    await requireUserId(ctx, sessionToken);
     const user = await ctx.db.get(userId);
     if (!user) return null;
     return {

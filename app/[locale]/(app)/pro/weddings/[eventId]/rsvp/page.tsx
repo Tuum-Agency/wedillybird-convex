@@ -25,12 +25,12 @@ export default async function ProWeddingRsvpPage({
 }) {
   const { locale, eventId } = await params;
   setRequestLocale(locale);
-  const { session, org, user } = await requireProContext(locale);
+  const { session, org, user, sessionToken } = await requireProContext(locale);
   const convex = getConvexServerClient();
 
   const [event, orgEvents] = await Promise.all([
-    convex.query(convexApi.getEventById, { eventId, requesterId: session.userId }),
-    convex.query(convexApi.listOrgEvents, { organizationId: org._id, requesterId: session.userId }),
+    convex.query(convexApi.getEventById, { eventId, sessionToken }),
+    convex.query(convexApi.listOrgEvents, { organizationId: org._id, sessionToken }),
   ]);
   if (!event || event.organizationId !== org._id) {
     redirect({ href: '/pro/weddings', locale });

@@ -1,7 +1,10 @@
 'use server';
 
-import { getSession } from '@/lib/auth/session';
-import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
+import {
+  convexApi,
+  getConvexServerClient,
+  optionalSessionTokenArg,
+} from '@/lib/auth/convex-server';
 
 export type BugReportInput = {
   url: string;
@@ -26,10 +29,13 @@ export async function submitBugReportAction(input: BugReportInput): Promise<BugR
   const description = input.description?.trim() ?? '';
   if (description.length < 3) return { ok: false, error: 'DESCRIPTION_TOO_SHORT' };
 
-  const session = await getSession();
+  // Jeton optionnel : un signalement ne doit jamais être refusé faute de
+  // session (le bouton existe aussi sur les pages publiques). Sans jeton,
+  // Convex enregistre le rapport en anonyme.
+  const sessionToken = await optionalSessionTokenArg();
   try {
     await getConvexServerClient().mutation(convexApi.submitBugReport, {
-      reporterId: session?.userId,
+      ...(sessionToken ? { sessionToken } : {}),
       url: input.url.slice(0, 2000),
       pathname: input.pathname.slice(0, 500),
       description,
