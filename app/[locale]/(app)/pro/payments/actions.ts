@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { getSession } from '@/lib/auth/session';
-import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
+import { convexApi, getConvexServerClient, sessionTokenArg } from '@/lib/auth/convex-server';
 import { parseEurToMinor } from '@/lib/pro/format';
 import {
   createPaymentLinkCheckout,
@@ -36,14 +36,15 @@ async function runPaymentLink(intent: LinkIntent): Promise<PaymentLinkResult> {
   const session = await getSession();
   if (!session) return { ok: false, error: 'UNAUTHENTICATED' };
   const convex = getConvexServerClient();
-  const org = await convex.query(convexApi.myOrganization, { userId: session.userId });
+  const sessionToken = await sessionTokenArg();
+  const org = await convex.query(convexApi.myOrganization, { sessionToken });
   if (!org) return { ok: false, error: 'NO_ORG' };
 
   let created;
   try {
     created = await convex.mutation(convexApi.createPaymentLinkIntent, {
       organizationId: org._id,
-      requesterId: session.userId,
+      sessionToken,
       ...intent,
     });
   } catch (e) {
@@ -62,7 +63,7 @@ async function runPaymentLink(intent: LinkIntent): Promise<PaymentLinkResult> {
     });
     await convex.mutation(convexApi.attachPaymentLinkSession, {
       paymentLinkId: created.id,
-      requesterId: session.userId,
+      sessionToken,
       providerSessionId,
       checkoutUrl: redirectUrl,
     });
@@ -79,7 +80,7 @@ async function runPaymentLink(intent: LinkIntent): Promise<PaymentLinkResult> {
     try {
       await convex.mutation(convexApi.removePaymentLink, {
         paymentLinkId: created.id,
-        requesterId: session.userId,
+        sessionToken,
       });
     } catch {
       // best-effort
@@ -137,14 +138,15 @@ export async function getConnectedFinancesAction(): Promise<FinancesResult> {
   const session = await getSession();
   if (!session) return { ok: false, error: 'UNAUTHENTICATED' };
   const convex = getConvexServerClient();
-  const org = await convex.query(convexApi.myOrganization, { userId: session.userId });
+  const sessionToken = await sessionTokenArg();
+  const org = await convex.query(convexApi.myOrganization, { sessionToken });
   if (!org) return { ok: false, error: 'NO_ORG' };
 
   let accountId: string | null = null;
   try {
     const status = await convex.query(convexApi.orgConnectStatus, {
       organizationId: org._id,
-      requesterId: session.userId,
+      sessionToken,
     });
     accountId = status.accountId;
   } catch (e) {
@@ -176,7 +178,8 @@ export async function refundConnectedChargeAction(chargeId: string): Promise<Ref
   if (!session) return { ok: false, error: 'UNAUTHENTICATED' };
   if (!chargeId) return { ok: false, error: 'INVALID_CHARGE' };
   const convex = getConvexServerClient();
-  const org = await convex.query(convexApi.myOrganization, { userId: session.userId });
+  const sessionToken = await sessionTokenArg();
+  const org = await convex.query(convexApi.myOrganization, { sessionToken });
   if (!org) return { ok: false, error: 'NO_ORG' };
   if (org.myRole !== 'owner' && org.myRole !== 'admin') return { ok: false, error: 'FORBIDDEN' };
 
@@ -184,7 +187,7 @@ export async function refundConnectedChargeAction(chargeId: string): Promise<Ref
   try {
     const status = await convex.query(convexApi.orgConnectStatus, {
       organizationId: org._id,
-      requesterId: session.userId,
+      sessionToken,
     });
     accountId = status.accountId;
   } catch (e) {

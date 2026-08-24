@@ -2,16 +2,18 @@ import { v } from 'convex/values';
 import { internalQuery, mutation, query } from './_generated/server';
 import { isValidEmail } from './lib/email';
 import { BUDGET_CURRENCY } from './lib/currency';
+import { requireUserId } from './lib/verifiedSession';
 
 export const completeOnboarding = mutation({
   args: {
-    userId: v.id('users'),
+    sessionToken: v.string(),
     fullName: v.string(),
     role: v.union(v.literal('couple'), v.literal('pro')),
     email: v.string(),
     preferredCurrency: v.optional(BUDGET_CURRENCY),
   },
-  handler: async (ctx, { userId, fullName, role, email, preferredCurrency }) => {
+  handler: async (ctx, { sessionToken, fullName, role, email, preferredCurrency }) => {
+    const userId = await requireUserId(ctx, sessionToken);
     const user = await ctx.db.get(userId);
     if (!user) throw new Error('USER_NOT_FOUND');
 
@@ -47,20 +49,21 @@ export const completeOnboarding = mutation({
   },
 });
 
-export const getById = query({
-  args: { userId: v.id('users') },
-  handler: async (ctx, { userId }) => {
-    const user = await ctx.db.get(userId);
-    if (!user) return null;
-    return {
-      _id: user._id,
-      phone: user.phone,
-      email: user.email,
-      fullName: user.fullName,
-      role: user.role,
-    };
-  },
-});
+// `userId` désigne ici un AUTRE utilisateur que l'appelant (lecture de fiche),
+// il reste donc un argument métier — mais la surface n'est plus anonyme : il
+// faut une session valide pour l'interroger.
+/*
+ * `getById` (supprimée — audit archi 2026-08-23) : exposait téléphone, email,
+ * nom et rôle de N'IMPORTE QUEL utilisateur à tout appelant authentifié, à
+ * partir d'un simple id. Ses deux seuls appelants (checkout abonnement et
+ * Pay-as-you-go) passaient leur PROPRE id et ne lisaient que `email` : ils
+ * utilisent désormais `auth.currentUser`, qui renvoie le même champ et n'a
+ * aucun argument capable de désigner un tiers.
+ *
+ * Ne pas la réintroduire pour lire le profil d'autrui : les surfaces qui en ont
+ * besoin sont déjà cadrées (`organizations.listMembers` pour l'équipe d'une
+ * organisation, `admin.listUsers` pour la plateforme).
+ */
 
 /* -------------------------------------------------------------------------- */
 /*  Détection de doublons — audit manuel                                      */

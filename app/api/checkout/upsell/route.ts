@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getSession } from '@/lib/auth/session';
-import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
+import { convexApi, getConvexServerClient, sessionTokenArg } from '@/lib/auth/convex-server';
 import { getUpsellPrice } from '@/lib/payments/plans';
 import { detectCountryFromHeaders, routePayment } from '@/lib/payments/country';
 import {
@@ -37,13 +37,14 @@ export async function POST(req: Request): Promise<Response> {
     return NextResponse.json({ error: 'INVALID_INPUT' }, { status: 400 });
   }
 
+  const sessionToken = await sessionTokenArg();
   const convex = getConvexServerClient();
 
   // Vérifie que le demandeur possède bien l'event ET qu'il est éligible :
   // l'upsell ne s'achète qu'une fois, sur un event déjà payé.
   const event = await convex.query(convexApi.getEventById, {
     eventId: parsed.eventId,
-    requesterId: session.userId,
+    sessionToken,
   });
   if (!event) {
     return NextResponse.json({ error: 'FORBIDDEN' }, { status: 403 });
@@ -75,7 +76,7 @@ export async function POST(req: Request): Promise<Response> {
   let creditReserved = false;
   try {
     const reserved = await convex.mutation(convexApi.reserveCreditForCheckout, {
-      userId: session.userId,
+      sessionToken,
       reservationId,
       currency: routing.currency,
       orderMinor: amountMinor,

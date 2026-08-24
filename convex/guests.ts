@@ -10,6 +10,7 @@ import {
 import type { Doc, Id } from './_generated/dataModel';
 import { generateQrToken } from './lib/qrToken';
 import { assertEventAccess } from './lib/eventAuth';
+import { requireUserId } from './lib/verifiedSession';
 import { musicForClient, photoForClient } from './lib/invitationDesign';
 
 const QR_MAX_ATTEMPTS = 6;
@@ -39,7 +40,7 @@ async function uniqueQrToken(ctx: MutationCtx): Promise<string> {
 export const add = mutation({
   args: {
     eventId: v.id('events'),
-    requesterId: v.id('users'),
+    sessionToken: v.string(),
     fullName: v.string(),
     phone: v.optional(v.string()),
     email: v.optional(v.string()),
@@ -48,7 +49,8 @@ export const add = mutation({
     notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const event = await assertEventOwnership(ctx, args.eventId, args.requesterId);
+    const requesterId = await requireUserId(ctx, args.sessionToken);
+    const event = await assertEventOwnership(ctx, args.eventId, requesterId);
 
     const fullName = args.fullName.trim();
     if (fullName.length < 1 || fullName.length > 120) throw new Error('INVALID_FULL_NAME');
@@ -94,7 +96,7 @@ export const add = mutation({
 export const update = mutation({
   args: {
     guestId: v.id('guests'),
-    requesterId: v.id('users'),
+    sessionToken: v.string(),
     fullName: v.optional(v.string()),
     phone: v.optional(v.string()),
     email: v.optional(v.string()),
@@ -103,9 +105,10 @@ export const update = mutation({
     notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    const requesterId = await requireUserId(ctx, args.sessionToken);
     const guest = await ctx.db.get(args.guestId);
     if (!guest) throw new Error('GUEST_NOT_FOUND');
-    await assertEventOwnership(ctx, guest.eventId, args.requesterId);
+    await assertEventOwnership(ctx, guest.eventId, requesterId);
 
     const patch: Partial<Doc<'guests'>> = { updatedAt: Date.now() };
 
@@ -135,8 +138,9 @@ export const update = mutation({
 });
 
 export const remove = mutation({
-  args: { guestId: v.id('guests'), requesterId: v.id('users') },
-  handler: async (ctx, { guestId, requesterId }) => {
+  args: { guestId: v.id('guests'), sessionToken: v.string() },
+  handler: async (ctx, { guestId, sessionToken }) => {
+    const requesterId = await requireUserId(ctx, sessionToken);
     const guest = await ctx.db.get(guestId);
     if (!guest) throw new Error('GUEST_NOT_FOUND');
     await assertEventOwnership(ctx, guest.eventId, requesterId);
@@ -146,8 +150,9 @@ export const remove = mutation({
 });
 
 export const listByEvent = query({
-  args: { eventId: v.id('events'), requesterId: v.id('users') },
-  handler: async (ctx, { eventId, requesterId }) => {
+  args: { eventId: v.id('events'), sessionToken: v.string() },
+  handler: async (ctx, { eventId, sessionToken }) => {
+    const requesterId = await requireUserId(ctx, sessionToken);
     await assertEventOwnership(ctx, eventId, requesterId);
     const rows = await ctx.db
       .query('guests')
@@ -174,6 +179,12 @@ export const listByEvent = query({
   },
 });
 
+/**
+ * Invitation vue par l'invité (`/i/<token>`). Surface **anonyme par nature** :
+ * le QR est le seul secret et personne n'a de compte ici — pas de
+ * `sessionToken` à exiger. Le shape retourné reste volontairement restreint
+ * (rien sur l'owner, le plan ou la messagingConfig).
+ */
 export const getByToken = query({
   args: { token: v.string() },
   handler: async (ctx, { token }) => {
@@ -222,8 +233,9 @@ export const getByToken = query({
 });
 
 export const countByEvent = query({
-  args: { eventId: v.id('events'), requesterId: v.id('users') },
-  handler: async (ctx, { eventId, requesterId }) => {
+  args: { eventId: v.id('events'), sessionToken: v.string() },
+  handler: async (ctx, { eventId, sessionToken }) => {
+    const requesterId = await requireUserId(ctx, sessionToken);
     await assertEventOwnership(ctx, eventId, requesterId);
     const rows = await ctx.db
       .query('guests')
@@ -249,8 +261,9 @@ export const countByEvent = query({
 });
 
 export const listForCheckIn = query({
-  args: { eventId: v.id('events'), requesterId: v.id('users') },
-  handler: async (ctx, { eventId, requesterId }) => {
+  args: { eventId: v.id('events'), sessionToken: v.string() },
+  handler: async (ctx, { eventId, sessionToken }) => {
+    const requesterId = await requireUserId(ctx, sessionToken);
     await assertEventOwnership(ctx, eventId, requesterId);
     const rows = await ctx.db
       .query('guests')
@@ -268,13 +281,20 @@ export const listForCheckIn = query({
   },
 });
 
+/**
+ * Pointage d'un invité depuis l'écran de check-in (scan du QR à l'entrée).
+ * Deux jetons de nature différente cohabitent ici : `token` est le QR de
+ * l'invité — une donnée métier qui désigne QUI est pointé — tandis que le
+ * personnel qui scanne est authentifié par sa session (`sessionToken`).
+ */
 export const checkInByToken = mutation({
   args: {
     token: v.string(),
     eventId: v.id('events'),
-    requesterId: v.id('users'),
+    sessionToken: v.string(),
   },
-  handler: async (ctx, { token, eventId, requesterId }) => {
+  handler: async (ctx, { token, eventId, sessionToken }) => {
+    const requesterId = await requireUserId(ctx, sessionToken);
     await assertEventOwnership(ctx, eventId, requesterId);
 
     const guest = await ctx.db
@@ -311,8 +331,9 @@ export const checkInByToken = mutation({
 });
 
 export const undoCheckIn = mutation({
-  args: { guestId: v.id('guests'), requesterId: v.id('users') },
-  handler: async (ctx, { guestId, requesterId }) => {
+  args: { guestId: v.id('guests'), sessionToken: v.string() },
+  handler: async (ctx, { guestId, sessionToken }) => {
+    const requesterId = await requireUserId(ctx, sessionToken);
     const guest = await ctx.db.get(guestId);
     if (!guest) throw new Error('GUEST_NOT_FOUND');
     await assertEventOwnership(ctx, guest.eventId, requesterId);

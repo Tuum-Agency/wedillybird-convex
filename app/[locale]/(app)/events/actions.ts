@@ -8,7 +8,12 @@ import {
   normalizeCreateEvent,
   updateEventSchema,
 } from '@/lib/validators/events';
-import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
+import {
+  convexApi,
+  convexSessionToken,
+  getConvexServerClient,
+  sessionTokenArg,
+} from '@/lib/auth/convex-server';
 import { getSession } from '@/lib/auth/session';
 import { isCinematicId } from '@/components/invitation/cinematics/registry';
 import { isMusicTrackId } from '@/lib/invitation/music';
@@ -74,13 +79,14 @@ export async function createEventAction(formData: FormData): Promise<CreateEvent
 
   const normalized = normalizeCreateEvent(parsed.data);
   const convex = getConvexServerClient();
+  const { sessionToken } = await convexSessionToken();
 
-  const org = await convex.query(convexApi.myOrganization, { userId: session.userId });
+  const org = await convex.query(convexApi.myOrganization, { sessionToken });
 
   let slug: string;
   try {
     const result = await convex.mutation(convexApi.createEvent, {
-      ownerId: session.userId,
+      sessionToken,
       ...normalized,
       ...(org ? { organizationId: org._id } : {}),
     });
@@ -126,7 +132,7 @@ export async function broadcastInvitationsAction(
   try {
     const result = await convex.action(convexApi.broadcastInvitations, {
       eventId,
-      requesterId: session.userId,
+      sessionToken: await sessionTokenArg(),
     });
     revalidatePath(`/fr/events/${eventId}`);
     return {
@@ -180,7 +186,7 @@ export async function updateMessagingConfigAction(
   try {
     await convex.mutation(convexApi.updateEventMessagingConfig, {
       eventId,
-      requesterId: session.userId,
+      sessionToken: await sessionTokenArg(),
       templateStyle: templateStyle as 'classic' | 'warm' | 'african' | 'minimal' | 'festive',
       ...(personalMessage ? { personalMessage } : {}),
       preferredChannel: preferredChannel as 'whatsapp' | 'email' | 'both',
@@ -316,7 +322,7 @@ export async function updateEventAction(
   try {
     await convex.mutation(convexApi.updateEvent, {
       eventId,
-      requesterId: session.userId,
+      sessionToken: await sessionTokenArg(),
       ...(ceremonySchedule !== undefined ? { ceremonySchedule } : {}),
       ...(data.title !== undefined ? { title: data.title } : {}),
       ...(data.partnerA !== undefined ? { partnerA: data.partnerA } : {}),
@@ -354,7 +360,7 @@ export async function createEventMusicUploadUrlAction(
     const convex = getConvexServerClient();
     const res = await convex.action(convexApi.createInvitationMusicUploadUrl, {
       eventId,
-      requesterId: session.userId,
+      sessionToken: await sessionTokenArg(),
       contentType,
     });
     return { ok: true, ...res };
@@ -378,7 +384,7 @@ export async function createEventInvitationPhotoUploadUrlAction(
     const convex = getConvexServerClient();
     const res = await convex.action(convexApi.createInvitationPhotoUploadUrl, {
       eventId,
-      requesterId: session.userId,
+      sessionToken: await sessionTokenArg(),
       contentType,
     });
     return { ok: true, ...res };
@@ -402,15 +408,16 @@ export async function togglePublishActionWithResult(
 
   const convex = getConvexServerClient();
   try {
+    const sessionToken = await sessionTokenArg();
     const result =
       action === 'publish'
         ? await convex.mutation(convexApi.publishEvent, {
             eventId,
-            requesterId: session.userId,
+            sessionToken,
           })
         : await convex.mutation(convexApi.unpublishEvent, {
             eventId,
-            requesterId: session.userId,
+            sessionToken,
           });
     revalidatePath(`/fr/events/${eventId}`);
     return { ok: true, status: result.status };
@@ -472,11 +479,19 @@ export async function submitCustomTemplateAction(
 
   const convex = getConvexServerClient();
 
+  // Un seul jeton pour les 3 appels de la séquence.
+  let sessionToken: string;
+  try {
+    sessionToken = await sessionTokenArg();
+  } catch {
+    return { ok: false, error: 'UNAUTHENTICATED' };
+  }
+
   let templateId: string;
   try {
     const created = await convex.mutation(convexApi.createWhatsappTemplate, {
       eventId,
-      requesterId: session.userId,
+      sessionToken,
       bodyText,
       ctaLabel,
     });
@@ -490,7 +505,7 @@ export async function submitCustomTemplateAction(
   try {
     const submitted = await convex.action(convexApi.submitWhatsappTemplateToMeta, {
       templateId,
-      requesterId: session.userId,
+      sessionToken,
     });
     if (!submitted.ok) {
       return { ok: false, error: submitted.error ?? 'SUBMIT_FAILED' };
@@ -507,7 +522,7 @@ export async function submitCustomTemplateAction(
   try {
     await convex.mutation(convexApi.updateEventMessagingConfig, {
       eventId,
-      requesterId: session.userId,
+      sessionToken,
       customTemplateId: templateId,
       templateNotifyChannel: templateNotifyChannel as 'whatsapp' | 'email' | 'both',
     });
@@ -543,7 +558,7 @@ export async function updateRsvpConfigAction(
   try {
     await convex.mutation(convexApi.updateRsvpConfig, {
       eventId,
-      requesterId: session.userId,
+      sessionToken: await sessionTokenArg(),
       config: clean,
     });
     revalidatePath(`/fr/events/${eventId}/edit`);
@@ -590,7 +605,7 @@ export async function setFaceSearchEnabledAction(
   try {
     const result = await convex.mutation(convexApi.setFaceSearchEnabled, {
       eventId,
-      requesterId: session.userId,
+      sessionToken: await sessionTokenArg(),
       enabled,
       ...(weddingState !== undefined ? { weddingState } : {}),
     });

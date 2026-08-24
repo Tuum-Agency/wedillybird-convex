@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import { ArrowLeft, Download } from 'lucide-react';
 import { Link, redirect } from '@/i18n/navigation';
 import { getSession } from '@/lib/auth/session';
-import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
+import { convexApi, getConvexServerClient, sessionTokenArg } from '@/lib/auth/convex-server';
 import { AppShell } from '@/components/app/app-shell';
 import { GuestsManager } from '@/components/guests/guests-manager';
 
@@ -21,18 +21,19 @@ export default async function GuestsPage({
   }
 
   const convex = getConvexServerClient();
+  const sessionToken = await sessionTokenArg();
   const event = await convex.query(convexApi.getEventById, {
     eventId,
-    requesterId: session!.userId,
+    sessionToken,
   });
   if (!event) notFound();
 
   const guests = await convex.query(convexApi.listGuestsByEvent, {
     eventId,
-    requesterId: session!.userId,
+    sessionToken,
   });
 
-  const user = await convex.query(convexApi.currentUser, { userId: session!.userId });
+  const user = await convex.query(convexApi.currentUser, { sessionToken });
   const t = await getTranslations('Guests');
   const tStats = await getTranslations('EventStats');
 

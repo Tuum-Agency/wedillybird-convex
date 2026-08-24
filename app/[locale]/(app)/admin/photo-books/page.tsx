@@ -1,7 +1,7 @@
 import { setRequestLocale } from 'next-intl/server';
 import { redirect } from '@/i18n/navigation';
 import { getSession } from '@/lib/auth/session';
-import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
+import { convexApi, getConvexServerClient, sessionTokenArg } from '@/lib/auth/convex-server';
 import { AdminShell } from '@/components/admin/admin-shell';
 import { AdminPhotoBooksTable } from '@/components/admin/admin-photo-books-table';
 
@@ -16,10 +16,11 @@ export default async function AdminPhotoBooksPage({
   const session = await getSession();
   if (!session) redirect({ href: '/sign-in', locale });
 
+  const sessionToken = await sessionTokenArg();
   const convex = getConvexServerClient();
   const [user, orders] = await Promise.all([
-    convex.query(convexApi.currentUser, { userId: session!.userId }),
-    convex.query(convexApi.adminListPhotoBookOrders, { adminId: session!.userId }),
+    convex.query(convexApi.currentUser, { sessionToken }),
+    convex.query(convexApi.adminListPhotoBookOrders, { sessionToken }),
   ]);
 
   const pending = orders.filter((o) => o.status === 'requested' || o.status === 'in_production');

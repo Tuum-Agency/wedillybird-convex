@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { addGuestSchema, updateGuestSchema } from '@/lib/validators/guests';
-import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
+import { convexApi, getConvexServerClient, sessionTokenArg } from '@/lib/auth/convex-server';
 import { getSession } from '@/lib/auth/session';
 
 export type GuestActionResult =
@@ -44,7 +44,7 @@ export async function addGuestAction(
   try {
     await convex.mutation(convexApi.addGuest, {
       eventId,
-      requesterId: session.userId,
+      sessionToken: await sessionTokenArg(),
       fullName: parsed.data.fullName,
       plusOnesAllowed: parsed.data.plusOnesAllowed,
       ...(parsed.data.phone ? { phone: parsed.data.phone } : {}),
@@ -93,7 +93,7 @@ export async function updateGuestAction(
   try {
     await convex.mutation(convexApi.updateGuest, {
       guestId,
-      requesterId: session.userId,
+      sessionToken: await sessionTokenArg(),
       ...(parsed.data.fullName !== undefined ? { fullName: parsed.data.fullName } : {}),
       ...(parsed.data.phone !== undefined ? { phone: parsed.data.phone } : {}),
       ...(parsed.data.email !== undefined ? { email: parsed.data.email } : {}),
@@ -122,7 +122,7 @@ export async function removeGuestAction(
   try {
     await convex.mutation(convexApi.removeGuest, {
       guestId,
-      requesterId: session.userId,
+      sessionToken: await sessionTokenArg(),
     });
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : 'UNKNOWN' };

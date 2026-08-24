@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { Link, redirect } from '@/i18n/navigation';
 import { getSession } from '@/lib/auth/session';
-import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
+import { convexApi, convexSessionToken, getConvexServerClient } from '@/lib/auth/convex-server';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { AppShell } from '@/components/app/app-shell';
 import { BroadcastInvitationsCard } from '@/components/events/broadcast-invitations-card';
@@ -74,9 +74,10 @@ export default async function EventDetailPage({
   }
 
   const convex = getConvexServerClient();
+  const { sessionToken } = await convexSessionToken();
   const event = await convex.query(convexApi.getEventById, {
     eventId,
-    requesterId: session!.userId,
+    sessionToken,
   });
   if (!event) notFound();
 
@@ -88,7 +89,7 @@ export default async function EventDetailPage({
 
   const counts = await convex.query(convexApi.countGuestsByEvent, {
     eventId,
-    requesterId: session!.userId,
+    sessionToken,
   });
 
   // Livraison SMS RÉELLE (délivrés / en attente / non délivrés) — remplace le
@@ -96,15 +97,15 @@ export default async function EventDetailPage({
   // broadcast, mis à jour par le webhook StatusCallback + le cron de secours.
   const delivery = await convex.query(convexApi.deliveryForEvent, {
     eventId,
-    requesterId: session!.userId,
+    sessionToken,
   });
 
-  const user = await convex.query(convexApi.currentUser, { userId: session!.userId });
+  const user = await convex.query(convexApi.currentUser, { sessionToken });
   // Commande de livre photo : seulement pertinente une fois l'upsell HD acheté.
   const photoBookOrder = event.hdUpsellPurchasedAt
     ? await convex.query(convexApi.getPhotoBookOrder, {
         eventId,
-        requesterId: session!.userId,
+        sessionToken,
       })
     : null;
   const t = await getTranslations('EventDetail');
@@ -135,11 +136,11 @@ export default async function EventDetailPage({
     const credits = await convex
       .query(convexApi.getPaygCreditsByOrganization, {
         organizationId: orgId,
-        requesterId: session!.userId,
+        sessionToken,
       })
       .catch(() => null);
     const orgRole = await convex
-      .query(convexApi.myOrganization, { userId: session!.userId })
+      .query(convexApi.myOrganization, { sessionToken })
       .catch(() => null);
     const hasActiveSub =
       orgRole?.subscriptionStatus === 'active' || orgRole?.subscriptionStatus === 'trialing';
@@ -151,7 +152,7 @@ export default async function EventDetailPage({
       const quotaStatus = await convex
         .query(convexApi.orgPublishQuotaStatus, {
           eventId,
-          requesterId: session!.userId,
+          sessionToken,
         })
         .catch(() => null);
       if (quotaStatus?.applicable && quotaStatus.atQuota) {
@@ -459,12 +460,7 @@ export default async function EventDetailPage({
   );
 
   const statsSection = (
-    <LiveGuestStats
-      eventId={eventId}
-      requesterId={session!.userId}
-      initialCounts={counts}
-      maxGuests={event.maxGuests}
-    />
+    <LiveGuestStats eventId={eventId} initialCounts={counts} maxGuests={event.maxGuests} />
   );
 
   const upgradeSection = (
@@ -499,7 +495,7 @@ export default async function EventDetailPage({
               (stats live, broadcast quotidien) et les actions invités. */}
         {headerSection}
         {detailsSection}
-        <NotificationsPanel userId={session!.userId} />
+        <NotificationsPanel />
         {isDraft ? (
           <>
             {pilotSection}

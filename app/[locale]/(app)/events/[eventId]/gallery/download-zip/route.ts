@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth/session';
-import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
+import { convexApi, getConvexServerClient, sessionTokenArg } from '@/lib/auth/convex-server';
 import { createZipStream, safeZipEntryName, type ZipStreamEntry } from '@/lib/photos/zip-stream';
 import { canDownloadGalleryZip } from '@/lib/gallery/zip-access';
 
@@ -37,11 +37,19 @@ export async function GET(
   const { eventId } = await ctx.params;
   const convex = getConvexServerClient();
 
+  // Un seul jeton pour les deux lectures Convex de la route.
+  let sessionToken: string;
+  try {
+    sessionToken = await sessionTokenArg();
+  } catch {
+    return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
+  }
+
   let event;
   try {
     event = await convex.query(convexApi.getEventById, {
       eventId,
-      requesterId: session.userId,
+      sessionToken,
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'UNKNOWN';
@@ -70,7 +78,7 @@ export async function GET(
   try {
     const all = await convex.query(convexApi.listPhotosForOwner, {
       eventId,
-      requesterId: session.userId,
+      sessionToken,
       status: 'approved',
     });
     photos = all.flatMap((p) => {

@@ -24,7 +24,7 @@ export default async function ProClientsPage({
   const { locale } = await params;
   const sp = await searchParams;
   setRequestLocale(locale);
-  const { session, org, user } = await requireProContext(locale);
+  const { sessionToken, org, user } = await requireProContext(locale);
   const t = await getTranslations('ProPages');
   const tier = org.subscriptionTier ?? null;
   const locked = !tierHasFeature(tier, 'crmPipeline');
@@ -62,11 +62,11 @@ export default async function ProClientsPage({
   const [clients, members] = await Promise.all([
     convex.query(convexApi.clientsListByOrg, {
       organizationId: org._id,
-      requesterId: session.userId,
+      sessionToken,
     }),
     convex.query(convexApi.listOrgMembers, {
       organizationId: org._id,
-      requesterId: session.userId,
+      sessionToken,
     }),
   ]);
 

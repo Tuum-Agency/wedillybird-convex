@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import { Sparkles, ArrowLeft } from 'lucide-react';
 import { Link, redirect } from '@/i18n/navigation';
 import { getSession } from '@/lib/auth/session';
-import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
+import { convexApi, getConvexServerClient, sessionTokenArg } from '@/lib/auth/convex-server';
 import { buttonVariants } from '@/components/ui/button';
 import { AppShell } from '@/components/app/app-shell';
 import { getPaymentDriver } from '@/lib/payments';
@@ -69,13 +69,14 @@ export default async function UpgradeSuccessPage({
     }
   }
 
+  const sessionToken = await sessionTokenArg();
   const event = await convex.query(convexApi.getEventById, {
     eventId,
-    requesterId: session!.userId,
+    sessionToken,
   });
   if (!event) notFound();
 
-  const user = await convex.query(convexApi.currentUser, { userId: session!.userId });
+  const user = await convex.query(convexApi.currentUser, { sessionToken });
   const t = await getTranslations('Upgrade');
   const isPending = event.planTier === undefined;
 

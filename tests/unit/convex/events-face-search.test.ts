@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { setFaceSearchEnabled } from '../../../convex/events';
+import { TEST_SESSION_TOKEN, mockAuthSessionsQuery } from './helpers/auth-session';
 
 /**
  * `events.setFaceSearchEnabled` — opt-in reco-faciale (Lane T3, F7).
@@ -26,12 +27,19 @@ interface MockEvent {
   faceSearchEnabled?: boolean;
 }
 
-function buildCtx(event: MockEvent, collaborator?: { role: string } | null) {
+function buildCtx(
+  event: MockEvent,
+  collaborator?: { role: string } | null,
+  // Identité résolue depuis le `sessionToken` : c'est désormais Convex qui la
+  // détermine (table `authSessions`), plus l'appelant via un argument.
+  sessionUserId = 'user_1',
+) {
   let patched: any = null;
   const ctx = {
     db: {
       get: vi.fn(async (id: string) => (id === event._id ? event : null)),
       query: vi.fn((table: string) => {
+        if (table === 'authSessions') return mockAuthSessionsQuery(sessionUserId);
         if (table !== 'eventCollaborators') throw new Error(`Unexpected query on table=${table}`);
         return {
           withIndex: (_indexName: string, _filter: unknown) => ({
@@ -65,7 +73,7 @@ describe('setFaceSearchEnabled — geofence + consentement', () => {
     await expect(
       setFaceSearchEnabledFn._handler(ctx, {
         eventId: 'evt_il',
-        requesterId: 'user_1',
+        sessionToken: TEST_SESSION_TOKEN,
         enabled: true,
       }),
     ).rejects.toThrow('FACE_SEARCH_STATE_BANNED');
@@ -84,7 +92,7 @@ describe('setFaceSearchEnabled — geofence + consentement', () => {
       await expect(
         setFaceSearchEnabledFn._handler(ctx, {
           eventId: 'evt_x',
-          requesterId: 'user_1',
+          sessionToken: TEST_SESSION_TOKEN,
           enabled: true,
         }),
       ).rejects.toThrow('FACE_SEARCH_STATE_BANNED');
@@ -106,7 +114,7 @@ describe('setFaceSearchEnabled — geofence + consentement', () => {
     await expect(
       setFaceSearchEnabledFn._handler(ctx, {
         eventId: 'evt_race',
-        requesterId: 'user_1',
+        sessionToken: TEST_SESSION_TOKEN,
         enabled: true,
         weddingState: 'IL',
       }),
@@ -125,7 +133,7 @@ describe('setFaceSearchEnabled — geofence + consentement', () => {
 
     const res = await setFaceSearchEnabledFn._handler(ctx, {
       eventId: 'evt_ok',
-      requesterId: 'user_1',
+      sessionToken: TEST_SESSION_TOKEN,
       enabled: true,
     });
 
@@ -145,7 +153,7 @@ describe('setFaceSearchEnabled — geofence + consentement', () => {
 
     const res = await setFaceSearchEnabledFn._handler(ctx, {
       eventId: 'evt_ny',
-      requesterId: 'user_1',
+      sessionToken: TEST_SESSION_TOKEN,
       enabled: true,
       weddingState: 'ny', // minuscules → normalisé en majuscules
     });
@@ -166,7 +174,7 @@ describe('setFaceSearchEnabled — geofence + consentement', () => {
 
     const res = await setFaceSearchEnabledFn._handler(ctx, {
       eventId: 'evt_il2',
-      requesterId: 'user_1',
+      sessionToken: TEST_SESSION_TOKEN,
       enabled: false,
     });
 
@@ -190,7 +198,7 @@ describe('setFaceSearchEnabled — geofence + consentement', () => {
 
     const res = await setFaceSearchEnabledFn._handler(ctx, {
       eventId: 'evt_clear',
-      requesterId: 'user_1',
+      sessionToken: TEST_SESSION_TOKEN,
       enabled: false,
       weddingState: '',
     });
@@ -211,7 +219,7 @@ describe('setFaceSearchEnabled — geofence + consentement', () => {
     await expect(
       setFaceSearchEnabledFn._handler(ctx, {
         eventId: 'evt_essential',
-        requesterId: 'user_1',
+        sessionToken: TEST_SESSION_TOKEN,
         enabled: true,
       }),
     ).rejects.toThrow('FEATURE_NOT_IN_PLAN');
@@ -220,12 +228,12 @@ describe('setFaceSearchEnabled — geofence + consentement', () => {
 
   it('refuse FORBIDDEN pour un tiers sans lien avec l’event', async () => {
     const event: MockEvent = { _id: 'evt_forbidden', ownerId: 'user_1', planTier: 'premium' };
-    const { ctx } = buildCtx(event, null);
+    const { ctx } = buildCtx(event, null, 'user_intruder');
 
     await expect(
       setFaceSearchEnabledFn._handler(ctx, {
         eventId: 'evt_forbidden',
-        requesterId: 'user_intruder',
+        sessionToken: TEST_SESSION_TOKEN,
         enabled: true,
       }),
     ).rejects.toThrow('FORBIDDEN');
@@ -238,11 +246,11 @@ describe('setFaceSearchEnabled — geofence + consentement', () => {
       organizationId: 'org_1',
       weddingState: 'NY',
     };
-    const { ctx, getPatched } = buildCtx(event, { role: 'couple' });
+    const { ctx, getPatched } = buildCtx(event, { role: 'couple' }, 'couple_user');
 
     const res = await setFaceSearchEnabledFn._handler(ctx, {
       eventId: 'evt_agency',
-      requesterId: 'couple_user',
+      sessionToken: TEST_SESSION_TOKEN,
       enabled: true,
     });
 
@@ -257,12 +265,12 @@ describe('setFaceSearchEnabled — geofence + consentement', () => {
       organizationId: 'org_1',
       weddingState: 'NY',
     };
-    const { ctx } = buildCtx(event, { role: 'viewer' });
+    const { ctx } = buildCtx(event, { role: 'viewer' }, 'viewer_user');
 
     await expect(
       setFaceSearchEnabledFn._handler(ctx, {
         eventId: 'evt_viewer',
-        requesterId: 'viewer_user',
+        sessionToken: TEST_SESSION_TOKEN,
         enabled: true,
       }),
     ).rejects.toThrow('FORBIDDEN');

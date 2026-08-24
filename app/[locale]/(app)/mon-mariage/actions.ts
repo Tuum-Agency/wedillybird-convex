@@ -1,7 +1,7 @@
 'use server';
 
 import { getSession } from '@/lib/auth/session';
-import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
+import { convexApi, getConvexServerClient, sessionTokenArg } from '@/lib/auth/convex-server';
 import type {
   CouplePaymentKind,
   CoupleRoomFloor,
@@ -52,11 +52,11 @@ function mapError(err: unknown): { ok: false; error: string } {
   return { ok: false, error: hit ?? 'UNKNOWN' };
 }
 
-async function run<T extends { ok: boolean }>(fn: (userId: string) => Promise<T>) {
+async function run<T extends { ok: boolean }>(fn: (sessionToken: string) => Promise<T>) {
   const session = await getSession();
   if (!session) return { ok: false as const, error: 'UNAUTHENTICATED' };
   try {
-    return await fn(session.userId);
+    return await fn(await sessionTokenArg());
   } catch (err) {
     return mapError(err);
   }
@@ -73,7 +73,7 @@ export async function mmRefreshBundleAction(): Promise<
   try {
     const convex = getConvexServerClient();
     const bundle = await convex.query(convexApi.coupleSpaceBundle, {
-      requesterId: session.userId,
+      sessionToken: await sessionTokenArg(),
     });
     return { ok: true, bundle };
   } catch (err) {
@@ -87,11 +87,11 @@ export async function mmAddGuestAction(
   eventId: string,
   input: { fullName: string; phone?: string; category?: string; plusOnesAllowed: number },
 ): Promise<MmActionResult> {
-  return run(async (userId) => {
+  return run(async (sessionToken) => {
     const convex = getConvexServerClient();
     const res = await convex.mutation(convexApi.addGuest, {
       eventId,
-      requesterId: userId,
+      sessionToken,
       fullName: input.fullName,
       ...(input.phone ? { phone: input.phone } : {}),
       ...(input.category ? { category: input.category } : {}),
@@ -119,11 +119,11 @@ export async function mmAddVendorAction(
   eventId: string,
   input: MmVendorInput,
 ): Promise<MmActionResult> {
-  return run(async (userId) => {
+  return run(async (sessionToken) => {
     const convex = getConvexServerClient();
     const id = await convex.mutation(convexApi.coupleAddVendor, {
       eventId,
-      requesterId: userId,
+      sessionToken,
       ...input,
     });
     return { ok: true as const, id };
@@ -134,11 +134,11 @@ export async function mmUpdateVendorAction(
   vendorId: string,
   input: Partial<MmVendorInput>,
 ): Promise<MmActionResult> {
-  return run(async (userId) => {
+  return run(async (sessionToken) => {
     const convex = getConvexServerClient();
     await convex.mutation(convexApi.coupleUpdateVendor, {
       vendorId,
-      requesterId: userId,
+      sessionToken,
       ...input,
     });
     return { ok: true as const };
@@ -146,9 +146,9 @@ export async function mmUpdateVendorAction(
 }
 
 export async function mmRemoveVendorAction(vendorId: string): Promise<MmActionResult> {
-  return run(async (userId) => {
+  return run(async (sessionToken) => {
     const convex = getConvexServerClient();
-    await convex.mutation(convexApi.coupleRemoveVendor, { vendorId, requesterId: userId });
+    await convex.mutation(convexApi.coupleRemoveVendor, { vendorId, sessionToken });
     return { ok: true as const };
   });
 }
@@ -166,11 +166,11 @@ export async function mmAddPaymentAction(
     amountMinor: number;
   },
 ): Promise<MmActionResult> {
-  return run(async (userId) => {
+  return run(async (sessionToken) => {
     const convex = getConvexServerClient();
     const id = await convex.mutation(convexApi.coupleAddPayment, {
       eventId,
-      requesterId: userId,
+      sessionToken,
       ...input,
     });
     return { ok: true as const, id };
@@ -181,11 +181,11 @@ export async function mmSetPaymentPaidAction(
   paymentId: string,
   input: { paidMinor: number; paidAt?: number; attachments?: MmAttachment[] },
 ): Promise<MmActionResult> {
-  return run(async (userId) => {
+  return run(async (sessionToken) => {
     const convex = getConvexServerClient();
     await convex.mutation(convexApi.coupleSetPaymentPaid, {
       paymentId,
-      requesterId: userId,
+      sessionToken,
       ...input,
     });
     return { ok: true as const };
@@ -193,9 +193,9 @@ export async function mmSetPaymentPaidAction(
 }
 
 export async function mmRemovePaymentAction(paymentId: string): Promise<MmActionResult> {
-  return run(async (userId) => {
+  return run(async (sessionToken) => {
     const convex = getConvexServerClient();
-    await convex.mutation(convexApi.coupleRemovePayment, { paymentId, requesterId: userId });
+    await convex.mutation(convexApi.coupleRemovePayment, { paymentId, sessionToken });
     return { ok: true as const };
   });
 }
@@ -204,11 +204,11 @@ export async function mmSetBudgetEnvelopeAction(
   eventId: string,
   budgetEnvelopeMinor: number,
 ): Promise<MmActionResult> {
-  return run(async (userId) => {
+  return run(async (sessionToken) => {
     const convex = getConvexServerClient();
     await convex.mutation(convexApi.coupleSetBudgetEnvelope, {
       eventId,
-      requesterId: userId,
+      sessionToken,
       budgetEnvelopeMinor,
     });
     return { ok: true as const };
@@ -218,11 +218,11 @@ export async function mmSetBudgetEnvelopeAction(
 /* ============================ Rétroplanning ============================ */
 
 export async function mmEnsurePlanningAction(eventId: string): Promise<MmActionResult> {
-  return run(async (userId) => {
+  return run(async (sessionToken) => {
     const convex = getConvexServerClient();
     await convex.mutation(convexApi.coupleEnsureDefaultPlanning, {
       eventId,
-      requesterId: userId,
+      sessionToken,
     });
     return { ok: true as const };
   });
@@ -232,11 +232,11 @@ export async function mmAddPhaseAction(
   eventId: string,
   input: { label: string; sub?: string },
 ): Promise<MmActionResult> {
-  return run(async (userId) => {
+  return run(async (sessionToken) => {
     const convex = getConvexServerClient();
     const id = await convex.mutation(convexApi.coupleAddPhase, {
       eventId,
-      requesterId: userId,
+      sessionToken,
       ...input,
     });
     return { ok: true as const, id };
@@ -247,11 +247,11 @@ export async function mmAddTaskAction(
   phaseId: string,
   input: { label: string; dueDate?: number },
 ): Promise<MmActionResult> {
-  return run(async (userId) => {
+  return run(async (sessionToken) => {
     const convex = getConvexServerClient();
     const id = await convex.mutation(convexApi.coupleAddTask, {
       phaseId,
-      requesterId: userId,
+      sessionToken,
       ...input,
     });
     return { ok: true as const, id };
@@ -262,11 +262,11 @@ export async function mmSetTaskStatusAction(
   taskId: string,
   status: CoupleTaskStatus,
 ): Promise<MmActionResult> {
-  return run(async (userId) => {
+  return run(async (sessionToken) => {
     const convex = getConvexServerClient();
     await convex.mutation(convexApi.coupleSetTaskStatus, {
       taskId,
-      requesterId: userId,
+      sessionToken,
       status,
     });
     return { ok: true as const };
@@ -274,9 +274,9 @@ export async function mmSetTaskStatusAction(
 }
 
 export async function mmRemoveTaskAction(taskId: string): Promise<MmActionResult> {
-  return run(async (userId) => {
+  return run(async (sessionToken) => {
     const convex = getConvexServerClient();
-    await convex.mutation(convexApi.coupleRemoveTask, { taskId, requesterId: userId });
+    await convex.mutation(convexApi.coupleRemoveTask, { taskId, sessionToken });
     return { ok: true as const };
   });
 }
@@ -293,11 +293,11 @@ export async function mmSaveRoomAction(
     elements: MmRoomElement[];
   },
 ): Promise<MmActionResult> {
-  return run(async (userId) => {
+  return run(async (sessionToken) => {
     const convex = getConvexServerClient();
     await convex.mutation(convexApi.coupleSaveRoom, {
       eventId,
-      requesterId: userId,
+      sessionToken,
       ...input,
     });
     return { ok: true as const };
@@ -318,11 +318,11 @@ export async function mmUpsertTableAction(
     notes?: string;
   },
 ): Promise<MmActionResult> {
-  return run(async (userId) => {
+  return run(async (sessionToken) => {
     const convex = getConvexServerClient();
     const id = await convex.mutation(convexApi.coupleUpsertTable, {
       eventId,
-      requesterId: userId,
+      sessionToken,
       ...input,
     });
     return { ok: true as const, id };
@@ -330,9 +330,9 @@ export async function mmUpsertTableAction(
 }
 
 export async function mmRemoveTableAction(tableId: string): Promise<MmActionResult> {
-  return run(async (userId) => {
+  return run(async (sessionToken) => {
     const convex = getConvexServerClient();
-    await convex.mutation(convexApi.coupleRemoveTable, { tableId, requesterId: userId });
+    await convex.mutation(convexApi.coupleRemoveTable, { tableId, sessionToken });
     return { ok: true as const };
   });
 }
@@ -341,11 +341,11 @@ export async function mmAssignGuestTableAction(
   guestId: string,
   tableId: string | null,
 ): Promise<MmActionResult> {
-  return run(async (userId) => {
+  return run(async (sessionToken) => {
     const convex = getConvexServerClient();
     await convex.mutation(convexApi.coupleAssignGuestTable, {
       guestId,
-      requesterId: userId,
+      sessionToken,
       tableId,
     });
     return { ok: true as const };
@@ -362,11 +362,11 @@ export async function mmSetInvitationDesignAction(input: {
   photo?: { s3Key: string; width?: number; height?: number };
   clearPhoto?: boolean;
 }): Promise<MmActionResult> {
-  return run(async (userId) => {
+  return run(async (sessionToken) => {
     const convex = getConvexServerClient();
     await convex.mutation(convexApi.coupleSetInvitationDesign, {
       eventId: input.eventId,
-      requesterId: userId,
+      sessionToken,
       cinematic: input.cinematic,
       music: input.music,
       clearMusic: input.clearMusic,
@@ -382,11 +382,11 @@ export async function mmSetCeremonyScheduleAction(input: {
   eventId: string;
   schedule: Array<{ time: string; title: string; note?: string }>;
 }): Promise<MmActionResult> {
-  return run(async (userId) => {
+  return run(async (sessionToken) => {
     const convex = getConvexServerClient();
     await convex.mutation(convexApi.coupleSetCeremonySchedule, {
       eventId: input.eventId,
-      requesterId: userId,
+      sessionToken,
       schedule: input.schedule,
     });
     return { ok: true as const };
@@ -404,7 +404,7 @@ export async function mmCreateMusicUploadUrlAction(input: {
     const convex = getConvexServerClient();
     const res = await convex.action(convexApi.createInvitationMusicUploadUrl, {
       eventId: input.eventId,
-      requesterId: session.userId,
+      sessionToken: await sessionTokenArg(),
       contentType: input.contentType,
     });
     return { ok: true, ...res };
@@ -424,7 +424,7 @@ export async function mmCreateInvitationPhotoUploadUrlAction(input: {
     const convex = getConvexServerClient();
     const res = await convex.action(convexApi.createInvitationPhotoUploadUrl, {
       eventId: input.eventId,
-      requesterId: session.userId,
+      sessionToken: await sessionTokenArg(),
       contentType: input.contentType,
     });
     return { ok: true, ...res };

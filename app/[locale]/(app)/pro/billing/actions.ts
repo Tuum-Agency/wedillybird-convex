@@ -12,7 +12,7 @@ function redirectUnsafe(url: string): never {
   return redirect(url as never);
 }
 import { getSession } from '@/lib/auth/session';
-import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
+import { convexApi, getConvexServerClient, sessionTokenArg } from '@/lib/auth/convex-server';
 import {
   createSubscriptionCheckout,
   createPaygCheckout,
@@ -78,10 +78,11 @@ export async function subscribeAction(formData: FormData): Promise<void> {
   const billing: SubscriptionBilling = isSubscriptionBilling(billingRaw) ? billingRaw : 'monthly';
 
   const convex = getConvexServerClient();
-  const org = await convex.query(convexApi.myOrganization, { userId: session.userId });
+  const sessionToken = await sessionTokenArg();
+  const org = await convex.query(convexApi.myOrganization, { sessionToken });
   if (!org) redirectUnsafe('/pro/onboarding');
 
-  const user = await convex.query(convexApi.getUserById, { userId: session.userId });
+  const user = await convex.query(convexApi.currentUser, { sessionToken });
   if (!user?.email) redirectUnsafe('/pro/billing?status=error&code=email_required');
 
   const currency = await resolveProBillingCurrency(tier, billing);
@@ -110,10 +111,11 @@ export async function payAsYouGoAction(): Promise<void> {
   if (!session) redirectUnsafe('/login?next=/pro/billing');
 
   const convex = getConvexServerClient();
-  const org = await convex.query(convexApi.myOrganization, { userId: session.userId });
+  const sessionToken = await sessionTokenArg();
+  const org = await convex.query(convexApi.myOrganization, { sessionToken });
   if (!org) redirectUnsafe('/pro/onboarding');
 
-  const user = await convex.query(convexApi.getUserById, { userId: session.userId });
+  const user = await convex.query(convexApi.currentUser, { sessionToken });
   if (!user?.email) redirectUnsafe('/pro/billing?status=error&code=email_required');
 
   const origin = await appOrigin();
@@ -139,7 +141,9 @@ export async function openBillingPortalAction(): Promise<void> {
   if (!session) redirectUnsafe('/login?next=/pro/billing');
 
   const convex = getConvexServerClient();
-  const org = await convex.query(convexApi.myOrganization, { userId: session.userId });
+  const org = await convex.query(convexApi.myOrganization, {
+    sessionToken: await sessionTokenArg(),
+  });
   if (!org?.stripeCustomerId) redirectUnsafe('/pro/billing?status=error&code=no_customer');
 
   const origin = await appOrigin();

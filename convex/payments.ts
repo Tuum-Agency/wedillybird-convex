@@ -4,6 +4,7 @@ import { assertWebhookSecret } from './lib/webhookSecret';
 import { internal } from './_generated/api';
 import { toIntlTag } from '../lib/i18n/locale-tags';
 import { assertOrgRead } from './lib/orgAuth';
+import { requireUserId } from './lib/verifiedSession';
 import { proTierAtLeast } from './lib/entitlements';
 import {
   applyReferral,
@@ -69,7 +70,7 @@ function computeEventReconciliation(input: {
 
 export const recordIntent = mutation({
   args: {
-    userId: v.id('users'),
+    sessionToken: v.string(),
     eventId: v.id('events'),
     plan: PLAN,
     currency: CURRENCY,
@@ -82,12 +83,13 @@ export const recordIntent = mutation({
     creditReservationId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    const userId = await requireUserId(ctx, args.sessionToken);
     const event = await ctx.db.get(args.eventId);
     if (!event) throw new Error('EVENT_NOT_FOUND');
-    if (event.ownerId !== args.userId) throw new Error('FORBIDDEN');
+    if (event.ownerId !== userId) throw new Error('FORBIDDEN');
 
     const id = await ctx.db.insert('payments', {
-      userId: args.userId,
+      userId,
       eventId: args.eventId,
       plan: args.plan,
       currency: args.currency,
@@ -318,8 +320,9 @@ export const markFailed = mutation({
 });
 
 export const listByEvent = query({
-  args: { eventId: v.id('events'), requesterId: v.id('users') },
-  handler: async (ctx, { eventId, requesterId }) => {
+  args: { eventId: v.id('events'), sessionToken: v.string() },
+  handler: async (ctx, { eventId, sessionToken }) => {
+    const requesterId = await requireUserId(ctx, sessionToken);
     const event = await ctx.db.get(eventId);
     if (!event) throw new Error('EVENT_NOT_FOUND');
     if (event.ownerId !== requesterId) throw new Error('FORBIDDEN');
@@ -630,8 +633,9 @@ export const scanOrphanedEntitlements = query({
  * connecté (BYOP) — l'agence encaisse sur son propre compte Stripe.
  */
 export const overview = query({
-  args: { organizationId: v.id('organizations'), requesterId: v.id('users') },
-  handler: async (ctx, { organizationId, requesterId }) => {
+  args: { organizationId: v.id('organizations'), sessionToken: v.string() },
+  handler: async (ctx, { organizationId, sessionToken }) => {
+    const requesterId = await requireUserId(ctx, sessionToken);
     await assertOrgRead(ctx, organizationId, requesterId);
     const org = await ctx.db.get(organizationId);
     const allowed = proTierAtLeast(org?.subscriptionTier, 'business');

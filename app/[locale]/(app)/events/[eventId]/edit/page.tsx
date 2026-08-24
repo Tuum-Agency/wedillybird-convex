@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { Link, redirect } from '@/i18n/navigation';
 import { getSession } from '@/lib/auth/session';
-import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
+import { convexApi, getConvexServerClient, sessionTokenArg } from '@/lib/auth/convex-server';
 import { eventHasFeature } from '@/convex/lib/entitlements';
 import { AppShell } from '@/components/app/app-shell';
 import { EventEditForm } from '@/components/events/event-edit-form';
@@ -30,9 +30,10 @@ export default async function EditEventPage({
   }
 
   const convex = getConvexServerClient();
+  const sessionToken = await sessionTokenArg();
   const event = await convex.query(convexApi.getEventById, {
     eventId,
-    requesterId: session!.userId,
+    sessionToken,
   });
   if (!event) notFound();
 

@@ -3,7 +3,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { ArrowLeft } from 'lucide-react';
 import { Link, redirect } from '@/i18n/navigation';
 import { getSession } from '@/lib/auth/session';
-import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
+import { convexApi, getConvexServerClient, sessionTokenArg } from '@/lib/auth/convex-server';
 import { AppShell } from '@/components/app/app-shell';
 import { EventCreateWizard } from '@/components/events/event-create-wizard';
 
@@ -27,7 +27,8 @@ export default async function NewEventPage({ params }: { params: Promise<{ local
   }
 
   const convex = getConvexServerClient();
-  const user = await convex.query(convexApi.currentUser, { userId: session!.userId });
+  const sessionToken = await sessionTokenArg();
+  const user = await convex.query(convexApi.currentUser, { sessionToken });
   if (!user?.fullName) {
     redirect({ href: '/onboarding', locale });
   }

@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { getSession } from '@/lib/auth/session';
-import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
+import { convexApi, getConvexServerClient, sessionTokenArg } from '@/lib/auth/convex-server';
 
 export type VendorActionResult = { ok: true; id?: string } | { ok: false; error: string };
 
@@ -28,14 +28,15 @@ export async function createVendorAction(formData: FormData): Promise<VendorActi
   const session = await getSession();
   if (!session) return { ok: false, error: 'UNAUTHENTICATED' };
   const convex = getConvexServerClient();
-  const org = await convex.query(convexApi.myOrganization, { userId: session.userId });
+  const sessionToken = await sessionTokenArg();
+  const org = await convex.query(convexApi.myOrganization, { sessionToken });
   if (!org) return { ok: false, error: 'NO_ORG' };
   const name = str(formData, 'name');
   if (!name) return { ok: false, error: 'INVALID_NAME' };
   try {
     const r = await convex.mutation(convexApi.createVendor, {
       organizationId: org._id,
-      requesterId: session.userId,
+      sessionToken,
       name,
       category: str(formData, 'category') ?? 'Autre',
       location: str(formData, 'location'),
@@ -66,7 +67,7 @@ export async function updateVendorAction(
   try {
     await convex.mutation(convexApi.updateVendor, {
       vendorId,
-      requesterId: session.userId,
+      sessionToken: await sessionTokenArg(),
       name,
       category: str(formData, 'category') ?? 'Autre',
       location: str(formData, 'location') ?? '',
@@ -90,7 +91,10 @@ export async function removeVendorAction(vendorId: string): Promise<VendorAction
   if (!session) return { ok: false, error: 'UNAUTHENTICATED' };
   const convex = getConvexServerClient();
   try {
-    await convex.mutation(convexApi.removeVendor, { vendorId, requesterId: session.userId });
+    await convex.mutation(convexApi.removeVendor, {
+      vendorId,
+      sessionToken: await sessionTokenArg(),
+    });
     revalidatePath('/pro/vendors');
     return { ok: true };
   } catch (e) {
@@ -112,12 +116,13 @@ export async function attachVendorAction(input: {
   const session = await getSession();
   if (!session) return { ok: false, error: 'UNAUTHENTICATED' };
   const convex = getConvexServerClient();
-  const org = await convex.query(convexApi.myOrganization, { userId: session.userId });
+  const sessionToken = await sessionTokenArg();
+  const org = await convex.query(convexApi.myOrganization, { sessionToken });
   if (!org) return { ok: false, error: 'NO_ORG' };
   try {
     const r = await convex.mutation(convexApi.vendorAttach, {
       organizationId: org._id,
-      requesterId: session.userId,
+      sessionToken,
       vendorId: input.vendorId,
       eventId: input.eventId,
       status: input.status,
@@ -141,7 +146,7 @@ export async function setEngagementStatusAction(
   try {
     await convex.mutation(convexApi.vendorSetEngagementStatus, {
       engagementId,
-      requesterId: session.userId,
+      sessionToken: await sessionTokenArg(),
       status,
     });
     revalidatePath('/pro/vendors');
@@ -156,7 +161,10 @@ export async function detachVendorAction(engagementId: string): Promise<VendorAc
   if (!session) return { ok: false, error: 'UNAUTHENTICATED' };
   const convex = getConvexServerClient();
   try {
-    await convex.mutation(convexApi.vendorDetach, { engagementId, requesterId: session.userId });
+    await convex.mutation(convexApi.vendorDetach, {
+      engagementId,
+      sessionToken: await sessionTokenArg(),
+    });
     revalidatePath('/pro/vendors');
     return { ok: true };
   } catch (e) {

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth/session';
-import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
+import { convexApi, getConvexServerClient, sessionTokenArg } from '@/lib/auth/convex-server';
 import { normalizeRsvpConfig } from '@/lib/rsvp/questions';
 
 /** Colonnes fixes ; les questions custom sont ajoutées dynamiquement ensuite. */
@@ -36,9 +36,10 @@ export async function GET(
   const convex = getConvexServerClient();
 
   try {
+    const sessionToken = await sessionTokenArg();
     const [guests, event] = await Promise.all([
-      convex.query(convexApi.listGuestsByEvent, { eventId, requesterId: session.userId }),
-      convex.query(convexApi.getEventById, { eventId, requesterId: session.userId }),
+      convex.query(convexApi.listGuestsByEvent, { eventId, sessionToken }),
+      convex.query(convexApi.getEventById, { eventId, sessionToken }),
     ]);
 
     // Une colonne par question custom (dans l'ordre de la config), libellée par

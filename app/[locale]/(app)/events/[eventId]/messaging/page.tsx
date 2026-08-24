@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { Link, redirect } from '@/i18n/navigation';
 import { getSession } from '@/lib/auth/session';
-import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
+import { convexApi, getConvexServerClient, sessionTokenArg } from '@/lib/auth/convex-server';
 import { AppShell } from '@/components/app/app-shell';
 import { EventMessagingForm } from '@/components/events/event-messaging-form';
 import { DEFAULT_INVITATION_STYLE } from '@/lib/whatsapp/templates';
@@ -28,15 +28,16 @@ export default async function MessagingPage({
   }
 
   const convex = getConvexServerClient();
+  const sessionToken = await sessionTokenArg();
   const event = await convex.query(convexApi.getEventById, {
     eventId,
-    requesterId: session!.userId,
+    sessionToken,
   });
   if (!event) notFound();
 
   const customTemplates = await convex.query(convexApi.listWhatsappTemplatesByEvent, {
     eventId,
-    requesterId: session!.userId,
+    sessionToken,
   });
 
   const eventDateFormatted = new Intl.DateTimeFormat(locale, {

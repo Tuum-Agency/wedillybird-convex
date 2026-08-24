@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import { ArrowLeft, Lock, Clock } from 'lucide-react';
 import { Link, redirect } from '@/i18n/navigation';
 import { getSession } from '@/lib/auth/session';
-import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
+import { convexApi, getConvexServerClient, sessionTokenArg } from '@/lib/auth/convex-server';
 import { AppShell } from '@/components/app/app-shell';
 import { OwnerGallery } from '@/components/gallery/owner-gallery';
 import { buttonVariants } from '@/components/ui/button';
@@ -24,13 +24,14 @@ export default async function GalleryPage({
   }
 
   const convex = getConvexServerClient();
+  const sessionToken = await sessionTokenArg();
   const event = await convex.query(convexApi.getEventById, {
     eventId,
-    requesterId: session!.userId,
+    sessionToken,
   });
   if (!event) notFound();
 
-  const user = await convex.query(convexApi.currentUser, { userId: session!.userId });
+  const user = await convex.query(convexApi.currentUser, { sessionToken });
   const t = await getTranslations('Gallery');
 
   // Verrou côté UI : la mutation Convex `confirmOwnerUpload` jette
@@ -56,7 +57,7 @@ export default async function GalleryPage({
     galleryStatus === 'open'
       ? await convex.query(convexApi.listPhotosForOwner, {
           eventId,
-          requesterId: session!.userId,
+          sessionToken,
         })
       : [];
 

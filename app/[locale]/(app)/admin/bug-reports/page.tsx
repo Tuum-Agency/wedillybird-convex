@@ -1,7 +1,7 @@
 import { setRequestLocale } from 'next-intl/server';
 import { redirect } from '@/i18n/navigation';
 import { getSession } from '@/lib/auth/session';
-import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
+import { convexApi, getConvexServerClient, sessionTokenArg } from '@/lib/auth/convex-server';
 import { AdminShell } from '@/components/admin/admin-shell';
 import { AdminBugReportsTable } from '@/components/admin/admin-bug-reports-table';
 
@@ -20,10 +20,11 @@ export default async function AdminBugReportsPage({
   const session = await getSession();
   if (!session) redirect({ href: '/sign-in', locale });
 
+  const sessionToken = await sessionTokenArg();
   const convex = getConvexServerClient();
   const [user, reports] = await Promise.all([
-    convex.query(convexApi.currentUser, { userId: session!.userId }),
-    convex.query(convexApi.listBugReports, { requesterId: session!.userId }),
+    convex.query(convexApi.currentUser, { sessionToken }),
+    convex.query(convexApi.listBugReports, { sessionToken }),
   ]);
 
   const open = reports.filter((r) => r.status === 'open');

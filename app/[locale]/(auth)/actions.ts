@@ -9,7 +9,12 @@ import {
   verifyOtpSchema,
   onboardingSchema,
 } from '@/lib/validators/auth';
-import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
+import {
+  convexApi,
+  getConvexServerClient,
+  revokeConvexSessions,
+  sessionTokenArg,
+} from '@/lib/auth/convex-server';
 import { clearSessionCookie, getSession, setSessionCookie } from '@/lib/auth/session';
 import { isAgencyRole, resolvePostAuthDestination } from '@/lib/auth/post-auth-destination';
 import { asBudgetCurrency } from '@/lib/currency';
@@ -106,9 +111,11 @@ export async function completeOnboardingAction(formData: FormData): Promise<Acti
       ? asBudgetCurrency(rawCurrency)
       : undefined;
 
+  const sessionToken = await sessionTokenArg();
+
   try {
     await convex.mutation(convexApi.completeOnboarding, {
-      userId: session.userId,
+      sessionToken,
       fullName: parsed.data.fullName,
       role: parsed.data.role,
       email: parsed.data.email,
@@ -129,9 +136,9 @@ export async function completeOnboardingAction(formData: FormData): Promise<Acti
   // Aiguillage agence vs particulier : un pro fraîchement onboardé n'a pas
   // encore d'organisation → /pro/onboarding ; un couple → /dashboard.
   const locale = await getLocale();
-  const onboardedUser = await convex.query(convexApi.currentUser, { userId: session.userId });
+  const onboardedUser = await convex.query(convexApi.currentUser, { sessionToken });
   const hasActiveOrg = isAgencyRole(onboardedUser?.role)
-    ? Boolean(await convex.query(convexApi.myOrganization, { userId: session.userId }))
+    ? Boolean(await convex.query(convexApi.myOrganization, { sessionToken }))
     : false;
   const destination = resolvePostAuthDestination(onboardedUser, hasActiveOrg);
   redirect({ href: destination, locale });
@@ -183,6 +190,19 @@ export async function requestMagicLinkAction(formData: FormData): Promise<Action
 }
 
 export async function signOutAction(): Promise<void> {
+  // Révoquer AVANT d'effacer le cookie : le jeton Convex est dérivé de la
+  // session, effacer le cookie ne l'invalide donc pas côté Convex. Sans cette
+  // révocation, un jeton exfiltré resterait accepté jusqu'à son expiration
+  // même après une déconnexion explicite.
+  const session = await getSession();
+  if (session) {
+    try {
+      await revokeConvexSessions(session.userId);
+    } catch {
+      // Convex injoignable : on déconnecte quand même côté Next plutôt que de
+      // laisser l'utilisateur bloqué sur une session qu'il veut fermer.
+    }
+  }
   await clearSessionCookie();
   const locale = await getLocale();
   redirect({ href: '/', locale });

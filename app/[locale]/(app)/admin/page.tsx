@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { redirect } from '@/i18n/navigation';
 import { getSession } from '@/lib/auth/session';
-import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
+import { convexApi, getConvexServerClient, sessionTokenArg } from '@/lib/auth/convex-server';
 import { AdminShell } from '@/components/admin/admin-shell';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AdminRevenueChart } from '@/components/admin/admin-revenue-chart';
@@ -42,10 +42,11 @@ export default async function AdminDashboardPage({
   const session = await getSession();
   if (!session) redirect({ href: '/sign-in', locale });
 
+  const sessionToken = await sessionTokenArg();
   const convex = getConvexServerClient();
   const [user, kpi] = await Promise.all([
-    convex.query(convexApi.currentUser, { userId: session!.userId }),
-    convex.query(convexApi.adminDashboardKpi, { adminId: session!.userId }),
+    convex.query(convexApi.currentUser, { sessionToken }),
+    convex.query(convexApi.adminDashboardKpi, { sessionToken }),
   ]);
 
   return (

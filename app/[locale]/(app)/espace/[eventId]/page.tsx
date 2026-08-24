@@ -36,33 +36,24 @@ export default async function EspaceMariesPage({
   const { locale, eventId } = await params;
   setRequestLocale(locale);
   const t = await getTranslations('CoupleSpace');
-  const { session, org } = await requireProContext(locale);
+  const { org, sessionToken } = await requireProContext(locale);
   const convex = getConvexServerClient();
 
-  const event = await convex.query(convexApi.getEventById, {
-    eventId,
-    requesterId: session.userId,
-  });
+  const event = await convex.query(convexApi.getEventById, { eventId, sessionToken });
   if (!event || event.organizationId !== org._id) {
     redirect({ href: '/pro/weddings', locale });
   }
 
   const [counts, budget, planning, organization, guests, quotesRes, contractsRes, user] =
     await Promise.all([
-      convex.query(convexApi.countGuestsByEvent, { eventId, requesterId: session.userId }),
-      convex.query(convexApi.budgetListByEvent, { eventId, requesterId: session.userId }),
-      convex.query(convexApi.planningListByEvent, { eventId, requesterId: session.userId }),
-      convex.query(convexApi.myOrganization, { userId: session.userId }),
-      convex.query(convexApi.listGuestsByEvent, { eventId, requesterId: session.userId }),
-      convex.query(convexApi.quotesListByOrg, {
-        organizationId: org._id,
-        requesterId: session.userId,
-      }),
-      convex.query(convexApi.contractsListByOrg, {
-        organizationId: org._id,
-        requesterId: session.userId,
-      }),
-      convex.query(convexApi.currentUser, { userId: session.userId }),
+      convex.query(convexApi.countGuestsByEvent, { eventId, sessionToken }),
+      convex.query(convexApi.budgetListByEvent, { eventId, sessionToken }),
+      convex.query(convexApi.planningListByEvent, { eventId, sessionToken }),
+      convex.query(convexApi.myOrganization, { sessionToken }),
+      convex.query(convexApi.listGuestsByEvent, { eventId, sessionToken }),
+      convex.query(convexApi.quotesListByOrg, { organizationId: org._id, sessionToken }),
+      convex.query(convexApi.contractsListByOrg, { organizationId: org._id, sessionToken }),
+      convex.query(convexApi.currentUser, { sessionToken }),
     ]);
 
   const now = nowMs();

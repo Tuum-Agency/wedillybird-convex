@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth/session';
-import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
+import { convexApi, getConvexServerClient, sessionTokenArg } from '@/lib/auth/convex-server';
 import { listSubscriptionInvoices } from '@/lib/payments/drivers/stripe';
 import {
   buildBillingCsv,
@@ -25,8 +25,9 @@ export async function GET(req: Request): Promise<Response> {
 
   const month = new URL(req.url).searchParams.get('month') ?? '';
 
+  const sessionToken = await sessionTokenArg();
   const convex = getConvexServerClient();
-  const org = await convex.query(convexApi.myOrganization, { userId: session.userId });
+  const org = await convex.query(convexApi.myOrganization, { sessionToken });
   if (!org) return NextResponse.json({ error: 'NO_ORG' }, { status: 404 });
 
   const rows: BillingExportRow[] = [];
@@ -35,7 +36,7 @@ export async function GET(req: Request): Promise<Response> {
   try {
     const payg = await convex.query(convexApi.listPaygPurchasesByOrganization, {
       organizationId: org._id,
-      requesterId: session.userId,
+      sessionToken,
     });
     for (const p of payg) {
       rows.push({

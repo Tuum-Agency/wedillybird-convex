@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { getSession } from '@/lib/auth/session';
-import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
+import { convexApi, getConvexServerClient, sessionTokenArg } from '@/lib/auth/convex-server';
 import {
   isPlanningPhase,
   PLANNING_TEMPLATES,
@@ -45,7 +45,7 @@ export async function createTaskAction(
   try {
     const r = await convex.mutation(convexApi.createPlanningTask, {
       eventId,
-      requesterId: session.userId,
+      sessionToken: await sessionTokenArg(),
       phase,
       title,
       dueDate: dateMs(str(formData, 'dueDate')),
@@ -80,7 +80,7 @@ export async function updateTaskAction(
   try {
     await convex.mutation(convexApi.updatePlanningTask, {
       taskId,
-      requesterId: session.userId,
+      sessionToken: await sessionTokenArg(),
       title,
       phase,
       ...(due !== undefined ? { dueDate: due } : { clearDueDate: true }),
@@ -105,7 +105,7 @@ export async function setSubtasksAction(
   try {
     await convex.mutation(convexApi.setPlanningSubtasks, {
       taskId,
-      requesterId: session.userId,
+      sessionToken: await sessionTokenArg(),
       subtasks: subtasks.map((s) => ({ label: String(s.label), done: !!s.done })),
     });
     revalidatePath('/pro/planning');
@@ -125,7 +125,7 @@ export async function toggleTaskAction(
   try {
     await convex.mutation(convexApi.togglePlanningTask, {
       taskId,
-      requesterId: session.userId,
+      sessionToken: await sessionTokenArg(),
       done,
     });
     revalidatePath('/pro/planning');
@@ -145,7 +145,7 @@ export async function setTaskStatusAction(
   try {
     await convex.mutation(convexApi.setPlanningTaskStatus, {
       taskId,
-      requesterId: session.userId,
+      sessionToken: await sessionTokenArg(),
       status,
     });
     revalidatePath('/pro/planning');
@@ -160,7 +160,10 @@ export async function removeTaskAction(taskId: string): Promise<PlanningActionRe
   if (!session) return { ok: false, error: 'UNAUTHENTICATED' };
   const convex = getConvexServerClient();
   try {
-    await convex.mutation(convexApi.removePlanningTask, { taskId, requesterId: session.userId });
+    await convex.mutation(convexApi.removePlanningTask, {
+      taskId,
+      sessionToken: await sessionTokenArg(),
+    });
     revalidatePath('/pro/planning');
     return { ok: true };
   } catch (e) {
@@ -179,7 +182,7 @@ export async function applyTemplateAction(
   try {
     const r = await convex.mutation(convexApi.createPlanningTasks, {
       eventId,
-      requesterId: session.userId,
+      sessionToken: await sessionTokenArg(),
       tasks: PLANNING_TEMPLATES[templateKey].tasks.map((t) => ({ phase: t.phase, title: t.title })),
     });
     revalidatePath('/pro/planning');
@@ -210,7 +213,7 @@ export async function saveTemplateAction(
   try {
     const r = await convex.mutation(convexApi.planningSaveTemplateFromEvent, {
       eventId,
-      requesterId: session.userId,
+      sessionToken: await sessionTokenArg(),
       name: cleanName,
     });
     revalidatePath('/pro/planning');
@@ -231,7 +234,7 @@ export async function applyCustomTemplateAction(
   try {
     const r = await convex.mutation(convexApi.planningApplyTemplate, {
       eventId,
-      requesterId: session.userId,
+      sessionToken: await sessionTokenArg(),
       templateId,
     });
     revalidatePath('/pro/planning');
@@ -249,7 +252,7 @@ export async function deleteTemplateAction(templateId: string): Promise<Planning
   try {
     await convex.mutation(convexApi.planningDeleteTemplate, {
       templateId,
-      requesterId: session.userId,
+      sessionToken: await sessionTokenArg(),
     });
     revalidatePath('/pro/planning');
     return { ok: true };

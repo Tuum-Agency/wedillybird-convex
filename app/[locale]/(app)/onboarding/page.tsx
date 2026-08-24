@@ -2,7 +2,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import type { Metadata } from 'next';
 import { redirect } from '@/i18n/navigation';
 import { getSession } from '@/lib/auth/session';
-import { convexApi, getConvexServerClient } from '@/lib/auth/convex-server';
+import { convexApi, getConvexServerClient, sessionTokenArg } from '@/lib/auth/convex-server';
 import { isAgencyRole, resolvePostAuthDestination } from '@/lib/auth/post-auth-destination';
 import { OnboardingWizard } from '@/components/onboarding/onboarding-wizard';
 
@@ -30,13 +30,14 @@ export default async function OnboardingPage({ params }: { params: Promise<{ loc
   }
 
   const convex = getConvexServerClient();
-  const user = await convex.query(convexApi.currentUser, { userId: session!.userId });
+  const sessionToken = await sessionTokenArg();
+  const user = await convex.query(convexApi.currentUser, { sessionToken });
 
   // Déjà onboardé : on renvoie vers le bon dashboard (agence vs particulier)
   // plutôt que systématiquement vers /dashboard.
   if (user?.fullName && user.role && user.role !== 'guest') {
     const hasActiveOrg = isAgencyRole(user.role)
-      ? Boolean(await convex.query(convexApi.myOrganization, { userId: session!.userId }))
+      ? Boolean(await convex.query(convexApi.myOrganization, { sessionToken }))
       : false;
     redirect({ href: resolvePostAuthDestination(user, hasActiveOrg), locale });
   }

@@ -14,6 +14,7 @@ import {
   musicForClient,
   photoForClient,
 } from './lib/invitationDesign';
+import { requireUserId } from './lib/verifiedSession';
 import { collectVestedCredit } from './affiliate';
 
 /**
@@ -80,8 +81,9 @@ function assertMinor(n: number, field: string): void {
  * aucun event self-serve (l'UI bascule alors en onboarding/empty state).
  */
 export const bundle = query({
-  args: { requesterId: v.id('users') },
-  handler: async (ctx, { requesterId }) => {
+  args: { sessionToken: v.string() },
+  handler: async (ctx, { sessionToken }) => {
+    const requesterId = await requireUserId(ctx, sessionToken);
     const events = await ctx.db
       .query('events')
       .withIndex('by_owner', (q) => q.eq('ownerId', requesterId))
@@ -275,7 +277,7 @@ export const bundle = query({
 export const addVendor = mutation({
   args: {
     eventId: v.id('events'),
-    requesterId: v.id('users'),
+    sessionToken: v.string(),
     name: v.string(),
     category: v.string(),
     status: vendorStatusValidator,
@@ -287,7 +289,8 @@ export const addVendor = mutation({
     attachments: attachmentsValidator,
   },
   handler: async (ctx, args) => {
-    await assertOwnedEvent(ctx, args.eventId, args.requesterId);
+    const requesterId = await requireUserId(ctx, args.sessionToken);
+    await assertOwnedEvent(ctx, args.eventId, requesterId);
     if (!isCoupleVendorCat(args.category)) throw new Error('INVALID_CATEGORY');
     if (!isCoupleVendorStatus(args.status)) throw new Error('INVALID_STATUS');
     assertMinor(args.amountMinor, 'AMOUNT');
@@ -313,7 +316,7 @@ export const addVendor = mutation({
 export const updateVendor = mutation({
   args: {
     vendorId: v.id('coupleVendors'),
-    requesterId: v.id('users'),
+    sessionToken: v.string(),
     name: v.optional(v.string()),
     category: v.optional(v.string()),
     status: v.optional(vendorStatusValidator),
@@ -325,9 +328,10 @@ export const updateVendor = mutation({
     attachments: attachmentsValidator,
   },
   handler: async (ctx, args) => {
+    const requesterId = await requireUserId(ctx, args.sessionToken);
     const vendor = await ctx.db.get(args.vendorId);
     if (!vendor) throw new Error('VENDOR_NOT_FOUND');
-    await assertOwnedEvent(ctx, vendor.eventId, args.requesterId);
+    await assertOwnedEvent(ctx, vendor.eventId, requesterId);
     const patch: Partial<Doc<'coupleVendors'>> = { updatedAt: Date.now() };
     if (args.name !== undefined) patch.name = sanitizeLabel(args.name);
     if (args.category !== undefined) {
@@ -352,11 +356,12 @@ export const updateVendor = mutation({
 });
 
 export const removeVendor = mutation({
-  args: { vendorId: v.id('coupleVendors'), requesterId: v.id('users') },
+  args: { vendorId: v.id('coupleVendors'), sessionToken: v.string() },
   handler: async (ctx, args) => {
+    const requesterId = await requireUserId(ctx, args.sessionToken);
     const vendor = await ctx.db.get(args.vendorId);
     if (!vendor) return;
-    await assertOwnedEvent(ctx, vendor.eventId, args.requesterId);
+    await assertOwnedEvent(ctx, vendor.eventId, requesterId);
     // Les échéances rattachées survivent (vendorName dénormalisé) — on coupe le lien.
     const linked = await ctx.db
       .query('couplePayments')
@@ -372,7 +377,7 @@ export const removeVendor = mutation({
 export const addPayment = mutation({
   args: {
     eventId: v.id('events'),
-    requesterId: v.id('users'),
+    sessionToken: v.string(),
     vendorId: v.optional(v.id('coupleVendors')),
     vendorName: v.string(),
     category: v.string(),
@@ -381,7 +386,8 @@ export const addPayment = mutation({
     amountMinor: v.number(),
   },
   handler: async (ctx, args) => {
-    await assertOwnedEvent(ctx, args.eventId, args.requesterId);
+    const requesterId = await requireUserId(ctx, args.sessionToken);
+    await assertOwnedEvent(ctx, args.eventId, requesterId);
     assertMinor(args.amountMinor, 'AMOUNT');
     if (args.vendorId) {
       const vendor = await ctx.db.get(args.vendorId);
@@ -407,15 +413,16 @@ export const addPayment = mutation({
 export const setPaymentPaid = mutation({
   args: {
     paymentId: v.id('couplePayments'),
-    requesterId: v.id('users'),
+    sessionToken: v.string(),
     paidMinor: v.number(),
     paidAt: v.optional(v.number()),
     attachments: attachmentsValidator,
   },
   handler: async (ctx, args) => {
+    const requesterId = await requireUserId(ctx, args.sessionToken);
     const payment = await ctx.db.get(args.paymentId);
     if (!payment) throw new Error('PAYMENT_NOT_FOUND');
-    await assertOwnedEvent(ctx, payment.eventId, args.requesterId);
+    await assertOwnedEvent(ctx, payment.eventId, requesterId);
     assertMinor(args.paidMinor, 'PAID');
     if (args.paidMinor > payment.amountMinor) throw new Error('PAID_EXCEEDS_AMOUNT');
     await ctx.db.patch(args.paymentId, {
@@ -428,11 +435,12 @@ export const setPaymentPaid = mutation({
 });
 
 export const removePayment = mutation({
-  args: { paymentId: v.id('couplePayments'), requesterId: v.id('users') },
+  args: { paymentId: v.id('couplePayments'), sessionToken: v.string() },
   handler: async (ctx, args) => {
+    const requesterId = await requireUserId(ctx, args.sessionToken);
     const payment = await ctx.db.get(args.paymentId);
     if (!payment) return;
-    await assertOwnedEvent(ctx, payment.eventId, args.requesterId);
+    await assertOwnedEvent(ctx, payment.eventId, requesterId);
     await ctx.db.delete(args.paymentId);
   },
 });
@@ -442,11 +450,12 @@ export const removePayment = mutation({
 export const setBudgetEnvelope = mutation({
   args: {
     eventId: v.id('events'),
-    requesterId: v.id('users'),
+    sessionToken: v.string(),
     budgetEnvelopeMinor: v.number(),
   },
   handler: async (ctx, args) => {
-    await assertOwnedEvent(ctx, args.eventId, args.requesterId);
+    const requesterId = await requireUserId(ctx, args.sessionToken);
+    await assertOwnedEvent(ctx, args.eventId, requesterId);
     assertMinor(args.budgetEnvelopeMinor, 'ENVELOPE');
     await ctx.db.patch(args.eventId, { budgetEnvelopeMinor: args.budgetEnvelopeMinor });
   },
@@ -463,7 +472,7 @@ export const setBudgetEnvelope = mutation({
 export const setInvitationDesign = mutation({
   args: {
     eventId: v.id('events'),
-    requesterId: v.id('users'),
+    sessionToken: v.string(),
     cinematic: v.optional(v.string()),
     music: v.optional(
       v.object({
@@ -484,7 +493,8 @@ export const setInvitationDesign = mutation({
     clearPhoto: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
-    const event = await assertOwnedEvent(ctx, args.eventId, args.requesterId);
+    const requesterId = await requireUserId(ctx, args.sessionToken);
+    const event = await assertOwnedEvent(ctx, args.eventId, requesterId);
     assertInvitationDesignAllowed(event, {
       cinematic: args.cinematic,
       music: args.music,
@@ -526,7 +536,7 @@ export const setInvitationDesign = mutation({
 export const setCeremonySchedule = mutation({
   args: {
     eventId: v.id('events'),
-    requesterId: v.id('users'),
+    sessionToken: v.string(),
     schedule: v.array(
       v.object({
         time: v.string(),
@@ -536,7 +546,8 @@ export const setCeremonySchedule = mutation({
     ),
   },
   handler: async (ctx, args) => {
-    await assertOwnedEvent(ctx, args.eventId, args.requesterId);
+    const requesterId = await requireUserId(ctx, args.sessionToken);
+    await assertOwnedEvent(ctx, args.eventId, requesterId);
     const cleaned = args.schedule
       .slice(0, 20)
       .map((s) => ({
@@ -571,9 +582,10 @@ export const assertOwnerCanCustomizeInvitation = internalQuery({
 
 /** Sème le template par défaut si (et seulement si) l'event n'a aucune phase. */
 export const ensureDefaultPlanning = mutation({
-  args: { eventId: v.id('events'), requesterId: v.id('users') },
+  args: { eventId: v.id('events'), sessionToken: v.string() },
   handler: async (ctx, args) => {
-    await assertOwnedEvent(ctx, args.eventId, args.requesterId);
+    const requesterId = await requireUserId(ctx, args.sessionToken);
+    await assertOwnedEvent(ctx, args.eventId, requesterId);
     const existing = await ctx.db
       .query('couplePhases')
       .withIndex('by_event', (q) => q.eq('eventId', args.eventId))
@@ -609,12 +621,13 @@ export const ensureDefaultPlanning = mutation({
 export const addPhase = mutation({
   args: {
     eventId: v.id('events'),
-    requesterId: v.id('users'),
+    sessionToken: v.string(),
     label: v.string(),
     sub: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    await assertOwnedEvent(ctx, args.eventId, args.requesterId);
+    const requesterId = await requireUserId(ctx, args.sessionToken);
+    await assertOwnedEvent(ctx, args.eventId, requesterId);
     const siblings = await ctx.db
       .query('couplePhases')
       .withIndex('by_event', (q) => q.eq('eventId', args.eventId))
@@ -634,14 +647,15 @@ export const addPhase = mutation({
 export const addTask = mutation({
   args: {
     phaseId: v.id('couplePhases'),
-    requesterId: v.id('users'),
+    sessionToken: v.string(),
     label: v.string(),
     dueDate: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    const requesterId = await requireUserId(ctx, args.sessionToken);
     const phase = await ctx.db.get(args.phaseId);
     if (!phase) throw new Error('PHASE_NOT_FOUND');
-    await assertOwnedEvent(ctx, phase.eventId, args.requesterId);
+    await assertOwnedEvent(ctx, phase.eventId, requesterId);
     const siblings = await ctx.db
       .query('coupleTasks')
       .withIndex('by_phase', (q) => q.eq('phaseId', args.phaseId))
@@ -663,23 +677,25 @@ export const addTask = mutation({
 export const setTaskStatus = mutation({
   args: {
     taskId: v.id('coupleTasks'),
-    requesterId: v.id('users'),
+    sessionToken: v.string(),
     status: v.union(v.literal('todo'), v.literal('doing'), v.literal('done')),
   },
   handler: async (ctx, args) => {
+    const requesterId = await requireUserId(ctx, args.sessionToken);
     const task = await ctx.db.get(args.taskId);
     if (!task) throw new Error('TASK_NOT_FOUND');
-    await assertOwnedEvent(ctx, task.eventId, args.requesterId);
+    await assertOwnedEvent(ctx, task.eventId, requesterId);
     await ctx.db.patch(args.taskId, { status: args.status, updatedAt: Date.now() });
   },
 });
 
 export const removeTask = mutation({
-  args: { taskId: v.id('coupleTasks'), requesterId: v.id('users') },
+  args: { taskId: v.id('coupleTasks'), sessionToken: v.string() },
   handler: async (ctx, args) => {
+    const requesterId = await requireUserId(ctx, args.sessionToken);
     const task = await ctx.db.get(args.taskId);
     if (!task) return;
-    await assertOwnedEvent(ctx, task.eventId, args.requesterId);
+    await assertOwnedEvent(ctx, task.eventId, requesterId);
     await ctx.db.delete(args.taskId);
   },
 });
@@ -689,7 +705,7 @@ export const removeTask = mutation({
 export const saveRoom = mutation({
   args: {
     eventId: v.id('events'),
-    requesterId: v.id('users'),
+    sessionToken: v.string(),
     name: v.string(),
     widthM: v.number(),
     lengthM: v.number(),
@@ -727,7 +743,8 @@ export const saveRoom = mutation({
     ),
   },
   handler: async (ctx, args) => {
-    const event = await assertOwnedEvent(ctx, args.eventId, args.requesterId);
+    const requesterId = await requireUserId(ctx, args.sessionToken);
+    const event = await assertOwnedEvent(ctx, args.eventId, requesterId);
     assertSeatingFeature(event);
     if (args.widthM < 4 || args.widthM > 80 || args.lengthM < 4 || args.lengthM > 80) {
       throw new Error('INVALID_ROOM_SIZE');
@@ -758,7 +775,7 @@ export const saveRoom = mutation({
 export const upsertTable = mutation({
   args: {
     eventId: v.id('events'),
-    requesterId: v.id('users'),
+    sessionToken: v.string(),
     tableId: v.optional(v.id('tables')),
     name: v.string(),
     shape: tableShapeValidator,
@@ -770,7 +787,8 @@ export const upsertTable = mutation({
     notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const event = await assertOwnedEvent(ctx, args.eventId, args.requesterId);
+    const requesterId = await requireUserId(ctx, args.sessionToken);
+    const event = await assertOwnedEvent(ctx, args.eventId, requesterId);
     assertSeatingFeature(event);
     if (!Number.isInteger(args.capacity) || args.capacity < 1 || args.capacity > 40) {
       throw new Error('INVALID_CAPACITY');
@@ -815,11 +833,12 @@ export const upsertTable = mutation({
 });
 
 export const removeTable = mutation({
-  args: { tableId: v.id('tables'), requesterId: v.id('users') },
+  args: { tableId: v.id('tables'), sessionToken: v.string() },
   handler: async (ctx, args) => {
+    const requesterId = await requireUserId(ctx, args.sessionToken);
     const table = await ctx.db.get(args.tableId);
     if (!table) return;
-    const event = await assertOwnedEvent(ctx, table.eventId, args.requesterId);
+    const event = await assertOwnedEvent(ctx, table.eventId, requesterId);
     assertSeatingFeature(event);
     // Désassigne les invités posés sur cette table avant suppression.
     const seated = await ctx.db
@@ -837,13 +856,14 @@ export const removeTable = mutation({
 export const assignGuestTable = mutation({
   args: {
     guestId: v.id('guests'),
-    requesterId: v.id('users'),
+    sessionToken: v.string(),
     tableId: v.union(v.id('tables'), v.null()),
   },
   handler: async (ctx, args) => {
+    const requesterId = await requireUserId(ctx, args.sessionToken);
     const guest = await ctx.db.get(args.guestId);
     if (!guest) throw new Error('GUEST_NOT_FOUND');
-    const event = await assertOwnedEvent(ctx, guest.eventId, args.requesterId);
+    const event = await assertOwnedEvent(ctx, guest.eventId, requesterId);
     assertSeatingFeature(event);
     if (args.tableId) {
       const table = await ctx.db.get(args.tableId);

@@ -1,5 +1,6 @@
 import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
+import { requireUserId } from './lib/verifiedSession';
 
 const LIST_LIMIT = 30;
 const MARK_SCAN_LIMIT = 200;
@@ -10,8 +11,9 @@ const MARK_SCAN_LIMIT = 200;
  * `unread` est calculé sur la fenêtre récente (badge « 30+ » au-delà).
  */
 export const listForUser = query({
-  args: { userId: v.id('users') },
-  handler: async (ctx, { userId }) => {
+  args: { sessionToken: v.string() },
+  handler: async (ctx, { sessionToken }) => {
+    const userId = await requireUserId(ctx, sessionToken);
     const rows = await ctx.db
       .query('notifications')
       .withIndex('by_user_created', (q) => q.eq('userId', userId))
@@ -34,8 +36,9 @@ export const listForUser = query({
 });
 
 export const markAllRead = mutation({
-  args: { userId: v.id('users') },
-  handler: async (ctx, { userId }) => {
+  args: { sessionToken: v.string() },
+  handler: async (ctx, { sessionToken }) => {
+    const userId = await requireUserId(ctx, sessionToken);
     const now = Date.now();
     const rows = await ctx.db
       .query('notifications')
@@ -54,8 +57,9 @@ export const markAllRead = mutation({
 });
 
 export const markRead = mutation({
-  args: { notificationId: v.id('notifications'), userId: v.id('users') },
-  handler: async (ctx, { notificationId, userId }) => {
+  args: { notificationId: v.id('notifications'), sessionToken: v.string() },
+  handler: async (ctx, { notificationId, sessionToken }) => {
+    const userId = await requireUserId(ctx, sessionToken);
     const notif = await ctx.db.get(notificationId);
     if (!notif || notif.userId !== userId) throw new Error('NOT_FOUND');
     if (notif.readAt === undefined) await ctx.db.patch(notificationId, { readAt: Date.now() });
