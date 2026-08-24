@@ -229,7 +229,6 @@ const rawConvexApi = {
   markPaygPurchase: api.paygPurchases.markPurchase,
   getPaygCreditsByOrganization: api.paygPurchases.getCreditsByOrganization,
   listPaygPurchasesByOrganization: api.paygPurchases.listByOrganization,
-  getUserById: api.users.getById,
   newsletterSubscribe: api.newsletter.subscribe,
   newsletterUnsubscribe: api.newsletter.unsubscribe,
   newsletterListCampaigns: api.newsletter.listCampaigns,

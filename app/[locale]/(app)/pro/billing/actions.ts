@@ -82,10 +82,7 @@ export async function subscribeAction(formData: FormData): Promise<void> {
   const org = await convex.query(convexApi.myOrganization, { sessionToken });
   if (!org) redirectUnsafe('/pro/onboarding');
 
-  const user = await convex.query(convexApi.getUserById, {
-    sessionToken,
-    userId: session.userId,
-  });
+  const user = await convex.query(convexApi.currentUser, { sessionToken });
   if (!user?.email) redirectUnsafe('/pro/billing?status=error&code=email_required');
 
   const currency = await resolveProBillingCurrency(tier, billing);
@@ -118,10 +115,7 @@ export async function payAsYouGoAction(): Promise<void> {
   const org = await convex.query(convexApi.myOrganization, { sessionToken });
   if (!org) redirectUnsafe('/pro/onboarding');
 
-  const user = await convex.query(convexApi.getUserById, {
-    sessionToken,
-    userId: session.userId,
-  });
+  const user = await convex.query(convexApi.currentUser, { sessionToken });
   if (!user?.email) redirectUnsafe('/pro/billing?status=error&code=email_required');
 
   const origin = await appOrigin();

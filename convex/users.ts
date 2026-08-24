@@ -52,21 +52,18 @@ export const completeOnboarding = mutation({
 // `userId` désigne ici un AUTRE utilisateur que l'appelant (lecture de fiche),
 // il reste donc un argument métier — mais la surface n'est plus anonyme : il
 // faut une session valide pour l'interroger.
-export const getById = query({
-  args: { sessionToken: v.string(), userId: v.id('users') },
-  handler: async (ctx, { sessionToken, userId }) => {
-    await requireUserId(ctx, sessionToken);
-    const user = await ctx.db.get(userId);
-    if (!user) return null;
-    return {
-      _id: user._id,
-      phone: user.phone,
-      email: user.email,
-      fullName: user.fullName,
-      role: user.role,
-    };
-  },
-});
+/*
+ * `getById` (supprimée — audit archi 2026-08-23) : exposait téléphone, email,
+ * nom et rôle de N'IMPORTE QUEL utilisateur à tout appelant authentifié, à
+ * partir d'un simple id. Ses deux seuls appelants (checkout abonnement et
+ * Pay-as-you-go) passaient leur PROPRE id et ne lisaient que `email` : ils
+ * utilisent désormais `auth.currentUser`, qui renvoie le même champ et n'a
+ * aucun argument capable de désigner un tiers.
+ *
+ * Ne pas la réintroduire pour lire le profil d'autrui : les surfaces qui en ont
+ * besoin sont déjà cadrées (`organizations.listMembers` pour l'équipe d'une
+ * organisation, `admin.listUsers` pour la plateforme).
+ */
 
 /* -------------------------------------------------------------------------- */
 /*  Détection de doublons — audit manuel                                      */
