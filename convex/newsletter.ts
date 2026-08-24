@@ -1,7 +1,7 @@
 import { v } from 'convex/values';
 import { internalMutation, internalQuery, mutation, query } from './_generated/server';
 import type { Id } from './_generated/dataModel';
-import { requireAdmin } from './lib/verifiedSession';
+import { IDENTITY_ARGS, requireAdminCompat } from './lib/verifiedSession';
 
 /**
  * Conservé pour les fonctions INTERNES de ce module (`campaignContext`,
@@ -202,9 +202,9 @@ export const finalizeCampaign = internalMutation({
 
 /** Historique des campagnes pour l'admin (plus récentes d'abord). */
 export const listCampaigns = query({
-  args: { sessionToken: v.string() },
-  handler: async (ctx, { sessionToken }) => {
-    await requireAdmin(ctx, sessionToken);
+  args: { ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    await requireAdminCompat(ctx, args);
     const campaigns = await ctx.db
       .query('newsletterCampaigns')
       .withIndex('by_createdAt')

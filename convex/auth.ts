@@ -20,7 +20,11 @@ import {
   verifyOtpHash,
 } from './lib/otp';
 import { isValidE164, normalizePhone } from './lib/phone';
-import { requireUser, requireUserId, requireUserIdFromAction } from './lib/verifiedSession';
+import {
+  IDENTITY_ARGS,
+  requireUserIdCompat,
+  requireUserIdFromActionCompat,
+} from './lib/verifiedSession';
 import { sendWhatsAppCloudTemplate } from './lib/whatsappCloud';
 import { resolveChannel } from './lib/channelRouting';
 import { isTwilioConfigured, sendTwilioSms } from './lib/twilioSms';
@@ -238,9 +242,10 @@ export const verifyOtp = mutation({
  * `sessionToken` (cf. audit archi 2026-08-23).
  */
 export const currentUser = query({
-  args: { sessionToken: v.string() },
-  handler: async (ctx, { sessionToken }) => {
-    const user = await requireUser(ctx, sessionToken);
+  args: { ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    const user = await ctx.db.get(await requireUserIdCompat(ctx, args));
+    if (!user) throw new Error('UNAUTHENTICATED');
     const { phone, email, fullName, avatarUrl, role, locale, planTier, createdAt, lastSeenAt } =
       user;
     return {
@@ -472,12 +477,13 @@ const LINK_RATE_WINDOW_MS = 60 * 60 * 1000;
 
 export const requestLinkPhone = action({
   args: {
-    sessionToken: v.string(),
+    ...IDENTITY_ARGS,
     phone: v.string(),
     ipAddress: v.optional(v.string()),
   },
-  handler: async (ctx, { sessionToken, phone, ipAddress }) => {
-    const userId = await requireUserIdFromAction(ctx, sessionToken);
+  handler: async (ctx, args) => {
+    const { phone, ipAddress } = args;
+    const userId = await requireUserIdFromActionCompat(ctx, args);
     const normalized = normalizePhone(phone);
     if (!normalized || !isValidE164(normalized)) {
       throw new Error('INVALID_PHONE');
@@ -543,12 +549,13 @@ export const requestLinkPhone = action({
 
 export const verifyLinkPhone = mutation({
   args: {
-    sessionToken: v.string(),
+    ...IDENTITY_ARGS,
     phone: v.string(),
     code: v.string(),
   },
-  handler: async (ctx, { sessionToken, phone, code }) => {
-    const userId = await requireUserId(ctx, sessionToken);
+  handler: async (ctx, args) => {
+    const { phone, code } = args;
+    const userId = await requireUserIdCompat(ctx, args);
     const normalized = normalizePhone(phone);
     if (!normalized || !isValidE164(normalized)) {
       throw new Error('INVALID_PHONE');
@@ -593,12 +600,13 @@ export const verifyLinkPhone = mutation({
 
 export const requestLinkEmail = action({
   args: {
-    sessionToken: v.string(),
+    ...IDENTITY_ARGS,
     email: v.string(),
     ipAddress: v.optional(v.string()),
   },
-  handler: async (ctx, { sessionToken, email, ipAddress }) => {
-    const userId = await requireUserIdFromAction(ctx, sessionToken);
+  handler: async (ctx, args) => {
+    const { email, ipAddress } = args;
+    const userId = await requireUserIdFromActionCompat(ctx, args);
     const normalized = normalizeEmail(email);
     if (!isValidEmail(normalized)) {
       throw new Error('INVALID_EMAIL');
@@ -648,12 +656,13 @@ export const requestLinkEmail = action({
 
 export const verifyLinkEmail = mutation({
   args: {
-    sessionToken: v.string(),
+    ...IDENTITY_ARGS,
     email: v.string(),
     code: v.string(),
   },
-  handler: async (ctx, { sessionToken, email, code }) => {
-    const userId = await requireUserId(ctx, sessionToken);
+  handler: async (ctx, args) => {
+    const { email, code } = args;
+    const userId = await requireUserIdCompat(ctx, args);
     const normalized = normalizeEmail(email);
     if (!isValidEmail(normalized)) {
       throw new Error('INVALID_EMAIL');

@@ -10,7 +10,7 @@ import {
 import type { Doc, Id } from './_generated/dataModel';
 import { generateQrToken } from './lib/qrToken';
 import { assertEventAccess } from './lib/eventAuth';
-import { requireUserId } from './lib/verifiedSession';
+import { IDENTITY_ARGS, requireUserIdCompat } from './lib/verifiedSession';
 import { musicForClient, photoForClient } from './lib/invitationDesign';
 
 const QR_MAX_ATTEMPTS = 6;
@@ -40,7 +40,7 @@ async function uniqueQrToken(ctx: MutationCtx): Promise<string> {
 export const add = mutation({
   args: {
     eventId: v.id('events'),
-    sessionToken: v.string(),
+    ...IDENTITY_ARGS,
     fullName: v.string(),
     phone: v.optional(v.string()),
     email: v.optional(v.string()),
@@ -49,7 +49,7 @@ export const add = mutation({
     notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const requesterId = await requireUserId(ctx, args.sessionToken);
+    const requesterId = await requireUserIdCompat(ctx, args);
     const event = await assertEventOwnership(ctx, args.eventId, requesterId);
 
     const fullName = args.fullName.trim();
@@ -96,7 +96,7 @@ export const add = mutation({
 export const update = mutation({
   args: {
     guestId: v.id('guests'),
-    sessionToken: v.string(),
+    ...IDENTITY_ARGS,
     fullName: v.optional(v.string()),
     phone: v.optional(v.string()),
     email: v.optional(v.string()),
@@ -105,7 +105,7 @@ export const update = mutation({
     notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const requesterId = await requireUserId(ctx, args.sessionToken);
+    const requesterId = await requireUserIdCompat(ctx, args);
     const guest = await ctx.db.get(args.guestId);
     if (!guest) throw new Error('GUEST_NOT_FOUND');
     await assertEventOwnership(ctx, guest.eventId, requesterId);
@@ -138,9 +138,10 @@ export const update = mutation({
 });
 
 export const remove = mutation({
-  args: { guestId: v.id('guests'), sessionToken: v.string() },
-  handler: async (ctx, { guestId, sessionToken }) => {
-    const requesterId = await requireUserId(ctx, sessionToken);
+  args: { guestId: v.id('guests'), ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    const { guestId } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     const guest = await ctx.db.get(guestId);
     if (!guest) throw new Error('GUEST_NOT_FOUND');
     await assertEventOwnership(ctx, guest.eventId, requesterId);
@@ -150,9 +151,10 @@ export const remove = mutation({
 });
 
 export const listByEvent = query({
-  args: { eventId: v.id('events'), sessionToken: v.string() },
-  handler: async (ctx, { eventId, sessionToken }) => {
-    const requesterId = await requireUserId(ctx, sessionToken);
+  args: { eventId: v.id('events'), ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    const { eventId } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     await assertEventOwnership(ctx, eventId, requesterId);
     const rows = await ctx.db
       .query('guests')
@@ -233,9 +235,10 @@ export const getByToken = query({
 });
 
 export const countByEvent = query({
-  args: { eventId: v.id('events'), sessionToken: v.string() },
-  handler: async (ctx, { eventId, sessionToken }) => {
-    const requesterId = await requireUserId(ctx, sessionToken);
+  args: { eventId: v.id('events'), ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    const { eventId } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     await assertEventOwnership(ctx, eventId, requesterId);
     const rows = await ctx.db
       .query('guests')
@@ -261,9 +264,10 @@ export const countByEvent = query({
 });
 
 export const listForCheckIn = query({
-  args: { eventId: v.id('events'), sessionToken: v.string() },
-  handler: async (ctx, { eventId, sessionToken }) => {
-    const requesterId = await requireUserId(ctx, sessionToken);
+  args: { eventId: v.id('events'), ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    const { eventId } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     await assertEventOwnership(ctx, eventId, requesterId);
     const rows = await ctx.db
       .query('guests')
@@ -291,10 +295,11 @@ export const checkInByToken = mutation({
   args: {
     token: v.string(),
     eventId: v.id('events'),
-    sessionToken: v.string(),
+    ...IDENTITY_ARGS,
   },
-  handler: async (ctx, { token, eventId, sessionToken }) => {
-    const requesterId = await requireUserId(ctx, sessionToken);
+  handler: async (ctx, args) => {
+    const { token, eventId } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     await assertEventOwnership(ctx, eventId, requesterId);
 
     const guest = await ctx.db
@@ -331,9 +336,10 @@ export const checkInByToken = mutation({
 });
 
 export const undoCheckIn = mutation({
-  args: { guestId: v.id('guests'), sessionToken: v.string() },
-  handler: async (ctx, { guestId, sessionToken }) => {
-    const requesterId = await requireUserId(ctx, sessionToken);
+  args: { guestId: v.id('guests'), ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    const { guestId } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     const guest = await ctx.db.get(guestId);
     if (!guest) throw new Error('GUEST_NOT_FOUND');
     await assertEventOwnership(ctx, guest.eventId, requesterId);

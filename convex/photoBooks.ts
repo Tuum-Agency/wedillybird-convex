@@ -1,7 +1,7 @@
 import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
 import { internal } from './_generated/api';
-import { requireUserId } from './lib/verifiedSession';
+import { IDENTITY_ARGS, requireUserIdCompat } from './lib/verifiedSession';
 
 /**
  * Commandes de livre photo HD imprimé. Débloquées par l'upsell HD post-event
@@ -23,7 +23,7 @@ function appUrl(): string {
 export const request = mutation({
   args: {
     eventId: v.id('events'),
-    sessionToken: v.string(),
+    ...IDENTITY_ARGS,
     recipientName: v.string(),
     addressLine1: v.string(),
     addressLine2: v.optional(v.string()),
@@ -33,7 +33,7 @@ export const request = mutation({
     notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const requesterId = await requireUserId(ctx, args.sessionToken);
+    const requesterId = await requireUserIdCompat(ctx, args);
     const event = await ctx.db.get(args.eventId);
     if (!event) throw new Error('EVENT_NOT_FOUND');
     if (event.ownerId !== requesterId) throw new Error('FORBIDDEN');
@@ -123,9 +123,10 @@ export const request = mutation({
 });
 
 export const getForEvent = query({
-  args: { eventId: v.id('events'), sessionToken: v.string() },
-  handler: async (ctx, { eventId, sessionToken }) => {
-    const requesterId = await requireUserId(ctx, sessionToken);
+  args: { eventId: v.id('events'), ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    const { eventId } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     const event = await ctx.db.get(eventId);
     if (!event) throw new Error('EVENT_NOT_FOUND');
     if (event.ownerId !== requesterId) throw new Error('FORBIDDEN');

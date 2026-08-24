@@ -13,7 +13,7 @@ import { eventQuotaForTier, eventHasFeature, orgHasActiveAccess } from './lib/en
 import { assertInvitationDesignAllowed } from './lib/invitationDesign';
 import { assertEventAccess } from './lib/eventAuth';
 import { assertOrgWrite } from './lib/orgAuth';
-import { requireUserId } from './lib/verifiedSession';
+import { IDENTITY_ARGS, requireUserIdCompat } from './lib/verifiedSession';
 import { BUDGET_CURRENCY } from './lib/currency';
 import { normalizePhone, isValidE164 } from './lib/phone';
 import { summarizeGuestRsvp } from './lib/guestStats';
@@ -37,9 +37,10 @@ function toSlugBase(partnerA: string, partnerB: string): string {
 const ANTI_ABUSE_GUEST_CAP = 5000;
 
 export const reconcileMaxGuests = mutation({
-  args: { eventId: v.id('events'), sessionToken: v.string() },
-  handler: async (ctx, { eventId, sessionToken }) => {
-    const requesterId = await requireUserId(ctx, sessionToken);
+  args: { eventId: v.id('events'), ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    const { eventId } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     const ev = await ctx.db.get(eventId);
     if (!ev) throw new Error('EVENT_NOT_FOUND');
     if (ev.ownerId !== requesterId) throw new Error('FORBIDDEN');
@@ -57,7 +58,7 @@ export const reconcileMaxGuests = mutation({
 export const update = mutation({
   args: {
     eventId: v.id('events'),
-    sessionToken: v.string(),
+    ...IDENTITY_ARGS,
     title: v.optional(v.string()),
     partnerA: v.optional(v.string()),
     partnerB: v.optional(v.string()),
@@ -104,7 +105,7 @@ export const update = mutation({
     ),
   },
   handler: async (ctx, args) => {
-    const requesterId = await requireUserId(ctx, args.sessionToken);
+    const requesterId = await requireUserIdCompat(ctx, args);
     const ev = await ctx.db.get(args.eventId);
     if (!ev) throw new Error('EVENT_NOT_FOUND');
     if (ev.ownerId !== requesterId) throw new Error('FORBIDDEN');
@@ -206,7 +207,7 @@ export const update = mutation({
 export const updateMessagingConfig = mutation({
   args: {
     eventId: v.id('events'),
-    sessionToken: v.string(),
+    ...IDENTITY_ARGS,
     templateStyle: v.optional(
       v.union(
         v.literal('classic'),
@@ -227,7 +228,7 @@ export const updateMessagingConfig = mutation({
     ),
   },
   handler: async (ctx, args) => {
-    const requesterId = await requireUserId(ctx, args.sessionToken);
+    const requesterId = await requireUserIdCompat(ctx, args);
     const ev = await ctx.db.get(args.eventId);
     if (!ev) throw new Error('EVENT_NOT_FOUND');
     if (ev.ownerId !== requesterId) throw new Error('FORBIDDEN');
@@ -283,7 +284,7 @@ export const updateMessagingConfig = mutation({
 export const updateRsvpConfig = mutation({
   args: {
     eventId: v.id('events'),
-    sessionToken: v.string(),
+    ...IDENTITY_ARGS,
     config: v.object({
       askDietary: v.optional(v.boolean()),
       dietaryLabel: v.optional(v.string()),
@@ -312,7 +313,7 @@ export const updateRsvpConfig = mutation({
     }),
   },
   handler: async (ctx, args) => {
-    const requesterId = await requireUserId(ctx, args.sessionToken);
+    const requesterId = await requireUserIdCompat(ctx, args);
     const event = await assertEventAccess(ctx, args.eventId, requesterId, { write: true });
     if (!eventHasFeature(event, 'customRsvpQuestions')) throw new Error('FEATURE_LOCKED');
 
@@ -404,12 +405,13 @@ export const updateRsvpConfig = mutation({
 export const setFaceSearchEnabled = mutation({
   args: {
     eventId: v.id('events'),
-    sessionToken: v.string(),
+    ...IDENTITY_ARGS,
     enabled: v.boolean(),
     weddingState: v.optional(v.string()),
   },
-  handler: async (ctx, { eventId, sessionToken, enabled, weddingState }) => {
-    const requesterId = await requireUserId(ctx, sessionToken);
+  handler: async (ctx, args) => {
+    const { eventId, enabled, weddingState } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     const event = await assertEventAccess(ctx, eventId, requesterId, { write: true });
 
     const nextWeddingState =
@@ -460,7 +462,7 @@ export const setFaceSearchEnabled = mutation({
 
 export const create = mutation({
   args: {
-    sessionToken: v.string(),
+    ...IDENTITY_ARGS,
     title: v.string(),
     partnerA: v.string(),
     partnerB: v.string(),
@@ -491,7 +493,7 @@ export const create = mutation({
     weddingState: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const ownerId = await requireUserId(ctx, args.sessionToken);
+    const ownerId = await requireUserIdCompat(ctx, args);
     const owner = await ctx.db.get(ownerId);
     if (!owner) throw new Error('OWNER_NOT_FOUND');
 
@@ -554,9 +556,9 @@ export const create = mutation({
 });
 
 export const listByOwner = query({
-  args: { sessionToken: v.string() },
-  handler: async (ctx, { sessionToken }) => {
-    const ownerId = await requireUserId(ctx, sessionToken);
+  args: { ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    const ownerId = await requireUserIdCompat(ctx, args);
     const rows = await ctx.db
       .query('events')
       .withIndex('by_owner', (q) => q.eq('ownerId', ownerId))
@@ -580,9 +582,10 @@ export const listByOwner = query({
 });
 
 export const getById = query({
-  args: { eventId: v.id('events'), sessionToken: v.string() },
-  handler: async (ctx, { eventId, sessionToken }) => {
-    const requesterId = await requireUserId(ctx, sessionToken);
+  args: { eventId: v.id('events'), ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    const { eventId } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     const ev = await ctx.db.get(eventId);
     if (!ev) return null;
     if (ev.ownerId !== requesterId) {
@@ -690,9 +693,10 @@ export function decidePublishGate(input: PaygPublishGateInput): PaygPublishGateD
  * crédit n'est pas touché.
  */
 export const publish = mutation({
-  args: { eventId: v.id('events'), sessionToken: v.string() },
-  handler: async (ctx, { eventId, sessionToken }) => {
-    const requesterId = await requireUserId(ctx, sessionToken);
+  args: { eventId: v.id('events'), ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    const { eventId } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     const ev = await ctx.db.get(eventId);
     if (!ev) throw new Error('EVENT_NOT_FOUND');
     if (ev.ownerId !== requesterId) throw new Error('FORBIDDEN');
@@ -752,9 +756,10 @@ export const publish = mutation({
  * Le compte exclut l'event courant (celui qu'on s'apprête à publier).
  */
 export const orgPublishQuotaStatus = query({
-  args: { eventId: v.id('events'), sessionToken: v.string() },
-  handler: async (ctx, { eventId, sessionToken }) => {
-    const requesterId = await requireUserId(ctx, sessionToken);
+  args: { eventId: v.id('events'), ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    const { eventId } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     const event = await ctx.db.get(eventId);
     if (!event || !event.organizationId) return { applicable: false as const };
     const orgId = event.organizationId;
@@ -830,9 +835,10 @@ async function cleanupEventFaceCollection(
  * true }` sans rien faire.
  */
 export const archive = mutation({
-  args: { eventId: v.id('events'), sessionToken: v.string() },
-  handler: async (ctx, { eventId, sessionToken }) => {
-    const requesterId = await requireUserId(ctx, sessionToken);
+  args: { eventId: v.id('events'), ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    const { eventId } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     const ev = await ctx.db.get(eventId);
     if (!ev) throw new Error('EVENT_NOT_FOUND');
     if (ev.ownerId !== requesterId) throw new Error('FORBIDDEN');
@@ -892,9 +898,10 @@ export const purgeExpiredBiometricData = internalMutation({
 });
 
 export const unpublish = mutation({
-  args: { eventId: v.id('events'), sessionToken: v.string() },
-  handler: async (ctx, { eventId, sessionToken }) => {
-    const requesterId = await requireUserId(ctx, sessionToken);
+  args: { eventId: v.id('events'), ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    const { eventId } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     const ev = await ctx.db.get(eventId);
     if (!ev) throw new Error('EVENT_NOT_FOUND');
     if (ev.ownerId !== requesterId) throw new Error('FORBIDDEN');
@@ -1002,9 +1009,9 @@ export type EventListItem = {
  * cf. auth.verifyOtp). Réservé à l'agence propriétaire du mariage (org-write).
  */
 export const linkCouple = mutation({
-  args: { eventId: v.id('events'), sessionToken: v.string(), phone: v.string() },
+  args: { eventId: v.id('events'), ...IDENTITY_ARGS, phone: v.string() },
   handler: async (ctx, args) => {
-    const requesterId = await requireUserId(ctx, args.sessionToken);
+    const requesterId = await requireUserIdCompat(ctx, args);
     const event = await ctx.db.get(args.eventId);
     if (!event) throw new Error('EVENT_NOT_FOUND');
     if (!event.organizationId) throw new Error('NOT_AN_ORG_EVENT');
@@ -1052,9 +1059,10 @@ export const linkCouple = mutation({
 
 /** Détache le couple d'un mariage (retire les collaborateurs rôle `couple`). Org-write. */
 export const unlinkCouple = mutation({
-  args: { eventId: v.id('events'), sessionToken: v.string() },
-  handler: async (ctx, { eventId, sessionToken }) => {
-    const requesterId = await requireUserId(ctx, sessionToken);
+  args: { eventId: v.id('events'), ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    const { eventId } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     const event = await ctx.db.get(eventId);
     if (!event) throw new Error('EVENT_NOT_FOUND');
     if (!event.organizationId) throw new Error('NOT_AN_ORG_EVENT');
@@ -1070,9 +1078,10 @@ export const unlinkCouple = mutation({
 
 /** Le ou les couples rattachés à un mariage (affichage agence). Org-read implicite via owner. */
 export const coupleLinks = query({
-  args: { eventId: v.id('events'), sessionToken: v.string() },
-  handler: async (ctx, { eventId, sessionToken }) => {
-    const requesterId = await requireUserId(ctx, sessionToken);
+  args: { eventId: v.id('events'), ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    const { eventId } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     const event = await ctx.db.get(eventId);
     if (!event || !event.organizationId) return [];
     await assertOrgWrite(ctx, event.organizationId, requesterId);
@@ -1097,9 +1106,10 @@ export const coupleLinks = query({
  * PAS le budget ni les marges de l'agence.
  */
 export const coupleOverview = query({
-  args: { eventId: v.id('events'), sessionToken: v.string() },
-  handler: async (ctx, { eventId, sessionToken }) => {
-    const requesterId = await requireUserId(ctx, sessionToken);
+  args: { eventId: v.id('events'), ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    const { eventId } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     const event = await assertEventAccess(ctx, eventId, requesterId);
     const guests = await ctx.db
       .query('guests')
@@ -1120,9 +1130,9 @@ export const coupleOverview = query({
 
 /** Mariages où l'user est rattaché comme `couple` — entrée de l'espace couple. */
 export const listMineAsCouple = query({
-  args: { sessionToken: v.string() },
-  handler: async (ctx, { sessionToken }) => {
-    const userId = await requireUserId(ctx, sessionToken);
+  args: { ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    const userId = await requireUserIdCompat(ctx, args);
     const collabs = await ctx.db
       .query('eventCollaborators')
       .withIndex('by_user', (q) => q.eq('userId', userId))

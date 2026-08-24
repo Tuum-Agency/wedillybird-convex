@@ -2,7 +2,7 @@ import { v } from 'convex/values';
 import { mutation, query, type MutationCtx, type QueryCtx } from './_generated/server';
 import type { Doc, Id } from './_generated/dataModel';
 import { assertOrgRead, assertOrgWrite } from './lib/orgAuth';
-import { requireUserId } from './lib/verifiedSession';
+import { IDENTITY_ARGS, requireUserIdCompat } from './lib/verifiedSession';
 import { proTierAtLeast } from './lib/entitlements';
 import { pickUniqueSlug } from './lib/uniqueSlug';
 
@@ -90,9 +90,10 @@ function trimmedOrThrow(value: string, field: string, min = 1, max = 120): strin
 }
 
 export const listByOrg = query({
-  args: { organizationId: v.id('organizations'), sessionToken: v.string() },
-  handler: async (ctx, { organizationId, sessionToken }) => {
-    const requesterId = await requireUserId(ctx, sessionToken);
+  args: { organizationId: v.id('organizations'), ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    const { organizationId } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     await assertOrgRead(ctx, organizationId, requesterId);
     const clients = await ctx.db
       .query('clients')
@@ -141,9 +142,10 @@ export const listByOrg = query({
 
 /** Timeline d'activité d'un client (ordre antéchronologique). */
 export const notesByClient = query({
-  args: { clientId: v.id('clients'), sessionToken: v.string() },
-  handler: async (ctx, { clientId, sessionToken }) => {
-    const requesterId = await requireUserId(ctx, sessionToken);
+  args: { clientId: v.id('clients'), ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    const { clientId } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     const client = await ctx.db.get(clientId);
     if (!client) return null;
     await assertOrgRead(ctx, client.organizationId, requesterId);
@@ -166,7 +168,7 @@ export const notesByClient = query({
 export const create = mutation({
   args: {
     organizationId: v.id('organizations'),
-    sessionToken: v.string(),
+    ...IDENTITY_ARGS,
     partnerA: v.string(),
     partnerB: v.optional(v.string()),
     phone: v.optional(v.string()),
@@ -182,7 +184,7 @@ export const create = mutation({
     notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const requesterId = await requireUserId(ctx, args.sessionToken);
+    const requesterId = await requireUserIdCompat(ctx, args);
     await assertOrgWrite(ctx, args.organizationId, requesterId);
     await assertCrmEnabled(ctx, args.organizationId);
 
@@ -236,7 +238,7 @@ export const create = mutation({
 export const update = mutation({
   args: {
     clientId: v.id('clients'),
-    sessionToken: v.string(),
+    ...IDENTITY_ARGS,
     partnerA: v.optional(v.string()),
     partnerB: v.optional(v.string()),
     phone: v.optional(v.string()),
@@ -253,7 +255,7 @@ export const update = mutation({
     notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const requesterId = await requireUserId(ctx, args.sessionToken);
+    const requesterId = await requireUserIdCompat(ctx, args);
     const client = await loadClientForWrite(ctx, args.clientId, requesterId);
     await assertCrmEnabled(ctx, client.organizationId);
 
@@ -297,9 +299,10 @@ export const update = mutation({
 });
 
 export const updateStage = mutation({
-  args: { clientId: v.id('clients'), sessionToken: v.string(), stage: STAGE },
-  handler: async (ctx, { clientId, sessionToken, stage }) => {
-    const requesterId = await requireUserId(ctx, sessionToken);
+  args: { clientId: v.id('clients'), ...IDENTITY_ARGS, stage: STAGE },
+  handler: async (ctx, args) => {
+    const { clientId, stage } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     const client = await loadClientForWrite(ctx, clientId, requesterId);
     await assertCrmEnabled(ctx, client.organizationId);
     if (client.stage !== stage) {
@@ -318,9 +321,10 @@ export const updateStage = mutation({
 });
 
 export const addClientNote = mutation({
-  args: { clientId: v.id('clients'), sessionToken: v.string(), text: v.string() },
-  handler: async (ctx, { clientId, sessionToken, text }) => {
-    const requesterId = await requireUserId(ctx, sessionToken);
+  args: { clientId: v.id('clients'), ...IDENTITY_ARGS, text: v.string() },
+  handler: async (ctx, args) => {
+    const { clientId, text } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     const client = await loadClientForWrite(ctx, clientId, requesterId);
     const t = text.trim();
     if (t.length < 1 || t.length > 2000) throw new Error('INVALID_NOTE');
@@ -332,9 +336,10 @@ export const addClientNote = mutation({
 });
 
 export const remove = mutation({
-  args: { clientId: v.id('clients'), sessionToken: v.string() },
-  handler: async (ctx, { clientId, sessionToken }) => {
-    const requesterId = await requireUserId(ctx, sessionToken);
+  args: { clientId: v.id('clients'), ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    const { clientId } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     await loadClientForWrite(ctx, clientId, requesterId);
     const notes = await ctx.db
       .query('clientNotes')
@@ -347,9 +352,10 @@ export const remove = mutation({
 });
 
 export const convertToWedding = mutation({
-  args: { clientId: v.id('clients'), sessionToken: v.string() },
-  handler: async (ctx, { clientId, sessionToken }) => {
-    const requesterId = await requireUserId(ctx, sessionToken);
+  args: { clientId: v.id('clients'), ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    const { clientId } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     const client = await loadClientForWrite(ctx, clientId, requesterId);
     await assertCrmEnabled(ctx, client.organizationId);
 

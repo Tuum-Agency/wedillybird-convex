@@ -1,6 +1,6 @@
 import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
-import { requireUserId } from './lib/verifiedSession';
+import { IDENTITY_ARGS, requireUserIdCompat } from './lib/verifiedSession';
 
 const LIST_LIMIT = 30;
 const MARK_SCAN_LIMIT = 200;
@@ -11,9 +11,9 @@ const MARK_SCAN_LIMIT = 200;
  * `unread` est calculé sur la fenêtre récente (badge « 30+ » au-delà).
  */
 export const listForUser = query({
-  args: { sessionToken: v.string() },
-  handler: async (ctx, { sessionToken }) => {
-    const userId = await requireUserId(ctx, sessionToken);
+  args: { ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    const userId = await requireUserIdCompat(ctx, args);
     const rows = await ctx.db
       .query('notifications')
       .withIndex('by_user_created', (q) => q.eq('userId', userId))
@@ -36,9 +36,9 @@ export const listForUser = query({
 });
 
 export const markAllRead = mutation({
-  args: { sessionToken: v.string() },
-  handler: async (ctx, { sessionToken }) => {
-    const userId = await requireUserId(ctx, sessionToken);
+  args: { ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    const userId = await requireUserIdCompat(ctx, args);
     const now = Date.now();
     const rows = await ctx.db
       .query('notifications')
@@ -57,9 +57,10 @@ export const markAllRead = mutation({
 });
 
 export const markRead = mutation({
-  args: { notificationId: v.id('notifications'), sessionToken: v.string() },
-  handler: async (ctx, { notificationId, sessionToken }) => {
-    const userId = await requireUserId(ctx, sessionToken);
+  args: { notificationId: v.id('notifications'), ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    const { notificationId } = args;
+    const userId = await requireUserIdCompat(ctx, args);
     const notif = await ctx.db.get(notificationId);
     if (!notif || notif.userId !== userId) throw new Error('NOT_FOUND');
     if (notif.readAt === undefined) await ctx.db.patch(notificationId, { readAt: Date.now() });

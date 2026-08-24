@@ -17,7 +17,7 @@ import {
 import type { EmailRendered } from '../lib/email/types';
 import { signUnsubscribe } from '../lib/email/unsubscribe-token';
 import { getServerTranslator } from '../lib/i18n/server-translator';
-import { requireAdminIdFromAction } from './lib/verifiedSession';
+import { IDENTITY_ARGS, requireAdminIdFromActionCompat } from './lib/verifiedSession';
 
 function requireEnv(name: string): string {
   const value = process.env[name];
@@ -368,17 +368,15 @@ type SendCampaignResult =
 
 export const sendNewsletterCampaign = action({
   args: {
-    sessionToken: v.string(),
+    ...IDENTITY_ARGS,
     subject: v.string(),
     bodyText: v.string(),
     testEmail: v.optional(v.string()),
   },
   // Type de retour explicite : casse l'inférence circulaire action ↔ internal API.
-  handler: async (
-    ctx,
-    { sessionToken, subject, bodyText, testEmail },
-  ): Promise<SendCampaignResult> => {
-    const adminId = await requireAdminIdFromAction(ctx, sessionToken);
+  handler: async (ctx, args): Promise<SendCampaignResult> => {
+    const { subject, bodyText, testEmail } = args;
+    const adminId = await requireAdminIdFromActionCompat(ctx, args);
     if (subject.trim().length === 0 || bodyText.trim().length === 0) {
       return { ok: false, error: 'EMPTY_CONTENT' };
     }

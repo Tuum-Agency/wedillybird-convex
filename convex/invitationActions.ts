@@ -10,7 +10,7 @@ import {
 import { sendWhatsAppCloudTemplate, isWhatsAppCloudConfigured } from './lib/whatsappCloud';
 import { resolveChannel } from './lib/channelRouting';
 import { isTwilioConfigured, sendTwilioSms } from './lib/twilioSms';
-import { requireUserIdFromAction } from './lib/verifiedSession';
+import { IDENTITY_ARGS, requireUserIdFromActionCompat } from './lib/verifiedSession';
 
 /**
  * Délai avant le contrôle de livraison post-broadcast : on laisse les
@@ -43,10 +43,11 @@ interface BroadcastResult {
 export const broadcast = action({
   args: {
     eventId: v.id('events'),
-    sessionToken: v.string(),
+    ...IDENTITY_ARGS,
   },
-  handler: async (ctx, { eventId, sessionToken }): Promise<BroadcastResult> => {
-    const requesterId = await requireUserIdFromAction(ctx, sessionToken);
+  handler: async (ctx, args): Promise<BroadcastResult> => {
+    const { eventId } = args;
+    const requesterId = await requireUserIdFromActionCompat(ctx, args);
     const event = await ctx.runQuery(internal.events._getForBroadcast, {
       eventId,
       requesterId,

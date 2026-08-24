@@ -6,7 +6,7 @@ import { internalAction, action } from './_generated/server';
 import { S3Client, DeleteObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { randomUUID } from 'node:crypto';
-import { requireUserIdFromAction } from './lib/verifiedSession';
+import { IDENTITY_ARGS, requireUserIdFromActionCompat } from './lib/verifiedSession';
 
 const ALLOWED_CONTENT_TYPES = ['image/jpeg', 'image/png', 'image/webp'] as const;
 type AllowedContentType = (typeof ALLOWED_CONTENT_TYPES)[number];
@@ -64,17 +64,18 @@ async function makeUploadUrl(
 export const createOwnerS3UploadUrl = action({
   args: {
     eventId: v.id('events'),
-    sessionToken: v.string(),
+    ...IDENTITY_ARGS,
     contentType: v.string(),
   },
   handler: async (
     ctx,
-    { eventId, sessionToken, contentType },
+    args,
   ): Promise<{
     uploadUrl: string;
     s3Key: string;
   }> => {
-    const requesterId = await requireUserIdFromAction(ctx, sessionToken);
+    const { eventId, contentType } = args;
+    const requesterId = await requireUserIdFromActionCompat(ctx, args);
     await ctx.runQuery(internal.photos.assertOwnerCanUpload, { eventId, requesterId });
     return await makeUploadUrl(eventId, contentType);
   },

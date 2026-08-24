@@ -2,7 +2,7 @@ import { v } from 'convex/values';
 import { mutation, query, type MutationCtx, type QueryCtx } from './_generated/server';
 import type { Id } from './_generated/dataModel';
 import { assertOrgRead, assertOrgWrite } from './lib/orgAuth';
-import { requireUserId } from './lib/verifiedSession';
+import { IDENTITY_ARGS, requireUserIdCompat } from './lib/verifiedSession';
 import { proTierAtLeast } from './lib/entitlements';
 
 /**
@@ -35,9 +35,10 @@ async function loadLineForWrite(
 }
 
 export const listByEvent = query({
-  args: { eventId: v.id('events'), sessionToken: v.string() },
-  handler: async (ctx, { eventId, sessionToken }) => {
-    const requesterId = await requireUserId(ctx, sessionToken);
+  args: { eventId: v.id('events'), ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    const { eventId } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     const event = await ctx.db.get(eventId);
     if (!event || !event.organizationId) return null;
     await assertOrgRead(ctx, event.organizationId, requesterId);
@@ -114,7 +115,7 @@ async function recomputeLinePaid(ctx: MutationCtx, lineId: Id<'budgetLines'>): P
 export const createLine = mutation({
   args: {
     eventId: v.id('events'),
-    sessionToken: v.string(),
+    ...IDENTITY_ARGS,
     category: v.string(),
     label: v.string(),
     vendorName: v.optional(v.string()),
@@ -123,7 +124,7 @@ export const createLine = mutation({
     dueDate: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    const requesterId = await requireUserId(ctx, args.sessionToken);
+    const requesterId = await requireUserIdCompat(ctx, args);
     const event = await ctx.db.get(args.eventId);
     if (!event || !event.organizationId) throw new Error('NOT_AN_ORG_EVENT');
     await assertOrgWrite(ctx, event.organizationId, requesterId);
@@ -172,7 +173,7 @@ export const createLine = mutation({
 export const updateLine = mutation({
   args: {
     lineId: v.id('budgetLines'),
-    sessionToken: v.string(),
+    ...IDENTITY_ARGS,
     category: v.optional(v.string()),
     label: v.optional(v.string()),
     vendorName: v.optional(v.string()),
@@ -181,7 +182,7 @@ export const updateLine = mutation({
     clearDueDate: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
-    const requesterId = await requireUserId(ctx, args.sessionToken);
+    const requesterId = await requireUserIdCompat(ctx, args);
     await loadLineForWrite(ctx, args.lineId, requesterId);
     const patch: Record<string, unknown> = { updatedAt: Date.now() };
     if (args.category !== undefined) patch.category = args.category.trim() || 'Divers';
@@ -206,9 +207,10 @@ export const updateLine = mutation({
 });
 
 export const removeLine = mutation({
-  args: { lineId: v.id('budgetLines'), sessionToken: v.string() },
-  handler: async (ctx, { lineId, sessionToken }) => {
-    const requesterId = await requireUserId(ctx, sessionToken);
+  args: { lineId: v.id('budgetLines'), ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    const { lineId } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     await loadLineForWrite(ctx, lineId, requesterId);
     // Cascade : supprime les paiements rattachés et leurs justificatifs.
     const payments = await ctx.db
@@ -238,7 +240,7 @@ export const removeLine = mutation({
 export const addPayment = mutation({
   args: {
     lineId: v.id('budgetLines'),
-    sessionToken: v.string(),
+    ...IDENTITY_ARGS,
     amountMinor: v.number(),
     method: v.union(
       v.literal('transfer'),
@@ -253,7 +255,7 @@ export const addPayment = mutation({
     proofFileName: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const requesterId = await requireUserId(ctx, args.sessionToken);
+    const requesterId = await requireUserIdCompat(ctx, args);
     const line = await loadLineForWrite(ctx, args.lineId, requesterId);
     if (!Number.isFinite(args.amountMinor) || args.amountMinor <= 0)
       throw new Error('INVALID_AMOUNT');
@@ -280,9 +282,10 @@ export const addPayment = mutation({
 
 /** Supprime un paiement (et son justificatif), puis recalcule le cache. Business+. */
 export const removePayment = mutation({
-  args: { paymentId: v.id('budgetPayments'), sessionToken: v.string() },
-  handler: async (ctx, { paymentId, sessionToken }) => {
-    const requesterId = await requireUserId(ctx, sessionToken);
+  args: { paymentId: v.id('budgetPayments'), ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    const { paymentId } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     const payment = await ctx.db.get(paymentId);
     if (!payment) throw new Error('NOT_FOUND');
     await assertOrgWrite(ctx, payment.organizationId, requesterId);
@@ -306,9 +309,10 @@ export const removePayment = mutation({
  * slot, puis le client POST le fichier et passe le `storageId` à `addPayment`.
  */
 export const generateProofUploadUrl = mutation({
-  args: { lineId: v.id('budgetLines'), sessionToken: v.string() },
-  handler: async (ctx, { lineId, sessionToken }) => {
-    const requesterId = await requireUserId(ctx, sessionToken);
+  args: { lineId: v.id('budgetLines'), ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    const { lineId } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     await loadLineForWrite(ctx, lineId, requesterId);
     const uploadUrl = await ctx.storage.generateUploadUrl();
     return { uploadUrl };
@@ -347,12 +351,12 @@ function assertWebhookSecret(secret: string): void {
 export const createOnlinePaymentIntent = mutation({
   args: {
     lineId: v.id('budgetLines'),
-    sessionToken: v.string(),
+    ...IDENTITY_ARGS,
     amountMinor: v.number(),
     note: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const requesterId = await requireUserId(ctx, args.sessionToken);
+    const requesterId = await requireUserIdCompat(ctx, args);
     const line = await loadLineForWrite(ctx, args.lineId, requesterId);
     if (!Number.isFinite(args.amountMinor) || args.amountMinor <= 0)
       throw new Error('INVALID_AMOUNT');
@@ -396,12 +400,13 @@ export const createOnlinePaymentIntent = mutation({
 export const attachOnlineSession = mutation({
   args: {
     paymentId: v.id('budgetPayments'),
-    sessionToken: v.string(),
+    ...IDENTITY_ARGS,
     providerSessionId: v.string(),
     checkoutUrl: v.string(),
   },
-  handler: async (ctx, { paymentId, sessionToken, providerSessionId, checkoutUrl }) => {
-    const requesterId = await requireUserId(ctx, sessionToken);
+  handler: async (ctx, args) => {
+    const { paymentId, providerSessionId, checkoutUrl } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     const payment = await ctx.db.get(paymentId);
     if (!payment) throw new Error('NOT_FOUND');
     await assertOrgWrite(ctx, payment.organizationId, requesterId);
@@ -478,9 +483,10 @@ export const markOnlinePaymentFailed = mutation({
 
 /** Définit (ou efface si 0) l'enveloppe budgétaire d'un mariage. Business+. */
 export const setEnvelope = mutation({
-  args: { eventId: v.id('events'), sessionToken: v.string(), envelopeMinor: v.number() },
-  handler: async (ctx, { eventId, sessionToken, envelopeMinor }) => {
-    const requesterId = await requireUserId(ctx, sessionToken);
+  args: { eventId: v.id('events'), ...IDENTITY_ARGS, envelopeMinor: v.number() },
+  handler: async (ctx, args) => {
+    const { eventId, envelopeMinor } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     const event = await ctx.db.get(eventId);
     if (!event || !event.organizationId) throw new Error('NOT_AN_ORG_EVENT');
     await assertOrgWrite(ctx, event.organizationId, requesterId);

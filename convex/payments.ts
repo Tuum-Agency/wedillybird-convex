@@ -4,7 +4,7 @@ import { assertWebhookSecret } from './lib/webhookSecret';
 import { internal } from './_generated/api';
 import { toIntlTag } from '../lib/i18n/locale-tags';
 import { assertOrgRead } from './lib/orgAuth';
-import { requireUserId } from './lib/verifiedSession';
+import { IDENTITY_ARGS, requireUserIdCompat } from './lib/verifiedSession';
 import { proTierAtLeast } from './lib/entitlements';
 import {
   applyReferral,
@@ -70,7 +70,7 @@ function computeEventReconciliation(input: {
 
 export const recordIntent = mutation({
   args: {
-    sessionToken: v.string(),
+    ...IDENTITY_ARGS,
     eventId: v.id('events'),
     plan: PLAN,
     currency: CURRENCY,
@@ -83,7 +83,7 @@ export const recordIntent = mutation({
     creditReservationId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const userId = await requireUserId(ctx, args.sessionToken);
+    const userId = await requireUserIdCompat(ctx, args);
     const event = await ctx.db.get(args.eventId);
     if (!event) throw new Error('EVENT_NOT_FOUND');
     if (event.ownerId !== userId) throw new Error('FORBIDDEN');
@@ -320,9 +320,10 @@ export const markFailed = mutation({
 });
 
 export const listByEvent = query({
-  args: { eventId: v.id('events'), sessionToken: v.string() },
-  handler: async (ctx, { eventId, sessionToken }) => {
-    const requesterId = await requireUserId(ctx, sessionToken);
+  args: { eventId: v.id('events'), ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    const { eventId } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     const event = await ctx.db.get(eventId);
     if (!event) throw new Error('EVENT_NOT_FOUND');
     if (event.ownerId !== requesterId) throw new Error('FORBIDDEN');
@@ -633,9 +634,10 @@ export const scanOrphanedEntitlements = query({
  * connecté (BYOP) — l'agence encaisse sur son propre compte Stripe.
  */
 export const overview = query({
-  args: { organizationId: v.id('organizations'), sessionToken: v.string() },
-  handler: async (ctx, { organizationId, sessionToken }) => {
-    const requesterId = await requireUserId(ctx, sessionToken);
+  args: { organizationId: v.id('organizations'), ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    const { organizationId } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     await assertOrgRead(ctx, organizationId, requesterId);
     const org = await ctx.db.get(organizationId);
     const allowed = proTierAtLeast(org?.subscriptionTier, 'business');

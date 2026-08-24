@@ -3,7 +3,7 @@ import { mutation, query, type MutationCtx } from './_generated/server';
 import type { Doc, Id } from './_generated/dataModel';
 import { assertOrgRead, assertOrgWrite } from './lib/orgAuth';
 import { assertEventAccess } from './lib/eventAuth';
-import { requireUserId } from './lib/verifiedSession';
+import { IDENTITY_ARGS, requireUserIdCompat } from './lib/verifiedSession';
 import { proTierAtLeast } from './lib/entitlements';
 import { decidePaymentTransition } from './budget';
 import { totalMinor } from './quotes';
@@ -39,7 +39,7 @@ function connectedAccountId(org: Doc<'organizations'> | null): string | null {
 export const createIntent = mutation({
   args: {
     organizationId: v.id('organizations'),
-    sessionToken: v.string(),
+    ...IDENTITY_ARGS,
     kind: v.union(v.literal('invoice'), v.literal('free')),
     invoiceDocId: v.optional(v.id('quoteDocs')),
     invoiceMilestoneIndex: v.optional(v.number()),
@@ -48,7 +48,7 @@ export const createIntent = mutation({
     clientName: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const requesterId = await requireUserId(ctx, args.sessionToken);
+    const requesterId = await requireUserIdCompat(ctx, args);
     await assertOrgWrite(ctx, args.organizationId, requesterId);
     const org = await ctx.db.get(args.organizationId);
     if (!org) throw new Error('NOT_FOUND');
@@ -118,12 +118,13 @@ export const createIntent = mutation({
 export const attachSession = mutation({
   args: {
     paymentLinkId: v.id('paymentLinks'),
-    sessionToken: v.string(),
+    ...IDENTITY_ARGS,
     providerSessionId: v.string(),
     checkoutUrl: v.string(),
   },
-  handler: async (ctx, { paymentLinkId, sessionToken, providerSessionId, checkoutUrl }) => {
-    const requesterId = await requireUserId(ctx, sessionToken);
+  handler: async (ctx, args) => {
+    const { paymentLinkId, providerSessionId, checkoutUrl } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     const row = await ctx.db.get(paymentLinkId);
     if (!row) throw new Error('NOT_FOUND');
     await assertOrgWrite(ctx, row.organizationId, requesterId);
@@ -134,9 +135,10 @@ export const attachSession = mutation({
 
 /** Supprime un lien en attente (nettoyage si la création Checkout échoue). */
 export const remove = mutation({
-  args: { paymentLinkId: v.id('paymentLinks'), sessionToken: v.string() },
-  handler: async (ctx, { paymentLinkId, sessionToken }) => {
-    const requesterId = await requireUserId(ctx, sessionToken);
+  args: { paymentLinkId: v.id('paymentLinks'), ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    const { paymentLinkId } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     const row = await ctx.db.get(paymentLinkId);
     if (!row) return { ok: true as const };
     await assertOrgWrite(ctx, row.organizationId, requesterId);
@@ -230,9 +232,10 @@ async function settleLinkedInvoice(ctx: MutationCtx, row: Doc<'paymentLinks'>): 
 
 /** Liste les liens de paiement récents d'une agence (cockpit). Business+ implicite. */
 export const listByOrg = query({
-  args: { organizationId: v.id('organizations'), sessionToken: v.string() },
-  handler: async (ctx, { organizationId, sessionToken }) => {
-    const requesterId = await requireUserId(ctx, sessionToken);
+  args: { organizationId: v.id('organizations'), ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    const { organizationId } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     await assertOrgRead(ctx, organizationId, requesterId);
     const rows = await ctx.db
       .query('paymentLinks')
@@ -262,9 +265,10 @@ export const listByOrg = query({
  * (montant, libellé, statut, lien Checkout) ; aucune info interne agence.
  */
 export const listForEvent = query({
-  args: { eventId: v.id('events'), sessionToken: v.string() },
-  handler: async (ctx, { eventId, sessionToken }) => {
-    const requesterId = await requireUserId(ctx, sessionToken);
+  args: { eventId: v.id('events'), ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    const { eventId } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     await assertEventAccess(ctx, eventId, requesterId);
     const rows = await ctx.db
       .query('paymentLinks')

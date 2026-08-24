@@ -2,7 +2,7 @@ import { v } from 'convex/values';
 import { mutation, query, type MutationCtx } from './_generated/server';
 import type { Doc, Id } from './_generated/dataModel';
 import { assertOrgRead, assertOrgWrite } from './lib/orgAuth';
-import { requireUserId } from './lib/verifiedSession';
+import { IDENTITY_ARGS, requireUserIdCompat } from './lib/verifiedSession';
 import { proTierAtLeast } from './lib/entitlements';
 
 /**
@@ -80,9 +80,10 @@ function serialize(c: Doc<'contracts'>) {
 }
 
 export const listByOrg = query({
-  args: { organizationId: v.id('organizations'), sessionToken: v.string() },
-  handler: async (ctx, { organizationId, sessionToken }) => {
-    const requesterId = await requireUserId(ctx, sessionToken);
+  args: { organizationId: v.id('organizations'), ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    const { organizationId } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     await assertOrgRead(ctx, organizationId, requesterId);
     const contracts = await ctx.db
       .query('contracts')
@@ -115,9 +116,10 @@ export const listByOrg = query({
 });
 
 export const getById = query({
-  args: { contractId: v.id('contracts'), sessionToken: v.string() },
-  handler: async (ctx, { contractId, sessionToken }) => {
-    const requesterId = await requireUserId(ctx, sessionToken);
+  args: { contractId: v.id('contracts'), ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    const { contractId } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     const c = await ctx.db.get(contractId);
     if (!c) return null;
     await assertOrgRead(ctx, c.organizationId, requesterId);
@@ -137,7 +139,7 @@ export const getById = query({
 export const create = mutation({
   args: {
     organizationId: v.id('organizations'),
-    sessionToken: v.string(),
+    ...IDENTITY_ARGS,
     clientId: v.optional(v.id('clients')),
     clientName: v.optional(v.string()),
     eventId: v.optional(v.id('events')),
@@ -147,7 +149,7 @@ export const create = mutation({
     jurisdiction: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const requesterId = await requireUserId(ctx, args.sessionToken);
+    const requesterId = await requireUserIdCompat(ctx, args);
     await assertOrgWrite(ctx, args.organizationId, requesterId);
     await assertAllowed(ctx, args.organizationId);
 
@@ -204,9 +206,10 @@ const ADVANCE: Record<Status, { to: Status; event: string } | null> = {
 
 /** Avance le contrat à l'étape suivante du cycle de vie. */
 export const advance = mutation({
-  args: { contractId: v.id('contracts'), sessionToken: v.string() },
-  handler: async (ctx, { contractId, sessionToken }) => {
-    const requesterId = await requireUserId(ctx, sessionToken);
+  args: { contractId: v.id('contracts'), ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    const { contractId } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     const c = await loadForWrite(ctx, contractId, requesterId);
     const step = ADVANCE[c.status];
     if (!step) throw new Error('TERMINAL_STATUS');
@@ -228,13 +231,14 @@ export const advance = mutation({
 export const update = mutation({
   args: {
     contractId: v.id('contracts'),
-    sessionToken: v.string(),
+    ...IDENTITY_ARGS,
     sections: v.optional(v.array(SECTION)),
     totalMinor: v.optional(v.number()),
     jurisdiction: v.optional(v.string()),
   },
-  handler: async (ctx, { contractId, sessionToken, sections, totalMinor, jurisdiction }) => {
-    const requesterId = await requireUserId(ctx, sessionToken);
+  handler: async (ctx, args) => {
+    const { contractId, sections, totalMinor, jurisdiction } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     const c = await loadForWrite(ctx, contractId, requesterId);
     const patch: Record<string, unknown> = { updatedAt: Date.now() };
     if (sections !== undefined) {
@@ -250,9 +254,10 @@ export const update = mutation({
 });
 
 export const setStatus = mutation({
-  args: { contractId: v.id('contracts'), sessionToken: v.string(), status: STATUS },
-  handler: async (ctx, { contractId, sessionToken, status }) => {
-    const requesterId = await requireUserId(ctx, sessionToken);
+  args: { contractId: v.id('contracts'), ...IDENTITY_ARGS, status: STATUS },
+  handler: async (ctx, args) => {
+    const { contractId, status } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     const c = await loadForWrite(ctx, contractId, requesterId);
     await ctx.db.patch(contractId, { status, updatedAt: Date.now() });
     await logAudit(
@@ -266,9 +271,10 @@ export const setStatus = mutation({
 });
 
 export const remove = mutation({
-  args: { contractId: v.id('contracts'), sessionToken: v.string() },
-  handler: async (ctx, { contractId, sessionToken }) => {
-    const requesterId = await requireUserId(ctx, sessionToken);
+  args: { contractId: v.id('contracts'), ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    const { contractId } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     await loadForWrite(ctx, contractId, requesterId); // assertion d'accès (owner/admin + tier)
     const audit = await ctx.db
       .query('contractAudit')

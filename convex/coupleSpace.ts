@@ -14,7 +14,7 @@ import {
   musicForClient,
   photoForClient,
 } from './lib/invitationDesign';
-import { requireUserId } from './lib/verifiedSession';
+import { IDENTITY_ARGS, requireUserIdCompat } from './lib/verifiedSession';
 import { collectVestedCredit } from './affiliate';
 
 /**
@@ -81,9 +81,9 @@ function assertMinor(n: number, field: string): void {
  * aucun event self-serve (l'UI bascule alors en onboarding/empty state).
  */
 export const bundle = query({
-  args: { sessionToken: v.string() },
-  handler: async (ctx, { sessionToken }) => {
-    const requesterId = await requireUserId(ctx, sessionToken);
+  args: { ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    const requesterId = await requireUserIdCompat(ctx, args);
     const events = await ctx.db
       .query('events')
       .withIndex('by_owner', (q) => q.eq('ownerId', requesterId))
@@ -277,7 +277,7 @@ export const bundle = query({
 export const addVendor = mutation({
   args: {
     eventId: v.id('events'),
-    sessionToken: v.string(),
+    ...IDENTITY_ARGS,
     name: v.string(),
     category: v.string(),
     status: vendorStatusValidator,
@@ -289,7 +289,7 @@ export const addVendor = mutation({
     attachments: attachmentsValidator,
   },
   handler: async (ctx, args) => {
-    const requesterId = await requireUserId(ctx, args.sessionToken);
+    const requesterId = await requireUserIdCompat(ctx, args);
     await assertOwnedEvent(ctx, args.eventId, requesterId);
     if (!isCoupleVendorCat(args.category)) throw new Error('INVALID_CATEGORY');
     if (!isCoupleVendorStatus(args.status)) throw new Error('INVALID_STATUS');
@@ -316,7 +316,7 @@ export const addVendor = mutation({
 export const updateVendor = mutation({
   args: {
     vendorId: v.id('coupleVendors'),
-    sessionToken: v.string(),
+    ...IDENTITY_ARGS,
     name: v.optional(v.string()),
     category: v.optional(v.string()),
     status: v.optional(vendorStatusValidator),
@@ -328,7 +328,7 @@ export const updateVendor = mutation({
     attachments: attachmentsValidator,
   },
   handler: async (ctx, args) => {
-    const requesterId = await requireUserId(ctx, args.sessionToken);
+    const requesterId = await requireUserIdCompat(ctx, args);
     const vendor = await ctx.db.get(args.vendorId);
     if (!vendor) throw new Error('VENDOR_NOT_FOUND');
     await assertOwnedEvent(ctx, vendor.eventId, requesterId);
@@ -356,9 +356,9 @@ export const updateVendor = mutation({
 });
 
 export const removeVendor = mutation({
-  args: { vendorId: v.id('coupleVendors'), sessionToken: v.string() },
+  args: { vendorId: v.id('coupleVendors'), ...IDENTITY_ARGS },
   handler: async (ctx, args) => {
-    const requesterId = await requireUserId(ctx, args.sessionToken);
+    const requesterId = await requireUserIdCompat(ctx, args);
     const vendor = await ctx.db.get(args.vendorId);
     if (!vendor) return;
     await assertOwnedEvent(ctx, vendor.eventId, requesterId);
@@ -377,7 +377,7 @@ export const removeVendor = mutation({
 export const addPayment = mutation({
   args: {
     eventId: v.id('events'),
-    sessionToken: v.string(),
+    ...IDENTITY_ARGS,
     vendorId: v.optional(v.id('coupleVendors')),
     vendorName: v.string(),
     category: v.string(),
@@ -386,7 +386,7 @@ export const addPayment = mutation({
     amountMinor: v.number(),
   },
   handler: async (ctx, args) => {
-    const requesterId = await requireUserId(ctx, args.sessionToken);
+    const requesterId = await requireUserIdCompat(ctx, args);
     await assertOwnedEvent(ctx, args.eventId, requesterId);
     assertMinor(args.amountMinor, 'AMOUNT');
     if (args.vendorId) {
@@ -413,13 +413,13 @@ export const addPayment = mutation({
 export const setPaymentPaid = mutation({
   args: {
     paymentId: v.id('couplePayments'),
-    sessionToken: v.string(),
+    ...IDENTITY_ARGS,
     paidMinor: v.number(),
     paidAt: v.optional(v.number()),
     attachments: attachmentsValidator,
   },
   handler: async (ctx, args) => {
-    const requesterId = await requireUserId(ctx, args.sessionToken);
+    const requesterId = await requireUserIdCompat(ctx, args);
     const payment = await ctx.db.get(args.paymentId);
     if (!payment) throw new Error('PAYMENT_NOT_FOUND');
     await assertOwnedEvent(ctx, payment.eventId, requesterId);
@@ -435,9 +435,9 @@ export const setPaymentPaid = mutation({
 });
 
 export const removePayment = mutation({
-  args: { paymentId: v.id('couplePayments'), sessionToken: v.string() },
+  args: { paymentId: v.id('couplePayments'), ...IDENTITY_ARGS },
   handler: async (ctx, args) => {
-    const requesterId = await requireUserId(ctx, args.sessionToken);
+    const requesterId = await requireUserIdCompat(ctx, args);
     const payment = await ctx.db.get(args.paymentId);
     if (!payment) return;
     await assertOwnedEvent(ctx, payment.eventId, requesterId);
@@ -450,11 +450,11 @@ export const removePayment = mutation({
 export const setBudgetEnvelope = mutation({
   args: {
     eventId: v.id('events'),
-    sessionToken: v.string(),
+    ...IDENTITY_ARGS,
     budgetEnvelopeMinor: v.number(),
   },
   handler: async (ctx, args) => {
-    const requesterId = await requireUserId(ctx, args.sessionToken);
+    const requesterId = await requireUserIdCompat(ctx, args);
     await assertOwnedEvent(ctx, args.eventId, requesterId);
     assertMinor(args.budgetEnvelopeMinor, 'ENVELOPE');
     await ctx.db.patch(args.eventId, { budgetEnvelopeMinor: args.budgetEnvelopeMinor });
@@ -472,7 +472,7 @@ export const setBudgetEnvelope = mutation({
 export const setInvitationDesign = mutation({
   args: {
     eventId: v.id('events'),
-    sessionToken: v.string(),
+    ...IDENTITY_ARGS,
     cinematic: v.optional(v.string()),
     music: v.optional(
       v.object({
@@ -493,7 +493,7 @@ export const setInvitationDesign = mutation({
     clearPhoto: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
-    const requesterId = await requireUserId(ctx, args.sessionToken);
+    const requesterId = await requireUserIdCompat(ctx, args);
     const event = await assertOwnedEvent(ctx, args.eventId, requesterId);
     assertInvitationDesignAllowed(event, {
       cinematic: args.cinematic,
@@ -536,7 +536,7 @@ export const setInvitationDesign = mutation({
 export const setCeremonySchedule = mutation({
   args: {
     eventId: v.id('events'),
-    sessionToken: v.string(),
+    ...IDENTITY_ARGS,
     schedule: v.array(
       v.object({
         time: v.string(),
@@ -546,7 +546,7 @@ export const setCeremonySchedule = mutation({
     ),
   },
   handler: async (ctx, args) => {
-    const requesterId = await requireUserId(ctx, args.sessionToken);
+    const requesterId = await requireUserIdCompat(ctx, args);
     await assertOwnedEvent(ctx, args.eventId, requesterId);
     const cleaned = args.schedule
       .slice(0, 20)
@@ -582,9 +582,9 @@ export const assertOwnerCanCustomizeInvitation = internalQuery({
 
 /** Sème le template par défaut si (et seulement si) l'event n'a aucune phase. */
 export const ensureDefaultPlanning = mutation({
-  args: { eventId: v.id('events'), sessionToken: v.string() },
+  args: { eventId: v.id('events'), ...IDENTITY_ARGS },
   handler: async (ctx, args) => {
-    const requesterId = await requireUserId(ctx, args.sessionToken);
+    const requesterId = await requireUserIdCompat(ctx, args);
     await assertOwnedEvent(ctx, args.eventId, requesterId);
     const existing = await ctx.db
       .query('couplePhases')
@@ -621,12 +621,12 @@ export const ensureDefaultPlanning = mutation({
 export const addPhase = mutation({
   args: {
     eventId: v.id('events'),
-    sessionToken: v.string(),
+    ...IDENTITY_ARGS,
     label: v.string(),
     sub: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const requesterId = await requireUserId(ctx, args.sessionToken);
+    const requesterId = await requireUserIdCompat(ctx, args);
     await assertOwnedEvent(ctx, args.eventId, requesterId);
     const siblings = await ctx.db
       .query('couplePhases')
@@ -647,12 +647,12 @@ export const addPhase = mutation({
 export const addTask = mutation({
   args: {
     phaseId: v.id('couplePhases'),
-    sessionToken: v.string(),
+    ...IDENTITY_ARGS,
     label: v.string(),
     dueDate: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    const requesterId = await requireUserId(ctx, args.sessionToken);
+    const requesterId = await requireUserIdCompat(ctx, args);
     const phase = await ctx.db.get(args.phaseId);
     if (!phase) throw new Error('PHASE_NOT_FOUND');
     await assertOwnedEvent(ctx, phase.eventId, requesterId);
@@ -677,11 +677,11 @@ export const addTask = mutation({
 export const setTaskStatus = mutation({
   args: {
     taskId: v.id('coupleTasks'),
-    sessionToken: v.string(),
+    ...IDENTITY_ARGS,
     status: v.union(v.literal('todo'), v.literal('doing'), v.literal('done')),
   },
   handler: async (ctx, args) => {
-    const requesterId = await requireUserId(ctx, args.sessionToken);
+    const requesterId = await requireUserIdCompat(ctx, args);
     const task = await ctx.db.get(args.taskId);
     if (!task) throw new Error('TASK_NOT_FOUND');
     await assertOwnedEvent(ctx, task.eventId, requesterId);
@@ -690,9 +690,9 @@ export const setTaskStatus = mutation({
 });
 
 export const removeTask = mutation({
-  args: { taskId: v.id('coupleTasks'), sessionToken: v.string() },
+  args: { taskId: v.id('coupleTasks'), ...IDENTITY_ARGS },
   handler: async (ctx, args) => {
-    const requesterId = await requireUserId(ctx, args.sessionToken);
+    const requesterId = await requireUserIdCompat(ctx, args);
     const task = await ctx.db.get(args.taskId);
     if (!task) return;
     await assertOwnedEvent(ctx, task.eventId, requesterId);
@@ -705,7 +705,7 @@ export const removeTask = mutation({
 export const saveRoom = mutation({
   args: {
     eventId: v.id('events'),
-    sessionToken: v.string(),
+    ...IDENTITY_ARGS,
     name: v.string(),
     widthM: v.number(),
     lengthM: v.number(),
@@ -743,7 +743,7 @@ export const saveRoom = mutation({
     ),
   },
   handler: async (ctx, args) => {
-    const requesterId = await requireUserId(ctx, args.sessionToken);
+    const requesterId = await requireUserIdCompat(ctx, args);
     const event = await assertOwnedEvent(ctx, args.eventId, requesterId);
     assertSeatingFeature(event);
     if (args.widthM < 4 || args.widthM > 80 || args.lengthM < 4 || args.lengthM > 80) {
@@ -775,7 +775,7 @@ export const saveRoom = mutation({
 export const upsertTable = mutation({
   args: {
     eventId: v.id('events'),
-    sessionToken: v.string(),
+    ...IDENTITY_ARGS,
     tableId: v.optional(v.id('tables')),
     name: v.string(),
     shape: tableShapeValidator,
@@ -787,7 +787,7 @@ export const upsertTable = mutation({
     notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const requesterId = await requireUserId(ctx, args.sessionToken);
+    const requesterId = await requireUserIdCompat(ctx, args);
     const event = await assertOwnedEvent(ctx, args.eventId, requesterId);
     assertSeatingFeature(event);
     if (!Number.isInteger(args.capacity) || args.capacity < 1 || args.capacity > 40) {
@@ -833,9 +833,9 @@ export const upsertTable = mutation({
 });
 
 export const removeTable = mutation({
-  args: { tableId: v.id('tables'), sessionToken: v.string() },
+  args: { tableId: v.id('tables'), ...IDENTITY_ARGS },
   handler: async (ctx, args) => {
-    const requesterId = await requireUserId(ctx, args.sessionToken);
+    const requesterId = await requireUserIdCompat(ctx, args);
     const table = await ctx.db.get(args.tableId);
     if (!table) return;
     const event = await assertOwnedEvent(ctx, table.eventId, requesterId);
@@ -856,11 +856,11 @@ export const removeTable = mutation({
 export const assignGuestTable = mutation({
   args: {
     guestId: v.id('guests'),
-    sessionToken: v.string(),
+    ...IDENTITY_ARGS,
     tableId: v.union(v.id('tables'), v.null()),
   },
   handler: async (ctx, args) => {
-    const requesterId = await requireUserId(ctx, args.sessionToken);
+    const requesterId = await requireUserIdCompat(ctx, args);
     const guest = await ctx.db.get(args.guestId);
     if (!guest) throw new Error('GUEST_NOT_FOUND');
     const event = await assertOwnedEvent(ctx, guest.eventId, requesterId);

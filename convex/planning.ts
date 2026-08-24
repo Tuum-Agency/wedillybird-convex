@@ -2,7 +2,7 @@ import { v } from 'convex/values';
 import { mutation, query, type MutationCtx } from './_generated/server';
 import type { Id } from './_generated/dataModel';
 import { assertOrgRead, assertOrgWrite, assertOrgProvisioned } from './lib/orgAuth';
-import { requireUserId } from './lib/verifiedSession';
+import { IDENTITY_ARGS, requireUserIdCompat } from './lib/verifiedSession';
 import { notifyEventParties } from './lib/notify';
 
 /**
@@ -35,9 +35,10 @@ async function loadTaskForWrite(
 }
 
 export const listByEvent = query({
-  args: { eventId: v.id('events'), sessionToken: v.string() },
-  handler: async (ctx, { eventId, sessionToken }) => {
-    const requesterId = await requireUserId(ctx, sessionToken);
+  args: { eventId: v.id('events'), ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    const { eventId } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     const event = await ctx.db.get(eventId);
     if (!event || !event.organizationId) return null;
     await assertOrgRead(ctx, event.organizationId, requesterId);
@@ -72,7 +73,7 @@ export const listByEvent = query({
 export const createTask = mutation({
   args: {
     eventId: v.id('events'),
-    sessionToken: v.string(),
+    ...IDENTITY_ARGS,
     phase: PHASE,
     title: v.string(),
     dueDate: v.optional(v.number()),
@@ -80,7 +81,7 @@ export const createTask = mutation({
     priority: v.optional(PRIORITY),
   },
   handler: async (ctx, args) => {
-    const requesterId = await requireUserId(ctx, args.sessionToken);
+    const requesterId = await requireUserIdCompat(ctx, args);
     const event = await ctx.db.get(args.eventId);
     if (!event || !event.organizationId) throw new Error('NOT_AN_ORG_EVENT');
     await assertOrgWrite(ctx, event.organizationId, requesterId);
@@ -120,11 +121,12 @@ export const createTask = mutation({
 export const createTasks = mutation({
   args: {
     eventId: v.id('events'),
-    sessionToken: v.string(),
+    ...IDENTITY_ARGS,
     tasks: v.array(v.object({ phase: PHASE, title: v.string() })),
   },
-  handler: async (ctx, { eventId, sessionToken, tasks }) => {
-    const requesterId = await requireUserId(ctx, sessionToken);
+  handler: async (ctx, args) => {
+    const { eventId, tasks } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     const event = await ctx.db.get(eventId);
     if (!event || !event.organizationId) throw new Error('NOT_AN_ORG_EVENT');
     await assertOrgWrite(ctx, event.organizationId, requesterId);
@@ -152,9 +154,10 @@ export const createTasks = mutation({
 });
 
 export const toggleTask = mutation({
-  args: { taskId: v.id('planningTasks'), sessionToken: v.string(), done: v.boolean() },
-  handler: async (ctx, { taskId, sessionToken, done }) => {
-    const requesterId = await requireUserId(ctx, sessionToken);
+  args: { taskId: v.id('planningTasks'), ...IDENTITY_ARGS, done: v.boolean() },
+  handler: async (ctx, args) => {
+    const { taskId, done } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     await loadTaskForWrite(ctx, taskId, requesterId);
     // Garde `status` cohérent avec `done` (coché ⇒ done, décoché ⇒ todo).
     await ctx.db.patch(taskId, { done, status: done ? 'done' : 'todo', updatedAt: Date.now() });
@@ -166,11 +169,12 @@ export const toggleTask = mutation({
 export const setSubtasks = mutation({
   args: {
     taskId: v.id('planningTasks'),
-    sessionToken: v.string(),
+    ...IDENTITY_ARGS,
     subtasks: v.array(v.object({ label: v.string(), done: v.boolean() })),
   },
-  handler: async (ctx, { taskId, sessionToken, subtasks }) => {
-    const requesterId = await requireUserId(ctx, sessionToken);
+  handler: async (ctx, args) => {
+    const { taskId, subtasks } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     await loadTaskForWrite(ctx, taskId, requesterId);
     const cleaned = subtasks
       .map((s) => ({ label: s.label.trim().slice(0, 200), done: s.done }))
@@ -183,9 +187,10 @@ export const setSubtasks = mutation({
 
 /** Change le statut tri-état (vue Tableau) et synchronise `done`. */
 export const setTaskStatus = mutation({
-  args: { taskId: v.id('planningTasks'), sessionToken: v.string(), status: STATUS },
-  handler: async (ctx, { taskId, sessionToken, status }) => {
-    const requesterId = await requireUserId(ctx, sessionToken);
+  args: { taskId: v.id('planningTasks'), ...IDENTITY_ARGS, status: STATUS },
+  handler: async (ctx, args) => {
+    const { taskId, status } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     await loadTaskForWrite(ctx, taskId, requesterId);
     await ctx.db.patch(taskId, { status, done: status === 'done', updatedAt: Date.now() });
     return { ok: true as const };
@@ -195,7 +200,7 @@ export const setTaskStatus = mutation({
 export const updateTask = mutation({
   args: {
     taskId: v.id('planningTasks'),
-    sessionToken: v.string(),
+    ...IDENTITY_ARGS,
     title: v.optional(v.string()),
     phase: v.optional(PHASE),
     notes: v.optional(v.string()),
@@ -207,7 +212,7 @@ export const updateTask = mutation({
     priority: v.optional(PRIORITY),
   },
   handler: async (ctx, args) => {
-    const requesterId = await requireUserId(ctx, args.sessionToken);
+    const requesterId = await requireUserIdCompat(ctx, args);
     await loadTaskForWrite(ctx, args.taskId, requesterId);
     const patch: Record<string, unknown> = { updatedAt: Date.now() };
     if (args.title !== undefined) {
@@ -229,9 +234,10 @@ export const updateTask = mutation({
 });
 
 export const removeTask = mutation({
-  args: { taskId: v.id('planningTasks'), sessionToken: v.string() },
-  handler: async (ctx, { taskId, sessionToken }) => {
-    const requesterId = await requireUserId(ctx, sessionToken);
+  args: { taskId: v.id('planningTasks'), ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    const { taskId } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     await loadTaskForWrite(ctx, taskId, requesterId);
     await ctx.db.delete(taskId);
     return { ok: true as const };
@@ -247,9 +253,10 @@ const TEMPLATE_LIMIT = 20;
 
 /** Liste les modèles personnalisés d'une organisation (ordre alpha). */
 export const listTemplates = query({
-  args: { organizationId: v.id('organizations'), sessionToken: v.string() },
-  handler: async (ctx, { organizationId, sessionToken }) => {
-    const requesterId = await requireUserId(ctx, sessionToken);
+  args: { organizationId: v.id('organizations'), ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    const { organizationId } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     await assertOrgRead(ctx, organizationId, requesterId);
     const templates = await ctx.db
       .query('planningTemplates')
@@ -271,9 +278,10 @@ export const listTemplates = query({
  * (instantané des tâches : phase + titre, sans dates ni statuts).
  */
 export const saveTemplateFromEvent = mutation({
-  args: { eventId: v.id('events'), sessionToken: v.string(), name: v.string() },
-  handler: async (ctx, { eventId, sessionToken, name }) => {
-    const requesterId = await requireUserId(ctx, sessionToken);
+  args: { eventId: v.id('events'), ...IDENTITY_ARGS, name: v.string() },
+  handler: async (ctx, args) => {
+    const { eventId, name } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     const event = await ctx.db.get(eventId);
     if (!event || !event.organizationId) throw new Error('NOT_AN_ORG_EVENT');
     await assertOrgWrite(ctx, event.organizationId, requesterId);
@@ -315,11 +323,12 @@ export const saveTemplateFromEvent = mutation({
 export const applyTemplate = mutation({
   args: {
     eventId: v.id('events'),
-    sessionToken: v.string(),
+    ...IDENTITY_ARGS,
     templateId: v.id('planningTemplates'),
   },
-  handler: async (ctx, { eventId, sessionToken, templateId }) => {
-    const requesterId = await requireUserId(ctx, sessionToken);
+  handler: async (ctx, args) => {
+    const { eventId, templateId } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     const event = await ctx.db.get(eventId);
     if (!event || !event.organizationId) throw new Error('NOT_AN_ORG_EVENT');
     await assertOrgWrite(ctx, event.organizationId, requesterId);
@@ -354,9 +363,10 @@ export const applyTemplate = mutation({
 
 /** Supprime un modèle personnalisé. */
 export const deleteTemplate = mutation({
-  args: { templateId: v.id('planningTemplates'), sessionToken: v.string() },
-  handler: async (ctx, { templateId, sessionToken }) => {
-    const requesterId = await requireUserId(ctx, sessionToken);
+  args: { templateId: v.id('planningTemplates'), ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    const { templateId } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     const template = await ctx.db.get(templateId);
     if (!template) throw new Error('TEMPLATE_NOT_FOUND');
     await assertOrgWrite(ctx, template.organizationId, requesterId);

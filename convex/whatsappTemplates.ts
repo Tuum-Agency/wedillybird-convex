@@ -22,7 +22,11 @@ import {
 import { internal } from './_generated/api';
 import type { Id } from './_generated/dataModel';
 import { assertWebhookSecret } from './lib/webhookSecret';
-import { requireUserId, requireUserIdFromAction } from './lib/verifiedSession';
+import {
+  IDENTITY_ARGS,
+  requireUserIdCompat,
+  requireUserIdFromActionCompat,
+} from './lib/verifiedSession';
 
 // Meta : nom de template = 1-512 chars, lowercase alphanumeric + underscore.
 const NAME_MAX = 512;
@@ -82,13 +86,13 @@ function validateCtaLabel(label: string): string {
 export const create = mutation({
   args: {
     eventId: v.id('events'),
-    sessionToken: v.string(),
+    ...IDENTITY_ARGS,
     bodyText: v.string(),
     ctaLabel: v.string(),
     nameHint: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const requesterId = await requireUserId(ctx, args.sessionToken);
+    const requesterId = await requireUserIdCompat(ctx, args);
     const ev = await ctx.db.get(args.eventId);
     if (!ev) throw new Error('EVENT_NOT_FOUND');
     if (ev.ownerId !== requesterId) throw new Error('FORBIDDEN');
@@ -127,12 +131,12 @@ export const create = mutation({
 export const updateDraft = mutation({
   args: {
     templateId: v.id('whatsappTemplates'),
-    sessionToken: v.string(),
+    ...IDENTITY_ARGS,
     bodyText: v.optional(v.string()),
     ctaLabel: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const requesterId = await requireUserId(ctx, args.sessionToken);
+    const requesterId = await requireUserIdCompat(ctx, args);
     const tpl = await ctx.db.get(args.templateId);
     if (!tpl) throw new Error('TEMPLATE_NOT_FOUND');
     if (tpl.ownerId !== requesterId) throw new Error('FORBIDDEN');
@@ -216,10 +220,10 @@ type SubmitResult =
 export const submitToMeta = action({
   args: {
     templateId: v.id('whatsappTemplates'),
-    sessionToken: v.string(),
+    ...IDENTITY_ARGS,
   },
   handler: async (ctx, args): Promise<SubmitResult> => {
-    const requesterId = await requireUserIdFromAction(ctx, args.sessionToken);
+    const requesterId = await requireUserIdFromActionCompat(ctx, args);
     const tpl: TemplateRecord | null = await ctx.runQuery(
       internal.whatsappTemplates._getForSubmission,
       {
@@ -349,9 +353,10 @@ export const _getForSubmission = internalQuery({
 });
 
 export const listByEvent = query({
-  args: { eventId: v.id('events'), sessionToken: v.string() },
-  handler: async (ctx, { eventId, sessionToken }) => {
-    const requesterId = await requireUserId(ctx, sessionToken);
+  args: { eventId: v.id('events'), ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    const { eventId } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     const ev = await ctx.db.get(eventId);
     if (!ev) throw new Error('EVENT_NOT_FOUND');
     if (ev.ownerId !== requesterId) {

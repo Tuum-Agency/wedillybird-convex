@@ -17,7 +17,11 @@ import {
   FACE_SEARCH_WINDOW_MS,
   decideRateLimit,
 } from './lib/rateLimit';
-import { requireUserId } from './lib/verifiedSession';
+import {
+  IDENTITY_ARGS,
+  requireUserIdCompat,
+  requireUserIdFromActionCompat,
+} from './lib/verifiedSession';
 
 const MAX_BYTES_PER_UPLOAD = 15 * 1024 * 1024;
 const ALLOWED_CONTENT_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
@@ -164,7 +168,7 @@ export const listAllPendingForReprocess = internalQuery({
 export const confirmOwnerUpload = mutation({
   args: {
     eventId: v.id('events'),
-    sessionToken: v.string(),
+    ...IDENTITY_ARGS,
     s3Key: v.string(),
     sizeBytes: v.number(),
     contentType: v.string(),
@@ -172,7 +176,7 @@ export const confirmOwnerUpload = mutation({
     height: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    const requesterId = await requireUserId(ctx, args.sessionToken);
+    const requesterId = await requireUserIdCompat(ctx, args);
     const event = await assertEventOwnership(ctx, args.eventId, requesterId);
     assertUploadShape(args.sizeBytes, args.contentType);
     assertGalleryOpen(event);
@@ -235,11 +239,12 @@ export const confirmGuestUpload = mutation({
 export const listForOwner = query({
   args: {
     eventId: v.id('events'),
-    sessionToken: v.string(),
+    ...IDENTITY_ARGS,
     status: v.optional(v.union(v.literal('pending'), v.literal('approved'), v.literal('rejected'))),
   },
-  handler: async (ctx, { eventId, sessionToken, status }) => {
-    const requesterId = await requireUserId(ctx, sessionToken);
+  handler: async (ctx, args) => {
+    const { eventId, status } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     await assertEventOwnership(ctx, eventId, requesterId);
     const rows = status
       ? await ctx.db
@@ -318,11 +323,12 @@ export const listApprovedForGuest = query({
 export const moderate = mutation({
   args: {
     photoId: v.id('photos'),
-    sessionToken: v.string(),
+    ...IDENTITY_ARGS,
     decision: v.union(v.literal('approved'), v.literal('rejected')),
   },
-  handler: async (ctx, { photoId, sessionToken, decision }) => {
-    const requesterId = await requireUserId(ctx, sessionToken);
+  handler: async (ctx, args) => {
+    const { photoId, decision } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     const photo = await ctx.db.get(photoId);
     if (!photo) throw new Error('PHOTO_NOT_FOUND');
     await assertEventOwnership(ctx, photo.eventId, requesterId);
@@ -336,9 +342,10 @@ export const moderate = mutation({
 });
 
 export const remove = mutation({
-  args: { photoId: v.id('photos'), sessionToken: v.string() },
-  handler: async (ctx, { photoId, sessionToken }) => {
-    const requesterId = await requireUserId(ctx, sessionToken);
+  args: { photoId: v.id('photos'), ...IDENTITY_ARGS },
+  handler: async (ctx, args) => {
+    const { photoId } = args;
+    const requesterId = await requireUserIdCompat(ctx, args);
     const photo = await ctx.db.get(photoId);
     if (!photo) throw new Error('PHOTO_NOT_FOUND');
     const event = await assertEventOwnership(ctx, photo.eventId, requesterId);
@@ -729,7 +736,7 @@ export const searchPhotosByFace = action({
   args: {
     eventId: v.id('events'),
     selfieBase64: v.string(),
-    sessionToken: v.optional(v.string()),
+    ...IDENTITY_ARGS,
     guestToken: v.optional(v.string()),
   },
   handler: async (ctx, args): Promise<SearchPhotosByFaceResult> => {
@@ -739,11 +746,20 @@ export const searchPhotosByFace = action({
     // par l'appelant, qui pourrait la faire varier à volonté pour échapper au
     // quota. Une session absente ou invalide ne throw pas ici : on retombe
     // simplement sur le chemin invité.
-    const requesterId: Id<'users'> | null = args.sessionToken
-      ? await ctx.runQuery(internal.authSessions.resolveUserId, {
-          sessionToken: args.sessionToken,
-        })
-      : null;
+    //
+    // Pendant la fenêtre de compatibilité, l'ancien front envoie encore
+    // `requesterId` au lieu du jeton : le helper tranche (un jeton valide
+    // l'emporte toujours) et son `UNAUTHENTICATED` est rabattu sur le chemin
+    // invité, exactement comme une session absente.
+    let requesterId: Id<'users'> | null = null;
+    try {
+      requesterId = await requireUserIdFromActionCompat(ctx, args);
+    } catch (err) {
+      // Seul `UNAUTHENTICATED` vaut « pas d'identité » ; une panne de la query
+      // de résolution doit remonter, comme avant.
+      if (!(err instanceof Error) || err.message !== 'UNAUTHENTICATED') throw err;
+      requesterId = null;
+    }
 
     // Rate-limit avant tout autre travail : on évite de payer un round-trip
     // à Rekognition pour un caller en abus. La clé combine requesterId OU

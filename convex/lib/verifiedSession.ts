@@ -1,3 +1,4 @@
+import { v } from 'convex/values';
 import type { Doc, Id } from '../_generated/dataModel';
 import type { ActionCtx, MutationCtx, QueryCtx } from '../_generated/server';
 import { internal } from '../_generated/api';
@@ -118,6 +119,96 @@ export async function requireAdmin(
 }
 
 /* -------------------------------------------------------------------------- */
+/*  Fenêtre de compatibilité (transitoire — à supprimer après bascule prod)     */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Convex et Vercel se déploient indépendamment : il existe donc une fenêtre où
+ * le front encore en production envoie l'ancien `requesterId` alors que Convex
+ * exige déjà `sessionToken` (et inversement). Comme Convex **rejette** tout
+ * argument non déclaré, cette désynchronisation casserait chaque appel
+ * authentifié.
+ *
+ * Ces validateurs acceptent les deux formes le temps de la bascule. Ils sont
+ * volontairement `optional` des deux côtés — c'est {@link requireUserIdCompat}
+ * qui impose qu'au moins une identité exploitable soit présente.
+ *
+ * À retirer dès que la prod sert le nouveau front (voir le plan de bascule dans
+ * la PR de la fenêtre de compatibilité).
+ */
+export const IDENTITY_ARGS = {
+  sessionToken: v.optional(v.string()),
+  /** @deprecated fenêtre de compat — identité NON vérifiée, retirée après bascule. */
+  requesterId: v.optional(v.id('users')),
+  /** @deprecated idem, pour les fonctions d'administration. */
+  adminId: v.optional(v.id('users')),
+} as const;
+
+export interface CompatIdentityArgs {
+  sessionToken?: string;
+  requesterId?: Id<'users'>;
+  adminId?: Id<'users'>;
+}
+
+/**
+ * `true` tant que la fenêtre de compatibilité est ouverte. Piloté par une
+ * variable d'environnement Convex — **pas** par un déploiement de code : couper
+ * la fenêtre est donc immédiat et réversible, sans attendre un build.
+ *
+ * Par défaut : fermée. Un environnement qui ne pose pas la variable n'accepte
+ * QUE l'identité vérifiée, ce qui est le comportement sûr.
+ */
+function legacyWindowOpen(): boolean {
+  return process.env.LEGACY_IDENTITY_WINDOW === '1';
+}
+
+/**
+ * Identité de l'appelant pendant la bascule.
+ *
+ * Ordre strict : un `sessionToken` valide l'emporte TOUJOURS. On ne retombe sur
+ * l'identité auto-déclarée que si aucun jeton n'est fourni **et** que la fenêtre
+ * est explicitement ouverte — jamais en cas de jeton invalide, sinon il
+ * suffirait d'envoyer un jeton bidon accompagné du `requesterId` de sa cible
+ * pour contourner la vérification.
+ */
+export async function requireUserIdCompat(
+  ctx: ReadCtx,
+  args: CompatIdentityArgs,
+): Promise<Id<'users'>> {
+  if (args.sessionToken !== undefined) return requireUserId(ctx, args.sessionToken);
+  if (legacyWindowOpen()) {
+    const legacy = args.requesterId ?? args.adminId;
+    if (legacy) return legacy;
+  }
+  throw new Error('UNAUTHENTICATED');
+}
+
+/** Variante « appelant optionnel » (surfaces mixtes invité/connecté). */
+export async function optionalUserIdCompat(
+  ctx: ReadCtx,
+  args: CompatIdentityArgs,
+): Promise<Id<'users'> | null> {
+  if (args.sessionToken !== undefined) return optionalUserId(ctx, args.sessionToken);
+  if (legacyWindowOpen()) return args.requesterId ?? args.adminId ?? null;
+  return null;
+}
+
+/**
+ * Variante admin. Le rôle est TOUJOURS revérifié en base, y compris sur le
+ * chemin hérité : c'est ce contrôle-là qui manquait avant l'audit.
+ */
+export async function requireAdminCompat(
+  ctx: ReadCtx,
+  args: CompatIdentityArgs,
+): Promise<Doc<'users'>> {
+  const userId = await requireUserIdCompat(ctx, args);
+  const user = await ctx.db.get(userId);
+  if (!user) throw new Error('UNAUTHENTICATED');
+  if (user.role !== 'admin') throw new Error('FORBIDDEN');
+  return user;
+}
+
+/* -------------------------------------------------------------------------- */
 /*  Variantes « action »                                                       */
 /* -------------------------------------------------------------------------- */
 
@@ -144,4 +235,38 @@ export async function requireAdminIdFromAction(
   const userId = await ctx.runQuery(internal.authSessions.resolveAdminUserId, { sessionToken });
   if (!userId) throw new Error('UNAUTHENTICATED');
   return userId;
+}
+
+/**
+ * Variantes « fenêtre de compatibilité » pour les actions. Même règle que
+ * {@link requireUserIdCompat} : un jeton présent est toujours vérifié, le
+ * repli hérité ne joue qu'en son absence et fenêtre ouverte.
+ */
+export async function requireUserIdFromActionCompat(
+  ctx: ActionCtx,
+  args: CompatIdentityArgs,
+): Promise<Id<'users'>> {
+  if (args.sessionToken !== undefined) return requireUserIdFromAction(ctx, args.sessionToken);
+  if (legacyWindowOpen()) {
+    const legacy = args.requesterId ?? args.adminId;
+    if (legacy) return legacy;
+  }
+  throw new Error('UNAUTHENTICATED');
+}
+
+export async function requireAdminIdFromActionCompat(
+  ctx: ActionCtx,
+  args: CompatIdentityArgs,
+): Promise<Id<'users'>> {
+  if (args.sessionToken !== undefined) return requireAdminIdFromAction(ctx, args.sessionToken);
+  if (legacyWindowOpen()) {
+    const legacy = args.adminId ?? args.requesterId;
+    // Le rôle reste vérifié en base, jamais déduit de l'argument.
+    if (legacy) {
+      const ok = await ctx.runQuery(internal.authSessions.isAdminUserId, { userId: legacy });
+      if (ok) return legacy;
+      throw new Error('FORBIDDEN');
+    }
+  }
+  throw new Error('UNAUTHENTICATED');
 }

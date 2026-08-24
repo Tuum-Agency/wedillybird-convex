@@ -1,6 +1,6 @@
 import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
-import { optionalUserId, requireAdmin } from './lib/verifiedSession';
+import { IDENTITY_ARGS, optionalUserIdCompat, requireAdminCompat } from './lib/verifiedSession';
 
 /** Capture ≤ 800 Ko (data URL) — au-delà on la jette plutôt que de gonfler le doc. */
 const MAX_SCREENSHOT_CHARS = 800 * 1024;
@@ -17,7 +17,7 @@ export const submitBugReport = mutation({
     // Optionnel : le bouton de report est présent sur les pages publiques
     // (invitation invité), où l'auteur n'est pas connecté. Session absente ou
     // invalide → rapport anonyme, jamais un refus.
-    sessionToken: v.optional(v.string()),
+    ...IDENTITY_ARGS,
     url: v.string(),
     pathname: v.string(),
     description: v.string(),
@@ -28,7 +28,7 @@ export const submitBugReport = mutation({
     consoleErrors: v.optional(v.array(v.string())),
   },
   handler: async (ctx, args) => {
-    const reporterId = (await optionalUserId(ctx, args.sessionToken)) ?? undefined;
+    const reporterId = (await optionalUserIdCompat(ctx, args)) ?? undefined;
     const description = args.description.trim().slice(0, MAX_DESC);
     if (description.length < 3) throw new Error('DESCRIPTION_TOO_SHORT');
 
@@ -59,12 +59,12 @@ export const submitBugReport = mutation({
 /** Liste des rapports (admin) — récents d'abord, capture exclue du payload. */
 export const listBugReports = query({
   args: {
-    sessionToken: v.string(),
+    ...IDENTITY_ARGS,
     status: v.optional(v.union(v.literal('open'), v.literal('triaged'), v.literal('resolved'))),
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    await requireAdmin(ctx, args.sessionToken);
+    await requireAdminCompat(ctx, args);
     const limit = Math.min(args.limit ?? 100, 300);
     const rows = args.status
       ? await ctx.db
@@ -81,9 +81,9 @@ export const listBugReports = query({
 
 /** Détail d'un rapport (admin) — inclut la capture. */
 export const getBugReport = query({
-  args: { sessionToken: v.string(), reportId: v.id('bugReports') },
+  args: { ...IDENTITY_ARGS, reportId: v.id('bugReports') },
   handler: async (ctx, args) => {
-    await requireAdmin(ctx, args.sessionToken);
+    await requireAdminCompat(ctx, args);
     return await ctx.db.get(args.reportId);
   },
 });
@@ -91,12 +91,12 @@ export const getBugReport = query({
 /** Change le statut d'un rapport (admin). */
 export const updateBugReportStatus = mutation({
   args: {
-    sessionToken: v.string(),
+    ...IDENTITY_ARGS,
     reportId: v.id('bugReports'),
     status: v.union(v.literal('open'), v.literal('triaged'), v.literal('resolved')),
   },
   handler: async (ctx, args) => {
-    await requireAdmin(ctx, args.sessionToken);
+    await requireAdminCompat(ctx, args);
     await ctx.db.patch(args.reportId, { status: args.status });
     return null;
   },

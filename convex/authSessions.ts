@@ -106,6 +106,19 @@ export const resolveUserId = internalQuery({
   },
 });
 
+/**
+ * Vérifie en base qu'un id correspond bien à un admin. Utilisé uniquement par
+ * le repli de la fenêtre de compatibilité côté action : même sur ce chemin, le
+ * rôle n'est jamais déduit de l'argument reçu.
+ */
+export const isAdminUserId = internalQuery({
+  args: { userId: v.id('users') },
+  handler: async (ctx, { userId }) => {
+    const user = await ctx.db.get(userId);
+    return user?.role === 'admin';
+  },
+});
+
 export const resolveAdminUserId = internalQuery({
   args: { sessionToken: v.string() },
   handler: async (ctx, { sessionToken }) => {
