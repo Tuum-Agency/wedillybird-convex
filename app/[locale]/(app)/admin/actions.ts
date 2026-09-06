@@ -661,3 +661,71 @@ export async function adminSetAffiliateStatusAction(
     return { ok: false, error: msg(e) };
   }
 }
+
+/**
+ * Marque une commission comme VERSÉE (après virement réel au partenaire).
+ * `markReferralPaid` est idempotente et journalise dans l'audit — c'est la
+ * seule sortie de `vested` pour une commission cash.
+ */
+export async function adminMarkReferralPaidAction(
+  referralId: string,
+  payoutReference?: string,
+): Promise<ActionResult> {
+  try {
+    const adminId = await requireAdmin();
+    const convex = getConvexServerClient();
+    await convex.mutation(convexApi.markReferralPaid, {
+      adminId,
+      referralId,
+      ...(payoutReference ? { payoutReference } : {}),
+    });
+    revalidatePath('/admin/affiliates');
+    return { ok: true };
+  } catch (e: unknown) {
+    return { ok: false, error: msg(e) };
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Forfait offert — partenariat, geste commercial, compte de démo            */
+/* -------------------------------------------------------------------------- */
+
+export async function adminGrantEventPlanAction(
+  eventId: string,
+  planTier: 'essential' | 'premium',
+  reason?: string,
+): Promise<ActionResult> {
+  try {
+    const adminId = await requireAdmin();
+    const convex = getConvexServerClient();
+    await convex.mutation(convexApi.adminGrantEventPlan, {
+      adminId,
+      eventId,
+      planTier,
+      ...(reason ? { reason } : {}),
+    });
+    revalidatePath('/admin/events');
+    return { ok: true };
+  } catch (e: unknown) {
+    return { ok: false, error: msg(e) };
+  }
+}
+
+export async function adminRevokeEventPlanAction(
+  eventId: string,
+  reason?: string,
+): Promise<ActionResult> {
+  try {
+    const adminId = await requireAdmin();
+    const convex = getConvexServerClient();
+    await convex.mutation(convexApi.adminRevokeEventPlan, {
+      adminId,
+      eventId,
+      ...(reason ? { reason } : {}),
+    });
+    revalidatePath('/admin/events');
+    return { ok: true };
+  } catch (e: unknown) {
+    return { ok: false, error: msg(e) };
+  }
+}

@@ -106,7 +106,14 @@
       "colOwner": "المالك",
       "confirmChangeStatus": "تغيير الحالة إلى «{status}»؟",
       "statusPlaceholder": "الحالة…",
-      "confirmDelete": "حذف الفعالية «{title}»؟"
+      "confirmDelete": "حذف الفعالية «{title}»؟",
+      "compedBadge": "مجاني",
+      "grantPlanPlaceholder": "منح…",
+      "grantEssential": "منح الباقة الأساسية",
+      "grantPremium": "منح باقة بريميوم",
+      "confirmGrantPlan": "منح باقة «{plan}» لهذا الحدث دون دفع؟",
+      "revokePlan": "سحب المنح",
+      "confirmRevokePlan": "سحب الباقة الممنوحة من هذا الحدث؟"
     },
     "moderation": {
       "photosHeading": "الصور المعلّقة ({count})",
@@ -5543,6 +5550,38 @@
       "type": "صيغة غير مدعومة (MP3 أو M4A)",
       "size": "الملف كبير جدًا (بحد أقصى 10 م.ب)",
       "network": "فشل الرفع — حاول مجددًا"
+    }
+  },
+  "Partner": {
+    "eyebrow": "برنامج الشركاء",
+    "title": "مساحتك كشريك",
+    "subtitle": "شارك رابطك، وتابع المبيعات التي يحققها وما هو مستحق لك.",
+    "linkTitle": "رابط المشاركة الخاص بك",
+    "copy": "نسخ",
+    "copied": "تم النسخ",
+    "codeDisabled": "معطّل",
+    "codeTerms": "عمولة {rate} % على كل عملية بيع منسوبة إليك.",
+    "codeTermsWithDiscount": "عمولة {rate} % وخصم {discount} % لمجتمعك.",
+    "earningsTitle": "عمولاتك",
+    "statSales": "المبيعات المنسوبة",
+    "statVested": "مستحق",
+    "statVestedHint": "جاهز للصرف.",
+    "statPending": "قيد الانتظار",
+    "statPendingHint": "يصبح مستحقاً يوم الزفاف.",
+    "statPaid": "تم صرفه",
+    "ledgerTitle": "التفاصيل",
+    "ledgerEmpty": "لا توجد مبيعات منسوبة بعد.",
+    "colDate": "التاريخ",
+    "colCode": "الرمز",
+    "colReward": "العمولة",
+    "colStatus": "الحالة",
+    "payoutNote": "تصبح العمولة مستحقة يوم الزفاف المعني: حتى ذلك الحين، لا يزال بإمكان الزوجين استرداد المبلغ. تتم المدفوعات عبر التحويل البنكي؛ راسلنا لأي استفسار بخصوص مبلغ ما.",
+    "status": {
+      "pending": "قيد الانتظار",
+      "vested": "مستحق",
+      "paid": "مدفوع",
+      "credited": "مُضاف كرصيد",
+      "reversed": "ملغى"
     }
   }
 }

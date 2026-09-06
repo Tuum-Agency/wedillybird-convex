@@ -106,7 +106,14 @@
       "colOwner": "Propietario",
       "confirmChangeStatus": "¿Cambiar el estado a «{status}»?",
       "statusPlaceholder": "Estado…",
-      "confirmDelete": "¿Eliminar el evento «{title}»?"
+      "confirmDelete": "¿Eliminar el evento «{title}»?",
+      "compedBadge": "Cortesía",
+      "grantPlanPlaceholder": "Conceder…",
+      "grantEssential": "Conceder Esencial",
+      "grantPremium": "Conceder Premium",
+      "confirmGrantPlan": "¿Conceder el plan «{plan}» a este evento, sin pago?",
+      "revokePlan": "Retirar cortesía",
+      "confirmRevokePlan": "¿Retirar el plan de cortesía de este evento?"
     },
     "moderation": {
       "photosHeading": "Fotos pendientes ({count})",
@@ -5547,6 +5554,38 @@
       "type": "Formato no compatible (MP3 o M4A)",
       "size": "Archivo demasiado grande (máx. 10 MB)",
       "network": "Error al subir: inténtalo de nuevo"
+    }
+  },
+  "Partner": {
+    "eyebrow": "Programa de socios",
+    "title": "Tu espacio de socio",
+    "subtitle": "Comparte tu enlace, sigue las ventas que genera y lo que se te debe.",
+    "linkTitle": "Tu enlace para compartir",
+    "copy": "Copiar",
+    "copied": "Copiado",
+    "codeDisabled": "Desactivado",
+    "codeTerms": "{rate} % de comisión en cada venta atribuida.",
+    "codeTermsWithDiscount": "{rate} % de comisión y {discount} % de descuento para tu comunidad.",
+    "earningsTitle": "Tus comisiones",
+    "statSales": "Ventas atribuidas",
+    "statVested": "Consolidado",
+    "statVestedHint": "Listo para pagarse.",
+    "statPending": "Pendiente",
+    "statPendingHint": "Se consolida el día de la boda.",
+    "statPaid": "Ya pagado",
+    "ledgerTitle": "Detalle",
+    "ledgerEmpty": "Aún no hay ventas atribuidas.",
+    "colDate": "Fecha",
+    "colCode": "Código",
+    "colReward": "Comisión",
+    "colStatus": "Estado",
+    "payoutNote": "Una comisión se consolida el día de la boda correspondiente: hasta entonces, la pareja aún puede recibir un reembolso. Los pagos se realizan por transferencia; escríbenos si tienes dudas sobre algún importe.",
+    "status": {
+      "pending": "Pendiente",
+      "vested": "Consolidado",
+      "paid": "Pagado",
+      "credited": "Acreditado",
+      "reversed": "Anulado"
     }
   }
 }

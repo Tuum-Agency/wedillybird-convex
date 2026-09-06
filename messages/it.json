@@ -106,7 +106,14 @@
       "colOwner": "Proprietario",
       "confirmChangeStatus": "Cambiare lo stato in «{status}»?",
       "statusPlaceholder": "Stato…",
-      "confirmDelete": "Eliminare l'evento «{title}»?"
+      "confirmDelete": "Eliminare l'evento «{title}»?",
+      "compedBadge": "Omaggio",
+      "grantPlanPlaceholder": "Offri…",
+      "grantEssential": "Offri Essenziale",
+      "grantPremium": "Offri Premium",
+      "confirmGrantPlan": "Offrire il piano «{plan}» a questo evento, senza pagamento?",
+      "revokePlan": "Revoca omaggio",
+      "confirmRevokePlan": "Revocare il piano offerto per questo evento?"
     },
     "moderation": {
       "photosHeading": "Foto in attesa ({count})",
@@ -5547,6 +5554,38 @@
       "type": "Formato non supportato (MP3 o M4A)",
       "size": "File troppo grande (max 10 MB)",
       "network": "Caricamento non riuscito: riprova"
+    }
+  },
+  "Partner": {
+    "eyebrow": "Programma partner",
+    "title": "Il tuo spazio partner",
+    "subtitle": "Condividi il tuo link, segui le vendite che genera e quanto ti spetta.",
+    "linkTitle": "Il tuo link da condividere",
+    "copy": "Copia",
+    "copied": "Copiato",
+    "codeDisabled": "Disattivato",
+    "codeTerms": "{rate} % di commissione su ogni vendita attribuita.",
+    "codeTermsWithDiscount": "{rate} % di commissione e {discount} % di sconto per la tua community.",
+    "earningsTitle": "Le tue commissioni",
+    "statSales": "Vendite attribuite",
+    "statVested": "Maturato",
+    "statVestedHint": "Pronto per il pagamento.",
+    "statPending": "In attesa",
+    "statPendingHint": "Matura il giorno del matrimonio.",
+    "statPaid": "Già pagato",
+    "ledgerTitle": "Dettaglio",
+    "ledgerEmpty": "Nessuna vendita attribuita per ora.",
+    "colDate": "Data",
+    "colCode": "Codice",
+    "colReward": "Commissione",
+    "colStatus": "Stato",
+    "payoutNote": "Una commissione matura il giorno del matrimonio a cui si riferisce: fino ad allora la coppia può ancora essere rimborsata. I pagamenti avvengono tramite bonifico; scrivici per qualsiasi domanda su un importo.",
+    "status": {
+      "pending": "In attesa",
+      "vested": "Maturato",
+      "paid": "Pagato",
+      "credited": "Accreditato",
+      "reversed": "Annullato"
     }
   }
 }

@@ -294,6 +294,11 @@ export async function POST(
         provider,
         providerSessionId: event.providerSessionId,
         providerEventId: event.providerEventId,
+        // Encaissement réel (après remise) → base de la commission d'affiliation,
+        // et code promo tapé → rattrapage d'attribution quand l'acheteur n'a pas
+        // cliqué le lien `?ref=` du partenaire.
+        netMinor: event.amountMinor,
+        promotionCode: event.promotionCode,
       });
 
       // Analytics serveur : event de revenu `purchase_completed`. On ne le tire

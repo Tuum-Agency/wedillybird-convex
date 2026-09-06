@@ -106,7 +106,14 @@
       "colOwner": "Owner",
       "confirmChangeStatus": "Change status to “{status}”?",
       "statusPlaceholder": "Status…",
-      "confirmDelete": "Delete the event “{title}”?"
+      "confirmDelete": "Delete the event “{title}”?",
+      "compedBadge": "Comped",
+      "grantPlanPlaceholder": "Grant…",
+      "grantEssential": "Grant Essential",
+      "grantPremium": "Grant Premium",
+      "confirmGrantPlan": "Grant the “{plan}” plan to this event, with no payment?",
+      "revokePlan": "Revoke comp",
+      "confirmRevokePlan": "Revoke the comped plan on this event?"
     },
     "moderation": {
       "photosHeading": "Pending photos ({count})",
@@ -5543,6 +5550,38 @@
       "type": "Unsupported format (MP3 or M4A)",
       "size": "File too large (10 MB max)",
       "network": "Upload failed — try again"
+    }
+  },
+  "Partner": {
+    "eyebrow": "Partner programme",
+    "title": "Your partner space",
+    "subtitle": "Share your link, follow the sales it generates and what you are owed.",
+    "linkTitle": "Your sharing link",
+    "copy": "Copy",
+    "copied": "Copied",
+    "codeDisabled": "Disabled",
+    "codeTerms": "{rate}% commission on every attributed sale.",
+    "codeTermsWithDiscount": "{rate}% commission, and {discount}% off for your community.",
+    "earningsTitle": "Your commissions",
+    "statSales": "Attributed sales",
+    "statVested": "Vested",
+    "statVestedHint": "Ready to be paid out.",
+    "statPending": "Pending",
+    "statPendingHint": "Vests on the wedding day.",
+    "statPaid": "Already paid",
+    "ledgerTitle": "Breakdown",
+    "ledgerEmpty": "No attributed sale yet.",
+    "colDate": "Date",
+    "colCode": "Code",
+    "colReward": "Commission",
+    "colStatus": "Status",
+    "payoutNote": "A commission vests on the day of the wedding it relates to: until then, the couple can still be refunded. Payouts are made by bank transfer; write to us with any question about an amount.",
+    "status": {
+      "pending": "Pending",
+      "vested": "Vested",
+      "paid": "Paid",
+      "credited": "Credited",
+      "reversed": "Reversed"
     }
   }
 }

@@ -102,6 +102,11 @@ export async function GET(req: Request): Promise<Response> {
         provider: payment.provider,
         providerSessionId: status.providerSessionId,
         providerEventId: status.providerEventId,
+        // Mêmes bases que le webhook pour l'affiliation (net encaissé + code
+        // promo). Le driver mock ne connaît pas le montant → on ne le passe pas.
+        ...(payment.provider === 'stripe'
+          ? { netMinor: status.amountMinor, promotionCode: status.promotionCode }
+          : {}),
       });
 
       if (!result.alreadyApplied) {

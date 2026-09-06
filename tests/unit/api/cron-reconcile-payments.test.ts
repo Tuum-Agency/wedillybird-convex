@@ -116,6 +116,11 @@ describe('GET /api/cron/reconcile-payments', () => {
       provider: 'stripe',
       providerSessionId: 'sess_1',
       providerEventId: 'sess_1',
+      // Mêmes bases d'affiliation que le webhook : la commission se calcule sur
+      // l'encaissement REEL relu chez Stripe, et un code promo tapé au checkout
+      // rattache encore la vente au partenaire même si ce cron gagne la course.
+      netMinor: 2900,
+      promotionCode: undefined,
     });
     // Analytics revenu émis pour le paiement récupéré, comme le webhook.
     expect(captureServerMock).toHaveBeenCalledWith(
