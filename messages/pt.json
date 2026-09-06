@@ -106,7 +106,14 @@
       "colOwner": "Proprietário",
       "confirmChangeStatus": "Mudar o status para «{status}»?",
       "statusPlaceholder": "Status…",
-      "confirmDelete": "Excluir o evento «{title}»?"
+      "confirmDelete": "Excluir o evento «{title}»?",
+      "compedBadge": "Oferecido",
+      "grantPlanPlaceholder": "Oferecer…",
+      "grantEssential": "Oferecer Essencial",
+      "grantPremium": "Oferecer Premium",
+      "confirmGrantPlan": "Oferecer o plano «{plan}» a este evento, sem pagamento?",
+      "revokePlan": "Retirar oferta",
+      "confirmRevokePlan": "Retirar o plano oferecido deste evento?"
     },
     "moderation": {
       "photosHeading": "Fotos pendentes ({count})",
@@ -5547,6 +5554,38 @@
       "type": "Formato não suportado (MP3 ou M4A)",
       "size": "Ficheiro demasiado grande (máx. 10 MB)",
       "network": "Falha no envio — tente novamente"
+    }
+  },
+  "Partner": {
+    "eyebrow": "Programa de parceiros",
+    "title": "O seu espaço de parceiro",
+    "subtitle": "Partilhe o seu link, acompanhe as vendas que gera e o que lhe é devido.",
+    "linkTitle": "O seu link para partilhar",
+    "copy": "Copiar",
+    "copied": "Copiado",
+    "codeDisabled": "Desativado",
+    "codeTerms": "{rate} % de comissão em cada venda atribuída.",
+    "codeTermsWithDiscount": "{rate} % de comissão e {discount} % de desconto para a sua comunidade.",
+    "earningsTitle": "As suas comissões",
+    "statSales": "Vendas atribuídas",
+    "statVested": "Adquirido",
+    "statVestedHint": "Pronto para pagamento.",
+    "statPending": "Pendente",
+    "statPendingHint": "Adquirido no dia do casamento.",
+    "statPaid": "Já pago",
+    "ledgerTitle": "Detalhe",
+    "ledgerEmpty": "Ainda não há vendas atribuídas.",
+    "colDate": "Data",
+    "colCode": "Código",
+    "colReward": "Comissão",
+    "colStatus": "Estado",
+    "payoutNote": "Uma comissão é adquirida no dia do casamento a que diz respeito: até lá, o casal ainda pode ser reembolsado. Os pagamentos são feitos por transferência; escreva-nos com qualquer dúvida sobre um valor.",
+    "status": {
+      "pending": "Pendente",
+      "vested": "Adquirido",
+      "paid": "Pago",
+      "credited": "Creditado",
+      "reversed": "Anulado"
     }
   }
 }

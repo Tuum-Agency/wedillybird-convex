@@ -48,6 +48,13 @@ export default async function UpgradeSuccessPage({
           provider,
           providerSessionId: status.providerSessionId,
           providerEventId: status.providerEventId,
+          // Encaissement réel + code promo, comme le webhook : si ce filet
+          // gagne la course, la commission d'affiliation doit être calculée sur
+          // les mêmes bases (le driver mock ne connaît pas le montant, on ne
+          // lui fait donc pas dire 0).
+          ...(provider === 'stripe'
+            ? { netMinor: status.amountMinor, promotionCode: status.promotionCode }
+            : {}),
         });
       }
     } catch (err) {

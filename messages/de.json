@@ -106,7 +106,14 @@
       "colOwner": "Inhaber",
       "confirmChangeStatus": "Status in „{status}“ ändern?",
       "statusPlaceholder": "Status…",
-      "confirmDelete": "Das Event „{title}“ löschen?"
+      "confirmDelete": "Das Event „{title}“ löschen?",
+      "compedBadge": "Geschenkt",
+      "grantPlanPlaceholder": "Freischalten…",
+      "grantEssential": "Essential freischalten",
+      "grantPremium": "Premium freischalten",
+      "confirmGrantPlan": "Den Tarif „{plan}“ für dieses Event ohne Zahlung freischalten?",
+      "revokePlan": "Freischaltung entziehen",
+      "confirmRevokePlan": "Den geschenkten Tarif für dieses Event entziehen?"
     },
     "moderation": {
       "photosHeading": "Ausstehende Fotos ({count})",
@@ -5547,6 +5554,38 @@
       "type": "Nicht unterstütztes Format (MP3 oder M4A)",
       "size": "Datei zu groß (max. 10 MB)",
       "network": "Upload fehlgeschlagen – bitte erneut versuchen"
+    }
+  },
+  "Partner": {
+    "eyebrow": "Partnerprogramm",
+    "title": "Ihr Partnerbereich",
+    "subtitle": "Teilen Sie Ihren Link, verfolgen Sie die daraus entstehenden Verkäufe und Ihr Guthaben.",
+    "linkTitle": "Ihr Link zum Teilen",
+    "copy": "Kopieren",
+    "copied": "Kopiert",
+    "codeDisabled": "Deaktiviert",
+    "codeTerms": "{rate} % Provision auf jeden zugeordneten Verkauf.",
+    "codeTermsWithDiscount": "{rate} % Provision und {discount} % Rabatt für Ihre Community.",
+    "earningsTitle": "Ihre Provisionen",
+    "statSales": "Zugeordnete Verkäufe",
+    "statVested": "Fällig",
+    "statVestedHint": "Bereit zur Auszahlung.",
+    "statPending": "Ausstehend",
+    "statPendingHint": "Wird am Hochzeitstag fällig.",
+    "statPaid": "Bereits ausgezahlt",
+    "ledgerTitle": "Übersicht",
+    "ledgerEmpty": "Noch keine zugeordneten Verkäufe.",
+    "colDate": "Datum",
+    "colCode": "Code",
+    "colReward": "Provision",
+    "colStatus": "Status",
+    "payoutNote": "Eine Provision wird am Tag der betreffenden Hochzeit fällig: bis dahin kann das Paar noch eine Rückerstattung erhalten. Auszahlungen erfolgen per Überweisung; schreiben Sie uns bei Fragen zu einem Betrag.",
+    "status": {
+      "pending": "Ausstehend",
+      "vested": "Fällig",
+      "paid": "Ausgezahlt",
+      "credited": "Gutgeschrieben",
+      "reversed": "Storniert"
     }
   }
 }

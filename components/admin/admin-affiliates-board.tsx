@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Handshake, Loader2, Plus } from 'lucide-react';
 import {
   adminCreateAffiliateAction,
+  adminMarkReferralPaidAction,
   adminSetAffiliateStatusAction,
 } from '@/app/[locale]/(app)/admin/actions';
 
@@ -105,6 +106,29 @@ export function AdminAffiliatesBoard({
   function toggle(a: Affiliate) {
     startTransition(async () => {
       await adminSetAffiliateStatusAction(a.id, a.status === 'active' ? 'disabled' : 'active');
+      router.refresh();
+    });
+  }
+
+  /**
+   * Versement d'une commission acquise. Le virement lui-même est manuel (hors
+   * app) ; ce bouton acte le versement dans le ledger — sans lui, une
+   * commission `vested` restait due indéfiniment, aucune sortie de statut
+   * n'étant exposée au back-office.
+   */
+  function markPaid(r: Referral) {
+    setError(null);
+    const reference = window.prompt(
+      `Marquer ${fmtMinor(r.rewardMinor, r.currency)} (${r.code}) comme versé.\n\nRéférence du virement (facultatif) :`,
+      '',
+    );
+    if (reference === null) return;
+    startTransition(async () => {
+      const res = await adminMarkReferralPaidAction(r.id, reference.trim() || undefined);
+      if (!res.ok) {
+        setError(res.error);
+        return;
+      }
       router.refresh();
     });
   }
@@ -346,6 +370,7 @@ export function AdminAffiliatesBoard({
                 <th className="px-4 py-2.5">Récompense</th>
                 <th className="px-4 py-2.5">Statut</th>
                 <th className="px-4 py-2.5">Acquis le</th>
+                <th className="px-4 py-2.5">Versement</th>
               </tr>
             </thead>
             <tbody>
@@ -363,12 +388,26 @@ export function AdminAffiliatesBoard({
                   <td className="px-4 py-2.5 text-[color:var(--color-ink-500)]">
                     {new Date(r.vestsAt).toLocaleDateString('fr-FR')}
                   </td>
+                  <td className="px-4 py-2.5">
+                    {r.status === 'vested' ? (
+                      <button
+                        type="button"
+                        onClick={() => markPaid(r)}
+                        disabled={pending}
+                        className="rounded-md border border-[color:var(--color-border)] px-2 py-1 text-xs font-medium transition-colors hover:bg-[color:var(--color-surface)] disabled:opacity-50"
+                      >
+                        Marquer versé
+                      </button>
+                    ) : (
+                      <span className="text-[color:var(--color-ink-500)]">—</span>
+                    )}
+                  </td>
                 </tr>
               ))}
               {referrals.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={5}
+                    colSpan={6}
                     className="px-4 py-8 text-center text-sm text-[color:var(--color-ink-500)]"
                   >
                     Aucune attribution pour l&apos;instant.

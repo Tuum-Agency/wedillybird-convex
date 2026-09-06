@@ -327,6 +327,20 @@ export default defineSchema({
      */
     pendingPlanTier: v.optional(v.union(v.literal('essential'), v.literal('premium'))),
     paidAt: v.optional(v.number()),
+    /**
+     * Forfait OFFERT par l'équipe (partenariat, geste commercial, compte de
+     * démo) plutôt que payé. Présent ⇒ `planTier` et `paidAt` ont été posés
+     * sans transaction Stripe : indispensable pour ne pas confondre un accès
+     * offert avec un revenu lors d'un audit, et pour savoir qui l'a accordé.
+     * Posé par `admin:grantEventPlan`, effacé par sa révocation.
+     */
+    compedPlan: v.optional(
+      v.object({
+        grantedBy: v.id('users'),
+        grantedAt: v.number(),
+        reason: v.optional(v.string()),
+      }),
+    ),
     // Hard cap kept for anti-abuse (uniform across plans). Defaults to 5000 on create.
     maxGuests: v.number(),
     // Gallery access expires after this timestamp. Computed from planTier
@@ -1121,6 +1135,7 @@ export default defineSchema({
       v.literal('photo_book'),
       v.literal('template'),
       v.literal('newsletter'),
+      v.literal('affiliate'),
     ),
     targetId: v.string(),
     details: v.optional(v.string()),

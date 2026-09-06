@@ -106,7 +106,14 @@
       "colOwner": "Propriétaire",
       "confirmChangeStatus": "Changer le statut en « {status} » ?",
       "statusPlaceholder": "Statut…",
-      "confirmDelete": "Supprimer l’événement « {title} » ?"
+      "confirmDelete": "Supprimer l’événement « {title} » ?",
+      "compedBadge": "Offert",
+      "grantPlanPlaceholder": "Offrir…",
+      "grantEssential": "Offrir Essentiel",
+      "grantPremium": "Offrir Premium",
+      "confirmGrantPlan": "Offrir le forfait « {plan} » à cet événement, sans paiement ?",
+      "revokePlan": "Retirer l’offert",
+      "confirmRevokePlan": "Retirer le forfait offert à cet événement ?"
     },
     "moderation": {
       "photosHeading": "Photos en attente ({count})",
@@ -5547,6 +5554,38 @@
       "type": "Format non pris en charge (MP3 ou M4A)",
       "size": "Fichier trop lourd (10 Mo max)",
       "network": "Échec de l'envoi — réessayez"
+    }
+  },
+  "Partner": {
+    "eyebrow": "Programme partenaire",
+    "title": "Votre espace partenaire",
+    "subtitle": "Partagez votre lien, suivez les ventes qu’il génère et ce qui vous est dû.",
+    "linkTitle": "Votre lien à partager",
+    "copy": "Copier",
+    "copied": "Copié",
+    "codeDisabled": "Désactivé",
+    "codeTerms": "{rate} % de commission sur chaque vente attribuée.",
+    "codeTermsWithDiscount": "{rate} % de commission, et {discount} % de remise pour votre communauté.",
+    "earningsTitle": "Vos commissions",
+    "statSales": "Ventes attribuées",
+    "statVested": "Acquis",
+    "statVestedHint": "Prêt à être versé.",
+    "statPending": "En attente",
+    "statPendingHint": "Acquis le jour du mariage.",
+    "statPaid": "Déjà versé",
+    "ledgerTitle": "Détail",
+    "ledgerEmpty": "Aucune vente attribuée pour l’instant.",
+    "colDate": "Date",
+    "colCode": "Code",
+    "colReward": "Commission",
+    "colStatus": "Statut",
+    "payoutNote": "Une commission devient « acquise » le jour du mariage concerné : jusque-là, le couple peut encore être remboursé. Les versements sont effectués par virement ; écrivez-nous pour toute question sur un montant.",
+    "status": {
+      "pending": "En attente",
+      "vested": "Acquis",
+      "paid": "Versé",
+      "credited": "Crédité",
+      "reversed": "Annulé"
     }
   }
 }
